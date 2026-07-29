@@ -67,6 +67,14 @@ const LINE_FIELDS = [
 const COVER_FIELDS = [
   ['Mã DA', T.TEXT], ['STT', T.TEXT], ['Hạng mục', T.TEXT], ['Mô tả', T.TEXT], ['Chi phí', T.NUMBER]
 ];
+// Danh mục sản phẩm (khi Base chưa có bảng danh mục -> app tự tạo bảng này).
+// Field đầu = primary (text) -> 'Tên sản phẩm'.
+const PRODUCT_FIELDS = [
+  ['Tên sản phẩm', T.TEXT], ['Nhóm', T.TEXT], ['Hạng mục', T.TEXT], ['Thương hiệu', T.TEXT],
+  ['Nhà cung cấp', T.TEXT], ['Mã SP', T.TEXT], ['Mô tả', T.TEXT], ['Kích thước', T.TEXT],
+  ['ĐVT', T.TEXT], ['Đơn giá', T.NUMBER], ['Hình ảnh', T.ATTACHMENT]
+];
+const PRODUCT_TABLE_NAME = 'Danh mục sản phẩm';
 
 /*** ===== HELPER (port nguyên văn) ===== ***/
 function normalize_(s) {
@@ -172,7 +180,8 @@ let _setupDone = false;
 async function setup() {
   if (_setupDone) return;
   config.assertCredentials();
-  if (!config.tables.products) throw new Error('Thiếu LARK_TBL_PRODUCTS trong .env');
+  // Chưa cấu hình bảng danh mục -> tự tạo/tìm bảng 'Danh mục sản phẩm'
+  if (!config.tables.products) await ensureTable_('products', PRODUCT_TABLE_NAME, PRODUCT_FIELDS);
   await ensureTable_('projects', 'Dự án', PROJECT_FIELDS);
   await ensureTable_('lines', 'Chi tiết báo giá', LINE_FIELDS);
   await ensureTable_('cover', 'Khái toán', COVER_FIELDS);

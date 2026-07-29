@@ -20,12 +20,14 @@ Cùng một Base (`app_token` trong `.env`) gồm 4 bảng:
 
 | Bảng | Vai trò |
 |---|---|
-| **Danh mục SP** (`LARK_TBL_PRODUCTS`, có sẵn) | Sản phẩm gốc: Nhóm, Hạng mục, Tên sản phẩm, Thương hiệu, Nhà cung cấp, Mã SP, Mô tả, Kích thước, ĐVT, Đơn giá, Hình ảnh |
+| **Danh mục sản phẩm** | Sản phẩm gốc: Tên sản phẩm, Nhóm, Hạng mục, Thương hiệu, Nhà cung cấp, Mã SP, Mô tả, Kích thước, ĐVT, Đơn giá, Hình ảnh |
 | **Dự án** | Mỗi record 1 dự án |
 | **Chi tiết báo giá** | Mỗi record 1 hạng mục, gắn `Mã DA` |
 | **Khái toán** | Dòng tờ bìa (ước tính chi phí) |
 
-3 bảng dưới **app tự tạo** ở lần chạy đầu (nếu Lark app có quyền tạo bảng) và lưu id vào `server/tables.local.json`. Nếu app không có quyền tạo bảng: tự tạo trên Lark rồi điền `LARK_TBL_PROJECTS/LINES/COVER` vào `.env`.
+Cả 4 bảng đều **app tự tạo/tự khớp theo tên** ở lần chạy đầu (nếu Lark app có quyền tạo bảng — scope `base:table:create`) và lưu id vào `server/tables.local.json`. Nếu đã có sẵn bảng danh mục mặt hàng (có Đơn giá), điền `LARK_TBL_PRODUCTS` vào `.env` để dùng bảng đó thay vì tạo mới. Nếu app không có quyền tạo bảng: tự tạo trên Lark rồi điền các `LARK_TBL_*` vào `.env`.
+
+> Lưu ý: bảng `tblnJMfzuGgTxzII` trong Base mẫu là **Nhà cung cấp/Thương hiệu**, không phải danh mục mặt hàng — nên để `LARK_TBL_PRODUCTS` trống cho app tạo bảng `Danh mục sản phẩm` riêng.
 
 Tên cột bảng sản phẩm được dò **theo tên** (fuzzy, dấu tiếng Việt) nên không sợ đổi thứ tự; alias xem trong `server/store.js` (`productFieldMap`).
 
