@@ -189,5 +189,5 @@ module.exports = {
   tenantToken, call, listRecords, searchRecords, findByField, getRecord,
   createRecord, updateRecord, deleteRecord,
   batchCreate, batchDelete, listTables, listFields, createTable, mediaDownload,
-  FieldType: { TEXT: 1, NUMBER: 2, SINGLE_SELECT: 3, DATETIME: 5, ATTACHMENT: 17 }
+  FieldType: { TEXT: 1, NUMBER: 2, SINGLE_SELECT: 3, DATETIME: 5, ATTACHMENT: 17, AUTO_NUMBER: 1005 }
 };

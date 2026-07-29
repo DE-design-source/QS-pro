@@ -69,10 +69,11 @@ const COVER_FIELDS = [
 ];
 // Danh mục sản phẩm (khi Base chưa có bảng danh mục -> app tự tạo bảng này).
 // Field đầu = primary (text) -> 'Tên sản phẩm'.
+// STT (Auto Number) là cột đầu = primary/index field của bảng.
 const PRODUCT_FIELDS = [
-  ['Tên sản phẩm', T.TEXT], ['Nhóm', T.TEXT], ['Hạng mục', T.TEXT], ['Thương hiệu', T.TEXT],
-  ['Nhà cung cấp', T.TEXT], ['Mã SP', T.TEXT], ['Mô tả', T.TEXT], ['Kích thước', T.TEXT],
-  ['ĐVT', T.TEXT], ['Đơn giá', T.NUMBER], ['Hình ảnh', T.ATTACHMENT]
+  ['STT', T.AUTO_NUMBER], ['Tên sản phẩm', T.TEXT], ['Nhóm', T.TEXT], ['Hạng mục', T.TEXT],
+  ['Thương hiệu', T.TEXT], ['Nhà cung cấp', T.TEXT], ['Mã SP', T.TEXT], ['Mô tả', T.TEXT],
+  ['Kích thước', T.TEXT], ['ĐVT', T.TEXT], ['Đơn giá', T.NUMBER], ['Hình ảnh', T.ATTACHMENT]
 ];
 const PRODUCT_TABLE_NAME = 'Danh mục sản phẩm';
 
