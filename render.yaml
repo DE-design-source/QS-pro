@@ -1,0 +1,31 @@
+# Render Blueprint — deploy QS Pro (Node web service).
+# Cách dùng: Render Dashboard -> New -> Blueprint -> chọn repo QS-pro.
+# 2 biến bí mật (sync:false) sẽ nhập trên Dashboard, KHÔNG nằm trong code.
+services:
+  - type: web
+    name: qs-pro
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: LARK_DOMAIN
+        value: https://open.larksuite.com
+      - key: LARK_APP_TOKEN
+        value: GpCXbwtuvaOB0BsavQrlgS5ggXc
+      - key: LARK_TBL_PRODUCTS
+        value: tbloW9NkLk9lwV5V
+      - key: LARK_TBL_PROJECTS
+        value: tbl1JUceYBQ2gZ9Y
+      - key: LARK_TBL_LINES
+        value: tblI9uBLvTy4GcYx
+      - key: LARK_TBL_COVER
+        value: tblutEmDYQMZv9ni
+      # Nhập 2 giá trị dưới trên Dashboard (Environment) — bí mật, không commit:
+      - key: LARK_APP_ID
+        sync: false
+      - key: LARK_APP_SECRET
+        sync: false

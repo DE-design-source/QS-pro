@@ -57,6 +57,18 @@ Tên cột bảng sản phẩm được dò **theo tên** (fuzzy, dấu tiếng 
 - **Excel (.xlsx):** dựng bằng ExcelJS (Tờ bìa · 3.2 Phần hoàn thiện · mỗi Nhóm 1 sheet), tải file trực tiếp.
 - **PDF:** mở trang in tự chứa và gọi hộp thoại **In → Lưu thành PDF** của trình duyệt.
 
+## Deploy web (Render)
+Repo có sẵn `render.yaml` (Blueprint). Các bước:
+1. Đăng nhập [render.com](https://render.com) (đăng ký bằng GitHub).
+2. **New ▸ Blueprint** → kết nối GitHub → chọn repo `DE-design-source/QS-pro`.
+3. Render đọc `render.yaml` và hỏi 2 biến bí mật — nhập:
+   - `LARK_APP_ID`
+   - `LARK_APP_SECRET`
+   (App Token & table id đã cấu hình sẵn trong `render.yaml`; secret không nằm trong code.)
+4. **Apply / Deploy** → chờ build. Xong sẽ có link cố định dạng `https://qs-pro-xxxx.onrender.com`.
+
+> Gói **free** của Render sẽ "ngủ" sau ~15 phút không dùng; request đầu tiên sau khi ngủ mất ~30–60s để dậy. Cần chạy liên tục thì nâng lên gói trả phí.
+
 ## Ghi chú
 - `.env` và `server/tables.local.json` **không commit** (đã có trong `.gitignore`).
 - Ảnh sản phẩm dạng attachment của Lark được phục vụ qua proxy `/media?token=…` (dùng token phía server).
