@@ -15,7 +15,8 @@ function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.cl
 
 /* ===== STATE ===== */
 var S={ projects:[], products:[], cur:null, lines:[], node:'3.2.6.1', addTang:'',
-  fWatt:{}, fKelvin:{}, fAngle:{}, fBrand:'', fNhom:'', cols:{} };
+  fWatt:{}, fKelvin:{}, fAngle:{}, fBrand:'', fNhom:'', cols:{}, _drag:null,
+  rowH:(function(){ try{ return JSON.parse(localStorage.getItem('qs_rowh')||'{}')||{}; }catch(e){ return {}; } })() };
 
 /* cây hạng mục (mã, tên, cấp) */
 var TREE=[
@@ -328,15 +329,16 @@ function renderTable(){
     body+='<tr class="grp"><td colspan="'+(cols.length+1)+'" data-f="'+esc(g)+'">'+roman+'.'+esc(g)
       +'<button class="addrow" onclick="addItemToFloor(this.closest(\'td\').dataset.f)">＋ hạng mục</button></td></tr>';
     (groups[g]||[]).forEach(function(l,ri){
-      body+='<tr>'+cols.map(function(c){
+      var hs=S.rowH[l.lineId]?' style="height:'+S.rowH[l.lineId]+'px"':'';
+      body+='<tr class="drow" draggable="true" data-id="'+l.lineId+'" data-tang="'+esc(l.tang||'')+'"'+hs+'>'+cols.map(function(c){
         var k=c[0];
-        if(k==='stt') return '<td class="ct">'+(gi+1)+'.'+(ri+1)+'</td>';
+        if(k==='stt') return '<td class="ct dragH" title="Kéo để di chuyển dòng"><span class="grip">⠿</span> '+(gi+1)+'.'+(ri+1)+'</td>';
         if(k==='khuVuc') return '<td><input class="qty" style="width:120px;text-align:left" placeholder="Phòng…" value="'+esc(l.khuVuc||'')+'" onchange="editLine(\''+l.lineId+'\',{khuVuc:this.value})"></td>';
         if(k==='soLuong') return '<td class="num"><input class="qty" type="number" value="'+(l.soLuong||0)+'" onchange="editLine(\''+l.lineId+'\',{soLuong:this.value})"></td>';
         if(k==='donGia') return '<td class="num"><input class="price" type="number" value="'+(l.donGiaBan||0)+'" onchange="editLine(\''+l.lineId+'\',{donGiaBan:this.value})"></td>';
         var cls=numK.indexOf(k)>=0?'num':(ctK.indexOf(k)>=0?'ct':(k==='ten'?'td-ten':(k==='moTa'||k==='kichThuoc'?'wrap':'')));
         return '<td class="'+cls+'">'+cellVal(l,k)+'</td>';
-      }).join('')+'<td class="ct"><button class="del" title="Xoá dòng" onclick="delLine(\''+l.lineId+'\')">✕</button></td></tr>';
+      }).join('')+'<td class="ct actcell"><button class="del" title="Xoá dòng" onclick="delLine(\''+l.lineId+'\')">✕</button><div class="rgrip" data-id="'+l.lineId+'" title="Kéo để chỉnh chiều cao dòng">⇕</div></td></tr>';
     });
   });
   t.innerHTML=head+body;
@@ -344,6 +346,61 @@ function renderTable(){
 async function editLine(id,fields){
   try{ await api('updateLine',id,fields); S.lines=await api('getLines',S.cur.maDA)||[]; renderTable(); renderCard(); }
   catch(e){ toast('Lỗi sửa: '+e.message); }
+}
+
+/* ===== KÉO DI CHUYỂN DÒNG + KÉO CHỈNH CAO DÒNG ===== */
+function initTableInteractions(){
+  var tk=document.getElementById('tkTable'); if(!tk || tk._init) return; tk._init=1;
+  function clearMarks(){ tk.querySelectorAll('.dropTop,.dropBot,.dropInto').forEach(function(x){ x.classList.remove('dropTop','dropBot','dropInto'); }); }
+  tk.addEventListener('dragstart',function(e){
+    if(e.target.closest('input,button,.rgrip')){ e.preventDefault(); return; }
+    var tr=e.target.closest('tr.drow'); if(!tr){ e.preventDefault(); return; }
+    S._drag=tr.dataset.id; tr.classList.add('dragging');
+    e.dataTransfer.effectAllowed='move'; try{ e.dataTransfer.setData('text/plain',tr.dataset.id); }catch(x){}
+  });
+  tk.addEventListener('dragend',function(){ tk.querySelectorAll('.dragging').forEach(function(x){x.classList.remove('dragging');}); clearMarks(); S._drag=null; });
+  tk.addEventListener('dragover',function(e){
+    if(!S._drag) return; e.preventDefault(); e.dataTransfer.dropEffect='move'; clearMarks();
+    var tr=e.target.closest('tr'); if(!tr) return;
+    if(tr.classList.contains('grp')){ tr.classList.add('dropInto'); return; }
+    if(!tr.classList.contains('drow')) return;
+    var r=tr.getBoundingClientRect(); tr.classList.add((e.clientY < r.top+r.height/2)?'dropTop':'dropBot');
+  });
+  tk.addEventListener('drop',function(e){
+    if(!S._drag) return; e.preventDefault();
+    var tr=e.target.closest('tr'); if(!tr){ clearMarks(); return; }
+    var before=true;
+    if(tr.classList.contains('drow')){ var r=tr.getBoundingClientRect(); before=(e.clientY < r.top+r.height/2); }
+    var id=S._drag; S._drag=null; clearMarks(); onRowDrop(id,tr,before);
+  });
+  // kéo chỉnh chiều cao dòng
+  document.addEventListener('mousedown',function(e){
+    var g=e.target.closest('.rgrip'); if(!g) return; e.preventDefault();
+    var tr=g.closest('tr'), id=g.dataset.id, startY=e.clientY, startH=tr.offsetHeight;
+    function mv(ev){ var h=Math.max(34, startH+(ev.clientY-startY)); tr.style.height=h+'px'; S.rowH[id]=h; }
+    function up(){ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); try{ localStorage.setItem('qs_rowh',JSON.stringify(S.rowH)); }catch(x){} }
+    document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+  });
+}
+async function onRowDrop(dragId,targetTr,before){
+  var di=S.lines.findIndex(function(l){return l.lineId===dragId;}); if(di<0) return;
+  var dragged=S.lines[di], floor, targetId=null;
+  if(targetTr.classList.contains('grp')){ floor=targetTr.querySelector('td').dataset.f; }
+  else { floor=targetTr.dataset.tang||''; targetId=targetTr.dataset.id; }
+  if(floor==='CHƯA PHÂN TẦNG') floor='';
+  if(targetId===dragId) return;
+  var oldTang=dragged.tang||'';
+  S.lines.splice(di,1); dragged.tang=floor;
+  var idx;
+  if(targetId){ var ti=S.lines.findIndex(function(l){return l.lineId===targetId;}); idx=ti<0?S.lines.length:(before?ti:ti+1); }
+  else { var last=-1; S.lines.forEach(function(l,i){ if((l.tang||'')===floor) last=i; }); idx=last>=0?last+1:S.lines.length; }
+  S.lines.splice(idx,0,dragged);
+  var changed=[];
+  S.lines.forEach(function(l,i){ if(l.stt!==i+1){ l.stt=i+1; if(changed.indexOf(l)<0) changed.push(l); } });
+  if(dragged.tang!==oldTang && changed.indexOf(dragged)<0) changed.push(dragged);
+  renderFloors(); renderTable();
+  try{ await Promise.all(changed.map(function(l){ return api('updateLine', l.lineId, {stt:l.stt, tang:l.tang}); })); }
+  catch(e){ toast('Lỗi lưu thứ tự: '+(e.message||e)); }
 }
 async function delLine(id){
   try{ await api('deleteLine',id); S.lines=S.lines.filter(function(l){return l.lineId!==id;}); renderTree(); renderTable(); toast('Đã xoá'); }
@@ -401,4 +458,5 @@ async function printQuote(cols){
 function renderImport(){ document.getElementById('importBox').innerHTML='<h3>Nhập dữ liệu</h3><p style="color:var(--muted)">Danh mục sản phẩm ('+S.products.length+' mặt hàng) nạp từ Lark Base. Thêm/sửa sản phẩm & đơn giá trực tiếp trên Lark (bảng “Danh mục sản phẩm”).</p>'; }
 
 /* ===== GO ===== */
+initTableInteractions();
 boot();

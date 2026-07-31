@@ -339,7 +339,9 @@ async function updateProject(maDA, data) {
     if (data.hasOwnProperty(k)) fields[map[k]] = (k === 'vat' || k === 'tienDo') ? (Number(data[k]) || 0) : (data[k] == null ? '' : data[k]);
   });
   fields['Cập nhật'] = fmtVN_('human');
-  const rec = await lark.updateRecord(config.tables.projects, rid, fields);
+  await lark.updateRecord(config.tables.projects, rid, fields);
+  // Đọc lại đầy đủ theo record_id (update response có thể thiếu field chưa đổi -> mất Mã DA)
+  const rec = await lark.getRecord(config.tables.projects, rid);
   return recToProject_(rec);
 }
 async function deleteProject(maDA) {
@@ -424,6 +426,7 @@ async function updateLine(lineId, fields) {
   });
   if (fields.hasOwnProperty('tuNhap')) upd['Tự nhập'] = Number(fields.tuNhap) ? 1 : 0;
   if (fields.hasOwnProperty('daLuuDM')) upd['Đã lưu DM'] = Number(fields.daLuuDM) ? 1 : 0;
+  if (fields.hasOwnProperty('stt')) upd['STT'] = Number(fields.stt) || 0;   // lưu thứ tự khi kéo sắp xếp
   if (fields.hasOwnProperty('extra')) upd['Thuộc tính thêm'] = JSON.stringify(fields.extra || {});
 
   var sl = fields.hasOwnProperty('soLuong') ? Number(fields.soLuong) || 0 : cur.soLuong;

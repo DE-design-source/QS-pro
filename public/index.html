@@ -118,6 +118,18 @@ table.tk tr.grp .addrow:hover{background:#ffffff33}
 table.tk .qty,table.tk .price{width:72px;border:1px solid transparent;border-radius:6px;padding:5px 6px;text-align:right;font:inherit;background:transparent}
 table.tk .qty:focus,table.tk .price:focus{border-color:var(--blue);background:#fff;outline:none}
 table.tk .del{border:none;background:transparent;color:#c33;font-size:15px}
+/* kéo di chuyển + kéo chỉnh cao dòng */
+table.tk tr.drow{cursor:default}
+table.tk td.dragH{cursor:grab;color:#8894a0;user-select:none;white-space:nowrap}
+table.tk td.dragH .grip{font-size:13px;letter-spacing:-1px;margin-right:2px}
+table.tk tr.drow.dragging{opacity:.4}
+table.tk tr.drow.dropTop td{box-shadow:inset 0 3px 0 var(--blue)}
+table.tk tr.drow.dropBot td{box-shadow:inset 0 -3px 0 var(--blue)}
+table.tk tr.grp.dropInto td{outline:2px dashed #ffffff88;outline-offset:-3px}
+table.tk td.actcell{position:relative;min-width:44px}
+table.tk .rgrip{cursor:row-resize;color:#9aa;font-size:12px;line-height:1;margin-top:6px;user-select:none;text-align:center}
+table.tk .rgrip:hover{color:var(--blue)}
+table.tk tr.drow td{overflow:hidden}
 .pname{font-weight:700}
 .empty{padding:40px;text-align:center;color:var(--muted)}
 

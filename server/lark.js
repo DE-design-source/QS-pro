@@ -97,9 +97,21 @@ async function searchRecords(tableId, conditions, conjunction) {
   } while (pageToken);
   return out;
 }
-// Lọc theo 1 field = 1 giá trị
-function findByField(tableId, fieldName, value) {
-  return searchRecords(tableId, [{ field_name: fieldName, operator: 'is', value: [String(value)] }]);
+// Đọc giá trị field về chuỗi phẳng (text field có thể là string hoặc mảng segment)
+function plainText_(v) {
+  if (v == null) return '';
+  if (typeof v === 'string') return v;
+  if (typeof v === 'number') return String(v);
+  if (Array.isArray(v)) return v.map(function (x) { return (x && x.text != null) ? x.text : (typeof x === 'string' ? x : ''); }).join('');
+  if (typeof v === 'object' && v.text != null) return String(v.text);
+  return String(v);
+}
+// Lọc theo 1 field = 1 giá trị. Dùng listRecords + lọc client (KHÔNG dùng search
+// endpoint vì search của Lark trễ index sau khi ghi -> đọc lại hay ra rỗng/thiếu).
+async function findByField(tableId, fieldName, value) {
+  const all = await listRecords(tableId);
+  const target = String(value);
+  return all.filter(function (r) { return plainText_((r.fields || {})[fieldName]) === target; });
 }
 function getRecord(tableId, recordId) {
   return call('GET',
