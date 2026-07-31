@@ -136,6 +136,26 @@ table.tk .cin.num{text-align:right}
 table.tk textarea.cin{min-height:34px;resize:vertical;line-height:1.3;white-space:normal}
 table.tk .lv1 td{background:#e9edf1;font-weight:700}
 table.tk .lv2 td{background:#f3f5f8}
+/* header cột: kéo đổi thứ tự / độ rộng / lọc */
+table.tk{table-layout:fixed}
+table.tk th.thk{position:relative;cursor:grab;overflow:hidden}
+table.tk th.thk .thl{display:inline-block;max-width:calc(100% - 26px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+table.tk th.thk .thflt{cursor:pointer;opacity:.55;margin-left:4px;font-size:10px}
+table.tk th.thk.fltOn .thflt{opacity:1;color:#8fd3ff}
+table.tk th.thk .thrsz{position:absolute;right:0;top:0;width:8px;height:100%;cursor:col-resize}
+table.tk th.thk.dragging{opacity:.5}
+table.tk th.thk.dropL{box-shadow:inset 3px 0 0 #8fd3ff}
+table.tk th.thk.dropR{box-shadow:inset -3px 0 0 #8fd3ff}
+table.tk tr.grp.dragging td{opacity:.5}
+table.tk .gcol{cursor:pointer;display:inline-block;width:14px}
+table.tk .gname{cursor:text}
+table.tk .pick{border:none;background:#eef1f4;border-radius:5px;padding:2px 5px;cursor:pointer;color:#456;flex:none}
+table.tk .pick:hover{background:var(--blue);color:#fff}
+.fltpop{position:fixed;z-index:70;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 44px #0003;min-width:200px;max-height:340px;overflow:auto;padding:6px}
+.fltpop .fi{padding:7px 10px;border-radius:6px;cursor:pointer;font-size:13px;line-height:1.25}
+.fltpop .fi:hover{background:#f2f6fb}
+.fltpop .fi.on{background:#eaf1fb;font-weight:600}
+.fltpop .fi.all{font-weight:700;border-bottom:1px solid var(--line);margin-bottom:4px}
 .pname{font-weight:700}
 .empty{padding:40px;text-align:center;color:var(--muted)}
 
