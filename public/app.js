@@ -14,7 +14,7 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(m){retur
 function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove('on');},2200); }
 
 /* ===== STATE ===== */
-var S={ projects:[], products:[], cur:null, lines:[], node:'3.2.6.1',
+var S={ projects:[], products:[], cur:null, lines:[], node:'3.2.6.1', addTang:'',
   fWatt:{}, fKelvin:{}, fAngle:{}, fBrand:'', fNhom:'', cols:{} };
 
 /* cây hạng mục (mã, tên, cấp) */
@@ -58,7 +58,48 @@ async function boot(){
     renderAll();
   }catch(e){ toast('Lỗi tải: '+e.message); }
 }
-function renderAll(){ renderProjSel(); renderCard(); renderFilters(); renderCatalog(); renderTree(); renderColChips(); renderTable(); }
+function renderAll(){ renderProjSel(); renderCard(); renderFilters(); renderCatalog(); renderTree(); renderColChips(); renderFloors(); renderTable(); }
+
+/* ===== TẦNG (floors) ===== */
+function floorsList(){
+  var set=[], seen={};
+  var custom=(S.cur&&S.cur.tangTuTao)?String(S.cur.tangTuTao).split('|'):[];
+  custom.forEach(function(t){ t=t.trim(); if(t&&!seen[t]){seen[t]=1;set.push(t);} });
+  S.lines.forEach(function(l){ var t=(l.tang||'').trim(); if(t&&!seen[t]){seen[t]=1;set.push(t);} });
+  if(S.lines.some(function(l){ return !(l.tang||'').trim(); }) && !seen['CHƯA PHÂN TẦNG']) set.push('CHƯA PHÂN TẦNG');
+  return set;
+}
+function renderFloors(){
+  var sel=document.getElementById('floorSel'); if(!sel) return;
+  var fl=floorsList().filter(function(t){ return t!=='CHƯA PHÂN TẦNG'; });
+  if((!S.addTang || fl.indexOf(S.addTang)<0) && fl.length) S.addTang=fl[0];
+  sel.innerHTML = fl.length ? fl.map(function(t){ return '<option'+(S.addTang===t?' selected':'')+'>'+esc(t)+'</option>'; }).join('')
+    : '<option value="">(chưa có tầng — bấm ＋ Tầng)</option>';
+  sel.onchange=function(){ S.addTang=sel.value; };
+}
+async function addFloor(){
+  if(!S.cur){ toast('Chưa chọn dự án'); return; }
+  var name=prompt('Tên tầng mới (vd: TẦNG HẦM, TẦNG TRỆT, TẦNG 2):'); if(name==null) return;
+  name=name.trim(); if(!name) return;
+  var cur=(S.cur.tangTuTao?String(S.cur.tangTuTao).split('|'):[]).map(function(s){return s.trim();}).filter(Boolean);
+  if(cur.indexOf(name)<0) cur.push(name);
+  try{
+    var p=await api('updateProject', S.cur.maDA, {tangTuTao:cur.join('|')}); S.cur=p;
+    var i=S.projects.findIndex(function(x){return x.maDA===p.maDA;}); if(i>=0)S.projects[i]=p;
+    S.addTang=name; renderFloors(); renderTable(); toast('Đã thêm tầng: '+name);
+  }catch(e){ toast('Lỗi: '+e.message); }
+}
+async function addBlankItem(){ await addItemToFloor(S.addTang||''); }
+async function addItemToFloor(tang){
+  if(!S.cur){ toast('Chưa chọn dự án'); return; }
+  if(tang==='CHƯA PHÂN TẦNG') tang='';
+  try{
+    var l=await api('addLine', S.cur.maDA, {ten:'Hạng mục mới', dvt:'Cái', donGiaVon:0, donGiaBan:0,
+      nhom:S.node, hangMuc:nodeName(S.node), loai:nodeName(S.node), tang:tang}, 1);
+    S.lines.push(l); renderTree(); renderFloors(); renderTable();
+    toast('Đã thêm hạng mục'+(tang?' vào '+tang:''));
+  }catch(e){ toast('Lỗi: '+e.message); }
+}
 
 /* ===== NAV / TABS ===== */
 document.getElementById('nav').addEventListener('click',function(e){
@@ -203,7 +244,7 @@ async function addProdObj(p){
   if(!S.cur){ toast('Chưa chọn dự án — bấm Tạo dự án +'); return; }
   try{
     var prod=Object.assign({},p,{ nhom:S.node, hangMuc:nodeName(S.node), loai:nodeName(S.node),
-      extra:{nganh:p.nhom||''} });
+      tang:(S.addTang||''), extra:{nganh:p.nhom||''} });
     var l=await api('addLine', S.cur.maDA, prod, 1);
     S.lines.push(l); renderTree(); renderTable(); renderCard();
     toast('Đã thêm: '+p.ten);
@@ -273,25 +314,29 @@ function renderTable(){
   var cols=visCols();
   var t=document.getElementById('tkTable');
   if(!S.cur){ t.innerHTML='<tr><td class="empty">Chưa chọn dự án.</td></tr>'; return; }
-  // gom theo tầng
-  var groups={},order=[];
-  lines.forEach(function(l){ var g=(l.tang||'').trim()||'CHƯA PHÂN TẦNG'; if(!groups[g]){groups[g]=[];order.push(g);} groups[g].push(l); });
-  var head='<tr>'+cols.map(function(c){ var cls=(['soLuong','giaNCC','giaDaiLy','donGia','thanhTien'].indexOf(c[0])>=0)?'num':(['stt','hinhAnh','dvt','chietKhau','lnPct'].indexOf(c[0])>=0?'ct':''); return '<th class="'+cls+'">'+esc(c[0]==='donGia'?'ĐƠN GIÁ':c[0]==='dvt'?'ĐƠN VỊ TÍNH':c[1])+'</th>'; }).join('')+'<th></th></tr>';
+  var numK=['soLuong','giaNCC','giaDaiLy','donGia','thanhTien'], ctK=['stt','hinhAnh','dvt','chietKhau','lnPct'];
+  // gom theo tầng — hiện cả tầng rỗng để thêm hạng mục vào
+  var groups={};
+  lines.forEach(function(l){ var g=(l.tang||'').trim()||'CHƯA PHÂN TẦNG'; (groups[g]=groups[g]||[]).push(l); });
+  var order=floorsList().slice();
+  Object.keys(groups).forEach(function(g){ if(order.indexOf(g)<0) order.push(g); });
+  var head='<tr>'+cols.map(function(c){ var cls=numK.indexOf(c[0])>=0?'num':(ctK.indexOf(c[0])>=0?'ct':''); return '<th class="'+cls+'">'+esc(c[0]==='donGia'?'ĐƠN GIÁ':c[0]==='dvt'?'ĐƠN VỊ TÍNH':c[1])+'</th>'; }).join('')+'<th></th></tr>';
   var body='';
-  if(!lines.length){ body='<tr><td class="empty" colspan="'+(cols.length+1)+'">Chưa có hạng mục trong mục này. Thêm từ danh mục bên trái.</td></tr>'; }
+  if(!order.length){ body='<tr><td class="empty" colspan="'+(cols.length+1)+'">Chưa có tầng/hạng mục. Bấm “＋ Tầng”, rồi “＋ Hạng mục” — hoặc thêm sản phẩm từ danh mục bên trái.</td></tr>'; }
   order.forEach(function(g,gi){
     var roman=['I','II','III','IV','V','VI','VII','VIII','IX','X'][gi]||(gi+1);
-    body+='<tr class="grp"><td colspan="'+(cols.length+1)+'">'+roman+'.'+esc(g)+'</td></tr>';
-    groups[g].forEach(function(l,ri){
+    body+='<tr class="grp"><td colspan="'+(cols.length+1)+'" data-f="'+esc(g)+'">'+roman+'.'+esc(g)
+      +'<button class="addrow" onclick="addItemToFloor(this.closest(\'td\').dataset.f)">＋ hạng mục</button></td></tr>';
+    (groups[g]||[]).forEach(function(l,ri){
       body+='<tr>'+cols.map(function(c){
         var k=c[0];
         if(k==='stt') return '<td class="ct">'+(gi+1)+'.'+(ri+1)+'</td>';
-        if(k==='khuVuc') return '<td><input class="qty" style="width:110px;text-align:left" value="'+esc(l.khuVuc||'')+'" onchange="editLine(\''+l.lineId+'\',{khuVuc:this.value})"></td>';
+        if(k==='khuVuc') return '<td><input class="qty" style="width:120px;text-align:left" placeholder="Phòng…" value="'+esc(l.khuVuc||'')+'" onchange="editLine(\''+l.lineId+'\',{khuVuc:this.value})"></td>';
         if(k==='soLuong') return '<td class="num"><input class="qty" type="number" value="'+(l.soLuong||0)+'" onchange="editLine(\''+l.lineId+'\',{soLuong:this.value})"></td>';
         if(k==='donGia') return '<td class="num"><input class="price" type="number" value="'+(l.donGiaBan||0)+'" onchange="editLine(\''+l.lineId+'\',{donGiaBan:this.value})"></td>';
-        var cls=(['giaNCC','giaDaiLy','thanhTien'].indexOf(k)>=0)?'num':(['hinhAnh','dvt','chietKhau','lnPct'].indexOf(k)>=0?'ct':'');
+        var cls=numK.indexOf(k)>=0?'num':(ctK.indexOf(k)>=0?'ct':(k==='ten'?'td-ten':(k==='moTa'||k==='kichThuoc'?'wrap':'')));
         return '<td class="'+cls+'">'+cellVal(l,k)+'</td>';
-      }).join('')+'<td class="ct"><button class="del" title="Xoá" onclick="delLine(\''+l.lineId+'\')">✕</button></td></tr>';
+      }).join('')+'<td class="ct"><button class="del" title="Xoá dòng" onclick="delLine(\''+l.lineId+'\')">✕</button></td></tr>';
     });
   });
   t.innerHTML=head+body;
