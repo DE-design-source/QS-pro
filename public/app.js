@@ -229,9 +229,8 @@ function renderCatalog(){
     var img=p.hinhAnh?'<img class="thumb" src="'+esc(p.hinhAnh)+'" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>';
     return '<div class="citem">'
       +'<div class="no">'+(i+1)+'</div>'+img
-      +'<div class="info" onclick="showDetail('+i+')" style="cursor:pointer">'
-        +'<div class="nm">'+esc(p.ten)+'</div>'
-        +'<div class="sz">'+(p.kichThuoc?'Kích thước: '+esc(p.kichThuoc):esc(p.thuongHieu||''))+'</div></div>'
+      +'<div class="nm" onclick="showDetail('+i+')">'+esc(p.ten)+'</div>'
+      +'<div class="sz">'+(p.kichThuoc?'Kích thước: '+esc(p.kichThuoc):esc(p.thuongHieu||''))+'</div>'
       +'<div class="pr">'+money(p.donGiaBan)+'</div>'
       +'<button class="add" title="Thêm vào bóc tách" onclick="addProduct('+i+')">+</button></div>';
   }).join('');
