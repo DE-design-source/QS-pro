@@ -110,6 +110,7 @@ table.tk tbody tr:not(.grp):nth-child(even){background:var(--stripe)}
 table.tk .pimg{width:42px;height:42px;object-fit:contain;background:#fff;border:1px solid #eef1f4;border-radius:5px}
 table.tk .desc{color:#3a4753;font-size:11.5px;line-height:1.35;white-space:normal;max-width:240px;max-height:100px;overflow:auto}
 table.tk td.td-ten{max-width:200px;white-space:normal}
+.floorbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 .floorhint{font-size:12.5px;color:var(--muted);margin:2px 0 12px}
 .floorhint b{color:var(--navy)}
 .citem{cursor:grab}
@@ -188,19 +189,27 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 .pd .sechead{font-weight:800;margin:16px 0 4px;font-size:13px}
 
 /* generic views */
-.view{display:none}
+.view{display:none;padding-bottom:44px}
 .view.on{display:block}
-.plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin:16px 0 40px}
-.pcell{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}
-.pcell h4{margin:0 0 6px}
-.pcell .meta{color:var(--muted);font-size:13px}
-.pcell .row{display:flex;gap:8px;margin-top:12px}
-.stat{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin:18px 0}
-.scard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
-.scard .n{font-size:26px;font-weight:800} .scard .t{color:var(--muted);font-size:13px}
+.sechd{display:flex;align-items:center;gap:10px;margin:16px 0 12px}
+.sechd h2{margin:0;font-size:17px;font-weight:800;color:var(--ink)}
+.sechd .sc{color:var(--blue);font-weight:800;font-size:15px}
+.sechd .sp{flex:1}
+.plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin:0 0 8px}
+.pcell{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;transition:.12s}
+.pcell:hover{border-color:#c3d3e2;box-shadow:0 4px 14px #0000000d}
+.pcell h4{margin:0 0 7px;font-size:15px}
+.pcell .meta{color:var(--muted);font-size:12.5px;line-height:1.55}
+.pcell .row{display:flex;gap:8px;margin-top:14px}
+.stat{display:grid;grid-template-columns:repeat(auto-fill,minmax(186px,1fr));gap:13px;margin:0 0 16px}
+.scard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px 16px 15px 18px;position:relative;overflow:hidden}
+.scard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--navy)}
+.scard .n{font-size:23px;font-weight:800;color:var(--navy);letter-spacing:-.3px;line-height:1.1}
+.scard .t{color:var(--muted);font-size:12.5px;margin-top:4px}
 .field{margin-bottom:12px}
-.field label{display:block;font-size:12px;font-weight:800;color:#445;margin-bottom:6px;letter-spacing:.3px}
-.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font:inherit}
+.field label{display:block;font-size:12px;font-weight:700;color:#4a5866;margin-bottom:6px;letter-spacing:.2px}
+.field input,.field textarea,.field select{width:100%;border:1px solid #dbe0e6;border-radius:8px;padding:9px 11px;font:inherit;font-size:13px;color:var(--ink);background:#fff}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--blue);outline:none}
 
 /* modal + toast */
 .modal{position:fixed;inset:0;background:#0007;display:none;align-items:center;justify-content:center;z-index:80}
@@ -301,19 +310,19 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
   </div>
 
   <!-- ===== VIEW: THÔNG TIN DỰ ÁN ===== -->
-  <div class="view" id="v-project"><div class="plist" id="projList"></div></div>
+  <div class="view" id="v-project"></div>
 
   <!-- ===== VIEW: BẢNG ĐIỀU KHIỂN ===== -->
-  <div class="view" id="v-dash"><div class="stat" id="dashStat"></div></div>
+  <div class="view" id="v-dash"></div>
 
   <!-- ===== VIEW: CHI PHÍ ===== -->
-  <div class="view" id="v-chiphi"><div class="panel" id="chiphiBox" style="margin-top:18px"></div></div>
+  <div class="view" id="v-chiphi"></div>
 
   <!-- ===== VIEW: XUẤT ===== -->
-  <div class="view" id="v-export"><div class="panel" id="exportBox" style="margin-top:18px"></div></div>
+  <div class="view" id="v-export"></div>
 
   <!-- ===== VIEW: NHẬP DỮ LIỆU ===== -->
-  <div class="view" id="v-import"><div class="panel" style="margin-top:18px" id="importBox"></div></div>
+  <div class="view" id="v-import"></div>
 </div>
 
 <!-- create project modal -->
