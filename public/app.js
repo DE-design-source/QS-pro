@@ -424,8 +424,7 @@ function renderTable(){
     body+='<tr class="grp'+(isSel?' selFloor':'')+'" draggable="true" data-g="'+esc(g)+'"><td colspan="'+(cols.length+1)+'" data-f="'+esc(g)+'">'
       +'<span class="gcol" onclick="event.stopPropagation();toggleFloor(this.closest(\'td\').dataset.f)">'+col+'</span> '
       +'<span class="gname" onclick="selectFloor(this.closest(\'td\').dataset.f)" ondblclick="renameFloor(this.closest(\'td\').dataset.f)" title="Bấm để chọn tầng · bấm đúp đổi tên" style="cursor:pointer">'+roman+'.'+esc(g)+'</span>'
-      +'<span class="gsel" onclick="selectFloor(this.closest(\'td\').dataset.f)">'+(isSel?'✓ đang thêm':'chọn')+'</span>'
-      +'<button class="addrow" onclick="addItemToFloor(this.closest(\'td\').dataset.f)">＋ hạng mục</button></td></tr>';
+      +'<span class="gsel" onclick="selectFloor(this.closest(\'td\').dataset.f)">'+(isSel?'✓ đang thêm':'chọn')+'</span></td></tr>';
     if(S.collapsed[g]) return;
     (groups[g]||[]).forEach(function(l,ri){
       var hs=S.rowH[l.lineId]?' style="height:'+S.rowH[l.lineId]+'px"':'';
@@ -436,7 +435,8 @@ function renderTable(){
       }).join('')+'<td class="ct actcell"><button class="del" title="Xoá dòng" onclick="delLine(\''+l.lineId+'\')">✕</button><div class="rgrip" data-id="'+l.lineId+'" title="Kéo để chỉnh chiều cao dòng">⇕</div></td></tr>';
     });
   });
-  body+='<tr><td colspan="'+(cols.length+1)+'" style="background:#fff;padding:10px 12px"><span class="addfloorbtn" onclick="addFloor()">＋ Thêm tầng</span></td></tr>';
+  body+='<tr><td colspan="'+(cols.length+1)+'" style="background:#fff;padding:10px 12px"><span class="addfloorbtn" onclick="addFloor()">＋ Thêm tầng</span> '
+    +'<span class="addfloorbtn" style="border-style:solid;border-color:var(--blue);color:var(--blue)" onclick="addBlankItem()" title="Thêm 1 hạng mục trống vào tầng đang chọn">＋ Thêm hạng mục</span></td></tr>';
   t.style.width=totalW+'px';
   t.innerHTML=colg+head+body;
 }
