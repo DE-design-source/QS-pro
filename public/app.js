@@ -118,8 +118,19 @@ async function addItemToFloor(tang){
     var l=await api('addLine', S.cur.maDA, {ten:'Hạng mục mới', dvt:'Cái', donGiaVon:0, donGiaBan:0,
       nhom:S.node, hangMuc:nodeName(S.node), loai:nodeName(S.node), tang:tang}, 1);
     S.lines.push(l); renderTree(); renderFloors(); renderTable();
-    toast('Đã thêm hạng mục'+(tang?' vào '+tang:''));
+    focusNewLine(l.lineId);
+    toast('Đã thêm hạng mục'+(tang?' vào '+tang:'')+' — sửa ngay trong bảng');
   }catch(e){ toast('Lỗi: '+e.message); }
+}
+// đưa dòng vừa thêm vào tầm nhìn + focus ô Tên + nhấp nháy cho dễ thấy
+function focusNewLine(id){
+  setTimeout(function(){
+    var tr=document.querySelector('#tkTable tr.drow[data-id="'+id+'"]'); if(!tr) return;
+    try{ tr.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){}
+    var inp=tr.querySelector('.td-ten input')||tr.querySelector('input.cin'); if(inp){ inp.focus(); inp.select&&inp.select(); }
+    var old=tr.style.background; tr.style.transition='background .4s'; tr.style.background='#fff6c9';
+    setTimeout(function(){ tr.style.background=old||''; },1300);
+  },70);
 }
 
 /* ===== NAV / TABS ===== */
@@ -227,35 +238,50 @@ function renderCatalog(){
   if(!list.length){ el.innerHTML='<div class="empty">Không có sản phẩm khớp lọc.</div>'; return; }
   el.innerHTML=list.slice(0,300).map(function(p,i){
     var img=p.hinhAnh?'<img class="thumb" src="'+esc(p.hinhAnh)+'" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>';
+    var im2=p.hinhAnh?'<img class="thumb" src="'+esc(p.hinhAnh)+'" onclick="showDetail('+i+')" style="cursor:pointer" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb" onclick="showDetail('+i+')" style="cursor:pointer"></div>';
     return '<div class="citem" draggable="true" ondragstart="prodDragStart(event,'+i+')" ondragend="prodDragEnd()">'
-      +'<div class="no">'+(i+1)+'</div>'+img
-      +'<div class="nm" onclick="showDetail('+i+')">'+esc(p.ten)+'</div>'
+      +'<div class="no">'+(i+1)+'</div>'+im2
+      +'<div class="nm" onclick="showDetail('+i+')" title="Xem chi tiết sản phẩm">'+esc(p.ten)+'</div>'
       +'<div class="sz">'+(p.kichThuoc?'Kích thước: '+esc(p.kichThuoc):esc(p.thuongHieu||''))+'</div>'
       +'<div class="pr">'+money(p.donGiaBan)+'</div>'
+      +'<button class="ibtn" title="Xem chi tiết" onclick="showDetail('+i+')">ⓘ</button>'
       +'<button class="add" title="Thêm vào bóc tách" onclick="addProduct('+i+')">+</button></div>';
   }).join('');
   S._filtered=list;
 }
+function specRows_(text){
+  return String(text||'').split(/\r?\n|;|·/).map(function(s){return s.trim();}).filter(Boolean).map(function(line){
+    var m=line.match(/^([^:：]{2,32})[:：]\s*(.+)$/);
+    if(m) return '<div class="spec"><span class="k">'+esc(m[1].trim())+'</span><span class="v">'+esc(m[2].trim())+'</span></div>';
+    return '<div class="spec"><span class="v" style="text-align:left;color:#3a4753">'+esc(line)+'</span></div>';
+  }).join('');
+}
 function showDetail(i){
   var p=(S._filtered||[])[i]; if(!p) return;
+  S._detailIdx=i;
   var el=document.getElementById('pdPanel');
   document.getElementById('bocGrid').classList.add('detail');
   el.style.display='block';
-  el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><h3>Thông tin sản phẩm</h3>'
+  var kv='', w=parseWatt(p.ten), k=parseKelvin(p.ten);
+  if(w) kv+='<div class="spec"><span class="k">Công suất</span><span class="v">'+w+'</span></div>';
+  if(k) kv+='<div class="spec"><span class="k">Nhiệt độ màu</span><span class="v">'+k+'</span></div>';
+  el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px"><h3 style="margin:0">Thông tin sản phẩm</h3>'
     +'<button class="btn ghost sm" onclick="hideDetail()">✕</button></div>'
-    +'<div class="imgbox">'+(p.hinhAnh?'<img src="'+esc(p.hinhAnh)+'">':'<span style="color:#9aa">Không có ảnh</span>')+'</div>'
+    +'<div class="imgbox">'+(p.hinhAnh?'<img src="'+esc(p.hinhAnh)+'" onerror="this.parentNode.innerHTML=\'<span style=&quot;color:#9aa&quot;>Không tải được ảnh</span>\'">':'<span style="color:#9aa">Không có ảnh</span>')+'</div>'
     +'<div class="pcode">'+esc(p.ma||p.ten)+'</div>'
-    +'<div class="spec"><span class="k">Tên sản phẩm</span><span class="v">'+esc(p.ten)+'</span></div>'
+    +'<div style="font-weight:700;margin:2px 0 8px;line-height:1.35">'+esc(p.ten)+'</div>'
+    +'<div class="sechead">Thông tin chính</div>'
     +'<div class="spec"><span class="k">Thương hiệu</span><span class="v">'+esc(p.thuongHieu||'—')+'</span></div>'
     +'<div class="spec"><span class="k">Nhà cung cấp</span><span class="v">'+esc(p.ncc||'—')+'</span></div>'
-    +'<div class="spec"><span class="k">Kích thước</span><span class="v">'+esc(p.kichThuoc||'—')+'</span></div>'
+    +'<div class="spec"><span class="k">Nhóm</span><span class="v">'+esc(p.nhom||'—')+'</span></div>'
+    +(p.kichThuoc?'<div class="spec"><span class="k">Kích thước</span><span class="v">'+esc(p.kichThuoc)+'</span></div>':'')
     +'<div class="spec"><span class="k">ĐVT</span><span class="v">'+esc(p.dvt||'Cái')+'</span></div>'
-    +'<div class="spec"><span class="k">Đơn giá</span><span class="v">'+money(p.donGiaBan)+'</span></div>'
-    +(p.moTa?'<div class="sechead">Mô tả</div><div style="color:#3a4753;font-size:13px">'+esc(p.moTa)+'</div>':'')
-    +'<div class="sechead">Thông số kỹ thuật</div><div style="color:#9aa;font-size:12px">Lumens · CRI · IP · Driver… — sẽ hiện khi danh mục có các trường này.</div>'
-    +'<button class="btn blue" style="width:100%;margin-top:14px" onclick="addProductObj('+JSON.stringify(i)+')">＋ Thêm vào bóc tách</button>';
+    +'<div class="spec"><span class="k">Đơn giá</span><span class="v" style="color:var(--blue);font-weight:800">'+money(p.donGiaBan)+' đ</span></div>'
+    +kv
+    +(p.moTa?'<div class="sechead">Thông số kỹ thuật</div>'+specRows_(p.moTa):'<div class="sechead">Thông số kỹ thuật</div><div style="color:#9aa;font-size:12px">Sản phẩm chưa có mô tả/thông số. Bổ sung ở tab Nhập dữ liệu hoặc trên Lark.</div>')
+    +'<button class="btn blue" style="width:100%;margin-top:14px" onclick="addProduct('+i+')">＋ Thêm vào bóc tách</button>';
 }
-function hideDetail(){ document.getElementById('pdPanel').style.display='none'; document.getElementById('bocGrid').classList.remove('detail'); }
+function hideDetail(){ S._detailIdx=null; document.getElementById('pdPanel').style.display='none'; document.getElementById('bocGrid').classList.remove('detail'); }
 
 /* ===== ADD to takeoff ===== */
 async function addProduct(i){ var p=(S._filtered||[])[i]; if(p) await addProdObj(p); }
