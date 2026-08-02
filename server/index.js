@@ -13,7 +13,7 @@ const lark = require('./lark');
 const exportBaoGia = require('./export');
 
 const app = express();
-app.use(express.json({ limit: '5mb' }));
+app.use(express.json({ limit: '30mb' }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // Whitelist các hàm client được phép gọi (đúng API surface của index.html)
@@ -39,6 +39,8 @@ const REGISTRY = {
   getCoverOrInit: store.getCoverOrInit,
   getDashboard: store.getDashboard,
   getQuote: store.getQuote,
+  importParse: store.importParse,
+  importCommit: store.importCommit,
   exportBaoGia: exportBaoGia
 };
 

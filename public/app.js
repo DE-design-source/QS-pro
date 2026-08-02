@@ -824,7 +824,41 @@ function renderImport(){
     +tdInput('Link ảnh (URL)','td_img')+'</div>'
     +'<div class="field" style="margin-top:2px"><label>Mô tả</label><textarea id="td_mota" placeholder="Mô tả" style="min-height:60px"></textarea></div>'
     +'<div style="margin-top:8px;display:flex;gap:10px"><button class="btn blue" onclick="tdSave(this)">＋ Thêm vào danh mục</button><button class="btn ghost" onclick="renderImport()">Xoá form</button></div>'
-    +'</div>';
+    +'</div>'
+    +'<div class="panel" style="max-width:960px;margin-top:16px"><div class="toolbar"><h3>Nhập hàng loạt từ file</h3></div>'
+    +'<p style="color:var(--muted);font-size:13px;margin:0 0 10px">Chọn file <b>.xlsx / .xls / .csv</b> có cột <b>Tên sản phẩm</b> (và Nhóm, Thương hiệu, Mã SP, Kích thước, ĐVT, Đơn giá, Mô tả, Link ảnh nếu có). Hệ thống tự dò cột theo tên tiêu đề.</p>'
+    +'<input type="file" id="impFile" accept=".xlsx,.xls,.csv" onchange="impPick(this)" style="font:inherit">'
+    +'<div id="impPreview" style="margin-top:12px"></div></div>';
+}
+async function impPick(input){
+  var f=input.files&&input.files[0]; if(!f) return;
+  var ext=(f.name.split('.').pop()||'').toLowerCase();
+  var pv=document.getElementById('impPreview'); pv.innerHTML='<div style="color:var(--muted)">Đang đọc file "'+esc(f.name)+'"…</div>';
+  var reader=new FileReader();
+  reader.onload=async function(){
+    try{ var b64=String(reader.result).split(',')[1]; var res=await api('importParse',b64,ext); impShow(res); }
+    catch(e){ pv.innerHTML='<div style="color:#c33">Lỗi đọc file: '+esc(e.message)+'</div>'; }
+  };
+  reader.onerror=function(){ pv.innerHTML='<div style="color:#c33">Không đọc được file.</div>'; };
+  reader.readAsDataURL(f);
+}
+function impShow(res){
+  S._impProducts=res.products||[];
+  if(!res.count){ document.getElementById('impPreview').innerHTML='<div style="color:#c33">Không đọc được sản phẩm nào (kiểm tra cột Tên sản phẩm).</div>'; return; }
+  var cols=[['ten','Tên SP'],['nhom','Nhóm'],['thuongHieu','Thương hiệu'],['ma','Mã SP'],['kichThuoc','Kích thước'],['dvt','ĐVT'],['gia','Đơn giá']];
+  var head='<tr>'+cols.map(function(c){return '<th'+(c[0]==='gia'?' class="num"':'')+'>'+c[1]+'</th>';}).join('')+'</tr>';
+  var rows=res.products.slice(0,50).map(function(p){ return '<tr>'+cols.map(function(c){ return '<td'+(c[0]==='gia'?' class="num"':'')+'>'+esc(c[0]==='gia'?money(p.gia):(p[c[0]]||''))+'</td>'; }).join('')+'</tr>'; }).join('');
+  var mappedTxt=Object.keys(res.mapped||{}).map(function(k){return esc(res.mapped[k]);}).join(' · ');
+  document.getElementById('impPreview').innerHTML=
+    '<div style="margin-bottom:8px"><b>Đọc được '+res.count+' sản phẩm.</b> <span style="color:var(--muted)">Cột nhận diện: '+mappedTxt+'</span>'+(res.count>50?' <span style="color:var(--muted)">(xem trước 50 dòng)</span>':'')+'</div>'
+    +'<div class="tbl-wrap" style="max-height:360px"><table class="tk">'+head+rows+'</table></div>'
+    +'<div style="margin-top:12px"><button class="btn blue" onclick="impCommit(this)">＋ Nhập '+res.count+' sản phẩm vào danh mục</button></div>';
+}
+async function impCommit(btn){
+  if(!S._impProducts||!S._impProducts.length){ toast('Chưa có dữ liệu'); return; }
+  btn.disabled=true; var o=btn.textContent; btn.textContent='Đang nhập…';
+  try{ var r=await api('importCommit', S._impProducts); S.products=await api('getProducts')||S.products; toast('Đã nhập '+r.inserted+' sản phẩm vào danh mục'); renderImport(); renderFilters(); renderCatalog(); }
+  catch(e){ toast('Lỗi nhập: '+e.message); btn.disabled=false; btn.textContent=o; }
 }
 async function tdSave(btn){
   var g=function(id){var e=document.getElementById(id);return e?e.value:'';};

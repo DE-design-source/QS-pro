@@ -211,7 +211,19 @@ async function productFieldMap() {
     gia: findName_(map, ['GIÁ BÁN LẺ', 'ĐƠN GIÁ', 'GIÁ']),
     img: findName_(map, ['HÌNH ẢNH', 'ẢNH', 'IMAGE'])
   };
+  // kiểu từng field (để ghi đúng định dạng: MultiSelect=mảng, Number=số…)
+  _fmCache.typeOf = {}; fields.forEach(function (f) { _fmCache.typeOf[f.field_name] = f.type; });
   return _fmCache;
+}
+// Định dạng giá trị theo kiểu field khi ghi vào Lark
+function fieldValue_(fm, name, val) {
+  if (!name || val == null || val === '') return undefined;
+  const t = fm.typeOf ? fm.typeOf[name] : 1;
+  if (t === 2) return toNumber_(val);                 // Number
+  if (t === 4) return [String(val)];                  // MultiSelect -> mảng
+  if (t === 3) return String(val);                    // SingleSelect -> chuỗi (Lark tự thêm option)
+  if (t === 17) return undefined;                     // Attachment -> bỏ (không set từ chuỗi)
+  return String(val);                                 // Text & khác
 }
 
 /*** ===== SẢN PHẨM ===== ***/
@@ -473,7 +485,7 @@ async function saveLineAsProduct(p) {
   const dvt = String(p.dvt || '').trim() || 'Cái';
   const gia = round0_(toNumber_(p.gia != null ? p.gia : p.donGiaBan));
   const fields = {};
-  function put(name, val) { if (name) fields[name] = val; }
+  function put(name, val) { var v = fieldValue_(fm, name, val); if (v !== undefined) fields[name] = v; }
   put(fm.ten, ten); put(fm.th, th); put(fm.ncc, String(p.ncc || '').trim());
   put(fm.ma, String(p.ma || '').trim()); put(fm.hm, hangMuc); put(fm.mota, String(p.moTa || '').trim());
   put(fm.kt, kt); put(fm.dvt, dvt); put(fm.gia, gia); put(fm.nhom, String(p.nhom || '').trim());
@@ -588,13 +600,102 @@ async function getQuote(maDA) {
   return { project: project, lines: lines, subtotal: subtotal, vatPct: vatPct, vat: vat, total: subtotal + vat };
 }
 
+/*** ===== NHẬP HÀNG LOẠT TỪ FILE (Excel / CSV) ===== ***/
+const IMPORT_ALIAS = {
+  ten: ['TÊN SẢN PHẨM', 'TÊN SP', 'TÊN HÀNG', 'TÊN', 'NAME', 'PRODUCT NAME', 'PRODUCT'],
+  nhom: ['NHÓM', 'NGÀNH HÀNG', 'CATEGORY'],
+  hangMuc: ['HẠNG MỤC'],
+  thuongHieu: ['THƯƠNG HIỆU', 'BRAND', 'HÃNG'],
+  ncc: ['NHÀ CUNG CẤP', 'NCC', 'SUPPLIER'],
+  ma: ['MÃ SP', 'MÃ SẢN PHẨM', 'MÃ HÀNG', 'MÃ', 'CODE', 'SKU'],
+  kichThuoc: ['KÍCH THƯỚC', 'SIZE', 'QUY CÁCH', 'DIMENSION'],
+  dvt: ['ĐVT', 'ĐƠN VỊ TÍNH', 'ĐƠN VỊ', 'UNIT'],
+  gia: ['ĐƠN GIÁ BÁN', 'GIÁ BÁN LẺ', 'ĐƠN GIÁ', 'GIÁ BÁN', 'GIÁ', 'PRICE'],
+  moTa: ['MÔ TẢ', 'DESCRIPTION', 'GHI CHÚ'],
+  hinhAnh: ['LINK ẢNH', 'HÌNH ẢNH', 'ẢNH', 'IMAGE', 'URL ẢNH', 'IMAGE URL']
+};
+function importCell_(v) {
+  if (v == null) return '';
+  if (typeof v === 'object') {
+    if (v.text != null) return v.text;
+    if (v.result != null) return importCell_(v.result);
+    if (v.hyperlink != null) return v.hyperlink;
+    if (v.richText) return v.richText.map(function (t) { return t.text; }).join('');
+    return '';
+  }
+  return v;
+}
+function matchAlias_(h) {
+  const n = normalize_(h); if (!n) return null;
+  for (const k in IMPORT_ALIAS) for (var i = 0; i < IMPORT_ALIAS[k].length; i++) if (n === normalize_(IMPORT_ALIAS[k][i])) return k;
+  for (const k2 in IMPORT_ALIAS) for (var j = 0; j < IMPORT_ALIAS[k2].length; j++) if (n.indexOf(normalize_(IMPORT_ALIAS[k2][j])) !== -1) return k2;
+  return null;
+}
+function pick2_(row, idx) { return (idx == null) ? '' : String(row[idx] == null ? '' : row[idx]).trim(); }
+async function importParse(base64, ext) {
+  const ExcelJS = require('exceljs');
+  const buf = Buffer.from(String(base64 || ''), 'base64');
+  const wb = new ExcelJS.Workbook();
+  if (String(ext || '').toLowerCase().indexOf('csv') >= 0) {
+    const Readable = require('stream').Readable;
+    await wb.csv.read(Readable.from(buf.toString('utf8')));
+  } else {
+    await wb.xlsx.load(buf);
+  }
+  const ws = wb.worksheets[0];
+  if (!ws) throw new Error('File không có sheet dữ liệu');
+  const grid = [];
+  ws.eachRow({ includeEmpty: false }, function (row) {
+    const arr = []; row.eachCell({ includeEmpty: true }, function (cell, col) { arr[col - 1] = importCell_(cell.value); });
+    grid.push(arr);
+  });
+  if (!grid.length) throw new Error('File rỗng');
+  var hr = -1, map = null;
+  for (var i = 0; i < Math.min(grid.length, 15); i++) {
+    var m = {}; grid[i].forEach(function (h, ci) { var key = matchAlias_(h); if (key && m[key] === undefined) m[key] = ci; });
+    if (m.ten !== undefined) { hr = i; map = m; break; }
+  }
+  if (hr < 0) throw new Error('Không tìm thấy cột "Tên sản phẩm" trong file (cần 1 cột tiêu đề có chữ Tên / Name)');
+  const products = [];
+  for (var r = hr + 1; r < grid.length; r++) {
+    var row = grid[r]; var ten = pick2_(row, map.ten); if (!ten) continue;
+    products.push({
+      ten: ten, nhom: pick2_(row, map.nhom), hangMuc: pick2_(row, map.hangMuc), thuongHieu: pick2_(row, map.thuongHieu),
+      ncc: pick2_(row, map.ncc), ma: pick2_(row, map.ma), kichThuoc: pick2_(row, map.kichThuoc),
+      dvt: pick2_(row, map.dvt) || 'Cái', gia: round0_(toNumber_(pick2_(row, map.gia))),
+      moTa: pick2_(row, map.moTa), hinhAnh: pick2_(row, map.hinhAnh)
+    });
+    if (products.length >= 2000) break;
+  }
+  var headers = grid[hr].map(function (h) { return String(h == null ? '' : h); });
+  var mapped = {}; Object.keys(map).forEach(function (k) { mapped[k] = headers[map[k]]; });
+  return { count: products.length, products: products, mapped: mapped };
+}
+async function importCommit(products) {
+  await setup();
+  const fm = await productFieldMap();
+  if (!fm.ten) throw new Error('Bảng danh mục không có cột Tên sản phẩm');
+  const recs = (products || []).filter(function (p) { return p && String(p.ten || '').trim(); }).map(function (p) {
+    const f = {}; function put(name, val) { var v = fieldValue_(fm, name, val); if (v !== undefined) f[name] = v; }
+    put(fm.ten, String(p.ten).trim()); put(fm.nhom, p.nhom); put(fm.hm, p.hangMuc); put(fm.th, p.thuongHieu);
+    put(fm.ncc, p.ncc); put(fm.ma, p.ma); put(fm.kt, p.kichThuoc); put(fm.dvt, p.dvt || 'Cái');
+    put(fm.gia, round0_(toNumber_(p.gia))); put(fm.mota, p.moTa);
+    if (fm.img && p.hinhAnh && String(p.hinhAnh).indexOf('http') === 0) put(fm.img, p.hinhAnh);
+    return f;
+  });
+  if (!recs.length) throw new Error('Không có sản phẩm hợp lệ để nhập');
+  await lark.batchCreate(config.tables.products, recs);
+  clearProductsCache();
+  return { inserted: recs.length };
+}
+
 module.exports = {
   setup, bootstrap, buildCatalog,
   getProducts, getProductsCached, clearProductsCache, getCatalogSheets, getSheetCols,
   getProjects, getProject, createProject, updateProject, deleteProject,
   getLines, addLine, addBlankLine, updateLine, deleteLine, saveLineAsProduct,
   getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, coverComputed_,
-  getDashboard, getQuote,
+  getDashboard, getQuote, importParse, importCommit,
   // dùng nội bộ cho export
   _S32_SUPPLIERS: S32_SUPPLIERS, _normalize: normalize_, _toNumber: toNumber_, _round0: round0_
 };
