@@ -501,15 +501,30 @@ async function renameFloor(g){
 function openFilter(e,key){
   e.stopPropagation(); closePop();
   var lines=S.lines.filter(function(l){ return l.nhom===S.node || String(l.nhom||'').indexOf(S.node+'.')===0; });
-  var vals={}; lines.forEach(function(l){ var v=colPlain(l,key); if(v!=='') vals[v]=(vals[v]||0)+1; });
+  var lbl=(COLS.filter(function(c){return c[0]===key;})[0]||[key,key])[1];
+  var vals={}, meta={};
+  lines.forEach(function(l){ var v=colPlain(l,key); if(v!==''){ vals[v]=(vals[v]||0)+1; if(!meta[v]) meta[v]={img:l.hinhAnh,price:l.donGiaBan}; } });
   var keys=Object.keys(vals).sort();
-  var pop=document.createElement('div'); pop.className='fltpop'; pop.id='qs_pop';
-  pop.innerHTML='<div class="fi all" onclick="setFilter(\''+key+'\',null)">▸ Tất cả ('+lines.length+')</div>'
-    +keys.map(function(v){ return '<div class="fi'+(S.colFilter[key]===v?' on':'')+'" data-v="'+esc(v)+'" onclick="setFilter(\''+key+'\',this.dataset.v)">'+esc(v)+' ('+vals[v]+')</div>'; }).join('');
+  var rich=(key==='ten');   // cột Tên: hiện ảnh + tên + giá như bản cũ
+  var w = rich?400:250;
+  var items=keys.map(function(v){
+    var on=S.colFilter[key]===v;
+    if(rich){ var m=meta[v]||{};
+      return '<div class="fi frow'+(on?' on':'')+'" data-t="'+esc(v.toLowerCase())+'" data-v="'+esc(v)+'" onclick="setFilter(\''+key+'\',this.dataset.v)">'
+        +(m.img?'<img src="'+esc(m.img)+'" onerror="this.style.visibility=\'hidden\'">':'<span class="noimg"></span>')
+        +'<span class="fnm">'+esc(v)+'</span><span class="fpr">'+money(m.price)+'</span></div>';
+    }
+    return '<div class="fi'+(on?' on':'')+'" data-t="'+esc(v.toLowerCase())+'" data-v="'+esc(v)+'" onclick="setFilter(\''+key+'\',this.dataset.v)">'+esc(v)+' <span style="color:#98a6b3">('+vals[v]+')</span></div>';
+  }).join('');
+  var pop=document.createElement('div'); pop.className='fltpop'; pop.id='qs_pop'; pop.style.width=w+'px';
+  pop.innerHTML='<div class="fhdr">Lọc: '+esc(lbl)+'</div>'
+    +'<input class="fsearch" placeholder="Tìm giá trị…" oninput="filterPop(this.value)">'
+    +'<div id="fpItems"><div class="fi all" onclick="setFilter(\''+key+'\',null)">— Tất cả ('+lines.length+') —</div>'+items+'</div>';
   document.body.appendChild(pop);
-  var r=e.target.getBoundingClientRect(); pop.style.left=Math.max(8,Math.min(r.left, window.innerWidth-pop.offsetWidth-10))+'px'; pop.style.top=(r.bottom+4)+'px';
-  setTimeout(function(){ document.addEventListener('mousedown',popOutside); },0);
+  var r=e.target.getBoundingClientRect(); pop.style.left=Math.max(8,Math.min(r.left, window.innerWidth-w-12))+'px'; pop.style.top=(r.bottom+4)+'px';
+  setTimeout(function(){ document.addEventListener('mousedown',popOutside); var s=pop.querySelector('.fsearch'); if(s)s.focus(); },0);
 }
+function filterPop(q){ q=(q||'').toLowerCase().trim(); document.querySelectorAll('#fpItems .fi').forEach(function(el){ if(el.classList.contains('all')) return; el.style.display=(!q||(el.dataset.t||'').indexOf(q)>=0)?'':'none'; }); }
 function popOutside(e){ if(!e.target.closest('#qs_pop')) closePop(); }
 function closePop(){ var p=document.getElementById('qs_pop'); if(p)p.remove(); document.removeEventListener('mousedown',popOutside); }
 function setFilter(key,v){ if(v==null||v==='__all__') delete S.colFilter[key]; else S.colFilter[key]=v; closePop(); renderTable(); }

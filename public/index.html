@@ -194,11 +194,18 @@ table.tk .gcol{cursor:pointer;display:inline-block;width:14px}
 table.tk .gname{cursor:text}
 table.tk .pick{border:none;background:#eef1f4;border-radius:5px;padding:2px 5px;cursor:pointer;color:#456;flex:none}
 table.tk .pick:hover{background:var(--blue);color:#fff}
-.fltpop{position:fixed;z-index:70;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 44px #0003;min-width:200px;max-height:340px;overflow:auto;padding:6px}
-.fltpop .fi{padding:7px 10px;border-radius:6px;cursor:pointer;font-size:13px;line-height:1.25}
+.fltpop{position:fixed;z-index:70;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 16px 48px #0004;min-width:220px;max-height:440px;overflow:auto;padding:8px}
+.fltpop .fhdr{font-weight:800;font-size:14px;padding:2px 6px 8px}
+.fltpop .fsearch{width:100%;border:1px solid #dbe0e6;border-radius:9px;padding:9px 11px;margin-bottom:6px;font:inherit;font-size:13px}
+.fltpop .fsearch:focus{border-color:var(--blue);outline:none}
+.fltpop .fi{padding:7px 10px;border-radius:7px;cursor:pointer;font-size:13px;line-height:1.25}
 .fltpop .fi:hover{background:#f2f6fb}
 .fltpop .fi.on{background:#eaf1fb;font-weight:600}
-.fltpop .fi.all{font-weight:700;border-bottom:1px solid var(--line);margin-bottom:4px}
+.fltpop .fi.all{color:var(--blue);font-weight:700;border-bottom:1px solid var(--line);margin-bottom:4px;border-radius:0}
+.fltpop .frow{display:flex;align-items:center;gap:11px;padding:8px 8px}
+.fltpop .frow img,.fltpop .frow .noimg{width:46px;height:46px;object-fit:contain;border:1px solid #eef1f4;border-radius:7px;background:#f4f6f8;flex:none}
+.fltpop .frow .fnm{flex:1;font-size:13px;line-height:1.3}
+.fltpop .frow .fpr{font-weight:800;color:var(--blue);white-space:nowrap;font-size:14px}
 .pname{font-weight:700}
 .empty{padding:40px;text-align:center;color:var(--muted)}
 
