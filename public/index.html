@@ -122,6 +122,40 @@ table.tk tr.grp.selFloor .gsel{background:#7fd1ff;color:#0a2c48;border-color:#7f
 table.tk tr.grp.prodDrop td{outline:2px dashed #7fd1ff;outline-offset:-3px;background:#0d4a80}
 .addfloorbtn{display:inline-flex;align-items:center;gap:6px;margin-top:12px;background:#fff;border:1px dashed #b6c2cf;color:#33414f;border-radius:9px;padding:9px 16px;font-weight:600;font-size:13px;cursor:pointer}
 .addfloorbtn:hover{border-color:var(--blue);color:var(--blue)}
+/* ===== xuất báo giá / tờ bìa ===== */
+.bgchips{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0 4px}
+.bgchip{border:1px solid var(--blue);background:var(--blue);color:#fff;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;user-select:none}
+.bgchip.off{background:#fff;color:#95a2ae;border-color:#dbe0e6}
+.cvbar{display:flex;align-items:center;gap:10px;margin:14px 0 8px;flex-wrap:wrap}
+.cvbar h3{margin:0;font-size:15px} .cvbar .hint{color:var(--muted);font-size:12px}
+.mau{display:inline-flex;border:1px solid #d7dce2;border-radius:8px;overflow:hidden}
+.mau button{border:none;background:#fff;padding:7px 14px;font-size:13px;font-weight:600;color:#5a6774;cursor:pointer}
+.mau button.on{background:var(--blue);color:#fff}
+.cvcard{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.cvbanner{background:var(--navy);color:#fff;text-align:center;padding:16px}
+.cvbanner .t{font-size:18px;font-weight:800;letter-spacing:.4px}
+.cvbanner .s{font-size:12px;color:#c7d3e6;margin-top:3px}
+.cvbanner .cin{border:1px solid #ffffff44;background:#ffffff14;color:#fff;border-radius:5px;padding:1px 8px;width:180px;text-align:center;font:inherit}
+.cvinfo{width:100%;border-collapse:collapse}
+.cvinfo td{border:1px solid var(--line);padding:6px 10px;font-size:13px;width:25%}
+.cvinfo td.lb{background:#f6f8fa;font-weight:600;color:#4a5866;width:20%;white-space:nowrap}
+.cvinfo .cin{border:1px solid transparent;background:transparent;width:100%;padding:3px 4px;font:inherit}
+.cvinfo .cin:focus{border-color:var(--blue);background:#fff;outline:none}
+table.cvt{width:100%;border-collapse:collapse;font-size:13px;table-layout:auto}
+table.cvt th{background:var(--navy);color:#fff;padding:9px 10px;font-size:11px;text-align:left;font-weight:700}
+table.cvt th.num,table.cvt td.num{text-align:right} table.cvt th.ct,table.cvt td.ct{text-align:center}
+table.cvt td{border:1px solid #e6e9ed;padding:6px 9px;vertical-align:top}
+table.cvt tr.lv1 td{background:#dfe4ea;font-weight:700}
+table.cvt tr.lv2 td{background:#f1f3f6}
+table.cvt .cin{border:1px solid transparent;background:transparent;width:100%;padding:3px 5px;font:inherit}
+table.cvt .cin:focus{border-color:var(--blue);background:#fff;outline:none}
+table.cvt .desc2{color:#667;font-style:italic;font-size:12px;margin-top:2px;line-height:1.35}
+table.cvt tr.cvtot td{background:var(--navy);color:#fff;font-weight:800;font-size:14px}
+.totbar{display:flex;gap:36px;justify-content:flex-end;align-items:baseline;padding:16px 6px 4px;flex-wrap:wrap}
+.totbar .b{text-align:right} .totbar .tt{color:var(--muted);font-size:11px;letter-spacing:.3px} .totbar .tv{font-weight:800;font-size:15px}
+.totbar .grand .tv{color:#16a34a;font-size:22px}
+.btn.green{background:#16a34a;color:#fff} .btn.green:hover{background:#12833c}
+.btn.red{background:#dc2626;color:#fff} .btn.red:hover{background:#b91c1c}
 table.tk tr.grp .addrow{float:right;background:#ffffff22;border:1px solid #ffffff55;color:#fff;border-radius:6px;padding:1px 9px;font-size:12px;cursor:pointer}
 table.tk tr.grp .addrow:hover{background:#ffffff33}
 table.tk .qty,table.tk .price{width:72px;border:1px solid transparent;border-radius:6px;padding:5px 6px;text-align:right;font:inherit;background:transparent}
