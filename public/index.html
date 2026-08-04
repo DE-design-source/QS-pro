@@ -63,6 +63,16 @@ a{color:inherit}
 .selrow{position:relative;margin-bottom:7px}
 .selrow select{width:100%;-webkit-appearance:none;appearance:none;border:1px solid #dbe0e6;border-radius:8px;padding:8px 28px 8px 11px;background:#fff;font-size:12.5px;color:#2a3746}
 .selrow::after{content:"+";position:absolute;right:11px;top:7px;color:#9aa7b3;font-size:15px;pointer-events:none}
+.msel{display:flex;align-items:center;gap:8px;border:1px solid #dbe0e6;border-radius:8px;padding:8px 11px;background:#fff;font-size:12.5px;color:#2a3746;cursor:pointer;margin-bottom:7px}
+.msel .mlabel{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.msel .mplus{color:#9aa7b3}
+.msel.active{border-color:var(--blue)}
+.demuc-chip{display:inline-flex;align-items:center;gap:8px;background:#eaf1fb;border:1px solid #bcd4f0;color:var(--navy);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;margin-bottom:8px}
+.demuc-chip b.x{cursor:pointer;color:#c33}
+.fltpop .fchk{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:13px}
+.fltpop .fchk:hover{background:#f2f6fb}
+.fltpop .fchk .bx{width:16px;height:16px;border:1.5px solid #b8c2cd;border-radius:4px;flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+.fltpop .fchk.on .bx{background:var(--blue);border-color:var(--blue)}
 
 /* chips */
 .chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -309,9 +319,8 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
       <!-- LEFT: filter + catalog -->
       <div class="panel">
         <h3>Hạng mục</h3>
-        <div class="selrow"><select id="fNhom"></select></div>
-        <div class="selrow"><select id="fSub1"><option>Đèn nội thất</option></select></div>
-        <div class="selrow"><select id="fSub2"><option>Đèn trong dự án</option></select></div>
+        <div class="msel" id="fNhom" onclick="openNhomMsel(event)"><span class="mlabel">Tất cả nhóm</span><span class="mplus">▾</span></div>
+        <div class="demuc-chip" id="demucChip" style="display:none"></div>
 
         <div class="lbl">Công suất</div>
         <div class="chips" id="fWatt"></div>

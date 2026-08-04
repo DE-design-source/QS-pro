@@ -15,7 +15,7 @@ function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.cl
 
 /* ===== STATE ===== */
 var S={ projects:[], products:[], cur:null, lines:[], node:'3.2.6.1', selFloor:'', _dragProd:null,
-  fWatt:{}, fKelvin:{}, fAngle:{}, fBrand:'', fNhom:'', cols:{}, _drag:null,
+  fWatt:{}, fKelvin:{}, fAngle:{}, fBrand:'', fNhom:'', fNhomSet:{}, demucKw:'', cols:{}, _drag:null,
   rowH:(function(){ try{ return JSON.parse(localStorage.getItem('qs_rowh')||'{}')||{}; }catch(e){ return {}; } })() };
 
 /* cây hạng mục (mã, tên, cấp) */
@@ -193,12 +193,14 @@ async function doCreate(){
 /* ===== FILTERS (trái) ===== */
 function parseWatt(nm){ var m=/(\d+(?:\.\d+)?)\s*w\b/i.exec(nm||''); return m?m[1]+'W':''; }
 function parseKelvin(nm){ var m=/(\d{4})\s*k\b/i.exec(nm||''); return m?m[1]+'K':''; }
+// Nhóm của SP: dùng field Nhóm, nếu rỗng thì lấy "Danh mục: X" trong mô tả
+function prodNhom_(p){ if(p&&p.nhom) return p.nhom; var m=/Danh m[uụ]c\s*[:：]\s*([^\n]+)/i.exec((p&&p.moTa)||''); return m?m[1].trim():''; }
+function nhomOptions(){ var s={}; S.products.forEach(function(p){ var n=prodNhom_(p); if(n) s[n]=(s[n]||0)+1; }); return s; }
 function renderFilters(){
-  // nhóm (ngành hàng)
-  var nhoms={}; S.products.forEach(function(p){ if(p.nhom) nhoms[p.nhom]=1; });
+  // nhóm (multi-select)
+  var sel=Object.keys(S.fNhomSet||{}).filter(function(k){return S.fNhomSet[k];});
   var fn=document.getElementById('fNhom');
-  fn.innerHTML='<option value="">Tất cả hạng mục</option>'+Object.keys(nhoms).map(function(n){return '<option>'+esc(n)+'</option>';}).join('');
-  fn.value=S.fNhom; fn.onchange=function(){ S.fNhom=fn.value; renderCatalog(); };
+  if(fn){ var lb=fn.querySelector('.mlabel'); if(lb) lb.textContent = sel.length? (sel.length===1?sel[0]:sel.length+' nhóm đã chọn') : 'Tất cả nhóm'; fn.classList.toggle('active',sel.length>0); }
   // brand
   var br={}; S.products.forEach(function(p){ if(p.thuongHieu) br[p.thuongHieu]=1; });
   var fb=document.getElementById('fBrand');
@@ -222,16 +224,45 @@ function filteredProducts(){
   var mn=Number(document.getElementById('fMin').value)||0, mx=Number(document.getElementById('fMax').value)||0;
   var watts=Object.keys(S.fWatt).filter(function(k){return S.fWatt[k];});
   var kels=Object.keys(S.fKelvin).filter(function(k){return S.fKelvin[k];});
+  var nhomSel=Object.keys(S.fNhomSet||{}).filter(function(k){return S.fNhomSet[k];});
+  var dk=(S.demucKw||'').toLowerCase();
   return S.products.filter(function(p){
-    if(S.fNhom && p.nhom!==S.fNhom) return false;
+    if(nhomSel.length && nhomSel.indexOf(prodNhom_(p))<0) return false;
     if(S.fBrand && p.thuongHieu!==S.fBrand) return false;
     if(q && (p.ten+' '+p.ma+' '+p.thuongHieu).toLowerCase().indexOf(q)<0) return false;
+    if(dk){ var hay=(p.ten+' '+prodNhom_(p)+' '+p.moTa).toLowerCase(); var words=dk.split(/[\s\-–—/().,]+/).filter(function(w){return w.length>3;}); if(words.length && !words.some(function(w){return hay.indexOf(w)>=0;})) return false; }
     var pr=Number(p.donGiaBan)||0; if(mn&&pr<mn) return false; if(mx&&pr>mx) return false;
     if(watts.length){ var w=parseWatt(p.ten); if(watts.indexOf(w)<0) return false; }
     if(kels.length){ var k=parseKelvin(p.ten); if(kels.indexOf(k)<0) return false; }
     return true;
   });
 }
+/* multi-select Nhóm */
+function openNhomMsel(e){
+  e.stopPropagation(); closePop();
+  var opts=nhomOptions(); var keys=Object.keys(opts).sort();
+  var allOn=keys.length && keys.every(function(k){return S.fNhomSet[k];});
+  var pop=document.createElement('div'); pop.className='fltpop'; pop.id='qs_pop'; pop.style.width='300px';
+  pop.innerHTML='<div class="fhdr">Chọn nhóm (nhiều)</div>'
+    +'<input class="fsearch" placeholder="Tìm nhóm…" oninput="filterPop(this.value)">'
+    +'<div id="fpItems"><div class="fchk'+(allOn?' on':'')+'" onclick="nhomAll('+(!allOn)+')"><span class="bx">'+(allOn?'✓':'')+'</span><b>Chọn tất cả</b></div>'
+    +keys.map(function(k){ var on=!!S.fNhomSet[k]; return '<div class="fchk'+(on?' on':'')+'" data-t="'+esc(k.toLowerCase())+'" data-v="'+esc(k)+'" onclick="nhomToggle(this.dataset.v)"><span class="bx">'+(on?'✓':'')+'</span>'+esc(k)+' <span style="color:#98a6b3">('+opts[k]+')</span></div>'; }).join('')
+    +(keys.length?'':'<div class="fi">Chưa có nhóm (SP chưa gán nhóm).</div>')+'</div>';
+  document.body.appendChild(pop);
+  var r=e.currentTarget.getBoundingClientRect(); pop.style.left=Math.max(8,r.left)+'px'; pop.style.top=(r.bottom+4)+'px';
+  setTimeout(function(){ document.addEventListener('mousedown',popOutside); },0);
+}
+function nhomToggle(n){ if(S.fNhomSet[n]) delete S.fNhomSet[n]; else S.fNhomSet[n]=1; renderFilters(); renderCatalog();
+  var pop=document.getElementById('qs_pop'); if(pop){ var el=pop.querySelector('[data-v="'+CSS.escape(n)+'"]'); if(el){ el.classList.toggle('on'); el.querySelector('.bx').textContent=S.fNhomSet[n]?'✓':''; } } }
+function nhomAll(on){ var opts=nhomOptions(); S.fNhomSet={}; if(on) Object.keys(opts).forEach(function(k){S.fNhomSet[k]=1;}); closePop(); renderFilters(); renderCatalog(); }
+/* lọc danh mục theo đề mục đang chọn ở cây */
+function setDemucFilter(code){
+  var nm=nodeName(code)||''; S.demucKw = code==='X'?'':nm;
+  var chip=document.getElementById('demucChip');
+  if(chip){ if(S.demucKw){ chip.style.display='inline-flex'; chip.innerHTML='Lọc theo đề mục: <b>'+esc(nm)+'</b> <b class="x" onclick="clearDemuc()">✕</b>'; } else chip.style.display='none'; }
+  renderCatalog();
+}
+function clearDemuc(){ S.demucKw=''; var chip=document.getElementById('demucChip'); if(chip)chip.style.display='none'; renderCatalog(); }
 function renderCatalog(){
   var list=filteredProducts();
   var el=document.getElementById('catList');
@@ -325,7 +356,7 @@ function renderTree(){
   document.getElementById('treeCnt').textContent='['+pad2(nodeCount(S.node))+']';
 }
 function toggleTree(){ var p=document.getElementById('treePop'); p.style.display=p.style.display==='none'?'block':'none'; }
-function pickNode(code){ S.node=code; document.getElementById('treePop').style.display='none'; renderTree(); renderTable(); }
+function pickNode(code){ S.node=code; document.getElementById('treePop').style.display='none'; renderTree(); renderTable(); setDemucFilter(code); }
 function pickNodeIdx(i){ var t=(S._tree||[])[i]; if(t) pickNode(t.code); }
 async function addCustomGroup(){
   if(!S.cur){ toast('Chưa chọn dự án'); return; }
