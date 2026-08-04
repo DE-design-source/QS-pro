@@ -193,6 +193,14 @@ async function doCreate(){
 /* ===== FILTERS (trái) ===== */
 function parseWatt(nm){ var m=/(\d+(?:\.\d+)?)\s*w\b/i.exec(nm||''); return m?m[1]+'W':''; }
 function parseKelvin(nm){ var m=/(\d{4})\s*k\b/i.exec(nm||''); return m?m[1]+'K':''; }
+// tách chuỗi "3000K, 4000K" -> ['3000K','4000K']
+function splitVals(s){ return String(s||'').split(',').map(function(x){return x.trim();}).filter(Boolean); }
+// gom các giá trị THẬT (không trùng) của 1 cột spec trên toàn bộ sản phẩm
+function distinctSpec(field){ var set={}; (S.products||[]).forEach(function(p){ splitVals(p[field]).forEach(function(v){ set[v]=1; }); }); return Object.keys(set); }
+// sắp theo số đứng đầu (7W<12W, 3000K<4000K, 15°<24°)
+function cmpNum(a,b){ return (parseFloat(a)||0)-(parseFloat(b)||0); }
+// màu chấm theo nhiệt độ màu
+function ctColor(k){ var n=parseInt(k,10)||0; if(n<=2700)return '#f0a500'; if(n<=3000)return '#f08a00'; if(n<=4000)return '#f2c200'; if(n<=5000)return '#dbe6f0'; return '#3b82f6'; }
 // Nhóm của SP: dùng field Nhóm, nếu rỗng thì lấy "Danh mục: X" trong mô tả
 function prodNhom_(p){ if(p&&p.nhom) return p.nhom; var m=/Danh m[uụ]c\s*[:：]\s*([^\n]+)/i.exec((p&&p.moTa)||''); return m?m[1].trim():''; }
 function nhomOptions(){ var s={}; S.products.forEach(function(p){ var n=prodNhom_(p); if(n) s[n]=(s[n]||0)+1; }); return s; }
@@ -206,12 +214,11 @@ function renderFilters(){
   var fb=document.getElementById('fBrand');
   fb.innerHTML='<option value="">Tất cả thương hiệu</option>'+Object.keys(br).sort().map(function(n){return '<option>'+esc(n)+'</option>';}).join('');
   fb.value=S.fBrand; fb.onchange=function(){ S.fBrand=fb.value; renderCatalog(); };
-  // watt
-  document.getElementById('fWatt').innerHTML=WATTS.map(function(w){return '<span class="chip wide'+(S.fWatt[w]?' on':'')+'" data-w="'+w+'">'+w+'</span>';}).join('');
-  // kelvin
-  document.getElementById('fKelvin').innerHTML=KELVINS.map(function(k){return '<span class="chip'+(S.fKelvin[k[0]]?' on':'')+'" data-k="'+k[0]+'"><span class="dot" style="background:'+k[1]+'"></span>'+k[0]+'</span>';}).join('');
-  // angle
-  document.getElementById('fAngle').innerHTML=ANGLES.map(function(a){return '<span class="chip'+(S.fAngle[a]?' on':'')+'" data-a="'+esc(a)+'">'+esc(a)+'</span>';}).join('');
+  // watt/kelvin/angle: sinh chip từ giá trị THẬT trong dữ liệu (cột Công suất/Nhiệt độ/Góc chiếu)
+  var wl=distinctSpec('congSuat').sort(cmpNum), kl=distinctSpec('nhietDo').sort(cmpNum), al=distinctSpec('gocChieu').sort(cmpNum);
+  document.getElementById('fWatt').innerHTML=wl.length?wl.map(function(w){return '<span class="chip wide'+(S.fWatt[w]?' on':'')+'" data-w="'+esc(w)+'">'+esc(w)+'</span>';}).join(''):'<span style="color:#9aa;font-size:12px">—</span>';
+  document.getElementById('fKelvin').innerHTML=kl.length?kl.map(function(k){return '<span class="chip'+(S.fKelvin[k]?' on':'')+'" data-k="'+esc(k)+'"><span class="dot" style="background:'+ctColor(k)+'"></span>'+esc(k)+'</span>';}).join(''):'<span style="color:#9aa;font-size:12px">—</span>';
+  document.getElementById('fAngle').innerHTML=al.length?al.map(function(a){return '<span class="chip'+(S.fAngle[a]?' on':'')+'" data-a="'+esc(a)+'">'+esc(a)+'</span>';}).join(''):'<span style="color:#9aa;font-size:12px">—</span>';
   document.getElementById('fWatt').onclick=function(e){ var c=e.target.closest('[data-w]'); if(!c)return; var w=c.getAttribute('data-w'); S.fWatt[w]=!S.fWatt[w]; renderFilters(); renderCatalog(); };
   document.getElementById('fKelvin').onclick=function(e){ var c=e.target.closest('[data-k]'); if(!c)return; var k=c.getAttribute('data-k'); S.fKelvin[k]=!S.fKelvin[k]; renderFilters(); renderCatalog(); };
   document.getElementById('fAngle').onclick=function(e){ var c=e.target.closest('[data-a]'); if(!c)return; var a=c.getAttribute('data-a'); S.fAngle[a]=!S.fAngle[a]; renderFilters(); renderCatalog(); };
@@ -224,6 +231,7 @@ function filteredProducts(){
   var mn=Number(document.getElementById('fMin').value)||0, mx=Number(document.getElementById('fMax').value)||0;
   var watts=Object.keys(S.fWatt).filter(function(k){return S.fWatt[k];});
   var kels=Object.keys(S.fKelvin).filter(function(k){return S.fKelvin[k];});
+  var angs=Object.keys(S.fAngle).filter(function(k){return S.fAngle[k];});
   var nhomSel=Object.keys(S.fNhomSet||{}).filter(function(k){return S.fNhomSet[k];});
   var dk=(S.demucKw||'').toLowerCase();
   return S.products.filter(function(p){
@@ -232,8 +240,9 @@ function filteredProducts(){
     if(q && (p.ten+' '+p.ma+' '+p.thuongHieu).toLowerCase().indexOf(q)<0) return false;
     if(dk){ var hay=(p.ten+' '+prodNhom_(p)+' '+p.moTa).toLowerCase(); var words=dk.split(/[\s\-–—/().,]+/).filter(function(w){return w.length>3;}); if(words.length && !words.some(function(w){return hay.indexOf(w)>=0;})) return false; }
     var pr=Number(p.donGiaBan)||0; if(mn&&pr<mn) return false; if(mx&&pr>mx) return false;
-    if(watts.length){ var w=parseWatt(p.ten); if(watts.indexOf(w)<0) return false; }
-    if(kels.length){ var k=parseKelvin(p.ten); if(kels.indexOf(k)<0) return false; }
+    if(watts.length){ var pw=splitVals(p.congSuat); if(!pw.some(function(x){return watts.indexOf(x)>=0;})) return false; }
+    if(kels.length){ var pk=splitVals(p.nhietDo); if(!pk.some(function(x){return kels.indexOf(x)>=0;})) return false; }
+    if(angs.length){ var pa=splitVals(p.gocChieu); if(!pa.some(function(x){return angs.indexOf(x)>=0;})) return false; }
     return true;
   });
 }
@@ -293,9 +302,10 @@ function showDetail(i){
   var el=document.getElementById('pdPanel');
   document.getElementById('bocGrid').classList.add('detail');
   el.style.display='block';
-  var kv='', w=parseWatt(p.ten), k=parseKelvin(p.ten);
-  if(w) kv+='<div class="spec"><span class="k">Công suất</span><span class="v">'+w+'</span></div>';
-  if(k) kv+='<div class="spec"><span class="k">Nhiệt độ màu</span><span class="v">'+k+'</span></div>';
+  var kv='', w=p.congSuat||parseWatt(p.ten), k=p.nhietDo||parseKelvin(p.ten), g=p.gocChieu||'';
+  if(w) kv+='<div class="spec"><span class="k">Công suất</span><span class="v">'+esc(w)+'</span></div>';
+  if(k) kv+='<div class="spec"><span class="k">Nhiệt độ màu</span><span class="v">'+esc(k)+'</span></div>';
+  if(g) kv+='<div class="spec"><span class="k">Góc chiếu sáng</span><span class="v">'+esc(g)+'</span></div>';
   el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px"><h3 style="margin:0">Thông tin sản phẩm</h3>'
     +'<button class="btn ghost sm" onclick="hideDetail()">✕</button></div>'
     +'<div class="imgbox">'+(p.hinhAnh?'<img src="'+esc(p.hinhAnh)+'" onerror="this.parentNode.innerHTML=\'<span style=&quot;color:#9aa&quot;>Không tải được ảnh</span>\'">':'<span style="color:#9aa">Không có ảnh</span>')+'</div>'

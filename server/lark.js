@@ -143,6 +143,16 @@ async function batchCreate(tableId, recordsFields) {
       { body: { records: chunk } });
   }
 }
+async function batchUpdate(tableId, records) {
+  const app = config.appToken;
+  for (var i = 0; i < records.length; i += 500) {
+    const chunk = records.slice(i, i + 500);
+    if (!chunk.length) continue;
+    await call('POST',
+      '/open-apis/bitable/v1/apps/' + app + '/tables/' + tableId + '/records/batch_update',
+      { body: { records: chunk } });
+  }
+}
 async function batchDelete(tableId, recordIds) {
   const app = config.appToken;
   for (var i = 0; i < recordIds.length; i += 500) {
@@ -200,6 +210,6 @@ async function mediaDownload(fileToken) {
 module.exports = {
   tenantToken, call, listRecords, searchRecords, findByField, getRecord,
   createRecord, updateRecord, deleteRecord,
-  batchCreate, batchDelete, listTables, listFields, createTable, mediaDownload,
+  batchCreate, batchUpdate, batchDelete, listTables, listFields, createTable, mediaDownload,
   FieldType: { TEXT: 1, NUMBER: 2, SINGLE_SELECT: 3, DATETIME: 5, ATTACHMENT: 17, AUTO_NUMBER: 1005 }
 };

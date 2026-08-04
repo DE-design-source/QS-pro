@@ -209,7 +209,10 @@ async function productFieldMap() {
     kt: findName_(map, ['KÍCH THƯỚC']),
     dvt: findName_(map, ['ĐVT', 'ĐƠN VỊ TÍNH', 'ĐƠN VỊ']),
     gia: findName_(map, ['GIÁ BÁN LẺ', 'ĐƠN GIÁ', 'GIÁ']),
-    img: findName_(map, ['HÌNH ẢNH', 'ẢNH', 'IMAGE'])
+    img: findName_(map, ['HÌNH ẢNH', 'ẢNH', 'IMAGE']),
+    congSuat: findName_(map, ['CÔNG SUẤT', 'CÔNG XUẤT', 'CÔNG XUẤ', 'WATT']),
+    nhietDo: findName_(map, ['NHIỆT ĐỘ MÀU', 'NHIỆT ĐỘ', 'CCT', 'KELVIN']),
+    gocChieu: findName_(map, ['GÓC CHIẾU SÁNG', 'GÓC CHIẾU', 'BEAM'])
   };
   // kiểu từng field (để ghi đúng định dạng: MultiSelect=mảng, Number=số…)
   _fmCache.typeOf = {}; fields.forEach(function (f) { _fmCache.typeOf[f.field_name] = f.type; });
@@ -242,6 +245,7 @@ async function getProducts() {
       nhom: cellText(f[fm.nhom]), hangMuc: cellText(f[fm.hm]) || cellText(f[fm.nhom]),
       moTa: cellText(f[fm.mota]), kichThuoc: cellText(f[fm.kt]),
       hinhAnh: imageUrl(f[fm.img]), link: '', dvt: cellText(f[fm.dvt]) || 'Cái',
+      congSuat: cellText(f[fm.congSuat]), nhietDo: cellText(f[fm.nhietDo]), gocChieu: cellText(f[fm.gocChieu]),
       donGiaVon: gia, donGiaBan: gia, lnPct: 0, recordId: r.record_id
     });
   });
