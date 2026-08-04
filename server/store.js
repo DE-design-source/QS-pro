@@ -212,7 +212,15 @@ async function productFieldMap() {
     img: findName_(map, ['HÌNH ẢNH', 'ẢNH', 'IMAGE']),
     congSuat: findName_(map, ['CÔNG SUẤT', 'CÔNG XUẤT', 'CÔNG XUẤ', 'WATT']),
     nhietDo: findName_(map, ['NHIỆT ĐỘ MÀU', 'NHIỆT ĐỘ', 'CCT', 'KELVIN']),
-    gocChieu: findName_(map, ['GÓC CHIẾU SÁNG', 'GÓC CHIẾU', 'BEAM'])
+    gocChieu: findName_(map, ['GÓC CHIẾU SÁNG', 'GÓC CHIẾU', 'BEAM']),
+    loKhoet: findName_(map, ['LỖ KHOÉT', 'LỖ KHOET']),
+    cri: findName_(map, ['CRI', 'HOÀN MÀU', 'RA']),
+    dienAp: findName_(map, ['ĐIỆN ÁP', 'ĐIỆN THẾ', 'VOLTAGE']),
+    capBaoVe: findName_(map, ['CẤP BẢO VỆ', 'IP', 'CHỐNG NƯỚC']),
+    quangThong: findName_(map, ['QUANG THÔNG', 'LUMEN', 'LM']),
+    chipLed: findName_(map, ['LOẠI CHIP LED', 'CHIP LED', 'CHIP']),
+    tuoiTho: findName_(map, ['TUỔI THỌ', 'LIFESPAN']),
+    chatLieu: findName_(map, ['CHẤT LIỆU', 'VẬT LIỆU', 'MATERIAL'])
   };
   // kiểu từng field (để ghi đúng định dạng: MultiSelect=mảng, Number=số…)
   _fmCache.typeOf = {}; fields.forEach(function (f) { _fmCache.typeOf[f.field_name] = f.type; });
@@ -246,6 +254,9 @@ async function getProducts() {
       moTa: cellText(f[fm.mota]), kichThuoc: cellText(f[fm.kt]),
       hinhAnh: imageUrl(f[fm.img]), link: '', dvt: cellText(f[fm.dvt]) || 'Cái',
       congSuat: cellText(f[fm.congSuat]), nhietDo: cellText(f[fm.nhietDo]), gocChieu: cellText(f[fm.gocChieu]),
+      loKhoet: cellText(f[fm.loKhoet]), cri: cellText(f[fm.cri]), dienAp: cellText(f[fm.dienAp]),
+      capBaoVe: cellText(f[fm.capBaoVe]), quangThong: cellText(f[fm.quangThong]), chipLed: cellText(f[fm.chipLed]),
+      tuoiTho: cellText(f[fm.tuoiTho]), chatLieu: cellText(f[fm.chatLieu]),
       donGiaVon: gia, donGiaBan: gia, lnPct: 0, recordId: r.record_id
     });
   });

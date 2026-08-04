@@ -15,7 +15,7 @@ function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.cl
 
 /* ===== STATE ===== */
 var S={ projects:[], products:[], cur:null, lines:[], node:'3.2.6.1', selFloor:'', _dragProd:null,
-  fWatt:{}, fKelvin:{}, fAngle:{}, fBrand:'', fNhom:'', fNhomSet:{}, demucKw:'', cols:{}, _drag:null,
+  fWatt:{}, fKelvin:{}, fAngle:{}, fIP:{}, fCRI:{}, fVolt:{}, fBrand:'', fNhom:'', fNhomSet:{}, demucKw:'', cols:{}, _drag:null,
   rowH:(function(){ try{ return JSON.parse(localStorage.getItem('qs_rowh')||'{}')||{}; }catch(e){ return {}; } })() };
 
 /* cây hạng mục (mã, tên, cấp) */
@@ -197,10 +197,17 @@ function parseKelvin(nm){ var m=/(\d{4})\s*k\b/i.exec(nm||''); return m?m[1]+'K'
 function splitVals(s){ return String(s||'').split(',').map(function(x){return x.trim();}).filter(Boolean); }
 // gom các giá trị THẬT (không trùng) của 1 cột spec trên toàn bộ sản phẩm
 function distinctSpec(field){ var set={}; (S.products||[]).forEach(function(p){ splitVals(p[field]).forEach(function(v){ set[v]=1; }); }); return Object.keys(set); }
-// sắp theo số đứng đầu (7W<12W, 3000K<4000K, 15°<24°)
-function cmpNum(a,b){ return (parseFloat(a)||0)-(parseFloat(b)||0); }
+// sắp theo số trong chuỗi (7W<12W, IP20<IP44, 220V<240V)
+function cmpNum(a,b){ var na=parseFloat(String(a).replace(/[^0-9.]/g,''))||0, nb=parseFloat(String(b).replace(/[^0-9.]/g,''))||0; return na-nb; }
 // màu chấm theo nhiệt độ màu
 function ctColor(k){ var n=parseInt(k,10)||0; if(n<=2700)return '#f0a500'; if(n<=3000)return '#f08a00'; if(n<=4000)return '#f2c200'; if(n<=5000)return '#dbe6f0'; return '#3b82f6'; }
+// khung chip lọc dùng chung cho IP/CRI/Điện áp: sinh từ giá trị thật, toggle state
+function specChips_(elId, field, stateMap, labelFn){
+  var el=document.getElementById(elId); if(!el) return;
+  var list=distinctSpec(field).sort(cmpNum);
+  el.innerHTML=list.length?list.map(function(v){ return '<span class="chip'+(stateMap[v]?' on':'')+'" data-v="'+esc(v)+'">'+esc(labelFn?labelFn(v):v)+'</span>'; }).join(''):'<span style="color:#9aa;font-size:12px">—</span>';
+  el.onclick=function(e){ var c=e.target.closest('[data-v]'); if(!c)return; var v=c.getAttribute('data-v'); stateMap[v]=!stateMap[v]; renderFilters(); renderCatalog(); };
+}
 // Nhóm của SP: dùng field Nhóm, nếu rỗng thì lấy "Danh mục: X" trong mô tả
 function prodNhom_(p){ if(p&&p.nhom) return p.nhom; var m=/Danh m[uụ]c\s*[:：]\s*([^\n]+)/i.exec((p&&p.moTa)||''); return m?m[1].trim():''; }
 function nhomOptions(){ var s={}; S.products.forEach(function(p){ var n=prodNhom_(p); if(n) s[n]=(s[n]||0)+1; }); return s; }
@@ -222,6 +229,10 @@ function renderFilters(){
   document.getElementById('fWatt').onclick=function(e){ var c=e.target.closest('[data-w]'); if(!c)return; var w=c.getAttribute('data-w'); S.fWatt[w]=!S.fWatt[w]; renderFilters(); renderCatalog(); };
   document.getElementById('fKelvin').onclick=function(e){ var c=e.target.closest('[data-k]'); if(!c)return; var k=c.getAttribute('data-k'); S.fKelvin[k]=!S.fKelvin[k]; renderFilters(); renderCatalog(); };
   document.getElementById('fAngle').onclick=function(e){ var c=e.target.closest('[data-a]'); if(!c)return; var a=c.getAttribute('data-a'); S.fAngle[a]=!S.fAngle[a]; renderFilters(); renderCatalog(); };
+  // IP / CRI / Điện áp (chip sinh động, dùng chung khung specChips_)
+  specChips_('fIP','capBaoVe',S.fIP);
+  specChips_('fCRI','cri',S.fCRI,function(v){return v;});
+  specChips_('fVolt','dienAp',S.fVolt);
   document.getElementById('fMin').oninput=renderCatalog;
   document.getElementById('fMax').oninput=renderCatalog;
   document.getElementById('fSearch').oninput=renderCatalog;
@@ -232,6 +243,9 @@ function filteredProducts(){
   var watts=Object.keys(S.fWatt).filter(function(k){return S.fWatt[k];});
   var kels=Object.keys(S.fKelvin).filter(function(k){return S.fKelvin[k];});
   var angs=Object.keys(S.fAngle).filter(function(k){return S.fAngle[k];});
+  var ips=Object.keys(S.fIP).filter(function(k){return S.fIP[k];});
+  var cris=Object.keys(S.fCRI).filter(function(k){return S.fCRI[k];});
+  var volts=Object.keys(S.fVolt).filter(function(k){return S.fVolt[k];});
   var nhomSel=Object.keys(S.fNhomSet||{}).filter(function(k){return S.fNhomSet[k];});
   var dk=(S.demucKw||'').toLowerCase();
   return S.products.filter(function(p){
@@ -243,6 +257,9 @@ function filteredProducts(){
     if(watts.length){ var pw=splitVals(p.congSuat); if(!pw.some(function(x){return watts.indexOf(x)>=0;})) return false; }
     if(kels.length){ var pk=splitVals(p.nhietDo); if(!pk.some(function(x){return kels.indexOf(x)>=0;})) return false; }
     if(angs.length){ var pa=splitVals(p.gocChieu); if(!pa.some(function(x){return angs.indexOf(x)>=0;})) return false; }
+    if(ips.length){ var pi=splitVals(p.capBaoVe); if(!pi.some(function(x){return ips.indexOf(x)>=0;})) return false; }
+    if(cris.length){ var pc=splitVals(p.cri); if(!pc.some(function(x){return cris.indexOf(x)>=0;})) return false; }
+    if(volts.length){ var pvv=splitVals(p.dienAp); if(!pvv.some(function(x){return volts.indexOf(x)>=0;})) return false; }
     return true;
   });
 }
@@ -302,10 +319,21 @@ function showDetail(i){
   var el=document.getElementById('pdPanel');
   document.getElementById('bocGrid').classList.add('detail');
   el.style.display='block';
-  var kv='', w=p.congSuat||parseWatt(p.ten), k=p.nhietDo||parseKelvin(p.ten), g=p.gocChieu||'';
-  if(w) kv+='<div class="spec"><span class="k">Công suất</span><span class="v">'+esc(w)+'</span></div>';
-  if(k) kv+='<div class="spec"><span class="k">Nhiệt độ màu</span><span class="v">'+esc(k)+'</span></div>';
-  if(g) kv+='<div class="spec"><span class="k">Góc chiếu sáng</span><span class="v">'+esc(g)+'</span></div>';
+  var kv='';
+  var specs=[
+    ['Công suất', p.congSuat||parseWatt(p.ten)],
+    ['Nhiệt độ màu', p.nhietDo||parseKelvin(p.ten)],
+    ['Góc chiếu sáng', p.gocChieu],
+    ['Lỗ khoét', p.loKhoet],
+    ['Chỉ số hoàn màu (CRI)', p.cri],
+    ['Điện áp', p.dienAp],
+    ['Cấp bảo vệ (IP)', p.capBaoVe],
+    ['Quang thông', p.quangThong],
+    ['Loại chip LED', p.chipLed],
+    ['Tuổi thọ', p.tuoiTho],
+    ['Chất liệu', p.chatLieu]
+  ];
+  specs.forEach(function(s){ if(s[1]) kv+='<div class="spec"><span class="k">'+s[0]+'</span><span class="v">'+esc(s[1])+'</span></div>'; });
   el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px"><h3 style="margin:0">Thông tin sản phẩm</h3>'
     +'<button class="btn ghost sm" onclick="hideDetail()">✕</button></div>'
     +'<div class="imgbox">'+(p.hinhAnh?'<img src="'+esc(p.hinhAnh)+'" onerror="this.parentNode.innerHTML=\'<span style=&quot;color:#9aa&quot;>Không tải được ảnh</span>\'">':'<span style="color:#9aa">Không có ảnh</span>')+'</div>'
