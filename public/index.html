@@ -1,7 +1,7 @@
 <!-- DECOX QS Pro — giao diện dựng lại theo mockup (Bóc tách) -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DECOX — Dự toán / Bóc tách</title>
+<title>Dezon Pro - Dự toán chuyên nghiệp</title>
 <style>
 :root{
   --navy:#123350; --navy2:#0f2c46; --blue:#2f6fef; --blue-d:#2360d8;
@@ -18,8 +18,8 @@ a{color:inherit}
 /* ===== top nav ===== */
 .topnav{background:#fff;border-bottom:1px solid var(--line)}
 .topnav .row{display:flex;align-items:center;gap:28px;height:58px}
-.logo{font-weight:800;font-size:23px;letter-spacing:1px;color:#111}
-.logo b{color:inherit;font-weight:800}
+.logo{height:28px;width:auto;display:block}
+@media (prefers-color-scheme: dark){.logo{filter:invert(1) brightness(1.6)}}
 .nav{display:flex;gap:24px;flex:1}
 .nav a{color:#33414f;text-decoration:none;font-weight:500;font-size:14px;padding:6px 2px;border-bottom:2px solid transparent}
 .nav a.active{color:#111;font-weight:700}
@@ -292,7 +292,7 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 
 <!-- ===== TOP NAV ===== -->
 <div class="topnav"><div class="wrap"><div class="row">
-  <div class="logo">DE<b>C</b>OX</div>
+  <img class="logo" src="logo.svg" alt="Dezon Pro" title="Dezon Pro — Dự toán chuyên nghiệp">
   <div class="nav" id="nav">
     <a data-tab="dash">Bảng điều khiển</a>
     <a data-tab="project">Thông tin dự án</a>
