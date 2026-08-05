@@ -4,5 +4,3 @@ server/tables.local.json
 *.log
 .DS_Store
 
-# build info sinh ra lúc build
-server/build-info.json

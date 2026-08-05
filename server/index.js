@@ -11,7 +11,6 @@ const config = require('./config');
 const store = require('./store');
 const lark = require('./lark');
 const exportBaoGia = require('./export');
-const { sendBuildNotice } = require('./notify');
 
 const app = express();
 app.use(express.json({ limit: '30mb' }));
@@ -87,6 +86,4 @@ app.listen(config.port, function () {
   }).catch(function (e) {
     console.warn('CẢNH BÁO setup Lark:', e.message);
   });
-  // Thông báo lên Lark khi deploy xong (chỉ chạy trên Render)
-  sendBuildNotice();
 });
