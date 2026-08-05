@@ -16,6 +16,7 @@ function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.cl
 /* ===== STATE ===== */
 var S={ projects:[], products:[], cur:null, lines:[], node:'3.2.6.1', selFloor:'', _dragProd:null,
   fWatt:{}, fKelvin:{}, fAngle:{}, fIP:{}, fCRI:{}, fVolt:{}, fBrand:'', fNhom:'', fNhomSet:{}, demucKw:'', cols:{}, _drag:null,
+  fsecOpen:(function(){ try{ return JSON.parse(localStorage.getItem('qs_fsec')||'{}')||{}; }catch(e){ return {}; } })(), fsecMore:{},
   rowH:(function(){ try{ return JSON.parse(localStorage.getItem('qs_rowh')||'{}')||{}; }catch(e){ return {}; } })() };
 
 /* cây hạng mục (mã, tên, cấp) */
@@ -201,12 +202,40 @@ function distinctSpec(field){ var set={}; (S.products||[]).forEach(function(p){ 
 function cmpNum(a,b){ var na=parseFloat(String(a).replace(/[^0-9.]/g,''))||0, nb=parseFloat(String(b).replace(/[^0-9.]/g,''))||0; return na-nb; }
 // màu chấm theo nhiệt độ màu
 function ctColor(k){ var n=parseInt(k,10)||0; if(n<=2700)return '#f0a500'; if(n<=3000)return '#f08a00'; if(n<=4000)return '#f2c200'; if(n<=5000)return '#dbe6f0'; return '#3b82f6'; }
-// khung chip lọc dùng chung cho IP/CRI/Điện áp: sinh từ giá trị thật, toggle state
-function specChips_(elId, field, stateMap, labelFn){
+// 1 nhóm lọc gập/mở: sinh chip từ giá trị thật, giới hạn số chip hiện + "Xem thêm",
+// badge đếm trên tiêu đề, click chip để lọc.
+function chipGroup(key, elId, badgeId, field, stateMap, dataAttr, opts){
+  opts=opts||{};
   var el=document.getElementById(elId); if(!el) return;
-  var list=distinctSpec(field).sort(cmpNum);
-  el.innerHTML=list.length?list.map(function(v){ return '<span class="chip'+(stateMap[v]?' on':'')+'" data-v="'+esc(v)+'">'+esc(labelFn?labelFn(v):v)+'</span>'; }).join(''):'<span style="color:#9aa;font-size:12px">—</span>';
-  el.onclick=function(e){ var c=e.target.closest('[data-v]'); if(!c)return; var v=c.getAttribute('data-v'); stateMap[v]=!stateMap[v]; renderFilters(); renderCatalog(); };
+  var all=distinctSpec(field).sort(cmpNum);
+  var selN=all.filter(function(v){return stateMap[v];}).length;
+  var badge=document.getElementById(badgeId);
+  if(badge) badge.textContent = selN ? ('· '+selN+' đã chọn') : (all.length ? ('· '+all.length) : '');
+  var html;
+  if(!all.length){ html='<span style="color:#9aa;font-size:12px">—</span>'; }
+  else{
+    html=all.map(function(v){
+      var dot=opts.dot?'<span class="dot" style="background:'+opts.dot(v)+'"></span>':'';
+      return '<span class="chip'+(opts.wide?' wide':'')+(stateMap[v]?' on':'')+'" '+dataAttr+'="'+esc(v)+'">'+dot+esc(v)+'</span>';
+    }).join('');
+  }
+  el.innerHTML=html;
+  el.onclick=function(e){
+    var c=e.target.closest('['+dataAttr+']'); if(!c)return; var v=c.getAttribute(dataAttr);
+    stateMap[v]=!stateMap[v]; renderFilters(); renderCatalog();
+  };
+}
+// gập/mở 1 nhóm lọc (mặc định MỞ; nhớ trạng thái ở localStorage)
+function toggleFsec(key){
+  var open=(S.fsecOpen[key]!==false);
+  S.fsecOpen[key]=!open;
+  try{ localStorage.setItem('qs_fsec', JSON.stringify(S.fsecOpen)); }catch(e){}
+  applyFsec();
+}
+function applyFsec(){
+  ['watt','kelvin','angle','ip','cri','volt'].forEach(function(k){
+    var s=document.getElementById('sec_'+k); if(s) s.classList.toggle('open', S.fsecOpen[k]!==false);
+  });
 }
 // Nhóm của SP: dùng field Nhóm, nếu rỗng thì lấy "Danh mục: X" trong mô tả
 function prodNhom_(p){ if(p&&p.nhom) return p.nhom; var m=/Danh m[uụ]c\s*[:：]\s*([^\n]+)/i.exec((p&&p.moTa)||''); return m?m[1].trim():''; }
@@ -221,18 +250,14 @@ function renderFilters(){
   var fb=document.getElementById('fBrand');
   fb.innerHTML='<option value="">Tất cả thương hiệu</option>'+Object.keys(br).sort().map(function(n){return '<option>'+esc(n)+'</option>';}).join('');
   fb.value=S.fBrand; fb.onchange=function(){ S.fBrand=fb.value; renderCatalog(); };
-  // watt/kelvin/angle: sinh chip từ giá trị THẬT trong dữ liệu (cột Công suất/Nhiệt độ/Góc chiếu)
-  var wl=distinctSpec('congSuat').sort(cmpNum), kl=distinctSpec('nhietDo').sort(cmpNum), al=distinctSpec('gocChieu').sort(cmpNum);
-  document.getElementById('fWatt').innerHTML=wl.length?wl.map(function(w){return '<span class="chip wide'+(S.fWatt[w]?' on':'')+'" data-w="'+esc(w)+'">'+esc(w)+'</span>';}).join(''):'<span style="color:#9aa;font-size:12px">—</span>';
-  document.getElementById('fKelvin').innerHTML=kl.length?kl.map(function(k){return '<span class="chip'+(S.fKelvin[k]?' on':'')+'" data-k="'+esc(k)+'"><span class="dot" style="background:'+ctColor(k)+'"></span>'+esc(k)+'</span>';}).join(''):'<span style="color:#9aa;font-size:12px">—</span>';
-  document.getElementById('fAngle').innerHTML=al.length?al.map(function(a){return '<span class="chip'+(S.fAngle[a]?' on':'')+'" data-a="'+esc(a)+'">'+esc(a)+'</span>';}).join(''):'<span style="color:#9aa;font-size:12px">—</span>';
-  document.getElementById('fWatt').onclick=function(e){ var c=e.target.closest('[data-w]'); if(!c)return; var w=c.getAttribute('data-w'); S.fWatt[w]=!S.fWatt[w]; renderFilters(); renderCatalog(); };
-  document.getElementById('fKelvin').onclick=function(e){ var c=e.target.closest('[data-k]'); if(!c)return; var k=c.getAttribute('data-k'); S.fKelvin[k]=!S.fKelvin[k]; renderFilters(); renderCatalog(); };
-  document.getElementById('fAngle').onclick=function(e){ var c=e.target.closest('[data-a]'); if(!c)return; var a=c.getAttribute('data-a'); S.fAngle[a]=!S.fAngle[a]; renderFilters(); renderCatalog(); };
-  // IP / CRI / Điện áp (chip sinh động, dùng chung khung specChips_)
-  specChips_('fIP','capBaoVe',S.fIP);
-  specChips_('fCRI','cri',S.fCRI,function(v){return v;});
-  specChips_('fVolt','dienAp',S.fVolt);
+  // 6 nhóm lọc: gập/mở từng phần + chỉ hiện một số chip, còn lại "Xem thêm"
+  chipGroup('watt','fWatt','nWatt','congSuat',S.fWatt,'data-w',{wide:true});
+  chipGroup('kelvin','fKelvin','nKelvin','nhietDo',S.fKelvin,'data-k',{dot:ctColor});
+  chipGroup('angle','fAngle','nAngle','gocChieu',S.fAngle,'data-a',{});
+  chipGroup('ip','fIP','nIP','capBaoVe',S.fIP,'data-v',{});
+  chipGroup('cri','fCRI','nCRI','cri',S.fCRI,'data-v',{});
+  chipGroup('volt','fVolt','nVolt','dienAp',S.fVolt,'data-v',{});
+  applyFsec();
   document.getElementById('fMin').oninput=renderCatalog;
   document.getElementById('fMax').oninput=renderCatalog;
   document.getElementById('fSearch').oninput=renderCatalog;

@@ -18,6 +18,34 @@ function readInfo() {
   catch (e) { return {}; }
 }
 
+// Lấy thông tin commit ngay lúc chạy bằng git (Render giữ .git ở runtime) — chính xác nhất.
+function gitInfo() {
+  try {
+    const { execSync } = require('child_process');
+    const opt = { cwd: path.join(__dirname, '..'), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] };
+    const g = function (c) { return execSync('git ' + c, opt).trim(); };
+    return {
+      sha: g('rev-parse --short HEAD'),
+      subject: g('log -1 --pretty=%s'),
+      body: g('log -1 --pretty=%b'),
+      branch: process.env.RENDER_GIT_BRANCH || g('rev-parse --abbrev-ref HEAD'),
+      files: g('show --name-only --pretty=format: HEAD').split('\n').map(function (s) { return s.trim(); }).filter(Boolean)
+    };
+  } catch (e) { return null; }
+}
+
+// Thứ tự ưu tiên: git runtime -> file build-info.json -> biến môi trường Render.
+function gatherInfo() {
+  const gi = gitInfo();
+  if (gi && gi.subject) return gi;
+  const fi = readInfo();
+  if (fi && fi.subject) return fi;
+  return {
+    sha: (process.env.RENDER_GIT_COMMIT || '').slice(0, 7) || '?',
+    subject: 'Cập nhật mới', body: '', branch: process.env.RENDER_GIT_BRANCH || 'main', files: []
+  };
+}
+
 function nowVN() {
   try {
     return new Intl.DateTimeFormat('vi-VN', {
