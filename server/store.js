@@ -393,7 +393,8 @@ function recToLine_(r) {
     soLuong: toNumber_(f['Số lượng']), donGiaVon: toNumber_(f['Đơn giá vốn']), lnPct: toNumber_(f['% Lợi nhuận']),
     donGiaBan: toNumber_(f['Đơn giá bán']), thanhTienVon: toNumber_(f['Thành tiền vốn']), thanhTienBan: toNumber_(f['Thành tiền bán']),
     khuVuc: cellText(f['Khu vực']), ncc: cellText(f['NCC']), maBanVe: cellText(f['Mã bản vẽ']), tang: cellText(f['Tầng']),
-    chietKhau: toNumber_(f['Chiết khấu (%)']), trangThai: cellText(f['Trạng thái']), ghiChu: cellText(f['Ghi chú']),
+    chietKhau: toNumber_(f['Chiết khấu (%)']), ckKhach: toNumber_(f['Chiết khấu khách (%)']),
+    trangThai: cellText(f['Trạng thái']), ghiChu: cellText(f['Ghi chú']),
     tuNhap: toNumber_(f['Tự nhập']) ? 1 : 0, daLuuDM: toNumber_(f['Đã lưu DM']) ? 1 : 0,
     extra: parseExtra_(cellText(f['Thuộc tính thêm']))
   };
@@ -419,9 +420,10 @@ async function addLine(maDA, product, soLuong) {
     'Mã SP': product.ma || '', 'Tên sản phẩm': product.ten || '', 'Thương hiệu': product.thuongHieu || '',
     'Mô tả': product.moTa || '', 'Kích thước': product.kichThuoc || '', 'Hình ảnh': product.hinhAnh || product.link || '',
     'ĐVT': product.dvt || 'Cái', 'Số lượng': sl, 'Đơn giá vốn': von, '% Lợi nhuận': ln, 'Đơn giá bán': ban,
-    'Thành tiền vốn': round0_(sl * von), 'Thành tiền bán': round0_(sl * ban),
+    'Thành tiền vốn': round0_(sl * von), 'Thành tiền bán': round0_(sl * ban * (1 - (Number(product.ckKhach) || 0) / 100)),
     'Khu vực': product.khuVuc || '', 'NCC': product.ncc || '', 'Mã bản vẽ': product.maBanVe || '', 'Tầng': product.tang || '',
-    'Chiết khấu (%)': Number(product.chietKhau) || 0, 'Trạng thái': product.trangThai || '', 'Ghi chú': product.ghiChu || '',
+    'Chiết khấu (%)': Number(product.chietKhau) || 0, 'Chiết khấu khách (%)': Number(product.ckKhach) || 0,
+    'Trạng thái': product.trangThai || '', 'Ghi chú': product.ghiChu || '',
     'Tự nhập': Number(product.tuNhap) ? 1 : 0, 'Đã lưu DM': Number(product.daLuuDM) ? 1 : 0,
     'Thuộc tính thêm': product.extra ? JSON.stringify(product.extra) : ''
   };
@@ -459,6 +461,7 @@ async function updateLine(lineId, fields) {
   var sl = fields.hasOwnProperty('soLuong') ? Number(fields.soLuong) || 0 : cur.soLuong;
   var von = fields.hasOwnProperty('donGiaVon') ? toNumber_(fields.donGiaVon) : cur.donGiaVon;
   var ln = fields.hasOwnProperty('lnPct') ? Number(fields.lnPct) || 0 : cur.lnPct;
+  var ckK = fields.hasOwnProperty('ckKhach') ? Number(fields.ckKhach) || 0 : (cur.ckKhach || 0);
   var ban;
   if (fields.hasOwnProperty('donGiaBan')) {
     ban = toNumber_(fields.donGiaBan);
@@ -466,11 +469,13 @@ async function updateLine(lineId, fields) {
   } else {
     ban = round0_(von * (1 + ln / 100));
   }
-  const ttVon = round0_(sl * von), ttBan = round0_(sl * ban);
+  const donGiaCK = round0_(ban * (1 - ckK / 100));           // đơn giá sau chiết khấu khách
+  const ttVon = round0_(sl * von), ttBan = round0_(sl * donGiaCK);
   upd['Số lượng'] = sl; upd['Đơn giá vốn'] = von; upd['% Lợi nhuận'] = ln;
-  upd['Đơn giá bán'] = ban; upd['Thành tiền vốn'] = ttVon; upd['Thành tiền bán'] = ttBan;
+  upd['Đơn giá bán'] = ban; upd['Chiết khấu khách (%)'] = ckK;
+  upd['Thành tiền vốn'] = ttVon; upd['Thành tiền bán'] = ttBan;
   await lark.updateRecord(config.tables.lines, lineId, upd);
-  return { lineId: lineId, soLuong: sl, donGiaVon: von, lnPct: ln, donGiaBan: ban,
+  return { lineId: lineId, soLuong: sl, donGiaVon: von, lnPct: ln, donGiaBan: ban, ckKhach: ckK,
     thanhTienVon: ttVon, thanhTienBan: ttBan };
 }
 async function deleteLine(lineId) {
