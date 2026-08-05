@@ -56,13 +56,26 @@ const PROJECT_FIELDS = [
   ['DT báo giá (m2)', T.TEXT], ['Nhu cầu', T.TEXT], ['Phân khúc', T.TEXT], ['Mã báo giá', T.TEXT],
   ['Nhóm tự tạo', T.TEXT], ['Tầng tự tạo', T.TEXT]
 ];
+// Ánh xạ khoá nội bộ -> TÊN CỘT trên Lark (khớp hẳn nhãn cột trong app).
+const LC = {
+  maDA: 'Mã DA', stt: 'STT', nhom: 'Nhóm', loai: 'Hạng mục', maSP: 'Mã sản phẩm',
+  ten: 'Tên sản phẩm', thuongHieu: 'Thương hiệu', moTa: 'Thông tin chính', kichThuoc: 'Thông số thiết kế',
+  hinhAnh: 'Hình ảnh', dvt: 'Đơn vị tính', soLuong: 'Số lượng', donGiaVon: 'Giá bán lẻ',
+  lnPct: 'Lợi nhuận (%)', donGiaBan: 'Giá bán', thanhTienVon: 'Thành tiền vốn', thanhTienBan: 'Thành tiền',
+  khuVuc: 'Phòng', ncc: 'Nhà cung cấp', maBanVe: 'Mã số bản vẽ', tang: 'Tầng',
+  chietKhau: 'Chiết khấu của đại lý (%)', ckKhach: 'Chiết khấu cho khách hàng (%)',
+  trangThai: 'Trạng thái', ghiChu: 'Ghi chú', tuNhap: 'Tự nhập', daLuuDM: 'Đã lưu DM', extra: 'Thuộc tính thêm',
+  giaDaiLy: 'Giá đại lý', donGia: 'Đơn giá', markup: 'Markup (%)', margin: 'Margin (%)', lnVnd: 'Lợi nhuận (VND)'
+};
 const LINE_FIELDS = [
-  ['Mã DA', T.TEXT], ['STT', T.NUMBER], ['Nhóm', T.TEXT], ['Hạng mục', T.TEXT], ['Mã SP', T.TEXT],
-  ['Tên sản phẩm', T.TEXT], ['Thương hiệu', T.TEXT], ['Mô tả', T.TEXT], ['Kích thước', T.TEXT],
-  ['Hình ảnh', T.TEXT], ['ĐVT', T.TEXT], ['Số lượng', T.NUMBER], ['Đơn giá vốn', T.NUMBER],
-  ['% Lợi nhuận', T.NUMBER], ['Đơn giá bán', T.NUMBER], ['Thành tiền vốn', T.NUMBER], ['Thành tiền bán', T.NUMBER],
-  ['Khu vực', T.TEXT], ['NCC', T.TEXT], ['Mã bản vẽ', T.TEXT], ['Tầng', T.TEXT], ['Chiết khấu (%)', T.NUMBER],
-  ['Trạng thái', T.TEXT], ['Ghi chú', T.TEXT], ['Tự nhập', T.NUMBER], ['Đã lưu DM', T.NUMBER], ['Thuộc tính thêm', T.TEXT]
+  [LC.maDA, T.TEXT], [LC.stt, T.NUMBER], [LC.nhom, T.TEXT], [LC.loai, T.TEXT], [LC.maSP, T.TEXT],
+  [LC.ten, T.TEXT], [LC.thuongHieu, T.TEXT], [LC.moTa, T.TEXT], [LC.kichThuoc, T.TEXT],
+  [LC.hinhAnh, T.TEXT], [LC.dvt, T.TEXT], [LC.soLuong, T.NUMBER], [LC.donGiaVon, T.NUMBER],
+  [LC.lnPct, T.NUMBER], [LC.donGiaBan, T.NUMBER], [LC.thanhTienVon, T.NUMBER], [LC.thanhTienBan, T.NUMBER],
+  [LC.khuVuc, T.TEXT], [LC.ncc, T.TEXT], [LC.maBanVe, T.TEXT], [LC.tang, T.TEXT], [LC.chietKhau, T.NUMBER],
+  [LC.ckKhach, T.NUMBER], [LC.giaDaiLy, T.NUMBER], [LC.donGia, T.NUMBER], [LC.markup, T.NUMBER],
+  [LC.margin, T.NUMBER], [LC.lnVnd, T.NUMBER],
+  [LC.trangThai, T.TEXT], [LC.ghiChu, T.TEXT], [LC.tuNhap, T.NUMBER], [LC.daLuuDM, T.NUMBER], [LC.extra, T.TEXT]
 ];
 const COVER_FIELDS = [
   ['Mã DA', T.TEXT], ['STT', T.TEXT], ['Hạng mục', T.TEXT], ['Mô tả', T.TEXT], ['Chi phí', T.NUMBER]
@@ -101,10 +114,10 @@ function computeDerived_(von, ckDaiLy, ban, ckKhach, sl) {
   const markup = giaDaiLy > 0 ? Math.round((donGiaCK - giaDaiLy) / giaDaiLy * 100) : 0;
   const margin = donGiaCK > 0 ? Math.round((donGiaCK - giaDaiLy) / donGiaCK * 100) : 0;
   const lnVnd = round0_((donGiaCK - giaDaiLy) * (Number(sl) || 0));
-  return {
-    'Giá đại lý': giaDaiLy, 'Đơn giá (sau CK khách)': donGiaCK,
-    'Markup (%)': markup, 'Margin (%)': margin, 'Lợi nhuận (VND)': lnVnd
-  };
+  const o = {};
+  o[LC.giaDaiLy] = giaDaiLy; o[LC.donGia] = donGiaCK;
+  o[LC.markup] = markup; o[LC.margin] = margin; o[LC.lnVnd] = lnVnd;
+  return o;
 }
 
 // findCol_ trên map normalized(name)->name; trả về TÊN field thật hoặc ''
@@ -398,22 +411,22 @@ function parseExtra_(v) { if (!v) return {}; try { var o = JSON.parse(v); return
 function recToLine_(r) {
   const f = r.fields || {};
   return {
-    lineId: r.record_id, maDA: cellText(f['Mã DA']), stt: toNumber_(f['STT']),
-    nhom: cellText(f['Nhóm']), loai: cellText(f['Hạng mục']), maSP: cellText(f['Mã SP']),
-    ten: cellText(f['Tên sản phẩm']), thuongHieu: cellText(f['Thương hiệu']), moTa: cellText(f['Mô tả']),
-    kichThuoc: cellText(f['Kích thước']), hinhAnh: cellText(f['Hình ảnh']), dvt: cellText(f['ĐVT']),
-    soLuong: toNumber_(f['Số lượng']), donGiaVon: toNumber_(f['Đơn giá vốn']), lnPct: toNumber_(f['% Lợi nhuận']),
-    donGiaBan: toNumber_(f['Đơn giá bán']), thanhTienVon: toNumber_(f['Thành tiền vốn']), thanhTienBan: toNumber_(f['Thành tiền bán']),
-    khuVuc: cellText(f['Khu vực']), ncc: cellText(f['NCC']), maBanVe: cellText(f['Mã bản vẽ']), tang: cellText(f['Tầng']),
-    chietKhau: toNumber_(f['Chiết khấu (%)']), ckKhach: toNumber_(f['Chiết khấu khách (%)']),
-    trangThai: cellText(f['Trạng thái']), ghiChu: cellText(f['Ghi chú']),
-    tuNhap: toNumber_(f['Tự nhập']) ? 1 : 0, daLuuDM: toNumber_(f['Đã lưu DM']) ? 1 : 0,
-    extra: parseExtra_(cellText(f['Thuộc tính thêm']))
+    lineId: r.record_id, maDA: cellText(f[LC.maDA]), stt: toNumber_(f[LC.stt]),
+    nhom: cellText(f[LC.nhom]), loai: cellText(f[LC.loai]), maSP: cellText(f[LC.maSP]),
+    ten: cellText(f[LC.ten]), thuongHieu: cellText(f[LC.thuongHieu]), moTa: cellText(f[LC.moTa]),
+    kichThuoc: cellText(f[LC.kichThuoc]), hinhAnh: cellText(f[LC.hinhAnh]), dvt: cellText(f[LC.dvt]),
+    soLuong: toNumber_(f[LC.soLuong]), donGiaVon: toNumber_(f[LC.donGiaVon]), lnPct: toNumber_(f[LC.lnPct]),
+    donGiaBan: toNumber_(f[LC.donGiaBan]), thanhTienVon: toNumber_(f[LC.thanhTienVon]), thanhTienBan: toNumber_(f[LC.thanhTienBan]),
+    khuVuc: cellText(f[LC.khuVuc]), ncc: cellText(f[LC.ncc]), maBanVe: cellText(f[LC.maBanVe]), tang: cellText(f[LC.tang]),
+    chietKhau: toNumber_(f[LC.chietKhau]), ckKhach: toNumber_(f[LC.ckKhach]),
+    trangThai: cellText(f[LC.trangThai]), ghiChu: cellText(f[LC.ghiChu]),
+    tuNhap: toNumber_(f[LC.tuNhap]) ? 1 : 0, daLuuDM: toNumber_(f[LC.daLuuDM]) ? 1 : 0,
+    extra: parseExtra_(cellText(f[LC.extra]))
   };
 }
 async function getLines(maDA) {
   await setup();
-  const recs = await lark.findByField(config.tables.lines, 'Mã DA', maDA);
+  const recs = await lark.findByField(config.tables.lines, LC.maDA, maDA);
   const out = recs.map(recToLine_);
   out.sort(function (a, b) { return (a.stt || 0) - (b.stt || 0); });
   return out;
@@ -425,20 +438,19 @@ async function addLine(maDA, product, soLuong) {
   const von = toNumber_(product.donGiaVon);
   var ban = toNumber_(product.donGiaBan) || von;
   var ln = von > 0 ? Math.round((ban - von) / von * 100) : (Number(product.lnPct) || 0);
-  const existing = await lark.findByField(config.tables.lines, 'Mã DA', maDA);
+  const existing = await lark.findByField(config.tables.lines, LC.maDA, maDA);
   const stt = existing.length + 1;
-  const fields = {
-    'Mã DA': maDA, 'STT': stt, 'Nhóm': product.nhom || '', 'Hạng mục': product.hangMuc || product.loai || '',
-    'Mã SP': product.ma || '', 'Tên sản phẩm': product.ten || '', 'Thương hiệu': product.thuongHieu || '',
-    'Mô tả': product.moTa || '', 'Kích thước': product.kichThuoc || '', 'Hình ảnh': product.hinhAnh || product.link || '',
-    'ĐVT': product.dvt || 'Cái', 'Số lượng': sl, 'Đơn giá vốn': von, '% Lợi nhuận': ln, 'Đơn giá bán': ban,
-    'Thành tiền vốn': round0_(sl * von), 'Thành tiền bán': round0_(sl * ban * (1 - (Number(product.ckKhach) || 0) / 100)),
-    'Khu vực': product.khuVuc || '', 'NCC': product.ncc || '', 'Mã bản vẽ': product.maBanVe || '', 'Tầng': product.tang || '',
-    'Chiết khấu (%)': Number(product.chietKhau) || 0, 'Chiết khấu khách (%)': Number(product.ckKhach) || 0,
-    'Trạng thái': product.trangThai || '', 'Ghi chú': product.ghiChu || '',
-    'Tự nhập': Number(product.tuNhap) ? 1 : 0, 'Đã lưu DM': Number(product.daLuuDM) ? 1 : 0,
-    'Thuộc tính thêm': product.extra ? JSON.stringify(product.extra) : ''
-  };
+  const fields = {};
+  fields[LC.maDA] = maDA; fields[LC.stt] = stt; fields[LC.nhom] = product.nhom || ''; fields[LC.loai] = product.hangMuc || product.loai || '';
+  fields[LC.maSP] = product.ma || ''; fields[LC.ten] = product.ten || ''; fields[LC.thuongHieu] = product.thuongHieu || '';
+  fields[LC.moTa] = product.moTa || ''; fields[LC.kichThuoc] = product.kichThuoc || ''; fields[LC.hinhAnh] = product.hinhAnh || product.link || '';
+  fields[LC.dvt] = product.dvt || 'Cái'; fields[LC.soLuong] = sl; fields[LC.donGiaVon] = von; fields[LC.lnPct] = ln; fields[LC.donGiaBan] = ban;
+  fields[LC.thanhTienVon] = round0_(sl * von); fields[LC.thanhTienBan] = round0_(sl * ban * (1 - (Number(product.ckKhach) || 0) / 100));
+  fields[LC.khuVuc] = product.khuVuc || ''; fields[LC.ncc] = product.ncc || ''; fields[LC.maBanVe] = product.maBanVe || ''; fields[LC.tang] = product.tang || '';
+  fields[LC.chietKhau] = Number(product.chietKhau) || 0; fields[LC.ckKhach] = Number(product.ckKhach) || 0;
+  fields[LC.trangThai] = product.trangThai || ''; fields[LC.ghiChu] = product.ghiChu || '';
+  fields[LC.tuNhap] = Number(product.tuNhap) ? 1 : 0; fields[LC.daLuuDM] = Number(product.daLuuDM) ? 1 : 0;
+  fields[LC.extra] = product.extra ? JSON.stringify(product.extra) : '';
   Object.assign(fields, computeDerived_(von, product.chietKhau, ban, product.ckKhach, sl));
   const rec = await lark.createRecord(config.tables.lines, fields);
   return recToLine_(rec);
@@ -455,10 +467,10 @@ async function updateLine(lineId, fields) {
   if (!rec) return null;
   const cur = recToLine_(rec);
   const tmap = {
-    nhom: 'Nhóm', loai: 'Hạng mục', ten: 'Tên sản phẩm', moTa: 'Mô tả', dvt: 'ĐVT',
-    khuVuc: 'Khu vực', ncc: 'NCC', maBanVe: 'Mã bản vẽ', tang: 'Tầng', maSP: 'Mã SP',
-    thuongHieu: 'Thương hiệu', kichThuoc: 'Kích thước', hinhAnh: 'Hình ảnh',
-    chietKhau: 'Chiết khấu (%)', trangThai: 'Trạng thái', ghiChu: 'Ghi chú'
+    nhom: LC.nhom, loai: LC.loai, ten: LC.ten, moTa: LC.moTa, dvt: LC.dvt,
+    khuVuc: LC.khuVuc, ncc: LC.ncc, maBanVe: LC.maBanVe, tang: LC.tang, maSP: LC.maSP,
+    thuongHieu: LC.thuongHieu, kichThuoc: LC.kichThuoc, hinhAnh: LC.hinhAnh,
+    chietKhau: LC.chietKhau, trangThai: LC.trangThai, ghiChu: LC.ghiChu
   };
   const upd = {};
   Object.keys(tmap).forEach(function (k) {
@@ -466,10 +478,10 @@ async function updateLine(lineId, fields) {
       upd[tmap[k]] = (k === 'chietKhau') ? (Number(fields[k]) || 0) : (fields[k] == null ? '' : fields[k]);
     }
   });
-  if (fields.hasOwnProperty('tuNhap')) upd['Tự nhập'] = Number(fields.tuNhap) ? 1 : 0;
-  if (fields.hasOwnProperty('daLuuDM')) upd['Đã lưu DM'] = Number(fields.daLuuDM) ? 1 : 0;
-  if (fields.hasOwnProperty('stt')) upd['STT'] = Number(fields.stt) || 0;   // lưu thứ tự khi kéo sắp xếp
-  if (fields.hasOwnProperty('extra')) upd['Thuộc tính thêm'] = JSON.stringify(fields.extra || {});
+  if (fields.hasOwnProperty('tuNhap')) upd[LC.tuNhap] = Number(fields.tuNhap) ? 1 : 0;
+  if (fields.hasOwnProperty('daLuuDM')) upd[LC.daLuuDM] = Number(fields.daLuuDM) ? 1 : 0;
+  if (fields.hasOwnProperty('stt')) upd[LC.stt] = Number(fields.stt) || 0;   // lưu thứ tự khi kéo sắp xếp
+  if (fields.hasOwnProperty('extra')) upd[LC.extra] = JSON.stringify(fields.extra || {});
 
   var sl = fields.hasOwnProperty('soLuong') ? Number(fields.soLuong) || 0 : cur.soLuong;
   var von = fields.hasOwnProperty('donGiaVon') ? toNumber_(fields.donGiaVon) : cur.donGiaVon;
@@ -485,9 +497,9 @@ async function updateLine(lineId, fields) {
   var ckDaiLy = fields.hasOwnProperty('chietKhau') ? Number(fields.chietKhau) || 0 : (cur.chietKhau || 0);
   const donGiaCK = round0_(ban * (1 - ckK / 100));           // đơn giá sau chiết khấu khách
   const ttVon = round0_(sl * von), ttBan = round0_(sl * donGiaCK);
-  upd['Số lượng'] = sl; upd['Đơn giá vốn'] = von; upd['% Lợi nhuận'] = ln;
-  upd['Đơn giá bán'] = ban; upd['Chiết khấu khách (%)'] = ckK;
-  upd['Thành tiền vốn'] = ttVon; upd['Thành tiền bán'] = ttBan;
+  upd[LC.soLuong] = sl; upd[LC.donGiaVon] = von; upd[LC.lnPct] = ln;
+  upd[LC.donGiaBan] = ban; upd[LC.ckKhach] = ckK;
+  upd[LC.thanhTienVon] = ttVon; upd[LC.thanhTienBan] = ttBan;
   Object.assign(upd, computeDerived_(von, ckDaiLy, ban, ckK, sl));   // đồng bộ cột tính sẵn sang Lark
   await lark.updateRecord(config.tables.lines, lineId, upd);
   return { lineId: lineId, soLuong: sl, donGiaVon: von, lnPct: ln, donGiaBan: ban, ckKhach: ckK,
