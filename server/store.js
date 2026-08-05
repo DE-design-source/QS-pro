@@ -94,6 +94,18 @@ function toNumber_(v) {
   return isNaN(n) ? 0 : n;
 }
 function round0_(n) { return Math.round(Number(n) || 0); }
+// Giá trị tính sẵn để ghi sang Lark (đồng bộ với bảng app)
+function computeDerived_(von, ckDaiLy, ban, ckKhach, sl) {
+  const giaDaiLy = round0_((Number(von) || 0) * (1 - (Number(ckDaiLy) || 0) / 100));
+  const donGiaCK = round0_((Number(ban) || 0) * (1 - (Number(ckKhach) || 0) / 100));
+  const markup = giaDaiLy > 0 ? Math.round((donGiaCK - giaDaiLy) / giaDaiLy * 100) : 0;
+  const margin = donGiaCK > 0 ? Math.round((donGiaCK - giaDaiLy) / donGiaCK * 100) : 0;
+  const lnVnd = round0_((donGiaCK - giaDaiLy) * (Number(sl) || 0));
+  return {
+    'Giá đại lý': giaDaiLy, 'Đơn giá (sau CK khách)': donGiaCK,
+    'Markup (%)': markup, 'Margin (%)': margin, 'Lợi nhuận (VND)': lnVnd
+  };
+}
 
 // findCol_ trên map normalized(name)->name; trả về TÊN field thật hoặc ''
 function findName_(map, keywords) {
@@ -427,6 +439,7 @@ async function addLine(maDA, product, soLuong) {
     'Tự nhập': Number(product.tuNhap) ? 1 : 0, 'Đã lưu DM': Number(product.daLuuDM) ? 1 : 0,
     'Thuộc tính thêm': product.extra ? JSON.stringify(product.extra) : ''
   };
+  Object.assign(fields, computeDerived_(von, product.chietKhau, ban, product.ckKhach, sl));
   const rec = await lark.createRecord(config.tables.lines, fields);
   return recToLine_(rec);
 }
@@ -469,11 +482,13 @@ async function updateLine(lineId, fields) {
   } else {
     ban = round0_(von * (1 + ln / 100));
   }
+  var ckDaiLy = fields.hasOwnProperty('chietKhau') ? Number(fields.chietKhau) || 0 : (cur.chietKhau || 0);
   const donGiaCK = round0_(ban * (1 - ckK / 100));           // đơn giá sau chiết khấu khách
   const ttVon = round0_(sl * von), ttBan = round0_(sl * donGiaCK);
   upd['Số lượng'] = sl; upd['Đơn giá vốn'] = von; upd['% Lợi nhuận'] = ln;
   upd['Đơn giá bán'] = ban; upd['Chiết khấu khách (%)'] = ckK;
   upd['Thành tiền vốn'] = ttVon; upd['Thành tiền bán'] = ttBan;
+  Object.assign(upd, computeDerived_(von, ckDaiLy, ban, ckK, sl));   // đồng bộ cột tính sẵn sang Lark
   await lark.updateRecord(config.tables.lines, lineId, upd);
   return { lineId: lineId, soLuong: sl, donGiaVon: von, lnPct: ln, donGiaBan: ban, ckKhach: ckK,
     thanhTienVon: ttVon, thanhTienBan: ttBan };
