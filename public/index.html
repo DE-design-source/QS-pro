@@ -66,6 +66,8 @@ a{color:inherit}
 .msel .mlabel{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .msel .mplus{color:#9aa7b3}
 .msel.active{border-color:var(--blue)}
+.msel.disabled{background:#f5f7f9;color:#9aa7b3;cursor:not-allowed}
+.msel .mplus#fDemucClear{cursor:pointer}
 .demuc-chip{display:inline-flex;align-items:center;gap:8px;background:#eaf1fb;border:1px solid #bcd4f0;color:var(--navy);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;margin-bottom:8px}
 .demuc-chip b.x{cursor:pointer;color:#c33}
 .fltpop .fchk{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:13px}
@@ -339,10 +341,12 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
       <!-- LEFT: filter + catalog -->
       <div class="panel">
         <h3>Hạng mục</h3>
+        <div class="mlbl">Đề mục</div>
+        <div class="msel" id="fDemuc"><span class="mlabel" id="fDemucLabel">Tất cả đề mục</span><span class="mplus" id="fDemucClear" onclick="clearDemuc()">▾</span></div>
         <div class="mlbl">Hạng mục sản phẩm</div>
         <div class="msel" id="fNhom" onclick="openNhomMsel(event)"><span class="mlabel">Tất cả hạng mục</span><span class="mplus">▾</span></div>
-        <div class="inproj" id="fInProj" onclick="toggleOnlyProject()"><span class="bx"></span> Đèn trong dự án</div>
-        <div class="demuc-chip" id="demucChip" style="display:none"></div>
+        <div class="mlbl">Tên dự án</div>
+        <div class="msel disabled" id="fProjName" onclick="toast('Tính năng đang cập nhật')"><span class="mlabel">Đang cập nhật</span><span class="mplus">▾</span></div>
 
         <div class="fsec" id="sec_watt"><div class="fsec-h" onclick="toggleFsec('watt')"><span class="fsec-t">Công suất</span><span class="fsec-n" id="nWatt"></span><span class="fsec-c">▾</span></div><div class="chips" id="fWatt"></div></div>
         <div class="fsec" id="sec_kelvin"><div class="fsec-h" onclick="toggleFsec('kelvin')"><span class="fsec-t">Nhiệt độ màu</span><span class="fsec-n" id="nKelvin"></span><span class="fsec-c">▾</span></div><div class="chips" id="fKelvin"></div></div>

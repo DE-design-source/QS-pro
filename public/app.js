@@ -318,12 +318,17 @@ function nhomAll(on){ var opts=hmucOptions(); S.fNhomSet={}; if(on) Object.keys(
 function toggleOnlyProject(){ S.onlyProject=!S.onlyProject; var b=document.getElementById('fInProj'); if(b) b.classList.toggle('on',S.onlyProject); renderCatalog(); }
 /* lọc danh mục theo đề mục đang chọn ở cây */
 function setDemucFilter(code){
-  var nm=nodeName(code)||''; S.demucKw = code==='X'?'':nm;
-  var chip=document.getElementById('demucChip');
-  if(chip){ if(S.demucKw){ chip.style.display='inline-flex'; chip.innerHTML='Lọc theo đề mục: <b>'+esc(nm)+'</b> <b class="x" onclick="clearDemuc()">✕</b>'; } else chip.style.display='none'; }
+  var nm=nodeName(code)||''; S.demucKw = code==='X'?'':nm; S.demucCode = code==='X'?'':code;
+  updateDemucBox_();
   renderCatalog();
 }
-function clearDemuc(){ S.demucKw=''; var chip=document.getElementById('demucChip'); if(chip)chip.style.display='none'; renderCatalog(); }
+function updateDemucBox_(){
+  var lb=document.getElementById('fDemucLabel'), box=document.getElementById('fDemuc'), clr=document.getElementById('fDemucClear');
+  if(!lb) return;
+  if(S.demucKw){ lb.textContent=(S.demucCode?S.demucCode+'.':'')+S.demucKw; if(box)box.classList.add('active'); if(clr)clr.textContent='✕'; }
+  else { lb.textContent='Tất cả đề mục'; if(box)box.classList.remove('active'); if(clr)clr.textContent='▾'; }
+}
+function clearDemuc(){ S.demucKw=''; S.demucCode=''; updateDemucBox_(); renderCatalog(); }
 function renderCatalog(){
   var list=filteredProducts();
   var el=document.getElementById('catList');
