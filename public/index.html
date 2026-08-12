@@ -262,6 +262,20 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 .pd .spec{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #eef1f4;font-size:13px}
 .pd .spec .k{color:var(--muted)} .pd .spec .v{font-weight:600;text-align:right}
 .pd .sechead{font-weight:800;margin:16px 0 4px;font-size:13px}
+.pd .pd-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.pd .pd-head h3{margin:0;font-size:15px}
+.pd .pd-x{border:none;background:#eef1f4;color:#5a6774;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:13px}
+.pd .pd-x:hover{background:#dbe4ee}
+.pd .pd-name{font-weight:700;margin:2px 0 8px;line-height:1.35}
+.pd .pd-sec{font-weight:800;font-size:13px;margin:16px 0 6px;padding-bottom:5px;border-bottom:2px solid #eef1f4}
+.pd .pd-keys{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin:2px 0 6px}
+.pd .pd-key{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600}
+.pd .pd-key .ic{width:20px;text-align:center;flex:none}
+.pd .pd-price{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:10px;border-top:2px solid #eef1f4;font-size:14px}
+.pd .pd-price b{color:var(--blue);font-weight:800;font-size:16px}
+.pd .pd-foot{margin-top:12px;text-align:center}
+.pd .pd-foot a{color:var(--blue);font-weight:600;font-size:13px;text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:8px 14px;display:inline-block}
+.navsep{color:#c7d0da;margin:0 4px}
 
 /* generic views */
 .view{display:none;padding-bottom:44px}
@@ -305,8 +319,9 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
     <a data-tab="boc" class="active">Bóc tách</a>
     <a data-tab="chiphi">Chi phí</a>
     <a data-tab="export">Xuất báo giá</a>
+    <a onclick="toast('Tính năng Mua hàng đang cập nhật')" style="cursor:pointer">Mua hàng</a>
   </div>
-  <div class="right"><a data-tab="import" style="text-decoration:none">Nhập dữ liệu</a></div>
+  <div class="right"><a onclick="toast('Danh sách sản phẩm đang cập nhật')" style="cursor:pointer;text-decoration:none">Danh sách sản phẩm</a><span class="navsep">|</span><a data-tab="import" style="text-decoration:none">Nhập dữ liệu</a></div>
 </div></div></div>
 
 <div class="wrap">

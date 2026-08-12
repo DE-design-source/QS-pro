@@ -355,42 +355,54 @@ function specRows_(text){
     return '<div class="spec"><span class="v" style="text-align:left;color:#3a4753">'+esc(line)+'</span></div>';
   }).join('');
 }
+// 1 nhóm thông số: chỉ hiện dòng có giá trị; cả nhóm ẩn nếu rỗng hết
+function pdSection_(title, rows){
+  var body=rows.filter(function(r){return r[1]!=null && r[1]!=='';}).map(function(r){
+    return '<div class="spec"><span class="k">'+esc(r[0])+'</span><span class="v">'+esc(r[1])+'</span></div>';
+  }).join('');
+  return body?'<div class="pd-sec">'+esc(title)+'</div>'+body:'';
+}
 function showDetail(i){
   var p=(S._filtered||[])[i]; if(!p) return;
   S._detailIdx=i;
   var el=document.getElementById('pdPanel');
   document.getElementById('bocGrid').classList.add('detail');
   el.style.display='block';
-  var kv='';
-  var specs=[
-    ['Công suất', p.congSuat||parseWatt(p.ten)],
-    ['Nhiệt độ màu', p.nhietDo||parseKelvin(p.ten)],
-    ['Góc chiếu sáng', p.gocChieu],
-    ['Lỗ khoét', p.loKhoet],
-    ['Chỉ số hoàn màu (CRI)', p.cri],
-    ['Điện áp', p.dienAp],
-    ['Cấp bảo vệ (IP)', p.capBaoVe],
-    ['Quang thông', p.quangThong],
-    ['Loại chip LED', p.chipLed],
-    ['Tuổi thọ', p.tuoiTho],
-    ['Chất liệu', p.chatLieu]
-  ];
-  specs.forEach(function(s){ if(s[1]) kv+='<div class="spec"><span class="k">'+s[0]+'</span><span class="v">'+esc(s[1])+'</span></div>'; });
-  el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px"><h3 style="margin:0">Thông tin sản phẩm</h3>'
-    +'<button class="btn ghost sm" onclick="hideDetail()">✕</button></div>'
-    +'<div class="imgbox">'+(p.hinhAnh?'<img src="'+esc(p.hinhAnh)+'" onerror="this.parentNode.innerHTML=\'<span style=&quot;color:#9aa&quot;>Không tải được ảnh</span>\'">':'<span style="color:#9aa">Không có ảnh</span>')+'</div>'
+  var cong=p.congSuat||parseWatt(p.ten), nd=p.nhietDo||parseKelvin(p.ten);
+  var keyItems=[
+    ['⚡', cong + (p.dongRa?(' ('+p.dongRa+(/mA/i.test(p.dongRa)?'':'mA')+')'):'')],
+    ['🌡', nd + (p.quangThong?(' ('+p.quangThong+(/lm/i.test(p.quangThong)?'':'lm')+')'):'')],
+    ['🎨', p.mauSac],
+    ['📐', p.gocChieu]
+  ].filter(function(x){ return x[1] && String(x[1]).trim(); });
+  var keyHtml=keyItems.length?'<div class="pd-sec">Key Product Info (Thông tin chính)</div><div class="pd-keys">'
+    +keyItems.map(function(x){ return '<div class="pd-key"><span class="ic">'+x[0]+'</span><span>'+esc(x[1])+'</span></div>'; }).join('')+'</div>':'';
+  var img=p.hinhAnh?'<div class="imgbox"><img src="'+esc(p.hinhAnh)+'" onerror="this.parentNode.innerHTML=\'<span style=&quot;color:#9aa&quot;>Không tải được ảnh</span>\'"></div>'
+    :'<div class="imgbox"><span style="color:#9aa">Không có ảnh</span></div>';
+  el.innerHTML=
+    '<div class="pd-head"><h3>Thông tin sản phẩm</h3><button class="pd-x" title="Đóng" onclick="hideDetail()">✕</button></div>'
+    +img
     +'<div class="pcode">'+esc(p.ma||p.ten)+'</div>'
-    +'<div style="font-weight:700;margin:2px 0 8px;line-height:1.35">'+esc(p.ten)+'</div>'
-    +'<div class="sechead">Thông tin chính</div>'
-    +'<div class="spec"><span class="k">Thương hiệu</span><span class="v">'+esc(p.thuongHieu||'—')+'</span></div>'
-    +'<div class="spec"><span class="k">Nhà cung cấp</span><span class="v">'+esc(p.ncc||'—')+'</span></div>'
-    +'<div class="spec"><span class="k">Nhóm</span><span class="v">'+esc(p.nhom||'—')+'</span></div>'
-    +(p.kichThuoc?'<div class="spec"><span class="k">Kích thước</span><span class="v">'+esc(p.kichThuoc)+'</span></div>':'')
-    +'<div class="spec"><span class="k">ĐVT</span><span class="v">'+esc(p.dvt||'Cái')+'</span></div>'
-    +'<div class="spec"><span class="k">Đơn giá</span><span class="v" style="color:var(--blue);font-weight:800">'+money(p.donGiaBan)+' đ</span></div>'
-    +kv
-    +(p.moTa?'<div class="sechead">Thông số kỹ thuật</div>'+specRows_(p.moTa):'<div class="sechead">Thông số kỹ thuật</div><div style="color:#9aa;font-size:12px">Sản phẩm chưa có mô tả/thông số. Bổ sung ở tab Nhập dữ liệu hoặc trên Lark.</div>')
-    +'<button class="btn blue" style="width:100%;margin-top:14px" onclick="addProduct('+i+')">＋ Thêm vào bóc tách</button>';
+    +(p.ten?'<div class="pd-name">'+esc(p.ten)+'</div>':'')
+    +keyHtml
+    +pdSection_('Design Specifications (Thông số thiết kế)',[
+      ['Chất liệu',p.chatLieu],['Chiều cao',p.chieuCao],['Đường kính',p.duongKinh],
+      ['Góc nghiêng / góc chỉnh hướng',p.gocNghieng],['Dòng sản phẩm',p.dongSanPham]])
+    +pdSection_('Performance Specifications (Thông số hiệu suất)',[
+      ['Quang thông',p.quangThong],['Chỉ số IP (Chống bụi, nước)',p.capBaoVe],['CRI',p.cri],
+      ['Hiệu suất phát quang (Efficacy)',p.hieuSuat],['Chỉ số gây chói mắt (UGR)',p.ugr],
+      ['Tuổi thọ đèn',p.tuoiTho],['Loại chip LED',p.chipLed],['Độ đồng nhất màu sắc (SDCM)',p.sdcm],
+      ['Chỉ số ngộ độc Cyanosis (COI Compliance)',p.coi],['Thời gian bảo hành',p.baoHanh]])
+    +pdSection_('Driver (Nguồn LED / Chấn lưu)',[
+      ['Bộ nguồn',p.tenBoNguon],['Mã sản phẩm',p.maBoNguon],['Vị trí lắp đặt bộ nguồn',p.viTriNguon],
+      ['Tương thích điều khiển (Control Type)',p.tuongThich],['Cường độ dòng điện đầu ra tối đa',p.dongRa]])
+    +pdSection_('Installation Specifications (Thông số lắp đặt)',[
+      ['Lắp đặt bộ nguồn rời',p.lapNguonRoi],['Kích thước lỗ khoét trần (Cutout Size)',p.loKhoet],
+      ['Cấp bảo vệ an toàn điện (Class Rating)',p.capBaoVeDien]])
+    +(p.moTa && !p.chatLieu && !p.quangThong ? '<div class="pd-sec">Thông số kỹ thuật (mô tả)</div>'+specRows_(p.moTa) : '')
+    +'<div class="pd-price"><span>Đơn giá</span><b>'+money(p.donGiaBan)+' đ</b></div>'
+    +(p.linkDatasheet?'<div class="pd-foot"><a href="'+esc(p.linkDatasheet)+'" target="_blank" rel="noopener">📄 Tài liệu kỹ thuật</a></div>':'')
+    +'<button class="btn blue" style="width:100%;margin-top:12px" onclick="addProduct('+i+')">＋ Thêm vào bóc tách</button>';
 }
 function hideDetail(){ S._detailIdx=null; document.getElementById('pdPanel').style.display='none'; document.getElementById('bocGrid').classList.remove('detail'); }
 

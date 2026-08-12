@@ -246,7 +246,26 @@ async function productFieldMap() {
     quangThong: findName_(map, ['QUANG THÔNG', 'LUMEN', 'LM']),
     chipLed: findName_(map, ['LOẠI CHIP LED', 'CHIP LED', 'CHIP']),
     tuoiTho: findName_(map, ['TUỔI THỌ', 'LIFESPAN']),
-    chatLieu: findName_(map, ['CHẤT LIỆU', 'VẬT LIỆU', 'MATERIAL'])
+    chatLieu: findName_(map, ['CHẤT LIỆU', 'VẬT LIỆU', 'MATERIAL']),
+    dongSanPham: findName_(map, ['DÒNG SẢN PHẨM']),
+    mauSac: findName_(map, ['MÀU SẮC']),
+    chieuCao: findName_(map, ['CHIỀU CAO']),
+    duongKinh: findName_(map, ['ĐƯỜNG KÍNH']),
+    gocNghieng: findName_(map, ['GÓC NGHIÊNG']),
+    hieuSuat: findName_(map, ['HIỆU SUẤT PHÁT QUANG', 'EFFICACY']),
+    ugr: findName_(map, ['UGR']),
+    sdcm: findName_(map, ['SDCM']),
+    coi: findName_(map, ['COI']),
+    baoHanh: findName_(map, ['BẢO HÀNH', 'WARRANTY']),
+    tenBoNguon: findName_(map, ['TÊN BỘ NGUỒN']),
+    maBoNguon: findName_(map, ['MÃ BỘ NGUỒN']),
+    hangBoNguon: findName_(map, ['HÃNG BỘ NGUỒN']),
+    viTriNguon: findName_(map, ['VỊ TRÍ LẮP NGUỒN']),
+    tuongThich: findName_(map, ['TƯƠNG THÍCH ĐIỀU KHIỂN']),
+    dongRa: findName_(map, ['DÒNG RA TỐI ĐA']),
+    lapNguonRoi: findName_(map, ['LẮP NGUỒN RỜI']),
+    capBaoVeDien: findName_(map, ['CẤP BẢO VỆ ĐIỆN']),
+    linkDatasheet: findName_(map, ['LINK DATASHEET', 'DATASHEET'])
   };
   // kiểu từng field (để ghi đúng định dạng: MultiSelect=mảng, Number=số…)
   _fmCache.typeOf = {}; fields.forEach(function (f) { _fmCache.typeOf[f.field_name] = f.type; });
@@ -284,6 +303,13 @@ async function getProducts() {
       loKhoet: cellText(f[fm.loKhoet]), cri: cellText(f[fm.cri]), dienAp: cellText(f[fm.dienAp]),
       capBaoVe: cellText(f[fm.capBaoVe]), quangThong: cellText(f[fm.quangThong]), chipLed: cellText(f[fm.chipLed]),
       tuoiTho: cellText(f[fm.tuoiTho]), chatLieu: cellText(f[fm.chatLieu]),
+      dongSanPham: cellText(f[fm.dongSanPham]), mauSac: cellText(f[fm.mauSac]),
+      chieuCao: cellText(f[fm.chieuCao]), duongKinh: cellText(f[fm.duongKinh]), gocNghieng: cellText(f[fm.gocNghieng]),
+      hieuSuat: cellText(f[fm.hieuSuat]), ugr: cellText(f[fm.ugr]), sdcm: cellText(f[fm.sdcm]), coi: cellText(f[fm.coi]),
+      baoHanh: cellText(f[fm.baoHanh]), tenBoNguon: cellText(f[fm.tenBoNguon]), maBoNguon: cellText(f[fm.maBoNguon]),
+      hangBoNguon: cellText(f[fm.hangBoNguon]), viTriNguon: cellText(f[fm.viTriNguon]), tuongThich: cellText(f[fm.tuongThich]),
+      dongRa: cellText(f[fm.dongRa]), lapNguonRoi: cellText(f[fm.lapNguonRoi]), capBaoVeDien: cellText(f[fm.capBaoVeDien]),
+      linkDatasheet: cellText(f[fm.linkDatasheet]),
       donGiaVon: gia, donGiaBan: gia, lnPct: 0, recordId: r.record_id
     });
   });
