@@ -24,13 +24,13 @@ services:
         value: tblI9uBLvTy4GcYx
       - key: LARK_TBL_COVER
         value: tblutEmDYQMZv9ni
-      # Supabase (nguồn dữ liệu chính). Nhập SUPABASE_KEY trên Dashboard (publishable key).
+      # Supabase (nguồn dữ liệu chính). Publishable key — Supabase ghi rõ an toàn công khai.
       - key: SUPABASE_URL
         value: https://xcjnpjpkmwhekkabpjzw.supabase.co
       - key: SUPABASE_BUCKET
         value: products
       - key: SUPABASE_KEY
-        sync: false
+        value: sb_publishable_Am7BKsK-MM3at1Gv34iY0g_bHJopSsV
       # Nhập 2 giá trị dưới trên Dashboard (Environment) — bí mật, không commit:
       - key: LARK_APP_ID
         sync: false
