@@ -234,6 +234,12 @@ async function saveDbProduct(data) {
   await supa.insert('db_san_pham', row); _cache = null;
   return { created: true, ma: ma, ten: ten };
 }
+async function deleteDbProduct(key) {
+  key = s(key).trim(); if (!key) throw new Error('Thiếu mã/ID sản phẩm.');
+  const filter = /^\d+$/.test(key) ? supa.eq('id', key) : supa.eq('ma_sp', key);
+  await supa.remove('db_san_pham', filter); _cache = null;
+  return { ok: true };
+}
 async function saveLineAsProduct(p) {
   p = p || {};
   const data = { 'TÊN SẢN PHẨM': p.ten, 'MÃ SẢN PHẨM': p.ma, 'DÒNG SẢN PHẨM': p.nhom, 'HẠNG MỤC': p.hangMuc,
@@ -294,6 +300,6 @@ async function importCommit(products) {
 
 module.exports = {
   bootstrap, buildCatalog, getProducts, getCatalogSheets, getProjects, getProject, createProject, updateProject, deleteProject,
-  getLines, addLine, addBlankLine, updateLine, deleteLine, saveLineAsProduct, saveDbProduct, uploadImage,
+  getLines, addLine, addBlankLine, updateLine, deleteLine, saveLineAsProduct, saveDbProduct, deleteDbProduct, uploadImage,
   getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, getDashboard, getQuote, importParse, importCommit
 };

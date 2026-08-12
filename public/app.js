@@ -142,18 +142,19 @@ document.getElementById('nav').addEventListener('click',function(e){
   var a=e.target.closest('a[data-tab]'); if(!a) return; e.preventDefault(); showTab(a.getAttribute('data-tab'));
 });
 document.querySelector('.topnav .right').addEventListener('click',function(e){
-  var a=e.target.closest('a[data-tab]'); if(a){ e.preventDefault(); showTab('import'); }
+  var a=e.target.closest('a[data-tab]'); if(a){ e.preventDefault(); showTab(a.getAttribute('data-tab')); }
 });
 function showTab(tab){
-  document.querySelectorAll('#nav a').forEach(function(a){ a.classList.toggle('active',a.getAttribute('data-tab')===tab); });
-  ['boc','project','dash','chiphi','export','import'].forEach(function(v){
-    document.getElementById('v-'+v).classList.toggle('on',v===tab);
+  document.querySelectorAll('#nav a, .topnav .right a').forEach(function(a){ a.classList.toggle('active',a.getAttribute('data-tab')===tab); });
+  ['boc','project','dash','chiphi','export','import','sanpham'].forEach(function(v){
+    var el=document.getElementById('v-'+v); if(el) el.classList.toggle('on',v===tab);
   });
   if(tab==='project') renderProjects();
   if(tab==='dash') renderDash();
   if(tab==='chiphi') renderChiphi();
   if(tab==='export') renderExport();
   if(tab==='import') renderImport();
+  if(tab==='sanpham') renderSanpham();
 }
 
 /* ===== PROJECT ===== */
@@ -363,12 +364,8 @@ function pdSection_(title, rows){
   }).join('');
   return body?'<div class="pd-sec">'+esc(title)+'</div>'+body:'';
 }
-function showDetail(i){
-  var p=(S._filtered||[])[i]; if(!p) return;
-  S._detailIdx=i;
-  var el=document.getElementById('pdPanel');
-  document.getElementById('bocGrid').classList.add('detail');
-  el.style.display='block';
+// Nội dung chi tiết SP (dùng chung cho panel Bóc tách + modal Danh sách SP)
+function pdContent_(p){
   var cong=p.congSuat||parseWatt(p.ten), nd=p.nhietDo||parseKelvin(p.ten);
   var keyItems=[
     ['⚡', cong + (p.dongRa?(' ('+p.dongRa+(/mA/i.test(p.dongRa)?'':'mA')+')'):'')],
@@ -380,9 +377,7 @@ function showDetail(i){
     +keyItems.map(function(x){ return '<div class="pd-key"><span class="ic">'+x[0]+'</span><span>'+esc(x[1])+'</span></div>'; }).join('')+'</div>':'';
   var img=p.hinhAnh?'<div class="imgbox"><img src="'+esc(p.hinhAnh)+'" onerror="this.parentNode.innerHTML=\'<span style=&quot;color:#9aa&quot;>Không tải được ảnh</span>\'"></div>'
     :'<div class="imgbox"><span style="color:#9aa">Không có ảnh</span></div>';
-  el.innerHTML=
-    '<div class="pd-head"><h3>Thông tin sản phẩm</h3><button class="pd-x" title="Đóng" onclick="hideDetail()">✕</button></div>'
-    +img
+  return img
     +'<div class="pcode">'+esc(p.ma||p.ten)+'</div>'
     +(p.ten?'<div class="pd-name">'+esc(p.ten)+'</div>':'')
     +keyHtml
@@ -402,8 +397,64 @@ function showDetail(i){
       ['Cấp bảo vệ an toàn điện (Class Rating)',p.capBaoVeDien]])
     +(p.moTa && !p.chatLieu && !p.quangThong ? '<div class="pd-sec">Thông số kỹ thuật (mô tả)</div>'+specRows_(p.moTa) : '')
     +'<div class="pd-price"><span>Đơn giá</span><b>'+money(p.donGiaBan)+' đ</b></div>'
-    +(p.linkDatasheet?'<div class="pd-foot"><a href="'+esc(p.linkDatasheet)+'" target="_blank" rel="noopener">📄 Tài liệu kỹ thuật</a></div>':'')
+    +(p.linkDatasheet?'<div class="pd-foot"><a href="'+esc(p.linkDatasheet)+'" target="_blank" rel="noopener">📄 Tài liệu kỹ thuật</a></div>':'');
+}
+function showDetail(i){
+  var p=(S._filtered||[])[i]; if(!p) return;
+  S._detailIdx=i;
+  var el=document.getElementById('pdPanel');
+  document.getElementById('bocGrid').classList.add('detail');
+  el.style.display='block';
+  el.innerHTML='<div class="pd-head"><h3>Thông tin sản phẩm</h3><button class="pd-x" title="Đóng" onclick="hideDetail()">✕</button></div>'
+    +pdContent_(p)
     +'<button class="btn blue" style="width:100%;margin-top:12px" onclick="addProduct('+i+')">＋ Thêm vào bóc tách</button>';
+}
+/* ===== DANH SÁCH SẢN PHẨM ===== */
+function renderSanpham(){
+  var box=document.getElementById('v-sanpham');
+  box.innerHTML='<div class="sechd"><h2>Danh sách sản phẩm</h2><span class="count" id="spCount">[00]</span><span class="sp"></span>'
+    +'<input id="spSearch" class="sp-search" placeholder="Tìm tên / mã / thương hiệu…" oninput="spFilter()">'
+    +'<button class="btn blue sm" onclick="showTab(\'import\')">＋ Thêm sản phẩm</button></div>'
+    +'<div class="panel" style="padding:0;overflow:hidden;max-width:100%"><div class="tbl-wrap"><table class="sp-table">'
+    +'<thead><tr><th style="width:64px">Ảnh</th><th>Mã SP</th><th>Tên sản phẩm</th><th>Thương hiệu</th><th>Hạng mục</th><th class="ct">Công suất</th><th class="ct">Nhiệt độ</th><th class="ct">CRI</th><th class="num">Giá đại lý</th><th style="width:84px"></th></tr></thead>'
+    +'<tbody id="spBody"></tbody></table></div></div>';
+  spFilter();
+}
+function spFilter(){
+  var el=document.getElementById('spSearch'); var q=(el&&el.value||'').toLowerCase().trim();
+  var list=(S.products||[]).filter(function(p){ return !q || (p.ten+' '+p.ma+' '+p.thuongHieu+' '+p.ncc).toLowerCase().indexOf(q)>=0; });
+  S._spList=list;
+  document.getElementById('spCount').textContent='['+pad2(list.length)+']';
+  document.getElementById('spBody').innerHTML=list.length?list.map(function(p,i){
+    return '<tr class="sp-row" onclick="spModal('+i+')">'
+      +'<td class="ct">'+(p.hinhAnh?'<img class="sp-th" src="'+esc(p.hinhAnh)+'" onerror="this.style.visibility=\'hidden\'">':'<span class="sp-th"></span>')+'</td>'
+      +'<td class="mono">'+esc(p.ma||'')+'</td>'
+      +'<td><b>'+esc(p.ten||'')+'</b></td>'
+      +'<td>'+esc(p.thuongHieu||'')+'</td>'
+      +'<td>'+esc(p.hangMuc||'')+'</td>'
+      +'<td class="ct">'+esc(p.congSuat||'')+'</td>'
+      +'<td class="ct">'+esc(p.nhietDo||'')+'</td>'
+      +'<td class="ct">'+esc(p.cri||'')+'</td>'
+      +'<td class="num">'+money(p.donGiaBan)+'</td>'
+      +'<td class="ct" onclick="event.stopPropagation()"><button class="sp-act" title="Xem chi tiết" onclick="spModal('+i+')">👁</button><button class="sp-act del" title="Xoá" onclick="spDelete('+i+')">🗑</button></td>'
+    +'</tr>';
+  }).join(''):'<tr><td colspan="10" class="empty">Chưa có sản phẩm. Bấm ＋ Thêm sản phẩm.</td></tr>';
+}
+function spModal(i){
+  var p=(S._spList||[])[i]; if(!p) return;
+  var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='spModalOv';
+  ov.onclick=function(e){ if(e.target===ov) spClose(); };
+  ov.innerHTML='<div class="sp-modal pd"><div class="pd-head"><h3>Thông tin sản phẩm</h3><button class="pd-x" onclick="spClose()">✕</button></div>'
+    +pdContent_(p)+'</div>';
+  document.body.appendChild(ov);
+}
+function spClose(){ var o=document.getElementById('spModalOv'); if(o)o.remove(); }
+async function spDelete(i){
+  var p=(S._spList||[])[i]; if(!p) return;
+  if(!confirm('Xoá sản phẩm "'+p.ten+'" khỏi danh mục?')) return;
+  try{ await api('deleteDbProduct', p.ma||String(p.recordId)); S.products=await api('getProducts')||S.products;
+    toast('Đã xoá: '+p.ten); spFilter(); renderFilters&&renderFilters(); renderCatalog&&renderCatalog(); }
+  catch(e){ toast('Lỗi xoá: '+e.message); }
 }
 function hideDetail(){ S._detailIdx=null; document.getElementById('pdPanel').style.display='none'; document.getElementById('bocGrid').classList.remove('detail'); }
 
