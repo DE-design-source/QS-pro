@@ -276,6 +276,27 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 .pd .pd-foot{margin-top:12px;text-align:center}
 .pd .pd-foot a{color:var(--blue);font-weight:600;font-size:13px;text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:8px 14px;display:inline-block}
 .navsep{color:#c7d0da;margin:0 4px}
+/* ===== Trang Nhập dữ liệu (form đẹp) ===== */
+#v-import .panel{border:1px solid #e7ebf0;border-radius:14px;box-shadow:0 1px 4px #0000000a;padding:18px 20px}
+#v-import .toolbar h3{font-size:15px;font-weight:800}
+#v-import .field label{font-size:12px;font-weight:600;color:#3a4653;margin-bottom:5px;display:block}
+#v-import .field input,#v-import .field textarea{width:100%;border:1px solid #d7dde4;border-radius:9px;padding:9px 11px;font:inherit;background:#fff;transition:border .12s,box-shadow .12s}
+#v-import .field input:focus,#v-import .field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2f6bff22;outline:none}
+#v-import .field input::placeholder,#v-import .field textarea::placeholder{color:#aeb7c1}
+.imgup{display:grid;grid-template-columns:240px 1fr;gap:20px}
+@media(max-width:720px){.imgup{grid-template-columns:1fr}}
+.uplabel{font-size:12.5px;font-weight:700;color:#3a4653;margin-bottom:7px}
+.upzone{border:2px dashed #c7d2de;border-radius:12px;background:#fafcff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#8a95a1;cursor:pointer;transition:all .12s;padding:14px;font-size:12.5px;position:relative}
+.upzone:hover,.upzone.drag{border-color:var(--blue);background:#eef5ff;color:var(--blue)}
+.upmain{height:200px}
+.upmain img{max-width:100%;max-height:180px;object-fit:contain;border-radius:8px}
+.upgrid{display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start;margin-top:10px}
+.upthumb{position:relative;width:86px;height:86px;border:1px solid #e6eaef;border-radius:9px;overflow:hidden;background:#f5f7f9}
+.upthumb img{width:100%;height:100%;object-fit:cover}
+.upx{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#000a;color:#fff;border:none;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.upurl{display:flex;gap:6px;margin-top:8px}
+.upurl input{flex:1;border:1px solid #d7dde4;border-radius:8px;padding:7px 10px;font:inherit;font-size:12.5px}
+.savebar{position:sticky;bottom:0;background:linear-gradient(#fff9,#fff);backdrop-filter:blur(3px);padding:12px 0;margin-top:14px;display:flex;gap:10px;align-items:center;z-index:5;max-width:1120px}
 
 /* generic views */
 .view{display:none;padding-bottom:44px}

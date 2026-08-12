@@ -609,6 +609,15 @@ async function saveDbProduct(data) {
   return { created: true, ma: ma, ten: ten };
 }
 
+// Nhận ảnh base64 từ web -> upload lên Lark -> trả file_token + url hiển thị
+async function uploadImage(base64, fileName) {
+  const raw = String(base64 || '').replace(/^data:[^;]+;base64,/, '');
+  const buf = Buffer.from(raw, 'base64');
+  if (!buf.length) throw new Error('Ảnh rỗng.');
+  const token = await lark.mediaUpload(buf, fileName || 'image.jpg');
+  return { token: token, url: '/media?token=' + encodeURIComponent(token) };
+}
+
 /*** ===== TỜ BÌA / KHÁI TOÁN ===== ***/
 async function getCover(maDA) {
   await setup();
@@ -802,7 +811,7 @@ module.exports = {
   setup, bootstrap, buildCatalog,
   getProducts, getProductsCached, clearProductsCache, getCatalogSheets, getSheetCols,
   getProjects, getProject, createProject, updateProject, deleteProject,
-  getLines, addLine, addBlankLine, updateLine, deleteLine, saveLineAsProduct, saveDbProduct,
+  getLines, addLine, addBlankLine, updateLine, deleteLine, saveLineAsProduct, saveDbProduct, uploadImage,
   getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, coverComputed_,
   getDashboard, getQuote, importParse, importCommit,
   // dùng nội bộ cho export

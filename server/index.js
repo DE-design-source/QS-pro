@@ -34,6 +34,7 @@ const REGISTRY = {
   deleteLine: store.deleteLine,
   saveLineAsProduct: store.saveLineAsProduct,
   saveDbProduct: store.saveDbProduct,
+  uploadImage: store.uploadImage,
   getCover: store.getCover,
   saveCover: store.saveCover,
   buildCoverFromTemplate: store.buildCoverFromTemplate,

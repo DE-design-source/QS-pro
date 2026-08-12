@@ -17,6 +17,7 @@ function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.cl
 var S={ projects:[], products:[], cur:null, lines:[], node:'3.2.6.1', selFloor:'', _dragProd:null,
   fWatt:{}, fKelvin:{}, fAngle:{}, fIP:{}, fCRI:{}, fVolt:{}, fBrand:'', fNhom:'', fNhomSet:{}, demucKw:'', cols:{}, _drag:null,
   fsecOpen:(function(){ try{ return JSON.parse(localStorage.getItem('qs_fsec')||'{}')||{}; }catch(e){ return {}; } })(), fsecMore:{}, onlyProject:false,
+  _imgMain:'', _imgList:[],
   rowH:(function(){ try{ return JSON.parse(localStorage.getItem('qs_rowh')||'{}')||{}; }catch(e){ return {}; } })() };
 
 /* cây hạng mục (mã, tên, cấp) */
@@ -1057,7 +1058,7 @@ var DB_GROUPS=[
   {g:'Giá vốn (ẩn khi xuất báo giá)', note:'Giá đại lý tự tính = Giá bán lẻ × (1 − Chiết khấu đại lý %).', f:[
     ['GIÁ BÁN LẺ','Giá bán lẻ','num',1],['CHIẾT KHẤU ĐẠI LÝ (%)','Chiết khấu đại lý (%)','num',1] ]},
   {g:'Media', f:[
-    ['ẢNH SẢN PHẨM','Ảnh sản phẩm (URL)','text',0],['LINK DATASHEET','Link datasheet','text',0] ]},
+    ['LINK DATASHEET','Link datasheet','text',0] ]},
   {g:'Quản trị', f:[
     ['TRẠNG THÁI','Trạng thái','sel',1,['Đang kinh doanh','Ngưng','Đặt hàng']],['GHI CHÚ','Ghi chú','area',0] ]}
 ];
@@ -1070,20 +1071,85 @@ function dbInput(f){
   else inner='<input id="'+id+'"'+(type==='num'?' type="number"':'')+' placeholder="'+esc(label)+'">';
   return '<div class="field"><label>'+esc(label)+star+'</label>'+inner+'</div>';
 }
+function imgUrlOf(v){ v=String(v||''); return v.indexOf('http')===0?v:(v?('/media?token='+encodeURIComponent(v)):''); }
+function upMainInner(){
+  return S._imgMain
+    ? '<img src="'+esc(imgUrlOf(S._imgMain))+'" onerror="this.replaceWith(document.createTextNode(\'ảnh lỗi\'))"><button class="upx" title="Xoá" onclick="event.stopPropagation();upRemove(\'main\')">✕</button>'
+    : '<div style="font-size:26px;margin-bottom:4px">📷</div>Kéo/thả hoặc bấm<br>để chọn <b>hình chính</b>';
+}
+function upGridInner(){
+  return (S._imgList||[]).map(function(v,i){ return '<div class="upthumb"><img src="'+esc(imgUrlOf(v))+'"><button class="upx" onclick="upRemove(\'more\','+i+')">✕</button></div>'; }).join('')
+    || '<span style="color:#9aa;font-size:12px">Chưa có ảnh chi tiết.</span>';
+}
+function upRefresh(){ var a=document.getElementById('upMain'); if(a)a.innerHTML=upMainInner(); var b=document.getElementById('upGrid'); if(b)b.innerHTML=upGridInner(); }
+function imgSection(){
+  return '<div class="panel" style="max-width:1120px;margin-top:14px"><div class="toolbar"><h3>Ảnh sản phẩm</h3></div>'
+    +'<div class="imgup">'
+      +'<div><div class="uplabel">Hình chính</div>'
+        +'<div class="upzone upmain" id="upMain" onclick="upPick(\'main\')" ondragover="upDrag(event,1)" ondragleave="upDrag(event,0)" ondrop="upDrop(event,\'main\')">'+upMainInner()+'</div>'
+        +'<div class="upurl"><input id="upMainUrl" placeholder="hoặc dán URL ảnh…"><button class="btn ghost sm" onclick="upAddUrl(\'main\')">Thêm</button></div>'
+      +'</div>'
+      +'<div><div class="uplabel">Các hình còn lại (hình chi tiết SP)</div>'
+        +'<div class="upzone" id="upMore" style="min-height:96px" onclick="upPick(\'more\')" ondragover="upDrag(event,1)" ondragleave="upDrag(event,0)" ondrop="upDrop(event,\'more\')"><div style="font-size:22px;margin-bottom:2px">🖼️</div>Kéo/thả hoặc bấm để thêm <b>nhiều ảnh</b></div>'
+        +'<div class="upgrid" id="upGrid">'+upGridInner()+'</div>'
+        +'<div class="upurl"><input id="upMoreUrl" placeholder="hoặc dán URL ảnh…"><button class="btn ghost sm" onclick="upAddUrl(\'more\')">Thêm</button></div>'
+      +'</div>'
+    +'</div></div>';
+}
 function renderImport(){
+  S._imgMain=''; S._imgList=[];
   var box=document.getElementById('v-import');
   box.innerHTML='<div class="sechd"><h2>Nhập dữ liệu</h2><span class="sp"></span><span style="color:var(--muted);font-size:13px">Lưu vào bảng <b>DB_Sản phẩm</b> trên Lark · <span style="color:#c33">*</span> = bắt buộc</span></div>'
+    +imgSection()
     +DB_GROUPS.map(function(gr){
       return '<div class="panel" style="max-width:1120px;margin-top:14px"><div class="toolbar"><h3>'+esc(gr.g)+'</h3></div>'
         +(gr.note?'<p style="color:var(--muted);font-size:12px;margin:0 0 10px">'+esc(gr.note)+'</p>':'')
         +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px 14px">'+gr.f.map(dbInput).join('')+'</div></div>';
     }).join('')
-    +'<div style="max-width:1120px;margin-top:14px;display:flex;gap:10px"><button class="btn blue" onclick="tdSave(this)">＋ Lưu vào DB_Sản phẩm</button><button class="btn ghost" onclick="renderImport()">Xoá form</button></div>'
+    +'<div class="savebar"><button class="btn blue" onclick="tdSave(this)">＋ Lưu vào DB_Sản phẩm</button><button class="btn ghost" onclick="renderImport()">Xoá form</button><span style="color:var(--muted);font-size:12px">Ảnh chính + ảnh chi tiết sẽ lưu vào cột Ảnh sản phẩm.</span></div>'
     +'<div class="panel" style="max-width:1120px;margin-top:16px"><div class="toolbar"><h3>Nhập hàng loạt từ file</h3></div>'
     +'<p style="color:var(--muted);font-size:13px;margin:0 0 10px">Chọn file <b>.xlsx / .xls / .csv</b> có cột <b>Tên sản phẩm</b> (và các cột khác nếu có). Hệ thống tự dò cột theo tên tiêu đề. <i>(Nhập hàng loạt hiện lưu vào danh mục cũ — báo tôi nếu muốn chuyển sang DB.)</i></p>'
     +'<input type="file" id="impFile" accept=".xlsx,.xls,.csv" onchange="impPick(this)" style="font:inherit">'
     +'<div id="impPreview" style="margin-top:12px"></div></div>';
 }
+/* ==== Upload ảnh ==== */
+function upDrag(e,on){ e.preventDefault(); e.currentTarget.classList.toggle('drag',!!on); }
+function upPick(zone){
+  var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; if(zone==='more') inp.multiple=true;
+  inp.onchange=function(){ var fs=Array.prototype.slice.call(inp.files||[]); fs.forEach(function(f){ upFile(zone,f); }); };
+  inp.click();
+}
+function upDrop(e,zone){ e.preventDefault(); e.currentTarget.classList.remove('drag');
+  var fs=Array.prototype.slice.call((e.dataTransfer&&e.dataTransfer.files)||[]).filter(function(f){return /^image\//.test(f.type);});
+  fs.forEach(function(f){ upFile(zone,f); });
+}
+function upFile(zone,file){
+  var reader=new FileReader();
+  reader.onload=async function(){
+    // preview tạm bằng dataURL
+    if(zone==='main'){ S._imgMain=String(reader.result); } else { S._imgList.push(String(reader.result)); }
+    upRefresh(); toast('Đang tải ảnh lên…');
+    try{
+      var r=await api('uploadImage', String(reader.result), file.name||'image.jpg');
+      var tok=r&&r.token; if(!tok) throw new Error('Không nhận được ảnh');
+      if(zone==='main'){ S._imgMain=tok; }
+      else { var idx=S._imgList.length-1; S._imgList[idx]=tok; }   // thay dataURL bằng token thật
+      upRefresh(); toast('Đã tải ảnh lên Lark');
+    }catch(e){
+      // upload lỗi (vd hết quota) -> gỡ preview tạm, gợi ý dán URL
+      if(zone==='main'){ S._imgMain=''; } else { S._imgList.pop(); }
+      upRefresh(); toast('Upload lỗi: '+e.message+' — hãy dán URL ảnh.');
+    }
+  };
+  reader.readAsDataURL(file);
+}
+function upAddUrl(zone){
+  var id=zone==='main'?'upMainUrl':'upMoreUrl'; var el=document.getElementById(id); var u=(el&&el.value||'').trim();
+  if(!u){ toast('Nhập URL ảnh'); return; }
+  if(zone==='main') S._imgMain=u; else S._imgList.push(u);
+  if(el)el.value=''; upRefresh();
+}
+function upRemove(zone,i){ if(zone==='main') S._imgMain=''; else S._imgList.splice(i,1); upRefresh(); }
 async function impPick(input){
   var f=input.files&&input.files[0]; if(!f) return;
   var ext=(f.name.split('.').pop()||'').toLowerCase();
@@ -1118,6 +1184,8 @@ async function tdSave(btn){
   var data={};
   DB_FLAT.forEach(function(f,i){ var e=document.getElementById('dbf_'+i); if(e){ var v=(e.value||'').trim(); if(v) data[f[0]]=v; } });
   var ten=String(data['TÊN SẢN PHẨM']||'').trim(); if(!ten){ toast('Nhập Tên sản phẩm'); return; }
+  var imgs=[S._imgMain].concat(S._imgList||[]).filter(Boolean).filter(function(v){return v.indexOf('data:')!==0;}); // bỏ preview base64 chưa upload
+  if(imgs.length) data['ẢNH SẢN PHẨM']=imgs.join('\n');
   btn.disabled=true; var o=btn.textContent; btn.textContent='⏳ Đang lưu…';
   try{ var r=await api('saveDbProduct',data); toast((r.updated?'Đã cập nhật':'Đã thêm')+' "'+ten+'" vào DB_Sản phẩm'); renderImport(); }
   catch(e){ toast('Lỗi: '+e.message); btn.disabled=false; btn.textContent=o; }

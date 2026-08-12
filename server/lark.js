@@ -198,6 +198,22 @@ function createTable(name, fields) {
 
 /*** ===== MEDIA (ảnh attachment) ===== ***/
 // Trả về { buffer, contentType } của 1 file_token
+// Tải ảnh LÊN Lark (drive media, dùng cho ảnh bitable) -> trả file_token
+async function mediaUpload(buffer, fileName) {
+  const token = await tenantToken();
+  const form = new FormData();
+  form.append('file_name', fileName || 'image.jpg');
+  form.append('parent_type', 'bitable_image');
+  form.append('parent_node', config.appToken);
+  form.append('size', String(buffer.length));
+  form.append('file', new Blob([buffer]), fileName || 'image.jpg');
+  const res = await fetch(BASE() + '/open-apis/drive/v1/medias/upload_all', {
+    method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: form
+  });
+  const data = await res.json();
+  if (data.code !== 0) throw new Error('Upload ảnh lỗi: ' + data.code + ' ' + data.msg);
+  return data.data.file_token;
+}
 async function mediaDownload(fileToken) {
   const token = await tenantToken();
   const url = BASE() + '/open-apis/drive/v1/medias/' + encodeURIComponent(fileToken) + '/download';
@@ -210,6 +226,6 @@ async function mediaDownload(fileToken) {
 module.exports = {
   tenantToken, call, listRecords, searchRecords, findByField, getRecord,
   createRecord, updateRecord, deleteRecord,
-  batchCreate, batchUpdate, batchDelete, listTables, listFields, createTable, mediaDownload,
+  batchCreate, batchUpdate, batchDelete, listTables, listFields, createTable, mediaDownload, mediaUpload,
   FieldType: { TEXT: 1, NUMBER: 2, SINGLE_SELECT: 3, DATETIME: 5, ATTACHMENT: 17, AUTO_NUMBER: 1005 }
 };
