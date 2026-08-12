@@ -312,12 +312,18 @@ function getCatalogSheetsFrom_(products) {
 function importParse(base64, ext) { return larkStore.importParse(base64, ext); }
 async function importCommit(products) {
   const arr = (products || []).map(function (p) {
-    return { ma_sp: s(p.ma), ten_sp: s(p.ten), dong_sp: s(p.nhom), hang_muc: s(p.hangMuc), thuong_hieu: s(p.thuongHieu),
+    const ma = s(p.ma).trim();
+    return { ma_sp: ma || null, ten_sp: s(p.ten).trim(), dong_sp: s(p.nhom), hang_muc: s(p.hangMuc), thuong_hieu: s(p.thuongHieu),
       nha_cung_cap: s(p.ncc), dvt: s(p.dvt) || 'Cái', gia_ban_le: n(p.gia), ghi_chu: s(p.moTa), anh_sp: s(p.hinhAnh) };
   }).filter(function (r) { return r.ten_sp; });
-  if (arr.length) await supa.insert('db_san_pham', arr);
+  if (!arr.length) return { inserted: 0 };
+  // gộp trùng mã trong chính file (giữ bản cuối); mã rỗng -> NULL (unique cho phép nhiều NULL)
+  const seen = {}, rows = [];
+  arr.forEach(function (r) { if (r.ma_sp) { if (seen[r.ma_sp] != null) { rows[seen[r.ma_sp]] = r; return; } seen[r.ma_sp] = rows.length; } rows.push(r); });
+  // upsert theo ma_sp: đã có -> cập nhật, chưa có/NULL -> thêm mới (không lỗi trùng)
+  await supa.rest('POST', 'db_san_pham?on_conflict=ma_sp', { body: rows, prefer: 'resolution=merge-duplicates,return=minimal' });
   _cache = null;
-  return { inserted: arr.length };
+  return { inserted: rows.length };
 }
 
 module.exports = {

@@ -1138,7 +1138,7 @@ function upGridInner(){
 }
 function upRefresh(){ var a=document.getElementById('upMain'); if(a)a.innerHTML=upMainInner(); var b=document.getElementById('upGrid'); if(b)b.innerHTML=upGridInner(); }
 function imgSection(){
-  return '<div class="panel" style="max-width:1120px;margin-top:14px"><div class="toolbar"><h3>Ảnh sản phẩm</h3></div>'
+  return '<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">📷</span><h3>Ảnh sản phẩm</h3></div><div class="dbcard-b">'
     +'<div class="imgup">'
       +'<div><div class="uplabel">Hình chính</div>'
         +'<div class="upzone upmain" id="upMain" onclick="upPick(\'main\')" ondragover="upDrag(event,1)" ondragleave="upDrag(event,0)" ondrop="upDrop(event,\'main\')">'+upMainInner()+'</div>'
@@ -1149,23 +1149,26 @@ function imgSection(){
         +'<div class="upgrid" id="upGrid">'+upGridInner()+'</div>'
         +'<div class="upurl"><input id="upMoreUrl" placeholder="hoặc dán URL ảnh…"><button class="btn ghost sm" onclick="upAddUrl(\'more\')">Thêm</button></div>'
       +'</div>'
-    +'</div></div>';
+    +'</div></div></div>';
+}
+var DB_GICON={'Định danh':'🏷️','Thông tin chính':'💡','Hiệu suất':'⚡','Thiết kế':'📐','Lắp đặt':'🔧','Nguồn (Driver)':'🔌','Thương mại':'💰','Giá vốn (ẩn khi xuất báo giá)':'🏦','Media':'🖼️','Quản trị':'⚙️'};
+function dbCard_(title, ic, note, inner){
+  return '<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">'+ic+'</span><h3>'+esc(title)+'</h3></div>'
+    +'<div class="dbcard-b">'+(note?'<p class="dbnote">'+esc(note)+'</p>':'')+inner+'</div></div>';
 }
 function renderImport(){
   S._imgMain=''; S._imgList=[];
   var box=document.getElementById('v-import');
-  box.innerHTML='<div class="sechd"><h2>Nhập dữ liệu</h2><span class="sp"></span><span style="color:var(--muted);font-size:13px">Lưu vào bảng <b>DB_Sản phẩm</b> trên Lark · <span style="color:#c33">*</span> = bắt buộc</span></div>'
+  box.innerHTML='<div class="dbwrap">'
+    +'<div class="dbhead"><div><h2>Nhập dữ liệu</h2><p>Thêm sản phẩm vào danh mục <b>DB_Sản phẩm</b> (Supabase) · <span style="color:#c33">*</span> bắt buộc</p></div></div>'
     +imgSection()
     +DB_GROUPS.map(function(gr){
-      return '<div class="panel" style="max-width:1120px;margin-top:14px"><div class="toolbar"><h3>'+esc(gr.g)+'</h3></div>'
-        +(gr.note?'<p style="color:var(--muted);font-size:12px;margin:0 0 10px">'+esc(gr.note)+'</p>':'')
-        +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px 14px">'+gr.f.map(dbInput).join('')+'</div></div>';
+      return dbCard_(gr.g, DB_GICON[gr.g]||'📄', gr.note, '<div class="dbgrid">'+gr.f.map(dbInput).join('')+'</div>');
     }).join('')
-    +'<div class="savebar"><button class="btn blue" onclick="tdSave(this)">＋ Lưu vào DB_Sản phẩm</button><button class="btn ghost" onclick="renderImport()">Xoá form</button><span style="color:var(--muted);font-size:12px">Ảnh chính + ảnh chi tiết sẽ lưu vào cột Ảnh sản phẩm.</span></div>'
-    +'<div class="panel" style="max-width:1120px;margin-top:16px"><div class="toolbar"><h3>Nhập hàng loạt từ file</h3></div>'
-    +'<p style="color:var(--muted);font-size:13px;margin:0 0 10px">Chọn file <b>.xlsx / .xls / .csv</b> có cột <b>Tên sản phẩm</b> (và các cột khác nếu có). Hệ thống tự dò cột theo tên tiêu đề. <i>(Nhập hàng loạt hiện lưu vào danh mục cũ — báo tôi nếu muốn chuyển sang DB.)</i></p>'
-    +'<input type="file" id="impFile" accept=".xlsx,.xls,.csv" onchange="impPick(this)" style="font:inherit">'
-    +'<div id="impPreview" style="margin-top:12px"></div></div>';
+    +'<div class="savebar"><button class="btn blue" onclick="tdSave(this)">＋ Lưu vào DB_Sản phẩm</button><button class="btn ghost" onclick="renderImport()">Xoá form</button><span style="color:var(--muted);font-size:12px">Ảnh chính + ảnh chi tiết lưu vào cột Ảnh sản phẩm.</span></div>'
+    +dbCard_('Nhập hàng loạt từ file', '📥', 'Chọn file .xlsx / .xls / .csv có cột Tên sản phẩm (và các cột khác nếu có). Hệ thống tự dò cột theo tiêu đề và lưu vào DB_Sản phẩm.',
+      '<input type="file" id="impFile" accept=".xlsx,.xls,.csv" onchange="impPick(this)" style="font:inherit"><div id="impPreview" style="margin-top:12px"></div>')
+    +'</div>';
 }
 /* ==== Upload ảnh ==== */
 function upDrag(e,on){ e.preventDefault(); e.currentTarget.classList.toggle('drag',!!on); }
