@@ -1025,23 +1025,28 @@ var DB_GROUPS=[
     ['NHÓM SẢN PHẨM','Nhóm sản phẩm','text',0],['THƯƠNG HIỆU','Thương hiệu','text',1],['NHÀ CUNG CẤP','Nhà cung cấp','text',1] ]},
   {g:'Thông tin chính', f:[
     ['CÔNG SUẤT (W)','Công suất (W)','num',1],['NHIỆT ĐỘ MÀU (K)','Nhiệt độ màu (K)','sel',1,['2700','3000','4000','5000','6500']],
-    ['QUANG THÔNG (lm)','Quang thông (lm)','num',1],['GÓC CHIẾU (°)','Góc chiếu (°)','num',0],
-    ['MÀU SẮC','Màu sắc','text',1],['CHẤT LIỆU','Chất liệu','text',0] ]},
-  {g:'Hiệu suất & thiết kế', f:[
-    ['HIỆU SUẤT PHÁT QUANG (lm/W)','Hiệu suất (lm/W)','num',0],['GÓC NGHIÊNG (°)','Góc nghiêng (°)','num',0],
-    ['CHIỀU CAO (mm)','Chiều cao (mm)','num',0],['ĐƯỜNG KÍNH (mm)','Đường kính (mm)','num',0],['LỖ KHOÉT TRẦN (mm)','Lỗ khoét trần (mm)','num',0],
-    ['CHỈ SỐ IP','Chỉ số IP','sel',0,['IP20','IP44','IP54','IP65']],['CRI','CRI','text',0],['UGR','UGR','text',0],
-    ['SDCM','SDCM','text',0],['COI','COI','text',0],['TUỔI THỌ','Tuổi thọ','text',0],
-    ['LOẠI CHIP LED','Loại chip LED','sel',0,['COB','SMD','Modul']],['CẤP BẢO VỆ ĐIỆN','Cấp bảo vệ điện','sel',0,['Class I','Class II','Class III']] ]},
-  {g:'Bộ nguồn', f:[
+    ['GÓC CHIẾU (°)','Góc chiếu (°)','num',0],['MÀU SẮC','Màu sắc','text',1],['CHẤT LIỆU','Chất liệu','text',0] ]},
+  {g:'Hiệu suất', f:[
+    ['QUANG THÔNG (lm)','Quang thông (lm)','num',1],['CHỈ SỐ IP','Chỉ số IP','sel',0,['IP20','IP44','IP54','IP65']],
+    ['CRI','CRI','text',0],['HIỆU SUẤT PHÁT QUANG (lm/W)','Hiệu suất phát quang (lm/W)','num',0],
+    ['UGR','UGR','text',0],['SDCM','SDCM','text',0],['COI','COI','text',0],['TUỔI THỌ','Tuổi thọ','text',0],
+    ['LOẠI CHIP LED','Loại chip LED','sel',0,['COB','SMD','Modul']] ]},
+  {g:'Thiết kế', f:[
+    ['GÓC NGHIÊNG (°)','Góc nghiêng (°)','num',0],['CHIỀU CAO (mm)','Chiều cao (mm)','num',0],['ĐƯỜNG KÍNH (mm)','Đường kính (mm)','num',0] ]},
+  {g:'Lắp đặt', f:[
+    ['LỖ KHOÉT TRẦN (mm)','Lỗ khoét trần (mm)','num',0],['CẤP BẢO VỆ ĐIỆN','Cấp bảo vệ điện','sel',0,['Class I','Class II','Class III']] ]},
+  {g:'Nguồn (Driver)', f:[
     ['LẮP NGUỒN RỜI','Lắp nguồn rời','sel',0,['Có','Không']],['TÊN BỘ NGUỒN','Tên bộ nguồn','text',0],
     ['MÃ BỘ NGUỒN','Mã bộ nguồn','text',0],['HÃNG BỘ NGUỒN','Hãng bộ nguồn','text',0],
     ['VỊ TRÍ LẮP NGUỒN','Vị trí lắp nguồn','sel',0,['Lắp rời','Tích hợp trong thân đèn']],
     ['TƯƠNG THÍCH ĐIỀU KHIỂN','Tương thích điều khiển','sel',0,['DALI','0-10V','Triac','On-Off']],['DÒNG RA TỐI ĐA (mA)','Dòng ra tối đa (mA)','num',0] ]},
-  {g:'Thương mại & khác', f:[
-    ['ĐƠN VỊ TÍNH','Đơn vị tính','sel',1,['Cái','Bộ','Mét']],['GIÁ BÁN LẺ','Giá bán lẻ','num',1],
-    ['CHIẾT KHẤU ĐẠI LÝ (%)','Chiết khấu đại lý (%)','num',1],['BẢO HÀNH (năm)','Bảo hành (năm)','num',0],
-    ['ẢNH SẢN PHẨM','Ảnh sản phẩm (URL)','text',0],['LINK DATASHEET','Link datasheet','text',0],
+  {g:'Thương mại', f:[
+    ['BẢO HÀNH (năm)','Bảo hành (năm)','num',0],['ĐƠN VỊ TÍNH','Đơn vị tính','sel',1,['Cái','Bộ','Mét']] ]},
+  {g:'Giá vốn (ẩn khi xuất báo giá)', note:'Giá đại lý tự tính = Giá bán lẻ × (1 − Chiết khấu đại lý %).', f:[
+    ['GIÁ BÁN LẺ','Giá bán lẻ','num',1],['CHIẾT KHẤU ĐẠI LÝ (%)','Chiết khấu đại lý (%)','num',1] ]},
+  {g:'Media', f:[
+    ['ẢNH SẢN PHẨM','Ảnh sản phẩm (URL)','text',0],['LINK DATASHEET','Link datasheet','text',0] ]},
+  {g:'Quản trị', f:[
     ['TRẠNG THÁI','Trạng thái','sel',1,['Đang kinh doanh','Ngưng','Đặt hàng']],['GHI CHÚ','Ghi chú','area',0] ]}
 ];
 var DB_FLAT=[]; DB_GROUPS.forEach(function(gr){ gr.f.forEach(function(f){ DB_FLAT.push(f); }); });
@@ -1058,6 +1063,7 @@ function renderImport(){
   box.innerHTML='<div class="sechd"><h2>Nhập dữ liệu</h2><span class="sp"></span><span style="color:var(--muted);font-size:13px">Lưu vào bảng <b>DB_Sản phẩm</b> trên Lark · <span style="color:#c33">*</span> = bắt buộc</span></div>'
     +DB_GROUPS.map(function(gr){
       return '<div class="panel" style="max-width:1120px;margin-top:14px"><div class="toolbar"><h3>'+esc(gr.g)+'</h3></div>'
+        +(gr.note?'<p style="color:var(--muted);font-size:12px;margin:0 0 10px">'+esc(gr.note)+'</p>':'')
         +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px 14px">'+gr.f.map(dbInput).join('')+'</div></div>';
     }).join('')
     +'<div style="max-width:1120px;margin-top:14px;display:flex;gap:10px"><button class="btn blue" onclick="tdSave(this)">＋ Lưu vào DB_Sản phẩm</button><button class="btn ghost" onclick="renderImport()">Xoá form</button></div>'
