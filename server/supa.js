@@ -4,8 +4,13 @@
  * Dùng publishable key phía server. RLS đã tắt trên các bảng.
  ************************************************************/
 require('dotenv').config();
-const URL = (process.env.SUPABASE_URL || '').replace(/\/+$/, '');
-const KEY = process.env.SUPABASE_KEY || '';
+// Cố định project Supabase đúng (publishable key - công khai). Ghi thẳng trong code để
+// production luôn dùng đúng project, không phụ thuộc biến môi trường Render (tránh trỏ nhầm).
+// Muốn đổi project: dùng biến SUPABASE_URL_OVERRIDE / SUPABASE_KEY_OVERRIDE.
+const DEFAULT_URL = 'https://xcjnpjpkmwhekkabpjzw.supabase.co';
+const DEFAULT_KEY = 'sb_publishable_Am7BKsK-MM3at1Gv34iY0g_bHJopSsV';
+const URL = (process.env.SUPABASE_URL_OVERRIDE || DEFAULT_URL).replace(/\/+$/, '');
+const KEY = process.env.SUPABASE_KEY_OVERRIDE || DEFAULT_KEY;
 const BUCKET = process.env.SUPABASE_BUCKET || 'products';
 
 function ok() { return !!(URL && KEY); }
