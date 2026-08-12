@@ -1017,23 +1017,52 @@ async function printQuote(cols){
   w.document.close(); setTimeout(function(){w.focus();w.print();},500);
 }
 function tdInput(label,id,val,type){ return '<div class="field"><label>'+esc(label)+'</label><input id="'+id+'" type="'+(type||'text')+'" value="'+esc(val||'')+'"></div>'; }
+/* ==== Nhập dữ liệu -> bảng DB_SẢN PHẨM (Lark). Trường khoá theo ĐÚNG tên cột Lark. ==== */
+var DB_GROUPS=[
+  {g:'Định danh', f:[
+    ['MÃ SẢN PHẨM','Mã sản phẩm','text',1],['TÊN SẢN PHẨM','Tên sản phẩm','text',1],
+    ['DÒNG SẢN PHẨM','Dòng sản phẩm','text',1],['HẠNG MỤC','Hạng mục','sel',1,['Đèn nội thất','Đèn ngoại thất','Đèn kỹ thuật']],
+    ['NHÓM SẢN PHẨM','Nhóm sản phẩm','text',0],['THƯƠNG HIỆU','Thương hiệu','text',1],['NHÀ CUNG CẤP','Nhà cung cấp','text',1] ]},
+  {g:'Thông tin chính', f:[
+    ['CÔNG SUẤT (W)','Công suất (W)','num',1],['NHIỆT ĐỘ MÀU (K)','Nhiệt độ màu (K)','sel',1,['2700','3000','4000','5000','6500']],
+    ['QUANG THÔNG (lm)','Quang thông (lm)','num',1],['GÓC CHIẾU (°)','Góc chiếu (°)','num',0],
+    ['MÀU SẮC','Màu sắc','text',1],['CHẤT LIỆU','Chất liệu','text',0] ]},
+  {g:'Hiệu suất & thiết kế', f:[
+    ['HIỆU SUẤT PHÁT QUANG (lm/W)','Hiệu suất (lm/W)','num',0],['GÓC NGHIÊNG (°)','Góc nghiêng (°)','num',0],
+    ['CHIỀU CAO (mm)','Chiều cao (mm)','num',0],['ĐƯỜNG KÍNH (mm)','Đường kính (mm)','num',0],['LỖ KHOÉT TRẦN (mm)','Lỗ khoét trần (mm)','num',0],
+    ['CHỈ SỐ IP','Chỉ số IP','sel',0,['IP20','IP44','IP54','IP65']],['CRI','CRI','text',0],['UGR','UGR','text',0],
+    ['SDCM','SDCM','text',0],['COI','COI','text',0],['TUỔI THỌ','Tuổi thọ','text',0],
+    ['LOẠI CHIP LED','Loại chip LED','sel',0,['COB','SMD','Modul']],['CẤP BẢO VỆ ĐIỆN','Cấp bảo vệ điện','sel',0,['Class I','Class II','Class III']] ]},
+  {g:'Bộ nguồn', f:[
+    ['LẮP NGUỒN RỜI','Lắp nguồn rời','sel',0,['Có','Không']],['TÊN BỘ NGUỒN','Tên bộ nguồn','text',0],
+    ['MÃ BỘ NGUỒN','Mã bộ nguồn','text',0],['HÃNG BỘ NGUỒN','Hãng bộ nguồn','text',0],
+    ['VỊ TRÍ LẮP NGUỒN','Vị trí lắp nguồn','sel',0,['Lắp rời','Tích hợp trong thân đèn']],
+    ['TƯƠNG THÍCH ĐIỀU KHIỂN','Tương thích điều khiển','sel',0,['DALI','0-10V','Triac','On-Off']],['DÒNG RA TỐI ĐA (mA)','Dòng ra tối đa (mA)','num',0] ]},
+  {g:'Thương mại & khác', f:[
+    ['ĐƠN VỊ TÍNH','Đơn vị tính','sel',1,['Cái','Bộ','Mét']],['GIÁ BÁN LẺ','Giá bán lẻ','num',1],
+    ['CHIẾT KHẤU ĐẠI LÝ (%)','Chiết khấu đại lý (%)','num',1],['BẢO HÀNH (năm)','Bảo hành (năm)','num',0],
+    ['ẢNH SẢN PHẨM','Ảnh sản phẩm (URL)','text',0],['LINK DATASHEET','Link datasheet','text',0],
+    ['TRẠNG THÁI','Trạng thái','sel',1,['Đang kinh doanh','Ngưng','Đặt hàng']],['GHI CHÚ','Ghi chú','area',0] ]}
+];
+var DB_FLAT=[]; DB_GROUPS.forEach(function(gr){ gr.f.forEach(function(f){ DB_FLAT.push(f); }); });
+function dbInput(f){
+  var i=DB_FLAT.indexOf(f), lark=f[0], label=f[1], type=f[2], req=f[3], opts=f[4]||[];
+  var id='dbf_'+i, star=req?' <span style="color:#c33">*</span>':'', inner;
+  if(type==='area') inner='<textarea id="'+id+'" placeholder="'+esc(label)+'" style="min-height:54px"></textarea>';
+  else if(type==='sel') inner='<input id="'+id+'" list="dl_'+i+'" placeholder="'+esc(label)+'"><datalist id="dl_'+i+'">'+opts.map(function(o){return '<option value="'+esc(o)+'">';}).join('')+'</datalist>';
+  else inner='<input id="'+id+'"'+(type==='num'?' type="number"':'')+' placeholder="'+esc(label)+'">';
+  return '<div class="field"><label>'+esc(label)+star+'</label>'+inner+'</div>';
+}
 function renderImport(){
   var box=document.getElementById('v-import');
-  var nhoms={}; S.products.forEach(function(p){ if(p.nhom)nhoms[p.nhom]=1; });
-  var opts='<option value=""></option>'+Object.keys(nhoms).map(function(n){return '<option>'+esc(n)+'</option>';}).join('');
-  box.innerHTML='<div class="sechd"><h2>Nhập dữ liệu</h2><span class="sp"></span><span style="color:var(--muted);font-size:13px">Danh mục hiện có '+S.products.length+' mặt hàng</span></div>'
-    +'<div class="panel" style="max-width:960px"><div class="toolbar"><h3>Thêm sản phẩm vào danh mục</h3></div>'
-    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px 14px">'
-    +'<div class="field"><label>Nhóm</label><select id="td_nhom">'+opts+'</select></div>'
-    +tdInput('Hạng mục','td_hm')+tdInput('Tên sản phẩm *','td_ten')
-    +tdInput('Thương hiệu','td_th')+tdInput('Nhà cung cấp','td_ncc')+tdInput('Mã SP','td_ma')
-    +tdInput('Kích thước','td_kt')+tdInput('ĐVT','td_dvt','Cái')+tdInput('Đơn giá','td_gia','','number')
-    +tdInput('Link ảnh (URL)','td_img')+'</div>'
-    +'<div class="field" style="margin-top:2px"><label>Mô tả</label><textarea id="td_mota" placeholder="Mô tả" style="min-height:60px"></textarea></div>'
-    +'<div style="margin-top:8px;display:flex;gap:10px"><button class="btn blue" onclick="tdSave(this)">＋ Thêm vào danh mục</button><button class="btn ghost" onclick="renderImport()">Xoá form</button></div>'
-    +'</div>'
-    +'<div class="panel" style="max-width:960px;margin-top:16px"><div class="toolbar"><h3>Nhập hàng loạt từ file</h3></div>'
-    +'<p style="color:var(--muted);font-size:13px;margin:0 0 10px">Chọn file <b>.xlsx / .xls / .csv</b> có cột <b>Tên sản phẩm</b> (và Nhóm, Thương hiệu, Mã SP, Kích thước, ĐVT, Đơn giá, Mô tả, Link ảnh nếu có). Hệ thống tự dò cột theo tên tiêu đề.</p>'
+  box.innerHTML='<div class="sechd"><h2>Nhập dữ liệu</h2><span class="sp"></span><span style="color:var(--muted);font-size:13px">Lưu vào bảng <b>DB_Sản phẩm</b> trên Lark · <span style="color:#c33">*</span> = bắt buộc</span></div>'
+    +DB_GROUPS.map(function(gr){
+      return '<div class="panel" style="max-width:1120px;margin-top:14px"><div class="toolbar"><h3>'+esc(gr.g)+'</h3></div>'
+        +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px 14px">'+gr.f.map(dbInput).join('')+'</div></div>';
+    }).join('')
+    +'<div style="max-width:1120px;margin-top:14px;display:flex;gap:10px"><button class="btn blue" onclick="tdSave(this)">＋ Lưu vào DB_Sản phẩm</button><button class="btn ghost" onclick="renderImport()">Xoá form</button></div>'
+    +'<div class="panel" style="max-width:1120px;margin-top:16px"><div class="toolbar"><h3>Nhập hàng loạt từ file</h3></div>'
+    +'<p style="color:var(--muted);font-size:13px;margin:0 0 10px">Chọn file <b>.xlsx / .xls / .csv</b> có cột <b>Tên sản phẩm</b> (và các cột khác nếu có). Hệ thống tự dò cột theo tên tiêu đề. <i>(Nhập hàng loạt hiện lưu vào danh mục cũ — báo tôi nếu muốn chuyển sang DB.)</i></p>'
     +'<input type="file" id="impFile" accept=".xlsx,.xls,.csv" onchange="impPick(this)" style="font:inherit">'
     +'<div id="impPreview" style="margin-top:12px"></div></div>';
 }
@@ -1068,13 +1097,12 @@ async function impCommit(btn){
   catch(e){ toast('Lỗi nhập: '+e.message); btn.disabled=false; btn.textContent=o; }
 }
 async function tdSave(btn){
-  var g=function(id){var e=document.getElementById(id);return e?e.value:'';};
-  var ten=(g('td_ten')||'').trim(); if(!ten){ toast('Nhập Tên sản phẩm'); return; }
-  var p={ nhom:g('td_nhom'), hangMuc:g('td_hm'), ten:ten, thuongHieu:g('td_th'), ncc:g('td_ncc'), ma:g('td_ma'),
-    kichThuoc:g('td_kt'), dvt:g('td_dvt'), gia:g('td_gia'), hinhAnh:g('td_img'), moTa:g('td_mota') };
-  btn.disabled=true;
-  try{ await api('saveLineAsProduct',p); S.products=await api('getProducts')||S.products; toast('Đã thêm vào danh mục'); renderImport(); renderFilters(); renderCatalog(); }
-  catch(e){ toast('Lỗi: '+e.message); } btn.disabled=false;
+  var data={};
+  DB_FLAT.forEach(function(f,i){ var e=document.getElementById('dbf_'+i); if(e){ var v=(e.value||'').trim(); if(v) data[f[0]]=v; } });
+  var ten=String(data['TÊN SẢN PHẨM']||'').trim(); if(!ten){ toast('Nhập Tên sản phẩm'); return; }
+  btn.disabled=true; var o=btn.textContent; btn.textContent='⏳ Đang lưu…';
+  try{ var r=await api('saveDbProduct',data); toast((r.updated?'Đã cập nhật':'Đã thêm')+' "'+ten+'" vào DB_Sản phẩm'); renderImport(); }
+  catch(e){ toast('Lỗi: '+e.message); btn.disabled=false; btn.textContent=o; }
 }
 
 /* ===== GO ===== */

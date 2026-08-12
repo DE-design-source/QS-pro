@@ -33,6 +33,7 @@ const REGISTRY = {
   updateLine: store.updateLine,
   deleteLine: store.deleteLine,
   saveLineAsProduct: store.saveLineAsProduct,
+  saveDbProduct: store.saveDbProduct,
   getCover: store.getCover,
   saveCover: store.saveCover,
   buildCoverFromTemplate: store.buildCoverFromTemplate,

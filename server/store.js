@@ -549,6 +549,40 @@ async function saveLineAsProduct(p) {
   };
 }
 
+/*** ===== BẢNG DB_SẢN PHẨM (nhập dữ liệu đầy đủ theo schema mới) ===== ***/
+// Các cột kiểu Number trên bảng DB (còn lại là Text; NGÀY CẬP NHẬT là DateTime).
+const DB_NUM = ['CÔNG SUẤT (W)', 'NHIỆT ĐỘ MÀU (K)', 'QUANG THÔNG (lm)', 'GÓC CHIẾU (°)', 'GÓC NGHIÊNG (°)',
+  'CHIỀU CAO (mm)', 'ĐƯỜNG KÍNH (mm)', 'LỖ KHOÉT TRẦN (mm)', 'HIỆU SUẤT PHÁT QUANG (lm/W)',
+  'DÒNG RA TỐI ĐA (mA)', 'BẢO HÀNH (năm)', 'GIÁ BÁN LẺ', 'GIÁ ĐẠI LÝ'];
+// data: object khoá theo ĐÚNG tên cột Lark. Tự tính GIÁ ĐẠI LÝ + NGÀY CẬP NHẬT.
+async function saveDbProduct(data) {
+  data = data || {};
+  const ten = String(data['TÊN SẢN PHẨM'] || '').trim();
+  if (!ten) throw new Error('Chưa có Tên sản phẩm.');
+  const T = config.tables.dbProducts;
+  if (!T) throw new Error('Chưa cấu hình bảng DB_SẢN PHẨM.');
+  const fields = {};
+  Object.keys(data).forEach(function (k) {
+    if (k === 'GIÁ ĐẠI LÝ' || k === 'NGÀY CẬP NHẬT') return;   // tự tính, không nhận từ form
+    var v = data[k];
+    if (v == null || v === '') return;
+    fields[k] = (DB_NUM.indexOf(k) >= 0) ? toNumber_(v) : String(v);
+  });
+  // GIÁ ĐẠI LÝ = GIÁ BÁN LẺ × (1 − CK đại lý %)
+  const gbl = toNumber_(data['GIÁ BÁN LẺ']);
+  const ck = toNumber_(String(data['CHIẾT KHẤU ĐẠI LÝ (%)'] || '').replace(/[^\d.,-]/g, ''));
+  if (gbl) fields['GIÁ ĐẠI LÝ'] = round0_(gbl * (1 - ck / 100));
+  fields['NGÀY CẬP NHẬT'] = Date.now();
+  // chống trùng theo MÃ SẢN PHẨM: đã có -> cập nhật, chưa có -> tạo mới
+  const ma = String(data['MÃ SẢN PHẨM'] || '').trim();
+  if (ma) {
+    const ex = await lark.findByField(T, 'MÃ SẢN PHẨM', ma);
+    if (ex.length) { await lark.updateRecord(T, ex[0].record_id, fields); return { updated: true, ma: ma, ten: ten }; }
+  }
+  await lark.createRecord(T, fields);
+  return { created: true, ma: ma, ten: ten };
+}
+
 /*** ===== TỜ BÌA / KHÁI TOÁN ===== ***/
 async function getCover(maDA) {
   await setup();
@@ -742,7 +776,7 @@ module.exports = {
   setup, bootstrap, buildCatalog,
   getProducts, getProductsCached, clearProductsCache, getCatalogSheets, getSheetCols,
   getProjects, getProject, createProject, updateProject, deleteProject,
-  getLines, addLine, addBlankLine, updateLine, deleteLine, saveLineAsProduct,
+  getLines, addLine, addBlankLine, updateLine, deleteLine, saveLineAsProduct, saveDbProduct,
   getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, coverComputed_,
   getDashboard, getQuote, importParse, importCommit,
   // dùng nội bộ cho export

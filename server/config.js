@@ -26,7 +26,8 @@ const config = {
     products: process.env.LARK_TBL_PRODUCTS || saved.products || '',
     projects: process.env.LARK_TBL_PROJECTS || saved.projects || '',
     lines: process.env.LARK_TBL_LINES || saved.lines || '',
-    cover: process.env.LARK_TBL_COVER || saved.cover || ''
+    cover: process.env.LARK_TBL_COVER || saved.cover || '',
+    dbProducts: process.env.LARK_TBL_DB || saved.dbProducts || 'tbl5QYucsvBSgfUw'
   }
 };
 
