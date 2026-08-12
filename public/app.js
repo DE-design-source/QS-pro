@@ -338,7 +338,7 @@ function renderCatalog(){
   el.innerHTML=list.slice(0,300).map(function(p,i){
     var img=p.hinhAnh?'<img class="thumb" src="'+esc(p.hinhAnh)+'" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>';
     var im2=p.hinhAnh?'<img class="thumb" src="'+esc(p.hinhAnh)+'" onclick="showDetail('+i+')" style="cursor:pointer" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb" onclick="showDetail('+i+')" style="cursor:pointer"></div>';
-    var meta=p.kichThuoc?('Kích thước: '+esc(p.kichThuoc)):esc(p.thuongHieu||'');
+    var sz=p.size||p.kichThuoc; var meta=sz?('Kích thước: '+esc(sz)):esc(p.thuongHieu||'');
     return '<div class="citem" draggable="true" ondragstart="prodDragStart(event,'+i+')" ondragend="prodDragEnd()">'
       +'<div class="no">'+(i+1)+'</div>'+im2
       +'<div class="cmid" onclick="showDetail('+i+')" title="Xem chi tiết sản phẩm">'
@@ -569,6 +569,7 @@ var TXT_COL={ khuVuc:'khuVuc', maBanVe:'maBanVe', ncc:'ncc', maSP:'maSP', thuong
 var NUM_COL={ soLuong:'soLuong', giaNCC:'donGiaVon', lnPct:'lnPct', chietKhau:'chietKhau', donGia:'donGiaBan', ckKhach:'ckKhach' };
 function cellInput(l,key){
   if(key==='moTa') return '<td class="wrap"><textarea class="cin" rows="1" oninput="autoGrow(this)" onchange="editLine(\''+l.lineId+'\',{moTa:this.value})">'+esc(l.moTa||'')+'</textarea></td>';
+  if(key==='kichThuoc') return '<td class="wrap"><textarea class="cin" rows="1" oninput="autoGrow(this)" onchange="editLine(\''+l.lineId+'\',{kichThuoc:this.value})">'+esc(l.kichThuoc||'')+'</textarea></td>';
   if(key==='ten') return '<td class="td-ten"><div style="display:flex;gap:2px;align-items:center"><input class="cin" value="'+esc(l.ten||'')+'" onchange="editLine(\''+l.lineId+'\',{ten:this.value})"><button class="pick" title="Chọn sản phẩm từ danh mục" onclick="openPick(\''+l.lineId+'\',event)">⌕</button></div></td>';
   if(TXT_COL[key]){ var f=TXT_COL[key];
     return '<td><input class="cin"'+(key==='khuVuc'?' placeholder="Phòng…" list="phongList"':'')+' value="'+esc(l[f]||'')+'" onchange="editLine(\''+l.lineId+'\',{'+f+':this.value})"></td>'; }

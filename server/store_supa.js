@@ -19,7 +19,8 @@ function fmtList(v, unit) { return s(v).split(',').map(function (x) { return x.t
 function prodToObj(r) {
   const congSuat = fmtUnit(r.cong_suat_w, 'W'), nhietDo = fmtList(r.nhiet_do_mau_k, 'K'), gocChieu = fmtList(r.goc_chieu_deg, '°');
   const cri = s(r.cri), chip = s(r.loai_chip_led), dong = s(r.dong_sp), qt = r.quang_thong_lm ? (r.quang_thong_lm + 'lm') : '';
-  // "Thông tin chính" = gộp thông số cốt lõi (để hiện ở cột bảng bóc tách)
+  const chatLieu = s(r.chat_lieu), chieuCao = fmtUnit(r.chieu_cao_mm, 'mm'), duongKinh = r.duong_kinh_mm ? ('Ø' + r.duong_kinh_mm + 'mm') : '', gocNghieng = fmtList(r.goc_nghieng_deg, '°');
+  // "Thông tin chính" = gộp thông số cốt lõi (hiện ở cột bảng bóc tách)
   const ttc = [];
   if (dong) ttc.push('Dòng SP: ' + dong);
   if (chip) ttc.push('Chip LED: ' + chip + (cri ? ', CRI ' + cri : ''));
@@ -29,21 +30,30 @@ function prodToObj(r) {
   if (gocChieu) ttc.push('Góc chiếu: ' + gocChieu);
   if (qt) ttc.push('Quang thông: ' + qt);
   let moTa = ttc.join('\n'); if (s(r.ghi_chu)) moTa += (moTa ? '\n' : '') + s(r.ghi_chu);
+  // "Thông số thiết kế" = gộp như Design Specifications (hiện ở cột bảng bóc tách)
+  const tsk = [];
+  if (chatLieu) tsk.push('Chất liệu: ' + chatLieu);
+  if (chieuCao) tsk.push('Chiều cao: ' + chieuCao);
+  if (duongKinh) tsk.push('Đường kính: ' + duongKinh);
+  if (gocNghieng) tsk.push('Góc nghiêng: ' + gocNghieng);
+  if (dong) tsk.push('Dòng SP: ' + dong);
+  const size = (r.duong_kinh_mm && r.chieu_cao_mm) ? ('Ø' + r.duong_kinh_mm + '×H' + r.chieu_cao_mm + 'mm') : (r.duong_kinh_mm ? ('Ø' + r.duong_kinh_mm + 'mm') : '');
+  const thongSoTK = tsk.join('\n') || size;
   return {
     ma: s(r.ma_sp), ten: s(r.ten_sp), dongSanPham: dong, hangMuc: s(r.hang_muc),
     nhom: s(r.nhom_sp) || dong, muc: 'Thiết bị đèn',
     thuongHieu: s(r.thuong_hieu), ncc: s(r.nha_cung_cap),
     congSuat: congSuat, nhietDo: nhietDo, gocChieu: gocChieu,
-    mauSac: s(r.mau_sac), chatLieu: s(r.chat_lieu),
-    chieuCao: fmtUnit(r.chieu_cao_mm, 'mm'), duongKinh: r.duong_kinh_mm ? ('Ø' + r.duong_kinh_mm + 'mm') : '',
-    gocNghieng: fmtList(r.goc_nghieng_deg, '°'), loKhoet: r.cutout_mm ? ('Ø' + r.cutout_mm + 'mm') : '',
+    mauSac: s(r.mau_sac), chatLieu: chatLieu,
+    chieuCao: chieuCao, duongKinh: duongKinh,
+    gocNghieng: gocNghieng, loKhoet: r.cutout_mm ? ('Ø' + r.cutout_mm + 'mm') : '',
     capBaoVe: s(r.chi_so_ip), cri: cri, hieuSuat: r.hieu_suat_lm_w ? (r.hieu_suat_lm_w + ' lm/W') : '',
     ugr: s(r.ugr), sdcm: s(r.sdcm), coi: s(r.coi), tuoiTho: s(r.tuoi_tho), chipLed: chip,
     quangThong: qt, baoHanh: r.bao_hanh_nam ? (r.bao_hanh_nam + ' năm') : '',
     tenBoNguon: s(r.ten_bo_nguon), maBoNguon: s(r.ma_bo_nguon), hangBoNguon: s(r.hang_bo_nguon),
     viTriNguon: s(r.vi_tri_lap_nguon), tuongThich: s(r.dieu_khien), dongRa: r.dong_ra_max_ma ? (r.dong_ra_max_ma + 'mA') : '',
     lapNguonRoi: r.lap_nguon_roi ? 'Có' : '', capBaoVeDien: s(r.class_rating), linkDatasheet: s(r.link_datasheet),
-    kichThuoc: (r.duong_kinh_mm && r.chieu_cao_mm) ? ('Ø' + r.duong_kinh_mm + '×H' + r.chieu_cao_mm + 'mm') : (r.duong_kinh_mm ? ('Ø' + r.duong_kinh_mm + 'mm') : ''),
+    kichThuoc: thongSoTK, size: size,
     dvt: s(r.dvt) || 'Cái', hinhAnh: firstImg(r.anh_sp), moTa: moTa,
     donGiaVon: n(r.gia_dai_ly), donGiaBan: n(r.gia_dai_ly), lnPct: 0, recordId: r.id
   };
