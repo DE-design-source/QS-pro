@@ -17,7 +17,12 @@ console.log('Nguồn dữ liệu:', supa.ok() ? 'Supabase' : 'Lark');
 
 const app = express();
 app.use(express.json({ limit: '30mb' }));
-app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(express.static(path.join(__dirname, '..', 'public'), {
+  setHeaders: function (res, filePath) {
+    // HTML/JS/CSS luôn revalidate -> deploy mới là trình duyệt lấy ngay (không kẹt cache cũ)
+    if (/\.(html|js|css)$/i.test(filePath)) res.setHeader('Cache-Control', 'no-cache');
+  }
+}));
 
 // Whitelist các hàm client được phép gọi (đúng API surface của index.html)
 const REGISTRY = {
