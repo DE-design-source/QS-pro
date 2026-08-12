@@ -23,7 +23,14 @@ a{color:inherit}
 .nav a{color:#33414f;text-decoration:none;font-weight:500;font-size:14px;padding:6px 2px;border-bottom:2px solid transparent}
 .nav a.active{color:#111;font-weight:700}
 .nav a:hover{color:var(--navy)}
-.topnav .right{font-weight:700;color:#111;font-size:14px}
+.topnav .right{display:flex;align-items:center;gap:10px}
+.rbtn{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;padding:8px 15px;border-radius:10px;text-decoration:none;cursor:pointer;transition:all .13s;border:1px solid var(--line);color:#37434f;background:#fff;white-space:nowrap}
+.rbtn:hover{border-color:#bcc7d2;background:#f6f9fc;color:var(--navy)}
+.rbtn svg{width:16px;height:16px;flex:none}
+.rbtn.primary{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 1px 2px #2f6bff33}
+.rbtn.primary:hover{background:var(--blue-d);border-color:var(--blue-d);color:#fff}
+.rbtn.active{border-color:var(--blue);color:var(--blue);background:#f0f6ff}
+.rbtn.primary.active{background:var(--blue-d)}
 
 /* ===== breadcrumb ===== */
 .crumb{display:flex;align-items:center;gap:12px;margin:16px 0 12px}
@@ -342,7 +349,10 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
     <a data-tab="export">Xuất báo giá</a>
     <a onclick="toast('Tính năng Mua hàng đang cập nhật')" style="cursor:pointer">Mua hàng</a>
   </div>
-  <div class="right"><a onclick="toast('Danh sách sản phẩm đang cập nhật')" style="cursor:pointer;text-decoration:none">Danh sách sản phẩm</a><span class="navsep">|</span><a data-tab="import" style="text-decoration:none">Nhập dữ liệu</a></div>
+  <div class="right">
+    <a class="rbtn" onclick="toast('Danh sách sản phẩm đang cập nhật')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="4" rx="1.2"/><rect x="3" y="10" width="18" height="4" rx="1.2"/><rect x="3" y="16" width="18" height="4" rx="1.2"/></svg>Danh sách sản phẩm</a>
+    <a class="rbtn primary" data-tab="import"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M4 21h16"/></svg>Nhập dữ liệu</a>
+  </div>
 </div></div></div>
 
 <div class="wrap">
