@@ -568,7 +568,7 @@ var TXT_COL={ khuVuc:'khuVuc', maBanVe:'maBanVe', ncc:'ncc', maSP:'maSP', thuong
   dvt:'dvt', trangThai:'trangThai', ghiChu:'ghiChu', kichThuoc:'kichThuoc', ten:'ten' };
 var NUM_COL={ soLuong:'soLuong', giaNCC:'donGiaVon', lnPct:'lnPct', chietKhau:'chietKhau', donGia:'donGiaBan', ckKhach:'ckKhach' };
 function cellInput(l,key){
-  if(key==='moTa') return '<td class="wrap"><textarea class="cin" onchange="editLine(\''+l.lineId+'\',{moTa:this.value})">'+esc(l.moTa||'')+'</textarea></td>';
+  if(key==='moTa') return '<td class="wrap"><textarea class="cin" rows="1" oninput="autoGrow(this)" onchange="editLine(\''+l.lineId+'\',{moTa:this.value})">'+esc(l.moTa||'')+'</textarea></td>';
   if(key==='ten') return '<td class="td-ten"><div style="display:flex;gap:2px;align-items:center"><input class="cin" value="'+esc(l.ten||'')+'" onchange="editLine(\''+l.lineId+'\',{ten:this.value})"><button class="pick" title="Chọn sản phẩm từ danh mục" onclick="openPick(\''+l.lineId+'\',event)">⌕</button></div></td>';
   if(TXT_COL[key]){ var f=TXT_COL[key];
     return '<td><input class="cin"'+(key==='khuVuc'?' placeholder="Phòng…" list="phongList"':'')+' value="'+esc(l[f]||'')+'" onchange="editLine(\''+l.lineId+'\',{'+f+':this.value})"></td>'; }
@@ -621,7 +621,10 @@ function renderTable(){
     +'<span class="addfloorbtn" style="border-style:solid;border-color:var(--blue);color:var(--blue)" onclick="addBlankItem()" title="Thêm 1 hạng mục trống vào tầng đang chọn">＋ Thêm hạng mục</span></td></tr>';
   t.style.width=totalW+'px';
   t.innerHTML=colg+head+body;
+  t.querySelectorAll('td.wrap textarea').forEach(autoGrow);   // ô "Thông tin chính" tự giãn hết dòng
 }
+// textarea tự cao theo nội dung (xuống dòng hiện đủ, không cắt)
+function autoGrow(t){ if(!t) return; t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; }
 async function editLine(id,fields){
   try{
     await api('updateLine',id,fields); S.lines=await api('getLines',S.cur.maDA)||[];

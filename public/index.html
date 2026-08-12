@@ -143,7 +143,12 @@ table.tk td{white-space:nowrap}
 table.tk td.wrap,table.tk td .desc{white-space:normal}
 table.tk th.num,table.tk td.num{text-align:right}
 table.tk th.ct,table.tk td.ct{text-align:center}
-table.tk td{padding:9px 10px;border-bottom:1px solid #eef1f4;vertical-align:middle}
+table.tk td{padding:9px 10px;border-bottom:1px solid #e6ebf0;border-right:1px solid #eef2f5;vertical-align:middle}
+table.tk th{border-right:1px solid #ffffff26}
+table.tk td:last-child,table.tk th:last-child{border-right:none}
+table.tk td.wrap{vertical-align:top}
+table.tk td.wrap textarea{width:100%;min-width:180px;border:1px solid transparent;background:transparent;font:inherit;font-size:12px;line-height:1.4;white-space:pre-wrap;overflow:hidden;resize:none;padding:2px 4px;border-radius:5px;display:block}
+table.tk td.wrap textarea:focus{border-color:var(--blue);background:#fff;outline:none}
 table.tk tr.grp td{background:var(--navy);color:#fff;font-weight:700;letter-spacing:.3px;font-size:12px;padding:8px 10px}
 table.tk tbody tr:not(.grp):nth-child(even){background:var(--stripe)}
 table.tk .pimg{width:42px;height:42px;object-fit:contain;background:#fff;border:1px solid #eef1f4;border-radius:5px}
