@@ -674,10 +674,10 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
           <div class="mlbl">Đèn trong dự án</div>
           <div class="msel" id="fInProj" onclick="toggleInProj()"><span class="mlabel" id="fInProjLabel">Tất cả sản phẩm</span><span class="mplus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
 
-          <!-- bộ lọc (theo Figma: label + hộp chip + thanh cuộn, không gập) -->
-          <div class="fsec open static" id="sec_watt"><div class="fsec-h"><span class="fsec-t">Công suất</span><span class="fsec-n" id="nWatt"></span></div><div class="chips" id="fWatt"></div></div>
-          <div class="fsec open static" id="sec_kelvin"><div class="fsec-h"><span class="fsec-t">Nhiệt độ màu</span><span class="fsec-n" id="nKelvin"></span></div><div class="chips" id="fKelvin"></div></div>
-          <div class="fsec open static" id="sec_angle"><div class="fsec-h"><span class="fsec-t">Góc chiếu sáng</span><span class="fsec-n" id="nAngle"></span></div><div class="chips" id="fAngle"></div></div>
+          <!-- bộ lọc: label + hộp chip + nút thu gọn (gập/mở) -->
+          <div class="fsec open" id="sec_watt"><div class="fsec-h" onclick="toggleFsec('watt')"><span class="fsec-t">Công suất</span><span class="fsec-n" id="nWatt"></span><span class="fsec-c">▾</span></div><div class="chips" id="fWatt"></div></div>
+          <div class="fsec open" id="sec_kelvin"><div class="fsec-h" onclick="toggleFsec('kelvin')"><span class="fsec-t">Nhiệt độ màu</span><span class="fsec-n" id="nKelvin"></span><span class="fsec-c">▾</span></div><div class="chips" id="fKelvin"></div></div>
+          <div class="fsec open" id="sec_angle"><div class="fsec-h" onclick="toggleFsec('angle')"><span class="fsec-t">Góc chiếu sáng</span><span class="fsec-n" id="nAngle"></span><span class="fsec-c">▾</span></div><div class="chips" id="fAngle"></div></div>
           <input id="fSearch" type="hidden" value="">
           <div class="lbl">Thương hiệu</div>
           <div class="selrow"><select id="fBrand"></select></div>
