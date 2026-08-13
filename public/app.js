@@ -11,6 +11,15 @@ function api(fn){
 }
 function money(n){ return (Math.round(Number(n)||0)).toLocaleString('vi-VN'); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];}); }
+// Ngày tạo -> dd/mm/yyyy (không lệch ngày do múi giờ)
+function fmtDate(v){
+  if(!v) return '—';
+  var s=String(v).trim();
+  var m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m) return m[3]+'/'+m[2]+'/'+m[1];
+  m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/); if(m) return s.slice(0,10);
+  var d=new Date(s); if(!isNaN(d.getTime())) return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear();
+  return s;
+}
 function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove('on');},2200); }
 
 /* ===== STATE ===== */
@@ -238,7 +247,7 @@ function renderCard(){
   document.getElementById('pcKH').textContent=p.khachHang||'—';
   document.getElementById('pcSDT').textContent=p.sdt||'—';
   document.getElementById('pcAddr').textContent=p.diaChi||'—';
-  document.getElementById('pcDate').textContent=p.ngayTao||'—';
+  document.getElementById('pcDate').textContent=fmtDate(p.ngayTao);
   document.getElementById('pcStatus').textContent=p.trangThai||'Bản nháp';
   var pct=Math.max(0,Math.min(100,Number(p.tienDo)||0));
   document.getElementById('pcPct').textContent=pct+'%';
