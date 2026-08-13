@@ -425,9 +425,9 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 .upx{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#000a;color:#fff;border:none;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
 .upurl{display:flex;gap:6px;margin-top:8px}
 .upurl input{flex:1;border:1px solid #d7dde4;border-radius:8px;padding:7px 10px;font:inherit;font-size:12.5px}
-.savebar{position:sticky;bottom:0;background:linear-gradient(#fff9,#fff);backdrop-filter:blur(3px);padding:12px 0;margin-top:14px;display:flex;gap:10px;align-items:center;z-index:5;max-width:1120px}
+.savebar{position:sticky;bottom:0;background:linear-gradient(#fff9,#fff);backdrop-filter:blur(3px);padding:12px 0;margin-top:14px;display:flex;gap:10px;align-items:center;z-index:5}
 /* form nhập dữ liệu — thẻ đẹp */
-.dbwrap{max-width:1120px}
+.dbwrap{max-width:100%}
 .dbhead{display:flex;align-items:center;justify-content:space-between;margin:6px 0 4px}
 .dbhead h2{margin:0;font-size:22px;font-weight:800}
 .dbhead p{margin:3px 0 0;color:var(--muted);font-size:13px}
@@ -441,6 +441,7 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 .dbcard-b{padding:16px 20px}
 .dbnote{color:var(--muted);font-size:12.5px;margin:0 0 12px}
 .dbgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 16px}
+@media(min-width:1400px){.dbgrid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:820px){.dbgrid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.dbgrid{grid-template-columns:1fr}}
 .imp-imgbtn{width:42px;height:42px;border:1.5px dashed #c2cfdd;background:#fafcff;color:var(--blue);border-radius:8px;cursor:pointer;font-size:20px;line-height:1;font-weight:700}
