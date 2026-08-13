@@ -798,7 +798,7 @@ function setVat(v){
   api('updateProject', S.cur.maDA, {vat:v}).then(function(p){ if(p){ p.vat=v; S.cur=p; var i=S.projects.findIndex(function(x){return x.maDA===p.maDA;}); if(i>=0)S.projects[i]=p; } }).catch(function(){});
 }
 // textarea tự cao theo nội dung (xuống dòng hiện đủ, không cắt)
-function autoGrow(t){ if(!t) return; t.style.height='auto'; var cap=78; var h=Math.min(t.scrollHeight+2,cap); t.style.height=h+'px'; t.style.overflowY=(t.scrollHeight>cap)?'auto':'hidden'; }
+function autoGrow(t){ if(!t) return; t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; t.style.overflowY='hidden'; }
 function editLine(id,fields){
   // ---- Optimistic: cập nhật + render NGAY, đồng bộ server chạy nền ----
   var l=S.lines.filter(function(x){return x.lineId===id;})[0];
