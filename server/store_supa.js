@@ -207,11 +207,25 @@ async function getCover(maDA) {
   const rows = await supa.select('khai_toan', { filter: supa.eq('ma_da', maDA), order: 'sort_no.asc', limit: 2000 });
   return rows.map(function (r) { return { stt: s(r.stt), hangMuc: s(r.hang_muc), moTa: s(r.mo_ta), chiPhi: n(r.chi_phi) }; });
 }
-function buildCoverFromTemplate() { return larkStore.buildCoverFromTemplate(); }
+// Nạp mẫu tờ bìa + tự cộng chi phí theo nhóm (đọc dòng từ Supabase, KHÔNG gọi Lark)
+async function buildCoverFromTemplate(maDA) {
+  const tmpl = larkStore._COVER_TEMPLATE || [];
+  const norm = larkStore._normalize || function (x) { return String(x || '').toUpperCase(); };
+  const byNhom = {};
+  if (maDA) {
+    const lines = await getLines(maDA);
+    lines.forEach(function (l) { const k = norm(l.nhom); byNhom[k] = (byNhom[k] || 0) + n(l.thanhTienBan); });
+  }
+  return tmpl.map(function (t) {
+    let chiPhi = 0;
+    if (t[3]) String(t[3]).split(',').forEach(function (nm) { chiPhi += byNhom[norm(nm.trim())] || 0; });
+    return { stt: t[0], hangMuc: t[1], moTa: t[2], chiPhi: chiPhi };
+  });
+}
 async function getCoverOrInit(maDA) {
   const cur = await getCover(maDA);
   if (cur.length) return cur;
-  return buildCoverFromTemplate();
+  return buildCoverFromTemplate(maDA);
 }
 async function saveCover(maDA, rows) {
   await supa.remove('khai_toan', supa.eq('ma_da', maDA));

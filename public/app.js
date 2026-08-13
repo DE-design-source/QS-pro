@@ -1220,20 +1220,48 @@ async function impPick(input){
   reader.onerror=function(){ pv.innerHTML='<div style="color:#c33">Không đọc được file.</div>'; };
   reader.readAsDataURL(f);
 }
+function impImgCell_(p,i){
+  return p.hinhAnh
+    ? '<img src="'+esc(imgUrlOf(p.hinhAnh))+'" class="imp-th" onclick="impImg('+i+')" title="Đổi ảnh" onerror="this.style.visibility=\'hidden\'">'
+    : '<button class="imp-imgbtn" onclick="impImg('+i+')" title="Tải ảnh cho SP này">＋</button>';
+}
+function impRow_(p,i){
+  return '<tr><td class="ct" id="impimg_'+i+'">'+impImgCell_(p,i)+'</td>'
+    +'<td>'+esc(p.ten||'')+'</td><td>'+esc(p.thuongHieu||'')+'</td>'
+    +'<td class="mono">'+esc(p.ma||'')+'</td><td>'+esc(p.dvt||'')+'</td>'
+    +'<td class="num">'+money(p.gia)+'</td></tr>';
+}
+function impRefreshRow(i){ var c=document.getElementById('impimg_'+i); if(c) c.innerHTML=impImgCell_(S._impProducts[i],i); }
+function impUpdateCounter(){ var n=(S._impProducts||[]).filter(function(p){return p.hinhAnh;}).length; var el=document.getElementById('impImgCount'); if(el){ el.textContent=n; el.style.color=(n<(S._impProducts||[]).length)?'#c9820a':'#1a7f37'; } }
+function impImg(i){
+  var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+  inp.onchange=function(){ var f=inp.files&&inp.files[0]; if(!f) return;
+    var reader=new FileReader();
+    reader.onload=async function(){ var cell=document.getElementById('impimg_'+i); if(cell)cell.innerHTML='<span style="font-size:11px;color:#889">⏳</span>';
+      try{ var r=await api('uploadImage', String(reader.result), f.name||'img.jpg'); S._impProducts[i].hinhAnh=r.url||r.token; }
+      catch(e){ toast('Upload ảnh lỗi: '+e.message); }
+      impRefreshRow(i); impUpdateCounter();
+    };
+    reader.readAsDataURL(f);
+  };
+  inp.click();
+}
 function impShow(res){
   S._impProducts=res.products||[];
   if(!res.count){ document.getElementById('impPreview').innerHTML='<div style="color:#c33">Không đọc được sản phẩm nào (kiểm tra cột Tên sản phẩm).</div>'; return; }
-  var cols=[['ten','Tên SP'],['nhom','Nhóm'],['thuongHieu','Thương hiệu'],['ma','Mã SP'],['kichThuoc','Kích thước'],['dvt','ĐVT'],['gia','Đơn giá']];
-  var head='<tr>'+cols.map(function(c){return '<th'+(c[0]==='gia'?' class="num"':'')+'>'+c[1]+'</th>';}).join('')+'</tr>';
-  var rows=res.products.slice(0,50).map(function(p){ return '<tr>'+cols.map(function(c){ return '<td'+(c[0]==='gia'?' class="num"':'')+'>'+esc(c[0]==='gia'?money(p.gia):(p[c[0]]||''))+'</td>'; }).join('')+'</tr>'; }).join('');
   var mappedTxt=Object.keys(res.mapped||{}).map(function(k){return esc(res.mapped[k]);}).join(' · ');
+  var rows=S._impProducts.map(function(p,i){ return impRow_(p,i); }).join('');
   document.getElementById('impPreview').innerHTML=
-    '<div style="margin-bottom:8px"><b>Đọc được '+res.count+' sản phẩm.</b> <span style="color:var(--muted)">Cột nhận diện: '+mappedTxt+'</span>'+(res.count>50?' <span style="color:var(--muted)">(xem trước 50 dòng)</span>':'')+'</div>'
-    +'<div class="tbl-wrap" style="max-height:360px"><table class="tk">'+head+rows+'</table></div>'
+    '<div style="margin-bottom:6px"><b>Đọc được '+res.count+' sản phẩm.</b> <span style="color:var(--muted)">Cột nhận diện: '+mappedTxt+'</span></div>'
+    +'<div style="margin-bottom:10px;font-size:13px">🖼️ Ảnh: <b id="impImgCount">0</b>/'+res.count+' đã có ảnh — <span style="color:var(--muted)">bấm ô <b>＋</b> ở cột Ảnh để tải hình cho từng sản phẩm</span></div>'
+    +'<div class="tbl-wrap" style="max-height:460px"><table class="tk"><thead><tr><th style="width:58px">Ảnh</th><th>Tên sản phẩm</th><th>Thương hiệu</th><th>Mã SP</th><th>ĐVT</th><th class="num">Giá bán lẻ</th></tr></thead><tbody id="impBody">'+rows+'</tbody></table></div>'
     +'<div style="margin-top:12px"><button class="btn blue" onclick="impCommit(this)">＋ Nhập '+res.count+' sản phẩm vào danh mục</button></div>';
+  impUpdateCounter();
 }
 async function impCommit(btn){
   if(!S._impProducts||!S._impProducts.length){ toast('Chưa có dữ liệu'); return; }
+  var missing=S._impProducts.filter(function(p){return !p.hinhAnh;}).length;
+  if(missing>0 && !confirm('Còn '+missing+' sản phẩm CHƯA có ảnh.\nBạn nên bấm ô ＋ ở cột Ảnh để tải hình cho từng SP.\n\nVẫn nhập bây giờ?')) return;
   btn.disabled=true; var o=btn.textContent; btn.textContent='Đang nhập…';
   try{ var r=await api('importCommit', S._impProducts); S.products=await api('getProducts')||S.products; toast('Đã nhập '+r.inserted+' sản phẩm vào danh mục'); renderImport(); renderFilters(); renderCatalog(); }
   catch(e){ toast('Lỗi nhập: '+e.message); btn.disabled=false; btn.textContent=o; }

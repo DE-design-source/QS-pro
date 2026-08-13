@@ -815,5 +815,5 @@ module.exports = {
   getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, coverComputed_,
   getDashboard, getQuote, importParse, importCommit,
   // dùng nội bộ cho export
-  _S32_SUPPLIERS: S32_SUPPLIERS, _normalize: normalize_, _toNumber: toNumber_, _round0: round0_
+  _S32_SUPPLIERS: S32_SUPPLIERS, _normalize: normalize_, _toNumber: toNumber_, _round0: round0_, _COVER_TEMPLATE: COVER_TEMPLATE
 };

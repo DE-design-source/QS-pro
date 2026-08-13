@@ -6,7 +6,9 @@
  * (PDF được xử lý phía client bằng chức năng In của trình duyệt.)
  ************************************************************/
 const ExcelJS = require('exceljs');
-const store = require('./store');
+const store = require('./store');            // helper thuần (coverComputed_, _toNumber, _S32_SUPPLIERS...)
+const supa = require('./supa');
+const dataStore = supa.ok() ? require('./store_supa') : store;   // nguồn dữ liệu (Supabase nếu có)
 const lark = require('./lark');
 
 const NAVY = 'FF1F3864';
@@ -303,7 +305,7 @@ function sheetName_(s) {
 
 /*** ===== ENTRY: exportBaoGia(maDA, cols, format) ===== ***/
 async function exportBaoGia(maDA, cols, format) {
-  const q = await store.getQuote(maDA);
+  const q = await dataStore.getQuote(maDA);
   const p = q.project || {};
   const chosen = (cols && cols.length) ? cols : Object.keys(EXPORT_STY).map(function (k) { return { key: k }; });
   const EXCOLS = chosen.map(function (c) {
@@ -312,7 +314,7 @@ async function exportBaoGia(maDA, cols, format) {
   });
 
   const wb = new ExcelJS.Workbook();
-  const cover = await store.getCoverOrInit(maDA);
+  const cover = await dataStore.getCoverOrInit(maDA);
   buildCoverSheet(wb.addWorksheet('Tờ bìa'), p, cover);
   buildSection32(wb.addWorksheet('3.2 Phần hoàn thiện'), p, cover);
 
