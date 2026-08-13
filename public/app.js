@@ -47,6 +47,8 @@ var COLS=[
   ['thanhTien','Thành tiền',0],['trangThai','Trạng thái',0],['ghiChu','Ghi chú',0]
 ];
 COLS.forEach(function(c){ S.cols[c[0]]=!!c[2]; });
+// Theo Figma: mở sẵn Công suất/Nhiệt độ/Góc chiếu; thu gọn IP/CRI/Điện áp
+['ip','cri','volt'].forEach(function(k){ if(S.fsecOpen[k]===undefined) S.fsecOpen[k]=false; });
 
 /* ===== Bộ icon SVG line đồng nhất (kiểu Lucide, theo màu chữ) ===== */
 var ICONS={
@@ -326,6 +328,7 @@ function renderFilters(){
   chipGroup('cri','fCRI','nCRI','cri',S.fCRI,'data-v',{});
   chipGroup('volt','fVolt','nVolt','dienAp',S.fVolt,'data-v',{});
   applyFsec();
+  updateInProj_();
   document.getElementById('fMin').oninput=renderCatalog;
   document.getElementById('fMax').oninput=renderCatalog;
   document.getElementById('fSearch').oninput=renderCatalog;
@@ -379,6 +382,13 @@ function nhomToggle(n){ if(S.fNhomSet[n]) delete S.fNhomSet[n]; else S.fNhomSet[
 function nhomAll(on){ var opts=hmucOptions(); S.fNhomSet={}; if(on) Object.keys(opts).forEach(function(k){S.fNhomSet[k]=1;}); closePop(); renderFilters(); renderCatalog(); }
 // Đèn trong dự án: chỉ hiện SP đã dùng trong dự án hiện tại
 function toggleOnlyProject(){ S.onlyProject=!S.onlyProject; var b=document.getElementById('fInProj'); if(b) b.classList.toggle('on',S.onlyProject); renderCatalog(); }
+/* Bộ chọn thứ 3 "Đèn trong dự án": lọc chỉ SP đã dùng trong dự án hiện tại */
+function toggleInProj(){ S.onlyProject=!S.onlyProject; updateInProj_(); renderCatalog(); }
+function updateInProj_(){
+  var box=document.getElementById('fInProj'), lb=document.getElementById('fInProjLabel'); if(!lb) return;
+  lb.textContent = S.onlyProject ? 'Chỉ đèn trong dự án' : 'Tất cả sản phẩm';
+  if(box) box.classList.toggle('active', S.onlyProject);
+}
 /* lọc danh mục theo đề mục đang chọn ở cây */
 function setDemucFilter(code){
   var nm=nodeName(code)||''; S.demucKw = code==='X'?'':nm; S.demucCode = code==='X'?'':code;
