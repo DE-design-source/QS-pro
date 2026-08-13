@@ -84,6 +84,7 @@ a{color:inherit}
 .boc{display:grid;grid-template-columns:340px minmax(0,1fr);gap:16px;margin:16px 0 40px;align-items:start}
 .boc.detail{grid-template-columns:300px 300px minmax(0,1fr)}
 @media(max-width:1120px){ .boc,.boc.detail{grid-template-columns:1fr} }
+.boc.pt-mode{grid-template-columns:1fr}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px}
 .panel h3{margin:0 0 12px;font-size:15px;font-weight:800;letter-spacing:.2px}
 .lbl{font-size:12.5px;font-weight:700;color:#2a3746;margin:14px 0 7px}
@@ -146,6 +147,65 @@ a{color:inherit}
 .cat-list::-webkit-scrollbar-thumb:hover{background:#a6b6c8}
 @media(max-width:1120px){ .catpanel{position:static;max-height:none} .cat-list{max-height:60vh} }
 .cat-list-legacy{margin-top:6px;max-height:520px;overflow:auto}
+
+/* ===== PHẦN THÔ — bảng ước tính chi phí xây dựng thô ===== */
+.pt-doc-h{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;border-bottom:2px solid var(--navy);padding-bottom:12px;margin-bottom:12px}
+.pt-cty{font-size:11.5px;color:#4a5661;line-height:1.55}
+.pt-cty-nm{font-size:15px;font-weight:800;color:var(--navy);letter-spacing:.3px}
+.pt-title{text-align:right}
+.pt-title h2{margin:0;font-size:18px;font-weight:800;color:var(--navy);letter-spacing:.3px}
+.pt-title .pt-sub{margin-top:4px;font-size:13px;font-weight:700;color:#c0563f}
+.pt-info{display:grid;grid-template-columns:1fr 1fr;gap:6px 26px;margin-bottom:14px}
+.pt-inf{display:flex;gap:8px;font-size:12.5px;border-bottom:1px dotted #d9e0e6;padding-bottom:4px}
+.pt-inf .k{color:#7a8794;min-width:120px;font-weight:600}
+.pt-inf .v{color:#1f2a36;font-weight:600}
+.pt-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.pt-toolbar .pt-tt{font-size:13px;color:#54606b}
+.pt-toolbar .sp{flex:1}
+.pt-scroll{overflow-x:auto;border:1px solid #d7dee5;border-radius:8px}
+.pt-scroll::-webkit-scrollbar{height:10px}
+.pt-scroll::-webkit-scrollbar-thumb{background:#c2cddb;border-radius:5px;border:2px solid #fff}
+table.pt{border-collapse:collapse;font-size:12px;width:max-content;min-width:100%;background:#fff}
+table.pt th,table.pt td{border:1px solid #dfe5ec;padding:5px 7px;vertical-align:middle;text-align:left}
+table.pt thead th{background:var(--navy);color:#fff;font-weight:700;font-size:11px;text-align:center;line-height:1.25;position:sticky;top:0;z-index:2}
+table.pt td.c,table.pt th.c{text-align:center}
+table.pt td.n,table.pt th.n{text-align:right}
+table.pt td.b{font-weight:800;color:var(--navy)}
+tr.pt-sec>td{background:#eaf1fb;font-weight:700}
+tr.pt-sec .pt-secname{position:relative}
+.pt-secttl{font-weight:800;color:var(--navy);text-transform:uppercase;font-size:11.5px;line-height:1.3}
+.pt-note{display:inline-block;margin-top:2px;font-size:11px;font-style:italic;color:#c0563f;font-weight:600}
+.pt-secdel{position:absolute;right:2px;top:2px;cursor:pointer;color:#b9c2cc;opacity:0;transition:.12s}
+tr.pt-sec:hover .pt-secdel{opacity:1}
+.pt-secdel:hover{color:#c33}
+tr.pt-row:hover>td{background:#f7fbff}
+tr.pt-row td{background:#fff}
+.pt-in{width:100%;border:1px solid transparent;background:transparent;border-radius:5px;padding:4px 5px;font:inherit;color:#1f2a36}
+.pt-in:hover{border-color:#e2e8ef}
+.pt-in:focus{outline:none;border-color:var(--blue);background:#fff;box-shadow:0 0 0 2px #2f6bff1f}
+.pt-in.pt-money,.pt-in.pt-vat{text-align:right}
+.pt-in.pt-vat{width:52px;display:inline-block}
+textarea.pt-area{resize:none;overflow:hidden;white-space:pre-wrap;line-height:1.35;min-height:26px}
+.pt-ro{display:block;text-align:right;padding:4px 5px;color:#26313d}
+.pt-ro.b{font-weight:800;color:var(--navy)}
+.pt-dash{color:#b9c2cc}
+.pt-upcell .pt-in{font-weight:700}
+tr.pt-add td{padding:0;background:#fff}
+tr.pt-add span{display:inline-block;padding:6px 10px;color:var(--blue);font-size:12px;font-weight:600;cursor:pointer}
+tr.pt-add span:hover{text-decoration:underline}
+.pt-del{text-align:center;padding:0 2px}
+.pt-del button{border:none;background:none;color:#c9d2db;cursor:pointer;padding:4px;border-radius:5px;display:inline-flex}
+tr.pt-row:hover .pt-del button{color:#8a97a4}
+.pt-del button:hover{background:#fde2e2;color:#c33}
+tr.pt-total>td{background:#dfe9f7;font-weight:800;color:var(--navy);font-size:12.5px;border-top:2px solid var(--navy)}
+tr.pt-total2>td{background:#eef3fa;font-weight:700}
+tr.pt-grand>td{background:var(--navy);color:#fff;font-weight:800;font-size:13.5px}
+.pt-pct{font-size:11px;color:#1a7f37;font-weight:700}
+.pt-foot{display:flex;justify-content:space-between;gap:30px;margin-top:16px;flex-wrap:wrap}
+.pt-notes{font-size:12px;color:#4a5661;max-width:560px}
+.pt-notes ol{margin:6px 0 0;padding-left:20px;line-height:1.6}
+.pt-sign{display:flex;gap:60px;text-align:center;padding-top:6px}
+.pt-sign-t{font-size:12px;font-weight:700;color:#26313d;padding-bottom:52px;border-bottom:1px solid #cfd8e0}
 .citem{display:flex;align-items:center;gap:10px;padding:10px 3px;border-bottom:1px solid #eef1f4}
 .citem .no{width:16px;color:#98a6b3;font-size:12px;text-align:center;flex:none}
 .citem .thumb{width:44px;height:44px;border-radius:7px;background:#f4f6f8;object-fit:contain;flex:none;border:1px solid #edf0f3}
@@ -468,7 +528,7 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
   <div class="view on" id="v-boc">
     <div class="boc" id="bocGrid">
       <!-- LEFT: filter + catalog -->
-      <div class="panel catpanel">
+      <div class="panel catpanel" id="leftCat">
         <div class="catpanel-top">
           <div class="cat-hd"><h3>Sản phẩm</h3><span class="cat-count" id="catCount"></span></div>
 
@@ -514,19 +574,22 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 
       <!-- RIGHT: takeoff -->
       <div class="panel" style="position:relative">
-        <div class="toolbar">
-          <h3>Hạng mục đã bóc</h3><span class="count" id="tkCount">[00]</span>
-          <div class="sp" style="flex:1"></div>
+        <div id="tkNormal">
+          <div class="toolbar">
+            <h3>Hạng mục đã bóc</h3><span class="count" id="tkCount">[00]</span>
+            <div class="sp" style="flex:1"></div>
+          </div>
+          <div style="position:relative;margin-bottom:12px">
+            <button class="tree-btn" id="treeBtn" onclick="toggleTree()">
+              <span id="treeLabel">Chọn hạng mục</span><span class="cnt" id="treeCnt"></span>
+            </button>
+            <div class="tree-pop" id="treePop" style="display:none"></div>
+          </div>
+          <div class="floorhint" id="floorHint"></div>
+          <div class="colchips" id="colChips"></div>
+          <div class="tbl-wrap"><table class="tk" id="tkTable"></table></div>
         </div>
-        <div style="position:relative;margin-bottom:12px">
-          <button class="tree-btn" id="treeBtn" onclick="toggleTree()">
-            <span id="treeLabel">Chọn hạng mục</span><span class="cnt" id="treeCnt"></span>
-          </button>
-          <div class="tree-pop" id="treePop" style="display:none"></div>
-        </div>
-        <div class="floorhint" id="floorHint"></div>
-        <div class="colchips" id="colChips"></div>
-        <div class="tbl-wrap"><table class="tk" id="tkTable"></table></div>
+        <div id="ptWrap" style="display:none"></div>
       </div>
     </div>
   </div>

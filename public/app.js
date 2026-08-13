@@ -663,6 +663,15 @@ function cellInput(l,key){
 }
 function renderTable(){
   var code=S.node;
+  // Đề mục "Phần thô" (3.1) -> bảng ước tính chi phí xây dựng thô (theo mẫu Excel)
+  var isPT = (code==='3.1');
+  var tkN=document.getElementById('tkNormal'), pw=document.getElementById('ptWrap');
+  var lc=document.getElementById('leftCat'), bg=document.getElementById('bocGrid');
+  if(tkN) tkN.style.display = isPT?'none':'';
+  if(pw) pw.style.display = isPT?'':'none';
+  if(lc) lc.style.display = isPT?'none':'';           // ẩn khung chọn SP đèn khi làm Phần thô
+  if(bg) bg.classList.toggle('pt-mode', isPT);        // 1 cột full-width cho bảng ước tính
+  if(isPT){ renderPhanTho(); return; }
   var lines=S.lines.filter(function(l){ return l.nhom===code || String(l.nhom||'').indexOf(code+'.')===0; });
   document.getElementById('tkCount').textContent='['+pad2(lines.length)+']';
   var t=document.getElementById('tkTable');
@@ -1358,6 +1367,265 @@ async function tdSave(btn){
   btn.disabled=true; var o=btn.textContent; btn.textContent='⏳ Đang lưu…';
   try{ var r=await api('saveDbProduct',data); toast((r.updated?'Đã cập nhật':'Đã thêm')+' "'+ten+'" vào DB_Sản phẩm'); renderImport(); }
   catch(e){ toast('Lỗi: '+e.message); btn.disabled=false; btn.textContent=o; }
+}
+
+/* ===================================================================
+ * PHẦN THÔ — Bảng ước tính chi phí xây dựng thô (theo mẫu Excel)
+ * mode: 'item'  -> đơn giá theo dòng, TT = KL × ĐG
+ *       'area'  -> đơn giá theo cả mục (up); KL = DT × HS; TT mục = ΣKL × up
+ *       'area0' -> KL = DT × HS nhưng "Chưa bao gồm" (TT = 0)
+ *       'none'  -> gói, "Chưa bao gồm" (TT = 0)
+ * =================================================================== */
+var PT_TEMPLATE=[
+  {r:'I',t:'CÔNG TÁC CHUẨN BỊ',mode:'none',items:[
+    ['Xin phép xây dựng','gói','Chưa bao gồm'],
+    ['Đập phá, tháo dỡ nhà hiện trạng','gói','Chưa bao gồm'],
+    ['Khoan khảo sát địa chất','gói','Chưa bao gồm'],
+    ['Cắm mốc định vị ranh xây dựng','gói','Chưa bao gồm'],
+    ['Xin cấp đồng hồ điện, nước','gói','Chưa bao gồm']
+  ]},
+  {r:'II',t:'CÔNG TÁC ÉP CỌC',mode:'item',items:[
+    ['Giàn tải, máy ép cọc Pmax 90T','Gói',1,28000000,'',0],
+    ['Nhân công ép cọc PHC D300 lực ép P(max) - 90 tấn (số tim cọc tạm tính)','tim',56,2250000,'',1500000],
+    ['Cọc ly tâm D300 PHC lực ép P(max) 90 tấn\n56 tim x 20m / tim (số tim, số m tạm tính)','md',1120,414000,'',355000]
+  ]},
+  {r:'III',t:'BIỆN PHÁP THI CÔNG HẦM',mode:'item',items:[
+    ['Ép cừ C200 chu vi hầm, cừ C dài 4,5m','md',62,4436000,'',2800000],
+    ['Hệ Shoring','hệ',1,30000000,'',0],
+    ['Đào đất, vận chuyển đi đổ','m3',388.65,185000,'',0]
+  ]},
+  {r:'IV',t:'THI CÔNG XÂY THÔ\n( Không bao gồm nhân công hoàn thiện, MEP âm tường, bể PCCC)',mode:'area',up:4200000,items:[
+    ['Móng (diện tích bao ngoài toàn bộ móng, dầm móng)','m2',278.00,0.50,''],
+    ['Hầm + ram dốc','m2',178.56,1.70,''],
+    ['Tầng 1','m2',156.00,1.00,''],
+    ['Sân vườn ngoài trời','m2',104.39,0.50,''],
+    ['Tầng 2 (bao gồm ban công)','m2',60.00,1.00,''],
+    ['Tầng 3 (bao gồm ban công)','m2',60.00,1.00,''],
+    ['Tầng 4 (bao gồm ban công)','m2',60.00,1.00,''],
+    ['Tầng 5 (bao gồm ban công)','m2',185.92,1.00,''],
+    ['Tầng thượng có mái che','m2',50.63,1.00,''],
+    ['Tầng thượng không mái che','m2',82.37,0.50,''],
+    ['Mái bê tông cốt thép','m2',50.63,0.50,''],
+    ['Tum thang máy','m2',5.17,0.50,'']
+  ]},
+  {r:'V',t:'HỆ THỐNG MEP\n(Điện - cấp thoát nước - data)\n(Không bao gồm nhân công lắp đặt + thiết bị đầu cuối)',mode:'area',up:750000,items:[
+    ['Hầm','m2',178.56,1.00,''],
+    ['Tầng 1 (bao gồm diện tích sân vườn)','m2',260.39,1.00,''],
+    ['Tầng 2','m2',60.00,1.00,''],
+    ['Tầng 3','m2',60.00,1.00,''],
+    ['Tầng 4','m2',60.00,1.00,''],
+    ['Tầng 5','m2',185.92,1.00,''],
+    ['Sân thượng','m2',133.00,1.00,''],
+    ['Mái','m2',50.63,0.50,'']
+  ]},
+  {r:'VI',t:'CHỐNG THẤM',mode:'area0',note:'Chưa bao gồm',items:[
+    ['Hầm (sàn + vách hầm + hố pit)','m2',250.01,1.00,''],
+    ['Nhà vệ sinh','m2',83.97,1.00,''],
+    ['Ban công tầng 2','m2',39.00,1.00,''],
+    ['Ban công tầng 3','m2',39.00,1.00,''],
+    ['Ban công tầng 4','m2',39.00,1.00,''],
+    ['Ban công tầng 5','m2',39.00,1.00,''],
+    ['Sân thượng ngoài trời','m2',121.85,1.00,''],
+    ['Mái','m2',70.75,1.00,'']
+  ]},
+  {r:'VII',t:'HỆ THỐNG PCCC',mode:'none',note:'Chưa bao gồm',items:[
+    ['Bể chứa nước PCCC theo quy định','gói','Chưa bao gồm'],
+    ['Hệ thống báo cháy','gói','Chưa bao gồm'],
+    ['Hệ thống chữa cháy','gói','Chưa bao gồm'],
+    ['Hệ thống thoát hiểm và hỗ trợ','gói','Chưa bao gồm']
+  ]},
+  {r:'VIII',t:'CHI PHÍ KHÁC',mode:'item',items:[
+    ['Dọn dẹp mặt bằng','gói',1,30000000,'Phát quang cây cỏ, thu gom xà bần, rác thải hiện trạng, san đất tạo mặt bằng',20000000],
+    ['Phun thuốc chống mối','gói',1,63690000,'Cho tầng hầm và tầng 1',35116000],
+    ['Bao che công trình (giàn giáo, lưới, bạt,…)','gói',1,140000000,'',120000000],
+    ['Hàng rào bao quanh công trình, cổng công trình','gói',1,75000000,'',60000000],
+    ['Camera quan sát công trình','cái',3,1200000,'',1000000],
+    ['Mạng internet trong quá trình thi công','tháng',6,350000,'',300000],
+    ['Nhà vệ sinh di động','cái',1,20000000,'',18000000],
+    ['Thùng rác','cái',1,900000,'',700000],
+    ['Thiết bị PCCC (bình chữa cháy 4kg)','cái',8,600000,'',500000],
+    ['Vệ sinh công trình hằng ngày (xây dựng thô)','gói',1,45000000,'',27000000],
+    ['Vận chuyển xà bần, rác thải trong quá trình thi công','tháng',6,7500000,'',6000000],
+    ['Văn phòng tạm tại công trình trong quá trình thi công','tháng',6,8000000,'',6500000],
+    ['Công tác an toàn lao động (nội quy, biển báo, đồ bảo hộ, lan can chắn, lưới hứng các khu vực mép sàn)','gói',1,28000000,'',21000000],
+    ['Chi phí thẩm tra biện pháp thi công hầm (theo quy định)','gói',1,20000000,'',15000000],
+    ['Chi phí thanh tra xây dựng kiểm tra trong quá trình thi công phần thô','gói',5,5000000,'',4000000],
+    ['Chi phí trắc đạc','tầng',8,7000000,'',6000000],
+    ['Chi phí điện nước thi công 6 tháng (phần thô)','gói',6,3500000,'',3000000],
+    ['Chi phí thang vận','gói',1,0,'Chưa bao gồm',0],
+    ['Đấu nối hệ thống thoát nước thải vào cống chung','gói',1,0,'Chưa bao gồm',0]
+  ]}
+];
+var PT_ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI'];
+function ptN(v){ if(typeof v==='number') return v; var x=parseFloat(String(v==null?'':v).replace(/[^\d.\-]/g,'')); return isNaN(x)?0:x; }
+function ptR0(x){ return Math.round(x||0); }
+function ptR2(x){ return Math.round((x||0)*100)/100; }
+function ptQty(x){ x=Number(x)||0; return x.toLocaleString('vi-VN',{maximumFractionDigits:2}); }
+function ptCloneTemplate(){
+  return PT_TEMPLATE.map(function(s){
+    var mode=s.mode;
+    var items=s.items.map(function(a){
+      if(mode==='item') return {n:a[0],dvt:a[1],kl:a[2],dg:a[3],gc:a[4]||'',dgnt:a[5]||0};
+      if(mode==='area'||mode==='area0') return {n:a[0],dvt:a[1],dt:a[2],hs:a[3],gc:a[4]||''};
+      return {n:a[0],dvt:a[1],gc:a[2]||''};
+    });
+    return {t:s.t,mode:mode,note:s.note||'',up:s.up||0,items:items};
+  });
+}
+function ptKey(){ return 'pt_'+((S.cur&&S.cur.maDA)||'x'); }
+function ptEnsure(){
+  var key=ptKey();
+  if(S._ptKey===key && S.phanTho) return;
+  S._ptKey=key;
+  var saved=null; try{ saved=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){}
+  S.phanTho = (saved&&saved.length)?saved:ptCloneTemplate();
+  var v=null; try{ v=localStorage.getItem(key+'_vat'); }catch(e){}
+  S.ptVat = (v!=null&&v!=='')?+v:8;
+}
+function ptPersist(){ try{ var k=ptKey(); localStorage.setItem(k,JSON.stringify(S.phanTho)); localStorage.setItem(k+'_vat',String(S.ptVat)); }catch(e){} }
+function ptSecTotals(sec){
+  var sumKL=0, tt=0, ttnt=0;
+  sec.items.forEach(function(it){
+    var kl;
+    if(sec.mode==='area'||sec.mode==='area0'){ kl=ptR2(ptN(it.dt)*ptN(it.hs)); }
+    else { kl=ptN(it.kl); }
+    it._kl=kl; sumKL+=kl;
+    if(sec.mode==='item'){ it._tt=ptR0(kl*ptN(it.dg)); tt+=it._tt; it._ttnt=ptR0(kl*ptN(it.dgnt)); ttnt+=it._ttnt; }
+    else { it._tt=null; it._ttnt=null; }
+  });
+  if(sec.mode==='area'){ tt=ptR0(sumKL*ptN(sec.up)); ttnt=0; }
+  else if(sec.mode==='area0'||sec.mode==='none'){ tt=0; ttnt=0; }
+  return {sumKL:sumKL,tt:tt,ttnt:ttnt};
+}
+function ptComputeAll(){
+  var sections=[],grand=0,contractor=0;
+  S.phanTho.forEach(function(sec){ var s=ptSecTotals(sec); sections.push(s); grand+=s.tt; contractor+=s.ttnt; });
+  var profit=grand-contractor;
+  var vatPct=ptN(S.ptVat);
+  var vat=ptR0(grand*vatPct/100);
+  return {sections:sections,grand:grand,contractor:contractor,profit:profit,
+    vatPct:vatPct,vat:vat,afterTax:grand+vat,profitPct:grand?(profit/grand*100):0};
+}
+/* ô nhập */
+function ptInp(si,ii,f,v,cls){ return '<input class="pt-in '+(cls||'')+'" type="number" step="any" value="'+(v===''||v==null?'':v)+'" onchange="ptEdit('+si+','+ii+',\''+f+'\',this.value)">'; }
+function ptTxt(si,ii,f,v){ return '<textarea class="pt-in pt-area" rows="1" oninput="autoGrow(this)" onchange="ptEdit('+si+','+ii+',\''+f+'\',this.value)">'+esc(v||'')+'</textarea>'; }
+function ptEdit(si,ii,f,val){
+  var sec=S.phanTho[si]; if(!sec) return;
+  var numF={dt:1,hs:1,kl:1,dg:1,dgnt:1,up:1};
+  var v = numF[f]?ptN(val):val;
+  if(ii<0){ sec[f]=v; } else { var it=sec.items[ii]; if(!it) return; it[f]=v; }
+  ptPersist(); renderPhanTho();
+}
+function ptSetVat(val){ S.ptVat=ptN(val); ptPersist(); renderPhanTho(); }
+function ptAddItem(si){
+  var sec=S.phanTho[si]; if(!sec) return;
+  if(sec.mode==='item') sec.items.push({n:'',dvt:'',kl:1,dg:0,gc:'',dgnt:0});
+  else if(sec.mode==='area'||sec.mode==='area0') sec.items.push({n:'',dvt:'m2',dt:0,hs:1,gc:''});
+  else sec.items.push({n:'',dvt:'gói',gc:''});
+  ptPersist(); renderPhanTho();
+}
+function ptDelItem(si,ii){ var sec=S.phanTho[si]; if(!sec) return; sec.items.splice(ii,1); ptPersist(); renderPhanTho(); }
+function ptAddSection(){ S.phanTho.push({t:'HẠNG MỤC MỚI',mode:'item',note:'',up:0,items:[]}); ptPersist(); renderPhanTho(); }
+function ptDelSection(si){ if(!confirm('Xoá cả hạng mục "'+((S.phanTho[si]||{}).t||'')+'" ?')) return; S.phanTho.splice(si,1); ptPersist(); renderPhanTho(); }
+function ptReset(){ if(!confirm('Khôi phục lại bảng theo mẫu gốc? Mọi chỉnh sửa hiện tại sẽ mất.')) return; S.phanTho=ptCloneTemplate(); S.ptVat=8; ptPersist(); renderPhanTho(); }
+/* Khối header giống Excel */
+function ptHeaderHtml(){
+  var p=S.cur||{};
+  return '<div class="pt-doc-h">'
+    +'<div class="pt-cty">'
+      +'<div class="pt-cty-nm">DEZON DESIGN &amp; BUILD</div>'
+      +'<div>ĐT: (08) 36200560 · Email: support@dezon.vn</div>'
+      +'<div>Xưởng sản xuất: KCN Vĩnh Lộc, Quận Tân Phú, TPHCM</div>'
+      +'<div>Website: dezon.vn</div>'
+    +'</div>'
+    +'<div class="pt-title"><h2>BẢNG ƯỚC TÍNH CHI PHÍ DỰ ÁN</h2><div class="pt-sub">HẠNG MỤC: XÂY DỰNG THÔ</div></div>'
+    +'</div>'
+    +'<div class="pt-info">'
+      +ptInfo('Khách hàng',p.khachHang)+ptInfo('Hiện trạng','')
+      +ptInfo('Tên dự án',p.ten)+ptInfo('Quy mô','')
+      +ptInfo('Địa chỉ',p.diaChi)+ptInfo('Nhu cầu','')
+      +ptInfo('Điện thoại',p.sdt)+ptInfo('Suất đầu tư dự kiến','')
+    +'</div>';
+}
+function ptInfo(k,v){ return '<div class="pt-inf"><span class="k">'+esc(k)+'</span><span class="v">'+esc(v||'—')+'</span></div>'; }
+function renderPhanTho(){
+  var pw=document.getElementById('ptWrap'); if(!pw) return;
+  if(!S.cur){ pw.innerHTML='<div class="empty" style="padding:24px;text-align:center">Chưa chọn dự án.</div>'; return; }
+  ptEnsure();
+  var comp=ptComputeAll();
+  var COLS=['STT','NỘI DUNG CÔNG VIỆC','ĐVT','DIỆN TÍCH','HỆ SỐ','KHỐI LƯỢNG','ĐƠN GIÁ','THÀNH TIỀN','GHI CHÚ','ĐƠN GIÁ (NHÀ THẦU)','THÀNH TIỀN (NHÀ THẦU)','LỢI NHUẬN','ĐƠN GIÁ (BÁO KHÁCH)','THÀNH TIỀN (BÁO KHÁCH)'];
+  var body='';
+  S.phanTho.forEach(function(sec,si){
+    var st=comp.sections[si];
+    // ---- dòng tiêu đề hạng mục ----
+    var upCell = sec.mode==='area' ? ptInp(si,-1,'up',sec.up,'pt-money') : '';
+    var klCell = (sec.mode==='area'||sec.mode==='area0') ? ptQty(st.sumKL) : '';
+    body+='<tr class="pt-sec">'
+      +'<td class="c">'+PT_ROMAN[si]+'</td>'
+      +'<td class="pt-secname"><div class="pt-secttl">'+esc(sec.t).replace(/\n/g,'<br>')+'</div>'+(sec.note?'<span class="pt-note">'+esc(sec.note)+'</span>':'')+'<span class="pt-secdel" title="Xoá hạng mục" onclick="ptDelSection('+si+')">'+icon('trash',13)+'</span></td>'
+      +'<td></td><td></td><td></td><td class="n">'+klCell+'</td>'
+      +'<td class="n pt-upcell">'+upCell+'</td>'
+      +'<td class="n b">'+(st.tt?money(st.tt):'-')+'</td>'
+      +'<td></td><td></td>'
+      +'<td class="n">'+(st.ttnt?money(st.ttnt):'')+'</td>'
+      +'<td class="n">'+((st.tt-st.ttnt)?money(st.tt-st.ttnt):'')+'</td>'
+      +'<td></td><td class="n">'+(st.tt?money(st.tt):'')+'</td></tr>';
+    // ---- các dòng chi tiết ----
+    sec.items.forEach(function(it,ii){
+      var kl=it._kl, tt=it._tt, ttnt=it._ttnt;
+      var isNone=sec.mode==='none', isArea=(sec.mode==='area'||sec.mode==='area0'), isItem=sec.mode==='item';
+      body+='<tr class="pt-row">'
+        +'<td class="c">'+(ii+1)+'</td>'
+        +'<td>'+ptTxt(si,ii,'n',it.n)+'</td>'
+        +'<td class="c">'+ptTxt(si,ii,'dvt',it.dvt)+'</td>'
+        +'<td class="n">'+(isArea?ptInp(si,ii,'dt',it.dt):'')+'</td>'
+        +'<td class="n">'+(isArea?ptInp(si,ii,'hs',it.hs):'')+'</td>'
+        +'<td class="n">'+(isArea?'<span class="pt-ro">'+ptQty(kl)+'</span>':(isItem?ptInp(si,ii,'kl',it.kl):''))+'</td>'
+        +'<td class="n">'+(isItem?ptInp(si,ii,'dg',it.dg,'pt-money'):'')+'</td>'
+        +'<td class="n">'+(isItem?'<span class="pt-ro b">'+money(tt)+'</span>':'<span class="pt-dash">-</span>')+'</td>'
+        +'<td>'+ptTxt(si,ii,'gc',it.gc)+'</td>'
+        +'<td class="n">'+(isItem?ptInp(si,ii,'dgnt',it.dgnt,'pt-money'):'')+'</td>'
+        +'<td class="n">'+(isItem?'<span class="pt-ro">'+money(ttnt)+'</span>':'')+'</td>'
+        +'<td class="n">'+(isItem?'<span class="pt-ro">'+money(tt-ttnt)+'</span>':'')+'</td>'
+        +'<td class="n">'+(isItem?'<span class="pt-ro">'+money(it.dg)+'</span>':'')+'</td>'
+        +'<td class="n">'+(isItem?'<span class="pt-ro">'+money(tt)+'</span>':'')+'</td>'
+        +'<td class="pt-del"><button title="Xoá dòng" onclick="ptDelItem('+si+','+ii+')">'+icon('trash',13)+'</button></td></tr>';
+    });
+    body+='<tr class="pt-add"><td></td><td colspan="13"><span onclick="ptAddItem('+si+')">＋ Thêm dòng</span></td><td></td></tr>';
+  });
+  // ---- tổng cộng / VAT / sau thuế ----
+  body+='<tr class="pt-total"><td class="c" colspan="7">TỔNG CỘNG</td>'
+    +'<td class="n b">'+money(comp.grand)+'</td><td></td><td></td>'
+    +'<td class="n">'+money(comp.contractor)+'</td>'
+    +'<td class="n b">'+money(comp.profit)+' <span class="pt-pct">('+comp.profitPct.toFixed(2)+'%)</span></td>'
+    +'<td></td><td class="n b">'+money(comp.grand)+'</td><td></td></tr>';
+  body+='<tr class="pt-total2"><td class="c" colspan="6">VAT</td>'
+    +'<td class="n"><input class="pt-in pt-vat" type="number" step="any" value="'+comp.vatPct+'" onchange="ptSetVat(this.value)">%</td>'
+    +'<td class="n b">'+money(comp.vat)+'</td><td colspan="7"></td></tr>';
+  body+='<tr class="pt-grand"><td class="c" colspan="7">THÀNH TIỀN SAU THUẾ</td>'
+    +'<td class="n b">'+money(comp.afterTax)+'</td><td colspan="7"></td></tr>';
+
+  var colg='<colgroup>'
+    +'<col style="width:38px"><col style="width:300px"><col style="width:54px"><col style="width:76px"><col style="width:56px"><col style="width:86px">'
+    +'<col style="width:104px"><col style="width:126px"><col style="width:190px"><col style="width:112px"><col style="width:128px"><col style="width:120px"><col style="width:112px"><col style="width:128px"><col style="width:34px"></colgroup>';
+  var thead='<tr>'+COLS.map(function(c,i){ var cls=(i>=3?'n':(i===0?'c':'')); return '<th class="'+cls+'">'+esc(c)+'</th>'; }).join('')+'<th></th></tr>';
+
+  pw.innerHTML = ptHeaderHtml()
+    + '<div class="pt-toolbar">'
+      + '<div class="pt-tt">Bảng ước tính chi phí — <b>Xây dựng thô</b></div>'
+      + '<div class="sp"></div>'
+      + '<button class="btn ghost sm" onclick="ptReset()">Khôi phục mẫu</button>'
+      + '<button class="btn blue sm" onclick="ptAddSection()">'+icon('plus',14)+' Thêm hạng mục</button>'
+    + '</div>'
+    + '<div class="pt-scroll"><table class="pt">'+colg+'<thead>'+thead+'</thead><tbody>'+body+'</tbody></table></div>'
+    + '<div class="pt-foot">'
+      + '<div class="pt-notes"><b>Ghi chú:</b>'
+        + '<ol><li>Khối lượng trên là tạm tính, khối lượng quyết toán theo diện tích xây dựng thực tế.</li>'
+        + '<li>Giá trên chưa bao gồm nhân công hoàn thiện.</li>'
+        + '<li>Giá trên đã bao gồm thuế VAT.</li></ol></div>'
+      + '<div class="pt-sign"><div><div class="pt-sign-t">KHÁCH HÀNG / CUSTOMER</div></div>'
+        + '<div><div class="pt-sign-t">ĐƠN VỊ THI CÔNG / CONSTRUCTION UNIT</div></div></div>'
+    + '</div>';
 }
 
 /* ===== GO ===== */
