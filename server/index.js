@@ -63,40 +63,54 @@ function fmtVN(n) { return (Math.round(Number(n) || 0)).toLocaleString('vi-VN');
 function buildPurchaseCard(o) {
   o = o || {};
   const orders = Array.isArray(o.orders) ? o.orders : [];
-  const els = [{
-    tag: 'div', text: {
-      tag: 'lark_md',
-      content: '**Dự án:** ' + (o.project || '—') + '　·　' + (o.maDA || '') +
-        (o.khachHang ? '\n**Khách hàng:** ' + o.khachHang : '') +
-        (o.sdt ? '　·　☎ ' + o.sdt : '')
-    }
-  }];
-  let grand = 0;
+  const els = [];
+  // Thông tin dự án — 2 cột
+  els.push({
+    tag: 'div', fields: [
+      { is_short: true, text: { tag: 'lark_md', content: '**🏗 Dự án**\n' + (o.project || '—') } },
+      { is_short: true, text: { tag: 'lark_md', content: '**🔖 Mã dự án**\n' + (o.maDA || '—') } },
+      { is_short: true, text: { tag: 'lark_md', content: '**👤 Khách hàng**\n' + (o.khachHang || '—') } },
+      { is_short: true, text: { tag: 'lark_md', content: '**📞 Điện thoại**\n' + (o.sdt || '—') } }
+    ]
+  });
+  let grand = 0, nSup = 0, nItems = 0;
   orders.forEach(function (od) {
-    grand += Number(od.total) || 0;
+    grand += Number(od.total) || 0; nSup++;
     els.push({ tag: 'hr' });
-    els.push({ tag: 'div', text: { tag: 'lark_md', content: '**🏭 Nhà cung cấp: ' + (od.supplier || '—') + '**' } });
-    const lines = (od.items || []).map(function (it, i) {
-      return (i + 1) + '. ' + (it.ten || '') + '　—　SL: **' + (it.sl || 0) + '** ' + (it.dvt || 'Cái') +
-        '　×　' + fmtVN(it.donGia) + ' đ';
-    }).join('\n') || '_(không có sản phẩm)_';
-    els.push({ tag: 'div', text: { tag: 'lark_md', content: lines } });
+    els.push({ tag: 'div', text: { tag: 'lark_md', content: '🏭 **Nhà cung cấp:** <font color=\'blue\'>**' + (od.supplier || '—') + '**</font>' } });
+    let tbl = '| # | Sản phẩm | SL | Đơn giá | Thành tiền |\n| :-- | :-- | :--: | --: | --: |\n';
+    (od.items || []).forEach(function (it, i) {
+      nItems++;
+      const tt = (Number(it.sl) || 0) * (Number(it.donGia) || 0);
+      tbl += '| ' + (i + 1) + ' | ' + (it.ten || '') + ' | ' + (it.sl || 0) + ' ' + (it.dvt || '') +
+        ' | ' + fmtVN(it.donGia) + ' | ' + fmtVN(tt) + ' |\n';
+    });
+    els.push({ tag: 'markdown', content: tbl });
     els.push({
       tag: 'div', text: {
         tag: 'lark_md',
-        content: 'VAT ' + (od.vatPct || 0) + '%: ' + fmtVN(od.vat) + ' đ　·　**TỔNG: ' + fmtVN(od.total) + ' đ**'
+        content: 'VAT ' + (od.vatPct || 0) + '%: ' + fmtVN(od.vat) + ' đ　　💰 <font color=\'red\'>**TỔNG: ' + fmtVN(od.total) + ' đ**</font>'
       }
     });
   });
-  if (orders.length > 1) {
-    els.push({ tag: 'hr' });
-    els.push({ tag: 'div', text: { tag: 'lark_md', content: '**💰 TỔNG TẤT CẢ: ' + fmtVN(grand) + ' đ**' } });
-  }
+  els.push({ tag: 'hr' });
+  els.push({
+    tag: 'div', text: {
+      tag: 'lark_md',
+      content: (orders.length > 1 ? '💵 <font color=\'red\'>**TỔNG TẤT CẢ: ' + fmtVN(grand) + ' đ**</font>\n' : '') +
+        '📦 ' + nSup + ' nhà cung cấp · ' + nItems + ' sản phẩm'
+    }
+  });
+  els.push({ tag: 'note', elements: [{ tag: 'plain_text', content: '⚡ Gửi tự động từ Dezon QS Pro' }] });
   return {
     msg_type: 'interactive',
     card: {
       config: { wide_screen_mode: true },
-      header: { template: 'blue', title: { tag: 'plain_text', content: '🛒 Yêu cầu mua hàng' } },
+      header: {
+        template: 'blue',
+        title: { tag: 'plain_text', content: '🛒 Yêu cầu mua hàng' },
+        subtitle: { tag: 'plain_text', content: (o.project || '') }
+      },
       elements: els
     }
   };
