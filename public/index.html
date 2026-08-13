@@ -211,10 +211,10 @@ tr.pt-grand>td{background:var(--navy);color:#fff;font-weight:800;font-size:13.5p
 .citem .thumb{width:44px;height:44px;border-radius:7px;background:#f4f6f8;object-fit:contain;flex:none;border:1px solid #edf0f3}
 .citem .cmid{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;cursor:pointer}
 .citem .nm{font-weight:600;font-size:12.5px;line-height:1.3;word-break:break-word}
-.citem .meta{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-.citem .pr{font-weight:800;font-size:13px;color:var(--navy);white-space:nowrap;flex:none}
+.citem .meta{display:flex;flex-direction:column;align-items:flex-start;gap:3px;margin-top:2px}
+.citem .pr{font-weight:800;font-size:13px;color:var(--navy);white-space:nowrap}
 .citem .sz{color:var(--muted);font-size:11.5px;line-height:1.25}
-.citem .sz.brand{background:#eef2f7;color:#51606f;font-weight:600;padding:1px 7px;border-radius:5px}
+.citem .sz.brand{background:#eef2f7;color:#51606f;font-weight:600;padding:1px 7px;border-radius:5px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .citem .ibtn{width:24px;height:24px;border-radius:50%;background:#eef1f4;color:#5a6774;border:none;font-size:13px;line-height:1;flex:none}
 .citem .ibtn:hover{background:#dbe4ee;color:var(--navy)}
 .citem .add{width:25px;height:25px;border-radius:50%;background:var(--blue);color:#fff;border:none;font-size:16px;line-height:1;flex:none}
@@ -232,6 +232,13 @@ tr.pt-grand>td{background:var(--navy);color:#fff;font-weight:800;font-size:13.5p
 
 /* table */
 .tbl-wrap{border:1px solid var(--line);border-radius:10px;overflow-x:auto}
+/* Bảng bóc tách: cuộn dọc riêng + header dính */
+#tkNormal .tbl-wrap{max-height:64vh;overflow:auto}
+#tkNormal table.tk th{position:sticky;top:0;z-index:3}
+#tkNormal .tbl-wrap::-webkit-scrollbar{width:10px;height:10px}
+#tkNormal .tbl-wrap::-webkit-scrollbar-track{background:#f0f3f6}
+#tkNormal .tbl-wrap::-webkit-scrollbar-thumb{background:#c2cddb;border-radius:6px;border:2px solid #f0f3f6}
+#tkNormal .tbl-wrap::-webkit-scrollbar-thumb:hover{background:#a6b6c8}
 table.tk{width:100%;min-width:820px;border-collapse:collapse;font-size:12.5px}
 table.tk th{background:var(--navy);color:#fff;text-align:left;padding:12px 11px;font-size:11px;font-weight:700;letter-spacing:.3px;white-space:normal;vertical-align:middle;text-transform:uppercase}
 table.tk td{white-space:nowrap}
