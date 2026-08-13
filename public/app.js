@@ -597,14 +597,26 @@ async function addProdObj(p,floor){
   if(floor==='CHƯA PHÂN TẦNG') floor='';
   // cộng dồn SL nếu đã có cùng SP trong cùng hạng mục + tầng
   var same=S.lines.filter(function(l){ return l.nhom===S.node && (l.tang||'')===floor && ((p.ma&&l.maSP&&l.maSP===p.ma)||l.ten===p.ten); })[0];
-  if(same){ await editLine(same.lineId,{soLuong:(Number(same.soLuong)||0)+1}); toast('+1 số lượng: '+p.ten); return; }
-  try{
-    var prod=Object.assign({},p,{ nhom:S.node, hangMuc:nodeName(S.node), loai:nodeName(S.node),
-      tang:floor, extra:{nganh:p.nhom||''} });
-    var l=await api('addLine', S.cur.maDA, prod, 1);
-    S.lines.push(l); renderTree(); renderFloors(); renderTable(); renderCard();
-    toast('Đã thêm: '+p.ten);
-  }catch(e){ toast('Lỗi thêm: '+e.message); }
+  if(same){ editLine(same.lineId,{soLuong:(Number(same.soLuong)||0)+1}); toast('+1 số lượng: '+p.ten); return; }
+  var prod=Object.assign({},p,{ nhom:S.node, hangMuc:nodeName(S.node), loai:nodeName(S.node), tang:floor, extra:{nganh:p.nhom||''} });
+  // ---- Optimistic: hiện dòng NGAY, đồng bộ server chạy nền ----
+  var dgVon=Number(p.donGiaVon)||0, dgBan=Number(p.donGiaBan)||0;
+  var temp={ lineId:'tmp_'+(S._tmpN=(S._tmpN||0)+1), _pending:true,
+    khuVuc:'', maBanVe:'', maSP:p.ma||'', ten:p.ten||'', thuongHieu:p.thuongHieu||'', ncc:p.ncc||'',
+    moTa:p.moTa||'', kichThuoc:p.kichThuoc||p.size||'', dvt:p.dvt||'Cái', hinhAnh:p.hinhAnh||'',
+    soLuong:1, donGiaVon:dgVon, donGiaBan:dgBan, thanhTienVon:dgVon, thanhTienBan:dgBan, lnPct:0,
+    nhom:S.node, hangMuc:nodeName(S.node), tang:floor };
+  S.lines.push(temp); renderTree(); renderFloors(); renderTable(); renderCard();
+  toast('Đã thêm: '+p.ten);
+  api('addLine', S.cur.maDA, prod, 1).then(function(l){
+    var i=S.lines.indexOf(temp); if(i>=0) S.lines[i]=l; else S.lines.push(l);
+    renderTree(); renderTable(); renderCard();
+    if(document.getElementById('v-dash').classList.contains('on')) renderDash();
+    if(bgVis()) drawBaogia();
+  }).catch(function(e){
+    var i=S.lines.indexOf(temp); if(i>=0) S.lines.splice(i,1);
+    renderTree(); renderFloors(); renderTable(); renderCard(); toast('Lỗi thêm: '+e.message);
+  });
 }
 
 /* ===== CATEGORY TREE ===== */
@@ -786,15 +798,23 @@ function setVat(v){
   api('updateProject', S.cur.maDA, {vat:v}).then(function(p){ if(p){ p.vat=v; S.cur=p; var i=S.projects.findIndex(function(x){return x.maDA===p.maDA;}); if(i>=0)S.projects[i]=p; } }).catch(function(){});
 }
 // textarea tự cao theo nội dung (xuống dòng hiện đủ, không cắt)
-function autoGrow(t){ if(!t) return; t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; }
-async function editLine(id,fields){
-  try{
-    await api('updateLine',id,fields); S.lines=await api('getLines',S.cur.maDA)||[];
+function autoGrow(t){ if(!t) return; t.style.height='auto'; var cap=78; var h=Math.min(t.scrollHeight+2,cap); t.style.height=h+'px'; t.style.overflowY=(t.scrollHeight>cap)?'auto':'hidden'; }
+function editLine(id,fields){
+  // ---- Optimistic: cập nhật + render NGAY, đồng bộ server chạy nền ----
+  var l=S.lines.filter(function(x){return x.lineId===id;})[0];
+  if(l){
+    Object.keys(fields).forEach(function(k){ l[k]=fields[k]; });
+    var sl=Number(l.soLuong)||0;
+    l.thanhTienBan=Math.round(sl*(Number(l.donGiaBan)||0));
+    l.thanhTienVon=Math.round(sl*(Number(l.donGiaVon)||0));
     renderTable(); renderCard();
+  }
+  api('updateLine',id,fields).then(function(u){
+    if(u){ var i=S.lines.findIndex(function(x){return x.lineId===id;}); if(i>=0) S.lines[i]=u; renderTable(); renderCard(); }
     if(document.getElementById('v-chiphi').classList.contains('on')) renderChiphi();
     if(document.getElementById('v-dash').classList.contains('on')) renderDash();
     if(bgVis()) drawBaogia();
-  }catch(e){ toast('Lỗi sửa: '+e.message); }
+  }).catch(function(e){ toast('Lỗi sửa: '+e.message); });
 }
 
 /* ===== KÉO DI CHUYỂN DÒNG + KÉO CHỈNH CAO DÒNG ===== */

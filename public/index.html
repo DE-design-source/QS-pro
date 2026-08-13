@@ -122,7 +122,11 @@ a{color:inherit}
 
 /* catalog result */
 /* ===== Panel Sản phẩm (danh sách luôn hiện + lọc gọn) ===== */
-.catpanel{display:flex;flex-direction:column;position:sticky;top:74px;max-height:calc(100vh - 92px);padding-top:14px}
+.catpanel{position:sticky;top:74px;max-height:calc(100vh - 92px);overflow-y:auto;overscroll-behavior:contain;padding-top:14px;scrollbar-width:thin;scrollbar-color:#c2cddb transparent}
+.catpanel::-webkit-scrollbar{width:8px}
+.catpanel::-webkit-scrollbar-track{background:transparent}
+.catpanel::-webkit-scrollbar-thumb{background:#c2cddb;border-radius:8px}
+.catpanel::-webkit-scrollbar-thumb:hover{background:#a6b6c8}
 .catpanel-top{flex:none}
 .cat-hd{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
 .cat-hd h3{margin:0}
@@ -146,12 +150,8 @@ a{color:inherit}
 .advwrap{display:none;margin-top:8px;padding-top:10px;border-top:1px dashed #e2e7ec}
 .advwrap.open{display:block;animation:advin .16s ease}
 @keyframes advin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
-.cat-list{flex:1;min-height:200px;margin-top:10px;padding-top:4px;border-top:1px solid var(--line);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#c2cddb transparent}
-.cat-list::-webkit-scrollbar{width:7px}
-.cat-list::-webkit-scrollbar-track{background:#eef2f6;border-radius:8px;margin:2px}
-.cat-list::-webkit-scrollbar-thumb{background:#c2cddb;border-radius:8px}
-.cat-list::-webkit-scrollbar-thumb:hover{background:#a6b6c8}
-@media(max-width:1120px){ .catpanel{position:static;max-height:none} .cat-list{max-height:60vh} }
+.cat-list{margin-top:10px;padding-top:6px;border-top:1px solid var(--line)}
+@media(max-width:1120px){ .catpanel{position:static;max-height:none;overflow:visible} }
 .cat-list-legacy{margin-top:6px;max-height:520px;overflow:auto}
 
 /* ===== PHẦN THÔ — bảng ước tính chi phí xây dựng thô ===== */
@@ -228,12 +228,12 @@ tr.pt-grand>td{background:var(--navy);color:#fff;font-weight:800;font-size:13.5p
 .citem:hover{background:#fafcff}
 
 /* takeoff header */
-.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .toolbar h3{margin:0;font-size:15px}
 .count{color:var(--blue);font-weight:800}
 .tree-btn{border:1px solid #d7dce2;background:#fff;border-radius:8px;padding:8px 13px;font-weight:700;font-size:12.5px;display:flex;gap:9px;align-items:center;min-width:250px}
 .tree-btn .cnt{color:var(--muted);font-weight:700}
-.colchips{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 13px}
+.colchips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 9px;max-height:62px;overflow-y:auto;scrollbar-width:thin}
 .colchips .chip{cursor:pointer;font-size:11px;font-weight:600;padding:6px 9px;letter-spacing:.2px}
 
 /* table */
@@ -256,11 +256,11 @@ table.tk td{white-space:nowrap}
 table.tk td.wrap,table.tk td .desc{white-space:normal}
 table.tk th.num,table.tk td.num{text-align:right}
 table.tk th.ct,table.tk td.ct{text-align:center}
-table.tk td{padding:11px 12px;border-bottom:1px solid #e9edf2;border-right:1px solid #f0f3f6;vertical-align:middle}
+table.tk td{padding:7px 11px;border-bottom:1px solid #e9edf2;border-right:1px solid #f0f3f6;vertical-align:middle}
 table.tk th{border-right:1px solid #ffffff26}
 table.tk td:last-child,table.tk th:last-child{border-right:none}
 table.tk td.wrap{vertical-align:top}
-table.tk td.wrap textarea{width:100%;min-width:180px;border:1px solid transparent;background:transparent;font:inherit;font-size:12px;line-height:1.4;white-space:pre-wrap;overflow:hidden;resize:none;padding:2px 4px;border-radius:5px;display:block}
+table.tk td.wrap textarea{width:100%;min-width:0;max-width:100%;box-sizing:border-box;border:1px solid transparent;background:transparent;font:inherit;font-size:11.5px;line-height:1.28;white-space:pre-wrap;overflow:hidden;resize:none;padding:1px 4px;border-radius:5px;display:block}
 table.tk td.wrap textarea:focus{border-color:var(--blue);background:#fff;outline:none}
 table.tk tr.grp td{background:var(--navy);color:#fff;font-weight:700;letter-spacing:.3px;font-size:12px;padding:11px 14px;border-bottom:none;border-top:1px solid #ffffff1f}
 table.tk tr.grp .gname{font-size:14.5px;font-weight:800;letter-spacing:.5px}
@@ -287,7 +287,7 @@ table.tk .pimg{width:42px;height:42px;object-fit:contain;background:#fff;border:
 table.tk .desc{color:#3a4753;font-size:11.5px;line-height:1.35;white-space:normal;max-width:240px;max-height:100px;overflow:auto}
 table.tk td.td-ten{max-width:200px;white-space:normal}
 .floorbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-.floorhint{font-size:12.5px;color:var(--muted);margin:2px 0 12px}
+.floorhint{display:none}
 .floorhint b{color:var(--navy)}
 .citem{cursor:grab}
 .citem.dragging{opacity:.4}
@@ -369,7 +369,7 @@ table.tk td.actcell{position:relative;min-width:44px}
 table.tk .rgrip{cursor:row-resize;color:#9aa;font-size:12px;line-height:1;margin-top:6px;user-select:none;text-align:center}
 table.tk .rgrip:hover{color:var(--blue)}
 table.tk tr.drow td{overflow:hidden}
-table.tk tr.drow td.wrap{overflow:visible}
+table.tk tr.drow td.wrap{overflow:hidden}
 table.tk .cin{border:1px solid transparent;border-radius:6px;padding:5px 6px;font:inherit;background:transparent;width:100%;min-width:60px}
 table.tk .cin:focus{border-color:var(--blue);background:#fff;outline:none}
 table.tk .cin.num{text-align:right}
@@ -705,7 +705,7 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
             <h3>Hạng mục đã bóc</h3><span class="count" id="tkCount">[00]</span>
             <div class="sp" style="flex:1"></div>
           </div>
-          <div style="position:relative;margin-bottom:12px">
+          <div style="position:relative;margin-bottom:8px">
             <button class="tree-btn" id="treeBtn" onclick="toggleTree()">
               <span id="treeLabel">Chọn hạng mục</span><span class="cnt" id="treeCnt"></span>
             </button>
