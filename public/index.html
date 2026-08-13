@@ -235,7 +235,12 @@ tr.pt-grand>td{background:var(--navy);color:#fff;font-weight:800;font-size:13.5p
 /* table */
 .tbl-wrap{border:1px solid var(--line);border-radius:10px;overflow-x:auto}
 /* Bảng bóc tách: cuộn dọc riêng + header dính */
-#tkNormal .tbl-wrap{min-height:460px;max-height:calc(100vh - 180px);overflow:auto}
+/* Khu bóc tách = cột cao đúng viewport: bảng cuộn trong, tổng ghim đáy (chuẩn 1280–1920px) */
+.tk-panel{position:sticky;top:74px;max-height:calc(100vh - 90px);display:flex;flex-direction:column;overflow:hidden}
+.tk-panel #tkNormal{display:flex;flex-direction:column;min-height:0;flex:1}
+.tk-panel #tkNormal .tbl-wrap{flex:1;min-height:140px;max-height:none;overflow:auto}
+.tk-panel #ptWrap{flex:1;min-height:0;overflow-y:auto}
+@media(max-width:1120px){ .tk-panel{position:static;max-height:none;overflow:visible} .tk-panel #tkNormal .tbl-wrap{max-height:70vh} }
 #tkNormal table.tk th{position:sticky;top:0;z-index:3}
 #tkNormal .tbl-wrap::-webkit-scrollbar{width:10px;height:10px}
 #tkNormal .tbl-wrap::-webkit-scrollbar-track{background:#f0f3f6}
@@ -258,7 +263,7 @@ table.tk tr.grp .gname{font-size:14.5px;font-weight:800;letter-spacing:.5px}
 table.tk tr.grp .gsum{float:right;font-size:12.5px;font-weight:600;opacity:.92}
 table.tk tr.grp .gsum b{font-weight:800;font-size:13.5px;color:#8fd3ff}
 /* Tổng tiền dưới bảng bóc tách */
-.tk-totals{display:flex;justify-content:flex-end;margin-top:16px}
+.tk-totals{display:flex;justify-content:flex-end;margin-top:12px;flex:none}
 .tkt-card{width:300px;max-width:100%;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 4px 14px #1e3a5f12}
 .tkt-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 14px}
 .tkt-row+.tkt-row:not(.grand){border-top:1px solid #f0f3f6}
@@ -690,7 +695,7 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
       <div class="panel pd" id="pdPanel" style="display:none"></div>
 
       <!-- RIGHT: takeoff -->
-      <div class="panel" style="position:relative">
+      <div class="panel tk-panel">
         <div id="tkNormal">
           <div class="toolbar">
             <h3>Hạng mục đã bóc</h3><span class="count" id="tkCount">[00]</span>
