@@ -140,10 +140,11 @@ a{color:inherit}
 .advwrap{display:none;margin-top:8px;padding-top:10px;border-top:1px dashed #e2e7ec}
 .advwrap.open{display:block;animation:advin .16s ease}
 @keyframes advin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
-.cat-list{flex:1;min-height:200px;margin-top:10px;padding-top:4px;border-top:1px solid var(--line);overflow-y:auto;overscroll-behavior:contain}
-.cat-list::-webkit-scrollbar{width:9px}
-.cat-list::-webkit-scrollbar-thumb{background:#c2cddb;border-radius:5px;border:2px solid #fff}
-.cat-list::-webkit-scrollbar-thumb:hover{background:#a6b6c8}
+.cat-list{flex:1;min-height:200px;margin-top:10px;padding-top:4px;border-top:1px solid var(--line);overflow-y:scroll;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#b7c3d1 #eef2f6}
+.cat-list::-webkit-scrollbar{width:8px}
+.cat-list::-webkit-scrollbar-track{background:#eef2f6;border-radius:8px;margin:2px}
+.cat-list::-webkit-scrollbar-thumb{background:#b7c3d1;border-radius:8px;border:1px solid #eef2f6}
+.cat-list::-webkit-scrollbar-thumb:hover{background:#95a6b8}
 @media(max-width:1120px){ .catpanel{position:static;max-height:none} .cat-list{max-height:60vh} }
 .cat-list-legacy{margin-top:6px;max-height:520px;overflow:auto}
 
@@ -231,7 +232,7 @@ tr.pt-grand>td{background:var(--navy);color:#fff;font-weight:800;font-size:13.5p
 /* table */
 .tbl-wrap{border:1px solid var(--line);border-radius:10px;overflow-x:auto}
 table.tk{width:100%;min-width:820px;border-collapse:collapse;font-size:12.5px}
-table.tk th{background:var(--navy);color:#fff;text-align:left;padding:10px 10px;font-size:11px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+table.tk th{background:var(--navy);color:#fff;text-align:left;padding:9px 10px;font-size:11px;font-weight:700;letter-spacing:.2px;white-space:normal;vertical-align:middle}
 table.tk td{white-space:nowrap}
 table.tk td.wrap,table.tk td .desc{white-space:normal}
 table.tk th.num,table.tk td.num{text-align:right}
@@ -242,7 +243,19 @@ table.tk td:last-child,table.tk th:last-child{border-right:none}
 table.tk td.wrap{vertical-align:top}
 table.tk td.wrap textarea{width:100%;min-width:180px;border:1px solid transparent;background:transparent;font:inherit;font-size:12px;line-height:1.4;white-space:pre-wrap;overflow:hidden;resize:none;padding:2px 4px;border-radius:5px;display:block}
 table.tk td.wrap textarea:focus{border-color:var(--blue);background:#fff;outline:none}
-table.tk tr.grp td{background:var(--navy);color:#fff;font-weight:700;letter-spacing:.3px;font-size:12px;padding:8px 10px}
+table.tk tr.grp td{background:var(--blue);color:#fff;font-weight:700;letter-spacing:.3px;font-size:12px;padding:9px 12px}
+table.tk tr.grp .gname{font-size:15px;font-weight:800;letter-spacing:.4px}
+table.tk tr.grp .gsum{float:right;font-size:12.5px;font-weight:600;opacity:.95}
+table.tk tr.grp .gsum b{font-weight:800;font-size:13.5px}
+/* Tổng tiền dưới bảng bóc tách */
+.tk-totals{display:flex;flex-direction:column;gap:8px;align-items:flex-end;margin-top:16px}
+.tkt-row{display:flex;align-items:center;justify-content:space-between;gap:18px;min-width:340px;background:var(--navy);color:#fff;border-radius:10px;padding:11px 18px}
+.tkt-row .tkt-l{font-size:12.5px;font-weight:700;letter-spacing:.4px;display:flex;align-items:center;gap:6px}
+.tkt-row .tkt-v{font-size:15px;font-weight:800}
+.tkt-row.grand{background:var(--blue);box-shadow:0 2px 8px #2f6bff44}
+.tkt-row.grand .tkt-v{font-size:17px}
+.tkt-vat{width:56px;border:1px solid #ffffff55;background:#ffffff1f;color:#fff;border-radius:6px;padding:3px 6px;font:inherit;font-size:13px;text-align:right}
+.tkt-vat:focus{outline:none;border-color:#fff;background:#ffffff33}
 table.tk tbody tr:not(.grp):nth-child(even){background:var(--stripe)}
 table.tk .pimg{width:42px;height:42px;object-fit:contain;background:#fff;border:1px solid #eef1f4;border-radius:5px}
 table.tk .desc{color:#3a4753;font-size:11.5px;line-height:1.35;white-space:normal;max-width:240px;max-height:100px;overflow:auto}
@@ -253,7 +266,7 @@ table.tk td.td-ten{max-width:200px;white-space:normal}
 .citem{cursor:grab}
 .citem.dragging{opacity:.4}
 /* tầng đang chọn để thêm */
-table.tk tr.grp.selFloor td{background:#0d4a80}
+table.tk tr.grp.selFloor td{background:var(--blue-d)}
 table.tk tr.grp .gsel{background:#ffffff26;border:1px solid #ffffff66;color:#fff;border-radius:5px;padding:1px 7px;font-size:11px;margin-left:8px}
 table.tk tr.grp.selFloor .gsel{background:#7fd1ff;color:#0a2c48;border-color:#7fd1ff;font-weight:700}
 table.tk tr.grp.prodDrop td{outline:2px dashed #7fd1ff;outline-offset:-3px;background:#0d4a80}
@@ -339,8 +352,8 @@ table.tk .lv1 td{background:#e9edf1;font-weight:700}
 table.tk .lv2 td{background:#f3f5f8}
 /* header cột: kéo đổi thứ tự / độ rộng / lọc */
 table.tk{table-layout:fixed}
-table.tk th.thk{position:relative;cursor:grab;overflow:hidden}
-table.tk th.thk .thl{display:inline-block;max-width:calc(100% - 26px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+table.tk th.thk{position:relative;cursor:grab;overflow:hidden;vertical-align:middle}
+table.tk th.thk .thl{display:inline-block;max-width:calc(100% - 18px);white-space:normal;word-break:break-word;line-height:1.25;vertical-align:middle}
 table.tk th.thk .thflt{cursor:pointer;opacity:.55;margin-left:4px;font-size:10px}
 table.tk th.thk.fltOn .thflt{opacity:1;color:#8fd3ff}
 table.tk th.thk .thrsz{position:absolute;right:0;top:0;width:8px;height:100%;cursor:col-resize}
@@ -373,11 +386,14 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 .fsec-c{margin-left:auto;color:#9aa6b2;font-size:11px;transition:transform .15s}
 .fsec.open .fsec-c{transform:rotate(180deg)}
 .fsec .chips{display:none}
-.fsec.open .chips{display:flex;max-height:124px;overflow-y:auto;overscroll-behavior:contain;padding:0 8px 10px;margin:0;scrollbar-width:thin;scrollbar-color:#c2cddb #eef2f6}
-.fsec.open .chips::-webkit-scrollbar{width:9px}
-.fsec.open .chips::-webkit-scrollbar-thumb{background:#c2cddb;border-radius:5px;border:2px solid #fff}
-.fsec.open .chips::-webkit-scrollbar-thumb:hover{background:#a6b6c8}
-.fsec.open .chips::-webkit-scrollbar-track{background:#eef2f6;border-radius:5px;margin:2px}
+.fsec.open .chips{display:flex;max-height:120px;overflow-y:scroll;overscroll-behavior:contain;padding:0 8px 10px;margin:0;scrollbar-width:thin;scrollbar-color:#b7c3d1 #eef2f6}
+#sec_watt.open .chips{max-height:86px}
+#sec_kelvin.open .chips{max-height:48px}
+#sec_angle.open .chips{max-height:150px}
+.fsec.open .chips::-webkit-scrollbar{width:8px}
+.fsec.open .chips::-webkit-scrollbar-track{background:#eef2f6;border-radius:8px;margin:3px 2px}
+.fsec.open .chips::-webkit-scrollbar-thumb{background:#b7c3d1;border-radius:8px;border:1px solid #eef2f6}
+.fsec.open .chips::-webkit-scrollbar-thumb:hover{background:#95a6b8}
 .fltpop .fsearch{width:100%;border:1px solid #dbe0e6;border-radius:9px;padding:9px 11px;margin-bottom:6px;font:inherit;font-size:13px}
 .fltpop .fsearch:focus{border-color:var(--blue);outline:none}
 .fltpop .fi{padding:7px 10px;border-radius:7px;cursor:pointer;font-size:13px;line-height:1.25}
@@ -603,6 +619,7 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
           <div class="floorhint" id="floorHint"></div>
           <div class="colchips" id="colChips"></div>
           <div class="tbl-wrap"><table class="tk" id="tkTable"></table></div>
+          <div class="tk-totals" id="tkTotals"></div>
         </div>
         <div id="ptWrap" style="display:none"></div>
       </div>

@@ -733,10 +733,12 @@ function renderTable(){
     var roman=['I','II','III','IV','V','VI','VII','VIII','IX','X'][gi]||(gi+1);
     var col=S.collapsed[g]?'▸':'▾';
     var gval=(g==='CHƯA PHÂN TẦNG'?'':g), isSel=((S.selFloor||'')===gval);
+    var gsum=(groups[g]||[]).reduce(function(s,l){ return s+(Number(l.thanhTienBan)||0); },0);
     body+='<tr class="grp'+(isSel?' selFloor':'')+'" draggable="true" data-g="'+esc(g)+'"><td colspan="'+(cols.length+1)+'" data-f="'+esc(g)+'">'
       +'<span class="gcol" onclick="event.stopPropagation();toggleFloor(this.closest(\'td\').dataset.f)">'+col+'</span> '
-      +'<span class="gname" onclick="selectFloor(this.closest(\'td\').dataset.f)" ondblclick="renameFloor(this.closest(\'td\').dataset.f)" title="Bấm để chọn tầng · bấm đúp đổi tên" style="cursor:pointer">'+roman+'.'+esc(g)+'</span>'
-      +'<span class="gsel" onclick="selectFloor(this.closest(\'td\').dataset.f)">'+(isSel?'✓ đang thêm':'chọn')+'</span></td></tr>';
+      +'<span class="gname" onclick="selectFloor(this.closest(\'td\').dataset.f)" ondblclick="renameFloor(this.closest(\'td\').dataset.f)" title="Bấm để chọn tầng · bấm đúp đổi tên" style="cursor:pointer">'+roman+'. '+esc(g)+'</span>'
+      +'<span class="gsel" onclick="selectFloor(this.closest(\'td\').dataset.f)">'+(isSel?'✓ đang thêm':'chọn')+'</span>'
+      +'<span class="gsum">Tổng tầng: <b>'+money(gsum)+' đ</b></span></td></tr>';
     if(S.collapsed[g]) return;
     (groups[g]||[]).forEach(function(l,ri){
       var hs=S.rowH[l.lineId]?' style="height:'+S.rowH[l.lineId]+'px"':'';
@@ -756,6 +758,22 @@ function renderTable(){
   t.style.width=totalW+'px';
   t.innerHTML=colg+head+body;
   t.querySelectorAll('td.wrap textarea').forEach(autoGrow);   // ô "Thông tin chính" tự giãn hết dòng
+  // ----- Tổng tiền (chưa VAT / VAT / tổng thành tiền) -----
+  var sub=lines.reduce(function(s,l){ return s+(Number(l.thanhTienBan)||0); },0);
+  var vatPct=Number(S.cur&&S.cur.vat)||0;
+  var vat=Math.round(sub*vatPct/100);
+  var te=document.getElementById('tkTotals');
+  if(te){
+    te.innerHTML=
+      '<div class="tkt-row"><span class="tkt-l">TỔNG CHƯA VAT</span><span class="tkt-v">'+money(sub)+' đ</span></div>'
+     +'<div class="tkt-row"><span class="tkt-l">VAT <input class="tkt-vat" type="number" step="any" min="0" value="'+vatPct+'" onchange="setVat(this.value)"> %</span><span class="tkt-v">'+money(vat)+' đ</span></div>'
+     +'<div class="tkt-row grand"><span class="tkt-l">TỔNG THÀNH TIỀN</span><span class="tkt-v">'+money(sub+vat)+' đ</span></div>';
+  }
+}
+function setVat(v){
+  v=Number(v)||0; if(!S.cur) return;
+  S.cur.vat=v; renderTable();
+  api('updateProject', S.cur.maDA, {vat:v}).then(function(p){ if(p){ p.vat=v; S.cur=p; var i=S.projects.findIndex(function(x){return x.maDA===p.maDA;}); if(i>=0)S.projects[i]=p; } }).catch(function(){});
 }
 // textarea tự cao theo nội dung (xuống dòng hiện đủ, không cắt)
 function autoGrow(t){ if(!t) return; t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; }
