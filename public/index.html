@@ -214,6 +214,7 @@ tr.pt-grand>td{background:var(--navy);color:#fff;font-weight:800;font-size:13.5p
 .citem .meta{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .citem .pr{font-weight:800;font-size:13px;color:var(--navy);white-space:nowrap;flex:none}
 .citem .sz{color:var(--muted);font-size:11.5px;line-height:1.25}
+.citem .sz.brand{background:#eef2f7;color:#51606f;font-weight:600;padding:1px 7px;border-radius:5px}
 .citem .ibtn{width:24px;height:24px;border-radius:50%;background:#eef1f4;color:#5a6774;border:none;font-size:13px;line-height:1;flex:none}
 .citem .ibtn:hover{background:#dbe4ee;color:var(--navy)}
 .citem .add{width:25px;height:25px;border-radius:50%;background:var(--blue);color:#fff;border:none;font-size:16px;line-height:1;flex:none}
@@ -491,7 +492,9 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 .sechd .sc{color:var(--blue);font-weight:800;font-size:15px}
 .sechd .sp{flex:1}
 .plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin:0 0 8px}
-.pcell{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;transition:.12s}
+.pcell{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;transition:.12s;position:relative}
+.pcell.active{border-color:var(--blue);box-shadow:0 0 0 2px #2f6bff22}
+.pcell .pc-badge{position:absolute;top:12px;right:12px;background:#eaf7ee;color:#1a7f37;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px}
 .pcell:hover{border-color:#c3d3e2;box-shadow:0 4px 14px #0000000d}
 .pcell h4{margin:0 0 7px;font-size:15px}
 .pcell .meta{color:var(--muted);font-size:12.5px;line-height:1.55}

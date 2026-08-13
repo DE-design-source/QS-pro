@@ -263,7 +263,7 @@ async function doCreate(){
       sdt:document.getElementById('npSDT').value,diaChi:document.getElementById('npAddr').value,
       vat:Number(document.getElementById('npVat').value)||0});
     closeCreate(); S.cur=p; document.getElementById('npTen').value='';
-    await boot(); toast('Đã tạo dự án');
+    await boot(); renderDash(); renderProjects(); toast('Đã tạo bản nháp');
   }catch(e){ toast('Lỗi: '+e.message); }
 }
 
@@ -468,12 +468,12 @@ function renderCatalog(){
   el.innerHTML=list.slice(0,300).map(function(p,i){
     var img=p.hinhAnh?'<img class="thumb" src="'+esc(p.hinhAnh)+'" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>';
     var im2=p.hinhAnh?'<img class="thumb" src="'+esc(p.hinhAnh)+'" onclick="showDetail('+i+')" style="cursor:pointer" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb" onclick="showDetail('+i+')" style="cursor:pointer"></div>';
-    var sz=p.size||p.kichThuoc; var meta=sz?('Kích thước: '+esc(sz)):esc(p.thuongHieu||'');
+    var brand=esc(p.thuongHieu||'');
     return '<div class="citem" draggable="true" ondragstart="prodDragStart(event,'+i+')" ondragend="prodDragEnd()">'
       +'<div class="no">'+(i+1)+'</div>'+im2
       +'<div class="cmid" onclick="showDetail('+i+')" title="Xem chi tiết sản phẩm">'
         +'<div class="nm">'+esc(p.ten)+'</div>'
-        +'<div class="meta"><span class="pr">'+money(p.donGiaBan)+'</span>'+(meta?'<span class="sz">'+meta+'</span>':'')+'</div>'
+        +'<div class="meta"><span class="pr">'+money(p.donGiaBan)+' đ</span>'+(brand?'<span class="sz brand">'+brand+'</span>':'')+'</div>'
       +'</div>'
       +'<button class="ibtn" title="Xem chi tiết" onclick="showDetail('+i+')">ⓘ</button>'
       +'<button class="add" title="Thêm vào bóc tách" onclick="addProduct('+i+')">+</button></div>';
@@ -1018,13 +1018,6 @@ function syncProj(p){ if(!p)return; S.cur=p; var i=S.projects.findIndex(function
 function pf_(label,id,val,type){ return '<div class="field"><label>'+esc(label)+'</label><input id="'+id+'" type="'+(type||'text')+'" value="'+esc(val==null?'':val)+'"></div>'; }
 function renderProjects(){
   var el=document.getElementById('v-project');
-  var list=(S.projects.length?S.projects:[]).map(function(p){
-    var on=S.cur&&S.cur.maDA===p.maDA;
-    return '<div class="pcell"'+(on?' style="border-color:var(--blue)"':'')+'><h4>'+esc(p.ten)+'</h4>'
-      +'<div class="meta">'+esc(p.maDA)+' · '+esc(p.khachHang||'—')+'<br>'+esc(p.diaChi||'')+'</div>'
-      +'<div class="row"><button class="btn blue sm" onclick="pickProject(\''+esc(p.maDA)+'\')">'+(on?'Đang mở':'Mở bóc tách')+'</button>'
-      +'<button class="btn ghost sm" onclick="removeProject(\''+esc(p.maDA)+'\')">Xoá</button></div></div>';
-  }).join('') || '<div class="empty">Chưa có dự án. Bấm “Tạo dự án +”.</div>';
   var form='';
   if(S.cur){ var p=S.cur;
     form='<div class="panel"><div class="toolbar"><h3>Hồ sơ dự án — '+esc(p.ten)+'</h3></div>'
@@ -1042,9 +1035,9 @@ function renderProjects(){
       +'<input id="pf_prog" type="range" min="0" max="100" value="'+(Number(p.tienDo)||0)+'" oninput="document.getElementById(\'pf_pv\').textContent=this.value+\'%\'">'
       +'<b id="pf_pv">'+(Number(p.tienDo)||0)+'%</b><button class="btn ghost sm" onclick="saveProgress(this)">Cập nhật</button></div></div>';
   }
-  el.innerHTML='<div class="sechd"><h2>Danh sách dự án</h2><span class="sc">'+S.projects.length+'</span><span class="sp"></span>'
-    +'<button class="btn blue sm" onclick="openCreate()">＋ Tạo dự án</button></div>'
-    +'<div class="plist">'+list+'</div>'+form;
+  el.innerHTML='<div class="sechd"><h2>Hồ sơ dự án</h2><span class="sp"></span>'
+    +'<button class="btn ghost sm" onclick="showTab(\'dash\')">'+icon('list',14)+' Danh sách bản nháp</button></div>'
+    +(form || '<div class="empty">Chưa chọn dự án. Vào <b>Bảng điều khiển</b> để tạo/chọn bản nháp.</div>');
 }
 async function saveProjectInfo(btn){
   var g=function(id){var e=document.getElementById(id);return e?e.value:'';};
@@ -1054,20 +1047,43 @@ async function saveProjectInfo(btn){
 async function saveProgress(btn){ var v=Number(document.getElementById('pf_prog').value)||0;
   try{ var p=await api('updateProject',S.cur.maDA,{tienDo:v}); syncProj(p); renderCard(); toast('Đã cập nhật tiến độ '+v+'%'); }catch(e){ toast('Lỗi: '+e.message); } }
 async function pickProject(maDA){ S.cur=S.projects.filter(function(p){return p.maDA===maDA;})[0]; S.lines=await api('getLines',maDA)||[]; S._coverDA=null; renderAll(); showTab('boc'); }
-async function removeProject(maDA){ if(!confirm('Xoá dự án này?'))return; await api('deleteProject',maDA); if(S.cur&&S.cur.maDA===maDA)S.cur=null; await boot(); renderProjects(); }
+async function removeProject(maDA){ if(!confirm('Xoá bản nháp này?'))return; await api('deleteProject',maDA); if(S.cur&&S.cur.maDA===maDA)S.cur=null; await boot(); renderDash(); renderProjects(); }
 
 /* ===== DASHBOARD ===== */
 function card(t,n){ return '<div class="scard"><div class="n">'+n+'</div><div class="t">'+t+'</div></div>'; }
+// Danh sách bản nháp (tạo mới + chọn 1 bản nháp để dùng)
+function draftListHtml(){
+  var cards=(S.projects||[]).map(function(p){
+    var on=S.cur&&S.cur.maDA===p.maDA;
+    return '<div class="pcell'+(on?' active':'')+'">'
+      +(on?'<span class="pc-badge">Đang dùng</span>':'')
+      +'<h4>'+esc(p.ten)+'</h4>'
+      +'<div class="meta">'+esc(p.maDA)+' · '+esc(p.khachHang||'—')+(p.diaChi?' · '+esc(p.diaChi):'')+'</div>'
+      +'<div class="row">'
+      +(on?'<button class="btn ghost sm" onclick="showTab(\'boc\')">'+icon('layers',14)+' Mở bóc tách</button>'
+          :'<button class="btn blue sm" onclick="pickProject(\''+esc(p.maDA)+'\')">'+icon('check',14)+' Dùng bản nháp này</button>')
+      +'<button class="btn ghost sm" onclick="removeProject(\''+esc(p.maDA)+'\')">Xoá</button></div></div>';
+  }).join('') || '<div class="empty">Chưa có bản nháp. Bấm "Tạo bản nháp".</div>';
+  return '<div class="panel"><div class="toolbar"><h3>Bản nháp dự án</h3><span class="count">['+pad2((S.projects||[]).length)+']</span><span class="sp" style="flex:1"></span>'
+    +'<button class="btn blue sm" onclick="openCreate()">'+icon('plus',14)+' Tạo bản nháp</button></div>'
+    +'<div class="plist" style="margin-top:12px">'+cards+'</div></div>';
+}
 function renderDash(){
   var el=document.getElementById('v-dash');
-  if(!S.cur){ el.innerHTML='<div class="empty">Chưa chọn dự án.</div>'; return; }
+  var drafts=draftListHtml();
+  if(!S.cur){
+    el.innerHTML='<div class="sechd"><h2>Bảng điều khiển</h2></div>'+drafts
+      +'<div class="empty" style="margin-top:14px">Chọn một bản nháp phía trên để xem số liệu.</div>';
+    return;
+  }
   var von=0,ban=0,kl=0,groups={}; S.lines.forEach(function(l){ von+=l.thanhTienVon;ban+=l.thanhTienBan;kl+=l.soLuong; var k=l.nhom||'Khác'; (groups[k]=groups[k]||{ban:0}).ban+=l.thanhTienBan; });
   var byG=Object.keys(groups).map(function(k){return {k:k,ban:groups[k].ban};}).sort(function(a,b){return b.ban-a.ban;});
   var max=byG.reduce(function(m,g){return Math.max(m,g.ban);},1);
   var bars=byG.map(function(g){ return '<div style="margin:10px 0"><div style="display:flex;justify-content:space-between;font-size:13px"><span>'+esc(nodeName(g.k))+'</span><b>'+money(g.ban)+' đ</b></div><div style="height:10px;background:#eef2f6;border-radius:6px;overflow:hidden;margin-top:4px"><i style="display:block;height:100%;width:'+(g.ban/max*100)+'%;background:var(--blue)"></i></div></div>'; }).join('')||'<div class="empty">Chưa có dữ liệu.</div>';
   el.innerHTML='<div class="sechd"><h2>Bảng điều khiển</h2><span class="sp"></span><span style="color:var(--muted);font-size:13px">'+esc(S.cur.ten)+'</span></div>'
     +'<div class="stat">'+card('Số hạng mục',S.lines.length)+card('Tổng khối lượng',kl)+card('Giá trị vốn',money(von)+' đ')+card('Tổng giá bán',money(ban)+' đ')+card('Lợi nhuận',money(ban-von)+' đ')+'</div>'
-    +'<div class="panel"><h3>Giá trị theo nhóm (giá bán)</h3>'+bars+'</div>';
+    +'<div class="panel"><h3>Giá trị theo nhóm (giá bán)</h3>'+bars+'</div>'
+    +drafts;
 }
 
 /* ===== CHI PHÍ ===== */
