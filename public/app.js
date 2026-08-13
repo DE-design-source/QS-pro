@@ -920,8 +920,26 @@ function drawPick(lineId,q){
   }).join('')||'<div class="fi">Không có SP khớp.</div>';
 }
 /* kéo sản phẩm từ danh mục thả vào tầng */
-function prodDragStart(e,i){ var p=(S._filtered||[])[i]; if(!p){ e.preventDefault(); return; } S._dragProd=p; try{e.dataTransfer.effectAllowed='copy'; e.dataTransfer.setData('text/plain',p.ten||'');}catch(x){} var c=e.target.closest('.citem'); if(c)c.classList.add('dragging'); }
-function prodDragEnd(){ S._dragProd=null; document.querySelectorAll('.citem.dragging').forEach(function(x){x.classList.remove('dragging');}); var tk=document.getElementById('tkTable'); if(tk) tk.querySelectorAll('.prodDrop,.dropBot').forEach(function(x){x.classList.remove('prodDrop','dropBot');}); }
+function prodDragStart(e,i){
+  var p=(S._filtered||[])[i]; if(!p){ e.preventDefault(); return; }
+  S._dragProd=p;
+  try{
+    e.dataTransfer.effectAllowed='copy'; e.dataTransfer.setData('text/plain',p.ten||'');
+    var img=p.hinhAnh?'<img src="'+esc(p.hinhAnh)+'" onerror="this.style.visibility=\'hidden\'">':'<span class="dg-img"></span>';
+    var g=document.createElement('div'); g.className='drag-ghost';
+    g.innerHTML=img+'<span class="dg-b"><span class="dg-nm">'+esc(p.ten||'')+'</span><span class="dg-pr">'+money(p.donGiaBan)+' đ</span></span>'
+      +'<span class="dg-add">'+icon('plus',14)+'Thả vào bảng</span>';
+    document.body.appendChild(g); S._dragGhost=g;
+    e.dataTransfer.setDragImage(g, 24, 28);
+  }catch(x){}
+  var c=e.target.closest('.citem'); if(c)c.classList.add('dragging');
+}
+function prodDragEnd(){
+  S._dragProd=null;
+  if(S._dragGhost){ S._dragGhost.remove(); S._dragGhost=null; }
+  document.querySelectorAll('.citem.dragging').forEach(function(x){x.classList.remove('dragging');});
+  var tk=document.getElementById('tkTable'); if(tk) tk.querySelectorAll('.prodDrop,.dropBot').forEach(function(x){x.classList.remove('prodDrop','dropBot');});
+}
 async function pickProduct(lineId,pi){
   var p=S.products[pi]; if(!p)return; closePop();
   await editLine(lineId,{ten:p.ten,thuongHieu:p.thuongHieu,ncc:p.ncc,maSP:p.ma,kichThuoc:p.kichThuoc,moTa:p.moTa,dvt:p.dvt||'Cái',donGiaVon:p.donGiaVon,donGiaBan:p.donGiaBan,hinhAnh:p.hinhAnh,loai:p.hangMuc});
