@@ -142,7 +142,7 @@ a{color:inherit}
 .advwrap{display:none;margin-top:8px;padding-top:10px;border-top:1px dashed #e2e7ec}
 .advwrap.open{display:block;animation:advin .16s ease}
 @keyframes advin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
-.cat-list{flex:1;min-height:200px;margin-top:10px;padding-top:4px;border-top:1px solid var(--line);overflow-y:scroll;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#c2cddb #eef2f6}
+.cat-list{flex:1;min-height:200px;margin-top:10px;padding-top:4px;border-top:1px solid var(--line);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#c2cddb transparent}
 .cat-list::-webkit-scrollbar{width:7px}
 .cat-list::-webkit-scrollbar-track{background:#eef2f6;border-radius:8px;margin:2px}
 .cat-list::-webkit-scrollbar-thumb{background:#c2cddb;border-radius:8px}
@@ -396,9 +396,12 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 .fsec-n{font-size:11px;color:var(--blue);font-weight:700}
 .fsec-c{margin-left:auto;color:#9aa6b2;font-size:11px;transition:transform .15s}
 .fsec.open .fsec-c{transform:rotate(180deg)}
+.fsec.static .fsec-h{cursor:default}
+.fsec.static .fsec-c{display:none}
+.cat-list .citem{padding-right:6px}
 .fsec .chips{display:none}
 /* Thanh cuộn LUÔN HIỆN ở các bộ lọc chip (đúng Figma) */
-.fsec.open .chips{display:flex;max-height:118px;overflow-y:scroll;overscroll-behavior:contain;padding:2px 10px 10px;margin:0;scrollbar-width:thin;scrollbar-color:#c2cddb #eef2f6}
+.fsec.open .chips{display:flex;max-height:118px;overflow-y:auto;overscroll-behavior:contain;padding:2px 10px 10px;margin:0;scrollbar-width:thin;scrollbar-color:#c2cddb transparent}
 #sec_watt.open .chips{max-height:88px}
 #sec_kelvin.open .chips{max-height:50px}
 #sec_angle.open .chips{max-height:130px}
@@ -653,18 +656,11 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
           <div class="mlbl">Đèn trong dự án</div>
           <div class="msel" id="fInProj" onclick="toggleInProj()"><span class="mlabel" id="fInProjLabel">Tất cả sản phẩm</span><span class="mplus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
 
-          <div class="cat-search">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            <input id="fSearch" placeholder="Tìm tên / mã / thương hiệu…">
-          </div>
-
-          <!-- bộ lọc hiện mặc định (theo Figma) -->
-          <div class="fsec" id="sec_watt"><div class="fsec-h" onclick="toggleFsec('watt')"><span class="fsec-t">Công suất</span><span class="fsec-n" id="nWatt"></span><span class="fsec-c">▾</span></div><div class="chips" id="fWatt"></div></div>
-          <div class="fsec" id="sec_kelvin"><div class="fsec-h" onclick="toggleFsec('kelvin')"><span class="fsec-t">Nhiệt độ màu</span><span class="fsec-n" id="nKelvin"></span><span class="fsec-c">▾</span></div><div class="chips" id="fKelvin"></div></div>
-          <div class="fsec" id="sec_angle"><div class="fsec-h" onclick="toggleFsec('angle')"><span class="fsec-t">Góc chiếu sáng</span><span class="fsec-n" id="nAngle"></span><span class="fsec-c">▾</span></div><div class="chips" id="fAngle"></div></div>
-          <div class="fsec" id="sec_ip"><div class="fsec-h" onclick="toggleFsec('ip')"><span class="fsec-t">Cấp bảo vệ (IP)</span><span class="fsec-n" id="nIP"></span><span class="fsec-c">▾</span></div><div class="chips" id="fIP"></div></div>
-          <div class="fsec" id="sec_cri"><div class="fsec-h" onclick="toggleFsec('cri')"><span class="fsec-t">Chỉ số hoàn màu (CRI)</span><span class="fsec-n" id="nCRI"></span><span class="fsec-c">▾</span></div><div class="chips" id="fCRI"></div></div>
-          <div class="fsec" id="sec_volt"><div class="fsec-h" onclick="toggleFsec('volt')"><span class="fsec-t">Điện áp</span><span class="fsec-n" id="nVolt"></span><span class="fsec-c">▾</span></div><div class="chips" id="fVolt"></div></div>
+          <!-- bộ lọc (theo Figma: label + hộp chip + thanh cuộn, không gập) -->
+          <div class="fsec open static" id="sec_watt"><div class="fsec-h"><span class="fsec-t">Công suất</span><span class="fsec-n" id="nWatt"></span></div><div class="chips" id="fWatt"></div></div>
+          <div class="fsec open static" id="sec_kelvin"><div class="fsec-h"><span class="fsec-t">Nhiệt độ màu</span><span class="fsec-n" id="nKelvin"></span></div><div class="chips" id="fKelvin"></div></div>
+          <div class="fsec open static" id="sec_angle"><div class="fsec-h"><span class="fsec-t">Góc chiếu sáng</span><span class="fsec-n" id="nAngle"></span></div><div class="chips" id="fAngle"></div></div>
+          <input id="fSearch" type="hidden" value="">
           <div class="lbl">Thương hiệu</div>
           <div class="selrow"><select id="fBrand"></select></div>
           <div class="lbl">Tìm theo khoảng giá</div>

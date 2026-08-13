@@ -476,7 +476,6 @@ function renderCatalog(){
         +'<div class="nm">'+esc(p.ten)+'</div>'
         +'<div class="meta"><span class="pr">'+money(p.donGiaBan)+' đ</span>'+(brand?'<span class="sz brand">'+brand+'</span>':'')+'</div>'
       +'</div>'
-      +'<button class="ibtn" title="Xem chi tiết" onclick="showDetail('+i+')">ⓘ</button>'
       +'<button class="add" title="Thêm vào bóc tách" onclick="addProduct('+i+')">+</button></div>';
   }).join('');
   S._filtered=list;
