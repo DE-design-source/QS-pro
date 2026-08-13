@@ -779,6 +779,7 @@ function renderTable(){
   t.style.width=totalW+'px';
   t.innerHTML=colg+head+body;
   t.querySelectorAll('td.wrap textarea').forEach(autoGrow);   // ô "Thông tin chính" tự giãn hết dòng
+  if(t.rows[0]) t.style.setProperty('--thH', t.rows[0].offsetHeight+'px');  // để dòng tầng dính ngay dưới header
   // ----- Tổng tiền (chưa VAT / VAT / tổng thành tiền) -----
   var sub=lines.reduce(function(s,l){ return s+(Number(l.thanhTienBan)||0); },0);
   var vatPct=Number(S.cur&&S.cur.vat)||0;
