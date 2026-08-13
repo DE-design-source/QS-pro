@@ -1016,33 +1016,73 @@ async function delLine(id){
 /* ===== THÔNG TIN DỰ ÁN ===== */
 function syncProj(p){ if(!p)return; S.cur=p; var i=S.projects.findIndex(function(x){return x.maDA===p.maDA;}); if(i>=0)S.projects[i]=p; renderProjSel(); }
 function pf_(label,id,val,type){ return '<div class="field"><label>'+esc(label)+'</label><input id="'+id+'" type="'+(type||'text')+'" value="'+esc(val==null?'':val)+'"></div>'; }
+// Nhóm bản nháp của dự án đang mở
+function currentGroup(){
+  if(!S.cur) return null;
+  var key=String(S.cur.ten||'').trim().toLowerCase();
+  var drafts=(S.projects||[]).filter(function(p){ return String(p.ten||'').trim().toLowerCase()===key; })
+    .sort(function(a,b){ return String(a.ngayTao||'').localeCompare(String(b.ngayTao||'')); });
+  return {name:S.cur.ten, drafts:drafts, idx:drafts.findIndex(function(d){return d.maDA===S.cur.maDA;})};
+}
 function renderProjects(){
   var el=document.getElementById('v-project');
-  var form='';
-  if(S.cur){ var p=S.cur;
-    form='<div class="panel"><div class="toolbar"><h3>Hồ sơ dự án — '+esc(p.ten)+'</h3></div>'
-      +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px 14px">'
-      +pf_('Tên dự án','pf_ten',p.ten)+pf_('Khách hàng','pf_kh',p.khachHang)+pf_('Số điện thoại','pf_sdt',p.sdt)
-      +pf_('Địa chỉ','pf_addr',p.diaChi)
-      +'<div class="field"><label>Trạng thái</label><select id="pf_tt">'+['Bản nháp','Đang thực hiện','Hoàn thành'].map(function(s){return '<option'+(p.trangThai===s?' selected':'')+'>'+s+'</option>';}).join('')+'</select></div>'
-      +pf_('VAT (%)','pf_vat',p.vat,'number')
-      +pf_('Quy mô','pf_qm',p.quyMo)+pf_('Tổng DT XD (m²)','pf_tdt',p.tongDT)+pf_('DT báo giá (m²)','pf_dtbg',p.dtBaoGia)
-      +pf_('Nhu cầu','pf_nc',p.nhuCau)+pf_('Phân khúc','pf_pk',p.phanKhuc)+pf_('Mã báo giá','pf_mbg',p.maBaoGia)
-      +'</div>'
-      +'<div class="field" style="margin-top:2px"><label>Ghi chú</label><textarea id="pf_gc" placeholder="Ghi chú" style="min-height:56px">'+esc(p.ghiChu||'')+'</textarea></div>'
-      +'<div style="margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn blue" onclick="saveProjectInfo(this)">'+icon('check',15)+' Lưu thông tin</button>'
-      +'<span style="flex:1"></span><label style="color:var(--muted)">Tiến độ</label>'
-      +'<input id="pf_prog" type="range" min="0" max="100" value="'+(Number(p.tienDo)||0)+'" oninput="document.getElementById(\'pf_pv\').textContent=this.value+\'%\'">'
-      +'<b id="pf_pv">'+(Number(p.tienDo)||0)+'%</b><button class="btn ghost sm" onclick="saveProgress(this)">Cập nhật</button></div></div>';
-  }
-  el.innerHTML='<div class="sechd"><h2>Hồ sơ dự án</h2><span class="sp"></span>'
-    +'<button class="btn ghost sm" onclick="showTab(\'dash\')">'+icon('list',14)+' Danh sách bản nháp</button></div>'
-    +(form || '<div class="empty">Chưa chọn dự án. Vào <b>Bảng điều khiển</b> để tạo/chọn bản nháp.</div>');
+  var head='<div class="sechd"><h2>Thông tin dự án</h2><span class="sp" style="flex:1"></span>'
+    +'<button class="btn ghost sm" onclick="showTab(\'dash\')">'+icon('list',14)+' Danh sách dự án</button></div>';
+  if(!S.cur){ el.innerHTML=head+'<div class="empty">Chưa chọn dự án. Vào <b>Bảng điều khiển</b> để tạo/chọn bản nháp.</div>'; return; }
+  var p=S.cur, gr=currentGroup();
+  // Thanh chuyển bản nháp trong dự án
+  var tabs=gr.drafts.map(function(d,i){ var on=d.maDA===p.maDA;
+    return '<button class="draft-tab'+(on?' on':'')+'" onclick="openDraft(\''+esc(d.maDA)+'\')">Bản nháp '+(i+1)+'</button>'; }).join('');
+  var switcher='<div class="proj-switch"><div class="ps-name">'+icon('building',16)+'<b>'+esc(gr.name)+'</b><span class="ps-count">'+gr.drafts.length+' bản nháp</span></div>'
+    +'<div class="ps-tabs">'+tabs+'<button class="draft-tab add" onclick="addDraftForCur()">'+icon('plus',13)+' Thêm bản nháp</button></div></div>';
+  // Section 1 — Thông tin dự án (dùng chung mọi bản nháp)
+  var shared='<div class="panel"><div class="toolbar"><h3>Thông tin dự án</h3><span style="color:var(--muted);font-size:12px;margin-left:8px">áp dụng cho tất cả bản nháp</span></div>'
+    +'<div class="dbgrid">'+pf_('Tên dự án','pf_ten',p.ten)+pf_('Khách hàng','pf_kh',p.khachHang)+pf_('Số điện thoại','pf_sdt',p.sdt)
+    +pf_('Địa chỉ','pf_addr',p.diaChi)+'</div>'
+    +'<div style="margin-top:12px"><button class="btn blue" onclick="saveProjectShared(this)">'+icon('check',15)+' Lưu thông tin dự án</button></div></div>';
+  // Section 2 — Thông tin bản nháp này
+  var draft='<div class="panel" style="margin-top:14px"><div class="toolbar"><h3>Thông tin bản nháp — Bản nháp '+(gr.idx+1)+'</h3><span class="count">'+esc(p.maDA)+'</span></div>'
+    +'<div class="dbgrid">'
+    +'<div class="field"><label>Trạng thái</label><select id="pf_tt">'+['Bản nháp','Đang thực hiện','Hoàn thành'].map(function(s){return '<option'+(p.trangThai===s?' selected':'')+'>'+s+'</option>';}).join('')+'</select></div>'
+    +pf_('VAT (%)','pf_vat',p.vat,'number')
+    +pf_('Mã báo giá','pf_mbg',p.maBaoGia)
+    +pf_('Quy mô','pf_qm',p.quyMo)+pf_('Tổng DT XD (m²)','pf_tdt',p.tongDT)+pf_('DT báo giá (m²)','pf_dtbg',p.dtBaoGia)
+    +pf_('Nhu cầu','pf_nc',p.nhuCau)+pf_('Phân khúc','pf_pk',p.phanKhuc)+'</div>'
+    +'<div class="field" style="margin-top:2px"><label>Ghi chú</label><textarea id="pf_gc" placeholder="Ghi chú" style="min-height:56px">'+esc(p.ghiChu||'')+'</textarea></div>'
+    +'<div style="margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn blue" onclick="saveDraftInfo(this)">'+icon('check',15)+' Lưu bản nháp</button>'
+    +'<span style="flex:1"></span><label style="color:var(--muted)">Tiến độ</label>'
+    +'<input id="pf_prog" type="range" min="0" max="100" value="'+(Number(p.tienDo)||0)+'" oninput="document.getElementById(\'pf_pv\').textContent=this.value+\'%\'">'
+    +'<b id="pf_pv">'+(Number(p.tienDo)||0)+'%</b><button class="btn ghost sm" onclick="saveProgress(this)">Cập nhật</button></div></div>';
+  el.innerHTML=head+switcher+shared+draft;
 }
-async function saveProjectInfo(btn){
+// Mở 1 bản nháp (ở lại trang Thông tin dự án)
+async function openDraft(maDA){
+  var p=(S.projects||[]).filter(function(x){return x.maDA===maDA;})[0]; if(!p) return;
+  S.cur=p; S.lines=await api('getLines',maDA)||[]; S._coverDA=null;
+  renderCard(); renderProjects(); renderDash();
+  if(document.getElementById('v-boc').classList.contains('on')) renderAll();
+}
+// Thêm bản nháp cho dự án đang mở
+async function addDraftForCur(){
+  var gr=currentGroup(); if(!gr) return;
+  try{ var p=await api('createProject',{ten:gr.name,khachHang:S.cur.khachHang,sdt:S.cur.sdt,diaChi:S.cur.diaChi,vat:Number(S.cur.vat)||0});
+    S.cur=p; S.lines=[]; await boot(); renderProjects(); renderDash(); toast('Đã thêm bản nháp mới'); }catch(e){ toast('Lỗi: '+e.message); }
+}
+// Lưu thông tin dự án -> áp dụng cho MỌI bản nháp (giữ nhóm nhất quán)
+async function saveProjectShared(btn){
   var g=function(id){var e=document.getElementById(id);return e?e.value:'';};
-  var data={ten:g('pf_ten'),khachHang:g('pf_kh'),sdt:g('pf_sdt'),diaChi:g('pf_addr'),trangThai:g('pf_tt'),vat:Number(g('pf_vat'))||0,ghiChu:g('pf_gc'),quyMo:g('pf_qm'),tongDT:g('pf_tdt'),dtBaoGia:g('pf_dtbg'),nhuCau:g('pf_nc'),phanKhuc:g('pf_pk'),maBaoGia:g('pf_mbg')};
-  btn.disabled=true; try{ var p=await api('updateProject',S.cur.maDA,data); syncProj(p); renderCard(); renderProjects(); toast('Đã lưu thông tin'); }catch(e){ toast('Lỗi: '+e.message); } btn.disabled=false;
+  var shared={ten:g('pf_ten'),khachHang:g('pf_kh'),sdt:g('pf_sdt'),diaChi:g('pf_addr')};
+  var gr=currentGroup(); if(!gr) return; btn.disabled=true;
+  try{
+    for(var i=0;i<gr.drafts.length;i++){ var pp=await api('updateProject',gr.drafts[i].maDA,shared); syncProj(pp); }
+    renderCard(); renderProjects(); renderDash(); toast('Đã lưu thông tin dự án ('+gr.drafts.length+' bản nháp)');
+  }catch(e){ toast('Lỗi: '+e.message); } btn.disabled=false;
+}
+// Lưu thông tin của riêng bản nháp đang mở
+async function saveDraftInfo(btn){
+  var g=function(id){var e=document.getElementById(id);return e?e.value:'';};
+  var data={trangThai:g('pf_tt'),vat:Number(g('pf_vat'))||0,maBaoGia:g('pf_mbg'),quyMo:g('pf_qm'),tongDT:g('pf_tdt'),dtBaoGia:g('pf_dtbg'),nhuCau:g('pf_nc'),phanKhuc:g('pf_pk'),ghiChu:g('pf_gc')};
+  btn.disabled=true; try{ var p=await api('updateProject',S.cur.maDA,data); syncProj(p); renderCard(); renderProjects(); toast('Đã lưu bản nháp'); }catch(e){ toast('Lỗi: '+e.message); } btn.disabled=false;
 }
 async function saveProgress(btn){ var v=Number(document.getElementById('pf_prog').value)||0;
   try{ var p=await api('updateProject',S.cur.maDA,{tienDo:v}); syncProj(p); renderCard(); toast('Đã cập nhật tiến độ '+v+'%'); }catch(e){ toast('Lỗi: '+e.message); } }
