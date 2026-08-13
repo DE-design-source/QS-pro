@@ -92,7 +92,9 @@ a{color:inherit}
 .selrow::after{content:"+";position:absolute;right:11px;top:7px;color:#9aa7b3;font-size:15px;pointer-events:none}
 .msel{display:flex;align-items:center;gap:8px;border:1px solid #dbe0e6;border-radius:8px;padding:8px 11px;background:#fff;font-size:12.5px;color:#2a3746;cursor:pointer;margin-bottom:7px}
 .msel .mlabel{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.msel .mplus{color:#9aa7b3}
+.msel .mplus{color:#9aa7b3;display:inline-flex;align-items:center}
+.msel .mplus svg{width:17px;height:17px}
+.msel.active .mplus{color:var(--blue)}
 .msel.active{border-color:var(--blue)}
 .msel.disabled{background:#f5f7f9;color:#9aa7b3;cursor:not-allowed}
 .msel .mplus#fDemucClear{cursor:pointer}
@@ -140,10 +142,10 @@ a{color:inherit}
 .advwrap{display:none;margin-top:8px;padding-top:10px;border-top:1px dashed #e2e7ec}
 .advwrap.open{display:block;animation:advin .16s ease}
 @keyframes advin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
-.cat-list{flex:1;min-height:200px;margin-top:10px;padding-top:4px;border-top:1px solid var(--line);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#c4cfdb transparent}
+.cat-list{flex:1;min-height:200px;margin-top:10px;padding-top:4px;border-top:1px solid var(--line);overflow-y:scroll;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#c2cddb #eef2f6}
 .cat-list::-webkit-scrollbar{width:7px}
-.cat-list::-webkit-scrollbar-track{background:transparent}
-.cat-list::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:8px}
+.cat-list::-webkit-scrollbar-track{background:#eef2f6;border-radius:8px;margin:2px}
+.cat-list::-webkit-scrollbar-thumb{background:#c2cddb;border-radius:8px}
 .cat-list::-webkit-scrollbar-thumb:hover{background:#a6b6c8}
 @media(max-width:1120px){ .catpanel{position:static;max-height:none} .cat-list{max-height:60vh} }
 .cat-list-legacy{margin-top:6px;max-height:520px;overflow:auto}
@@ -395,11 +397,14 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 .fsec-c{margin-left:auto;color:#9aa6b2;font-size:11px;transition:transform .15s}
 .fsec.open .fsec-c{transform:rotate(180deg)}
 .fsec .chips{display:none}
-.fsec.open .chips{display:flex;max-height:132px;overflow-y:auto;overscroll-behavior:contain;padding:0 8px 10px;margin:0;scrollbar-width:thin;scrollbar-color:#c4cfdb transparent}
-#sec_angle.open .chips{max-height:132px}
-.fsec.open .chips::-webkit-scrollbar{width:6px}
-.fsec.open .chips::-webkit-scrollbar-track{background:transparent}
-.fsec.open .chips::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:8px}
+/* Thanh cuộn LUÔN HIỆN ở các bộ lọc chip (đúng Figma) */
+.fsec.open .chips{display:flex;max-height:118px;overflow-y:scroll;overscroll-behavior:contain;padding:2px 10px 10px;margin:0;scrollbar-width:thin;scrollbar-color:#c2cddb #eef2f6}
+#sec_watt.open .chips{max-height:88px}
+#sec_kelvin.open .chips{max-height:50px}
+#sec_angle.open .chips{max-height:130px}
+.fsec.open .chips::-webkit-scrollbar{width:7px}
+.fsec.open .chips::-webkit-scrollbar-track{background:#eef2f6;border-radius:8px;margin:3px 2px}
+.fsec.open .chips::-webkit-scrollbar-thumb{background:#c2cddb;border-radius:8px}
 .fsec.open .chips::-webkit-scrollbar-thumb:hover{background:#a6b6c8}
 .fltpop .fsearch{width:100%;border:1px solid #dbe0e6;border-radius:9px;padding:9px 11px;margin-bottom:6px;font:inherit;font-size:13px}
 .fltpop .fsearch:focus{border-color:var(--blue);outline:none}
@@ -642,11 +647,11 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 
           <!-- 3 bộ chọn (theo Figma) -->
           <div class="mlbl">Đề mục</div>
-          <div class="msel" id="fDemuc" onclick="openDemucSel(event)"><span class="mlabel" id="fDemucLabel">Tất cả đề mục</span><span class="mplus" id="fDemucClear">▾</span></div>
+          <div class="msel" id="fDemuc" onclick="openDemucSel(event)"><span class="mlabel" id="fDemucLabel">Tất cả đề mục</span><span class="mplus" id="fDemucClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
           <div class="mlbl">Hạng mục sản phẩm</div>
-          <div class="msel" id="fNhom" onclick="openNhomMsel(event)"><span class="mlabel">Tất cả hạng mục</span><span class="mplus">▾</span></div>
+          <div class="msel" id="fNhom" onclick="openNhomMsel(event)"><span class="mlabel">Tất cả hạng mục</span><span class="mplus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
           <div class="mlbl">Đèn trong dự án</div>
-          <div class="msel" id="fInProj" onclick="toggleInProj()"><span class="mlabel" id="fInProjLabel">Tất cả sản phẩm</span><span class="mplus">▾</span></div>
+          <div class="msel" id="fInProj" onclick="toggleInProj()"><span class="mlabel" id="fInProjLabel">Tất cả sản phẩm</span><span class="mplus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
 
           <div class="cat-search">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>

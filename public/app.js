@@ -88,7 +88,8 @@ var ICONS={
   layers:'<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83zM2 12l8.6 3.91a2 2 0 0 0 1.65 0L21 12M2 17l8.6 3.91a2 2 0 0 0 1.65 0L21 17"/>',
   doc:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v5h5M9 13h6M9 17h4"/>',
   cart:'<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>',
-  home:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>'
+  home:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+  pluscircle:'<circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/>'
 };
 function icon(name,size){ size=size||16; var p=ICONS[name]; if(!p) return ''; return '<svg class="ico" width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'; }
 // Độ rộng mặc định + cấu hình cột (thứ tự, rộng, lọc) lưu localStorage
@@ -405,15 +406,15 @@ function setDemucFilter(code){
   renderCatalog();
 }
 function updateDemucBox_(){
-  var lb=document.getElementById('fDemucLabel'), box=document.getElementById('fDemuc'), clr=document.getElementById('fDemucClear');
+  var lb=document.getElementById('fDemucLabel'), box=document.getElementById('fDemuc');
   if(!lb) return;
-  if(S.demucKw){ lb.textContent=(S.demucCode?S.demucCode+'.':'')+S.demucKw; if(box)box.classList.add('active'); if(clr)clr.textContent='✕'; }
-  else { lb.textContent='Tất cả đề mục'; if(box)box.classList.remove('active'); if(clr)clr.textContent='▾'; }
+  if(S.demucKw){ lb.textContent=(S.demucCode?S.demucCode+'.':'')+S.demucKw; if(box)box.classList.add('active'); }
+  else { lb.textContent='Tất cả đề mục'; if(box)box.classList.remove('active'); }
 }
 function clearDemuc(){ S.demucKw=''; S.demucCode=''; updateDemucBox_(); renderCatalog(); }
 /* Dropdown chọn đề mục ở panel trái (dùng cây hạng mục) */
 function openDemucSel(e){
-  if(e){ if(e.target.closest('#fDemucClear') && S.demucCode){ e.stopPropagation(); clearDemuc(); return; } e.stopPropagation(); }
+  if(e){ e.stopPropagation(); }
   closePop();
   var nodes=TREE.filter(function(t){return t[0]!=='X';}).map(function(t){return {code:t[0],name:t[1],lvl:t[2]};});
   (typeof customGroups==='function'?customGroups():[]).forEach(function(n){ nodes.push({code:n,name:n,lvl:1}); });
