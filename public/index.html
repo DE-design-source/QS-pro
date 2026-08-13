@@ -20,9 +20,12 @@ a{color:inherit}
 .topnav .row{display:flex;align-items:center;gap:28px;height:58px}
 .logo{height:28px;width:auto;display:block;-webkit-user-drag:none;user-select:none;pointer-events:none}
 .nav{display:flex;gap:24px;flex:1}
-.nav a{color:#33414f;text-decoration:none;font-weight:500;font-size:14px;padding:6px 2px;border-bottom:2px solid transparent}
-.nav a.active{color:#111;font-weight:700}
+.nav a{display:inline-flex;align-items:center;gap:7px;color:#5a6674;text-decoration:none;font-weight:500;font-size:14px;padding:6px 2px;border-bottom:2px solid transparent;cursor:pointer}
+.nav a svg{width:16px;height:16px;flex:none;opacity:.85}
+.nav a.active{color:var(--blue);font-weight:700}
+.nav a.active svg{opacity:1}
 .nav a:hover{color:var(--navy)}
+.ico{display:inline-block;vertical-align:-2px;flex:none}
 .topnav .right{display:flex;align-items:center;gap:10px}
 .rbtn{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;padding:8px 15px;border-radius:10px;text-decoration:none;cursor:pointer;transition:all .13s;border:1px solid var(--line);color:#37434f;background:#fff;white-space:nowrap}
 .rbtn:hover{border-color:#bcc7d2;background:#f6f9fc;color:var(--navy)}
@@ -43,7 +46,8 @@ a{color:inherit}
 .sp-row{cursor:pointer;transition:background .1s}
 .sp-row:hover{background:#f6f9ff}
 .sp-th{width:44px;height:44px;border-radius:8px;object-fit:contain;background:#f4f6f8;border:1px solid #edf0f3;display:inline-block;vertical-align:middle}
-.sp-act{width:28px;height:28px;border:none;background:#eef1f4;color:#5a6774;border-radius:7px;cursor:pointer;font-size:13px;margin:0 1px}
+.sp-act{width:28px;height:28px;border:none;background:#eef1f4;color:#5a6774;border-radius:7px;cursor:pointer;font-size:13px;margin:0 1px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle}
+.sp-act svg{width:16px;height:16px}
 .sp-act:hover{background:#dbe4ee;color:var(--navy)}
 .sp-act.del:hover{background:#fde2e2;color:#c33}
 .sp-modal-ov{position:fixed;inset:0;background:#0e1a2b66;backdrop-filter:blur(2px);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
@@ -304,8 +308,9 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 .pd .pd-name{font-weight:700;margin:2px 0 8px;line-height:1.35}
 .pd .pd-sec{font-weight:800;font-size:13px;margin:16px 0 6px;padding-bottom:5px;border-bottom:2px solid #eef1f4}
 .pd .pd-keys{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin:2px 0 6px}
-.pd .pd-key{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600}
-.pd .pd-key .ic{width:20px;text-align:center;flex:none}
+.pd .pd-key{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.pd .pd-key .ic{width:22px;height:22px;border-radius:6px;background:#eaf1ff;color:var(--blue);display:inline-flex;align-items:center;justify-content:center;flex:none}
+.pd .pd-key .ic svg{width:15px;height:15px}
 .pd .pd-price{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:10px;border-top:2px solid #eef1f4;font-size:14px}
 .pd .pd-price b{color:var(--blue);font-weight:800;font-size:16px}
 .pd .pd-foot{margin-top:12px;text-align:center}
@@ -340,7 +345,10 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 .dbcard{background:#fff;border:1px solid #e7ebf0;border-radius:14px;box-shadow:0 1px 5px #0b1f3a0a;margin-top:14px;overflow:hidden}
 .dbcard-h{display:flex;align-items:center;gap:10px;padding:13px 20px;border-bottom:1px solid #eef1f5;background:linear-gradient(180deg,#fbfcfe,#f5f8fc)}
 .dbcard-h h3{margin:0;font-size:14.5px;font-weight:800;color:#1f2b38}
-.dbcard-ic{width:32px;height:32px;border-radius:9px;background:#eaf1ff;display:flex;align-items:center;justify-content:center;font-size:16px;flex:none}
+.dbcard-ic{width:32px;height:32px;border-radius:9px;background:#eaf1ff;color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:16px;flex:none}
+.dbcard-ic svg{width:18px;height:18px}
+.upzone .upic{color:var(--blue);margin-bottom:5px;display:flex;justify-content:center}
+.upzone:hover .upic,.upzone.drag .upic{color:var(--blue)}
 .dbcard-b{padding:16px 20px}
 .dbnote{color:var(--muted);font-size:12.5px;margin:0 0 12px}
 .dbgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 16px}
@@ -387,12 +395,12 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 <div class="topnav"><div class="wrap"><div class="row">
   <img class="logo" src="logo.svg" alt="Dezon Pro" title="Dezon Pro — Dự toán chuyên nghiệp" draggable="false">
   <div class="nav" id="nav">
-    <a data-tab="dash">Bảng điều khiển</a>
-    <a data-tab="project">Thông tin dự án</a>
-    <a data-tab="boc" class="active">Bóc tách</a>
-    <a data-tab="chiphi">Chi phí</a>
-    <a data-tab="export">Xuất báo giá</a>
-    <a onclick="toast('Tính năng Mua hàng đang cập nhật')" style="cursor:pointer">Mua hàng</a>
+    <a data-tab="dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Bảng điều khiển</a>
+    <a data-tab="project"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01"/></svg>Thông tin dự án</a>
+    <a data-tab="boc" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83zM2 12l8.6 3.91a2 2 0 0 0 1.65 0L21 12M2 17l8.6 3.91a2 2 0 0 0 1.65 0L21 17"/></svg>Bóc tách</a>
+    <a data-tab="chiphi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>Chi phí</a>
+    <a data-tab="export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v5h5M9 13h6M9 17h4"/></svg>Xuất báo giá</a>
+    <a onclick="toast('Tính năng Mua hàng đang cập nhật')" style="cursor:pointer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>Mua hàng</a>
   </div>
   <div class="right">
     <a class="rbtn" data-tab="sanpham"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="4" rx="1.2"/><rect x="3" y="10" width="18" height="4" rx="1.2"/><rect x="3" y="16" width="18" height="4" rx="1.2"/></svg>Danh sách sản phẩm</a>

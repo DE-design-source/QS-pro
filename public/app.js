@@ -47,6 +47,39 @@ var COLS=[
   ['thanhTien','Thành tiền',0],['trangThai','Trạng thái',0],['ghiChu','Ghi chú',0]
 ];
 COLS.forEach(function(c){ S.cols[c[0]]=!!c[2]; });
+
+/* ===== Bộ icon SVG line đồng nhất (kiểu Lucide, theo màu chữ) ===== */
+var ICONS={
+  power:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  temp:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/>',
+  color:'<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',
+  angle:'<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>',
+  tag:'<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r="1"/>',
+  bulb:'<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/>',
+  gauge:'<path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>',
+  ruler:'<path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2M11.5 9.5l2-2M8.5 6.5l2-2M17.5 15.5l2-2"/>',
+  wrench:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+  plug:'<path d="M12 22v-5M9 8V2M15 8V2M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/>',
+  money:'<rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>',
+  lock:'<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  image:'<rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>',
+  sliders:'<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M2 14h4M10 8h4M18 16h4"/>',
+  camera:'<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/>',
+  download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
+  list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  eye:'<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+  trash:'<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  plus:'<path d="M5 12h14M12 5v14"/>',
+  search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>',
+  building:'<rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01"/>',
+  layers:'<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83zM2 12l8.6 3.91a2 2 0 0 0 1.65 0L21 12M2 17l8.6 3.91a2 2 0 0 0 1.65 0L21 17"/>',
+  doc:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v5h5M9 13h6M9 17h4"/>',
+  cart:'<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>',
+  home:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>'
+};
+function icon(name,size){ size=size||16; var p=ICONS[name]; if(!p) return ''; return '<svg class="ico" width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'; }
 // Độ rộng mặc định + cấu hình cột (thứ tự, rộng, lọc) lưu localStorage
 var DEFW={stt:66,khuVuc:120,maBanVe:92,nganh:120,maSP:110,ten:190,thuongHieu:110,ncc:120,moTa:240,kichThuoc:130,hinhAnh:72,dvt:70,soLuong:72,giaNCC:104,chietKhau:120,giaDaiLy:104,lnPct:96,donGia:104,ckKhach:130,donGiaCK:104,markup:130,margin:130,lnVnd:120,thanhTien:112,trangThai:104,ghiChu:150};
 S.colOrder=null; S.colW={}; S.colFilter={}; S.collapsed={};
@@ -389,13 +422,13 @@ function pdSection_(title, rows){
 function pdContent_(p){
   var cong=p.congSuat||parseWatt(p.ten), nd=p.nhietDo||parseKelvin(p.ten);
   var keyItems=[
-    ['⚡', cong + (p.dongRa?(' ('+p.dongRa+(/mA/i.test(p.dongRa)?'':'mA')+')'):'')],
-    ['🌡', nd + (p.quangThong?(' ('+p.quangThong+(/lm/i.test(p.quangThong)?'':'lm')+')'):'')],
-    ['🎨', p.mauSac],
-    ['📐', p.gocChieu]
+    ['power', cong + (p.dongRa?(' ('+p.dongRa+(/mA/i.test(p.dongRa)?'':'mA')+')'):'')],
+    ['temp', nd + (p.quangThong?(' ('+p.quangThong+(/lm/i.test(p.quangThong)?'':'lm')+')'):'')],
+    ['color', p.mauSac],
+    ['angle', p.gocChieu]
   ].filter(function(x){ return x[1] && String(x[1]).trim(); });
   var keyHtml=keyItems.length?'<div class="pd-sec">Key Product Info (Thông tin chính)</div><div class="pd-keys">'
-    +keyItems.map(function(x){ return '<div class="pd-key"><span class="ic">'+x[0]+'</span><span>'+esc(x[1])+'</span></div>'; }).join('')+'</div>':'';
+    +keyItems.map(function(x){ return '<div class="pd-key"><span class="ic">'+icon(x[0],16)+'</span><span>'+esc(x[1])+'</span></div>'; }).join('')+'</div>':'';
   var img=p.hinhAnh?'<div class="imgbox"><img src="'+esc(p.hinhAnh)+'" onerror="this.parentNode.innerHTML=\'<span style=&quot;color:#9aa&quot;>Không tải được ảnh</span>\'"></div>'
     :'<div class="imgbox"><span style="color:#9aa">Không có ảnh</span></div>';
   return img
@@ -418,7 +451,7 @@ function pdContent_(p){
       ['Cấp bảo vệ an toàn điện (Class Rating)',p.capBaoVeDien]])
     +(p.moTa && !p.chatLieu && !p.quangThong ? '<div class="pd-sec">Thông số kỹ thuật (mô tả)</div>'+specRows_(p.moTa) : '')
     +'<div class="pd-price"><span>Đơn giá</span><b>'+money(p.donGiaBan)+' đ</b></div>'
-    +(p.linkDatasheet?'<div class="pd-foot"><a href="'+esc(p.linkDatasheet)+'" target="_blank" rel="noopener">📄 Tài liệu kỹ thuật</a></div>':'');
+    +(p.linkDatasheet?'<div class="pd-foot"><a href="'+esc(p.linkDatasheet)+'" target="_blank" rel="noopener">'+icon('doc',15)+' Tài liệu kỹ thuật</a></div>':'');
 }
 function showDetail(i){
   var p=(S._filtered||[])[i]; if(!p) return;
@@ -457,7 +490,7 @@ function spFilter(){
       +'<td class="ct">'+esc(p.nhietDo||'')+'</td>'
       +'<td class="ct">'+esc(p.cri||'')+'</td>'
       +'<td class="num">'+money(p.donGiaBan)+'</td>'
-      +'<td class="ct" onclick="event.stopPropagation()"><button class="sp-act" title="Xem chi tiết" onclick="spModal('+i+')">👁</button><button class="sp-act del" title="Xoá" onclick="spDelete('+i+')">🗑</button></td>'
+      +'<td class="ct" onclick="event.stopPropagation()"><button class="sp-act" title="Xem chi tiết" onclick="spModal('+i+')">'+icon('eye',16)+'</button><button class="sp-act del" title="Xoá" onclick="spDelete('+i+')">'+icon('trash',16)+'</button></td>'
     +'</tr>';
   }).join(''):'<tr><td colspan="10" class="empty">Chưa có sản phẩm. Bấm ＋ Thêm sản phẩm.</td></tr>';
 }
@@ -821,7 +854,7 @@ function openCreateProduct(lineId){
     +row('Link ảnh (URL)', inp('cp_img', (String(l.hinhAnh||'').indexOf('http')===0?l.hinhAnh:''), 'https://…'))
     +'<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px">'
       +'<button class="btn ghost sm" onclick="closePop()">Huỷ</button>'
-      +'<button class="btn blue sm" id="cpSave" onclick="submitCreateProduct(\''+lineId+'\')">💾 Lưu vào danh mục</button>'
+      +'<button class="btn blue sm" id="cpSave" onclick="submitCreateProduct(\''+lineId+'\')">'+icon('check',15)+' Lưu vào danh mục</button>'
     +'</div>';
   document.body.appendChild(pop);
   pop.style.left=Math.max(8,(window.innerWidth-440)/2)+'px'; pop.style.top=Math.max(8,(window.innerHeight-pop.offsetHeight)/2)+'px';
@@ -846,7 +879,7 @@ async function submitCreateProduct(lineId){
   }catch(e){
     var msg=String((e&&e.message)||'');
     if(msg.indexOf('đã có sẵn')>=0){ toast('Sản phẩm này đã có trong danh mục'); closePop(); }
-    else { toast('Lỗi: '+msg); if(btn){ btn.disabled=false; btn.textContent='💾 Lưu vào danh mục'; } }
+    else { toast('Lỗi: '+msg); if(btn){ btn.disabled=false; btn.innerHTML=icon('check',15)+' Lưu vào danh mục'; } }
   }
 }
 async function onRowDrop(dragId,targetTr,before){
@@ -898,7 +931,7 @@ function renderProjects(){
       +pf_('Nhu cầu','pf_nc',p.nhuCau)+pf_('Phân khúc','pf_pk',p.phanKhuc)+pf_('Mã báo giá','pf_mbg',p.maBaoGia)
       +'</div>'
       +'<div class="field" style="margin-top:2px"><label>Ghi chú</label><textarea id="pf_gc" placeholder="Ghi chú" style="min-height:56px">'+esc(p.ghiChu||'')+'</textarea></div>'
-      +'<div style="margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn blue" onclick="saveProjectInfo(this)">💾 Lưu thông tin</button>'
+      +'<div style="margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn blue" onclick="saveProjectInfo(this)">'+icon('check',15)+' Lưu thông tin</button>'
       +'<span style="flex:1"></span><label style="color:var(--muted)">Tiến độ</label>'
       +'<input id="pf_prog" type="range" min="0" max="100" value="'+(Number(p.tienDo)||0)+'" oninput="document.getElementById(\'pf_pv\').textContent=this.value+\'%\'">'
       +'<b id="pf_pv">'+(Number(p.tienDo)||0)+'%</b><button class="btn ghost sm" onclick="saveProgress(this)">Cập nhật</button></div></div>';
@@ -1065,7 +1098,7 @@ function drawBaogia(){
     +'<div class="cvbar"><h3>Tờ bìa — Ước tính chi phí dự án</h3><span class="hint">— bấm thẳng vào ô để sửa</span><span style="flex:1"></span>'
       +'<div class="mau"><button class="'+(S.coverMau==='m1'?'on':'')+'" onclick="setCoverMau(\'m1\')">Mẫu 1</button><button class="'+(S.coverMau==='m2'?'on':'')+'" onclick="setCoverMau(\'m2\')">Mẫu 2</button></div>'
       +'<button class="btn ghost sm" onclick="coverReload(this)">↻ Nạp lại mẫu + tự cộng</button>'
-      +'<button class="btn green sm" onclick="coverSave(this)">💾 Lưu tờ bìa</button></div>'
+      +'<button class="btn green sm" onclick="coverSave(this)">'+icon('check',15)+' Lưu tờ bìa</button></div>'
     +'<div class="cvcard"><div class="cvbanner"><div class="t">BẢNG ƯỚC TÍNH CHI PHÍ DỰ ÁN</div><div class="s">[Tư vấn thiết kế, thi công chuyên nghiệp]</div>'
       +'<div class="s" style="margin-top:4px">Mã báo giá số : <input class="cin" value="'+esc(p.maBaoGia||'')+'" onchange="coverInfo(\'maBaoGia\',this.value)"></div></div>'
       +'<table class="cvinfo"><tr><td class="lb">Khách hàng</td>'+ic('khachHang')+'<td class="lb">Quy mô</td>'+ic('quyMo')+'</tr>'
@@ -1151,7 +1184,7 @@ function imgUrlOf(v){ v=String(v||''); return v.indexOf('http')===0?v:(v?('/medi
 function upMainInner(){
   return S._imgMain
     ? '<img src="'+esc(imgUrlOf(S._imgMain))+'" onerror="this.replaceWith(document.createTextNode(\'ảnh lỗi\'))"><button class="upx" title="Xoá" onclick="event.stopPropagation();upRemove(\'main\')">✕</button>'
-    : '<div style="font-size:26px;margin-bottom:4px">📷</div>Kéo/thả hoặc bấm<br>để chọn <b>hình chính</b>';
+    : '<div class="upic">'+icon('camera',28)+'</div>Kéo/thả hoặc bấm<br>để chọn <b>hình chính</b>';
 }
 function upGridInner(){
   return (S._imgList||[]).map(function(v,i){ return '<div class="upthumb"><img src="'+esc(imgUrlOf(v))+'"><button class="upx" onclick="upRemove(\'more\','+i+')">✕</button></div>'; }).join('')
@@ -1159,22 +1192,22 @@ function upGridInner(){
 }
 function upRefresh(){ var a=document.getElementById('upMain'); if(a)a.innerHTML=upMainInner(); var b=document.getElementById('upGrid'); if(b)b.innerHTML=upGridInner(); }
 function imgSection(){
-  return '<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">📷</span><h3>Ảnh sản phẩm</h3></div><div class="dbcard-b">'
+  return '<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">'+icon('camera',18)+'</span><h3>Ảnh sản phẩm</h3></div><div class="dbcard-b">'
     +'<div class="imgup">'
       +'<div><div class="uplabel">Hình chính</div>'
         +'<div class="upzone upmain" id="upMain" onclick="upPick(\'main\')" ondragover="upDrag(event,1)" ondragleave="upDrag(event,0)" ondrop="upDrop(event,\'main\')">'+upMainInner()+'</div>'
         +'<div class="upurl"><input id="upMainUrl" placeholder="hoặc dán URL ảnh…"><button class="btn ghost sm" onclick="upAddUrl(\'main\')">Thêm</button></div>'
       +'</div>'
       +'<div><div class="uplabel">Các hình còn lại (hình chi tiết SP)</div>'
-        +'<div class="upzone" id="upMore" style="min-height:96px" onclick="upPick(\'more\')" ondragover="upDrag(event,1)" ondragleave="upDrag(event,0)" ondrop="upDrop(event,\'more\')"><div style="font-size:22px;margin-bottom:2px">🖼️</div>Kéo/thả hoặc bấm để thêm <b>nhiều ảnh</b></div>'
+        +'<div class="upzone" id="upMore" style="min-height:96px" onclick="upPick(\'more\')" ondragover="upDrag(event,1)" ondragleave="upDrag(event,0)" ondrop="upDrop(event,\'more\')"><div class="upic">'+icon('image',24)+'</div>Kéo/thả hoặc bấm để thêm <b>nhiều ảnh</b></div>'
         +'<div class="upgrid" id="upGrid">'+upGridInner()+'</div>'
         +'<div class="upurl"><input id="upMoreUrl" placeholder="hoặc dán URL ảnh…"><button class="btn ghost sm" onclick="upAddUrl(\'more\')">Thêm</button></div>'
       +'</div>'
     +'</div></div></div>';
 }
-var DB_GICON={'Định danh':'🏷️','Thông tin chính':'💡','Hiệu suất':'⚡','Thiết kế':'📐','Lắp đặt':'🔧','Nguồn (Driver)':'🔌','Thương mại':'💰','Giá vốn (ẩn khi xuất báo giá)':'🏦','Media':'🖼️','Quản trị':'⚙️'};
+var DB_GICON={'Định danh':'tag','Thông tin chính':'bulb','Hiệu suất':'gauge','Thiết kế':'ruler','Lắp đặt':'wrench','Nguồn (Driver)':'plug','Thương mại':'money','Giá vốn (ẩn khi xuất báo giá)':'lock','Media':'image','Quản trị':'sliders'};
 function dbCard_(title, ic, note, inner){
-  return '<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">'+ic+'</span><h3>'+esc(title)+'</h3></div>'
+  return '<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">'+(icon(ic,18)||esc(ic))+'</span><h3>'+esc(title)+'</h3></div>'
     +'<div class="dbcard-b">'+(note?'<p class="dbnote">'+esc(note)+'</p>':'')+inner+'</div></div>';
 }
 function renderImport(){
@@ -1184,10 +1217,10 @@ function renderImport(){
     +'<div class="dbhead"><div><h2>Nhập dữ liệu</h2><p>Thêm sản phẩm vào danh mục <b>DB_Sản phẩm</b> (Supabase) · <span style="color:#c33">*</span> bắt buộc</p></div></div>'
     +imgSection()
     +DB_GROUPS.map(function(gr){
-      return dbCard_(gr.g, DB_GICON[gr.g]||'📄', gr.note, '<div class="dbgrid">'+gr.f.map(dbInput).join('')+'</div>');
+      return dbCard_(gr.g, DB_GICON[gr.g]||'doc', gr.note, '<div class="dbgrid">'+gr.f.map(dbInput).join('')+'</div>');
     }).join('')
     +'<div class="savebar"><button class="btn blue" onclick="tdSave(this)">＋ Lưu vào DB_Sản phẩm</button><button class="btn ghost" onclick="renderImport()">Xoá form</button><span style="color:var(--muted);font-size:12px">Ảnh chính + ảnh chi tiết lưu vào cột Ảnh sản phẩm.</span></div>'
-    +dbCard_('Nhập hàng loạt từ file', '📥', 'Chọn file .xlsx / .xls / .csv có cột Tên sản phẩm (và các cột khác nếu có). Hệ thống tự dò cột theo tiêu đề và lưu vào DB_Sản phẩm.',
+    +dbCard_('Nhập hàng loạt từ file', 'download', 'Chọn file .xlsx / .xls / .csv có cột Tên sản phẩm (và các cột khác nếu có). Hệ thống tự dò cột theo tiêu đề và lưu vào DB_Sản phẩm.',
       '<input type="file" id="impFile" accept=".xlsx,.xls,.csv" onchange="impPick(this)" style="font:inherit"><div id="impPreview" style="margin-top:12px"></div>')
     +'</div>';
 }
@@ -1274,7 +1307,7 @@ function impShow(res){
   var rows=S._impProducts.map(function(p,i){ return impRow_(p,i); }).join('');
   document.getElementById('impPreview').innerHTML=
     '<div style="margin-bottom:6px"><b>Đọc được '+res.count+' sản phẩm.</b> <span style="color:var(--muted)">Cột nhận diện: '+mappedTxt+'</span></div>'
-    +'<div style="margin-bottom:10px;font-size:13px">🖼️ Ảnh: <b id="impImgCount">0</b>/'+res.count+' đã có ảnh — <span style="color:var(--muted)">bấm ô <b>＋</b> ở cột Ảnh để tải hình cho từng sản phẩm</span></div>'
+    +'<div style="margin-bottom:10px;font-size:13px;display:flex;align-items:center;gap:6px"><span style="color:var(--blue);display:inline-flex">'+icon('image',16)+'</span>Ảnh: <b id="impImgCount">0</b>/'+res.count+' đã có ảnh — <span style="color:var(--muted)">bấm ô <b>＋</b> ở cột Ảnh để tải hình cho từng sản phẩm</span></div>'
     +'<div class="tbl-wrap" style="max-height:460px"><table class="tk"><thead><tr><th style="width:58px">Ảnh</th><th>Tên sản phẩm</th><th>Thương hiệu</th><th>Mã SP</th><th>ĐVT</th><th class="num">Giá bán lẻ</th></tr></thead><tbody id="impBody">'+rows+'</tbody></table></div>'
     +'<div style="margin-top:12px"><button class="btn blue" onclick="impCommit(this)">＋ Nhập '+res.count+' sản phẩm vào danh mục</button></div>';
   impUpdateCounter();
