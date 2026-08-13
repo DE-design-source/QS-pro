@@ -385,10 +385,39 @@ function pickDemuc(code){
   if(typeof pickNode==='function') pickNode(code);   // set S.node + lọc đề mục + đồng bộ cây/bảng
   else setDemucFilter(code);
 }
+/* Bộ lọc nâng cao: gập/mở + đếm số lọc đang bật */
+function toggleAdv(){
+  var w=document.getElementById('advFilters'); if(!w) return;
+  var open=w.classList.toggle('open');
+  var t=document.getElementById('advToggle'); if(t) t.classList.toggle('on',open);
+}
+function activeFilterCount(){
+  var n=0;
+  ['fWatt','fKelvin','fAngle','fIP','fCRI','fVolt'].forEach(function(k){
+    var m=S[k]||{}; if(Object.keys(m).some(function(x){return m[x];})) n++;
+  });
+  if(S.fBrand) n++;
+  var mn=document.getElementById('fMin'), mx=document.getElementById('fMax');
+  if((mn&&+mn.value)||(mx&&+mx.value)) n++;
+  return n;
+}
+function updateCatUI(){
+  var n=activeFilterCount();
+  var b=document.getElementById('advBadge'); if(b){ b.textContent=n||''; b.style.display=n?'inline-flex':'none'; }
+  var c=document.getElementById('advClear'); if(c) c.style.display=n?'inline-block':'none';
+}
+function clearAllFilters(){
+  S.fWatt={}; S.fKelvin={}; S.fAngle={}; S.fIP={}; S.fCRI={}; S.fVolt={}; S.fBrand='';
+  var mn=document.getElementById('fMin'); if(mn) mn.value='';
+  var mx=document.getElementById('fMax'); if(mx) mx.value='';
+  renderFilters(); renderCatalog();
+}
 function renderCatalog(){
   var list=filteredProducts();
   var el=document.getElementById('catList');
-  if(!list.length){ el.innerHTML='<div class="empty">Không có sản phẩm khớp lọc.</div>'; return; }
+  var cc=document.getElementById('catCount'); if(cc) cc.textContent=list.length+' SP';
+  updateCatUI();
+  if(!list.length){ el.innerHTML='<div class="empty">Không có sản phẩm khớp lọc.</div>'; S._filtered=list; return; }
   el.innerHTML=list.slice(0,300).map(function(p,i){
     var img=p.hinhAnh?'<img class="thumb" src="'+esc(p.hinhAnh)+'" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>';
     var im2=p.hinhAnh?'<img class="thumb" src="'+esc(p.hinhAnh)+'" onclick="showDetail('+i+')" style="cursor:pointer" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb" onclick="showDetail('+i+')" style="cursor:pointer"></div>';
