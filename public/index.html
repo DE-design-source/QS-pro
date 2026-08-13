@@ -241,6 +241,11 @@ table.tk .pick{border:none;background:#eef1f4;border-radius:5px;padding:2px 5px;
 table.tk .pick:hover{background:var(--blue);color:#fff}
 .fltpop{position:fixed;z-index:70;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 16px 48px #0004;min-width:220px;max-height:440px;overflow:auto;padding:8px}
 .fltpop .fhdr{font-weight:800;font-size:14px;padding:2px 6px 8px}
+.demuc-opt{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:13px;color:#2a3746}
+.demuc-opt:hover{background:#f2f6fb}
+.demuc-opt.on{background:#eaf1fb;color:var(--navy);font-weight:700}
+.demuc-opt.l2{padding-left:22px} .demuc-opt.l3{padding-left:34px;font-size:12.5px} .demuc-opt.l4{padding-left:46px;font-size:12.5px}
+.demuc-opt .dc{color:#98a6b3;font-size:11.5px;flex:none}
 .pick-new{display:flex;align-items:center;gap:6px;padding:8px 10px;margin-bottom:6px;border:1px dashed var(--blue);border-radius:8px;color:var(--blue);font-weight:700;font-size:13px;cursor:pointer;background:#f4f8ff}
 .pick-new:hover{background:#e9f1ff}
 .fsec{border:1px solid #e6eaef;border-radius:10px;margin-bottom:8px;background:#fff}
@@ -428,7 +433,7 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
       <div class="panel">
         <h3>Hạng mục</h3>
         <div class="mlbl">Đề mục</div>
-        <div class="msel" id="fDemuc"><span class="mlabel" id="fDemucLabel">Tất cả đề mục</span><span class="mplus" id="fDemucClear" onclick="clearDemuc()">▾</span></div>
+        <div class="msel" id="fDemuc" onclick="openDemucSel(event)"><span class="mlabel" id="fDemucLabel">Tất cả đề mục</span><span class="mplus" id="fDemucClear">▾</span></div>
         <div class="mlbl">Hạng mục sản phẩm</div>
         <div class="msel" id="fNhom" onclick="openNhomMsel(event)"><span class="mlabel">Tất cả hạng mục</span><span class="mplus">▾</span></div>
         <div class="mlbl">Tên dự án</div>

@@ -331,6 +331,27 @@ function updateDemucBox_(){
   else { lb.textContent='Tất cả đề mục'; if(box)box.classList.remove('active'); if(clr)clr.textContent='▾'; }
 }
 function clearDemuc(){ S.demucKw=''; S.demucCode=''; updateDemucBox_(); renderCatalog(); }
+/* Dropdown chọn đề mục ở panel trái (dùng cây hạng mục) */
+function openDemucSel(e){
+  if(e){ if(e.target.closest('#fDemucClear') && S.demucCode){ e.stopPropagation(); clearDemuc(); return; } e.stopPropagation(); }
+  closePop();
+  var nodes=TREE.filter(function(t){return t[0]!=='X';}).map(function(t){return {code:t[0],name:t[1],lvl:t[2]};});
+  (typeof customGroups==='function'?customGroups():[]).forEach(function(n){ nodes.push({code:n,name:n,lvl:1}); });
+  var pop=document.createElement('div'); pop.className='fltpop'; pop.id='qs_pop'; pop.style.width='330px'; pop.style.maxHeight='70vh';
+  pop.innerHTML='<div class="fhdr">Chọn đề mục</div>'
+    +'<div class="demuc-opt'+(!S.demucCode?' on':'')+'" onclick="pickDemuc(\'X\')">Tất cả đề mục</div>'
+    +nodes.map(function(t){ var cnt=(typeof nodeCount==='function')?nodeCount(t.code):0;
+      return '<div class="demuc-opt l'+t.lvl+(S.demucCode===t.code?' on':'')+'" onclick="pickDemuc(\''+t.code+'\')"><span>'+esc(t.code+'.'+t.name)+'</span><span class="dc">['+pad2(cnt)+']</span></div>'; }).join('');
+  document.body.appendChild(pop);
+  var r=e.currentTarget.getBoundingClientRect(); pop.style.left=Math.max(8,r.left)+'px'; pop.style.top=(r.bottom+4)+'px'; pop.style.width=Math.max(300,r.width)+'px';
+  setTimeout(function(){ document.addEventListener('mousedown',popOutside); },0);
+}
+function pickDemuc(code){
+  closePop();
+  if(code==='X'){ clearDemuc(); return; }
+  if(typeof pickNode==='function') pickNode(code);   // set S.node + lọc đề mục + đồng bộ cây/bảng
+  else setDemucFilter(code);
+}
 function renderCatalog(){
   var list=filteredProducts();
   var el=document.getElementById('catList');
