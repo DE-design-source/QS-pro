@@ -135,18 +135,46 @@ function renderFloors(){
   hint.innerHTML='Đang thêm vào tầng: <b>'+esc(S.selFloor||'—')+'</b> · bấm tên tầng để đổi · hoặc <b>kéo sản phẩm</b> từ danh mục thả vào tầng.';
 }
 function selectFloor(g){ S.selFloor = (g==='CHƯA PHÂN TẦNG'?'':g); renderFloors(); renderTable(); }
-async function addFloor(){
+var FLOOR_PRESETS=['TẦNG HẦM','TẦNG LỬNG','TẦNG TRỆT','TẦNG 1','TẦNG 2','TẦNG 3','TẦNG 4','TẦNG 5','SÂN THƯỢNG','TẦNG MÁI','TUM THANG'];
+function addFloorPopInner_(){
+  var existing=floorsList().filter(function(f){return f!=='CHƯA PHÂN TẦNG';});
+  var chips=FLOOR_PRESETS.map(function(nm){ var on=existing.indexOf(nm)>=0;
+    return '<span class="afl-chip'+(on?' on':'')+'" onclick="addFloorName(this.dataset.n)" data-n="'+esc(nm)+'">'+icon(on?'check':'plus',13)+esc(nm)+'</span>'; }).join('');
+  return '<div class="fhdr">Thêm tầng</div>'
+    +'<div class="afl-chips">'+chips+'</div>'
+    +'<div class="afl-cust"><input id="aflInput" placeholder="Tên tầng khác…" autocomplete="off" onkeydown="if(event.key===\'Enter\'){event.preventDefault();addFloorCustom();}"><button class="btn blue sm" onclick="addFloorCustom()">'+icon('plus',14)+'Thêm</button></div>'
+    +'<div class="afl-hint">Bấm chip để thêm nhanh · thêm được nhiều tầng liên tiếp</div>';
+}
+function openAddFloor(e){
   if(!S.cur){ toast('Chưa chọn dự án'); return; }
-  var name=prompt('Tên tầng mới (vd: TẦNG HẦM, TẦNG TRỆT, TẦNG 2):'); if(name==null) return;
-  name=name.trim(); if(!name) return;
+  if(e) e.stopPropagation();
+  closePop();
+  var pop=document.createElement('div'); pop.className='fltpop addfloor-pop'; pop.id='qs_pop'; pop.style.width='320px'; pop.style.visibility='hidden';
+  pop.innerHTML=addFloorPopInner_();
+  document.body.appendChild(pop);
+  var r=e.currentTarget.getBoundingClientRect(), h=pop.offsetHeight;
+  var top=r.top-h-8; if(top<8) top=r.bottom+8;                 // ưu tiên hiện phía trên nút
+  pop.style.left=Math.max(8,Math.min(r.left, window.innerWidth-330))+'px';
+  pop.style.top=top+'px'; pop.style.visibility='';
+  setTimeout(function(){ document.addEventListener('mousedown',popOutside); var i=document.getElementById('aflInput'); if(i)i.focus(); },0);
+}
+function addFloorCustom(){ var el=document.getElementById('aflInput'); if(!el) return; var v=el.value.trim(); if(!v) return; el.value=''; addFloorName(v); }
+async function addFloorName(name){
+  if(!S.cur){ toast('Chưa chọn dự án'); return; }
+  name=String(name||'').trim().toUpperCase(); if(!name) return;
   var cur=(S.cur.tangTuTao?String(S.cur.tangTuTao).split('|'):[]).map(function(s){return s.trim();}).filter(Boolean);
-  if(cur.indexOf(name)<0) cur.push(name);
+  if(cur.indexOf(name)>=0){ S.selFloor=name; renderFloors(); renderTable(); toast('Tầng "'+name+'" đã có — chuyển sang đang thêm'); refreshAddFloorPop_(); return; }
+  cur.push(name);
   try{
     var p=await api('updateProject', S.cur.maDA, {tangTuTao:cur.join('|')}); S.cur=p;
     var i=S.projects.findIndex(function(x){return x.maDA===p.maDA;}); if(i>=0)S.projects[i]=p;
     S.selFloor=name; renderFloors(); renderTable(); toast('Đã thêm tầng: '+name);
+    refreshAddFloorPop_();
   }catch(e){ toast('Lỗi: '+e.message); }
 }
+function refreshAddFloorPop_(){ var pop=document.getElementById('qs_pop'); if(pop&&pop.classList.contains('addfloor-pop')){ pop.innerHTML=addFloorPopInner_(); var i=document.getElementById('aflInput'); if(i)i.focus(); } }
+// giữ tương thích cũ
+function addFloor(){ openAddFloor({stopPropagation:function(){},currentTarget:{getBoundingClientRect:function(){return {top:200,bottom:230,left:200};}}}); }
 async function addBlankItem(){ await addItemToFloor(S.selFloor||''); }
 async function addItemToFloor(tang){
   if(!S.cur){ toast('Chưa chọn dự án'); return; }
@@ -709,8 +737,12 @@ function renderTable(){
       }).join('')+'<td class="ct actcell"><button class="del" title="Xoá dòng" onclick="delLine(\''+l.lineId+'\')">✕</button><div class="rgrip" data-id="'+l.lineId+'" title="Kéo để chỉnh chiều cao dòng">⇕</div></td></tr>';
     });
   });
-  body+='<tr><td colspan="'+(cols.length+1)+'" style="background:#fff;padding:10px 12px"><span class="addfloorbtn" onclick="addFloor()">＋ Thêm tầng</span> '
-    +'<span class="addfloorbtn" style="border-style:solid;border-color:var(--blue);color:var(--blue)" onclick="addBlankItem()" title="Thêm 1 hạng mục trống vào tầng đang chọn">＋ Thêm hạng mục</span></td></tr>';
+  var selF=(S.selFloor||'').trim();
+  body+='<tr class="addrow"><td colspan="'+(cols.length+1)+'">'
+    +'<button class="addbtn floor" onclick="openAddFloor(event)">'+icon('plus',15)+'Thêm tầng</button>'
+    +'<button class="addbtn item" onclick="addBlankItem()" title="Thêm 1 hạng mục trống vào tầng đang chọn">'+icon('plus',15)+'Thêm hạng mục'
+      +(selF?'<span class="addbtn-sub">vào '+esc(selF)+'</span>':'')+'</button>'
+    +'</td></tr>';
   t.style.width=totalW+'px';
   t.innerHTML=colg+head+body;
   t.querySelectorAll('td.wrap textarea').forEach(autoGrow);   // ô "Thông tin chính" tự giãn hết dòng
