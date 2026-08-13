@@ -666,11 +666,10 @@ function renderTable(){
   // Đề mục "Phần thô" (3.1) -> bảng ước tính chi phí xây dựng thô (theo mẫu Excel)
   var isPT = (code==='3.1');
   var tkN=document.getElementById('tkNormal'), pw=document.getElementById('ptWrap');
-  var lc=document.getElementById('leftCat'), bg=document.getElementById('bocGrid');
+  // Phần thô chỉ là 1 hạng mục: khi chọn thì hiện bảng của nó ở khu bên phải,
+  // vẫn giữ nguyên khung chọn sản phẩm bên trái + bố cục 2 cột.
   if(tkN) tkN.style.display = isPT?'none':'';
   if(pw) pw.style.display = isPT?'':'none';
-  if(lc) lc.style.display = isPT?'none':'';           // ẩn khung chọn SP đèn khi làm Phần thô
-  if(bg) bg.classList.toggle('pt-mode', isPT);        // 1 cột full-width cho bảng ước tính
   if(isPT){ renderPhanTho(); return; }
   var lines=S.lines.filter(function(l){ return l.nhom===code || String(l.nhom||'').indexOf(code+'.')===0; });
   document.getElementById('tkCount').textContent='['+pad2(lines.length)+']';
