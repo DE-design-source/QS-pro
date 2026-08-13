@@ -78,14 +78,18 @@ function buildPurchaseCard(o) {
     grand += Number(od.total) || 0; nSup++;
     els.push({ tag: 'hr' });
     els.push({ tag: 'div', text: { tag: 'lark_md', content: '🏭 **Nhà cung cấp:** <font color=\'blue\'>**' + (od.supplier || '—') + '**</font>' } });
-    let tbl = '| # | Sản phẩm | SL | Đơn giá | Thành tiền |\n| :-- | :-- | :--: | --: | --: |\n';
+    // Bảng SP bằng fields 2 cột (Lark render đẹp)
+    const pf = [
+      { is_short: true, text: { tag: 'lark_md', content: '<font color=\'grey\'>**SẢN PHẨM**</font>' } },
+      { is_short: true, text: { tag: 'lark_md', content: '<font color=\'grey\'>**THÀNH TIỀN**</font>' } }
+    ];
     (od.items || []).forEach(function (it, i) {
       nItems++;
       const tt = (Number(it.sl) || 0) * (Number(it.donGia) || 0);
-      tbl += '| ' + (i + 1) + ' | ' + (it.ten || '') + ' | ' + (it.sl || 0) + ' ' + (it.dvt || '') +
-        ' | ' + fmtVN(it.donGia) + ' | ' + fmtVN(tt) + ' |\n';
+      pf.push({ is_short: true, text: { tag: 'lark_md', content: '**' + (i + 1) + '.** ' + (it.ten || '') + '\n<font color=\'grey\'>' + (it.sl || 0) + ' ' + (it.dvt || '') + ' × ' + fmtVN(it.donGia) + ' đ</font>' } });
+      pf.push({ is_short: true, text: { tag: 'lark_md', content: '**' + fmtVN(tt) + ' đ**' } });
     });
-    els.push({ tag: 'markdown', content: tbl });
+    els.push({ tag: 'div', fields: pf });
     els.push({
       tag: 'div', text: {
         tag: 'lark_md',
