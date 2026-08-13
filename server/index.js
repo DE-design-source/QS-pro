@@ -52,8 +52,65 @@ const REGISTRY = {
   getQuote: store.getQuote,
   importParse: store.importParse,
   importCommit: store.importCommit,
-  exportBaoGia: exportBaoGia
+  exportBaoGia: exportBaoGia,
+  sendPurchaseRequest: sendPurchaseRequest
 };
+
+// ===== Gửi yêu cầu mua hàng tới webhook Lark (bot incoming webhook) =====
+const PURCHASE_WEBHOOK = process.env.PURCHASE_WEBHOOK ||
+  'https://open.larksuite.com/open-apis/bot/v2/hook/42c47fe7-d95e-472b-bb0c-6473d456b91a';
+function fmtVN(n) { return (Math.round(Number(n) || 0)).toLocaleString('vi-VN'); }
+function buildPurchaseCard(o) {
+  o = o || {};
+  const orders = Array.isArray(o.orders) ? o.orders : [];
+  const els = [{
+    tag: 'div', text: {
+      tag: 'lark_md',
+      content: '**Dự án:** ' + (o.project || '—') + '　·　' + (o.maDA || '') +
+        (o.khachHang ? '\n**Khách hàng:** ' + o.khachHang : '') +
+        (o.sdt ? '　·　☎ ' + o.sdt : '')
+    }
+  }];
+  let grand = 0;
+  orders.forEach(function (od) {
+    grand += Number(od.total) || 0;
+    els.push({ tag: 'hr' });
+    els.push({ tag: 'div', text: { tag: 'lark_md', content: '**🏭 Nhà cung cấp: ' + (od.supplier || '—') + '**' } });
+    const lines = (od.items || []).map(function (it, i) {
+      return (i + 1) + '. ' + (it.ten || '') + '　—　SL: **' + (it.sl || 0) + '** ' + (it.dvt || 'Cái') +
+        '　×　' + fmtVN(it.donGia) + ' đ';
+    }).join('\n') || '_(không có sản phẩm)_';
+    els.push({ tag: 'div', text: { tag: 'lark_md', content: lines } });
+    els.push({
+      tag: 'div', text: {
+        tag: 'lark_md',
+        content: 'VAT ' + (od.vatPct || 0) + '%: ' + fmtVN(od.vat) + ' đ　·　**TỔNG: ' + fmtVN(od.total) + ' đ**'
+      }
+    });
+  });
+  if (orders.length > 1) {
+    els.push({ tag: 'hr' });
+    els.push({ tag: 'div', text: { tag: 'lark_md', content: '**💰 TỔNG TẤT CẢ: ' + fmtVN(grand) + ' đ**' } });
+  }
+  return {
+    msg_type: 'interactive',
+    card: {
+      config: { wide_screen_mode: true },
+      header: { template: 'blue', title: { tag: 'plain_text', content: '🛒 Yêu cầu mua hàng' } },
+      elements: els
+    }
+  };
+}
+async function sendPurchaseRequest(order) {
+  const payload = buildPurchaseCard(order || {});
+  const r = await fetch(PURCHASE_WEBHOOK, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+  });
+  let data = null; try { data = await r.json(); } catch (e) { data = null; }
+  const ok = data && (data.code === 0 || data.StatusCode === 0 || data.msg === 'success');
+  if (!ok) throw new Error((data && (data.msg || data.StatusMessage)) || ('HTTP ' + r.status));
+  return { ok: true };
+}
 
 app.post('/api/:fn', async function (req, res) {
   const fn = req.params.fn;
