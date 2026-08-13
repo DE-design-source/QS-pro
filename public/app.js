@@ -1036,12 +1036,13 @@ function renderProjects(){
   var switcher='<div class="proj-switch"><div class="ps-name">'+icon('building',16)+'<b>'+esc(gr.name)+'</b><span class="ps-count">'+gr.drafts.length+' bản nháp</span></div>'
     +'<div class="ps-tabs">'+tabs+'<button class="draft-tab add" onclick="addDraftForCur()">'+icon('plus',13)+' Thêm bản nháp</button></div></div>';
   // Section 1 — Thông tin dự án (dùng chung mọi bản nháp)
-  var shared='<div class="panel"><div class="toolbar"><h3>Thông tin dự án</h3><span style="color:var(--muted);font-size:12px;margin-left:8px">áp dụng cho tất cả bản nháp</span></div>'
+  var shared='<div class="panel"><div class="toolbar pf-hd"><span class="pf-ic">'+icon('building',17)+'</span><h3>Thông tin dự án</h3><span class="pf-note">áp dụng cho tất cả bản nháp</span></div>'
     +'<div class="dbgrid">'+pf_('Tên dự án','pf_ten',p.ten)+pf_('Khách hàng','pf_kh',p.khachHang)+pf_('Số điện thoại','pf_sdt',p.sdt)
     +pf_('Địa chỉ','pf_addr',p.diaChi)+'</div>'
     +'<div style="margin-top:12px"><button class="btn blue" onclick="saveProjectShared(this)">'+icon('check',15)+' Lưu thông tin dự án</button></div></div>';
   // Section 2 — Thông tin bản nháp này
-  var draft='<div class="panel" style="margin-top:14px"><div class="toolbar"><h3>Thông tin bản nháp — Bản nháp '+(gr.idx+1)+'</h3><span class="count">'+esc(p.maDA)+'</span></div>'
+  var draft='<div class="panel" style="margin-top:14px"><div class="toolbar pf-hd"><span class="pf-ic">'+icon('doc',17)+'</span><h3>Thông tin bản nháp — Bản nháp '+(gr.idx+1)+'</h3><span class="count">'+esc(p.maDA)+'</span>'
+    +'<span class="sp" style="flex:1"></span>'+(gr.drafts.length>1?'<button class="btn ghost sm" onclick="removeProject(\''+esc(p.maDA)+'\')">'+icon('trash',13)+' Xoá bản nháp</button>':'')+'</div>'
     +'<div class="dbgrid">'
     +'<div class="field"><label>Trạng thái</label><select id="pf_tt">'+['Bản nháp','Đang thực hiện','Hoàn thành'].map(function(s){return '<option'+(p.trangThai===s?' selected':'')+'>'+s+'</option>';}).join('')+'</select></div>'
     +pf_('VAT (%)','pf_vat',p.vat,'number')
@@ -1136,21 +1137,36 @@ async function addDraft(gi){
     toast('Đã thêm bản nháp mới cho "'+g.name+'"');
   }catch(e){ toast('Lỗi: '+e.message); }
 }
+function kpi(ic,label,val,accent){ return '<div class="kpi"><div class="kpi-ic '+(accent||'')+'">'+ic+'</div><div class="kpi-b"><div class="kpi-n">'+val+'</div><div class="kpi-t">'+esc(label)+'</div></div></div>'; }
 function renderDash(){
   var el=document.getElementById('v-dash');
   var drafts=draftListHtml();
+  var header='<div class="sechd"><h2>Bảng điều khiển</h2><span class="sp" style="flex:1"></span>'
+    +'<button class="btn blue sm" onclick="openCreate()">'+icon('plus',14)+' Tạo dự án</button></div>';
   if(!S.cur){
-    el.innerHTML='<div class="sechd"><h2>Bảng điều khiển</h2></div>'+drafts
-      +'<div class="empty" style="margin-top:14px">Chọn một bản nháp trong dự án phía trên để xem số liệu.</div>';
+    el.innerHTML=header
+      +'<div class="dash-empty">'+icon('layers',40)+'<h3>Chưa chọn bản nháp</h3><p>Chọn một bản nháp trong dự án bên dưới để xem tổng quan — hoặc tạo dự án mới.</p></div>'
+      +drafts;
     return;
   }
   var von=0,ban=0,kl=0,groups={}; S.lines.forEach(function(l){ von+=l.thanhTienVon;ban+=l.thanhTienBan;kl+=l.soLuong; var k=l.nhom||'Khác'; (groups[k]=groups[k]||{ban:0}).ban+=l.thanhTienBan; });
+  var gr=currentGroup();
   var byG=Object.keys(groups).map(function(k){return {k:k,ban:groups[k].ban};}).sort(function(a,b){return b.ban-a.ban;});
   var max=byG.reduce(function(m,g){return Math.max(m,g.ban);},1);
-  var bars=byG.map(function(g){ return '<div style="margin:10px 0"><div style="display:flex;justify-content:space-between;font-size:13px"><span>'+esc(nodeName(g.k))+'</span><b>'+money(g.ban)+' đ</b></div><div style="height:10px;background:#eef2f6;border-radius:6px;overflow:hidden;margin-top:4px"><i style="display:block;height:100%;width:'+(g.ban/max*100)+'%;background:var(--blue)"></i></div></div>'; }).join('')||'<div class="empty">Chưa có dữ liệu.</div>';
-  el.innerHTML='<div class="sechd"><h2>Bảng điều khiển</h2><span class="sp"></span><span style="color:var(--muted);font-size:13px">'+esc(S.cur.ten)+'</span></div>'
-    +'<div class="stat">'+card('Số hạng mục',S.lines.length)+card('Tổng khối lượng',kl)+card('Giá trị vốn',money(von)+' đ')+card('Tổng giá bán',money(ban)+' đ')+card('Lợi nhuận',money(ban-von)+' đ')+'</div>'
-    +'<div class="panel"><h3>Giá trị theo nhóm (giá bán)</h3>'+bars+'</div>'
+  var bars=byG.map(function(g){ return '<div style="margin:11px 0"><div style="display:flex;justify-content:space-between;font-size:13px"><span>'+esc(nodeName(g.k))+'</span><b>'+money(g.ban)+' đ</b></div><div style="height:10px;background:#eef2f6;border-radius:6px;overflow:hidden;margin-top:5px"><i style="display:block;height:100%;width:'+(g.ban/max*100)+'%;background:var(--blue);border-radius:6px"></i></div></div>'; }).join('')||'<div class="empty">Chưa có hạng mục nào trong bản nháp này.</div>';
+  var banner='<div class="dash-banner"><div class="db-l"><div class="db-eyebrow">Đang làm việc</div>'
+    +'<div class="db-title">'+icon('building',18)+esc(S.cur.ten)+'<span class="db-sep">›</span>Bản nháp '+((gr?gr.idx:0)+1)+'</div>'
+    +'<div class="db-code">'+esc(S.cur.maDA)+' · Tạo '+fmtDate(S.cur.ngayTao)+'</div></div>'
+    +'<div class="db-r"><button class="btn light sm" onclick="showTab(\'project\')">'+icon('doc',14)+' Thông tin</button>'
+    +'<button class="btn white sm" onclick="showTab(\'boc\')">'+icon('layers',14)+' Mở bóc tách</button></div></div>';
+  var kpis='<div class="kpis">'
+    +kpi(icon('list',18),'Số hạng mục',S.lines.length,'blue')
+    +kpi(icon('layers',18),'Tổng khối lượng',kl,'blue')
+    +kpi(icon('lock',18),'Giá trị vốn',money(von)+' đ','')
+    +kpi(icon('money',18),'Tổng giá bán',money(ban)+' đ','')
+    +kpi(icon('gauge',18),'Lợi nhuận',money(ban-von)+' đ','green')+'</div>';
+  el.innerHTML=header+banner+kpis
+    +'<div class="panel"><h3>Giá trị theo nhóm (giá bán)</h3><div class="dash-bars">'+bars+'</div></div>'
     +drafts;
 }
 

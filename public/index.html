@@ -524,6 +524,40 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 .draft-tab:hover{border-color:var(--blue);color:var(--blue)}
 .draft-tab.on{background:var(--blue);border-color:var(--blue);color:#fff}
 .draft-tab.add{border-style:dashed;color:var(--blue);display:inline-flex;align-items:center;gap:5px}
+/* ===== Bảng điều khiển (làm lại) ===== */
+.dash-banner{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:linear-gradient(120deg,var(--navy),#1c4e82);color:#fff;border-radius:14px;padding:16px 20px;margin-bottom:16px}
+.db-eyebrow{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#a9c2dd;font-weight:700}
+.db-title{display:flex;align-items:center;gap:9px;font-size:19px;font-weight:800;margin-top:3px}
+.db-title svg{opacity:.9}
+.db-sep{opacity:.5;font-weight:400}
+.db-code{font-size:12px;color:#b7cbe0;margin-top:4px;letter-spacing:.3px}
+.db-r{display:flex;gap:9px;flex-wrap:wrap}
+.btn.white{background:#fff;color:var(--navy);border:1px solid #fff;font-weight:700}
+.btn.white:hover{background:#eef4fb}
+.btn.light{background:#ffffff1f;color:#fff;border:1px solid #ffffff40}
+.btn.light:hover{background:#ffffff30}
+.btn.white svg,.btn.light svg{width:14px;height:14px}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:13px;margin-bottom:16px}
+@media(max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{display:flex;align-items:center;gap:13px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:15px 16px}
+.kpi-ic{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:#eef2f6;color:#64707c;flex:none}
+.kpi-ic.blue{background:#eaf1ff;color:var(--blue)}
+.kpi-ic.green{background:#eaf7ee;color:#1a7f37}
+.kpi-n{font-size:20px;font-weight:800;color:var(--navy);line-height:1.15;letter-spacing:-.3px}
+.kpi-t{color:var(--muted);font-size:12px;margin-top:2px}
+.dash-empty{background:#fff;border:1px dashed #cdd8e3;border-radius:14px;padding:34px 20px;text-align:center;color:var(--muted);margin-bottom:16px}
+.dash-empty svg{color:#c0ccd8;margin-bottom:8px}
+.dash-empty h3{margin:4px 0 4px;color:var(--ink);font-size:17px}
+.dash-empty p{margin:0;font-size:13px}
+.dash-bars{margin-top:4px}
+/* Thông tin dự án — tiêu đề khối */
+.pf-hd{display:flex;align-items:center;gap:9px}
+.pf-ic{width:30px;height:30px;border-radius:8px;background:#eaf1ff;color:var(--blue);display:flex;align-items:center;justify-content:center;flex:none}
+.pf-hd h3{margin:0}
+.pf-note{color:var(--muted);font-size:12px}
+#v-project .panel{padding:16px 18px}
+#v-project .field label{font-size:12px;font-weight:600;color:#4a5866;margin-bottom:5px}
+#v-project .field input,#v-project .field select,#v-project .field textarea{border-radius:9px;padding:9px 11px}
 .pcell:hover{border-color:#c3d3e2;box-shadow:0 4px 14px #0000000d}
 .pcell h4{margin:0 0 7px;font-size:15px}
 .pcell .meta{color:var(--muted);font-size:12.5px;line-height:1.55}
