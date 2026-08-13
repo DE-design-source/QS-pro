@@ -537,7 +537,7 @@ function showDetail(i){
   el.style.display='block';
   el.innerHTML='<div class="pd-head"><h3>Thông tin sản phẩm</h3><button class="pd-x" title="Đóng" onclick="hideDetail()">✕</button></div>'
     +pdContent_(p)
-    +'<button class="btn blue" style="width:100%;margin-top:12px" onclick="addProduct('+i+')">＋ Thêm vào bóc tách</button>';
+    +'<div class="pd-actions"><button class="btn blue sm" onclick="addProduct('+i+')">'+icon('plus',14)+' Thêm vào bóc tách</button></div>';
 }
 /* ===== DANH SÁCH SẢN PHẨM ===== */
 function renderSanpham(){
@@ -773,10 +773,11 @@ function renderTable(){
   var vat=Math.round(sub*vatPct/100);
   var te=document.getElementById('tkTotals');
   if(te){
-    te.innerHTML=
-      '<div class="tkt-row"><span class="tkt-l">TỔNG CHƯA VAT</span><span class="tkt-v">'+money(sub)+' đ</span></div>'
-     +'<div class="tkt-row"><span class="tkt-l">VAT <input class="tkt-vat" type="number" step="any" min="0" value="'+vatPct+'" onchange="setVat(this.value)"> %</span><span class="tkt-v">'+money(vat)+' đ</span></div>'
-     +'<div class="tkt-row grand"><span class="tkt-l">TỔNG THÀNH TIỀN</span><span class="tkt-v">'+money(sub+vat)+' đ</span></div>';
+    te.innerHTML='<div class="tkt-card">'
+     +'<div class="tkt-row"><span class="tkt-l">Tổng chưa VAT</span><span class="tkt-v">'+money(sub)+' đ</span></div>'
+     +'<div class="tkt-row"><span class="tkt-l">Thuế VAT <input class="tkt-vat" type="number" step="any" min="0" value="'+vatPct+'" onchange="setVat(this.value)"><span class="tkt-pct">%</span></span><span class="tkt-v">'+money(vat)+' đ</span></div>'
+     +'<div class="tkt-row grand"><span class="tkt-l">Tổng thành tiền</span><span class="tkt-v">'+money(sub+vat)+' đ</span></div>'
+     +'</div>';
   }
 }
 function setVat(v){

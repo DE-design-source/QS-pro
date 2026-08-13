@@ -258,14 +258,20 @@ table.tk tr.grp .gname{font-size:14.5px;font-weight:800;letter-spacing:.5px}
 table.tk tr.grp .gsum{float:right;font-size:12.5px;font-weight:600;opacity:.92}
 table.tk tr.grp .gsum b{font-weight:800;font-size:13.5px;color:#8fd3ff}
 /* Tổng tiền dưới bảng bóc tách */
-.tk-totals{display:flex;flex-direction:column;gap:8px;align-items:flex-end;margin-top:16px}
-.tkt-row{display:flex;align-items:center;justify-content:space-between;gap:18px;min-width:340px;background:var(--navy);color:#fff;border-radius:10px;padding:11px 18px}
-.tkt-row .tkt-l{font-size:12.5px;font-weight:700;letter-spacing:.4px;display:flex;align-items:center;gap:6px}
-.tkt-row .tkt-v{font-size:15px;font-weight:800}
-.tkt-row.grand{background:var(--blue);box-shadow:0 2px 8px #2f6bff44}
-.tkt-row.grand .tkt-v{font-size:17px}
-.tkt-vat{width:56px;border:1px solid #ffffff55;background:#ffffff1f;color:#fff;border-radius:6px;padding:3px 6px;font:inherit;font-size:13px;text-align:right}
-.tkt-vat:focus{outline:none;border-color:#fff;background:#ffffff33}
+.tk-totals{display:flex;justify-content:flex-end;margin-top:16px}
+.tkt-card{width:372px;max-width:100%;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 6px 20px #1e3a5f14}
+.tkt-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 18px}
+.tkt-row+.tkt-row:not(.grand){border-top:1px solid #f0f3f6}
+.tkt-row .tkt-l{font-size:13px;font-weight:600;color:#5a6674;display:flex;align-items:center;gap:8px}
+.tkt-row .tkt-v{font-size:15.5px;font-weight:800;color:var(--navy)}
+.tkt-row.grand{background:var(--navy);color:#fff;padding:15px 18px;border-top:none}
+.tkt-row.grand .tkt-l{color:#c7dbf0;font-weight:700;letter-spacing:.5px;text-transform:uppercase;font-size:12px}
+.tkt-row.grand .tkt-v{color:#fff;font-size:19px}
+.tkt-vat{width:50px;border:1px solid #d7dde4;background:#fff;color:var(--ink);border-radius:7px;padding:4px 7px;font:inherit;font-size:13px;text-align:right}
+.tkt-vat:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px #2f6bff1f}
+.tkt-pct{color:#8a97a4;font-size:12.5px}
+.pd-actions{margin-top:14px;display:flex;justify-content:center}
+.pd-actions .btn{padding:8px 18px}
 table.tk tr.drow td{background:#fff}
 table.tk tr.drow.alt td{background:#f4f7fa}
 table.tk .pimg{width:42px;height:42px;object-fit:contain;background:#fff;border:1px solid #eef1f4;border-radius:5px}
