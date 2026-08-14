@@ -1658,7 +1658,10 @@ function renderImport(){
 }
 /* ==== Upload ảnh ==== */
 function upDrag(e,on){ e.preventDefault(); e.currentTarget.classList.toggle('drag',!!on); }
-async function upFilesSeq_(zone,fs){ for(var i=0;i<fs.length;i++){ try{ await upFile(zone,fs[i]); }catch(e){} } }  // tải TUẦN TỰ như nhập file
+async function upFilesSeq_(zone,fs){
+  if(zone==='main'){ if(fs.length>1) toast('Hình đại diện chỉ 1 ảnh — lấy ảnh đầu.'); fs=fs.slice(0,1); }  // RULE: đại diện chỉ 1 ảnh
+  for(var i=0;i<fs.length;i++){ try{ await upFile(zone,fs[i]); }catch(e){} }  // tải TUẦN TỰ như nhập file
+}
 function upPick(zone){
   var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; if(zone==='more') inp.multiple=true;
   inp.onchange=function(){ upFilesSeq_(zone, Array.prototype.slice.call(inp.files||[])); };
