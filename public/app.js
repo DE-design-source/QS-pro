@@ -1701,23 +1701,29 @@ async function uploadImg_(dataUrl, name){
   }
   throw lastErr;
 }
+function upBusy_(d){ S._imgUploading=Math.max(0,(S._imgUploading||0)+d); }
+// Đợi mọi ảnh đang tải xong (tối đa timeout ms) trước khi lưu — tránh lưu thiếu ảnh
+async function waitUploads_(timeout){ var t0=Date.now(); while((S._imgUploading||0)>0 && Date.now()-t0<(timeout||15000)){ await new Promise(function(r){ setTimeout(r,250); }); } }
 function upFile(zone,file){
+  upBusy_(1);   // đánh dấu có ảnh đang xử lý ngay từ đầu
   downscaleImage_(file,1600,0.82).then(async function(dataUrl){
-    if(dataUrl==='__DECODE_FAIL__'){ toast('Không đọc được ảnh — có thể ảnh iPhone (.HEIC). Hãy đổi sang JPG/PNG hoặc dán URL ảnh.'); return; }
-    if(!dataUrl){ toast('Không đọc được ảnh — hãy thử ảnh khác hoặc dán URL.'); return; }
-    // preview tạm bằng dataURL (dùng chính dataURL làm khoá để chống race khi tải nhiều ảnh cùng lúc)
-    if(zone==='main'){ S._imgMain=dataUrl; } else { S._imgList.push(dataUrl); }
-    upRefresh(); toast('Đang tải ảnh lên…');
     try{
-      var tok=await uploadImg_(dataUrl, file.name);   // có thử lại nếu rớt mạng
-      if(zone==='main'){ S._imgMain=tok; }
-      else { var ix=S._imgList.indexOf(dataUrl); if(ix>=0) S._imgList[ix]=tok; else S._imgList.push(tok); }   // thay đúng ô của ảnh này
-      upRefresh(); toast('Đã tải ảnh lên');
-    }catch(e){
-      // upload lỗi -> gỡ đúng preview tạm của ảnh này, gợi ý dán URL
-      if(zone==='main'){ S._imgMain=''; } else { var ie=S._imgList.indexOf(dataUrl); if(ie>=0) S._imgList.splice(ie,1); }
-      upRefresh(); toast('Tải ảnh lỗi: '+(/fetch/i.test(e.message)?'mất kết nối, thử lại':e.message)+' — hoặc dán URL ảnh.');
-    }
+      if(dataUrl==='__DECODE_FAIL__'){ toast('Không đọc được ảnh — có thể ảnh iPhone (.HEIC). Hãy đổi sang JPG/PNG hoặc dán URL ảnh.'); return; }
+      if(!dataUrl){ toast('Không đọc được ảnh — hãy thử ảnh khác hoặc dán URL.'); return; }
+      // preview tạm bằng dataURL (dùng chính dataURL làm khoá để chống race khi tải nhiều ảnh cùng lúc)
+      if(zone==='main'){ S._imgMain=dataUrl; } else { S._imgList.push(dataUrl); }
+      upRefresh(); toast('Đang tải ảnh lên…');
+      try{
+        var tok=await uploadImg_(dataUrl, file.name);   // có thử lại nếu rớt mạng
+        if(zone==='main'){ if(S._imgMain===dataUrl) S._imgMain=tok; }
+        else { var ix=S._imgList.indexOf(dataUrl); if(ix>=0) S._imgList[ix]=tok; }   // thay đúng ô của ảnh này (nếu chưa bị xoá)
+        upRefresh(); toast('Đã tải ảnh lên');
+      }catch(e){
+        // upload lỗi -> gỡ đúng preview tạm của ảnh này, gợi ý dán URL
+        if(zone==='main'){ if(S._imgMain===dataUrl) S._imgMain=''; } else { var ie=S._imgList.indexOf(dataUrl); if(ie>=0) S._imgList.splice(ie,1); }
+        upRefresh(); toast('Tải ảnh lỗi: '+(/fetch/i.test(e.message)?'mất kết nối, thử lại':e.message)+' — hoặc dán URL ảnh.');
+      }
+    } finally { upBusy_(-1); }
   });
 }
 function upAddUrl(zone){
@@ -1773,11 +1779,14 @@ function impRefreshRow(i){ var c=document.getElementById('impimg_'+i); if(c) c.i
 function impUpdateCounter(){ var n=(S._impProducts||[]).filter(function(p){return p.hinhAnh;}).length; var el=document.getElementById('impImgCount'); if(el){ el.textContent=n; el.style.color=(n<(S._impProducts||[]).length)?'#c9820a':'#1a7f37'; } }
 function readB64_(f){ return new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){res(String(r.result));}; r.onerror=rej; r.readAsDataURL(f); }); }
 async function impUploadFiles_(fs){
-  var toks=[]; for(var k=0;k<fs.length;k++){ try{ var b=await downscaleImage_(fs[k],1600,0.82);
-    if(b==='__DECODE_FAIL__'){ toast('Ảnh "'+(fs[k].name||'')+'" không đọc được (có thể .HEIC) — đổi JPG/PNG.'); continue; }
-    if(!b) continue;
-    var tok=await uploadImg_(b, fs[k].name); if(tok) toks.push(tok);
-  }catch(e){ toast('Tải ảnh lỗi: '+(/fetch/i.test(e.message)?'mất kết nối':e.message)); } } return toks;
+  upBusy_(1);
+  try{
+    var toks=[]; for(var k=0;k<fs.length;k++){ try{ var b=await downscaleImage_(fs[k],1600,0.82);
+      if(b==='__DECODE_FAIL__'){ toast('Ảnh "'+(fs[k].name||'')+'" không đọc được (có thể .HEIC) — đổi JPG/PNG.'); continue; }
+      if(!b) continue;
+      var tok=await uploadImg_(b, fs[k].name); if(tok) toks.push(tok);
+    }catch(e){ toast('Tải ảnh lỗi: '+(/fetch/i.test(e.message)?'mất kết nối':e.message)); } } return toks;
+  } finally { upBusy_(-1); }
 }
 function impSetImgs_(i,arr){ S._impProducts[i].hinhAnh=arr.filter(Boolean).join('\n'); impRefreshRow(i); impUpdateCounter(); }
 function impPickMain(i){
@@ -1819,6 +1828,7 @@ function impShow(res){
 }
 async function impCommit(btn){
   if(!S._impProducts||!S._impProducts.length){ toast('Chưa có dữ liệu'); return; }
+  if((S._imgUploading||0)>0){ toast('Đang tải ảnh lên, đợi chút…'); if(btn){ btn.disabled=true; var ot=btn.textContent; btn.textContent='⏳ Đợi tải ảnh…'; } await waitUploads_(20000); if(btn){ btn.disabled=false; btn.textContent=ot; } }
   var missing=S._impProducts.filter(function(p){return !p.hinhAnh;}).length;
   if(missing>0 && !confirm('Còn '+missing+' sản phẩm CHƯA có ảnh.\nBạn nên bấm ô ＋ ở cột Ảnh để tải hình cho từng SP.\n\nVẫn nhập bây giờ?')) return;
   btn.disabled=true; var o=btn.textContent; btn.textContent='Đang nhập…';
@@ -1835,9 +1845,11 @@ async function tdSave(btn){
   delete data['GIÁ ĐẠI LÝ']; // cột tự tính (generated) — không ghi
   if(!data['ĐƠN VỊ TÍNH']) data['ĐƠN VỊ TÍNH']='Cái';
   if(!data['TRẠNG THÁI']) data['TRẠNG THÁI']='Đang kinh doanh';
-  var imgs=[S._imgMain].concat(S._imgList||[]).filter(Boolean).filter(function(v){return v.indexOf('data:')!==0;}); // bỏ preview base64 chưa upload
+  btn.disabled=true; var o=btn.textContent;
+  if((S._imgUploading||0)>0){ btn.textContent='⏳ Đợi tải ảnh…'; await waitUploads_(15000); } // đợi ảnh tải xong để lưu đủ ảnh
+  var imgs=[S._imgMain].concat(S._imgList||[]).filter(Boolean).filter(function(v){return v.indexOf('data:')!==0;}); // bỏ preview base64 chưa upload xong
   if(imgs.length) data['ẢNH SẢN PHẨM']=imgs.join('\n');
-  btn.disabled=true; var o=btn.textContent; btn.textContent='⏳ Đang lưu…';
+  btn.textContent='⏳ Đang lưu…';
   try{ var r=await api('saveDbProduct',data);
     sessionAdd_({ten:ten, thuongHieu:data['THƯƠNG HIỆU']||'', hinhAnh:data['ẢNH SẢN PHẨM']||''});
     toast((r.updated?'Đã cập nhật':'Đã thêm')+' "'+ten+'" vào DB_Sản phẩm'); renderImport(); }
