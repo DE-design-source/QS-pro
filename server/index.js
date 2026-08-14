@@ -53,7 +53,8 @@ const REGISTRY = {
   importParse: store.importParse,
   importCommit: store.importCommit,
   exportBaoGia: exportBaoGia,
-  sendPurchaseRequest: sendPurchaseRequest
+  sendPurchaseRequest: sendPurchaseRequest,
+  getPurchaseOrders: store.getPurchaseOrders
 };
 
 // ===== Gửi yêu cầu mua hàng tới webhook Lark (bot incoming webhook) =====
@@ -127,7 +128,15 @@ async function sendPurchaseRequest(order) {
   let data = null; try { data = await r.json(); } catch (e) { data = null; }
   const ok = data && (data.code === 0 || data.StatusCode === 0 || data.msg === 'success');
   if (!ok) throw new Error((data && (data.msg || data.StatusMessage)) || ('HTTP ' + r.status));
-  return { ok: true };
+  // Lưu đơn mua hàng vào DB (best-effort — không chặn kết quả gửi Lark)
+  let savedMa = [];
+  try {
+    if (typeof store.savePurchaseOrder === 'function') {
+      const rs = await store.savePurchaseOrder(Object.assign({ kenh: 'Lark', ketQua: 'ok' }, order || {}));
+      savedMa = (rs && rs.saved) || [];
+    }
+  } catch (e) { console.warn('[mua hàng] lưu DB lỗi:', e && e.message); }
+  return { ok: true, saved: savedMa };
 }
 
 app.post('/api/:fn', async function (req, res) {

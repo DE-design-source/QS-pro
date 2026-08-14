@@ -117,3 +117,44 @@ create table if not exists khai_toan (
   sort_no  numeric default 0
 );
 create index if not exists idx_kt_ma_da on khai_toan (ma_da);
+
+-- ---------- 5) MUA HÀNG ----------
+-- Mỗi đơn = 1 nhà cung cấp, cho 1 bản nháp (ma_du_an = ma_da), trong 1 hạng mục bóc tách.
+create table if not exists don_mua_hang (
+  id             bigint generated always as identity primary key,
+  ma_don         text unique,                 -- mã đơn tự sinh (MH-...)
+  ma_du_an       text,                         -- = du_an.ma_da của bản nháp
+  ten_du_an      text,
+  hang_muc       text,                         -- node bóc tách (vd '3.2' / tên hạng mục)
+  nha_cung_cap   text,
+  so_sp          integer default 0,
+  tong_truoc_vat numeric default 0,
+  vat_pct        numeric default 0,
+  vat            numeric default 0,
+  tong_cong      numeric default 0,            -- = tong_truoc_vat + vat
+  trang_thai     text default 'Đã gửi',        -- Đã gửi / Đã nhận / Huỷ
+  kenh_gui       text default 'Lark',
+  ket_qua_gui    text,                          -- ok / lỗi
+  nguoi_gui      text,
+  ghi_chu        text,
+  ngay_gui       timestamptz default now()
+);
+create index if not exists idx_dmh_ma_du_an on don_mua_hang (ma_du_an);
+create index if not exists idx_dmh_ncc on don_mua_hang (nha_cung_cap);
+
+-- Chi tiết từng SP trong đơn mua hàng (snapshot tại thời điểm gửi)
+create table if not exists chi_tiet_mua_hang (
+  id           bigint generated always as identity primary key,
+  ma_don       text,                            -- -> don_mua_hang.ma_don
+  ma_sp        text,
+  ten_sp       text,
+  thuong_hieu  text,
+  phong        text,
+  dvt          text,
+  so_luong     numeric default 0,
+  don_gia      numeric default 0,               -- giá mua (giá đại lý)
+  thanh_tien   numeric default 0,               -- = so_luong * don_gia
+  hinh_anh     text,
+  sort_no      integer default 0
+);
+create index if not exists idx_ctmh_ma_don on chi_tiet_mua_hang (ma_don);

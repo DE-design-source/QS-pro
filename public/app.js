@@ -1337,9 +1337,9 @@ function mhOrderOf(g){
   var sub=g.items.reduce(function(s,l){ return s+(Number(l.soLuong)||0)*mhPrice(l); },0);
   var vat=Math.round(sub*vatPct/100);
   return { supplier:g.ncc, vatPct:vatPct, vat:vat, total:sub+vat,
-    items:g.items.map(function(l){ return {ten:l.ten||'', sl:Number(l.soLuong)||0, dvt:l.dvt||'Cái', donGia:mhPrice(l)}; }) };
+    items:g.items.map(function(l){ return {ten:l.ten||'', ma:l.maSP||'', thuongHieu:l.thuongHieu||'', khuVuc:l.khuVuc||'', hinhAnh:String(l.hinhAnh||'').split('\n')[0], sl:Number(l.soLuong)||0, dvt:l.dvt||'Cái', donGia:mhPrice(l)}; }) };
 }
-function mhBase(){ return { project:S.cur&&S.cur.ten, maDA:S.cur&&S.cur.maDA, khachHang:S.cur&&S.cur.khachHang, sdt:S.cur&&S.cur.sdt }; }
+function mhBase(){ return { project:S.cur&&S.cur.ten, maDA:S.cur&&S.cur.maDA, khachHang:S.cur&&S.cur.khachHang, sdt:S.cur&&S.cur.sdt, node:S.node, hangMuc:nodeName(S.node) }; }
 function mhSend(gi,btn){
   var g=(S._mhGroups||[])[gi]; if(!g) return;
   if(btn){ btn.disabled=true; btn.dataset.t=btn.innerHTML; btn.innerHTML='Đang gửi…'; }
