@@ -93,7 +93,7 @@ var ICONS={
 };
 function icon(name,size){ size=size||16; var p=ICONS[name]; if(!p) return ''; return '<svg class="ico" width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'; }
 // Độ rộng mặc định + cấu hình cột (thứ tự, rộng, lọc) lưu localStorage
-var DEFW={stt:66,khuVuc:120,maBanVe:92,nganh:120,maSP:110,ten:190,thuongHieu:110,ncc:120,moTa:186,kichThuoc:150,hinhAnh:72,dvt:70,soLuong:72,giaNCC:104,chietKhau:120,giaDaiLy:104,lnPct:96,donGia:104,ckKhach:130,donGiaCK:104,markup:130,margin:130,lnVnd:120,thanhTien:112,trangThai:104,ghiChu:150};
+var DEFW={stt:66,khuVuc:120,maBanVe:92,nganh:120,maSP:110,ten:190,thuongHieu:110,ncc:120,moTa:186,kichThuoc:150,hinhAnh:72,dvt:84,soLuong:84,giaNCC:104,chietKhau:120,giaDaiLy:104,lnPct:96,donGia:104,ckKhach:130,donGiaCK:104,markup:130,margin:130,lnVnd:120,thanhTien:112,trangThai:104,ghiChu:150};
 S.colOrder=null; S.colW={}; S.colFilter={}; S.collapsed={};
 function initCols(){ var d={}; try{ d=JSON.parse(localStorage.getItem('qs_colcfg')||'{}'); }catch(e){}
   var keys=COLS.map(function(c){return c[0];});
@@ -146,7 +146,7 @@ function renderFloors(){
   if(!fl.length){ hint.innerHTML='Chưa có tầng. Bấm <b>＋ Thêm tầng</b> ở cuối bảng để tạo tầng.'; return; }
   hint.innerHTML='Đang thêm vào tầng: <b>'+esc(S.selFloor||'—')+'</b> · bấm tên tầng để đổi · hoặc <b>kéo sản phẩm</b> từ danh mục thả vào tầng.';
 }
-function selectFloor(g){ S.selFloor = (g==='CHƯA PHÂN TẦNG'?'':g); renderFloors(); renderTable(); }
+function selectFloor(g){ S.selFloor = g||''; renderFloors(); renderTable(); }
 var FLOOR_PRESETS=['TẦNG HẦM','TẦNG LỬNG','TẦNG TRỆT','TẦNG 1','TẦNG 2','TẦNG 3','TẦNG 4','TẦNG 5','SÂN THƯỢNG','TẦNG MÁI','TUM THANG'];
 function addFloorPopInner_(){
   var existing=floorsList().filter(function(f){return f!=='CHƯA PHÂN TẦNG';});
@@ -828,7 +828,7 @@ function initTableInteractions(){
     var th=e.target.closest('th.thk');
     if(th){ if(e.target.closest('.thrsz')){ e.preventDefault(); return; } S._dragCol=th.dataset.k; S._drag=S._dragGrp=null; th.classList.add('dragging'); try{e.dataTransfer.setData('text/plain',th.dataset.k);}catch(x){} return; }
     var grp=e.target.closest('tr.grp');
-    if(grp){ if(e.target.closest('button,.gcol,.gname,input')){ e.preventDefault(); return; } S._dragGrp=grp.dataset.g; S._drag=S._dragCol=null; grp.classList.add('dragging'); try{e.dataTransfer.setData('text/plain',grp.dataset.g);}catch(x){} return; }
+    if(grp){ if(e.target.closest('button,.gcol,.gname,.gsel,input')){ e.preventDefault(); return; } S._dragGrp=grp.dataset.g; S._drag=S._dragCol=null; grp.classList.add('dragging'); try{e.dataTransfer.setData('text/plain',grp.dataset.g);}catch(x){} return; }
     if(e.target.closest('input,button,textarea,.rgrip')){ e.preventDefault(); return; }
     var tr=e.target.closest('tr.drow'); if(!tr){ e.preventDefault(); return; }
     S._drag=tr.dataset.id; S._dragCol=S._dragGrp=null; tr.classList.add('dragging'); try{ e.dataTransfer.setData('text/plain',tr.dataset.id); }catch(x){}
