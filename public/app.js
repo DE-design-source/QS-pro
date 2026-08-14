@@ -1658,14 +1658,16 @@ function renderImport(){
 }
 /* ==== Upload ảnh ==== */
 function upDrag(e,on){ e.preventDefault(); e.currentTarget.classList.toggle('drag',!!on); }
+async function upFilesSeq_(zone,fs){ for(var i=0;i<fs.length;i++){ try{ await upFile(zone,fs[i]); }catch(e){} } }  // tải TUẦN TỰ như nhập file
 function upPick(zone){
   var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; if(zone==='more') inp.multiple=true;
-  inp.onchange=function(){ var fs=Array.prototype.slice.call(inp.files||[]); fs.forEach(function(f){ upFile(zone,f); }); };
+  inp.onchange=function(){ upFilesSeq_(zone, Array.prototype.slice.call(inp.files||[])); };
   inp.click();
 }
 function upDrop(e,zone){ e.preventDefault(); e.currentTarget.classList.remove('drag');
-  var fs=Array.prototype.slice.call((e.dataTransfer&&e.dataTransfer.files)||[]).filter(function(f){return /^image\//.test(f.type);});
-  fs.forEach(function(f){ upFile(zone,f); });
+  // nhận ảnh; nếu type rỗng (vd HEIC) vẫn thử (downscale sẽ báo nếu không đọc được)
+  var fs=Array.prototype.slice.call((e.dataTransfer&&e.dataTransfer.files)||[]).filter(function(f){ return !f.type || /^image\//.test(f.type); });
+  upFilesSeq_(zone, fs);
 }
 /* Nén + thu nhỏ ảnh ở client trước khi upload (tránh payload quá lớn -> "Failed to fetch") */
 function downscaleImage_(file, maxDim, quality){
@@ -1692,12 +1694,12 @@ function downscaleImage_(file, maxDim, quality){
     }catch(e){ resolve('__DECODE_FAIL__'); }
   });
 }
-// Gọi uploadImage có thử lại (chống rớt mạng / Render cold-start)
+// Gọi uploadImage có thử lại nhiều lần, backoff tăng dần (chịu được rớt mạng / Render cold-start / redeploy)
 async function uploadImg_(dataUrl, name){
-  var lastErr;
-  for(var k=0;k<2;k++){
+  var backoff=[1000,2500,5000,8000], lastErr;
+  for(var k=0;k<=backoff.length;k++){
     try{ var r=await api('uploadImage', dataUrl, name||'image.jpg'); var tok=r&&(r.token||r.url); if(tok) return tok; throw new Error('Không nhận được ảnh'); }
-    catch(e){ lastErr=e; if(k<1) await new Promise(function(res){ setTimeout(res,900); }); }
+    catch(e){ lastErr=e; if(k<backoff.length) await new Promise(function(res){ setTimeout(res,backoff[k]); }); }
   }
   throw lastErr;
 }
@@ -1706,7 +1708,7 @@ function upBusy_(d){ S._imgUploading=Math.max(0,(S._imgUploading||0)+d); }
 async function waitUploads_(timeout){ var t0=Date.now(); while((S._imgUploading||0)>0 && Date.now()-t0<(timeout||15000)){ await new Promise(function(r){ setTimeout(r,250); }); } }
 function upFile(zone,file){
   upBusy_(1);   // đánh dấu có ảnh đang xử lý ngay từ đầu
-  downscaleImage_(file,1600,0.82).then(async function(dataUrl){
+  return downscaleImage_(file,1600,0.82).then(async function(dataUrl){
     try{
       if(dataUrl==='__DECODE_FAIL__'){ toast('Không đọc được ảnh — có thể ảnh iPhone (.HEIC). Hãy đổi sang JPG/PNG hoặc dán URL ảnh.'); return; }
       if(!dataUrl){ toast('Không đọc được ảnh — hãy thử ảnh khác hoặc dán URL.'); return; }
