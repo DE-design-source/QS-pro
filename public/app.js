@@ -1309,8 +1309,8 @@ function mhSummary(groups, vatPct, grand){
     +'<div class="imp-recent-h">'+icon('cart',15)+' Tổng hợp đơn <span class="count">'+pad2(groups.length)+'</span></div>'
     +'<div class="imp-recent-b">'+rows+'</div>'
     +'<div class="mhsum-info">'
-      +'<div class="field"><label>Người gửi</label><input id="mhNguoiGui" placeholder="Tên người gửi" value="'+esc(mi.nguoiGui||'')+'" oninput="mhInfo(\'nguoiGui\',this.value)"></div>'
-      +'<div class="field"><label>Phòng ban</label><input id="mhPhongBan" placeholder="VD: Mua hàng / Kỹ thuật" value="'+esc(mi.phongBan||'')+'" oninput="mhInfo(\'phongBan\',this.value)"></div>'
+      +'<div class="field"><label>Người gửi <span style="color:#c33">*</span></label><input id="mhNguoiGui" placeholder="Tên người gửi" value="'+esc(mi.nguoiGui||'')+'" oninput="mhInfo(\'nguoiGui\',this.value)"></div>'
+      +'<div class="field"><label>Phòng ban <span style="color:#c33">*</span></label><input id="mhPhongBan" placeholder="VD: Mua hàng / Kỹ thuật" value="'+esc(mi.phongBan||'')+'" oninput="mhInfo(\'phongBan\',this.value)"></div>'
       +'<div class="field"><label>Ghi chú</label><textarea id="mhGhiChu" placeholder="Ghi chú cho đơn…" oninput="mhInfo(\'ghiChu\',this.value)">'+esc(mi.ghiChu||'')+'</textarea></div>'
     +'</div>'
     +'<div class="mhsum-f">'
@@ -1318,7 +1318,7 @@ function mhSummary(groups, vatPct, grand){
       +'<button class="btn navy" style="width:100%;justify-content:center" onclick="mhSendBulk(this)"'+(groups.length?'':' disabled')+'>'+icon('cart',15)+' Gửi '+nSel+' đơn đã chọn</button>'
     +'</div></div>';
 }
-function mhInfo(k,v){ S._mhInfo=S._mhInfo||{}; S._mhInfo[k]=v; }
+function mhInfo(k,v){ S._mhInfo=S._mhInfo||{}; S._mhInfo[k]=v; if(v&&v.trim){ var id=k==='nguoiGui'?'mhNguoiGui':(k==='phongBan'?'mhPhongBan':''); if(id){ var e=document.getElementById(id); if(e&&v.trim()) e.classList.remove('need'); } } }
 function renderMuahang(){
   var box=document.getElementById('v-muahang');
   if(!S.cur){ box.innerHTML='<div class="empty" style="padding:26px;text-align:center">Chưa chọn dự án.</div>'; return; }
@@ -1347,8 +1347,15 @@ function mhOrderOf(g){
     items:g.items.map(function(l){ return {ten:l.ten||'', ma:l.maSP||'', thuongHieu:l.thuongHieu||'', khuVuc:l.khuVuc||'', hinhAnh:String(l.hinhAnh||'').split('\n')[0], sl:Number(l.soLuong)||0, dvt:l.dvt||'Cái', donGia:mhPrice(l)}; }) };
 }
 function mhBase(){ var mi=S._mhInfo||{}; return { project:S.cur&&S.cur.ten, maDA:S.cur&&S.cur.maDA, khachHang:S.cur&&S.cur.khachHang, sdt:S.cur&&S.cur.sdt, node:S.node, hangMuc:nodeName(S.node), nguoiGui:mi.nguoiGui||'', phongBan:mi.phongBan||'', ghiChu:mi.ghiChu||'' }; }
+function mhValidateInfo(){
+  var mi=S._mhInfo||{};
+  if(!String(mi.nguoiGui||'').trim()){ toast('Nhập "Người gửi" trước khi gửi đơn'); var e=document.getElementById('mhNguoiGui'); if(e){ e.focus(); e.classList.add('need'); } return false; }
+  if(!String(mi.phongBan||'').trim()){ toast('Nhập "Phòng ban" trước khi gửi đơn'); var e2=document.getElementById('mhPhongBan'); if(e2){ e2.focus(); e2.classList.add('need'); } return false; }
+  return true;
+}
 function mhSend(gi,btn){
   var g=(S._mhGroups||[])[gi]; if(!g) return;
+  if(!mhValidateInfo()) return;
   if(btn){ btn.disabled=true; btn.dataset.t=btn.innerHTML; btn.innerHTML='Đang gửi…'; }
   var payload=Object.assign(mhBase(),{ orders:[mhOrderOf(g)] });
   api('sendPurchaseRequest',payload).then(function(){ toast('✔ Đã gửi yêu cầu mua hàng tới "'+g.ncc+'"'); })
@@ -1358,6 +1365,7 @@ function mhSend(gi,btn){
 function mhSendBulk(btn){
   var sel=(S._mhGroups||[]).filter(function(g){ return !(S._mhSel&&S._mhSel[g.ncc]===false); });
   if(!sel.length){ toast('Chưa chọn nhà cung cấp nào'); return; }
+  if(!mhValidateInfo()) return;
   if(btn){ btn.disabled=true; btn.dataset.t=btn.innerHTML; btn.innerHTML='Đang gửi…'; }
   var payload=Object.assign(mhBase(),{ orders:sel.map(mhOrderOf) });
   api('sendPurchaseRequest',payload).then(function(){ toast('✔ Đã gửi yêu cầu hàng loạt tới '+sel.length+' nhà cung cấp'); })
