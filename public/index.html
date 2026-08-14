@@ -685,6 +685,35 @@ table.imp-pvtbl{border-collapse:separate;border-spacing:0;font-size:12.5px;white
 .pf-hd{display:flex;align-items:center;gap:9px}
 .pf-ic{width:30px;height:30px;border-radius:8px;background:#eaf1ff;color:var(--blue);display:flex;align-items:center;justify-content:center;flex:none}
 .pf-hd h3{margin:0}
+/* ===== Thông tin dự án + Bảng điều khiển: nâng lên phong cách dbcard ===== */
+#v-project .dbcard,#v-dash .dbcard{margin-top:14px}
+#v-project .dbcard .field label,#v-dash .dbcard .field label{font-size:12px;font-weight:600;color:#3a4653;margin-bottom:5px}
+#v-project .dbcard .field input,#v-project .dbcard .field select,#v-project .dbcard .field textarea{width:100%;border:1px solid #d7dde4;border-radius:9px;padding:9px 11px;font:inherit;font-size:13px;background:#fff}
+#v-project .dbcard .field input:focus,#v-project .dbcard .field select:focus,#v-project .dbcard .field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2f6bff22;outline:none}
+.pf-save{margin-top:14px;padding-top:14px;border-top:1px solid #eef1f5}
+.pf-prog{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+.pf-prog label{color:var(--muted);font-size:12.5px;font-weight:600}
+.pf-prog input[type=range]{flex:1;min-width:140px;accent-color:var(--blue)}
+.pf-prog b{color:var(--navy);min-width:42px;text-align:right}
+/* Header dự án + chuyển bản nháp */
+.proj-switch2{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 18px;box-shadow:0 1px 5px #0b1f3a0a}
+.ps2-l{display:flex;align-items:center;gap:12px;min-width:0}
+.ps2-ic{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#eaf1ff,#dbe9ff);color:var(--blue);display:flex;align-items:center;justify-content:center;flex:none}
+.ps2-name{font-size:17px;font-weight:800;color:var(--ink);line-height:1.2}
+.ps2-sub{font-size:12.5px;color:var(--muted);margin-top:2px}
+.ps2-tabs{display:flex;flex-wrap:wrap;gap:8px}
+.ps2-badge{background:#eef5ff;color:var(--blue);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.2px}
+.draft-tab svg{opacity:.85}
+/* Card dự án trong Bảng điều khiển */
+.proj-card2{border:1px solid #e7ebf0;border-radius:13px;background:#fff;padding:0;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 1px 4px #0b1f3a08}
+.proj-head2{display:flex;align-items:center;gap:11px;padding:13px 15px;background:linear-gradient(180deg,#fbfcfe,#f5f8fc);border-bottom:1px solid #eef1f5}
+.proj-ic{width:34px;height:34px;border-radius:9px;background:#eaf1ff;color:var(--blue);display:flex;align-items:center;justify-content:center;flex:none}
+.proj-ht{flex:1;min-width:0}
+.proj-name{font-size:15px;font-weight:800;color:#1f2b38;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proj-head2 .proj-meta{color:var(--muted);font-size:12px;margin-top:1px}
+.proj-card2 .draft-list{display:flex;flex-direction:column;gap:8px;padding:13px 15px 4px}
+.proj-card2 .proj-add{align-self:flex-start;margin:0 15px 14px}
+.btn.xs.iconbtn{padding:5px 8px;display:inline-flex;align-items:center}
 .pf-note{color:var(--muted);font-size:12px}
 #v-project .panel{padding:16px 18px}
 #v-project .field label{font-size:12px;font-weight:600;color:#4a5866;margin-bottom:5px}

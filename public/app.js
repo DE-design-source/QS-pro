@@ -1070,32 +1070,35 @@ function renderProjects(){
   var el=document.getElementById('v-project');
   var head='<div class="sechd"><h2>Thông tin dự án</h2><span class="sp" style="flex:1"></span>'
     +'<button class="btn ghost sm" onclick="showTab(\'dash\')">'+icon('list',14)+' Danh sách dự án</button></div>';
-  if(!S.cur){ el.innerHTML=head+'<div class="empty">Chưa chọn dự án. Vào <b>Bảng điều khiển</b> để tạo/chọn bản nháp.</div>'; return; }
+  if(!S.cur){ el.innerHTML=head+'<div class="dash-empty">'+icon('building',40)+'<h3>Chưa chọn dự án</h3><p>Vào <b>Bảng điều khiển</b> để tạo hoặc chọn một bản nháp.</p></div>'; return; }
   var p=S.cur, gr=currentGroup();
-  // Thanh chuyển bản nháp trong dự án
+  // Header dự án + thanh chuyển bản nháp
   var tabs=gr.drafts.map(function(d,i){ var on=d.maDA===p.maDA;
-    return '<button class="draft-tab'+(on?' on':'')+'" onclick="openDraft(\''+esc(d.maDA)+'\')">Bản nháp '+(i+1)+'</button>'; }).join('');
-  var switcher='<div class="proj-switch"><div class="ps-name">'+icon('building',16)+'<b>'+esc(gr.name)+'</b><span class="ps-count">'+gr.drafts.length+' bản nháp</span></div>'
-    +'<div class="ps-tabs">'+tabs+'<button class="draft-tab add" onclick="addDraftForCur()">'+icon('plus',13)+' Thêm bản nháp</button></div></div>';
-  // Section 1 — Thông tin dự án (dùng chung mọi bản nháp)
-  var shared='<div class="panel"><div class="toolbar pf-hd"><span class="pf-ic">'+icon('building',17)+'</span><h3>Thông tin dự án</h3><span class="pf-note">áp dụng cho tất cả bản nháp</span></div>'
-    +'<div class="dbgrid">'+pf_('Tên dự án','pf_ten',p.ten)+pf_('Khách hàng','pf_kh',p.khachHang)+pf_('Số điện thoại','pf_sdt',p.sdt)
+    return '<button class="draft-tab'+(on?' on':'')+'" onclick="openDraft(\''+esc(d.maDA)+'\')">'+icon('doc',12)+' Bản nháp '+(i+1)+'</button>'; }).join('');
+  var switcher='<div class="proj-switch2">'
+    +'<div class="ps2-l"><span class="ps2-ic">'+icon('building',20)+'</span>'
+      +'<div><div class="ps2-name">'+esc(gr.name)+'</div><div class="ps2-sub">'+esc(p.khachHang||'Chưa có khách hàng')+(p.sdt?' · '+esc(p.sdt):'')+' · '+gr.drafts.length+' bản nháp</div></div></div>'
+    +'<div class="ps2-tabs">'+tabs+'<button class="draft-tab add" onclick="addDraftForCur()">'+icon('plus',13)+' Thêm bản nháp</button></div></div>';
+  // Thẻ 1 — Thông tin dự án (dùng chung)
+  var shared=dbCard_('Thông tin dự án','building','Áp dụng cho tất cả bản nháp của dự án này.',
+    '<div class="dbgrid">'+pf_('Tên dự án','pf_ten',p.ten)+pf_('Khách hàng','pf_kh',p.khachHang)+pf_('Số điện thoại','pf_sdt',p.sdt)
     +pf_('Địa chỉ','pf_addr',p.diaChi)+'</div>'
-    +'<div style="margin-top:12px"><button class="btn blue" onclick="saveProjectShared(this)">'+icon('check',15)+' Lưu thông tin dự án</button></div></div>';
-  // Section 2 — Thông tin bản nháp này
-  var draft='<div class="panel" style="margin-top:14px"><div class="toolbar pf-hd"><span class="pf-ic">'+icon('doc',17)+'</span><h3>Thông tin bản nháp — Bản nháp '+(gr.idx+1)+'</h3><span class="count">'+esc(p.maDA)+'</span>'
-    +'<span class="sp" style="flex:1"></span>'+(gr.drafts.length>1?'<button class="btn ghost sm" onclick="removeProject(\''+esc(p.maDA)+'\')">'+icon('trash',13)+' Xoá bản nháp</button>':'')+'</div>'
-    +'<div class="dbgrid">'
+    +'<div class="pf-save"><button class="btn blue" onclick="saveProjectShared(this)">'+icon('check',15)+' Lưu thông tin dự án</button></div>');
+  // Thẻ 2 — Thông tin bản nháp này (card tùy biến để có badge mã + nút xoá)
+  var draftInner='<div class="dbgrid">'
     +'<div class="field"><label>Trạng thái</label><select id="pf_tt">'+['Bản nháp','Đang thực hiện','Hoàn thành'].map(function(s){return '<option'+(p.trangThai===s?' selected':'')+'>'+s+'</option>';}).join('')+'</select></div>'
-    +pf_('VAT (%)','pf_vat',p.vat,'number')
-    +pf_('Mã báo giá','pf_mbg',p.maBaoGia)
+    +pf_('VAT (%)','pf_vat',p.vat,'number')+pf_('Mã báo giá','pf_mbg',p.maBaoGia)
     +pf_('Quy mô','pf_qm',p.quyMo)+pf_('Tổng DT XD (m²)','pf_tdt',p.tongDT)+pf_('DT báo giá (m²)','pf_dtbg',p.dtBaoGia)
     +pf_('Nhu cầu','pf_nc',p.nhuCau)+pf_('Phân khúc','pf_pk',p.phanKhuc)+'</div>'
-    +'<div class="field" style="margin-top:2px"><label>Ghi chú</label><textarea id="pf_gc" placeholder="Ghi chú" style="min-height:56px">'+esc(p.ghiChu||'')+'</textarea></div>'
-    +'<div style="margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn blue" onclick="saveDraftInfo(this)">'+icon('check',15)+' Lưu bản nháp</button>'
-    +'<span style="flex:1"></span><label style="color:var(--muted)">Tiến độ</label>'
+    +'<div class="field" style="margin-top:2px"><label>Ghi chú</label><textarea id="pf_gc" placeholder="Ghi chú cho bản nháp này" style="min-height:56px">'+esc(p.ghiChu||'')+'</textarea></div>'
+    +'<div class="pf-prog"><label>Tiến độ</label>'
     +'<input id="pf_prog" type="range" min="0" max="100" value="'+(Number(p.tienDo)||0)+'" oninput="document.getElementById(\'pf_pv\').textContent=this.value+\'%\'">'
-    +'<b id="pf_pv">'+(Number(p.tienDo)||0)+'%</b><button class="btn ghost sm" onclick="saveProgress(this)">Cập nhật</button></div></div>';
+    +'<b id="pf_pv">'+(Number(p.tienDo)||0)+'%</b><button class="btn ghost sm" onclick="saveProgress(this)">Cập nhật</button></div>'
+    +'<div class="pf-save"><button class="btn blue" onclick="saveDraftInfo(this)">'+icon('check',15)+' Lưu bản nháp</button></div>';
+  var draft='<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">'+icon('doc',18)+'</span><h3>Thông tin bản nháp — Bản nháp '+(gr.idx+1)+'</h3>'
+    +'<span class="ps2-badge">'+esc(p.maDA)+'</span><span class="sp" style="flex:1"></span>'
+    +(gr.drafts.length>1?'<button class="btn ghost sm" onclick="removeProject(\''+esc(p.maDA)+'\')">'+icon('trash',13)+' Xoá bản nháp</button>':'')+'</div>'
+    +'<div class="dbcard-b">'+draftInner+'</div></div>';
   el.innerHTML=head+switcher+shared+draft;
 }
 // Mở 1 bản nháp (ở lại trang Thông tin dự án)
@@ -1157,18 +1160,20 @@ function draftListHtml(){
         +'<div class="draft-act">'
         +(on?'<span class="draft-badge">'+icon('check',12)+' Đang dùng</span>'
             :'<button class="btn blue xs" onclick="pickProject(\''+esc(p.maDA)+'\')">Dùng</button>')
-        +'<button class="btn ghost xs" title="Xoá bản nháp" onclick="removeProject(\''+esc(p.maDA)+'\')">Xoá</button></div></div>';
+        +'<button class="btn ghost xs iconbtn" title="Xoá bản nháp" onclick="removeProject(\''+esc(p.maDA)+'\')">'+icon('trash',12)+'</button></div></div>';
     }).join('');
-    return '<div class="proj-card">'
-      +'<div class="proj-head"><div class="proj-t"><h4>'+icon('building',15)+' '+esc(g.name)+'</h4>'
-        +'<div class="proj-meta">'+esc(g.khachHang||'—')+(g.diaChi?' · '+esc(g.diaChi):'')+'</div></div>'
+    return '<div class="proj-card2">'
+      +'<div class="proj-head2"><span class="proj-ic">'+icon('building',17)+'</span>'
+        +'<div class="proj-ht"><div class="proj-name">'+esc(g.name)+'</div>'
+          +'<div class="proj-meta">'+esc(g.khachHang||'Chưa có khách hàng')+(g.sdt?' · '+esc(g.sdt):'')+'</div></div>'
         +'<span class="proj-count">'+g.drafts.length+' bản nháp</span></div>'
       +'<div class="draft-list">'+drafts+'</div>'
       +'<button class="btn ghost sm proj-add" onclick="addDraft('+gi+')">'+icon('plus',13)+' Thêm bản nháp</button></div>';
-  }).join('') || '<div class="empty">Chưa có dự án. Bấm "Tạo dự án".</div>';
-  return '<div class="panel"><div class="toolbar"><h3>Dự án</h3><span class="count">['+pad2(groups.length)+']</span><span class="sp" style="flex:1"></span>'
+  }).join('') || '<div class="empty" style="padding:26px;text-align:center;color:var(--muted)">Chưa có dự án. Bấm <b>"Tạo dự án"</b> để bắt đầu.</div>';
+  return '<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">'+icon('home',18)+'</span><h3>Danh sách dự án</h3>'
+    +'<span class="ps2-badge">'+pad2(groups.length)+'</span><span class="sp" style="flex:1"></span>'
     +'<button class="btn blue sm" onclick="openCreate()">'+icon('plus',14)+' Tạo dự án</button></div>'
-    +'<div class="proj-grid">'+cards+'</div></div>';
+    +'<div class="dbcard-b"><div class="proj-grid">'+cards+'</div></div></div>';
 }
 // Thêm 1 bản nháp (phương án báo giá mới) cho dự án đang có
 async function addDraft(gi){
@@ -1208,7 +1213,7 @@ function renderDash(){
     +kpi(icon('money',18),'Tổng giá bán',money(ban)+' đ','')
     +kpi(icon('gauge',18),'Lợi nhuận',money(ban-von)+' đ','green')+'</div>';
   el.innerHTML=header+banner+kpis
-    +'<div class="panel"><h3>Giá trị theo nhóm (giá bán)</h3><div class="dash-bars">'+bars+'</div></div>'
+    +dbCard_('Giá trị theo nhóm (giá bán)','gauge','', '<div class="dash-bars">'+bars+'</div>')
     +drafts;
 }
 
