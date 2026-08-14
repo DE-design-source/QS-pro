@@ -1221,12 +1221,12 @@ var CP_COLS=[
   ['soLuong','SL','n',function(l){return l.soLuong||0;}],
   ['giaNCC','Giá bán lẻ NCC','n',function(l){return money(l.donGiaVon);}],
   ['chietKhau','CK đại lý %','n',function(l){return (Number(l.chietKhau)||0);}],
-  ['giaDaiLy','Giá đại lý','n',function(l){return money(l.giaDaiLy);}],
+  ['giaDaiLy','Giá đại lý','n',function(l){return money(giaDaiLy_(l));}],
   ['donGiaVon','Đơn giá vốn','n',function(l){return cpIn(l,'donGiaVon');}],
   ['lnPct','% LN','n',function(l){return cpIn(l,'lnPct',66);}],
   ['donGiaBan','Đơn giá bán','n',function(l){return cpIn(l,'donGiaBan');}],
   ['ckKhach','CK khách %','n',function(l){return (Number(l.ckKhach)||0);}],
-  ['donGiaCK','Đơn giá (báo khách)','n',function(l){return money(l.donGiaCK);}],
+  ['donGiaCK','Đơn giá (báo khách)','n',function(l){return money(donGiaCK_(l));}],
   ['markup','Markup %','n',function(l){return (Number(l.markup)||0);}],
   ['margin','Margin %','n',function(l){return (Number(l.margin)||0);}],
   ['lnVnd','Lợi nhuận (VND)','n',function(l){return money(l.lnVnd);}],
@@ -1251,7 +1251,7 @@ function renderChiphi(){
 }
 
 /* ===== MUA HÀNG (gom theo Nhà cung cấp) ===== */
-function mhPrice(l){ return Number(l.giaDaiLy)||Number(l.donGiaVon)||Number(l.donGiaBan)||0; }
+function mhPrice(l){ return giaDaiLy_(l)||Number(l.donGiaVon)||Number(l.donGiaBan)||0; }
 function mhSub_(items){ return items.reduce(function(a,l){ return a+(Number(l.soLuong)||0)*mhPrice(l); },0); }
 function mhTot_(items,vatPct){ var s=mhSub_(items); return s+Math.round(s*vatPct/100); }
 function mhOn_(ncc){ return !(S._mhSel&&S._mhSel[ncc]===false); }
@@ -1675,18 +1675,18 @@ function downscaleImage_(file, maxDim, quality){
 function upFile(zone,file){
   downscaleImage_(file,1600,0.82).then(async function(dataUrl){
     if(!dataUrl){ toast('Không đọc được ảnh'); return; }
-    // preview tạm bằng dataURL
+    // preview tạm bằng dataURL (dùng chính dataURL làm khoá để chống race khi tải nhiều ảnh cùng lúc)
     if(zone==='main'){ S._imgMain=dataUrl; } else { S._imgList.push(dataUrl); }
     upRefresh(); toast('Đang tải ảnh lên…');
     try{
       var r=await api('uploadImage', dataUrl, file.name||'image.jpg');
       var tok=r&&(r.token||r.url); if(!tok) throw new Error('Không nhận được ảnh');
       if(zone==='main'){ S._imgMain=tok; }
-      else { var idx=S._imgList.length-1; S._imgList[idx]=tok; }   // thay dataURL bằng token thật
+      else { var ix=S._imgList.indexOf(dataUrl); if(ix>=0) S._imgList[ix]=tok; else S._imgList.push(tok); }   // thay đúng ô của ảnh này
       upRefresh(); toast('Đã tải ảnh lên');
     }catch(e){
-      // upload lỗi (vd hết quota) -> gỡ preview tạm, gợi ý dán URL
-      if(zone==='main'){ S._imgMain=''; } else { S._imgList.pop(); }
+      // upload lỗi (vd hết quota) -> gỡ đúng preview tạm của ảnh này, gợi ý dán URL
+      if(zone==='main'){ S._imgMain=''; } else { var ie=S._imgList.indexOf(dataUrl); if(ie>=0) S._imgList.splice(ie,1); }
       upRefresh(); toast('Upload lỗi: '+e.message+' — hãy dán URL ảnh.');
     }
   });

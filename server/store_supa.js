@@ -338,6 +338,7 @@ async function importCommit(products) {
     const raw = p._raw || {};
     Object.keys(raw).forEach(function (h) {
       const col = L2C[norm(h)]; if (!col) return;
+      if (col === 'anh_sp') return; // ảnh do người dùng tải sau import, không lấy từ cột file
       const v = raw[h]; if (v == null || String(v).trim() === '') return;
       if (col === 'lap_nguon_roi') row[col] = /^(c[oó]|yes|true|1|x)$/i.test(String(v).trim());
       else if (NUMSET[col]) row[col] = toNum(v);
