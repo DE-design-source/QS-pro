@@ -74,6 +74,16 @@ function buildPurchaseCard(o) {
       { is_short: true, text: { tag: 'lark_md', content: '**📞 Điện thoại**\n' + (o.sdt || '—') } }
     ]
   });
+  // Người gửi / Phòng ban (nếu có)
+  if (o.nguoiGui || o.phongBan) {
+    els.push({
+      tag: 'div', fields: [
+        { is_short: true, text: { tag: 'lark_md', content: '**🙋 Người gửi**\n' + (o.nguoiGui || '—') } },
+        { is_short: true, text: { tag: 'lark_md', content: '**🏢 Phòng ban**\n' + (o.phongBan || '—') } }
+      ]
+    });
+  }
+  if (o.ghiChu) els.push({ tag: 'div', text: { tag: 'lark_md', content: '**📝 Ghi chú:** ' + o.ghiChu } });
   let grand = 0, nSup = 0, nItems = 0;
   orders.forEach(function (od) {
     grand += Number(od.total) || 0; nSup++;

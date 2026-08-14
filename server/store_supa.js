@@ -364,7 +364,7 @@ async function savePurchaseOrder(order) {
       ma_don: maDon, ma_du_an: s(order.maDA), ten_du_an: s(order.project), hang_muc: s(order.hangMuc || order.node),
       nha_cung_cap: s(od.supplier), so_sp: items.length, tong_truoc_vat: total - vat, vat_pct: n(od.vatPct),
       vat: vat, tong_cong: total, trang_thai: 'Đã gửi', kenh_gui: s(order.kenh) || 'Lark',
-      ket_qua_gui: s(order.ketQua) || 'ok', nguoi_gui: s(order.nguoiGui), ghi_chu: s(order.ghiChu)
+      ket_qua_gui: s(order.ketQua) || 'ok', nguoi_gui: s(order.nguoiGui), phong_ban: s(order.phongBan), ghi_chu: s(order.ghiChu)
     });
     if (items.length) {
       await supa.insert('chi_tiet_mua_hang', items.map(function (it, i) {
@@ -387,7 +387,7 @@ async function getPurchaseOrders(maDA) {
     out.push({
       maDon: s(h.ma_don), ncc: s(h.nha_cung_cap), hangMuc: s(h.hang_muc), soSP: n(h.so_sp),
       tongTruocVat: n(h.tong_truoc_vat), vatPct: n(h.vat_pct), vat: n(h.vat), tongCong: n(h.tong_cong),
-      trangThai: s(h.trang_thai), ngayGui: s(h.ngay_gui),
+      trangThai: s(h.trang_thai), nguoiGui: s(h.nguoi_gui), phongBan: s(h.phong_ban), ghiChu: s(h.ghi_chu), ngayGui: s(h.ngay_gui),
       items: dt.map(function (r) { return { ma: s(r.ma_sp), ten: s(r.ten_sp), thuongHieu: s(r.thuong_hieu), khuVuc: s(r.phong), dvt: s(r.dvt), sl: n(r.so_luong), donGia: n(r.don_gia), thanhTien: n(r.thanh_tien), hinhAnh: s(r.hinh_anh) }; })
     });
   }

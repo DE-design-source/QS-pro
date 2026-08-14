@@ -136,6 +136,7 @@ create table if not exists don_mua_hang (
   kenh_gui       text default 'Lark',
   ket_qua_gui    text,                          -- ok / lỗi
   nguoi_gui      text,
+  phong_ban      text,
   ghi_chu        text,
   ngay_gui       timestamptz default now()
 );

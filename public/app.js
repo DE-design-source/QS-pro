@@ -1304,14 +1304,21 @@ function mhSummary(groups, vatPct, grand){
       +'<div class="mhs-tot">'+money(tot)+'</div></div>';
   }).join('') || '<div class="empty" style="padding:20px 14px;font-size:12.5px">Chưa có nhà cung cấp.</div>';
   var nSel=groups.filter(function(g){return mhOn_(g.ncc);}).length;
+  var mi=S._mhInfo||(S._mhInfo={});
   return '<div class="imp-recent mhsum">'
     +'<div class="imp-recent-h">'+icon('cart',15)+' Tổng hợp đơn <span class="count">'+pad2(groups.length)+'</span></div>'
     +'<div class="imp-recent-b">'+rows+'</div>'
+    +'<div class="mhsum-info">'
+      +'<div class="field"><label>Người gửi</label><input id="mhNguoiGui" placeholder="Tên người gửi" value="'+esc(mi.nguoiGui||'')+'" oninput="mhInfo(\'nguoiGui\',this.value)"></div>'
+      +'<div class="field"><label>Phòng ban</label><input id="mhPhongBan" placeholder="VD: Mua hàng / Kỹ thuật" value="'+esc(mi.phongBan||'')+'" oninput="mhInfo(\'phongBan\',this.value)"></div>'
+      +'<div class="field"><label>Ghi chú</label><textarea id="mhGhiChu" placeholder="Ghi chú cho đơn…" oninput="mhInfo(\'ghiChu\',this.value)">'+esc(mi.ghiChu||'')+'</textarea></div>'
+    +'</div>'
     +'<div class="mhsum-f">'
       +'<div class="mhsum-grand"><span>Tổng cộng (VAT)</span><b>'+money(grand)+' đ</b></div>'
       +'<button class="btn navy" style="width:100%;justify-content:center" onclick="mhSendBulk(this)"'+(groups.length?'':' disabled')+'>'+icon('cart',15)+' Gửi '+nSel+' đơn đã chọn</button>'
     +'</div></div>';
 }
+function mhInfo(k,v){ S._mhInfo=S._mhInfo||{}; S._mhInfo[k]=v; }
 function renderMuahang(){
   var box=document.getElementById('v-muahang');
   if(!S.cur){ box.innerHTML='<div class="empty" style="padding:26px;text-align:center">Chưa chọn dự án.</div>'; return; }
@@ -1339,7 +1346,7 @@ function mhOrderOf(g){
   return { supplier:g.ncc, vatPct:vatPct, vat:vat, total:sub+vat,
     items:g.items.map(function(l){ return {ten:l.ten||'', ma:l.maSP||'', thuongHieu:l.thuongHieu||'', khuVuc:l.khuVuc||'', hinhAnh:String(l.hinhAnh||'').split('\n')[0], sl:Number(l.soLuong)||0, dvt:l.dvt||'Cái', donGia:mhPrice(l)}; }) };
 }
-function mhBase(){ return { project:S.cur&&S.cur.ten, maDA:S.cur&&S.cur.maDA, khachHang:S.cur&&S.cur.khachHang, sdt:S.cur&&S.cur.sdt, node:S.node, hangMuc:nodeName(S.node) }; }
+function mhBase(){ var mi=S._mhInfo||{}; return { project:S.cur&&S.cur.ten, maDA:S.cur&&S.cur.maDA, khachHang:S.cur&&S.cur.khachHang, sdt:S.cur&&S.cur.sdt, node:S.node, hangMuc:nodeName(S.node), nguoiGui:mi.nguoiGui||'', phongBan:mi.phongBan||'', ghiChu:mi.ghiChu||'' }; }
 function mhSend(gi,btn){
   var g=(S._mhGroups||[])[gi]; if(!g) return;
   if(btn){ btn.disabled=true; btn.dataset.t=btn.innerHTML; btn.innerHTML='Đang gửi…'; }
