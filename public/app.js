@@ -1482,35 +1482,29 @@ async function printQuote(cols){
 function tdInput(label,id,val,type){ return '<div class="field"><label>'+esc(label)+'</label><input id="'+id+'" type="'+(type||'text')+'" value="'+esc(val||'')+'"></div>'; }
 /* ==== Nhập dữ liệu -> bảng DB_SẢN PHẨM (Lark). Trường khoá theo ĐÚNG tên cột Lark. ==== */
 var DB_GROUPS=[
-  {g:'Định danh', f:[
-    ['MÃ SẢN PHẨM','Mã sản phẩm','text',1],['TÊN SẢN PHẨM','Tên sản phẩm','text',1],
-    ['DÒNG SẢN PHẨM','Dòng sản phẩm','text',1],['HẠNG MỤC','Hạng mục','sel',1,['Đèn nội thất','Đèn ngoại thất','Đèn kỹ thuật']],
-    ['NHÓM SẢN PHẨM','Nhóm sản phẩm','text',0],['THƯƠNG HIỆU','Thương hiệu','text',1],['NHÀ CUNG CẤP','Nhà cung cấp','text',1] ]},
-  {g:'Thông tin chính', f:[
-    ['CÔNG SUẤT (W)','Công suất (W)','num',1],['NHIỆT ĐỘ MÀU (K)','Nhiệt độ màu (K)','sel',1,['2700','3000','4000','5000','6500']],
-    ['GÓC CHIẾU (°)','Góc chiếu (°)','num',0],['MÀU SẮC','Màu sắc','text',1],['CHẤT LIỆU','Chất liệu','text',0] ]},
-  {g:'Hiệu suất', f:[
-    ['QUANG THÔNG (lm)','Quang thông (lm)','num',1],['CHỈ SỐ IP','Chỉ số IP','sel',0,['IP20','IP44','IP54','IP65']],
-    ['CRI','CRI','text',0],['HIỆU SUẤT PHÁT QUANG (lm/W)','Hiệu suất phát quang (lm/W)','num',0],
-    ['UGR','UGR','text',0],['SDCM','SDCM','text',0],['COI','COI','text',0],['TUỔI THỌ','Tuổi thọ','text',0],
-    ['LOẠI CHIP LED','Loại chip LED','sel',0,['COB','SMD','Modul']] ]},
-  {g:'Thiết kế', f:[
-    ['GÓC NGHIÊNG (°)','Góc nghiêng (°)','num',0],['CHIỀU CAO (mm)','Chiều cao (mm)','num',0],['ĐƯỜNG KÍNH (mm)','Đường kính (mm)','num',0] ]},
-  {g:'Lắp đặt', f:[
-    ['LỖ KHOÉT TRẦN (mm)','Lỗ khoét trần (mm)','num',0],['CẤP BẢO VỆ ĐIỆN','Cấp bảo vệ điện','sel',0,['Class I','Class II','Class III']] ]},
-  {g:'Nguồn (Driver)', f:[
-    ['LẮP NGUỒN RỜI','Lắp nguồn rời','sel',0,['Có','Không']],['TÊN BỘ NGUỒN','Tên bộ nguồn','text',0],
-    ['MÃ BỘ NGUỒN','Mã bộ nguồn','text',0],['HÃNG BỘ NGUỒN','Hãng bộ nguồn','text',0],
+  {g:'Thông tin cơ bản', f:[
+    ['THƯƠNG HIỆU','Thương hiệu','text',1],['NHÀ CUNG CẤP','Nhà cung cấp','text',1],
+    ['HẠNG MỤC','Hạng mục','sel',1,['Đèn nội thất','Đèn ngoại thất','Đèn kỹ thuật']],
+    ['DÒNG SẢN PHẨM','Dòng sản phẩm','text',1],['TÊN SẢN PHẨM','Tên sản phẩm','text',1],['MÃ SẢN PHẨM','Mã sản phẩm','text',1] ]},
+  {g:'Thông tin giá bán', note:'Giá đại lý tự tính = Giá bán lẻ × (1 − Chiết khấu %).', f:[
+    ['GIÁ BÁN LẺ','Giá bán lẻ','num',1],['CHIẾT KHẤU ĐẠI LÝ (%)','Chiết khấu đại lý (%)','num',1] ]},
+  {g:'Key Product Info (Thông tin chính)', f:[
+    ['CÔNG SUẤT (W)','Công suất (W)','num',1],['NHIỆT ĐỘ MÀU (K)','Nhiệt độ màu (K)','sel',1,['2700','3000','4000','5000','6500']],['MÀU SẮC','Màu sắc','text',1],
+    ['GÓC CHIẾU (°)','Góc chiếu (°)','num',0],['CHẤT LIỆU','Chất liệu','text',0],['CHIỀU CAO (mm)','Chiều cao (mm)','num',0],
+    ['ĐƯỜNG KÍNH (mm)','Đường kính (mm)','num',0],['GÓC NGHIÊNG (°)','Góc nghiêng (°)','num',0] ]},
+  {g:'Performance Specifications (Thông số hiệu suất)', f:[
+    ['QUANG THÔNG (lm)','Quang thông (lm)','num',1],['CHỈ SỐ IP','Chỉ số IP','sel',0,['IP20','IP44','IP54','IP65']],['CRI','CRI','text',0],
+    ['HIỆU SUẤT PHÁT QUANG (lm/W)','Hiệu suất phát quang (lm/W)','num',0],['UGR','UGR','text',0],['TUỔI THỌ','Tuổi thọ','text',0],
+    ['LOẠI CHIP LED','Loại chip LED','sel',0,['COB','SMD','Modul']],['SDCM','SDCM','text',0],['COI','COI','text',0],['BẢO HÀNH (năm)','Bảo hành (năm)','num',0] ]},
+  {g:'Bộ nguồn', f:[
+    ['TÊN BỘ NGUỒN','Tên bộ nguồn','text',0],['MÃ BỘ NGUỒN','Mã bộ nguồn','text',0],['HÃNG BỘ NGUỒN','Hãng bộ nguồn','text',0],
     ['VỊ TRÍ LẮP NGUỒN','Vị trí lắp nguồn','sel',0,['Lắp rời','Tích hợp trong thân đèn']],
     ['TƯƠNG THÍCH ĐIỀU KHIỂN','Tương thích điều khiển','sel',0,['DALI','0-10V','Triac','On-Off']],['DÒNG RA TỐI ĐA (mA)','Dòng ra tối đa (mA)','num',0] ]},
-  {g:'Thương mại', f:[
-    ['BẢO HÀNH (năm)','Bảo hành (năm)','num',0],['ĐƠN VỊ TÍNH','Đơn vị tính','sel',1,['Cái','Bộ','Mét']] ]},
-  {g:'Giá vốn (ẩn khi xuất báo giá)', note:'Giá đại lý tự tính = Giá bán lẻ × (1 − Chiết khấu đại lý %).', f:[
-    ['GIÁ BÁN LẺ','Giá bán lẻ','num',1],['CHIẾT KHẤU ĐẠI LÝ (%)','Chiết khấu đại lý (%)','num',1] ]},
-  {g:'Media', f:[
-    ['LINK DATASHEET','Link datasheet','text',0] ]},
-  {g:'Quản trị', f:[
-    ['TRẠNG THÁI','Trạng thái','sel',1,['Đang kinh doanh','Ngưng','Đặt hàng']],['GHI CHÚ','Ghi chú','area',0] ]}
+  {g:'Installation Specifications (Thông số lắp đặt)', f:[
+    ['LẮP NGUỒN RỜI','Lắp nguồn rời','sel',0,['Có','Không']],['LỖ KHOÉT TRẦN (mm)','Lỗ khoét trần (mm)','num',0],['CẤP BẢO VỆ ĐIỆN','Cấp bảo vệ điện','sel',0,['Class I','Class II','Class III']] ]},
+  {g:'Quản trị & khác', f:[
+    ['NHÓM SẢN PHẨM','Nhóm sản phẩm','text',0],['ĐƠN VỊ TÍNH','Đơn vị tính','sel',1,['Cái','Bộ','Mét']],
+    ['LINK DATASHEET','Link datasheet','text',0],['TRẠNG THÁI','Trạng thái','sel',1,['Đang kinh doanh','Ngưng','Đặt hàng']],['GHI CHÚ','Ghi chú','area',0] ]}
 ];
 var DB_FLAT=[]; DB_GROUPS.forEach(function(gr){ gr.f.forEach(function(f){ DB_FLAT.push(f); }); });
 function dbInput(f){
@@ -1546,24 +1540,46 @@ function imgSection(){
       +'</div>'
     +'</div></div></div>';
 }
-var DB_GICON={'Định danh':'tag','Thông tin chính':'bulb','Hiệu suất':'gauge','Thiết kế':'ruler','Lắp đặt':'wrench','Nguồn (Driver)':'plug','Thương mại':'money','Giá vốn (ẩn khi xuất báo giá)':'lock','Media':'image','Quản trị':'sliders'};
+var DB_GICON={'Thông tin cơ bản':'tag','Thông tin giá bán':'money','Key Product Info (Thông tin chính)':'bulb','Performance Specifications (Thông số hiệu suất)':'gauge','Bộ nguồn':'plug','Installation Specifications (Thông số lắp đặt)':'wrench','Quản trị & khác':'sliders'};
 function dbCard_(title, ic, note, inner){
   return '<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">'+(icon(ic,18)||esc(ic))+'</span><h3>'+esc(title)+'</h3></div>'
     +'<div class="dbcard-b">'+(note?'<p class="dbnote">'+esc(note)+'</p>':'')+inner+'</div></div>';
 }
+function impStatBar(){
+  var ps=S.products||[];
+  var brands={}, nccs={}; ps.forEach(function(p){ if(p.thuongHieu)brands[p.thuongHieu]=1; if(p.ncc)nccs[p.ncc]=1; });
+  function stat(label,val){ return '<div class="imp-stat"><div class="imp-stat-v">'+val+'</div><div class="imp-stat-l">'+esc(label)+'</div></div>'; }
+  return '<div class="imp-statbar">'
+    +'<div class="imp-nganh"><label>Ngành hàng</label><div class="msel" style="min-width:200px"><span class="mlabel">Thiết bị đèn</span><span class="mplus">▾</span></div></div>'
+    +stat('Số lượng SKU',ps.length)
+    +stat('Số lượng thương hiệu',Object.keys(brands).length)
+    +stat('Số nhà cung cấp',Object.keys(nccs).length)
+    +'</div>';
+}
+function impRecentList(){
+  var ps=(S.products||[]).slice().sort(function(a,b){ return String(b.capNhat||b.ngayTao||'').localeCompare(String(a.capNhat||a.ngayTao||'')); }).slice(0,50);
+  var rows=ps.map(function(p,i){
+    var img=p.hinhAnh?'<img class="imp-rth" src="'+esc(p.hinhAnh)+'" onerror="this.style.visibility=\'hidden\'">':'<span class="imp-rth"></span>';
+    return '<div class="imp-rrow"><span class="imp-rno">'+(i+1)+'</span>'+img
+      +'<div class="imp-rmid"><div class="imp-rname">'+esc(p.ten||'')+'</div><div class="imp-rsub">'+esc(p.thuongHieu||'—')+'</div></div>'
+      +'<div class="imp-rdate">'+fmtDate(p.capNhat||p.ngayTao)+'</div></div>';
+  }).join('') || '<div class="empty" style="padding:20px">Chưa có sản phẩm.</div>';
+  return '<div class="imp-recent"><div class="imp-recent-h">Danh sách sản phẩm vừa nhập <span class="count">'+pad2(ps.length)+'</span></div><div class="imp-recent-b">'+rows+'</div></div>';
+}
 function renderImport(){
   S._imgMain=''; S._imgList=[];
   var box=document.getElementById('v-import');
-  box.innerHTML='<div class="dbwrap">'
-    +'<div class="dbhead"><div><h2>Nhập dữ liệu</h2><p>Thêm sản phẩm vào danh mục <b>DB_Sản phẩm</b> (Supabase) · <span style="color:#c33">*</span> bắt buộc</p></div></div>'
+  var form='<div class="dbwrap">'
+    +'<div class="dbhead"><div><h2>Nhập dữ liệu</h2><p>Thêm sản phẩm vào danh mục <b>DB_Sản phẩm</b> · <span style="color:#c33">*</span> bắt buộc</p></div></div>'
     +imgSection()
     +DB_GROUPS.map(function(gr){
       return dbCard_(gr.g, DB_GICON[gr.g]||'doc', gr.note, '<div class="dbgrid">'+gr.f.map(dbInput).join('')+'</div>');
     }).join('')
-    +'<div class="savebar"><button class="btn blue" onclick="tdSave(this)">＋ Lưu vào DB_Sản phẩm</button><button class="btn ghost" onclick="renderImport()">Xoá form</button><span style="color:var(--muted);font-size:12px">Ảnh chính + ảnh chi tiết lưu vào cột Ảnh sản phẩm.</span></div>'
+    +'<div class="savebar"><button class="btn blue" onclick="tdSave(this)">'+icon('check',15)+' Thêm sản phẩm vào Database</button><button class="btn ghost" onclick="renderImport()">Xoá form</button><span style="color:var(--muted);font-size:12px">Ảnh + thông số lưu vào DB_Sản phẩm.</span></div>'
     +dbCard_('Nhập hàng loạt từ file', 'download', 'Chọn file .xlsx / .xls / .csv có cột Tên sản phẩm (và các cột khác nếu có). Hệ thống tự dò cột theo tiêu đề và lưu vào DB_Sản phẩm.',
       '<input type="file" id="impFile" accept=".xlsx,.xls,.csv" onchange="impPick(this)" style="font:inherit"><div id="impPreview" style="margin-top:12px"></div>')
     +'</div>';
+  box.innerHTML=impStatBar()+'<div class="imp-layout">'+form+impRecentList()+'</div>';
 }
 /* ==== Upload ảnh ==== */
 function upDrag(e,on){ e.preventDefault(); e.currentTarget.classList.toggle('drag',!!on); }
