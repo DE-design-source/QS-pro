@@ -788,9 +788,9 @@ function renderTable(){
   var te=document.getElementById('tkTotals');
   if(te){
     te.innerHTML='<div class="tkt-bar">'
-     +'<div class="tkt-seg"><span class="tkt-l">Tổng chưa VAT</span><span class="tkt-v">'+money(sub)+' đ</span></div>'
-     +'<div class="tkt-seg"><span class="tkt-l">Thuế VAT <input class="tkt-vat" type="number" step="any" min="0" value="'+vatPct+'" onchange="setVat(this.value)"><span class="tkt-pct">%</span></span><span class="tkt-v">'+money(vat)+' đ</span></div>'
-     +'<div class="tkt-seg grand"><span class="tkt-l">Tổng thành tiền</span><span class="tkt-v">'+money(sub+vat)+' đ</span></div>'
+     +'<div class="tkt-seg"><span class="tkt-ic">'+icon('money',16)+'</span><span class="tkt-c"><span class="tkt-l">Tổng chưa VAT</span><span class="tkt-v">'+money(sub)+' đ</span></span></div>'
+     +'<div class="tkt-seg"><span class="tkt-ic">'+icon('gauge',16)+'</span><span class="tkt-c"><span class="tkt-l">Thuế VAT <input class="tkt-vat" type="number" step="any" min="0" value="'+vatPct+'" onchange="setVat(this.value)">%</span><span class="tkt-v">'+money(vat)+' đ</span></span></div>'
+     +'<div class="tkt-seg grand"><span class="tkt-ic">'+icon('cart',17)+'</span><span class="tkt-c"><span class="tkt-l">Tổng thành tiền</span><span class="tkt-v">'+money(sub+vat)+' đ</span></span></div>'
      +'</div>';
   }
 }
