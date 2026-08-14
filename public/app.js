@@ -1686,47 +1686,67 @@ async function impPick(input){
   reader.readAsDataURL(f);
 }
 function impImgs_(p){ return String(p.hinhAnh||'').split('\n').map(function(s){return s.trim();}).filter(Boolean); }
-function impImgCell_(p,i){
-  var imgs=impImgs_(p);
-  if(!imgs.length) return '<button class="imp-imgbtn" onclick="impImg('+i+')" title="Tải ảnh (1 chính + phụ)">＋</button>';
-  return '<div class="imp-imgcell" onclick="impImg('+i+')" title="Bấm để thêm/đổi ảnh (chọn nhiều: ảnh đầu là chính)">'
-    +'<img src="'+esc(imgUrlOf(imgs[0]))+'" class="imp-th" onerror="this.style.visibility=\'hidden\'">'
-    +(imgs.length>1?'<span class="imp-imgcount">+'+(imgs.length-1)+'</span>':'')+'</div>';
+function impMain_(p){ return impImgs_(p)[0]||''; }
+function impMore_(p){ return impImgs_(p).slice(1); }
+/* Ô ảnh trong bảng xem trước: 1 ảnh chính + nhiều ảnh chi tiết */
+function impImgCell2_(p,i){
+  var main=impMain_(p), more=impMore_(p);
+  var mainHtml = main
+    ? '<div class="iithumb"><img src="'+esc(imgUrlOf(main))+'" onerror="this.style.visibility=\'hidden\'"><button class="iix" title="Xoá" onclick="impDelImg('+i+',0)">✕</button></div>'
+    : '<button class="iiadd" onclick="impPickMain('+i+')" title="Tải ảnh chính">'+icon('camera',16)+'</button>';
+  var moreHtml = more.map(function(u,k){ return '<div class="iithumb sm"><img src="'+esc(imgUrlOf(u))+'" onerror="this.style.visibility=\'hidden\'"><button class="iix" onclick="impDelImg('+i+','+(k+1)+')">✕</button></div>'; }).join('')
+    + '<button class="iiadd sm" onclick="impPickMore('+i+')" title="Thêm ảnh chi tiết">＋</button>';
+  return '<div class="iicell">'
+    +'<div class="iislot"><span class="iilb">Ảnh chính</span>'+mainHtml+'</div>'
+    +'<div class="iislot"><span class="iilb">Ảnh chi tiết</span><div class="iimore">'+moreHtml+'</div></div>'
+    +'</div>';
 }
+function impCellVal_(p,h){ var v=(p._raw&&p._raw[h]); return v==null?'':String(v); }
 function impRow_(p,i){
-  return '<tr><td class="ct" id="impimg_'+i+'">'+impImgCell_(p,i)+'</td>'
-    +'<td>'+esc(p.ten||'')+'</td><td>'+esc(p.thuongHieu||'')+'</td>'
-    +'<td class="mono">'+esc(p.ma||'')+'</td><td>'+esc(p.dvt||'')+'</td>'
-    +'<td class="num">'+money(p.gia)+'</td></tr>';
+  var heads=S._impHeaders||[];
+  return '<tr><td class="iiimgtd" id="impimg_'+i+'">'+impImgCell2_(p,i)+'</td>'
+    +heads.map(function(h){ return '<td>'+esc(impCellVal_(p,h))+'</td>'; }).join('')+'</tr>';
 }
-function impRefreshRow(i){ var c=document.getElementById('impimg_'+i); if(c) c.innerHTML=impImgCell_(S._impProducts[i],i); }
+function impRefreshRow(i){ var c=document.getElementById('impimg_'+i); if(c) c.innerHTML=impImgCell2_(S._impProducts[i],i); }
 function impUpdateCounter(){ var n=(S._impProducts||[]).filter(function(p){return p.hinhAnh;}).length; var el=document.getElementById('impImgCount'); if(el){ el.textContent=n; el.style.color=(n<(S._impProducts||[]).length)?'#c9820a':'#1a7f37'; } }
 function readB64_(f){ return new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){res(String(r.result));}; r.onerror=rej; r.readAsDataURL(f); }); }
-function impImg(i){
-  var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.multiple=true;
-  inp.onchange=async function(){
-    var fs=Array.prototype.slice.call(inp.files||[]); if(!fs.length) return;
-    var cell=document.getElementById('impimg_'+i); if(cell)cell.innerHTML='<span style="font-size:11px;color:#889">⏳</span>';
-    var cur=impImgs_(S._impProducts[i]);
-    for(var k=0;k<fs.length;k++){
-      try{ var b=await readB64_(fs[k]); var r=await api('uploadImage', b, fs[k].name||'img.jpg'); var tok=r.url||r.token; if(tok) cur.push(tok); }
-      catch(e){ toast('Upload ảnh lỗi: '+e.message); }
-    }
-    S._impProducts[i].hinhAnh=cur.join('\n');
-    impRefreshRow(i); impUpdateCounter();
-  };
-  inp.click();
+async function impUploadFiles_(fs){
+  var toks=[]; for(var k=0;k<fs.length;k++){ try{ var b=await readB64_(fs[k]); var r=await api('uploadImage', b, fs[k].name||'img.jpg'); var tok=r.url||r.token; if(tok) toks.push(tok); }catch(e){ toast('Upload ảnh lỗi: '+e.message); } } return toks;
 }
+function impSetImgs_(i,arr){ S._impProducts[i].hinhAnh=arr.filter(Boolean).join('\n'); impRefreshRow(i); impUpdateCounter(); }
+function impPickMain(i){
+  var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+  inp.onchange=async function(){ var fs=Array.prototype.slice.call(inp.files||[]); if(!fs.length) return;
+    var cell=document.getElementById('impimg_'+i); if(cell)cell.innerHTML='<span class="iiwait">⏳ Đang tải…</span>';
+    var toks=await impUploadFiles_(fs.slice(0,1)); var cur=impImgs_(S._impProducts[i]);
+    if(toks.length){ if(cur.length) cur[0]=toks[0]; else cur=[toks[0]]; }
+    impSetImgs_(i,cur);
+  }; inp.click();
+}
+function impPickMore(i){
+  var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.multiple=true;
+  inp.onchange=async function(){ var fs=Array.prototype.slice.call(inp.files||[]); if(!fs.length) return;
+    var cell=document.getElementById('impimg_'+i); if(cell)cell.innerHTML='<span class="iiwait">⏳ Đang tải…</span>';
+    var toks=await impUploadFiles_(fs); var cur=impImgs_(S._impProducts[i]).concat(toks);
+    impSetImgs_(i,cur);
+  }; inp.click();
+}
+function impDelImg(i,idx){ var cur=impImgs_(S._impProducts[i]); cur.splice(idx,1); impSetImgs_(i,cur); }
 function impShow(res){
   S._impProducts=res.products||[];
-  if(!res.count){ document.getElementById('impPreview').innerHTML='<div style="color:#c33">Không đọc được sản phẩm nào (kiểm tra cột Tên sản phẩm).</div>'; return; }
-  var mappedTxt=Object.keys(res.mapped||{}).map(function(k){return esc(res.mapped[k]);}).join(' · ');
+  S._impHeaders=res.headers||[];
+  var pv=document.getElementById('impPreview');
+  if(!res.count){ pv.innerHTML='<div style="color:#c33">Không đọc được sản phẩm nào (kiểm tra cột Tên sản phẩm).</div>'; return; }
+  var heads=S._impHeaders;
   var rows=S._impProducts.map(function(p,i){ return impRow_(p,i); }).join('');
-  document.getElementById('impPreview').innerHTML=
-    '<div style="margin-bottom:6px"><b>Đọc được '+res.count+' sản phẩm.</b> <span style="color:var(--muted)">Cột nhận diện: '+mappedTxt+'</span></div>'
-    +'<div style="margin-bottom:10px;font-size:13px;display:flex;align-items:center;gap:6px"><span style="color:var(--blue);display:inline-flex">'+icon('image',16)+'</span>Ảnh: <b id="impImgCount">0</b>/'+res.count+' đã có ảnh — <span style="color:var(--muted)">bấm ô <b>＋</b> ở cột Ảnh để tải hình cho từng sản phẩm</span></div>'
-    +'<div class="tbl-wrap" style="max-height:460px"><table class="tk"><thead><tr><th style="width:58px">Ảnh</th><th>Tên sản phẩm</th><th>Thương hiệu</th><th>Mã SP</th><th>ĐVT</th><th class="num">Giá bán lẻ</th></tr></thead><tbody id="impBody">'+rows+'</tbody></table></div>'
-    +'<div style="margin-top:12px"><button class="btn blue" onclick="impCommit(this)">＋ Nhập '+res.count+' sản phẩm vào danh mục</button></div>';
+  var recog=Object.keys(res.mapped||{}).map(function(k){return esc(res.mapped[k]);}).join(' · ');
+  pv.innerHTML=
+    '<div class="imp-pv-info"><div class="imp-pv-h">Đọc được <b>'+res.count+'</b> sản phẩm · <b>'+heads.length+'</b> cột từ file</div>'
+    +'<div class="imp-pv-sub">'+icon('image',15)+' Tải <b>ảnh chính</b> và <b>ảnh chi tiết</b> cho từng SP ở cột đầu — <b id="impImgCount">0</b>/'+res.count+' đã có ảnh</div></div>'
+    +'<div class="imp-pv-wrap"><table class="imp-pvtbl"><thead><tr><th class="iiimgth">Ảnh (chính + chi tiết)</th>'
+      +heads.map(function(h){return '<th>'+esc(h)+'</th>';}).join('')+'</tr></thead><tbody id="impBody">'+rows+'</tbody></table></div>'
+    +'<div class="imp-pv-foot"><button class="btn blue" onclick="impCommit(this)">'+icon('check',15)+' Nhập '+res.count+' sản phẩm vào danh mục</button>'
+      +'<span class="imp-pv-note">Cột nhận diện & map DB: '+recog+'</span></div>';
   impUpdateCounter();
 }
 async function impCommit(btn){

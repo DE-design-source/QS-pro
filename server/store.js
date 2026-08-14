@@ -789,7 +789,8 @@ async function importParse(base64, ext) {
     if (products.length >= 2000) break;
   }
   var mapped = {}; Object.keys(map).forEach(function (k) { mapped[k] = headers[map[k]]; });
-  return { count: products.length, products: products, mapped: mapped };
+  var headerList = headers.filter(function (h) { return String(h || '').trim(); });
+  return { count: products.length, products: products, mapped: mapped, headers: headerList };
 }
 async function importCommit(products) {
   await setup();
