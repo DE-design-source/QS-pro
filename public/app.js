@@ -468,8 +468,8 @@ function renderCatalog(){
   updateCatUI();
   if(!list.length){ el.innerHTML='<div class="empty">Không có sản phẩm khớp lọc.</div>'; S._filtered=list; return; }
   el.innerHTML=list.slice(0,300).map(function(p,i){
-    var img=p.hinhAnh?'<img class="thumb" src="'+esc(p.hinhAnh)+'" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>';
-    var im2=p.hinhAnh?'<img class="thumb" src="'+esc(p.hinhAnh)+'" onclick="showDetail('+i+')" style="cursor:pointer" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb" onclick="showDetail('+i+')" style="cursor:pointer"></div>';
+    var img=p.hinhAnh?'<img class="thumb" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>';
+    var im2=p.hinhAnh?'<img class="thumb" src="'+esc(imgSrc1_(p.hinhAnh))+'" onclick="showDetail('+i+')" style="cursor:pointer" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb" onclick="showDetail('+i+')" style="cursor:pointer"></div>';
     var brand=esc(p.thuongHieu||'');
     return '<div class="citem" draggable="true" ondragstart="prodDragStart(event,'+i+')" ondragend="prodDragEnd()">'
       +'<div class="no">'+(i+1)+'</div>'+im2
@@ -506,7 +506,7 @@ function pdContent_(p){
   ].filter(function(x){ return x[1] && String(x[1]).trim(); });
   var keyHtml=keyItems.length?'<div class="pd-sec">Key Product Info (Thông tin chính)</div><div class="pd-keys">'
     +keyItems.map(function(x){ return '<div class="pd-key"><span class="ic">'+icon(x[0],16)+'</span><span>'+esc(x[1])+'</span></div>'; }).join('')+'</div>':'';
-  var img=p.hinhAnh?'<div class="imgbox"><img src="'+esc(p.hinhAnh)+'" onerror="this.parentNode.innerHTML=\'<span style=&quot;color:#9aa&quot;>Không tải được ảnh</span>\'"></div>'
+  var img=p.hinhAnh?'<div class="imgbox"><img src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.parentNode.innerHTML=\'<span style=&quot;color:#9aa&quot;>Không tải được ảnh</span>\'"></div>'
     :'<div class="imgbox"><span style="color:#9aa">Không có ảnh</span></div>';
   return img
     +'<div class="pcode">'+esc(p.ma||p.ten)+'</div>'
@@ -558,7 +558,7 @@ function spFilter(){
   document.getElementById('spCount').textContent='['+pad2(list.length)+']';
   document.getElementById('spBody').innerHTML=list.length?list.map(function(p,i){
     return '<tr class="sp-row" onclick="spModal('+i+')">'
-      +'<td class="ct">'+(p.hinhAnh?'<img class="sp-th" src="'+esc(p.hinhAnh)+'" onerror="this.style.visibility=\'hidden\'">':'<span class="sp-th"></span>')+'</td>'
+      +'<td class="ct">'+(p.hinhAnh?'<img class="sp-th" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="sp-th"></span>')+'</td>'
       +'<td class="mono">'+esc(p.ma||'')+'</td>'
       +'<td><b>'+esc(p.ten||'')+'</b></td>'
       +'<td>'+esc(p.thuongHieu||'')+'</td>'
@@ -690,7 +690,7 @@ function cellVal(l,key){
     case 'ncc': return esc(l.ncc||'');
     case 'moTa': return '<div class="desc">'+esc(l.moTa||'')+'</div>';
     case 'kichThuoc': return esc(l.kichThuoc||'');
-    case 'hinhAnh': return l.hinhAnh?'<img class="pimg" src="'+esc(l.hinhAnh)+'" onerror="this.style.visibility=\'hidden\'">':'';
+    case 'hinhAnh': return l.hinhAnh?'<img class="pimg" src="'+esc(imgSrc1_(l.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'';
     case 'dvt': return esc(l.dvt||'');
     case 'giaNCC': return money(l.donGiaVon);
     case 'chietKhau': return (Number(l.chietKhau)||0)+'%';
@@ -907,7 +907,7 @@ function openFilter(e,key){
     var on=S.colFilter[key]===v;
     if(rich){ var m=meta[v]||{};
       return '<div class="fi frow'+(on?' on':'')+'" data-t="'+esc(v.toLowerCase())+'" data-v="'+esc(v)+'" onclick="setFilter(\''+key+'\',this.dataset.v)">'
-        +(m.img?'<img src="'+esc(m.img)+'" onerror="this.style.visibility=\'hidden\'">':'<span class="noimg"></span>')
+        +(m.img?'<img src="'+esc(imgSrc1_(m.img))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="noimg"></span>')
         +'<span class="fnm">'+esc(v)+'</span><span class="fpr">'+money(m.price)+'</span></div>';
     }
     return '<div class="fi'+(on?' on':'')+'" data-t="'+esc(v.toLowerCase())+'" data-v="'+esc(v)+'" onclick="setFilter(\''+key+'\',this.dataset.v)">'+esc(v)+' <span style="color:#98a6b3">('+vals[v]+')</span></div>';
@@ -949,7 +949,7 @@ function prodDragStart(e,i){
   S._dragProd=p;
   try{
     e.dataTransfer.effectAllowed='copy'; e.dataTransfer.setData('text/plain',p.ten||'');
-    var img=p.hinhAnh?'<img src="'+esc(p.hinhAnh)+'" onerror="this.style.visibility=\'hidden\'">':'<span class="dg-img"></span>';
+    var img=p.hinhAnh?'<img src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="dg-img"></span>';
     var g=document.createElement('div'); g.className='drag-ghost';
     g.innerHTML=img+'<span class="dg-b"><span class="dg-nm">'+esc(p.ten||'')+'</span><span class="dg-pr">'+money(p.donGiaBan)+' đ</span></span>'
       +'<span class="dg-add">'+icon('plus',14)+'Thả vào bảng</span>';
@@ -1558,6 +1558,8 @@ function dbCalcDaiLy(){
   oe.value = g ? Math.round(g*(1-ck/100)) : '';
 }
 function imgUrlOf(v){ v=String(v||''); return v.indexOf('http')===0?v:(v?('/media?token='+encodeURIComponent(v)):''); }
+// Ảnh đầu tiên (nhiều ảnh nối bằng xuống dòng) -> URL hợp lệ cho <img src>
+function imgSrc1_(v){ return imgUrlOf(String(v||'').split('\n')[0].trim()); }
 function upMainInner(){
   return S._imgMain
     ? '<img src="'+esc(imgUrlOf(S._imgMain))+'" onerror="this.replaceWith(document.createTextNode(\'ảnh lỗi\'))"><button class="upx" title="Xoá" onclick="event.stopPropagation();upRemove(\'main\')">✕</button>'
