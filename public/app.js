@@ -1590,8 +1590,7 @@ function dbCard_(title, ic, note, inner){
 function impStatBar(){
   var ps=S.products||[];
   var brands={}, nccs={}; ps.forEach(function(p){ if(p.thuongHieu)brands[p.thuongHieu]=1; if(p.ncc)nccs[p.ncc]=1; });
-  function stat(label,val){ return '<div class="imp-stat2"><div class="imp-stat2-h">'+esc(label)+' : <b>'+val+'</b></div>'
-    +'<div class="imp-daterow"><span>Từ ngày</span><input type="date" class="imp-date"><span>Tới</span><input type="date" class="imp-date"></div></div>'; }
+  function stat(label,val){ return '<div class="imp-stat"><div class="imp-stat-v">'+val+'</div><div class="imp-stat-l">'+esc(label)+'</div></div>'; }
   return '<div class="imp-statbar">'
     +'<div class="imp-nganh"><label>Ngành hàng</label><div class="msel" style="min-width:190px"><span class="mlabel">Thiết bị đèn</span><span class="mplus">▾</span></div></div>'
     +stat('Số lượng SKU đã nhập',ps.length)
@@ -1729,7 +1728,15 @@ function impCellVal_(p,h){ var v=(p._raw&&p._raw[h]); return v==null?'':String(v
 function impRow_(p,i){
   var heads=S._impHeaders||[];
   return '<tr><td class="iiimgtd" id="impimg_'+i+'">'+impImgCell2_(p,i)+'</td>'
-    +heads.map(function(h){ return '<td>'+esc(impCellVal_(p,h))+'</td>'; }).join('')+'</tr>';
+    +heads.map(function(h){ return '<td class="iied" contenteditable="true" spellcheck="false" data-i="'+i+'" data-h="'+esc(h)+'" oninput="impEdit(this)">'+esc(impCellVal_(p,h))+'</td>'; }).join('')+'</tr>';
+}
+function impEdit(el){
+  var i=+el.getAttribute('data-i'), h=el.getAttribute('data-h'), p=S._impProducts[i]; if(!p) return;
+  if(!p._raw) p._raw={}; p._raw[h]=el.textContent;
+  // đồng bộ vài trường cơ bản để danh sách "vừa nhập" hiển thị đúng
+  if(h==='TÊN SẢN PHẨM') p.ten=el.textContent;
+  else if(h==='THƯƠNG HIỆU') p.thuongHieu=el.textContent;
+  else if(h==='MÃ SẢN PHẨM') p.ma=el.textContent;
 }
 function impRefreshRow(i){ var c=document.getElementById('impimg_'+i); if(c) c.innerHTML=impImgCell2_(S._impProducts[i],i); }
 function impUpdateCounter(){ var n=(S._impProducts||[]).filter(function(p){return p.hinhAnh;}).length; var el=document.getElementById('impImgCount'); if(el){ el.textContent=n; el.style.color=(n<(S._impProducts||[]).length)?'#c9820a':'#1a7f37'; } }
