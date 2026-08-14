@@ -1252,31 +1252,65 @@ function renderChiphi(){
 
 /* ===== MUA HÀNG (gom theo Nhà cung cấp) ===== */
 function mhPrice(l){ return Number(l.giaDaiLy)||Number(l.donGiaVon)||Number(l.donGiaBan)||0; }
-function muahangCard(ncc, items, vatPct, gi){
-  var COLS=['STT','PHÒNG','TÊN SẢN PHẨM','THƯƠNG HIỆU','THÔNG TIN CHÍNH','THÔNG SỐ THIẾT KẾ','HÌNH ẢNH','ĐVT','SỐ LƯỢNG','ĐƠN GIÁ'];
-  var W=[46,92,180,110,240,210,72,60,74,116];
-  var colg='<colgroup>'+W.map(function(w){return '<col style="width:'+w+'px">';}).join('')+'</colgroup>';
-  var sub=0;
+function mhSub_(items){ return items.reduce(function(a,l){ return a+(Number(l.soLuong)||0)*mhPrice(l); },0); }
+function mhTot_(items,vatPct){ var s=mhSub_(items); return s+Math.round(s*vatPct/100); }
+function mhOn_(ncc){ return !(S._mhSel&&S._mhSel[ncc]===false); }
+/* Thẻ NCC — dùng lại frontend thẻ của trang Nhập dữ liệu (.dbcard + icon chip) */
+function muahangCard(g, gi, vatPct){
+  var ncc=g.ncc, items=g.items, sub=0;
   var rows=items.map(function(l,i){
-    var dg=mhPrice(l), sl=Number(l.soLuong)||0; sub+=sl*dg;
-    var img=l.hinhAnh?'<img class="mh-img" src="'+esc(l.hinhAnh)+'" onerror="this.style.visibility=\'hidden\'">':'';
-    return '<tr class="'+(i%2===0?'alt':'')+'"><td class="c">'+(gi+1)+'.'+(i+1)+'</td>'
-      +'<td>'+esc(l.khuVuc||'')+'</td><td class="b2">'+esc(l.ten||'')+'</td><td>'+esc(l.thuongHieu||'')+'</td>'
-      +'<td class="mh-desc">'+esc(l.moTa||'').replace(/\n/g,'<br>')+'</td>'
-      +'<td class="mh-desc">'+esc(l.kichThuoc||'').replace(/\n/g,'<br>')+'</td><td class="c">'+img+'</td>'
-      +'<td class="c">'+esc(l.dvt||'Cái')+'</td><td class="c">'+sl+'</td>'
-      +'<td class="n b">'+money(dg)+'</td></tr>';
+    var dg=mhPrice(l), sl=Number(l.soLuong)||0, tt=sl*dg; sub+=tt;
+    var im=String(l.hinhAnh||'').split('\n')[0];
+    var img=im?'<img class="mhp-img" src="'+esc(imgUrlOf(im))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="mhp-img ph"></span>';
+    var spec=[l.moTa,l.kichThuoc].map(function(x){return String(x||'').trim();}).filter(Boolean).join(' · ');
+    var sub2=[l.khuVuc,l.thuongHieu].map(function(x){return String(x||'').trim();}).filter(Boolean).join(' · ');
+    return '<tr>'
+      +'<td class="c mut">'+(gi+1)+'.'+(i+1)+'</td>'
+      +'<td class="c">'+img+'</td>'
+      +'<td><div class="mhp-name">'+esc(l.ten||'')+'</div>'
+        +(sub2?'<div class="mhp-sub">'+esc(sub2)+'</div>':'')
+        +(spec?'<div class="mhp-spec">'+esc(spec).replace(/\n/g,' ')+'</div>':'')+'</td>'
+      +'<td class="c">'+esc(l.dvt||'Cái')+'</td>'
+      +'<td class="c b">'+sl+'</td>'
+      +'<td class="n">'+money(dg)+'</td>'
+      +'<td class="n b">'+money(tt)+'</td></tr>';
   }).join('');
-  var vat=Math.round(sub*vatPct/100);
-  return '<div class="mh-card">'
-    +'<div class="mh-card-h"><span class="mh-ncc">'+icon('building',17)+'NHÀ CUNG CẤP: '+esc(String(ncc).toUpperCase())+'<span class="mh-badge">'+items.length+' SP</span></span>'
-      +'<span class="mh-radio'+(S._mhSel&&S._mhSel[ncc]===false?'':' on')+'" onclick="mhToggle('+gi+')" title="Chọn để gửi hàng loạt"></span></div>'
-    +'<div class="mh-scroll"><table class="mh-tbl">'+colg+'<thead><tr>'+COLS.map(function(c,i){return '<th class="'+(i>=8?'n':(i===0||i===6||i===7?'c':''))+'">'+c+'</th>';}).join('')+'</tr></thead>'
-    +'<tbody>'+(rows||'<tr><td colspan="10" class="empty">—</td></tr>')
-    +'<tr class="mh-vat"><td colspan="7"></td><td class="c">VAT</td><td class="c">'+vatPct+'%</td><td class="n">'+money(vat)+'</td></tr>'
-    +'<tr class="mh-total"><td colspan="8"></td><td class="n">TỔNG</td><td class="n">'+money(sub+vat)+'</td></tr>'
-    +'</tbody></table></div>'
-    +'<div class="mh-card-f"><button class="btn navy" onclick="mhSend('+gi+',this)">'+icon('cart',15)+' Gửi mua hàng</button></div></div>';
+  var vat=Math.round(sub*vatPct/100), tot=sub+vat, on=mhOn_(ncc);
+  return '<div class="dbcard mhc'+(on?' sel':'')+'">'
+    +'<div class="dbcard-h mhc-h">'
+      +'<span class="dbcard-ic">'+icon('building',18)+'</span>'
+      +'<h3>'+esc(ncc)+'</h3><span class="mhc-badge">'+items.length+' SP</span>'
+      +'<span class="sp" style="flex:1"></span>'
+      +'<span class="mhc-tot">'+money(tot)+' đ</span>'
+      +'<span class="mhc-chk'+(on?' on':'')+'" onclick="mhToggle('+gi+')" title="Chọn để gửi hàng loạt">'+icon('check',13)+'</span>'
+    +'</div>'
+    +'<div class="dbcard-b mhc-b">'
+      +'<div class="mh-scroll"><table class="mh-tbl2">'
+        +'<thead><tr><th class="c">#</th><th class="c">Ảnh</th><th>Sản phẩm</th><th class="c">ĐVT</th><th class="c">SL</th><th class="n">Đơn giá</th><th class="n">Thành tiền</th></tr></thead>'
+        +'<tbody>'+(rows||'<tr><td colspan="7" class="empty">—</td></tr>')+'</tbody>'
+        +'<tfoot><tr class="mhf-vat"><td colspan="5"></td><td class="n">VAT '+vatPct+'%</td><td class="n">'+money(vat)+'</td></tr>'
+        +'<tr class="mhf-tot"><td colspan="5"></td><td class="n">TỔNG</td><td class="n">'+money(tot)+'</td></tr></tfoot>'
+      +'</table></div>'
+      +'<div class="mhc-f"><button class="btn navy sm" onclick="mhSend('+gi+',this)">'+icon('cart',15)+' Gửi mua hàng NCC này</button></div>'
+    +'</div></div>';
+}
+/* Panel tổng hợp bên phải — dùng lại .imp-recent của trang Nhập dữ liệu */
+function mhSummary(groups, vatPct, grand){
+  var rows=groups.map(function(g,gi){
+    var tot=mhTot_(g.items,vatPct), on=mhOn_(g.ncc);
+    return '<div class="mhs-row'+(on?'':' off')+'" onclick="mhToggle('+gi+')">'
+      +'<span class="mhs-chk'+(on?' on':'')+'">'+icon('check',12)+'</span>'
+      +'<div class="mhs-mid"><div class="mhs-name">'+esc(g.ncc)+'</div><div class="mhs-sub">'+g.items.length+' SP</div></div>'
+      +'<div class="mhs-tot">'+money(tot)+'</div></div>';
+  }).join('') || '<div class="empty" style="padding:20px 14px;font-size:12.5px">Chưa có nhà cung cấp.</div>';
+  var nSel=groups.filter(function(g){return mhOn_(g.ncc);}).length;
+  return '<div class="imp-recent mhsum">'
+    +'<div class="imp-recent-h">'+icon('cart',15)+' Tổng hợp đơn <span class="count">'+pad2(groups.length)+'</span></div>'
+    +'<div class="imp-recent-b">'+rows+'</div>'
+    +'<div class="mhsum-f">'
+      +'<div class="mhsum-grand"><span>Tổng cộng (VAT)</span><b>'+money(grand)+' đ</b></div>'
+      +'<button class="btn navy" style="width:100%;justify-content:center" onclick="mhSendBulk(this)"'+(groups.length?'':' disabled')+'>'+icon('cart',15)+' Gửi '+nSel+' đơn đã chọn</button>'
+    +'</div></div>';
 }
 function renderMuahang(){
   var box=document.getElementById('v-muahang');
@@ -1287,15 +1321,15 @@ function renderMuahang(){
   var groups={}, order=[];
   lines.forEach(function(l){ var s=String(l.ncc||l.thuongHieu||'Khác').trim()||'Khác'; if(!groups[s]){groups[s]=[];order.push(s);} groups[s].push(l); });
   S._mhGroups=order.map(function(k){ return {ncc:k, items:groups[k]}; });
-  var grand=order.reduce(function(sum,k){ var s=groups[k].reduce(function(a,l){return a+(Number(l.soLuong)||0)*mhPrice(l);},0); return sum+s+Math.round(s*vatPct/100); },0);
-  var cards=order.map(function(ncc,gi){ return muahangCard(ncc, groups[ncc], vatPct, gi); }).join('')
+  var grand=order.reduce(function(sum,k){ return sum+mhTot_(groups[k],vatPct); },0);
+  function stat(v,l){ return '<div class="imp-stat"><div class="imp-stat-v">'+v+'</div><div class="imp-stat-l">'+l+'</div></div>'; }
+  var statbar='<div class="imp-statbar">'
+    +'<div class="imp-nganh"><label>Hạng mục</label><div class="msel" style="min-width:210px"><span class="mlabel">'+icon('layers',15)+' '+esc(nodeName(code))+'</span><span class="mplus">▾</span></div></div>'
+    +stat(pad2(order.length),'Nhà cung cấp')+stat(pad2(lines.length),'Sản phẩm')
+    +stat('<span style="color:var(--blue)">'+money(grand)+'</span>','Tổng tiền (VAT)')+'</div>';
+  var cards=S._mhGroups.map(function(g,gi){ return muahangCard(g, gi, vatPct); }).join('')
     || '<div class="empty" style="padding:34px;text-align:center;background:#fff;border:1px solid var(--line);border-radius:14px">Chưa có sản phẩm trong hạng mục này.<br>Vào tab <b>Bóc tách</b> thêm sản phẩm trước.</div>';
-  box.innerHTML=
-    '<div class="mh-top"><div class="mh-title"><h3>Mua hàng theo hạng mục</h3><span class="count">['+pad2(S.lines.length)+']</span></div>'
-      +'<div class="mh-node">'+icon('layers',15)+' '+esc(nodeName(code))+' <span class="count">['+pad2(lines.length)+']</span></div>'
-      +'<span class="sp" style="flex:1"></span>'
-      +(order.length?'<div class="mh-grand">'+order.length+' NCC · <b>'+money(grand)+' đ</b></div><button class="btn navy" onclick="mhSendBulk(this)">'+icon('cart',15)+' Gửi yêu cầu hàng loạt</button>':'')+'</div>'
-    +cards;
+  box.innerHTML=statbar+'<div class="imp-layout"><div class="mhcol">'+cards+'</div>'+mhSummary(S._mhGroups,vatPct,grand)+'</div>';
 }
 function mhToggle(gi){ var g=(S._mhGroups||[])[gi]; if(!g) return; S._mhSel=S._mhSel||{}; S._mhSel[g.ncc]=!(S._mhSel[g.ncc]!==false); renderMuahang(); }
 function mhOrderOf(g){

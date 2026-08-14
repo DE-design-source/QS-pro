@@ -657,39 +657,54 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111c;color:#fff;padding:11px 18px;border-radius:10px;opacity:0;transition:.2s;z-index:90}
 #toast.on{opacity:1}
 
-/* ===== MUA HÀNG (gom theo nhà cung cấp) ===== */
-.mh-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
-.mh-title{display:flex;align-items:center;gap:8px}
-.mh-title h3{margin:0;font-size:16px;font-weight:800}
-.mh-node{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;color:var(--navy)}
-.mh-node svg{color:var(--blue)}
+/* ===== MUA HÀNG — dùng lại frontend thẻ của trang Nhập dữ liệu ===== */
 .btn.navy{background:var(--navy);color:#fff;border:1px solid var(--navy);font-weight:700;display:inline-flex;align-items:center;gap:8px;padding:11px 20px;font-size:13.5px;border-radius:10px}
 .btn.navy:hover{background:#0f2a44}
-.mh-card{background:#fff;border-radius:14px;overflow:hidden;border:1px solid var(--line);box-shadow:0 4px 16px #1e3a5f10;margin-bottom:24px}
-.mh-card-h{background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:14px 20px;font-size:15px;font-weight:800;letter-spacing:.4px}
-.mh-ncc{display:inline-flex;align-items:center;gap:9px}
-.mh-badge{background:#ffffff26;color:#dbe9f7;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:.2px}
-.mh-grand{color:var(--navy);font-size:14px;font-weight:600}
-.mh-grand b{font-size:15px}
-.mh-radio{width:20px;height:20px;border-radius:50%;border:2px solid #ffffff88;flex:none;cursor:pointer;position:relative;transition:.12s}
-.mh-radio.on{border-color:var(--blue);background:var(--blue)}
-.mh-radio.on::after{content:"";position:absolute;inset:4px;background:#fff;border-radius:50%}
+.btn.navy.sm{padding:8px 14px;font-size:12.5px}
+.btn.navy[disabled]{opacity:.5;cursor:not-allowed}
+.mhcol{min-width:0}
+.mhcol .dbcard{margin-top:0;margin-bottom:16px}
+/* Header thẻ NCC: icon chip + tên + badge SP + tổng + checkbox chọn */
+.mhc.sel{border-color:#bcd3f5;box-shadow:0 2px 10px #1e63d21a}
+.mhc-h{gap:11px}
+.mhc-badge{background:#eef5ff;color:var(--blue);font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;flex:none}
+.mhc-tot{font-size:14px;font-weight:800;color:var(--navy)}
+.mhc-chk{width:24px;height:24px;border-radius:7px;border:1.5px solid #cdd6df;background:#fff;color:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;transition:.12s}
+.mhc-chk.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.mhc-b{padding:0!important}
 .mh-scroll{overflow-x:auto}
-table.mh-tbl{width:100%;border-collapse:collapse;font-size:12.5px;min-width:1100px;table-layout:fixed}
-table.mh-tbl th{background:#22456b;color:#fff;text-align:left;padding:11px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;white-space:normal;line-height:1.25;vertical-align:middle}
-table.mh-tbl th.n{text-align:right}table.mh-tbl th.c{text-align:center}
-table.mh-tbl td{padding:9px 12px;border-bottom:1px solid #eef1f5;vertical-align:top;overflow:hidden}
-table.mh-tbl td.c{text-align:center;vertical-align:middle}table.mh-tbl td.n{text-align:right;vertical-align:middle}
-table.mh-tbl td.b{font-weight:800;color:var(--navy)}
-table.mh-tbl td.b2{font-weight:600;color:var(--ink)}
-table.mh-tbl tbody tr.alt td{background:#f4f7fa}
-.mh-desc{color:#3a4753;line-height:1.4;white-space:pre-wrap;word-break:break-word}
-.mh-img{width:44px;height:44px;object-fit:contain;border:1px solid #edf0f3;border-radius:6px;background:#fff}
-tr.mh-vat td{background:var(--navy);color:#cdddf0;font-weight:700;border:none;padding:9px 12px;font-size:12.5px}
-tr.mh-vat td.n{color:#fff;font-weight:800}
-tr.mh-total td{background:var(--navy);color:#fff;font-weight:800;border:none;padding:12px;font-size:15px;border-top:1px solid #ffffff1f}
-tr.mh-total td.n:last-child{font-size:18px}
-.mh-card-f{display:flex;justify-content:flex-end;padding:14px 20px;background:#fff}
+table.mh-tbl2{width:100%;border-collapse:collapse;font-size:13px;min-width:640px}
+table.mh-tbl2 th{background:#f5f8fc;color:#5b6b7b;text-align:left;padding:9px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid #e7ecf2;white-space:nowrap}
+table.mh-tbl2 th.n{text-align:right}table.mh-tbl2 th.c{text-align:center}
+table.mh-tbl2 td{padding:9px 14px;border-bottom:1px solid #f0f3f7;vertical-align:middle}
+table.mh-tbl2 td.c{text-align:center}table.mh-tbl2 td.n{text-align:right;white-space:nowrap}
+table.mh-tbl2 td.b{font-weight:800;color:var(--navy)}
+table.mh-tbl2 td.mut{color:var(--muted);font-size:12px}
+table.mh-tbl2 tbody tr:hover td{background:#f8fafc}
+.mhp-img{width:40px;height:40px;object-fit:contain;border:1px solid #edf0f3;border-radius:7px;background:#fff;display:inline-block}
+.mhp-img.ph{background:#f2f5f8}
+.mhp-name{font-weight:700;color:var(--ink);line-height:1.3}
+.mhp-sub{color:var(--blue);font-size:11.5px;margin-top:1px}
+.mhp-spec{color:#7a8896;font-size:11.5px;margin-top:2px;line-height:1.35}
+tr.mhf-vat td{background:#f7f9fc;color:#5b6b7b;font-weight:700;border-top:1px solid #e7ecf2;padding:9px 14px}
+tr.mhf-vat td.n:last-child{color:var(--ink)}
+tr.mhf-tot td{background:#eef4fb;color:var(--navy);font-weight:800;padding:12px 14px;font-size:14px}
+tr.mhf-tot td.n:last-child{font-size:17px;color:var(--blue)}
+.mhc-f{display:flex;justify-content:flex-end;padding:13px 18px;border-top:1px solid #eef1f5;background:#fbfcfe}
+/* Panel tổng hợp bên phải */
+.mhsum{top:74px}
+.mhs-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;cursor:pointer;transition:.1s}
+.mhs-row:hover{background:#f4f7fa}
+.mhs-row.off{opacity:.5}
+.mhs-chk{width:20px;height:20px;border-radius:6px;border:1.5px solid #cdd6df;background:#fff;color:transparent;display:flex;align-items:center;justify-content:center;flex:none}
+.mhs-chk.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.mhs-mid{flex:1;min-width:0}
+.mhs-name{font-weight:700;font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mhs-sub{font-size:11.5px;color:var(--muted)}
+.mhs-tot{font-weight:800;font-size:12.5px;color:var(--navy);white-space:nowrap}
+.mhsum-f{border-top:1px solid var(--line);padding:14px 16px;background:#fbfcfe}
+.mhsum-grand{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;font-size:13px;color:var(--muted)}
+.mhsum-grand b{font-size:17px;color:var(--blue)}
 </style>
 
 <!-- ===== TOP NAV ===== -->
