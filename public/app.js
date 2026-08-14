@@ -1610,7 +1610,7 @@ function dbCard_(title, ic, note, inner){
     +'<div class="dbcard-b">'+(note?'<p class="dbnote">'+esc(note)+'</p>':'')+inner+'</div></div>';
 }
 function impStatBar(){
-  var ps=S.products||[];
+  var ps=S._sessionAdded||[];  // đếm theo SP nhập trong PHIÊN NÀY (khớp danh sách bên phải)
   var brands={}, nccs={}; ps.forEach(function(p){ if(p.thuongHieu)brands[p.thuongHieu]=1; if(p.ncc)nccs[p.ncc]=1; });
   function stat(label,val){ return '<div class="imp-stat"><div class="imp-stat-v">'+val+'</div><div class="imp-stat-l">'+esc(label)+'</div></div>'; }
   return '<div class="imp-statbar">'
@@ -1637,7 +1637,7 @@ function impRecentList(){
   return '<div class="imp-recent"><div class="imp-recent-h">Sản phẩm vừa nhập (phiên này) <span class="count">'+pad2(ps.length)+'</span></div>'
     +'<div class="imp-recent-b"><table class="imp-rtbl"><thead><tr><th class="c">STT</th><th>Tên sản phẩm</th><th class="c">Hình ảnh</th><th>Thương hiệu</th><th>Ngày cập nhật</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
 }
-function sessionAdd_(o){ S._sessionAdded=S._sessionAdded||[]; S._sessionAdded.unshift({ten:o.ten||'',thuongHieu:o.thuongHieu||'',hinhAnh:o.hinhAnh||'',capNhat:o.capNhat||nowIsoClient_()}); }
+function sessionAdd_(o){ S._sessionAdded=S._sessionAdded||[]; S._sessionAdded.unshift({ten:o.ten||'',thuongHieu:o.thuongHieu||'',ncc:o.ncc||'',hinhAnh:o.hinhAnh||'',capNhat:o.capNhat||nowIsoClient_()}); }
 function nowIsoClient_(){ try{ return new Date().toISOString(); }catch(e){ return ''; } }
 function renderImport(){
   S._imgMain=''; S._imgList=[];
@@ -1836,7 +1836,7 @@ async function impCommit(btn){
   btn.disabled=true; var o=btn.textContent; btn.textContent='Đang nhập…';
   try{ var items=S._impProducts.slice();
     var r=await api('importCommit', S._impProducts); S.products=await api('getProducts')||S.products;
-    items.forEach(function(p){ sessionAdd_({ten:p.ten, thuongHieu:p.thuongHieu, hinhAnh:p.hinhAnh}); });
+    items.forEach(function(p){ sessionAdd_({ten:p.ten, thuongHieu:p.thuongHieu, ncc:p.ncc, hinhAnh:p.hinhAnh}); });
     toast('Đã nhập '+r.inserted+' sản phẩm vào danh mục'); renderImport(); renderFilters(); renderCatalog(); }
   catch(e){ toast('Lỗi nhập: '+e.message); btn.disabled=false; btn.textContent=o; }
 }
@@ -1853,7 +1853,7 @@ async function tdSave(btn){
   if(imgs.length) data['ẢNH SẢN PHẨM']=imgs.join('\n');
   btn.textContent='⏳ Đang lưu…';
   try{ var r=await api('saveDbProduct',data);
-    sessionAdd_({ten:ten, thuongHieu:data['THƯƠNG HIỆU']||'', hinhAnh:data['ẢNH SẢN PHẨM']||''});
+    sessionAdd_({ten:ten, thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'', hinhAnh:data['ẢNH SẢN PHẨM']||''});
     toast((r.updated?'Đã cập nhật':'Đã thêm')+' "'+ten+'" vào DB_Sản phẩm'); renderImport(); }
   catch(e){ toast('Lỗi: '+e.message); btn.disabled=false; btn.textContent=o; }
 }
