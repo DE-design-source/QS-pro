@@ -1557,15 +1557,18 @@ function impStatBar(){
     +'</div>';
 }
 function impRecentList(){
-  var ps=(S.products||[]).slice().sort(function(a,b){ return String(b.capNhat||b.ngayTao||'').localeCompare(String(a.capNhat||a.ngayTao||'')); }).slice(0,50);
+  var ps=(S._sessionAdded||[]);  // chỉ SP thêm/nhập trong PHIÊN hiện tại
   var rows=ps.map(function(p,i){
-    var img=p.hinhAnh?'<img class="imp-rth" src="'+esc(p.hinhAnh)+'" onerror="this.style.visibility=\'hidden\'">':'<span class="imp-rth"></span>';
+    var im=String(p.hinhAnh||'').split('\n')[0];
+    var img=im?'<img class="imp-rth" src="'+esc(imgUrlOf(im))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="imp-rth"></span>';
     return '<div class="imp-rrow"><span class="imp-rno">'+(i+1)+'</span>'+img
       +'<div class="imp-rmid"><div class="imp-rname">'+esc(p.ten||'')+'</div><div class="imp-rsub">'+esc(p.thuongHieu||'—')+'</div></div>'
-      +'<div class="imp-rdate">'+fmtDate(p.capNhat||p.ngayTao)+'</div></div>';
-  }).join('') || '<div class="empty" style="padding:20px">Chưa có sản phẩm.</div>';
-  return '<div class="imp-recent"><div class="imp-recent-h">Danh sách sản phẩm vừa nhập <span class="count">'+pad2(ps.length)+'</span></div><div class="imp-recent-b">'+rows+'</div></div>';
+      +'<div class="imp-rdate">'+fmtDate(p.capNhat)+'</div></div>';
+  }).join('') || '<div class="empty" style="padding:22px 16px;font-size:12.5px;line-height:1.5">Chưa nhập sản phẩm nào trong phiên này.<br>Sản phẩm bạn <b>thêm / nhập file</b> sẽ hiện ở đây.</div>';
+  return '<div class="imp-recent"><div class="imp-recent-h">Sản phẩm vừa nhập (phiên này) <span class="count">'+pad2(ps.length)+'</span></div><div class="imp-recent-b">'+rows+'</div></div>';
 }
+function sessionAdd_(o){ S._sessionAdded=S._sessionAdded||[]; S._sessionAdded.unshift({ten:o.ten||'',thuongHieu:o.thuongHieu||'',hinhAnh:o.hinhAnh||'',capNhat:o.capNhat||nowIsoClient_()}); }
+function nowIsoClient_(){ try{ return new Date().toISOString(); }catch(e){ return ''; } }
 function renderImport(){
   S._imgMain=''; S._imgList=[];
   var box=document.getElementById('v-import');
@@ -1682,7 +1685,10 @@ async function impCommit(btn){
   var missing=S._impProducts.filter(function(p){return !p.hinhAnh;}).length;
   if(missing>0 && !confirm('Còn '+missing+' sản phẩm CHƯA có ảnh.\nBạn nên bấm ô ＋ ở cột Ảnh để tải hình cho từng SP.\n\nVẫn nhập bây giờ?')) return;
   btn.disabled=true; var o=btn.textContent; btn.textContent='Đang nhập…';
-  try{ var r=await api('importCommit', S._impProducts); S.products=await api('getProducts')||S.products; toast('Đã nhập '+r.inserted+' sản phẩm vào danh mục'); renderImport(); renderFilters(); renderCatalog(); }
+  try{ var items=S._impProducts.slice();
+    var r=await api('importCommit', S._impProducts); S.products=await api('getProducts')||S.products;
+    items.forEach(function(p){ sessionAdd_({ten:p.ten, thuongHieu:p.thuongHieu, hinhAnh:p.hinhAnh}); });
+    toast('Đã nhập '+r.inserted+' sản phẩm vào danh mục'); renderImport(); renderFilters(); renderCatalog(); }
   catch(e){ toast('Lỗi nhập: '+e.message); btn.disabled=false; btn.textContent=o; }
 }
 async function tdSave(btn){
@@ -1692,7 +1698,9 @@ async function tdSave(btn){
   var imgs=[S._imgMain].concat(S._imgList||[]).filter(Boolean).filter(function(v){return v.indexOf('data:')!==0;}); // bỏ preview base64 chưa upload
   if(imgs.length) data['ẢNH SẢN PHẨM']=imgs.join('\n');
   btn.disabled=true; var o=btn.textContent; btn.textContent='⏳ Đang lưu…';
-  try{ var r=await api('saveDbProduct',data); toast((r.updated?'Đã cập nhật':'Đã thêm')+' "'+ten+'" vào DB_Sản phẩm'); renderImport(); }
+  try{ var r=await api('saveDbProduct',data);
+    sessionAdd_({ten:ten, thuongHieu:data['THƯƠNG HIỆU']||'', hinhAnh:data['ẢNH SẢN PHẨM']||''});
+    toast((r.updated?'Đã cập nhật':'Đã thêm')+' "'+ten+'" vào DB_Sản phẩm'); renderImport(); }
   catch(e){ toast('Lỗi: '+e.message); btn.disabled=false; btn.textContent=o; }
 }
 
