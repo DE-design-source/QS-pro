@@ -1576,8 +1576,10 @@ function renderImport(){
       return dbCard_(gr.g, DB_GICON[gr.g]||'doc', gr.note, '<div class="dbgrid">'+gr.f.map(dbInput).join('')+'</div>');
     }).join('')
     +'<div class="savebar"><button class="btn blue" onclick="tdSave(this)">'+icon('check',15)+' Thêm sản phẩm vào Database</button><button class="btn ghost" onclick="renderImport()">Xoá form</button><span style="color:var(--muted);font-size:12px">Ảnh + thông số lưu vào DB_Sản phẩm.</span></div>'
-    +dbCard_('Nhập hàng loạt từ file', 'download', 'Chọn file .xlsx / .xls / .csv có cột Tên sản phẩm (và các cột khác nếu có). Hệ thống tự dò cột theo tiêu đề và lưu vào DB_Sản phẩm.',
-      '<input type="file" id="impFile" accept=".xlsx,.xls,.csv" onchange="impPick(this)" style="font:inherit"><div id="impPreview" style="margin-top:12px"></div>')
+    +dbCard_('Nhập hàng loạt từ file', 'download', 'Tải file mẫu → điền dữ liệu → chọn file lên. Hệ thống tự dò cột theo tiêu đề; sau đó tải ảnh cho từng SP rồi lưu vào DB_Sản phẩm.',
+      '<div class="imp-file-row"><a class="btn ghost sm" href="/mau-nhap-hang-loat.xlsx" download="Mau-nhap-hang-loat-DezonQS.xlsx">'+icon('download',14)+' Tải file mẫu</a>'
+      +'<span class="imp-file-sep"></span><input type="file" id="impFile" accept=".xlsx,.xls,.csv" onchange="impPick(this)" style="font:inherit"></div>'
+      +'<div id="impPreview" style="margin-top:12px"></div>')
     +'</div>';
   box.innerHTML=impStatBar()+'<div class="imp-layout">'+form+impRecentList()+'</div>';
 }
@@ -1631,10 +1633,13 @@ async function impPick(input){
   reader.onerror=function(){ pv.innerHTML='<div style="color:#c33">Không đọc được file.</div>'; };
   reader.readAsDataURL(f);
 }
+function impImgs_(p){ return String(p.hinhAnh||'').split('\n').map(function(s){return s.trim();}).filter(Boolean); }
 function impImgCell_(p,i){
-  return p.hinhAnh
-    ? '<img src="'+esc(imgUrlOf(p.hinhAnh))+'" class="imp-th" onclick="impImg('+i+')" title="Đổi ảnh" onerror="this.style.visibility=\'hidden\'">'
-    : '<button class="imp-imgbtn" onclick="impImg('+i+')" title="Tải ảnh cho SP này">＋</button>';
+  var imgs=impImgs_(p);
+  if(!imgs.length) return '<button class="imp-imgbtn" onclick="impImg('+i+')" title="Tải ảnh (1 chính + phụ)">＋</button>';
+  return '<div class="imp-imgcell" onclick="impImg('+i+')" title="Bấm để thêm/đổi ảnh (chọn nhiều: ảnh đầu là chính)">'
+    +'<img src="'+esc(imgUrlOf(imgs[0]))+'" class="imp-th" onerror="this.style.visibility=\'hidden\'">'
+    +(imgs.length>1?'<span class="imp-imgcount">+'+(imgs.length-1)+'</span>':'')+'</div>';
 }
 function impRow_(p,i){
   return '<tr><td class="ct" id="impimg_'+i+'">'+impImgCell_(p,i)+'</td>'
@@ -1644,16 +1649,19 @@ function impRow_(p,i){
 }
 function impRefreshRow(i){ var c=document.getElementById('impimg_'+i); if(c) c.innerHTML=impImgCell_(S._impProducts[i],i); }
 function impUpdateCounter(){ var n=(S._impProducts||[]).filter(function(p){return p.hinhAnh;}).length; var el=document.getElementById('impImgCount'); if(el){ el.textContent=n; el.style.color=(n<(S._impProducts||[]).length)?'#c9820a':'#1a7f37'; } }
+function readB64_(f){ return new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){res(String(r.result));}; r.onerror=rej; r.readAsDataURL(f); }); }
 function impImg(i){
-  var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
-  inp.onchange=function(){ var f=inp.files&&inp.files[0]; if(!f) return;
-    var reader=new FileReader();
-    reader.onload=async function(){ var cell=document.getElementById('impimg_'+i); if(cell)cell.innerHTML='<span style="font-size:11px;color:#889">⏳</span>';
-      try{ var r=await api('uploadImage', String(reader.result), f.name||'img.jpg'); S._impProducts[i].hinhAnh=r.url||r.token; }
+  var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.multiple=true;
+  inp.onchange=async function(){
+    var fs=Array.prototype.slice.call(inp.files||[]); if(!fs.length) return;
+    var cell=document.getElementById('impimg_'+i); if(cell)cell.innerHTML='<span style="font-size:11px;color:#889">⏳</span>';
+    var cur=impImgs_(S._impProducts[i]);
+    for(var k=0;k<fs.length;k++){
+      try{ var b=await readB64_(fs[k]); var r=await api('uploadImage', b, fs[k].name||'img.jpg'); var tok=r.url||r.token; if(tok) cur.push(tok); }
       catch(e){ toast('Upload ảnh lỗi: '+e.message); }
-      impRefreshRow(i); impUpdateCounter();
-    };
-    reader.readAsDataURL(f);
+    }
+    S._impProducts[i].hinhAnh=cur.join('\n');
+    impRefreshRow(i); impUpdateCounter();
   };
   inp.click();
 }
