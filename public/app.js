@@ -1627,14 +1627,25 @@ function impDateTime_(iso){
   }catch(e){ return ''; }
 }
 function impRecentList(){
-  var ps=(S._sessionAdded||[]);  // chỉ SP thêm/nhập trong PHIÊN hiện tại
-  var rows=ps.map(function(p,i){
+  // SP thêm/nhập trong PHIÊN này (đánh dấu "mới")
+  var sess=(S._sessionAdded||[]).map(function(p){ return {ten:p.ten, thuongHieu:p.thuongHieu, hinhAnh:p.hinhAnh, date:p.capNhat, _s:1}; });
+  // SP mới nhất trong DB (cùng nguồn với thanh thống kê) — sort theo ngày cập nhật, dự phòng theo id
+  var db=(S.products||[]).slice().sort(function(a,b){
+    var da=String(a.ngayCapNhat||''), dbb=String(b.ngayCapNhat||'');
+    if(da||dbb) return dbb.localeCompare(da);
+    return (Number(b.recordId)||0)-(Number(a.recordId)||0);
+  }).map(function(p){ return {ten:p.ten, thuongHieu:p.thuongHieu, hinhAnh:p.hinhAnh, date:p.ngayCapNhat, _s:0}; });
+  // gộp: SP phiên này lên đầu, rồi SP DB; loại trùng theo tên
+  var seen={}, list=[];
+  sess.concat(db).forEach(function(p){ var k=String(p.ten||'').trim().toLowerCase(); if(!k||seen[k]) return; seen[k]=1; list.push(p); });
+  list=list.slice(0,25);
+  var rows=list.map(function(p,i){
     var im=String(p.hinhAnh||'').split('\n')[0];
-    var img=im?'<img class="imp-rth" src="'+esc(imgUrlOf(im))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="imp-rth"></span>';
-    return '<tr><td class="c">'+(i+1)+'</td><td class="imp-rname">'+esc(p.ten||'')+'</td><td class="c">'+img+'</td>'
-      +'<td>'+esc(p.thuongHieu||'—')+'</td><td class="imp-rdate">'+impDateTime_(p.capNhat)+'</td></tr>';
-  }).join('') || '<tr><td colspan="5" class="empty" style="padding:24px 12px;font-size:12.5px;line-height:1.5">Chưa nhập sản phẩm nào trong phiên này.<br>Sản phẩm bạn <b>thêm / nhập file</b> sẽ hiện ở đây.</td></tr>';
-  return '<div class="imp-recent"><div class="imp-recent-h">Danh sách sản phẩm vừa nhập <span class="count">'+pad2(ps.length)+'</span></div>'
+    var img=im?'<img class="imp-rth" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="imp-rth"></span>';
+    return '<tr><td class="c">'+(i+1)+'</td><td class="imp-rname">'+esc(p.ten||'')+(p._s?' <span class="imp-new">mới</span>':'')+'</td><td class="c">'+img+'</td>'
+      +'<td>'+esc(p.thuongHieu||'—')+'</td><td class="imp-rdate">'+(impDateTime_(p.date)||'—')+'</td></tr>';
+  }).join('') || '<tr><td colspan="5" class="empty" style="padding:24px 12px;font-size:12.5px;line-height:1.5">Chưa có sản phẩm nào.<br>Sản phẩm bạn <b>thêm / nhập file</b> sẽ hiện ở đây.</td></tr>';
+  return '<div class="imp-recent"><div class="imp-recent-h">Sản phẩm mới nhất <span class="count">'+pad2(list.length)+'</span></div>'
     +'<div class="imp-recent-b"><table class="imp-rtbl"><thead><tr><th class="c">STT</th><th>Tên sản phẩm</th><th class="c">Hình ảnh</th><th>Thương hiệu</th><th>Ngày cập nhật</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
 }
 function sessionAdd_(o){ S._sessionAdded=S._sessionAdded||[]; S._sessionAdded.unshift({ten:o.ten||'',thuongHieu:o.thuongHieu||'',hinhAnh:o.hinhAnh||'',capNhat:o.capNhat||nowIsoClient_()}); }
