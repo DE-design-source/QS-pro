@@ -325,36 +325,28 @@ function getCatalogSheetsFrom_(products) {
 /*** ===== IMPORT (tái dùng parse của store.js) ===== ***/
 function importParse(base64, ext) { return larkStore.importParse(base64, ext); }
 async function importCommit(products) {
-  const norm = larkStore._normalize, toNum = larkStore._toNumber;
-  // map tiêu đề (đã chuẩn hoá) -> cột DB, để nhận đủ cột thông số đèn từ file
-  const L2C = {}; Object.keys(DB_LABEL2COL).forEach(function (lbl) { L2C[norm(lbl)] = DB_LABEL2COL[lbl]; });
-  const NUMSET = {}; DB_NUM.forEach(function (lbl) { NUMSET[DB_LABEL2COL[lbl]] = 1; });
-  const arr = (products || []).map(function (p) {
-    const ma = s(p.ma).trim();
-    // trường cơ bản (tương thích cũ + suy ra từ preview)
-    const row = { ma_sp: ma || null, ten_sp: s(p.ten).trim(), dong_sp: s(p.nhom), hang_muc: s(p.hangMuc), thuong_hieu: s(p.thuongHieu),
-      nha_cung_cap: s(p.ncc), dvt: s(p.dvt) || 'Cái', gia_ban_le: n(p.gia), ghi_chu: s(p.moTa), anh_sp: s(p.hinhAnh) };
-    // map đầy đủ cột còn lại từ tiêu đề file
-    const raw = p._raw || {};
-    Object.keys(raw).forEach(function (h) {
-      const col = L2C[norm(h)]; if (!col) return;
-      if (col === 'anh_sp') return; // ảnh do người dùng tải sau import, không lấy từ cột file
-      const v = raw[h]; if (v == null || String(v).trim() === '') return;
-      if (col === 'lap_nguon_roi') row[col] = /^(c[oó]|yes|true|1|x)$/i.test(String(v).trim());
-      else if (NUMSET[col]) row[col] = toNum(v);
-      else row[col] = String(v).trim();
-    });
-    if (!row.dvt) row.dvt = 'Cái';
-    return row;
-  }).filter(function (r) { return r.ten_sp; });
-  if (!arr.length) return { inserted: 0 };
-  // gộp trùng mã trong chính file (giữ bản cuối); mã rỗng -> NULL (unique cho phép nhiều NULL)
-  const seen = {}, rows = [];
-  arr.forEach(function (r) { if (r.ma_sp) { if (seen[r.ma_sp] != null) { rows[seen[r.ma_sp]] = r; return; } seen[r.ma_sp] = rows.length; } rows.push(r); });
-  // upsert theo ma_sp: đã có -> cập nhật, chưa có/NULL -> thêm mới (không lỗi trùng)
-  await supa.rest('POST', 'db_san_pham?on_conflict=ma_sp', { body: rows, prefer: 'resolution=merge-duplicates,return=minimal' });
+  // Dùng lại saveDbProduct cho từng SP (đúng path đã hoạt động: tự check + INSERT/UPDATE,
+  // map đủ cột qua DB_LABEL2COL, xử lý số/boolean). Tránh upsert merge-duplicates bị RLS chặn.
+  const list = products || [];
+  let inserted = 0, updated = 0; const errors = [];
+  const fill = function (d, lbl, v) { if (!s(d[lbl]).trim() && v != null && v !== '') d[lbl] = v; };
+  for (const p of list) {
+    const data = Object.assign({}, p._raw || {}); // cột từ file (tiêu đề = nhãn DB trong file mẫu)
+    fill(data, 'TÊN SẢN PHẨM', p.ten); fill(data, 'MÃ SẢN PHẨM', p.ma); fill(data, 'DÒNG SẢN PHẨM', p.nhom);
+    fill(data, 'HẠNG MỤC', p.hangMuc); fill(data, 'THƯƠNG HIỆU', p.thuongHieu); fill(data, 'NHÀ CUNG CẤP', p.ncc);
+    fill(data, 'GIÁ BÁN LẺ', p.gia); fill(data, 'GHI CHÚ', p.moTa);
+    delete data['GIÁ ĐẠI LÝ']; // cột tự tính (generated)
+    data['ẢNH SẢN PHẨM'] = s(p.hinhAnh); // ảnh người dùng tải (ghi đè mọi cột ảnh trong file)
+    if (!s(data['ĐƠN VỊ TÍNH']).trim()) data['ĐƠN VỊ TÍNH'] = p.dvt || 'Cái';
+    if (!s(data['TRẠNG THÁI']).trim()) data['TRẠNG THÁI'] = 'Đang kinh doanh';
+    if (!s(data['TÊN SẢN PHẨM']).trim()) continue;
+    try { const r = await saveDbProduct(data); if (r && r.updated) updated++; else inserted++; }
+    catch (e) { errors.push({ ten: s(data['TÊN SẢN PHẨM']), error: e && e.message }); }
+  }
   _cache = null;
-  return { inserted: rows.length };
+  const out = { inserted: inserted, updated: updated };
+  if (errors.length) out.errors = errors;
+  return out;
 }
 
 module.exports = {
