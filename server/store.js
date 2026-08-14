@@ -774,18 +774,20 @@ async function importParse(base64, ext) {
     if (m.ten !== undefined) { hr = i; map = m; break; }
   }
   if (hr < 0) throw new Error('Không tìm thấy cột "Tên sản phẩm" trong file (cần 1 cột tiêu đề có chữ Tên / Name)');
+  var headers = grid[hr].map(function (h) { return String(h == null ? '' : h); });
   const products = [];
   for (var r = hr + 1; r < grid.length; r++) {
     var row = grid[r]; var ten = pick2_(row, map.ten); if (!ten) continue;
+    // _raw: giữ nguyên MỌI cột theo tiêu đề gốc để importCommit map đầy đủ trường (thông số đèn)
+    var raw = {}; headers.forEach(function (h, ci) { if (h) raw[h] = String(row[ci] == null ? '' : row[ci]).trim(); });
     products.push({
       ten: ten, nhom: pick2_(row, map.nhom), hangMuc: pick2_(row, map.hangMuc), thuongHieu: pick2_(row, map.thuongHieu),
       ncc: pick2_(row, map.ncc), ma: pick2_(row, map.ma), kichThuoc: pick2_(row, map.kichThuoc),
       dvt: pick2_(row, map.dvt) || 'Cái', gia: round0_(toNumber_(pick2_(row, map.gia))),
-      moTa: pick2_(row, map.moTa), hinhAnh: pick2_(row, map.hinhAnh)
+      moTa: pick2_(row, map.moTa), hinhAnh: pick2_(row, map.hinhAnh), _raw: raw
     });
     if (products.length >= 2000) break;
   }
-  var headers = grid[hr].map(function (h) { return String(h == null ? '' : h); });
   var mapped = {}; Object.keys(map).forEach(function (k) { mapped[k] = headers[map[k]]; });
   return { count: products.length, products: products, mapped: mapped };
 }
