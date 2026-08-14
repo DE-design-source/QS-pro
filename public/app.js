@@ -1646,25 +1646,49 @@ function upDrop(e,zone){ e.preventDefault(); e.currentTarget.classList.remove('d
   var fs=Array.prototype.slice.call((e.dataTransfer&&e.dataTransfer.files)||[]).filter(function(f){return /^image\//.test(f.type);});
   fs.forEach(function(f){ upFile(zone,f); });
 }
+/* Nén + thu nhỏ ảnh ở client trước khi upload (tránh payload quá lớn -> "Failed to fetch") */
+function downscaleImage_(file, maxDim, quality){
+  return new Promise(function(resolve){
+    try{
+      if(!file || !/^image\//.test(file.type||'')){ return readB64_(file).then(resolve,function(){resolve('');}); }
+      var url=URL.createObjectURL(file), img=new Image();
+      img.onload=function(){
+        try{
+          var w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+          var scale=Math.min(1,(maxDim||1600)/Math.max(w,h||1));
+          var nw=Math.max(1,Math.round(w*scale)), nh=Math.max(1,Math.round(h*scale));
+          var c=document.createElement('canvas'); c.width=nw; c.height=nh;
+          c.getContext('2d').drawImage(img,0,0,nw,nh);
+          URL.revokeObjectURL(url);
+          var out=c.toDataURL('image/jpeg', quality||0.82);
+          // nếu vì lý do nào đó vẫn > ~4MB thì nén mạnh hơn
+          if(out.length>5.5e6){ out=c.toDataURL('image/jpeg',0.6); }
+          resolve(out);
+        }catch(e){ URL.revokeObjectURL(url); readB64_(file).then(resolve,function(){resolve('');}); }
+      };
+      img.onerror=function(){ URL.revokeObjectURL(url); readB64_(file).then(resolve,function(){resolve('');}); };
+      img.src=url;
+    }catch(e){ readB64_(file).then(resolve,function(){resolve('');}); }
+  });
+}
 function upFile(zone,file){
-  var reader=new FileReader();
-  reader.onload=async function(){
+  downscaleImage_(file,1600,0.82).then(async function(dataUrl){
+    if(!dataUrl){ toast('Không đọc được ảnh'); return; }
     // preview tạm bằng dataURL
-    if(zone==='main'){ S._imgMain=String(reader.result); } else { S._imgList.push(String(reader.result)); }
+    if(zone==='main'){ S._imgMain=dataUrl; } else { S._imgList.push(dataUrl); }
     upRefresh(); toast('Đang tải ảnh lên…');
     try{
-      var r=await api('uploadImage', String(reader.result), file.name||'image.jpg');
-      var tok=r&&r.token; if(!tok) throw new Error('Không nhận được ảnh');
+      var r=await api('uploadImage', dataUrl, file.name||'image.jpg');
+      var tok=r&&(r.token||r.url); if(!tok) throw new Error('Không nhận được ảnh');
       if(zone==='main'){ S._imgMain=tok; }
       else { var idx=S._imgList.length-1; S._imgList[idx]=tok; }   // thay dataURL bằng token thật
-      upRefresh(); toast('Đã tải ảnh lên Lark');
+      upRefresh(); toast('Đã tải ảnh lên');
     }catch(e){
       // upload lỗi (vd hết quota) -> gỡ preview tạm, gợi ý dán URL
       if(zone==='main'){ S._imgMain=''; } else { S._imgList.pop(); }
       upRefresh(); toast('Upload lỗi: '+e.message+' — hãy dán URL ảnh.');
     }
-  };
-  reader.readAsDataURL(file);
+  });
 }
 function upAddUrl(zone){
   var id=zone==='main'?'upMainUrl':'upMoreUrl'; var el=document.getElementById(id); var u=(el&&el.value||'').trim();
@@ -1711,7 +1735,7 @@ function impRefreshRow(i){ var c=document.getElementById('impimg_'+i); if(c) c.i
 function impUpdateCounter(){ var n=(S._impProducts||[]).filter(function(p){return p.hinhAnh;}).length; var el=document.getElementById('impImgCount'); if(el){ el.textContent=n; el.style.color=(n<(S._impProducts||[]).length)?'#c9820a':'#1a7f37'; } }
 function readB64_(f){ return new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){res(String(r.result));}; r.onerror=rej; r.readAsDataURL(f); }); }
 async function impUploadFiles_(fs){
-  var toks=[]; for(var k=0;k<fs.length;k++){ try{ var b=await readB64_(fs[k]); var r=await api('uploadImage', b, fs[k].name||'img.jpg'); var tok=r.url||r.token; if(tok) toks.push(tok); }catch(e){ toast('Upload ảnh lỗi: '+e.message); } } return toks;
+  var toks=[]; for(var k=0;k<fs.length;k++){ try{ var b=await downscaleImage_(fs[k],1600,0.82); var r=await api('uploadImage', b, fs[k].name||'img.jpg'); var tok=r.url||r.token; if(tok) toks.push(tok); }catch(e){ toast('Upload ảnh lỗi: '+e.message); } } return toks;
 }
 function impSetImgs_(i,arr){ S._impProducts[i].hinhAnh=arr.filter(Boolean).join('\n'); impRefreshRow(i); impUpdateCounter(); }
 function impPickMain(i){
@@ -1734,6 +1758,8 @@ function impPickMore(i){
 function impDelImg(i,idx){ var cur=impImgs_(S._impProducts[i]); cur.splice(idx,1); impSetImgs_(i,cur); }
 function impShow(res){
   S._impProducts=res.products||[];
+  // Ảnh KHÔNG lấy từ file — người dùng tự tải ảnh chính/chi tiết cho từng SP sau khi import
+  S._impProducts.forEach(function(p){ p.hinhAnh=''; });
   S._impHeaders=res.headers||[];
   var pv=document.getElementById('impPreview');
   if(!res.count){ pv.innerHTML='<div style="color:#c33">Không đọc được sản phẩm nào (kiểm tra cột Tên sản phẩm).</div>'; return; }
