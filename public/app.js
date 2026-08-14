@@ -493,10 +493,10 @@ function pdSection_(title, rows){
   var body=rows.filter(function(r){return r[1]!=null && r[1]!=='';}).map(function(r){
     return '<div class="spec"><span class="k">'+esc(r[0])+'</span><span class="v">'+esc(r[1])+'</span></div>';
   }).join('');
-  return body?'<div class="pd-sec">'+esc(title)+'</div>'+body:'';
+  return body?'<div class="pd-block"><div class="pd-sec">'+esc(title)+'</div>'+body+'</div>':'';
 }
-// Nội dung chi tiết SP (dùng chung cho panel Bóc tách + modal Danh sách SP)
-function pdContent_(p){
+// Ảnh + mã + tên + Key Product Info
+function pdMedia_(p){
   var cong=p.congSuat||parseWatt(p.ten), nd=p.nhietDo||parseKelvin(p.ten);
   var keyItems=[
     ['power', cong + (p.dongRa?(' ('+p.dongRa+(/mA/i.test(p.dongRa)?'':'mA')+')'):'')],
@@ -511,8 +511,11 @@ function pdContent_(p){
   return img
     +'<div class="pcode">'+esc(p.ma||p.ten)+'</div>'
     +(p.ten?'<div class="pd-name">'+esc(p.ten)+'</div>':'')
-    +keyHtml
-    +pdSection_('Design Specifications (Thông số thiết kế)',[
+    +keyHtml;
+}
+// Các nhóm thông số kỹ thuật
+function pdSpecs_(p){
+  return pdSection_('Design Specifications (Thông số thiết kế)',[
       ['Chất liệu',p.chatLieu],['Chiều cao',p.chieuCao],['Đường kính',p.duongKinh],
       ['Góc nghiêng / góc chỉnh hướng',p.gocNghieng],['Dòng sản phẩm',p.dongSanPham]])
     +pdSection_('Performance Specifications (Thông số hiệu suất)',[
@@ -526,10 +529,14 @@ function pdContent_(p){
     +pdSection_('Installation Specifications (Thông số lắp đặt)',[
       ['Lắp đặt bộ nguồn rời',p.lapNguonRoi],['Kích thước lỗ khoét trần (Cutout Size)',p.loKhoet],
       ['Cấp bảo vệ an toàn điện (Class Rating)',p.capBaoVeDien]])
-    +(p.moTa && !p.chatLieu && !p.quangThong ? '<div class="pd-sec">Thông số kỹ thuật (mô tả)</div>'+specRows_(p.moTa) : '')
-    +'<div class="pd-price"><span>Đơn giá</span><b>'+money(p.donGiaBan)+' đ</b></div>'
+    +(p.moTa && !p.chatLieu && !p.quangThong ? '<div class="pd-block"><div class="pd-sec">Thông số kỹ thuật (mô tả)</div>'+specRows_(p.moTa)+'</div>' : '');
+}
+function pdPriceFoot_(p){
+  return '<div class="pd-price"><span>Đơn giá</span><b>'+money(p.donGiaBan)+' đ</b></div>'
     +(p.linkDatasheet?'<div class="pd-foot"><a href="'+esc(p.linkDatasheet)+'" target="_blank" rel="noopener">'+icon('doc',15)+' Tài liệu kỹ thuật</a></div>':'');
 }
+// Nội dung chi tiết SP xếp dọc (panel Bóc tách)
+function pdContent_(p){ return pdMedia_(p)+pdSpecs_(p)+pdPriceFoot_(p); }
 function showDetail(i){
   var p=(S._filtered||[])[i]; if(!p) return;
   S._detailIdx=i;
@@ -575,8 +582,11 @@ function spModal(i){
   var p=(S._spList||[])[i]; if(!p) return;
   var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='spModalOv';
   ov.onclick=function(e){ if(e.target===ov) spClose(); };
-  ov.innerHTML='<div class="sp-modal pd"><div class="pd-head"><h3>Thông tin sản phẩm</h3><button class="pd-x" onclick="spClose()">✕</button></div>'
-    +pdContent_(p)+'</div>';
+  ov.innerHTML='<div class="sp-modal sp-modal-wide pd"><div class="pd-head"><h3>Thông tin sản phẩm</h3><button class="pd-x" onclick="spClose()">✕</button></div>'
+    +'<div class="pdm-grid">'
+      +'<div class="pdm-left">'+pdMedia_(p)+pdPriceFoot_(p)+'</div>'
+      +'<div class="pdm-right">'+pdSpecs_(p)+'</div>'
+    +'</div></div>';
   document.body.appendChild(ov);
 }
 function spClose(){ var o=document.getElementById('spModalOv'); if(o)o.remove(); }

@@ -52,6 +52,15 @@ a{color:inherit}
 .sp-act.del:hover{background:#fde2e2;color:#c33}
 .sp-modal-ov{position:fixed;inset:0;background:#0e1a2b66;backdrop-filter:blur(2px);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
 .sp-modal{background:#fff;border-radius:14px;width:420px;max-width:100%;padding:18px 20px;box-shadow:0 20px 60px #0005}
+/* Popup chi tiết SP dạng chữ nhật (2 cột) */
+.sp-modal-wide{width:940px;max-width:96vw}
+.pdm-grid{display:grid;grid-template-columns:320px 1fr;gap:28px;align-items:start;margin-top:6px}
+.pdm-left{position:sticky;top:0}
+.pdm-left .imgbox{height:240px}
+.pdm-right{columns:2;column-gap:30px}
+.pdm-right .pd-block{break-inside:avoid;-webkit-column-break-inside:avoid;margin-bottom:4px}
+.pdm-right .pd-sec:first-child{margin-top:0}
+@media(max-width:820px){ .sp-modal-wide{width:520px} .pdm-grid{grid-template-columns:1fr} .pdm-right{columns:1} }
 
 /* ===== breadcrumb ===== */
 .crumb{display:flex;align-items:center;gap:12px;margin:16px 0 12px}
@@ -498,13 +507,14 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 #v-import .field input,#v-import .field textarea{width:100%;border:1px solid #d7dde4;border-radius:9px;padding:9px 11px;font:inherit;background:#fff;transition:border .12s,box-shadow .12s}
 #v-import .field input:focus,#v-import .field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2f6bff22;outline:none}
 #v-import .field input::placeholder,#v-import .field textarea::placeholder{color:#aeb7c1}
-.imgup{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+.imgup{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:stretch}
 @media(max-width:720px){.imgup{grid-template-columns:1fr}}
+.imgup>div{display:flex;flex-direction:column}        /* mỗi cột là flex dọc */
 .uplabel{font-size:12.5px;font-weight:700;color:#3a4653;margin-bottom:7px}
 .upzone{border:2px dashed #c7d2de;border-radius:12px;background:#fafcff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#8a95a1;cursor:pointer;transition:all .12s;padding:14px;font-size:12.5px;position:relative}
 .upzone:hover,.upzone.drag{border-color:var(--blue);background:#eef5ff;color:var(--blue)}
-.imgup .upzone{min-height:180px}
-.upmain{height:180px}
+.imgup .upzone{flex:1;min-height:180px}               /* khung ảnh giãn đầy chiều cao cột -> 2 khung bằng nhau, hết khoảng trống */
+.upmain{height:auto}
 .upmain img{max-width:100%;max-height:180px;object-fit:contain;border-radius:8px}
 .upgrid{display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start;margin-top:10px}
 .upthumb{position:relative;width:86px;height:86px;border:1px solid #e6eaef;border-radius:9px;overflow:hidden;background:#f5f7f9}
