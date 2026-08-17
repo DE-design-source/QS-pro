@@ -2082,7 +2082,7 @@ function renderPhanTho(){
       body+='<tr class="pt-row">'
         +'<td class="c">'+(ii+1)+'</td>'
         +'<td>'+ptTxt(si,ii,'n',it.n)+'</td>'
-        +'<td class="c">'+ptTxt(si,ii,'dvt',it.dvt)+'</td>'
+        +'<td class="c dvt-cell">'+ptTxt(si,ii,'dvt',it.dvt)+'</td>'
         +'<td class="n">'+(isArea?ptInp(si,ii,'dt',it.dt):'')+'</td>'
         +'<td class="n">'+(isArea?ptInp(si,ii,'hs',it.hs):'')+'</td>'
         +'<td class="n">'+(isArea?'<span class="pt-ro">'+ptQty(kl)+'</span>':(isItem?ptInp(si,ii,'kl',it.kl):''))+'</td>'

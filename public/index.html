@@ -188,14 +188,16 @@ a{color:inherit}
 .pt-scroll::-webkit-scrollbar{height:10px}
 .pt-scroll::-webkit-scrollbar-thumb{background:#c2cddb;border-radius:5px;border:2px solid #fff}
 table.pt{border-collapse:collapse;font-size:12px;width:max-content;min-width:100%;background:#fff}
-table.pt th,table.pt td{border:1px solid #dfe5ec;padding:5px 7px;vertical-align:middle;text-align:left}
-table.pt thead th{background:var(--navy);color:#fff;font-weight:700;font-size:11px;text-align:center;line-height:1.25;position:sticky;top:0;z-index:2}
+/* PDF style: chỉ kẻ DỌC giữa cột, KHÔNG kẻ ngang giữa các dòng dữ liệu, cách dòng thoáng */
+table.pt th,table.pt td{border-left:1px solid #cbd2da;border-right:1px solid #cbd2da;border-top:none;border-bottom:none;padding:12px 9px;vertical-align:middle;text-align:left}
+table.pt thead th{background:var(--navy);color:#fff;font-weight:700;font-size:11px;text-align:center;line-height:1.25;position:sticky;top:0;z-index:2;padding:9px 8px;border-bottom:1px solid #b6bec7}
 table.pt td.c,table.pt th.c{text-align:center}
 table.pt td.n,table.pt th.n{text-align:right}
 table.pt td.b{font-weight:800;color:var(--navy)}
-tr.pt-sec>td{background:#eaf1fb;font-weight:700}
+table.pt td.dvt-cell,table.pt td.dvt-cell input,table.pt td.dvt-cell .pt-txt{font-style:italic;color:#5b6b7b}   /* ĐVT nghiêng như PDF */
+tr.pt-sec>td{background:#e6e8eb;font-weight:700;border-top:1px solid #c2c8ce;border-bottom:1px solid #c2c8ce}
 tr.pt-sec .pt-secname{position:relative}
-.pt-secttl{font-weight:800;color:var(--navy);text-transform:uppercase;font-size:11.5px;line-height:1.3}
+.pt-secttl{font-weight:800;color:#1f2b38;text-transform:uppercase;font-size:11.5px;line-height:1.3}
 .pt-note{display:inline-block;margin-top:2px;font-size:11px;font-style:italic;color:#c0563f;font-weight:600}
 .pt-secdel{position:absolute;right:2px;top:2px;cursor:pointer;color:#b9c2cc;opacity:0;transition:.12s}
 tr.pt-sec:hover .pt-secdel{opacity:1}
