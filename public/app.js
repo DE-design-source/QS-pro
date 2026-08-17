@@ -1580,88 +1580,92 @@ function moneyShort(v){ v=Math.round(Number(v)||0); if(!v) return '–'; var neg
 function pctFmt(p){ if(!isFinite(p)||!p) return '0%'; return p.toFixed(p<1?2:1).replace('.',',')+'%'; }
 var ROMAN_=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV'];
 // Dựng danh sách trang: [trang tóm tắt] + [các trang chi tiết]
+// Thông tin công ty trên tài liệu báo giá (letterhead) — sửa ở đây khi đổi
+var QUOTE_ORG={ brand:'DECOX', lines:[
+  'B123, The Galleria Residence, Metropole Thủ Thiêm, Phường An Khánh',
+  'ĐT: (08) 36200560   Email: support@decox.vn',
+  'Xưởng sản xuất: KCN Vĩnh Lộc, Quận Tân Phú, TPHCM',
+  'Website: decoxdesign.com' ] };
 function bgBuildPages(){
-  var comp=coverCosts(), total=comp.total, cost=comp.cost;
-  var inners=[], srows;
-  // ---- Trang 1: CHI TIẾT CÁC HẠNG MỤC (tóm tắt theo hạng mục + tỷ trọng) ----
+  var p=S.cur||{}, comp=coverCosts(), total=comp.total, cost=comp.cost;
+  var inners=[];
+  // ===== Header thương hiệu (Decox) =====
+  var hangMuc = (S.bgDeMuc && S.bgDeMuc!=='__all__') ? (nodeName(S.bgDeMuc)||S.bgDeMuc) : 'TỔNG HỢP CHI PHÍ';
+  var decoxHead='<div class="qx-head"><div class="qx-brandbox"><div class="qx-brand">'+esc(QUOTE_ORG.brand)+'</div>'
+    +'<div class="qx-org">'+QUOTE_ORG.lines.map(esc).join('<br>')+'</div></div>'
+    +'<div class="qx-titlebox"><div class="t1">BẢNG ƯỚC TÍNH CHI PHÍ DỰ ÁN</div><div class="t2">HẠNG MỤC: '+esc(String(hangMuc).toUpperCase())+'</div></div></div>';
+  function ip(k,v){ return '<td class="k">'+k+'</td><td class="v">'+esc(v||'')+'</td>'; }
+  var infoBlock='<table class="qx-info">'
+    +'<tr>'+ip('Khách hàng',p.khachHang)+ip('Hiện trạng',p.hienTrang)+'</tr>'
+    +'<tr>'+ip('Tên dự án',p.ten)+ip('Quy mô',p.quyMo)+'</tr>'
+    +'<tr>'+ip('DT sử dụng',p.tongDT?p.tongDT+' m²':'')+ip('Nhu cầu',p.nhuCau)+'</tr>'
+    +'<tr>'+ip('Phong cách',p.phanKhuc)+ip('DT báo giá [nhân hệ số]',p.dtBaoGia?p.dtBaoGia+' m²':'')+'</tr>'
+    +'</table>';
+  // ===== Trang 1: header + info + TÓM TẮT (CHI TIẾT CÁC HẠNG MỤC + tỷ trọng) =====
+  var srows, sumTotal=total;
   if(total>0){
-    // Ưu tiên tờ bìa do người dùng biên tập (có chi phí)
     var rows=(S.cover||[]).filter(function(c){ return !bgHidden(c.stt) && coverDepth(c.stt)<=2; }).slice().sort(coverSortFn);
-    srows=rows.map(function(c){
-      var lvl=coverDepth(c.stt), val=cost[c.stt]||0, pct=total>0?val/total*100:0;
-      var nm=esc((c.stt?c.stt+'. ':'')+(c.hangMuc||''));
-      return '<tr class="lv'+lvl+'"><td class="nm">'+nm+'</td><td class="amt">'+moneyShort(val)+'</td><td class="pct">'+pctFmt(pct)+'</td></tr>';
-    }).join('');
+    srows=rows.map(function(c){ var lvl=coverDepth(c.stt), val=cost[c.stt]||0, pct=total>0?val/total*100:0;
+      return '<tr class="lv'+lvl+'"><td class="nm">'+esc((c.stt?c.stt+'. ':'')+(c.hangMuc||''))+'</td><td class="amt">'+moneyShort(val)+'</td><td class="pct">'+pctFmt(pct)+'</td></tr>'; }).join('');
   } else {
-    // Tờ bìa trống -> tự dựng từ chi tiết: gộp theo đề mục (nhóm), rồi theo tầng
     var gt=computeQuoteLocal().subtotal, by={}, ord=[];
     S.lines.forEach(function(l){ var code=(l.nhom||'').trim()||'__k'; if(!by[code]){ by[code]={sum:0,floors:{},forder:[]}; ord.push(code); }
       by[code].sum+=Number(l.thanhTienBan)||0; var fl=(l.tang||'').trim()||'Khác';
       if(!by[code].floors[fl]){ by[code].floors[fl]=0; by[code].forder.push(fl); } by[code].floors[fl]+=Number(l.thanhTienBan)||0; });
-    srows=ord.map(function(code,i){
-      var g=by[code], pct=gt>0?g.sum/gt*100:0;
-      var nm=code==='__k'?'Khác':(nodeName(code)||code);
-      var out='<tr class="lv1"><td class="nm">'+(i+1)+'. '+esc(nm)+'</td><td class="amt">'+moneyShort(g.sum)+'</td><td class="pct">'+pctFmt(pct)+'</td></tr>';
+    srows=ord.map(function(code,i){ var g=by[code], pct=gt>0?g.sum/gt*100:0;
+      var out='<tr class="lv1"><td class="nm">'+(i+1)+'. '+esc(code==='__k'?'Khác':(nodeName(code)||code))+'</td><td class="amt">'+moneyShort(g.sum)+'</td><td class="pct">'+pctFmt(pct)+'</td></tr>';
       if(g.forder.length>1) out+=g.forder.map(function(fl,j){ var v=g.floors[fl], p2=gt>0?v/gt*100:0;
         return '<tr class="lv2"><td class="nm">'+(i+1)+'.'+(j+1)+'. '+esc(fl)+'</td><td class="amt">'+moneyShort(v)+'</td><td class="pct">'+pctFmt(p2)+'</td></tr>'; }).join('');
-      return out;
-    }).join('');
-    total=gt;
+      return out; }).join('');
+    sumTotal=gt;
   }
-  // Khối tờ bìa chuẩn (theo sheet 0.1.TỜ BÌA): tiêu đề + thông tin dự án
-  var pp=S.cur||{};
-  function infoCell_(k,v){ return '<td class="k">'+k+'</td><td class="v">'+esc(v||'—')+'</td>'; }
-  var coverHead='<div class="qc-cover">'
-    +'<div class="qc-title">BẢNG ƯỚC TÍNH CHI PHÍ DỰ ÁN</div>'
-    +'<div class="qc-sub">[Tư vấn thiết kế, thi công chuyên nghiệp]</div>'
-    +'<div class="qc-code">Mã báo giá số: <b>'+esc(pp.maBaoGia||'—')+'</b></div>'
-    +'<table class="qc-info">'
-      +'<tr>'+infoCell_('Khách hàng',pp.khachHang)+infoCell_('Quy mô',pp.quyMo)+'</tr>'
-      +'<tr>'+infoCell_('Tổng diện tích XD (m²)',pp.tongDT)+infoCell_('Nhu cầu',pp.nhuCau)+'</tr>'
-      +'<tr>'+infoCell_('DT báo giá [đã nhân hệ số] (m²)',pp.dtBaoGia)+infoCell_('Phân khúc',pp.phanKhuc)+'</tr>'
-    +'</table></div>';
-  var sumInner=coverHead+'<div class="qp-title sm" style="text-align:center;margin-top:8px">CHI TIẾT CÁC HẠNG MỤC</div>'
-    +'<div class="qsum-card"><table class="qsum">'+(srows||'<tr><td class="nm" style="color:#94a3b8;padding:18px 0">Chưa có hạng mục. Sang “Chỉnh sửa” bấm ↻ Nạp lại mẫu.</td></tr>')
-    +'<tr class="qsum-tot"><td class="nm">TỔNG CHI PHÍ DỰ KIẾN</td><td class="amt">'+moneyShort(total)+'</td><td class="pct">100%</td></tr></table></div>';
-  inners.push(sumInner);
-  // ---- Trang chi tiết: hạng mục theo tầng, phân trang ----
-  var lines=S.lines.slice();
-  var groups={},order=[]; lines.forEach(function(l){ var g=(l.tang||'').trim()||'CHƯA PHÂN TẦNG'; if(!groups[g]){groups[g]=[];order.push(g);} groups[g].push(l); });
+  inners.push(decoxHead+infoBlock
+    +'<div class="qx-secttl">CHI TIẾT CÁC HẠNG MỤC</div>'
+    +'<div class="qsum-card"><table class="qsum">'+(srows||'<tr><td class="nm" style="color:#94a3b8;padding:16px 0">Chưa có hạng mục.</td></tr>')
+    +'<tr class="qsum-tot"><td class="nm">TỔNG CHI PHÍ DỰ KIẾN</td><td class="amt">'+moneyShort(sumTotal)+'</td><td class="pct">100%</td></tr></table></div>');
+  // ===== Bảng chi tiết kiểu XÂY THÔ (STT/NỘI DUNG/ĐVT/DIỆN TÍCH/HỆ SỐ/KHỐI LƯỢNG/ĐƠN GIÁ/THÀNH TIỀN/GHI CHÚ) =====
+  var lines=(S.bgDeMuc && S.bgDeMuc!=='__all__') ? S.lines.filter(function(l){return l.nhom===S.bgDeMuc||String(l.nhom||'').indexOf(S.bgDeMuc+'.')===0;}) : S.lines.slice();
+  var groups={},order=[]; lines.forEach(function(l){ var g=(l.tang||'').trim()||'HẠNG MỤC'; if(!groups[g]){groups[g]=[];order.push(g);} groups[g].push(l); });
+  var xcolg='<colgroup><col style="width:32px"><col><col style="width:38px"><col style="width:52px"><col style="width:42px"><col style="width:66px"><col style="width:84px"><col style="width:96px"><col style="width:86px"></colgroup>';
+  var xthead='<tr class="qx-h"><th class="ct">STT</th><th>NỘI DUNG CÔNG VIỆC</th><th class="ct">ĐVT</th><th class="num">DIỆN TÍCH</th><th class="ct">HỆ SỐ</th><th class="num">KHỐI LƯỢNG</th><th class="num">ĐƠN GIÁ</th><th class="num">THÀNH TIỀN</th><th>GHI CHÚ</th></tr>';
   var flat=[];
   order.forEach(function(g,gi){
-    flat.push('<tr class="qd-sec"><td colspan="7">'+(ROMAN_[gi]||(gi+1))+'. '+esc(g)+'</td></tr>');
-    groups[g].forEach(function(l,ri){
-      flat.push('<tr><td class="ct">'+(gi+1)+'.'+(ri+1)+'</td>'
-        +'<td class="ct">'+esc(l.khuVuc||'')+'</td>'
-        +'<td><b>'+esc(l.ten||'')+'</b>'+(l.thuongHieu?' <span class="qd-br">· '+esc(l.thuongHieu)+'</span>':'')+(l.ncc?' <span class="qd-br">· NCC: '+esc(l.ncc)+'</span>':'')+(l.moTa?'<div class="qd-desc">'+esc(l.moTa)+'</div>':'')+'</td>'
-        +'<td class="ct">'+esc(l.dvt||'')+'</td>'
+    var items=groups[g]||[], sec=items.reduce(function(s,l){return s+(Number(l.thanhTienBan)||0);},0);
+    flat.push('<tr class="sec"><td class="ct">'+(ROMAN_[gi]||(gi+1))+'</td><td colspan="6">'+esc(g)+'</td><td class="num">'+(sec?money(sec):'-')+'</td><td></td></tr>');
+    items.forEach(function(l,ri){
+      flat.push('<tr><td class="ct">'+(ri+1)+'</td>'
+        +'<td><b>'+esc(l.ten||'')+'</b>'+(l.thuongHieu?' — '+esc(l.thuongHieu):'')+(l.moTa?'<div class="qx-desc">'+esc(l.moTa)+'</div>':'')+'</td>'
+        +'<td class="ct it">'+esc(l.dvt||'')+'</td>'
+        +'<td class="num">'+(l.dienTich!=null&&l.dienTich!==''?esc(l.dienTich):'')+'</td>'
+        +'<td class="ct">'+(l.heSo!=null&&l.heSo!==''?esc(l.heSo):'')+'</td>'
         +'<td class="num">'+(Number(l.soLuong)||0)+'</td>'
-        +'<td class="num">'+money(l.donGiaBan)+'</td>'
-        +'<td class="num">'+money(l.thanhTienBan)+'</td></tr>');
+        +'<td class="num">'+(l.donGiaBan?money(l.donGiaBan):'')+'</td>'
+        +'<td class="num">'+(l.thanhTienBan?money(l.thanhTienBan):'-')+'</td>'
+        +'<td class="it">'+esc(l.ghiChu||'')+'</td></tr>');
     });
   });
-  var PER=16;
-  var colg='<colgroup><col style="width:42px"><col style="width:88px"><col><col style="width:48px"><col style="width:42px"><col style="width:100px"><col style="width:116px"></colgroup>';
-  var thead='<tr class="qd-h"><th>STT</th><th>PHÒNG</th><th>TÊN SẢN PHẨM</th><th>ĐVT</th><th class="num">SL</th><th class="num">ĐƠN GIÁ</th><th class="num">THÀNH TIỀN</th></tr>';
-  if(flat.length){
-    for(var i=0;i<flat.length;i+=PER){
-      var chunk=flat.slice(i,i+PER).join('');
-      var first=i===0;
-      inners.push((first?'<div class="qp-title sm">BẢNG BÁO GIÁ CHI TIẾT</div>':'')+'<table class="qd">'+colg+thead+chunk+'</table>');
-    }
-    // trang tổng cộng
-    var q=computeQuoteLocal();
-    inners.push('<div class="qp-title sm">TỔNG HỢP</div><table class="qd qd-sum"><colgroup><col><col style="width:200px"></colgroup>'
-      +'<tr><td>Tạm tính</td><td class="num">'+money(q.subtotal)+' đ</td></tr>'
-      +'<tr><td>Thuế VAT ('+q.vatPct+'%)</td><td class="num">'+money(q.vat)+' đ</td></tr>'
-      +'<tr class="qd-grand"><td>TỔNG CỘNG</td><td class="num">'+money(q.total)+' đ</td></tr></table>');
-  }
-  // Bọc mỗi inner thành 1 trang A4 (header + footer + số trang)
-  var p=S.cur||{}, N=inners.length;
+  var PER=22;
+  if(flat.length){ for(var i=0;i<flat.length;i+=PER){
+    inners.push((i===0?'<div class="qx-secttl">BẢNG BÁO GIÁ CHI TIẾT</div>':'')+'<table class="qx-tbl">'+xcolg+xthead+flat.slice(i,i+PER).join('')+'</table>');
+  } }
+  // ===== Hộp tổng + ghi chú + ô ký (đính cuối trang cuối) =====
+  var q=computeQuoteLocal();
+  var totbox='<table class="qx-tbl qx-totbox">'+xcolg
+    +'<tr><td colspan="7" class="lbl">TỔNG CỘNG:</td><td class="num">'+money(q.subtotal)+'</td><td></td></tr>'
+    +'<tr><td colspan="7" class="lbl">VAT '+q.vatPct+'%</td><td class="num">'+money(q.vat)+'</td><td></td></tr>'
+    +'<tr><td colspan="7" class="lbl">THÀNH TIỀN SAU THUẾ:</td><td class="num">'+money(q.total)+'</td><td></td></tr></table>';
+  var notes='<div class="qx-notes"><div class="h">Ghi chú:</div><ol>'
+    +'<li>Khối lượng trên là tạm tính, khối lượng quyết toán theo diện tích xây dựng thực tế.</li>'
+    +'<li>Giá trên chưa bao gồm nhân công hoàn thiện.</li>'
+    +'<li>Giá trên đã bao gồm thuế VAT.</li></ol></div>';
+  var sign='<div class="qx-sign"><div class="col"><div class="hd">KHÁCH HÀNG / CUSTOMER</div><div class="sp"></div></div>'
+    +'<div class="col"><div class="hd">ĐƠN VỊ THI CÔNG / CONSTRUCTION UNIT</div><div class="sp"></div></div></div>';
+  inners[inners.length-1]+=totbox+notes+sign;
+  // Bọc từng trang A4 + footer số trang
+  var N=inners.length;
   return inners.map(function(inner,idx){
-    var head='<div class="qp-head"><span class="qp-proj">'+esc(p.ten||'BÁO GIÁ')+'</span><span class="qp-meta">'+(p.maBaoGia?('Mã BG: '+esc(p.maBaoGia)+' · '):'')+'Trang '+(idx+1)+'/'+N+'</span></div>';
-    var foot='<div class="qp-foot"><span>'+esc(p.khachHang||'')+(p.diaChi?' · '+esc(p.diaChi):'')+'</span><span>Trang '+(idx+1)+' / '+N+'</span></div>';
-    return {html:'<div class="qs-page">'+head+inner+foot+'</div>'};
+    var foot='<div class="qp-foot"><span>'+esc(QUOTE_ORG.brand)+' — '+esc(p.ten||'')+'</span><span>Trang '+(idx+1)+' / '+N+'</span></div>';
+    return {html:'<div class="qs-page qx-page">'+inner+foot+'</div>'};
   });
 }
 function bgPager(total,cur){
@@ -1719,7 +1723,41 @@ var QS_DOC_CSS=''
 +'.qpg{min-width:34px;height:34px;padding:0 8px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-weight:600;color:#475569;cursor:pointer;font-size:14px}'
 +'.qpg:hover{border-color:#c3ccd8}'
 +'.qpg.on{background:#111827;color:#fff;border-color:#111827}'
-+'.qpg-ell{color:#94a3b8;padding:0 2px}';
++'.qpg-ell{color:#94a3b8;padding:0 2px}'
+/* ===== Decox letterhead style ===== */
++'.qx-page{padding:38px 42px 46px}'
++'.qx-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:4px}'
++'.qx-brand{font-size:30px;font-weight:900;letter-spacing:2px;color:#12233a}'
++'.qx-org{font-size:10px;color:#4b5563;line-height:1.55;margin-top:5px}'
++'.qx-titlebox{background:#12314f;color:#fff;text-align:center;padding:14px 24px;min-width:290px}'
++'.qx-titlebox .t1{font-size:15px;font-weight:800;letter-spacing:.4px}'
++'.qx-titlebox .t2{font-size:12.5px;font-weight:700;margin-top:4px}'
++'.qx-info{width:100%;border-collapse:collapse;background:#eceff2;margin:16px 0 0;table-layout:fixed}'
++'.qx-info td{padding:9px 14px;font-size:11px;vertical-align:top}'
++'.qx-info td.k{font-weight:700;color:#1f2937;width:16%}'
++'.qx-info td.v{color:#374151;width:34%}'
++'.qx-secttl{font-size:13px;font-weight:800;color:#12233a;letter-spacing:.4px;margin:18px 0 8px}'
++'.qx-tbl{width:100%;border-collapse:collapse;font-size:10.5px}'
++'.qx-tbl th{background:#12314f;color:#fff;font-weight:700;padding:10px 8px;text-align:left;font-size:10px;vertical-align:middle;border-right:1px solid #ffffff22;text-transform:uppercase;line-height:1.2}'
++'.qx-tbl th.num{text-align:right}.qx-tbl th.ct{text-align:center}'
++'.qx-tbl th:last-child{border-right:none}'
++'.qx-tbl td{padding:9px 8px;border-right:1px solid #d9dee5;border-bottom:none;vertical-align:top}'
++'.qx-tbl td:last-child{border-right:none}'
++'.qx-tbl td.num{text-align:right;font-variant-numeric:tabular-nums}'
++'.qx-tbl td.ct{text-align:center}'
++'.qx-tbl td.it{font-style:italic;color:#4b5563}'
++'.qx-tbl tr.sec td{background:#e6e9ee;font-weight:800;color:#12233a;border-top:1px solid #cfd5dd;border-bottom:1px solid #cfd5dd}'
++'.qx-desc{color:#6b7280;font-size:9.5px;line-height:1.35;margin-top:2px}'
++'.qx-totbox{margin-top:0}'
++'.qx-totbox td{background:#12314f;color:#fff;padding:10px 12px;font-size:12px;font-weight:800;border-right:none;border-bottom:1px solid #ffffff1a}'
++'.qx-totbox td.lbl{text-align:right;letter-spacing:.3px}'
++'.qx-notes{background:#eceff2;padding:12px 16px;margin-top:16px;font-size:10.5px;color:#374151}'
++'.qx-notes .h{font-weight:700;margin-bottom:4px}'
++'.qx-notes ol{margin:0;padding-left:20px}.qx-notes li{margin:3px 0}'
++'.qx-sign{display:flex;margin-top:16px;border:1px solid #d9dee5}'
++'.qx-sign .col{flex:1}.qx-sign .col:first-child{border-right:1px solid #d9dee5}'
++'.qx-sign .hd{background:#eceff2;font-weight:700;font-size:11px;padding:9px;color:#1f2937;text-align:center}'
++'.qx-sign .sp{height:110px}';
 function ensureDocCss_(){ if(document.getElementById('qsDocCss')) return; var s=document.createElement('style'); s.id='qsDocCss'; s.textContent=QS_DOC_CSS; document.head.appendChild(s); }
 function printDoc(){
   if(!S.cur){ toast('Chưa chọn dự án'); return; }
