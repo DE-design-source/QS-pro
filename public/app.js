@@ -894,6 +894,7 @@ function editLine(id,fields){
     l.thanhTienVon=Math.round(sl*(Number(l.donGiaVon)||0));
     renderTable(); renderCard();
     if(document.getElementById('v-chiphi').classList.contains('on')) renderChiphi();
+    if(bgVis()) drawBaogia();
   }
   api('updateLine',id,fields).then(function(u){
     if(u){ var i=S.lines.findIndex(function(x){return x.lineId===id;}); if(i>=0) S.lines[i]=u; renderTable(); renderCard(); }
@@ -1695,20 +1696,35 @@ function coverTableM1(comp){
     +'<tr class="cvtot"><td colspan="3" style="text-align:right">TỔNG CHI PHÍ DỰ KIẾN (VND)</td><td class="num">'+money(total)+'</td><td colspan="2"></td></tr></table>';
 }
 /* --- bảng báo giá chi tiết (như Bóc tách) --- */
+// Bảng báo giá chi tiết — markup GIỐNG HỆT Bóc tách (renderTable): dòng nhóm xám + tổng tầng,
+// dòng trắng cách, sọc xen kẽ, header .thk, ô nhập (cellInput). Sửa ở đây đồng bộ với Bóc tách.
 function bgDetailHTML(){
   var cols=visCols();
   var lines=(S.bgDeMuc && S.bgDeMuc!=='__all__') ? S.lines.filter(function(l){return l.nhom===S.bgDeMuc||String(l.nhom||'').indexOf(S.bgDeMuc+'.')===0;}) : S.lines.slice();
   var numK=['soLuong','giaNCC','giaDaiLy','donGia','donGiaCK','lnVnd','thanhTien'], ctK=['stt','hinhAnh','dvt','chietKhau','lnPct','ckKhach','markup','margin'];
   var groups={},order=[]; lines.forEach(function(l){ var g=(l.tang||'').trim()||'CHƯA PHÂN TẦNG'; if(!groups[g]){groups[g]=[];order.push(g);} groups[g].push(l); });
-  var head='<tr>'+cols.map(function(c){ var cls=numK.indexOf(c[0])>=0?'num':(ctK.indexOf(c[0])>=0?'ct':''); return '<th class="'+cls+'">'+esc(c[1])+'</th>'; }).join('')+'<th></th></tr>';
-  var body='';
-  order.forEach(function(g,gi){ var roman=['I','II','III','IV','V','VI','VII','VIII','IX','X'][gi]||(gi+1);
-    body+='<tr class="grp"><td colspan="'+(cols.length+1)+'">'+roman+'.'+esc(g)+'</td></tr>';
-    groups[g].forEach(function(l,ri){ body+='<tr>'+cols.map(function(c){ if(c[0]==='stt') return '<td class="ct">'+(gi+1)+'.'+(ri+1)+'</td>'; return cellInput(l,c[0]); }).join('')+'<td class="ct"><button class="del" onclick="delLine(\''+l.lineId+'\')">✕</button></td></tr>'; });
-  });
-  if(!lines.length) body='<tr><td class="empty" colspan="'+(cols.length+1)+'">Chưa có hạng mục.</td></tr>';
   var colg='<colgroup>'+cols.map(function(c){return '<col style="width:'+colW(c[0])+'px">';}).join('')+'<col style="width:44px"></colgroup>';
   var totalW=cols.reduce(function(s,c){return s+colW(c[0]);},0)+44;
+  var head='<tr>'+cols.map(function(c){ var cls=numK.indexOf(c[0])>=0?'num':(ctK.indexOf(c[0])>=0?'ct':'');
+    return '<th class="thk '+cls+'"><span class="thl">'+esc(c[1])+'</span></th>'; }).join('')+'<th></th></tr>';
+  var body='';
+  var tkSpacer='<tr class="tk-spacer"><td colspan="'+(cols.length+1)+'"></td></tr>';
+  order.forEach(function(g,gi){
+    var roman=['I','II','III','IV','V','VI','VII','VIII','IX','X'][gi]||(gi+1);
+    var gsum=(groups[g]||[]).reduce(function(s,l){ return s+(Number(l.thanhTienBan)||0); },0);
+    body+='<tr class="grp"><td colspan="'+(cols.length+1)+'">'
+      +'<span class="gname">'+roman+'. '+esc(g)+'</span>'
+      +'<span class="gsum">Tổng tầng: <b>'+money(gsum)+' đ</b></span></td></tr>';
+    body+=tkSpacer;
+    (groups[g]||[]).forEach(function(l,ri){
+      body+='<tr class="drow'+(ri%2===0?' alt':'')+'" data-id="'+l.lineId+'">'+cols.map(function(c){
+        if(c[0]==='stt') return '<td class="ct">'+(gi+1)+'.'+(ri+1)+'</td>';
+        return cellInput(l,c[0]);
+      }).join('')+'<td class="ct actcell"><button class="del" title="Xoá dòng" onclick="delLine(\''+l.lineId+'\')">✕</button></td></tr>';
+    });
+    body+=tkSpacer;
+  });
+  if(!lines.length) body='<tr><td class="empty" colspan="'+(cols.length+1)+'">Chưa có hạng mục.</td></tr>';
   return '<div class="tbl-wrap"><table class="tk" style="width:'+totalW+'px">'+colg+head+body+'</table></div>';
 }
 async function renderExport(){
