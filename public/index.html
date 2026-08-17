@@ -160,9 +160,16 @@ a{color:inherit}
 .ptlib-nm{flex:1;min-width:0;font-size:12.5px;color:var(--ink);line-height:1.35;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .ptlib-add{flex:none;width:26px;height:26px;border-radius:7px;border:1px solid var(--blue);background:#eef5ff;color:var(--blue);font-size:17px;font-weight:700;line-height:1;cursor:pointer}
 .ptlib-add:hover{background:var(--blue);color:#fff}
-.cat-hd{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
+.cat-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .cat-hd h3{margin:0}
 .cat-count{font-size:12px;font-weight:700;color:var(--blue);background:#eef5ff;padding:2px 8px;border-radius:20px}
+.filt-btn{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:#475569;background:#fff;border:1px solid #d7dee7;border-radius:8px;padding:5px 10px;cursor:pointer;transition:.12s}
+.filt-btn:hover{border-color:#b9c4d2;background:#f7f9fc}
+.filt-btn.open{color:#fff;background:var(--blue);border-color:var(--blue)}
+.filt-btn .filt-car{font-size:10px;transition:transform .15s}
+.filt-btn.open .filt-car{transform:rotate(180deg)}
+.filt-badge{min-width:16px;height:16px;line-height:16px;text-align:center;font-size:11px;font-weight:700;color:#fff;background:#ef7a45;border-radius:9px;padding:0 4px}
+.filt-btn.open .filt-badge{background:#fff;color:var(--blue)}
 .cat-search{position:relative;margin-bottom:10px}
 .cat-search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#9aa7b3;pointer-events:none}
 .cat-search input{width:100%;border:1px solid #dbe0e6;border-radius:9px;padding:9px 12px 9px 34px;font-size:13px;background:#fff}
@@ -886,7 +893,7 @@ tr.mhf-tot td.n:last-child{font-size:17px;color:var(--blue)}
       <!-- LEFT: filter + catalog -->
       <div class="panel catpanel" id="leftCat">
         <div class="catpanel-top">
-          <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span></div>
+          <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><span class="sp" style="flex:1"></span><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg> bộ lọc<span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button></div>
 
           <!-- 3 bộ chọn (theo Figma) -->
           <div class="mlbl">Đề mục</div>

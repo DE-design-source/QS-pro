@@ -469,9 +469,32 @@ function clearAllFilters(){
   var mx=document.getElementById('fMax'); if(mx) mx.value='';
   renderFilters(); renderCatalog();
 }
+// ==== Dropdown "bộ lọc": gập/mở khối lọc (Hạng mục SP, Đèn trong DA, Công suất, Nhiệt độ, Góc chiếu, Thương hiệu, giá) ====
+function activeFiltCount_(){
+  var n=0;
+  ['fWatt','fKelvin','fAngle','fIP','fCRI','fVolt'].forEach(function(k){ if(Object.keys(S[k]||{}).some(function(x){return S[k][x];})) n++; });
+  if(S.fBrand) n++;
+  var mn=document.getElementById('fMin'), mx=document.getElementById('fMax');
+  if((mn&&mn.value)||(mx&&mx.value)) n++;
+  if(Object.keys(S.fNhomSet||{}).some(function(k){return S.fNhomSet[k];})) n++;
+  if(S.onlyProject) n++;
+  return n;
+}
+function applyFiltDrop(){
+  var isPT=(S.node==='3.1');
+  var lf=document.getElementById('lightFilters');
+  var btn=document.getElementById('filtBtn');
+  var open=!!S._filtOpen;
+  if(lf) lf.style.display=(isPT||!open)?'none':'';
+  if(btn) btn.style.display=isPT?'none':'';
+  if(btn) btn.classList.toggle('open',open);
+  var bd=document.getElementById('filtBadge');
+  if(bd){ var c=activeFiltCount_(); bd.textContent=c?c:''; bd.style.display=c?'':'none'; }
+}
+function toggleFiltDrop(){ S._filtOpen=!S._filtOpen; applyFiltDrop(); }
 function renderCatalog(){
   var isPT=(S.node==='3.1');
-  var lf=document.getElementById('lightFilters'); if(lf) lf.style.display=isPT?'none':'';
+  applyFiltDrop();   // ẩn/hiện khối bộ lọc theo trạng thái gập/mở (và ẩn hẳn khi Phần thô)
   var hd=document.querySelector('#leftCat .cat-hd h3'); if(hd) hd.textContent=isPT?'Nội dung công việc':'Hạng mục';
   if(isPT){ renderPTLibrary(); return; }   // Phần thô: hiện thư viện nội dung công việc
   var list=filteredProducts();
