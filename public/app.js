@@ -775,7 +775,7 @@ function renderTable(){
       +'<span class="gsel" onclick="selectFloor(this.closest(\'td\').dataset.f)">'+(isSel?'✓ đang thêm':'chọn')+'</span>'
       +'<span class="gsum">Tổng tầng: <b>'+money(gsum)+' đ</b></span></td></tr>';
     if(S.collapsed[g]) return;
-    var tkSpacer='<tr class="tk-spacer">'+'<td></td>'.repeat(cols.length+1)+'</tr>';
+    var tkSpacer='<tr class="tk-spacer"><td colspan="'+(cols.length+1)+'"></td></tr>';   // khoảng trắng: 1 ô, KHÔNG kẻ dọc
     body+=tkSpacer;   // dòng khoảng trắng sau header tầng (như PDF)
     (groups[g]||[]).forEach(function(l,ri){
       var hs=S.rowH[l.lineId]?' style="height:'+S.rowH[l.lineId]+'px"':'';
@@ -2078,7 +2078,7 @@ function renderPhanTho(){
       +'<td class="n">'+(st.ttnt?money(st.ttnt):'')+'</td>'
       +'<td class="n">'+((st.tt-st.ttnt)?money(st.tt-st.ttnt):'')+'</td>'
       +'<td></td><td class="n">'+(st.tt?money(st.tt):'')+'</td></tr>';
-    body+='<tr class="pt-spacer">'+'<td></td>'.repeat(15)+'</tr>';   // dòng khoảng trắng sau header nhóm (như PDF)
+    body+='<tr class="pt-spacer"><td colspan="15"></td></tr>';   // dòng khoảng trắng sau header nhóm (như PDF)
     // ---- các dòng chi tiết ----
     sec.items.forEach(function(it,ii){
       var kl=it._kl, tt=it._tt, ttnt=it._ttnt;
@@ -2101,7 +2101,7 @@ function renderPhanTho(){
         +'<td class="pt-del"><button title="Xoá dòng" onclick="ptDelItem('+si+','+ii+')">'+icon('trash',13)+'</button></td></tr>';
     });
     body+='<tr class="pt-add"><td></td><td colspan="13"><span onclick="ptAddItem('+si+')">＋ Thêm dòng</span></td><td></td></tr>';
-    body+='<tr class="pt-spacer">'+'<td></td>'.repeat(15)+'</tr>';   // dòng khoảng trắng trước nhóm kế (như PDF)
+    body+='<tr class="pt-spacer"><td colspan="15"></td></tr>';   // dòng khoảng trắng trước nhóm kế (như PDF)
   });
   // ---- tổng cộng / VAT / sau thuế ----
   body+='<tr class="pt-total"><td class="c" colspan="7">TỔNG CỘNG</td>'
