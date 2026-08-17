@@ -775,6 +775,8 @@ function renderTable(){
       +'<span class="gsel" onclick="selectFloor(this.closest(\'td\').dataset.f)">'+(isSel?'✓ đang thêm':'chọn')+'</span>'
       +'<span class="gsum">Tổng tầng: <b>'+money(gsum)+' đ</b></span></td></tr>';
     if(S.collapsed[g]) return;
+    var tkSpacer='<tr class="tk-spacer">'+'<td></td>'.repeat(cols.length+1)+'</tr>';
+    body+=tkSpacer;   // dòng khoảng trắng sau header tầng (như PDF)
     (groups[g]||[]).forEach(function(l,ri){
       var hs=S.rowH[l.lineId]?' style="height:'+S.rowH[l.lineId]+'px"':'';
       body+='<tr class="drow'+(ri%2===0?' alt':'')+'" draggable="true" data-id="'+l.lineId+'" data-tang="'+esc(l.tang||'')+'"'+hs+'>'+cols.map(function(c){
@@ -783,6 +785,7 @@ function renderTable(){
         return cellInput(l,k);
       }).join('')+'<td class="ct actcell"><button class="del" title="Xoá dòng" onclick="delLine(\''+l.lineId+'\')">✕</button><div class="rgrip" data-id="'+l.lineId+'" title="Kéo để chỉnh chiều cao dòng">⇕</div></td></tr>';
     });
+    body+=tkSpacer;   // dòng khoảng trắng trước tầng kế (như PDF)
   });
   var selF=(S.selFloor||'').trim();
   body+='<tr class="addrow"><td colspan="'+(cols.length+1)+'">'

@@ -277,7 +277,8 @@ table.tk td{white-space:nowrap}
 table.tk td.wrap,table.tk td .desc{white-space:normal}
 table.tk th.num,table.tk td.num{text-align:right}
 table.tk th.ct,table.tk td.ct{text-align:center}
-table.tk td{padding:11px 12px;border-bottom:1px solid #d3d9e0;border-right:1px solid #d3d9e0;vertical-align:middle}
+table.tk td{padding:11px 12px;border-bottom:none;border-right:1px solid #cbd2da;vertical-align:middle}   /* PDF: chỉ kẻ dọc, không kẻ ngang giữa dòng */
+table.tk tr.tk-spacer td{height:14px;padding:0;background:#fff}   /* dòng khoảng trắng như PDF (giữ kẻ dọc) */
 table.tk th{border-right:1px solid #ffffff26}
 table.tk td:last-child,table.tk th:last-child{border-right:none}
 table.tk td.wrap{vertical-align:top}
