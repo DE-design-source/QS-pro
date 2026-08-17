@@ -170,6 +170,12 @@ a{color:inherit}
 .filt-btn.open .filt-car{transform:rotate(180deg)}
 .filt-badge{min-width:16px;height:16px;line-height:16px;text-align:center;font-size:11px;font-weight:700;color:#fff;background:#ef7a45;border-radius:9px;padding:0 4px}
 .filt-btn.open .filt-badge{background:#fff;color:var(--blue)}
+.filt-pop{z-index:60;background:#fff;border:1px solid #d7dee7;border-radius:12px;box-shadow:0 14px 40px rgba(20,40,80,.18);padding:12px 14px 14px;max-height:74vh;overflow:auto}
+.filt-pop-hd{display:flex;align-items:center;justify-content:space-between;margin:-2px 0 10px}
+.filt-pop-hd b{font-size:14px;color:#1f2937}
+.filt-pop-x{cursor:pointer;color:#94a3b8;font-size:16px;line-height:1;padding:2px 4px}
+.filt-pop-x:hover{color:#475569}
+.filt-pop-ft{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;padding-top:10px;border-top:1px solid #eef1f4}
 .cat-search{position:relative;margin-bottom:10px}
 .cat-search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#9aa7b3;pointer-events:none}
 .cat-search input{width:100%;border:1px solid #dbe0e6;border-radius:9px;padding:9px 12px 9px 34px;font-size:13px;background:#fff}
@@ -898,13 +904,16 @@ tr.mhf-tot td.n:last-child{font-size:17px;color:var(--blue)}
           <!-- 3 bộ chọn (theo Figma) -->
           <div class="mlbl">Đề mục</div>
           <div class="msel" id="fDemuc" onclick="openDemucSel(event)"><span class="mlabel" id="fDemucLabel">Tất cả đề mục</span><span class="mplus" id="fDemucClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
-          <div id="lightFilters">
+          <div id="selExtra">
           <div class="mlbl">Hạng mục sản phẩm</div>
           <div class="msel" id="fNhom" onclick="openNhomMsel(event)"><span class="mlabel">Tất cả hạng mục</span><span class="mplus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
           <div class="mlbl">Đèn trong dự án</div>
           <div class="msel" id="fInProj" onclick="toggleInProj()"><span class="mlabel" id="fInProjLabel">Tất cả sản phẩm</span><span class="mplus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
+          </div>
 
-          <!-- bộ lọc: label + hộp chip + nút thu gọn (gập/mở) -->
+          <!-- Tile bộ lọc (popover nổi, mở bằng nút "bộ lọc") -->
+          <div id="lightFilters" class="filt-pop" style="display:none">
+          <div class="filt-pop-hd"><b>Bộ lọc liên quan</b><span class="filt-pop-x" onclick="toggleFiltDrop()">✕</span></div>
           <div class="fsec open" id="sec_watt"><div class="fsec-h" onclick="toggleFsec('watt')"><span class="fsec-t">Công suất</span><span class="fsec-n" id="nWatt"></span><span class="fsec-c">▾</span></div><div class="chips" id="fWatt"></div></div>
           <div class="fsec open" id="sec_kelvin"><div class="fsec-h" onclick="toggleFsec('kelvin')"><span class="fsec-t">Nhiệt độ màu</span><span class="fsec-n" id="nKelvin"></span><span class="fsec-c">▾</span></div><div class="chips" id="fKelvin"></div></div>
           <div class="fsec open" id="sec_angle"><div class="fsec-h" onclick="toggleFsec('angle')"><span class="fsec-t">Góc chiếu sáng</span><span class="fsec-n" id="nAngle"></span><span class="fsec-c">▾</span></div><div class="chips" id="fAngle"></div></div>
@@ -916,6 +925,7 @@ tr.mhf-tot td.n:last-child{font-size:17px;color:var(--blue)}
             <span style="color:var(--muted)">Giá từ</span><input id="fMin" type="number" placeholder="">
             <span style="color:var(--muted)">Tới</span><input id="fMax" type="number" placeholder="">
           </div>
+          <div class="filt-pop-ft"><button class="btn ghost sm" onclick="clearAllFilters()">Xoá lọc</button><button class="btn blue sm" onclick="toggleFiltDrop()">Xong</button></div>
           </div>
         </div>
 

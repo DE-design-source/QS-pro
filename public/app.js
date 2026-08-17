@@ -394,6 +394,7 @@ function openNhomMsel(e){
     +(keys.length?'':'<div class="fi">Chưa có nhóm (SP chưa gán nhóm).</div>')+'</div>';
   document.body.appendChild(pop);
   var r=e.currentTarget.getBoundingClientRect(); pop.style.left=Math.max(8,r.left)+'px'; pop.style.top=(r.bottom+4)+'px';
+  setMselIcon('fNhom',true);
   setTimeout(function(){ document.addEventListener('mousedown',popOutside); },0);
 }
 function nhomToggle(n){ if(S.fNhomSet[n]) delete S.fNhomSet[n]; else S.fNhomSet[n]=1; renderFilters(); renderCatalog();
@@ -402,11 +403,16 @@ function nhomAll(on){ var opts=hmucOptions(); S.fNhomSet={}; if(on) Object.keys(
 // Đèn trong dự án: chỉ hiện SP đã dùng trong dự án hiện tại
 function toggleOnlyProject(){ S.onlyProject=!S.onlyProject; var b=document.getElementById('fInProj'); if(b) b.classList.toggle('on',S.onlyProject); renderCatalog(); }
 /* Bộ chọn thứ 3 "Đèn trong dự án": lọc chỉ SP đã dùng trong dự án hiện tại */
+// icon +/− cho các ô chọn (msel): mở dropdown / đang bật -> dấu trừ
+var SVG_PLUS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg>';
+var SVG_MINUS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 12h7"/></svg>';
+function setMselIcon(id,minus){ var el=document.getElementById(id); if(!el)return; var p=el.querySelector('.mplus'); if(p) p.innerHTML=minus?SVG_MINUS:SVG_PLUS; }
 function toggleInProj(){ S.onlyProject=!S.onlyProject; updateInProj_(); renderCatalog(); }
 function updateInProj_(){
   var box=document.getElementById('fInProj'), lb=document.getElementById('fInProjLabel'); if(!lb) return;
   lb.textContent = S.onlyProject ? 'Chỉ đèn trong dự án' : 'Tất cả sản phẩm';
   if(box) box.classList.toggle('active', S.onlyProject);
+  setMselIcon('fInProj', S.onlyProject);
 }
 /* lọc danh mục theo đề mục đang chọn ở cây */
 function setDemucFilter(code){
@@ -434,6 +440,7 @@ function openDemucSel(e){
       return '<div class="demuc-opt l'+t.lvl+(S.demucCode===t.code?' on':'')+'" onclick="pickDemuc(\''+t.code+'\')"><span>'+esc(t.code+'.'+t.name)+'</span><span class="dc">['+pad2(cnt)+']</span></div>'; }).join('');
   document.body.appendChild(pop);
   var r=e.currentTarget.getBoundingClientRect(); pop.style.left=Math.max(8,r.left)+'px'; pop.style.top=(r.bottom+4)+'px'; pop.style.width=Math.max(300,r.width)+'px';
+  setMselIcon('fDemuc',true);
   setTimeout(function(){ document.addEventListener('mousedown',popOutside); },0);
 }
 function pickDemuc(code){
@@ -483,15 +490,32 @@ function activeFiltCount_(){
 function applyFiltDrop(){
   var isPT=(S.node==='3.1');
   var lf=document.getElementById('lightFilters');
+  var se=document.getElementById('selExtra');
   var btn=document.getElementById('filtBtn');
-  var open=!!S._filtOpen;
-  if(lf) lf.style.display=(isPT||!open)?'none':'';
+  var open=!!S._filtOpen && !isPT;
+  if(se) se.style.display=isPT?'none':'';
   if(btn) btn.style.display=isPT?'none':'';
   if(btn) btn.classList.toggle('open',open);
+  if(lf){
+    lf.style.display=open?'block':'none';
+    if(open){
+      var pr=document.getElementById('leftCat').getBoundingClientRect();
+      var br=btn.getBoundingClientRect();
+      lf.style.position='fixed';
+      lf.style.top=(br.bottom+6)+'px';
+      lf.style.left=(pr.left+12)+'px';
+      lf.style.width=Math.max(240,pr.width-24)+'px';
+    }
+  }
   var bd=document.getElementById('filtBadge');
   if(bd){ var c=activeFiltCount_(); bd.textContent=c?c:''; bd.style.display=c?'':'none'; }
 }
-function toggleFiltDrop(){ S._filtOpen=!S._filtOpen; applyFiltDrop(); }
+function filtOutside_(e){ var t=e.target; if(t&&t.closest&&(t.closest('#lightFilters')||t.closest('#filtBtn'))) return; toggleFiltDrop(); }
+function toggleFiltDrop(){
+  S._filtOpen=!S._filtOpen; applyFiltDrop();
+  document.removeEventListener('mousedown',filtOutside_);
+  if(S._filtOpen) setTimeout(function(){ document.addEventListener('mousedown',filtOutside_); },0);
+}
 function renderCatalog(){
   var isPT=(S.node==='3.1');
   applyFiltDrop();   // ẩn/hiện khối bộ lọc theo trạng thái gập/mở (và ẩn hẳn khi Phần thô)
@@ -974,7 +998,8 @@ function openFilter(e,key){
 }
 function filterPop(q){ q=(q||'').toLowerCase().trim(); document.querySelectorAll('#fpItems .fi').forEach(function(el){ if(el.classList.contains('all')) return; el.style.display=(!q||(el.dataset.t||'').indexOf(q)>=0)?'':'none'; }); }
 function popOutside(e){ if(!e.target.closest('#qs_pop')) closePop(); }
-function closePop(){ var p=document.getElementById('qs_pop'); if(p)p.remove(); document.removeEventListener('mousedown',popOutside); }
+function closePop(){ var p=document.getElementById('qs_pop'); if(p)p.remove(); document.removeEventListener('mousedown',popOutside);
+  setMselIcon('fDemuc',false); setMselIcon('fNhom',false); }
 function setFilter(key,v){ if(v==null||v==='__all__') delete S.colFilter[key]; else S.colFilter[key]=v; closePop(); renderTable(); }
 /* popup chọn sản phẩm cho cột Tên */
 function openPick(lineId,e){
