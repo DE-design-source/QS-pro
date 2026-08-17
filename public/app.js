@@ -1500,7 +1500,12 @@ function coverEdit(i,field,value){ var c=S.cover[i]; if(!c)return;
   else c[field]=value; drawBaogia(); }
 function coverDel(i){ S.cover.splice(i,1); drawBaogia(); }
 function coverAddBig(){ var n=(S.cover||[]).filter(function(c){return coverDepth(c.stt)===1;}).length+1; S.cover.push({stt:String(n),hangMuc:'Mục mới',moTa:'',chiPhi:0}); drawBaogia(); }
-function coverAddSmall(){ S.cover.push({stt:'',hangMuc:'Mục nhỏ',moTa:'',chiPhi:0}); drawBaogia(); }
+function coverAddSmall(){
+  var secs=(S.cover||[]).filter(function(c){return coverDepth(c.stt)===1;}).sort(coverSortFn);
+  var last=secs[secs.length-1], stt='1.1';
+  if(last){ var kids=(S.cover||[]).filter(function(c){return c.stt!==last.stt && String(c.stt).indexOf(last.stt+'.')===0 && coverDepth(c.stt)===2;}); stt=last.stt+'.'+(kids.length+1); }
+  S.cover.push({stt:stt,hangMuc:'Mục nhỏ',moTa:'',chiPhi:0}); drawBaogia();
+}
 async function coverReload(btn){ if(btn)btn.disabled=true; try{ S.cover=await api('buildCoverFromTemplate',S.cur.maDA)||[]; S._coverDA=S.cur.maDA; drawBaogia(); toast('Đã nạp mẫu + tự cộng chi phí'); }catch(e){ toast('Lỗi: '+e.message); } if(btn)btn.disabled=false; }
 async function coverSave(btn){ btn.disabled=true; try{ S.cover=await api('saveCover',S.cur.maDA,S.cover)||S.cover; toast('Đã lưu tờ bìa'); drawBaogia(); }catch(e){ toast('Lỗi: '+e.message); } btn.disabled=false; }
 
@@ -1628,7 +1633,7 @@ function bgBuildPages(){
     groups[g].forEach(function(l,ri){
       flat.push('<tr><td class="ct">'+(gi+1)+'.'+(ri+1)+'</td>'
         +'<td class="ct">'+esc(l.khuVuc||'')+'</td>'
-        +'<td><b>'+esc(l.ten||'')+'</b>'+(l.thuongHieu?' <span class="qd-br">· '+esc(l.thuongHieu)+'</span>':'')+(l.moTa?'<div class="qd-desc">'+esc(l.moTa)+'</div>':'')+'</td>'
+        +'<td><b>'+esc(l.ten||'')+'</b>'+(l.thuongHieu?' <span class="qd-br">· '+esc(l.thuongHieu)+'</span>':'')+(l.ncc?' <span class="qd-br">· NCC: '+esc(l.ncc)+'</span>':'')+(l.moTa?'<div class="qd-desc">'+esc(l.moTa)+'</div>':'')+'</td>'
         +'<td class="ct">'+esc(l.dvt||'')+'</td>'
         +'<td class="num">'+(Number(l.soLuong)||0)+'</td>'
         +'<td class="num">'+money(l.donGiaBan)+'</td>'
