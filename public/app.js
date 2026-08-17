@@ -504,13 +504,13 @@ function pdMedia_(p){
     ['color', p.mauSac],
     ['angle', p.gocChieu]
   ].filter(function(x){ return x[1] && String(x[1]).trim(); });
-  var designRows=[['Chất liệu',p.chatLieu],['Chiều cao',p.chieuCao],['Đường kính',p.duongKinh],['Góc nghiêng / góc chính hướng',p.gocNghieng]]
-    .filter(function(r){ return r[1] && String(r[1]).trim(); });
+  // Key Product Info (Thông tin chính) = Công suất, Nhiệt độ màu, Góc chiếu, Màu sắc (icon) + Chất liệu
+  var kpiRows=[['Chất liệu',p.chatLieu]].filter(function(r){ return r[1] && String(r[1]).trim(); });
   var keyHtml='';
-  if(keyItems.length||designRows.length){
+  if(keyItems.length||kpiRows.length){
     keyHtml='<div class="pd-block"><div class="pd-sec">Key Product Info (Thông tin chính)</div>';
     if(keyItems.length) keyHtml+='<div class="pd-keys">'+keyItems.map(function(x){ return '<div class="pd-key"><span class="ic">'+icon(x[0],16)+'</span><span>'+esc(x[1])+'</span></div>'; }).join('')+'</div>';
-    keyHtml+=designRows.map(function(r){ return '<div class="spec"><span class="k">'+esc(r[0])+'</span><span class="v">'+esc(r[1])+'</span></div>'; }).join('')+'</div>';
+    keyHtml+=kpiRows.map(function(r){ return '<div class="spec"><span class="k">'+esc(r[0])+'</span><span class="v">'+esc(r[1])+'</span></div>'; }).join('')+'</div>';
   }
   var img=p.hinhAnh?'<div class="imgbox"><img src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.parentNode.innerHTML=\'<span style=&quot;color:#9aa&quot;>Không tải được ảnh</span>\'"></div>'
     :'<div class="imgbox"><span style="color:#9aa">Không có ảnh</span></div>';
@@ -519,19 +519,20 @@ function pdMedia_(p){
     +(p.ten?'<div class="pd-name">'+esc(p.ten)+'</div>':'')
     +keyHtml;
 }
-// Các nhóm thông số kỹ thuật — đồng bộ đúng tên nhóm/field trong Figma
+// Các nhóm thông số — phân nhóm ĐÚNG theo từ điển trường (Google Sheet)
 function pdSpecs_(p){
-  return pdSection_('Performance Specifications (Thông số hiệu suất)',[
-      ['Quang thông',p.quangThong],['Chỉ số IP (Chống bụi, nước)',p.capBaoVe],['CRI',p.cri],
-      ['Hiệu suất phát quang (Efficacy)',p.hieuSuat],['Chỉ số gây chói mắt (UGR)',p.ugr],
-      ['Tuổi thọ đèn',p.tuoiTho],['Loại chip LED',p.chipLed],['Độ đồng nhất màu sắc (SDCM)',p.sdcm],
-      ['Thời gian bảo hành',p.baoHanh]])
-    +pdSection_('Bộ nguồn',[
-      ['Bộ nguồn',p.tenBoNguon],['Vị trí lắp đặt bộ nguồn',p.viTriNguon],
-      ['Tương thích điều khiển (Control Type)',p.tuongThich],['Cường độ dòng điện đầu ra tối đa',p.dongRa]])
+  return pdSection_('Thông số thiết kế',[
+      ['Góc nghiêng (°)',p.gocNghieng],['Chiều cao (mm)',p.chieuCao],['Đường kính (mm)',p.duongKinh]])
+    +pdSection_('Performance Specifications (Thông số hiệu suất)',[
+      ['Quang thông (lm)',p.quangThong],['Chỉ số IP (Chống bụi, nước)',p.capBaoVe],['CRI',p.cri],
+      ['Hiệu suất phát quang (lm/W)',p.hieuSuat],['UGR',p.ugr],['SDCM',p.sdcm],['COI',p.coi],
+      ['Tuổi thọ',p.tuoiTho],['Loại chip LED',p.chipLed]])
+    +pdSection_('Driver (Nguồn LED / Chấn lưu)',[
+      ['Lắp nguồn rời',p.lapNguonRoi],['Tên bộ nguồn',p.tenBoNguon],['Mã bộ nguồn',p.maBoNguon],
+      ['Hãng bộ nguồn',p.hangBoNguon],['Vị trí lắp nguồn',p.viTriNguon],
+      ['Tương thích điều khiển',p.tuongThich],['Dòng ra tối đa (mA)',p.dongRa]])
     +pdSection_('Installation Specifications (Thông số lắp đặt)',[
-      ['Lắp đặt bộ nguồn rời',p.lapNguonRoi],['Kích thước lỗ khoét trần (Cutout Size)',p.loKhoet],
-      ['Cấp bảo vệ an toàn điện (Class Rating)',p.capBaoVeDien]])
+      ['Lỗ khoét trần (mm)',p.loKhoet],['Cấp bảo vệ điện',p.capBaoVeDien]])
     +(p.moTa && !p.chatLieu && !p.quangThong ? '<div class="pd-block"><div class="pd-sec">Thông số kỹ thuật (mô tả)</div>'+specRows_(p.moTa)+'</div>' : '');
 }
 function pdPriceFoot_(p){
@@ -1559,22 +1560,23 @@ var DB_GROUPS=[
   {g:'Thông tin giá bán', note:'Giá đại lý tự tính = Giá bán lẻ × (1 − %Chiết khấu).', f:[
     ['GIÁ BÁN LẺ','Giá bán lẻ','num',1],['CHIẾT KHẤU ĐẠI LÝ (%)','%Chiết khấu','num',1],['GIÁ ĐẠI LÝ','Giá đại lý','calc',1] ]},
   {g:'Key Product Info (Thông tin chính)', f:[
-    ['CÔNG SUẤT (W)','Công suất','num',1],['NHIỆT ĐỘ MÀU (K)','Nhiệt độ màu','sel',1,['2700','3000','4000','5000','6500']],['MÀU SẮC','Màu sắc','text',1],
-    ['GÓC CHIẾU (°)','Góc chiếu','num',1],['CHẤT LIỆU','Chất liệu','text',1],['CHIỀU CAO (mm)','Chiều cao','num',0],
-    ['ĐƯỜNG KÍNH (mm)','Đường kính','num',1],['GÓC NGHIÊNG (°)','Góc nghiêng / góc chính hướng','num',1] ]},
+    ['CÔNG SUẤT (W)','Công suất','num',1],['NHIỆT ĐỘ MÀU (K)','Nhiệt độ màu','sel',1,['2700','3000','4000','5000','6500']],
+    ['GÓC CHIẾU (°)','Góc chiếu','num',1],['MÀU SẮC','Màu sắc','text',1],['CHẤT LIỆU','Chất liệu','text',1] ]},
+  {g:'Thông số thiết kế', f:[
+    ['GÓC NGHIÊNG (°)','Góc nghiêng','num',0],['CHIỀU CAO (mm)','Chiều cao','num',0],['ĐƯỜNG KÍNH (mm)','Đường kính','num',1] ]},
   {g:'Performance Specifications (Thông số hiệu suất)', f:[
     ['QUANG THÔNG (lm)','Quang thông','num',1],['CHỈ SỐ IP','Chỉ số IP (Chống bụi, nước)','sel',1,['IP20','IP44','IP54','IP65']],['CRI','CRI','text',1],
-    ['HIỆU SUẤT PHÁT QUANG (lm/W)','Hiệu suất phát quang (Efficacy)','num',0],['UGR','Chỉ số gây chói mắt (UGR)','text',0],['TUỔI THỌ','Tuổi thọ đèn','text',0],
-    ['LOẠI CHIP LED','Loại chip LED','sel',0,['COB','SMD','Modul']],['SDCM','Độ đồng nhất màu sắc (SDCM)','text',0],['BẢO HÀNH (năm)','Thời gian bảo hành','num',1] ]},
-  {g:'Bộ nguồn', f:[
-    ['TÊN BỘ NGUỒN','Bộ nguồn','text',0],
-    ['VỊ TRÍ LẮP NGUỒN','Vị trí lắp đặt bộ nguồn','sel',0,['Lắp rời','Tích hợp trong thân đèn']],
-    ['TƯƠNG THÍCH ĐIỀU KHIỂN','Tương thích điều khiển (Control Type)','sel',0,['DALI','0-10V','Triac','On-Off']],
-    ['DÒNG RA TỐI ĐA (mA)','Cường độ dòng điện đầu ra tối đa','num',0] ]},
+    ['HIỆU SUẤT PHÁT QUANG (lm/W)','Hiệu suất phát quang (lm/W)','num',0],['UGR','UGR','text',0],['SDCM','SDCM','text',0],
+    ['COI','COI','text',0],['TUỔI THỌ','Tuổi thọ','text',0],['LOẠI CHIP LED','Loại chip LED','sel',0,['COB','SMD','Modul']] ]},
+  {g:'Driver (Nguồn LED / Chấn lưu)', f:[
+    ['LẮP NGUỒN RỜI','Lắp nguồn rời','sel',0,['Có','Không']],['TÊN BỘ NGUỒN','Tên bộ nguồn','text',0],['MÃ BỘ NGUỒN','Mã bộ nguồn','text',0],
+    ['HÃNG BỘ NGUỒN','Hãng bộ nguồn','text',0],['VỊ TRÍ LẮP NGUỒN','Vị trí lắp nguồn','sel',0,['Lắp rời','Tích hợp trong thân đèn']],
+    ['TƯƠNG THÍCH ĐIỀU KHIỂN','Tương thích điều khiển','sel',0,['DALI','0-10V','Triac','On-Off']],['DÒNG RA TỐI ĐA (mA)','Dòng ra tối đa (mA)','num',0] ]},
   {g:'Installation Specifications (Thông số lắp đặt)', f:[
-    ['LẮP NGUỒN RỜI','Lắp đặt bộ nguồn rời','sel',0,['Có','Không']],
-    ['LỖ KHOÉT TRẦN (mm)','Kích thước lỗ khoét trần (Cutout Size)','num',1],
-    ['CẤP BẢO VỆ ĐIỆN','Cấp bảo vệ an toàn điện (Class Rating)','sel',0,['Class I','Class II','Class III']] ]}
+    ['LỖ KHOÉT TRẦN (mm)','Lỗ khoét trần (mm)','num',1],
+    ['CẤP BẢO VỆ ĐIỆN','Cấp bảo vệ điện','sel',0,['Class I','Class II','Class III']] ]},
+  {g:'Thương mại', f:[
+    ['BẢO HÀNH (năm)','Bảo hành (năm)','num',0],['ĐƠN VỊ TÍNH','Đơn vị tính','sel',1,['Cái','Bộ','Mét']] ]}
 ];
 var DB_FLAT=[]; DB_GROUPS.forEach(function(gr){ gr.f.forEach(function(f){ DB_FLAT.push(f); }); });
 function dbInput(f){
@@ -1620,7 +1622,7 @@ function imgSection(){
       +'</div>'
     +'</div></div></div>';
 }
-var DB_GICON={'Thông tin cơ bản':'tag','Thông tin giá bán':'money','Key Product Info (Thông tin chính)':'bulb','Performance Specifications (Thông số hiệu suất)':'gauge','Bộ nguồn':'plug','Installation Specifications (Thông số lắp đặt)':'wrench','Quản trị & khác':'sliders'};
+var DB_GICON={'Thông tin cơ bản':'tag','Thông tin giá bán':'money','Key Product Info (Thông tin chính)':'bulb','Thông số thiết kế':'ruler','Performance Specifications (Thông số hiệu suất)':'gauge','Driver (Nguồn LED / Chấn lưu)':'plug','Installation Specifications (Thông số lắp đặt)':'wrench','Thương mại':'sliders'};
 function dbCard_(title, ic, note, inner){
   return '<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">'+(icon(ic,18)||esc(ic))+'</span><h3>'+esc(title)+'</h3></div>'
     +'<div class="dbcard-b">'+(note?'<p class="dbnote">'+esc(note)+'</p>':'')+inner+'</div></div>';
