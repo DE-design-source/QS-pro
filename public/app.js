@@ -1544,7 +1544,19 @@ function bgBuildPages(){
     }).join('');
     total=gt;
   }
-  var sumInner='<div class="qp-title">CHI TIẾT CÁC HẠNG MỤC</div>'
+  // Khối tờ bìa chuẩn (theo sheet 0.1.TỜ BÌA): tiêu đề + thông tin dự án
+  var pp=S.cur||{};
+  function infoCell_(k,v){ return '<td class="k">'+k+'</td><td class="v">'+esc(v||'—')+'</td>'; }
+  var coverHead='<div class="qc-cover">'
+    +'<div class="qc-title">BẢNG ƯỚC TÍNH CHI PHÍ DỰ ÁN</div>'
+    +'<div class="qc-sub">[Tư vấn thiết kế, thi công chuyên nghiệp]</div>'
+    +'<div class="qc-code">Mã báo giá số: <b>'+esc(pp.maBaoGia||'—')+'</b></div>'
+    +'<table class="qc-info">'
+      +'<tr>'+infoCell_('Khách hàng',pp.khachHang)+infoCell_('Quy mô',pp.quyMo)+'</tr>'
+      +'<tr>'+infoCell_('Tổng diện tích XD (m²)',pp.tongDT)+infoCell_('Nhu cầu',pp.nhuCau)+'</tr>'
+      +'<tr>'+infoCell_('DT báo giá [đã nhân hệ số] (m²)',pp.dtBaoGia)+infoCell_('Phân khúc',pp.phanKhuc)+'</tr>'
+    +'</table></div>';
+  var sumInner=coverHead+'<div class="qp-title sm" style="text-align:center;margin-top:8px">CHI TIẾT CÁC HẠNG MỤC</div>'
     +'<div class="qsum-card"><table class="qsum">'+(srows||'<tr><td class="nm" style="color:#94a3b8;padding:18px 0">Chưa có hạng mục. Sang “Chỉnh sửa” bấm ↻ Nạp lại mẫu.</td></tr>')
     +'<tr class="qsum-tot"><td class="nm">TỔNG CHI PHÍ DỰ KIẾN</td><td class="amt">'+moneyShort(total)+'</td><td class="pct">100%</td></tr></table></div>';
   inners.push(sumInner);
@@ -1553,9 +1565,10 @@ function bgBuildPages(){
   var groups={},order=[]; lines.forEach(function(l){ var g=(l.tang||'').trim()||'CHƯA PHÂN TẦNG'; if(!groups[g]){groups[g]=[];order.push(g);} groups[g].push(l); });
   var flat=[];
   order.forEach(function(g,gi){
-    flat.push('<tr class="qd-sec"><td colspan="6">'+(ROMAN_[gi]||(gi+1))+'. '+esc(g)+'</td></tr>');
+    flat.push('<tr class="qd-sec"><td colspan="7">'+(ROMAN_[gi]||(gi+1))+'. '+esc(g)+'</td></tr>');
     groups[g].forEach(function(l,ri){
       flat.push('<tr><td class="ct">'+(gi+1)+'.'+(ri+1)+'</td>'
+        +'<td class="ct">'+esc(l.khuVuc||'')+'</td>'
         +'<td><b>'+esc(l.ten||'')+'</b>'+(l.thuongHieu?' <span class="qd-br">· '+esc(l.thuongHieu)+'</span>':'')+(l.moTa?'<div class="qd-desc">'+esc(l.moTa)+'</div>':'')+'</td>'
         +'<td class="ct">'+esc(l.dvt||'')+'</td>'
         +'<td class="num">'+(Number(l.soLuong)||0)+'</td>'
@@ -1564,8 +1577,8 @@ function bgBuildPages(){
     });
   });
   var PER=16;
-  var colg='<colgroup><col style="width:46px"><col><col style="width:52px"><col style="width:46px"><col style="width:104px"><col style="width:120px"></colgroup>';
-  var thead='<tr class="qd-h"><th>STT</th><th>TÊN SẢN PHẨM</th><th>ĐVT</th><th class="num">SL</th><th class="num">ĐƠN GIÁ</th><th class="num">THÀNH TIỀN</th></tr>';
+  var colg='<colgroup><col style="width:42px"><col style="width:88px"><col><col style="width:48px"><col style="width:42px"><col style="width:100px"><col style="width:116px"></colgroup>';
+  var thead='<tr class="qd-h"><th>STT</th><th>PHÒNG</th><th>TÊN SẢN PHẨM</th><th>ĐVT</th><th class="num">SL</th><th class="num">ĐƠN GIÁ</th><th class="num">THÀNH TIỀN</th></tr>';
   if(flat.length){
     for(var i=0;i<flat.length;i+=PER){
       var chunk=flat.slice(i,i+PER).join('');
@@ -1609,6 +1622,14 @@ var QS_DOC_CSS=''
 +'.qp-foot{position:absolute;left:60px;right:60px;bottom:22px;display:flex;justify-content:space-between;font-size:10px;color:#aab3c0;border-top:1px solid #eef1f4;padding-top:8px}'
 +'.qp-title{font-size:19px;font-weight:800;letter-spacing:.5px;text-align:center;margin:4px 0 24px;color:#1f2937}'
 +'.qp-title.sm{font-size:15px;margin:2px 0 16px;text-align:left;color:#0f2942}'
++'.qc-cover{text-align:center;margin:2px 0 20px}'
++'.qc-title{font-size:22px;font-weight:800;letter-spacing:.6px;color:#0f2942}'
++'.qc-sub{font-size:12.5px;font-style:italic;color:#64748b;margin-top:3px}'
++'.qc-code{font-size:12px;color:#475569;margin-top:8px}'
++'.qc-info{width:100%;border-collapse:collapse;margin-top:16px;text-align:left;table-layout:fixed}'
++'.qc-info td{border:1px solid #dfe4ea;padding:8px 10px;font-size:12px;vertical-align:middle}'
++'.qc-info td.k{background:#f4f6f9;color:#5b6b7b;font-weight:600;width:20%}'
++'.qc-info td.v{color:#1f2937;font-weight:600;width:30%}'
 +'.qsum-card{border:1px solid #ececec;border-radius:12px;padding:12px 26px}'
 +'.qsum{width:100%;border-collapse:collapse}'
 +'.qsum td{padding:9px 2px;vertical-align:baseline}'
