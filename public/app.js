@@ -2122,8 +2122,16 @@ function renderPhanTho(){
     +'<col style="width:104px"><col style="width:126px"><col style="width:190px"><col style="width:112px"><col style="width:128px"><col style="width:120px"><col style="width:112px"><col style="width:128px"><col style="width:34px"></colgroup>';
   var thead='<tr>'+COLS.map(function(c,i){ var cls=(i>=3?'n':(i===0?'c':'')); return '<th class="'+cls+'">'+esc(c)+'</th>'; }).join('')+'<th></th></tr>';
 
-  pw.innerHTML = ptHeaderHtml()
-    + '<div class="pt-toolbar">'
+  // Thanh tổng dùng chung (giống các hạng mục SP khác) — hiện cho cả Phần thô
+  var teP=document.getElementById('tkTotals');
+  if(teP){ teP.innerHTML='<div class="tkt-bar">'
+    +'<div class="tkt-seg"><span class="tkt-ic">'+icon('money',16)+'</span><span class="tkt-c"><span class="tkt-l">Tổng chưa VAT</span><span class="tkt-v">'+money(comp.grand)+' đ</span></span></div>'
+    +'<div class="tkt-seg"><span class="tkt-ic">'+icon('gauge',16)+'</span><span class="tkt-c"><span class="tkt-l">Thuế VAT <input class="tkt-vat" type="number" step="any" min="0" value="'+comp.vatPct+'" onchange="ptSetVat(this.value)">%</span><span class="tkt-v">'+money(comp.vat)+' đ</span></span></div>'
+    +'<div class="tkt-seg grand"><span class="tkt-ic">'+icon('cart',17)+'</span><span class="tkt-c"><span class="tkt-l">Tổng thành tiền</span><span class="tkt-v">'+money(comp.afterTax)+' đ</span></span></div>'
+    +'</div>'; }
+  var tcP=document.getElementById('tkCount'); if(tcP){ var nItems=(S.phanTho||[]).reduce(function(s,se){return s+((se.items||[]).length);},0); tcP.textContent='['+pad2(nItems)+']'; }
+  pw.innerHTML =
+    '<div class="pt-toolbar">'
       + '<div class="pt-tt">Bảng ước tính chi phí — <b>Xây dựng thô</b></div>'
       + '<div class="sp"></div>'
       + '<button class="btn ghost sm" onclick="ptReset()">Khôi phục mẫu</button>'
