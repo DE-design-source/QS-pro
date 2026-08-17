@@ -487,34 +487,41 @@ function activeFiltCount_(){
   if(S.onlyProject) n++;
   return n;
 }
+function positionFiltPop_(){
+  var lf=document.getElementById('lightFilters'), btn=document.getElementById('filtBtn'), lc=document.getElementById('leftCat');
+  if(!lf||!btn||!lc) return;
+  var br=btn.getBoundingClientRect(), pr=lc.getBoundingClientRect();
+  var w=Math.min(Math.max(260,pr.width-24), window.innerWidth-16);
+  var left=Math.max(8, Math.min(pr.left+12, window.innerWidth-w-8));
+  var top=br.bottom+6;
+  lf.style.position='fixed'; lf.style.width=w+'px'; lf.style.left=left+'px'; lf.style.top=top+'px';
+  lf.style.maxHeight=Math.max(220,window.innerHeight-top-12)+'px';
+}
 function applyFiltDrop(){
   var isPT=(S.node==='3.1');
-  var lf=document.getElementById('lightFilters');
-  var se=document.getElementById('selExtra');
-  var btn=document.getElementById('filtBtn');
+  var lf=document.getElementById('lightFilters'), se=document.getElementById('selExtra'), btn=document.getElementById('filtBtn');
   var open=!!S._filtOpen && !isPT;
   if(se) se.style.display=isPT?'none':'';
-  if(btn) btn.style.display=isPT?'none':'';
-  if(btn) btn.classList.toggle('open',open);
+  if(btn){ btn.style.display=isPT?'none':''; btn.classList.toggle('open',open); }
   if(lf){
-    lf.style.display=open?'block':'none';
-    if(open){
-      var pr=document.getElementById('leftCat').getBoundingClientRect();
-      var br=btn.getBoundingClientRect();
-      lf.style.position='fixed';
-      lf.style.top=(br.bottom+6)+'px';
-      lf.style.left=(pr.left+12)+'px';
-      lf.style.width=Math.max(240,pr.width-24)+'px';
-    }
+    if(open){ if(lf.parentElement!==document.body) document.body.appendChild(lf); lf.style.display='block'; positionFiltPop_(); }
+    else lf.style.display='none';
   }
   var bd=document.getElementById('filtBadge');
   if(bd){ var c=activeFiltCount_(); bd.textContent=c?c:''; bd.style.display=c?'':'none'; }
 }
 function filtOutside_(e){ var t=e.target; if(t&&t.closest&&(t.closest('#lightFilters')||t.closest('#filtBtn'))) return; toggleFiltDrop(); }
+function filtReposition_(){ if(S._filtOpen) positionFiltPop_(); }
 function toggleFiltDrop(){
   S._filtOpen=!S._filtOpen; applyFiltDrop();
   document.removeEventListener('mousedown',filtOutside_);
-  if(S._filtOpen) setTimeout(function(){ document.addEventListener('mousedown',filtOutside_); },0);
+  window.removeEventListener('scroll',filtReposition_,true);
+  window.removeEventListener('resize',filtReposition_);
+  if(S._filtOpen){
+    setTimeout(function(){ document.addEventListener('mousedown',filtOutside_); },0);
+    window.addEventListener('scroll',filtReposition_,true);
+    window.addEventListener('resize',filtReposition_);
+  }
 }
 function renderCatalog(){
   var isPT=(S.node==='3.1');
