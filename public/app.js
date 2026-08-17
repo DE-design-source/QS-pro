@@ -1504,6 +1504,65 @@ function coverAddSmall(){ S.cover.push({stt:'',hangMuc:'Mục nhỏ',moTa:'',chi
 async function coverReload(btn){ if(btn)btn.disabled=true; try{ S.cover=await api('buildCoverFromTemplate',S.cur.maDA)||[]; S._coverDA=S.cur.maDA; drawBaogia(); toast('Đã nạp mẫu + tự cộng chi phí'); }catch(e){ toast('Lỗi: '+e.message); } if(btn)btn.disabled=false; }
 async function coverSave(btn){ btn.disabled=true; try{ S.cover=await api('saveCover',S.cur.maDA,S.cover)||S.cover; toast('Đã lưu tờ bìa'); drawBaogia(); }catch(e){ toast('Lỗi: '+e.message); } btn.disabled=false; }
 
+/* ===== BẢNG TÍNH HỆ SỐ DIỆN TÍCH (theo tab 0.NHẬP THÔNG TIN) ===== */
+var AREA_TEMPLATE=[
+  {k:'khu_dat',   label:'Diện tích khu đất (tính đơn giá xây thô)', hs:0,   usage:false},
+  {k:'xay_dung',  label:'Diện tích xây dựng (trệt)',                hs:1,   usage:true},
+  {k:'tang_lau',  label:'Tầng lầu',                                 hs:1,   usage:true},
+  {k:'tang_lung', label:'Tầng lửng',                                hs:1,   usage:true},
+  {k:'tang_thuong',label:'Tầng thượng',                            hs:1,   usage:true},
+  {k:'ban_ham',   label:'Bán hầm (sâu 1.0–1.3m)',                  hs:1.5, usage:false},
+  {k:'tang_ham',  label:'Tầng hầm (sâu ≥2.0m)',                    hs:2,   usage:false},
+  {k:'mai_bt',    label:'Mái (bê tông)',                            hs:0.7, usage:false},
+  {k:'mai_ngoi',  label:'Mái (ngói)',                               hs:0.5, usage:false}
+];
+function areaLoad_(){ if(!S.cur) return {}; if(S._areaDA===S.cur.maDA && S.areaData) return S.areaData;
+  var d={}; try{ d=JSON.parse(localStorage.getItem('qs_area_'+S.cur.maDA)||'{}')||{}; }catch(e){ d={}; }
+  S.areaData=d; S._areaDA=S.cur.maDA; return d; }
+function areaSave_(){ if(!S.cur) return; try{ localStorage.setItem('qs_area_'+S.cur.maDA, JSON.stringify(S.areaData||{})); }catch(e){} }
+function areaSet_(k,field,val){ var d=areaLoad_(); d[k]=d[k]||{}; d[k][field]=Number(String(val).replace(/[^\d.,-]/g,'').replace(',','.'))||0; areaSave_(); drawBaogia(); }
+function areaCompute_(){ var d=areaLoad_(), rows=[], dtBG=0, dtSD=0, groundArea=0;
+  AREA_TEMPLATE.forEach(function(t){ var r=d[t.k]||{}; var cnt=Number(r.count)||0, dai=Number(r.dai)||0, rong=Number(r.rong)||0;
+    var dt=dai*rong, tong=dt*(cnt||1)*(cnt?1:0)||dt*cnt, bao=0, usg=0;
+    tong=dt*cnt; bao=tong*t.hs; usg=t.usage?tong:0;
+    if(t.k==='khu_dat') groundArea=dt;   // để tính đơn giá xây thô
+    dtBG+=bao; dtSD+=usg;
+    rows.push({t:t, cnt:cnt, dai:dai, rong:rong, dt:dt, tong:tong, bao:bao, usg:usg});
+  });
+  return {rows:rows, dtBaoGia:Math.round(dtBG*100)/100, dtSuDung:Math.round(dtSD*100)/100, groundArea:groundArea};
+}
+function areaToggle_(){ S.areaOpen=!S.areaOpen; drawBaogia(); }
+function areaApply_(){ var c=areaCompute_();
+  var f={ dtBaoGia:String(c.dtBaoGia||''), tongDT:String(c.dtSuDung||'') };
+  Object.keys(f).forEach(function(k){ if(S.cur) S.cur[k]=f[k]; });
+  api('updateProject',S.cur.maDA,f).then(syncProj).catch(function(e){toast('Lỗi: '+e.message);});
+  toast('Đã áp DT báo giá '+c.dtBaoGia+' m² · DT sử dụng '+c.dtSuDung+' m² vào tờ bìa'); drawBaogia();
+}
+function fmtM2_(n){ n=Math.round((Number(n)||0)*100)/100; return String(n).replace('.',','); }
+function bgAreaHTML(){
+  var open=!!S.areaOpen, c=areaCompute_();
+  var hdr='<div class="dbcard-h" style="cursor:pointer" onclick="areaToggle_()"><span class="dbcard-ic">'+icon('ruler',18)+'</span><h3>Bảng tính diện tích (hệ số)</h3>'
+    +'<span class="dbchip">DT báo giá <b>'+fmtM2_(c.dtBaoGia)+'</b> m²</span><span class="dbchip">DT sử dụng <b>'+fmtM2_(c.dtSuDung)+'</b> m²</span>'
+    +'<span style="flex:1"></span>'
+    +(open?'<button class="btn blue sm" onclick="event.stopPropagation();areaApply_()">'+icon('check',14)+' Áp vào tờ bìa</button>':'')
+    +'<span class="dbcaret">'+(open?'▾':'▸')+'</span></div>';
+  if(!open) return '<div class="dbcard">'+hdr+'</div>';
+  var body=c.rows.map(function(r){
+    return '<tr><td>'+esc(r.t.label)+'</td>'
+      +'<td class="num"><input class="cin num" style="width:56px" value="'+(r.cnt||'')+'" placeholder="0" onchange="areaSet_(\''+r.t.k+'\',\'count\',this.value)"></td>'
+      +'<td class="num"><input class="cin num" style="width:64px" value="'+(r.dai||'')+'" placeholder="0" onchange="areaSet_(\''+r.t.k+'\',\'dai\',this.value)"></td>'
+      +'<td class="num"><input class="cin num" style="width:64px" value="'+(r.rong||'')+'" placeholder="0" onchange="areaSet_(\''+r.t.k+'\',\'rong\',this.value)"></td>'
+      +'<td class="num">'+fmtM2_(r.dt)+'</td><td class="num">'+fmtM2_(r.tong)+'</td>'
+      +'<td class="ct">'+String(r.t.hs).replace('.',',')+'</td>'
+      +'<td class="num"><b>'+fmtM2_(r.bao)+'</b></td><td class="num">'+fmtM2_(r.usg)+'</td></tr>';
+  }).join('');
+  var table='<table class="cvt areatbl"><tr><th>HẠNG MỤC</th><th class="num">SỐ TẦNG</th><th class="num">DÀI</th><th class="num">RỘNG</th><th class="num">DIỆN TÍCH</th><th class="num">TỔNG</th><th class="ct">HỆ SỐ</th><th class="num">DT BÁO GIÁ</th><th class="num">DT SỬ DỤNG</th></tr>'
+    +body
+    +'<tr class="cvtot"><td colspan="7" style="text-align:right">TỔNG (m²)</td><td class="num">'+fmtM2_(c.dtBaoGia)+'</td><td class="num">'+fmtM2_(c.dtSuDung)+'</td></tr></table>';
+  return '<div class="dbcard">'+hdr+'<div class="dbcard-b" style="padding:0"><div style="overflow-x:auto">'+table+'</div>'
+    +'<div class="hint" style="margin:0;padding:10px 16px;color:var(--muted);font-size:12px;border-top:1px solid #eef1f5">Công thức: Diện tích = Dài × Rộng · Tổng = Diện tích × Số tầng · DT báo giá = Tổng × Hệ số. Bấm “Áp vào tờ bìa” để điền DT báo giá & DT sử dụng.</div></div></div>';
+}
+
 /* ============================================================
    TÀI LIỆU BÁO GIÁ — xem trước phân trang (A4) + in/PDF khớp thiết kế
    ============================================================ */
@@ -1784,28 +1843,45 @@ function drawBaogia(){
   var deSel='<select class="select" onchange="setDeMuc(this.value)">'+deOpts.map(function(o){return '<option value="'+esc(o.c)+'"'+(S.bgDeMuc===o.c?' selected':'')+'>'+esc(o.n)+' ['+cnt(o.c)+']</option>';}).join('')+'</select>';
   var colChips=COLS.map(function(c){return '<span class="chip'+(S.cols[c[0]]?' on':'')+'" onclick="toggleCol(\''+c[0]+'\')">'+esc(c[1])+'</span>';}).join('');
 
-  box.innerHTML=sechd
-    +'<div class="panel"><div style="font-size:12px;color:var(--muted);margin-bottom:2px">CHỌN MỤC HIỆN TRÊN TỜ BÌA — bỏ chọn mục nào thì mục đó ẩn khỏi tờ bìa</div><div class="bgchips">'+chips+'</div></div>'
-    +'<div class="cvbar"><h3>Tờ bìa — Ước tính chi phí dự án</h3><span class="hint">— bấm thẳng vào ô để sửa</span><span style="flex:1"></span>'
-      +'<div class="mau"><button class="'+(S.coverMau==='m1'?'on':'')+'" onclick="setCoverMau(\'m1\')">Mẫu 1</button><button class="'+(S.coverMau==='m2'?'on':'')+'" onclick="setCoverMau(\'m2\')">Mẫu 2</button></div>'
-      +'<button class="btn ghost sm" onclick="coverReload(this)">↻ Nạp lại mẫu + tự cộng</button>'
-      +'<button class="btn green sm" onclick="coverSave(this)">'+icon('check',15)+' Lưu tờ bìa</button></div>'
-    +'<div class="cvcard"><div class="cvbanner"><div class="t">BẢNG ƯỚC TÍNH CHI PHÍ DỰ ÁN</div><div class="s">[Tư vấn thiết kế, thi công chuyên nghiệp]</div>'
-      +'<div class="s" style="margin-top:4px">Mã báo giá số : <input class="cin" value="'+esc(p.maBaoGia||'')+'" onchange="coverInfo(\'maBaoGia\',this.value)"></div></div>'
-      +'<table class="cvinfo"><tr><td class="lb">Khách hàng</td>'+ic('khachHang')+'<td class="lb">Quy mô</td>'+ic('quyMo')+'</tr>'
-      +'<tr><td class="lb">Tổng diện tích XD (m²)</td>'+ic('tongDT')+'<td class="lb">Nhu cầu</td>'+ic('nhuCau')+'</tr>'
-      +'<tr><td class="lb">DT báo giá [đã nhân hệ số] (m²)</td>'+ic('dtBaoGia')+'<td class="lb">Phân khúc</td>'+ic('phanKhuc')+'</tr></table>'
-      +'<div style="overflow-x:auto">'+covTable+'</div></div>'
-    +'<div style="margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn ghost sm" onclick="coverAddBig()">＋ Thêm mục lớn</button><button class="btn ghost sm" onclick="coverAddSmall()">＋ Thêm mục nhỏ</button><span class="hint" style="color:var(--muted);font-size:12px">Sửa số ở ô No (vd gõ 1.4) — dòng tự về đúng thứ tự.</span></div>'
-    +'<div class="cvbar" style="margin-top:26px"><h3>Bảng báo giá chi tiết</h3><span class="hint">— cùng dữ liệu &amp; thao tác như Bóc tách, sửa ở đâu cũng đồng bộ</span><span style="flex:1"></span>'
-      +'<button class="btn green sm" onclick="doExport(\'xlsx\',this)">⬇ Xuất Excel (bìa + chi tiết)</button>'
-      +'<button class="btn red sm" onclick="doExport(\'pdf\',this)">⬇ Xuất PDF (bìa + chi tiết)</button></div>'
-    +'<div style="margin:8px 0;display:flex;align-items:center;gap:10px"><span class="lbl" style="margin:0">ĐỀ MỤC — chọn nhóm</span>'+deSel+'</div>'
-    +'<div class="colchips">'+colChips+'</div>'
-    +bgDetailHTML()
+  // ---- Card 1: chọn mục hiện trên tờ bìa ----
+  var card1=dbCard_('Chọn mục hiện trên tờ bìa','list','Bỏ chọn mục nào thì mục đó ẩn khỏi tờ bìa.','<div class="bgchips">'+chips+'</div>');
+  // ---- Card 2: Tờ bìa (banner + info + bảng) ----
+  var coverInner='<div class="cvcard"><div class="cvbanner"><div class="t">BẢNG ƯỚC TÍNH CHI PHÍ DỰ ÁN</div><div class="s">[Tư vấn thiết kế, thi công chuyên nghiệp]</div>'
+    +'<div class="s" style="margin-top:4px">Mã báo giá số : <input class="cin" value="'+esc(p.maBaoGia||'')+'" onchange="coverInfo(\'maBaoGia\',this.value)"></div></div>'
+    +'<table class="cvinfo"><tr><td class="lb">Khách hàng</td>'+ic('khachHang')+'<td class="lb">Quy mô</td>'+ic('quyMo')+'</tr>'
+    +'<tr><td class="lb">Tổng diện tích XD (m²)</td>'+ic('tongDT')+'<td class="lb">Nhu cầu</td>'+ic('nhuCau')+'</tr>'
+    +'<tr><td class="lb">DT báo giá [đã nhân hệ số] (m²)</td>'+ic('dtBaoGia')+'<td class="lb">Phân khúc</td>'+ic('phanKhuc')+'</tr></table>'
+    +'<div style="overflow-x:auto">'+covTable+'</div></div>'
+    +'<div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn ghost sm" onclick="coverAddBig()">＋ Thêm mục lớn</button><button class="btn ghost sm" onclick="coverAddSmall()">＋ Thêm mục nhỏ</button><span class="hint" style="color:var(--muted);font-size:12px">Sửa số ở ô No (vd gõ 1.4) — dòng tự về đúng thứ tự.</span></div>';
+  var card2='<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">'+icon('doc',18)+'</span><h3>Tờ bìa — Ước tính chi phí dự án</h3>'
+    +'<span class="hint" style="margin-left:2px">bấm thẳng vào ô để sửa</span><span style="flex:1"></span>'
+    +'<div class="mau"><button class="'+(S.coverMau==='m1'?'on':'')+'" onclick="setCoverMau(\'m1\')">Mẫu 1</button><button class="'+(S.coverMau==='m2'?'on':'')+'" onclick="setCoverMau(\'m2\')">Mẫu 2</button></div>'
+    +'<button class="btn ghost sm" onclick="coverReload(this)">↻ Nạp mẫu</button>'
+    +'<button class="btn ghost sm" onclick="coverAutoFill(this)">'+icon('download',14)+' Tự điền từ bóc tách</button>'
+    +'<button class="btn green sm" onclick="coverSave(this)">'+icon('check',15)+' Lưu tờ bìa</button></div>'
+    +'<div class="dbcard-b">'+coverInner+'</div></div>';
+  // ---- Card 4: bảng báo giá chi tiết ----
+  var card4='<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">'+icon('list',18)+'</span><h3>Bảng báo giá chi tiết</h3>'
+    +'<span class="hint" style="margin-left:2px">đồng bộ Bóc tách</span><span style="flex:1"></span>'
+    +'<span class="lbl" style="margin:0;font-size:12px">Đề mục</span>'+deSel
+    +'<button class="btn green sm" onclick="doExport(\'xlsx\',this)">'+icon('download',14)+' Excel</button>'
+    +'<button class="btn red sm" onclick="printDoc()">'+icon('download',14)+' PDF / In</button></div>'
+    +'<div class="dbcard-b"><div class="colchips">'+colChips+'</div>'+bgDetailHTML()
     +'<div class="totbar"><div class="b"><div class="tt">TẠM TÍNH</div><div class="tv">'+money(q.subtotal)+' đ</div></div>'
       +'<div class="b"><div class="tt">VAT '+q.vatPct+'%</div><div class="tv">'+money(q.vat)+' đ</div></div>'
-      +'<div class="b grand"><div class="tt">TỔNG CỘNG</div><div class="tv">'+money(q.total)+' đ</div></div></div>';
+      +'<div class="b grand"><div class="tt">TỔNG CỘNG</div><div class="tv">'+money(q.total)+' đ</div></div></div></div></div>';
+  box.innerHTML=sechd+card1+card2+bgAreaHTML()+card4;
+}
+// Feature 2: tự điền chi phí tờ bìa từ dữ liệu bóc tách (map theo mã nhóm)
+function coverAutoFill(btn){
+  if(!S.cover||!S.cover.length){ toast('Chưa có tờ bìa. Bấm ↻ Nạp mẫu trước.'); return; }
+  var byNhom={}; S.lines.forEach(function(l){ var c=(l.nhom||'').trim(); if(!c)return; byNhom[c]=(byNhom[c]||0)+(Number(l.thanhTienBan)||0); });
+  var filled=0;
+  S.cover.forEach(function(c){ if(coverHasChild(c.stt)) return;
+    var sum=0; Object.keys(byNhom).forEach(function(code){ if(code===c.stt || code.indexOf(c.stt+'.')===0) sum+=byNhom[code]; });
+    if(sum>0){ c.chiPhi=Math.round(sum); filled++; } });
+  drawBaogia();
+  toast(filled?('Đã tự điền '+filled+' mục từ bóc tách'):'Không có mã nhóm bóc tách khớp mục tờ bìa');
 }
 async function doExport(fmt,btn){
   if(!S.cur){ toast('Chưa chọn dự án'); return; }
