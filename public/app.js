@@ -1656,15 +1656,17 @@ function printDoc(){
 function coverTableM2(comp){
   var cost=comp.cost, total=comp.total;
   var rows=(S.cover||[]).filter(function(c){ return !bgHidden(c.stt); }).slice().sort(coverSortFn);
-  var body=rows.map(function(c){
+  var spacer='<tr class="cv-spacer"><td colspan="5"></td></tr>';
+  var body=rows.map(function(c,ri){
     var i=S.cover.indexOf(c), lvl=coverDepth(c.stt), val=cost[c.stt]||0, pct=total>0?(val/total*100):0, leaf=!coverHasChild(c.stt);
-    var cls=lvl===1?'lv1':(lvl===2?'lv2':'');
+    var cls=lvl===1?'lv1':(lvl===2?'lv2':'lv3');
     var price=leaf?'<td class="num"><input class="cin num" value="'+money(val)+'" onchange="coverEdit('+i+',\'chiPhi\',this.value)"></td>':'<td class="num">'+money(val)+'</td>';
-    return '<tr class="'+cls+'"><td class="ct"><input class="cin ct" style="width:52px" value="'+esc(c.stt)+'" onchange="coverEdit('+i+',\'stt\',this.value)"></td>'
+    var row='<tr class="'+cls+'"><td class="ct"><input class="cin ct" style="width:52px" value="'+esc(c.stt)+'" onchange="coverEdit('+i+',\'stt\',this.value)"></td>'
       +'<td style="padding-left:'+((lvl-1)*16+9)+'px"><input class="cin" style="font-weight:'+(lvl<=1?700:600)+'" value="'+esc(c.hangMuc||'')+'" onchange="coverEdit('+i+',\'hangMuc\',this.value)">'
         +'<div><input class="cin desc2" placeholder="mô tả…" value="'+esc(c.moTa||'')+'" onchange="coverEdit('+i+',\'moTa\',this.value)"></div></td>'
       +price+'<td class="num">'+pct.toFixed(2)+'%</td>'
       +'<td class="ct"><button class="del" onclick="coverDel('+i+')">✕</button></td></tr>';
+    return (lvl===1&&ri>0?spacer:'')+row;   // dòng trắng cách trước mỗi nhóm lớn (như Bóc tách)
   }).join('');
   return '<table class="cvt"><tr><th class="ct">NO</th><th>HẠNG MỤC</th><th class="num">CHI PHÍ DỰ KIẾN</th><th class="num">TỶ TRỌNG</th><th></th></tr>'
     +(body||'<tr><td colspan="5" style="padding:20px;text-align:center;color:#889">Chưa có dòng. Bấm ↻ Nạp lại mẫu.</td></tr>')
