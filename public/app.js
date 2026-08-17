@@ -504,8 +504,14 @@ function pdMedia_(p){
     ['color', p.mauSac],
     ['angle', p.gocChieu]
   ].filter(function(x){ return x[1] && String(x[1]).trim(); });
-  var keyHtml=keyItems.length?'<div class="pd-sec">Key Product Info (Thông tin chính)</div><div class="pd-keys">'
-    +keyItems.map(function(x){ return '<div class="pd-key"><span class="ic">'+icon(x[0],16)+'</span><span>'+esc(x[1])+'</span></div>'; }).join('')+'</div>':'';
+  var designRows=[['Chất liệu',p.chatLieu],['Chiều cao',p.chieuCao],['Đường kính',p.duongKinh],['Góc nghiêng / góc chính hướng',p.gocNghieng]]
+    .filter(function(r){ return r[1] && String(r[1]).trim(); });
+  var keyHtml='';
+  if(keyItems.length||designRows.length){
+    keyHtml='<div class="pd-block"><div class="pd-sec">Key Product Info (Thông tin chính)</div>';
+    if(keyItems.length) keyHtml+='<div class="pd-keys">'+keyItems.map(function(x){ return '<div class="pd-key"><span class="ic">'+icon(x[0],16)+'</span><span>'+esc(x[1])+'</span></div>'; }).join('')+'</div>';
+    keyHtml+=designRows.map(function(r){ return '<div class="spec"><span class="k">'+esc(r[0])+'</span><span class="v">'+esc(r[1])+'</span></div>'; }).join('')+'</div>';
+  }
   var img=p.hinhAnh?'<div class="imgbox"><img src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.parentNode.innerHTML=\'<span style=&quot;color:#9aa&quot;>Không tải được ảnh</span>\'"></div>'
     :'<div class="imgbox"><span style="color:#9aa">Không có ảnh</span></div>';
   return img
@@ -513,18 +519,15 @@ function pdMedia_(p){
     +(p.ten?'<div class="pd-name">'+esc(p.ten)+'</div>':'')
     +keyHtml;
 }
-// Các nhóm thông số kỹ thuật
+// Các nhóm thông số kỹ thuật — đồng bộ đúng tên nhóm/field trong Figma
 function pdSpecs_(p){
-  return pdSection_('Design Specifications (Thông số thiết kế)',[
-      ['Chất liệu',p.chatLieu],['Chiều cao',p.chieuCao],['Đường kính',p.duongKinh],
-      ['Góc nghiêng / góc chỉnh hướng',p.gocNghieng],['Dòng sản phẩm',p.dongSanPham]])
-    +pdSection_('Performance Specifications (Thông số hiệu suất)',[
+  return pdSection_('Performance Specifications (Thông số hiệu suất)',[
       ['Quang thông',p.quangThong],['Chỉ số IP (Chống bụi, nước)',p.capBaoVe],['CRI',p.cri],
       ['Hiệu suất phát quang (Efficacy)',p.hieuSuat],['Chỉ số gây chói mắt (UGR)',p.ugr],
       ['Tuổi thọ đèn',p.tuoiTho],['Loại chip LED',p.chipLed],['Độ đồng nhất màu sắc (SDCM)',p.sdcm],
-      ['Chỉ số ngộ độc Cyanosis (COI Compliance)',p.coi],['Thời gian bảo hành',p.baoHanh]])
-    +pdSection_('Driver (Nguồn LED / Chấn lưu)',[
-      ['Bộ nguồn',p.tenBoNguon],['Mã sản phẩm',p.maBoNguon],['Vị trí lắp đặt bộ nguồn',p.viTriNguon],
+      ['Thời gian bảo hành',p.baoHanh]])
+    +pdSection_('Bộ nguồn',[
+      ['Bộ nguồn',p.tenBoNguon],['Vị trí lắp đặt bộ nguồn',p.viTriNguon],
       ['Tương thích điều khiển (Control Type)',p.tuongThich],['Cường độ dòng điện đầu ra tối đa',p.dongRa]])
     +pdSection_('Installation Specifications (Thông số lắp đặt)',[
       ['Lắp đặt bộ nguồn rời',p.lapNguonRoi],['Kích thước lỗ khoét trần (Cutout Size)',p.loKhoet],
