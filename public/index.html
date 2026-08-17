@@ -269,21 +269,21 @@ tr.pt-grand>td{background:var(--navy);color:#fff;font-weight:800;font-size:13.5p
 #tkNormal .tbl-wrap::-webkit-scrollbar-thumb{background:#c2cddb;border-radius:6px;border:2px solid #f0f3f6}
 #tkNormal .tbl-wrap::-webkit-scrollbar-thumb:hover{background:#a6b6c8}
 table.tk{width:100%;min-width:820px;border-collapse:collapse;font-size:12.5px}
-table.tk th{background:var(--navy);color:#fff;text-align:left;padding:7px 10px;font-size:12px;font-weight:700;letter-spacing:.2px;line-height:1.18;white-space:normal;vertical-align:middle;text-transform:uppercase}
+table.tk th{background:var(--navy);color:#fff;text-align:left;padding:9px 11px;font-size:12px;font-weight:700;letter-spacing:.2px;line-height:1.2;white-space:normal;vertical-align:middle;text-transform:uppercase}
 table.tk td{white-space:nowrap}
 table.tk td.wrap,table.tk td .desc{white-space:normal}
 table.tk th.num,table.tk td.num{text-align:right}
 table.tk th.ct,table.tk td.ct{text-align:center}
-table.tk td{padding:9px 11px;border-bottom:1px solid #e9edf2;border-right:1px solid #f0f3f6;vertical-align:middle}
+table.tk td{padding:11px 12px;border-bottom:1px solid #dee3e9;border-right:1px solid #e7ebf0;vertical-align:middle}
 table.tk th{border-right:1px solid #ffffff26}
 table.tk td:last-child,table.tk th:last-child{border-right:none}
 table.tk td.wrap{vertical-align:top}
 table.tk td.wrap textarea{width:100%;min-width:0;max-width:100%;box-sizing:border-box;border:1px solid transparent;background:transparent;font:inherit;font-size:12px;line-height:1.35;white-space:pre-wrap;overflow:hidden;resize:none;padding:2px 4px;border-radius:5px;display:block}
 table.tk td.wrap textarea:focus{border-color:var(--blue);background:#fff;outline:none}
-table.tk tr.grp td{background:var(--navy);color:#fff;font-weight:700;letter-spacing:.3px;font-size:12px;padding:11px 14px;border-bottom:none;border-top:1px solid #ffffff1f}
-table.tk tr.grp .gname{font-size:14.5px;font-weight:800;letter-spacing:.5px}
-table.tk tr.grp .gsum{float:right;font-size:12.5px;font-weight:600;opacity:.92}
-table.tk tr.grp .gsum b{font-weight:800;font-size:13.5px;color:#8fd3ff}
+table.tk tr.grp td{background:#e9ecef;color:#1f2b38;font-weight:700;letter-spacing:.2px;font-size:12px;padding:12px 14px;border-bottom:1px solid #d3d9df;border-top:1px solid #d3d9df}
+table.tk tr.grp .gname{font-size:14px;font-weight:800;letter-spacing:.3px;color:#16202b}
+table.tk tr.grp .gsum{float:right;font-size:12.5px;font-weight:600;color:#4a5866}
+table.tk tr.grp .gsum b{font-weight:800;font-size:14px;color:var(--navy)}
 /* Tổng tiền dưới bảng bóc tách */
 .tk-totals{flex:none;margin:0 0 9px}
 .tkt-bar{display:flex;gap:8px;flex-wrap:wrap}
@@ -304,7 +304,10 @@ table.tk tr.grp .gsum b{font-weight:800;font-size:13.5px;color:#8fd3ff}
 .pd-actions{margin-top:14px;display:flex;justify-content:center}
 .pd-actions .btn{padding:8px 18px}
 table.tk tr.drow td{background:#fff}
-table.tk tr.drow.alt td{background:#f4f7fa}
+table.tk tr.drow.alt td{background:#fff}                 /* PDF: dòng trắng, không sọc */
+table.tk tr.drow:hover td{background:#f5f8fc}
+table.tk td.ct{color:#3a4753}
+table.tk input.dvt-in{font-style:italic;color:#5b6b7b;text-align:center}   /* ĐVT in nghiêng như PDF */
 table.tk .pimg{width:42px;height:42px;object-fit:contain;background:#fff;border:1px solid #eef1f4;border-radius:5px}
 table.tk .desc{color:#3a4753;font-size:11.5px;line-height:1.35;white-space:normal;max-width:240px;max-height:100px;overflow:auto}
 table.tk td.td-ten{max-width:200px;white-space:normal}
@@ -314,10 +317,10 @@ table.tk td.td-ten{max-width:200px;white-space:normal}
 .citem{cursor:grab}
 .citem.dragging{opacity:.4}
 /* tầng đang chọn để thêm */
-table.tk tr.grp.selFloor td{background:#1c4e82}
-table.tk tr.grp .gsel{background:#ffffff26;border:1px solid #ffffff66;color:#fff;border-radius:5px;padding:1px 7px;font-size:11px;margin-left:8px}
-table.tk tr.grp.selFloor .gsel{background:#7fd1ff;color:#0a2c48;border-color:#7fd1ff;font-weight:700}
-table.tk tr.grp.prodDrop td{outline:2px dashed #7fd1ff;outline-offset:-3px;background:#0d4a80}
+table.tk tr.grp.selFloor td{background:#dbe6f3;border-color:#b9cee4}
+table.tk tr.grp .gsel{background:#fff;border:1px solid #c2ccd6;color:#4a5866;border-radius:5px;padding:1px 8px;font-size:11px;margin-left:8px;cursor:pointer}
+table.tk tr.grp.selFloor .gsel{background:var(--blue);color:#fff;border-color:var(--blue);font-weight:700}
+table.tk tr.grp.prodDrop td{outline:2px dashed var(--blue);outline-offset:-3px;background:#e3edf8}
 /* ===== nút Thêm tầng / Thêm hạng mục (cuối bảng bóc tách) ===== */
 table.tk tr.addrow td{background:#fbfcfe;padding:12px 12px;border-top:1px solid #eef2f5}
 .addbtn{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:13px;cursor:pointer;border-radius:9px;padding:9px 16px;transition:all .13s;margin-right:10px;line-height:1}
@@ -374,8 +377,8 @@ table.cvt tr.cvtot td{background:var(--navy);color:#fff;font-weight:800;font-siz
 .totbar .grand .tv{color:#16a34a;font-size:22px}
 .btn.green{background:#16a34a;color:#fff} .btn.green:hover{background:#12833c}
 .btn.red{background:#dc2626;color:#fff} .btn.red:hover{background:#b91c1c}
-table.tk tr.grp .addrow{float:right;background:#ffffff22;border:1px solid #ffffff55;color:#fff;border-radius:6px;padding:1px 9px;font-size:12px;cursor:pointer}
-table.tk tr.grp .addrow:hover{background:#ffffff33}
+table.tk tr.grp .addrow{float:right;background:#fff;border:1px solid #c2ccd6;color:var(--blue);border-radius:6px;padding:1px 9px;font-size:12px;cursor:pointer}
+table.tk tr.grp .addrow:hover{background:#eef5ff;border-color:var(--blue)}
 table.tk .qty,table.tk .price{width:72px;border:1px solid transparent;border-radius:6px;padding:5px 6px;text-align:right;font:inherit;background:transparent}
 table.tk .qty:focus,table.tk .price:focus{border-color:var(--blue);background:#fff;outline:none}
 table.tk .del{border:none;background:transparent;color:#c33;font-size:15px}
