@@ -35,6 +35,7 @@ const REGISTRY = {
   createProject: store.createProject,
   updateProject: store.updateProject,
   deleteProject: store.deleteProject,
+  duplicateProject: store.duplicateProject,
   getLines: store.getLines,
   addLine: store.addLine,
   addBlankLine: store.addBlankLine,

@@ -117,6 +117,31 @@ async function deleteProject(maDA) {
   await supa.remove('du_an', supa.eq('ma_da', maDA));
   return { ok: true };
 }
+// Nhân bản 1 bản nháp: copy nguyên project (mã mới) + toàn bộ dòng bóc tách + tờ bìa
+async function duplicateProject(maDA) {
+  const src = (await supa.select('du_an', { filter: supa.eq('ma_da', maDA), limit: 1 }))[0];
+  if (!src) throw new Error('Không tìm thấy bản nháp nguồn');
+  const newMa = genMaDA_();
+  const projRow = Object.assign({}, src);
+  delete projRow.id;
+  projRow.ma_da = newMa; projRow.ngay_tao = nowIso(); projRow.cap_nhat = nowIso();
+  const proj = (await supa.insert('du_an', projRow))[0];
+  // copy dòng bóc tách
+  const lines = await supa.select('db_bao_gia', { select: '*', filter: supa.eq('ma_du_an', maDA), order: 'sort_no.asc', limit: 5000 });
+  if (lines.length) {
+    const rows = lines.map(function (r) { const o = Object.assign({}, r); delete o.id; delete o.created_at; o.ma_du_an = newMa; return o; });
+    await supa.insert('db_bao_gia', rows);
+  }
+  // copy tờ bìa (khái toán) nếu có
+  try {
+    const cover = await supa.select('khai_toan', { select: '*', filter: supa.eq('ma_da', maDA), limit: 2000 });
+    if (cover.length) {
+      const crows = cover.map(function (r) { const o = Object.assign({}, r); delete o.id; delete o.created_at; o.ma_da = newMa; return o; });
+      await supa.insert('khai_toan', crows);
+    }
+  } catch (e) { /* best-effort */ }
+  return projToObj(proj);
+}
 
 /*** ===== DÒNG BÓC TÁCH (db_bao_gia) ===== ***/
 function lineToObj(r) {
@@ -395,7 +420,7 @@ async function getPurchaseOrders(maDA) {
 }
 
 module.exports = {
-  bootstrap, buildCatalog, getProducts, getCatalogSheets, getProjects, getProject, createProject, updateProject, deleteProject,
+  bootstrap, buildCatalog, getProducts, getCatalogSheets, getProjects, getProject, createProject, updateProject, deleteProject, duplicateProject,
   getLines, addLine, addBlankLine, updateLine, deleteLine, saveLineAsProduct, saveDbProduct, deleteDbProduct, uploadImage,
   getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, getDashboard, getQuote, importParse, importCommit,
   savePurchaseOrder, getPurchaseOrders

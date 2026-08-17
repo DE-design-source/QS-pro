@@ -89,7 +89,8 @@ var ICONS={
   doc:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v5h5M9 13h6M9 17h4"/>',
   cart:'<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>',
   home:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
-  pluscircle:'<circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/>'
+  pluscircle:'<circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/>',
+  copy:'<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>'
 };
 function icon(name,size){ size=size||16; var p=ICONS[name]; if(!p) return ''; return '<svg class="ico" width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'; }
 // Độ rộng mặc định + cấu hình cột (thứ tự, rộng, lọc) lưu localStorage
@@ -1188,6 +1189,7 @@ function draftListHtml(){
         +'<div class="draft-act">'
         +(on?'<span class="draft-badge">'+icon('check',12)+' Đang dùng</span>'
             :'<button class="btn blue xs" onclick="pickProject(\''+esc(p.maDA)+'\')">Dùng</button>')
+        +'<button class="btn ghost xs iconbtn" title="Nhân bản bản nháp" onclick="duplicateDraft(\''+esc(p.maDA)+'\')">'+icon('copy',12)+'</button>'
         +'<button class="btn ghost xs iconbtn" title="Xoá bản nháp" onclick="removeProject(\''+esc(p.maDA)+'\')">'+icon('trash',12)+'</button></div></div>';
     }).join('');
     return '<div class="proj-card2">'
@@ -1211,6 +1213,16 @@ async function addDraft(gi){
     S.cur=p; S.lines=[]; await boot(); renderDash(); renderProjects();
     toast('Đã thêm bản nháp mới cho "'+g.name+'"');
   }catch(e){ toast('Lỗi: '+e.message); }
+}
+// Nhân bản 1 bản nháp (copy toàn bộ hạng mục + tờ bìa sang bản nháp mới)
+async function duplicateDraft(maDA){
+  try{
+    toast('Đang nhân bản…');
+    var p=await api('duplicateProject',maDA);
+    S.cur=p; S._coverDA=null;
+    await boot(); renderDash(); renderProjects();
+    toast('Đã nhân bản ('+ ((S.lines||[]).length) +' hạng mục)');
+  }catch(e){ toast('Lỗi nhân bản: '+e.message); }
 }
 function kpi(ic,label,val,accent){ return '<div class="kpi"><div class="kpi-ic '+(accent||'')+'">'+ic+'</div><div class="kpi-b"><div class="kpi-n">'+val+'</div><div class="kpi-t">'+esc(label)+'</div></div></div>'; }
 function renderDash(){
