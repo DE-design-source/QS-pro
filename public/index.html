@@ -78,7 +78,14 @@ a{color:inherit}
 
 /* ===== project card ===== */
 /* Thẻ dự án gọn (thanh ngang) */
-.pcard{background:var(--navy);color:#fff;border-radius:12px;padding:12px 22px;display:flex;align-items:center;gap:26px;flex-wrap:wrap}
+.pcard{background:var(--navy);color:#fff;border-radius:12px;padding:12px 22px;display:flex;align-items:center;gap:26px;flex-wrap:wrap;cursor:pointer;transition:box-shadow .12s}
+.pcard:hover{box-shadow:0 4px 18px #1e3a5f55}
+.pcard .pc-edit{font-size:11px;color:#9fc0e3;font-weight:600;opacity:0;transition:.12s}
+.pcard:hover .pc-edit{opacity:1}
+.pcard .pc-kpi{display:flex;gap:20px;flex-wrap:wrap}
+.pcard .pck{display:flex;flex-direction:column;gap:1px;padding-left:20px;border-left:1px solid #ffffff26}
+.pcard .pck-v{font-size:15px;font-weight:800;letter-spacing:-.2px}
+.pcard .pck-l{font-size:10.5px;color:#a9c2dd;text-transform:uppercase;letter-spacing:.3px}
 .pcard .pc-main{min-width:170px}
 .pcard .pc-top{display:flex;align-items:center;gap:10px}
 .pcard .pc-top h1{margin:0;font-size:19px;font-weight:800;letter-spacing:.3px;line-height:1.2}
@@ -144,6 +151,15 @@ a{color:inherit}
 .catpanel::-webkit-scrollbar-thumb{background:#c2cddb;border-radius:8px}
 .catpanel::-webkit-scrollbar-thumb:hover{background:#a6b6c8}
 .catpanel-top{flex:none}
+/* Thư viện nội dung công việc (Phần thô) */
+.ptlib{padding:2px 2px 8px}
+.ptlib-sec{margin-bottom:12px}
+.ptlib-h{font-size:11.5px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.3px;padding:7px 10px;background:#eef2f6;border-radius:7px;margin-bottom:6px}
+.ptlib-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #eaeef3;border-radius:8px;background:#fff;margin-bottom:5px}
+.ptlib-item:hover{border-color:var(--blue);background:#f5f9ff}
+.ptlib-nm{flex:1;min-width:0;font-size:12.5px;color:var(--ink);line-height:1.35;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ptlib-add{flex:none;width:26px;height:26px;border-radius:7px;border:1px solid var(--blue);background:#eef5ff;color:var(--blue);font-size:17px;font-weight:700;line-height:1;cursor:pointer}
+.ptlib-add:hover{background:var(--blue);color:#fff}
 .cat-hd{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
 .cat-hd h3{margin:0}
 .cat-count{font-size:12px;font-weight:700;color:var(--blue);background:#eef5ff;padding:2px 8px;border-radius:20px}
@@ -845,9 +861,9 @@ tr.mhf-tot td.n:last-child{font-size:17px;color:var(--blue)}
   </div>
 
   <!-- project card (gọn) -->
-  <div class="pcard" id="pcard">
+  <div class="pcard" id="pcard" onclick="showTab('project')" title="Bấm để sửa thông tin dự án">
     <div class="pc-main">
-      <div class="pc-top"><h1 id="pcName">Chưa chọn dự án</h1><span class="status" id="pcStatus">Bản nháp</span></div>
+      <div class="pc-top"><h1 id="pcName">Chưa chọn dự án</h1><span class="status" id="pcStatus">Bản nháp</span><span class="pc-edit">Bấm để sửa ›</span></div>
       <div class="macode">Mã: <span id="pcCode">—</span></div>
     </div>
     <div class="pc-info">
@@ -856,6 +872,7 @@ tr.mhf-tot td.n:last-child{font-size:17px;color:var(--blue)}
       <div><span class="k">Địa chỉ</span><span class="v" id="pcAddr">—</span></div>
       <div><span class="k">Ngày tạo</span><span class="v" id="pcDate">—</span></div>
     </div>
+    <div class="pc-kpi" id="pcKpi"></div>
     <div class="pc-prog"><div class="pct" id="pcPct">0%</div><div class="bar"><i id="pcBar"></i></div></div>
   </div>
 
@@ -870,6 +887,7 @@ tr.mhf-tot td.n:last-child{font-size:17px;color:var(--blue)}
           <!-- 3 bộ chọn (theo Figma) -->
           <div class="mlbl">Đề mục</div>
           <div class="msel" id="fDemuc" onclick="openDemucSel(event)"><span class="mlabel" id="fDemucLabel">Tất cả đề mục</span><span class="mplus" id="fDemucClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
+          <div id="lightFilters">
           <div class="mlbl">Hạng mục sản phẩm</div>
           <div class="msel" id="fNhom" onclick="openNhomMsel(event)"><span class="mlabel">Tất cả hạng mục</span><span class="mplus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
           <div class="mlbl">Đèn trong dự án</div>
@@ -886,6 +904,7 @@ tr.mhf-tot td.n:last-child{font-size:17px;color:var(--blue)}
           <div class="pricerow">
             <span style="color:var(--muted)">Giá từ</span><input id="fMin" type="number" placeholder="">
             <span style="color:var(--muted)">Tới</span><input id="fMax" type="number" placeholder="">
+          </div>
           </div>
         </div>
 

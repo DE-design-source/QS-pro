@@ -254,6 +254,13 @@ function renderCard(){
   var pct=Math.max(0,Math.min(100,Number(p.tienDo)||0));
   document.getElementById('pcPct').textContent=pct+'%';
   document.getElementById('pcBar').style.width=pct+'%';
+  // KPI nhanh về dự án (bản nháp đang mở)
+  var kp=document.getElementById('pcKpi');
+  if(kp){
+    var von=0,ban=0; (S.lines||[]).forEach(function(l){ von+=Number(l.thanhTienVon)||0; ban+=Number(l.thanhTienBan)||0; });
+    function kpi(l,v){ return '<div class="pck"><span class="pck-v">'+v+'</span><span class="pck-l">'+l+'</span></div>'; }
+    kp.innerHTML = S.cur ? (kpi('Hạng mục',(S.lines||[]).length)+kpi('Tổng giá bán',money(ban)+'đ')+kpi('Lợi nhuận',money(ban-von)+'đ')) : '';
+  }
 }
 function openCreate(){ document.getElementById('mCreate').classList.add('on'); }
 function closeCreate(){ document.getElementById('mCreate').classList.remove('on'); }
@@ -462,6 +469,10 @@ function clearAllFilters(){
   renderFilters(); renderCatalog();
 }
 function renderCatalog(){
+  var isPT=(S.node==='3.1');
+  var lf=document.getElementById('lightFilters'); if(lf) lf.style.display=isPT?'none':'';
+  var hd=document.querySelector('#leftCat .cat-hd h3'); if(hd) hd.textContent=isPT?'Nội dung công việc':'Hạng mục';
+  if(isPT){ renderPTLibrary(); return; }   // Phần thô: hiện thư viện nội dung công việc
   var list=filteredProducts();
   var el=document.getElementById('catList');
   var cc=document.getElementById('catCount'); if(cc) cc.textContent=list.length+' SP';
@@ -1971,6 +1982,31 @@ function ptN(v){ if(typeof v==='number') return v; var x=parseFloat(String(v==nu
 function ptR0(x){ return Math.round(x||0); }
 function ptR2(x){ return Math.round((x||0)*100)/100; }
 function ptQty(x){ x=Number(x)||0; return x.toLocaleString('vi-VN',{maximumFractionDigits:2}); }
+// Thư viện nội dung công việc (Phần thô) — hiện ở panel trái, bấm + để thêm vào bảng ước tính
+function renderPTLibrary(){
+  var el=document.getElementById('catList'); if(!el) return;
+  var cc=document.getElementById('catCount'); if(cc) cc.textContent=PT_TEMPLATE.reduce(function(s,se){return s+se.items.length;},0)+' công việc';
+  el.innerHTML='<div class="ptlib">'+PT_TEMPLATE.map(function(sec,si){
+    return '<div class="ptlib-sec"><div class="ptlib-h">'+esc(sec.r)+'. '+esc(String(sec.t).split('\n')[0])+'</div>'
+      +sec.items.map(function(a,ii){
+        return '<div class="ptlib-item"><div class="ptlib-nm" title="'+esc(String(a[0]).replace(/\n/g,' '))+'">'+esc(String(a[0]).split('\n')[0])+'</div>'
+          +'<button class="ptlib-add" title="Thêm vào bảng ước tính" onclick="ptAddFromLib('+si+','+ii+')">+</button></div>';
+      }).join('')+'</div>';
+  }).join('')+'</div>';
+}
+function ptAddFromLib(si,ii){
+  var tsec=PT_TEMPLATE[si]; if(!tsec) return; var a=tsec.items[ii]; if(!a) return;
+  ptEnsure();
+  var mode=tsec.mode, item;
+  if(mode==='item') item={n:a[0],dvt:a[1],kl:a[2],dg:a[3],gc:a[4]||'',dgnt:a[5]||0};
+  else if(mode==='area'||mode==='area0') item={n:a[0],dvt:a[1],dt:a[2],hs:a[3],gc:a[4]||''};
+  else item={n:a[0],dvt:a[1],gc:a[2]||''};
+  var sec=(S.phanTho||[]).filter(function(s){ return s.t===tsec.t; })[0];
+  if(!sec){ sec={t:tsec.t,mode:mode,note:tsec.note||'',up:tsec.up||0,items:[]}; S.phanTho.push(sec); }
+  sec.items.push(item);
+  ptPersist(); renderPhanTho();
+  toast('Đã thêm: '+String(a[0]).split('\n')[0]);
+}
 function ptCloneTemplate(){
   return PT_TEMPLATE.map(function(s){
     var mode=s.mode;
