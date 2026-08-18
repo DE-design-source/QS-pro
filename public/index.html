@@ -290,7 +290,7 @@ tr.pt-grand>td{background:var(--navy);color:#fff;font-weight:800;font-size:13.5p
 /* Khu bóc tách = cột cao đúng viewport: bảng cuộn trong, tổng ghim đáy (chuẩn 1280–1920px) */
 .tk-panel{position:sticky;top:74px;max-height:calc(100vh - 90px);display:flex;flex-direction:column;overflow:hidden}
 .tk-panel #tkNormal{display:flex;flex-direction:column;min-height:0;flex:1}
-.tk-panel #tkNormal .tbl-wrap{flex:1;min-height:140px;max-height:none;overflow-x:auto;overflow-y:auto}
+.tk-panel #tkNormal .tbl-wrap{flex:1;align-self:flex-start;width:max-content;max-width:100%;min-height:140px;max-height:none;overflow-x:auto;overflow-y:auto}
 .tk-panel #ptWrap{flex:1;min-height:0;overflow-y:auto}
 @media(max-width:1120px){ .tk-panel{position:static;max-height:none;overflow:visible} .tk-panel #tkNormal .tbl-wrap{max-height:70vh} }
 #tkNormal table.tk th{position:sticky;top:0;z-index:5}
