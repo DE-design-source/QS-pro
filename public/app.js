@@ -730,13 +730,21 @@ function showDetail(i){
 /* ===== DANH SÁCH SẢN PHẨM ===== */
 function renderSanpham(){
   var box=document.getElementById('v-sanpham');
-  box.innerHTML='<div class="sechd"><h2>Danh sách sản phẩm</h2><span class="count" id="spCount">[00]</span><span class="sp"></span>'
-    +'<input id="spSearch" class="sp-search" placeholder="Tìm tên / mã / thương hiệu…" oninput="spFilter()">'
-    +'<button class="btn blue sm" onclick="showTab(\'import\')">＋ Thêm sản phẩm</button></div>'
-    +'<div class="spbar" id="spBar"></div>'
-    +'<div class="panel" style="padding:0;overflow:hidden;max-width:100%"><div class="tbl-wrap"><table class="sp-table">'
-    +'<thead><tr><th class="selcol"><input type="checkbox" class="spck" id="spCkAll" onclick="spSelAll(this.checked)"></th><th style="width:60px">Ảnh</th><th>Mã SP</th><th>Tên sản phẩm</th><th>Thương hiệu</th><th>Hạng mục</th><th class="ct">Công suất</th><th class="ct">Nhiệt độ</th><th class="ct">CRI</th><th class="num">Giá đại lý</th><th style="width:70px"></th></tr></thead>'
-    +'<tbody id="spBody"></tbody></table></div></div><div id="spBulkWrap"></div>';
+  var searchIc='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>';
+  box.innerHTML='<div class="sechd"><h2>Danh sách sản phẩm</h2><span class="count" id="spCount">0</span></div>'
+    +'<div class="dbcard sp-card">'
+      +'<div class="sp-toolbar">'
+        +'<div class="sp-search-wrap">'+searchIc+'<input id="spSearch" placeholder="Tìm theo tên, mã hoặc thương hiệu…" oninput="spFilter()"></div>'
+        +'<span class="sp-flex"></span>'
+        +'<button class="btn blue sm" onclick="showTab(\'import\')">'+icon('plus',14)+' Thêm sản phẩm</button>'
+      +'</div>'
+      +'<div class="spbar" id="spBar"></div>'
+      +'<div class="tbl-wrap"><table class="sp-table"><thead><tr>'
+        +'<th class="selcol"><input type="checkbox" class="spck" id="spCkAll" onclick="spSelAll(this.checked)"></th>'
+        +'<th class="thumbcol"></th><th>Sản phẩm</th><th>Thương hiệu</th><th>Hạng mục</th><th>Thông số</th>'
+        +'<th class="num">Giá đại lý</th><th class="act-sp"></th></tr></thead>'
+        +'<tbody id="spBody"></tbody></table></div>'
+    +'</div><div id="spBulkWrap"></div>';
   S._spSel=S._spSel||{}; S._spFilters=S._spFilters||{};
   renderSpChips_(); spFilter();
 }
@@ -744,12 +752,18 @@ function renderSpChips_(){
   var bar=document.getElementById('spBar'); if(!bar) return; var f=S._spFilters||{};
   var brands={},cats={}; (S.products||[]).forEach(function(p){ if(p.thuongHieu)brands[p.thuongHieu]=1; if(p.hangMuc)cats[p.hangMuc]=1; });
   function chips(map,key){ return Object.keys(map).sort().map(function(v){ return '<span class="spchip'+(f[key]===v?' on':'')+'" data-k="'+key+'" data-v="'+esc(v)+'" onclick="spSetFilter(this.dataset.k,this.dataset.v)">'+esc(v)+'</span>'; }).join(''); }
-  bar.innerHTML='<span class="lb">Thương hiệu:</span>'+chips(brands,'brand')
-    +'<span class="lb" style="margin-left:6px">Hạng mục:</span>'+chips(cats,'hangMuc')
-    +((f.brand||f.hangMuc)?'<span class="spchip" onclick="spClearFilters()">✕ Xóa lọc</span>':'');
+  bar.innerHTML='<span class="lb">Thương hiệu</span>'+chips(brands,'brand')
+    +'<span class="lb" style="margin-left:10px">Hạng mục</span>'+chips(cats,'hangMuc')
+    +((f.brand||f.hangMuc)?'<span class="spchip clr" onclick="spClearFilters()">✕ Xóa lọc</span>':'');
 }
 function spSetFilter(key,val){ S._spFilters=S._spFilters||{}; if(S._spFilters[key]===val) delete S._spFilters[key]; else S._spFilters[key]=val; renderSpChips_(); spFilter(); }
 function spClearFilters(){ S._spFilters={}; renderSpChips_(); spFilter(); }
+function spSpecs_(p){ var out=[];
+  if(p.congSuat) out.push('<span class="spec">'+esc(p.congSuat)+'</span>');
+  if(p.nhietDo) out.push('<span class="spec k">'+esc(p.nhietDo)+'</span>');
+  if(p.cri) out.push('<span class="spec">CRI '+esc(p.cri)+'</span>');
+  if(p.gocChieu) out.push('<span class="spec">'+esc(p.gocChieu)+'</span>');
+  return out.join('')||'<span class="muted">—</span>'; }
 function spFilter(){
   var el=document.getElementById('spSearch'); var q=(el&&el.value||'').toLowerCase().trim(); var f=S._spFilters||{};
   var list=(S.products||[]).filter(function(p){
@@ -759,25 +773,22 @@ function spFilter(){
     return true;
   });
   S._spList=list; S._spSel=S._spSel||{};
-  document.getElementById('spCount').textContent='['+pad2(list.length)+']';
+  var cnt=document.getElementById('spCount'); if(cnt) cnt.textContent=list.length+' SP';
   var isAdmin=S.me&&S.me.role==='admin';
   document.getElementById('spBody').innerHTML=list.length?list.map(function(p,i){
     var sel=!!S._spSel[p.ma];
     return '<tr class="sp-row'+(sel?' selrow':'')+'" onclick="spModal('+i+')">'
       +'<td class="selcol" onclick="event.stopPropagation()"><input type="checkbox" class="spck" '+(sel?'checked':'')+' onclick="spSelToggle(\''+esc(p.ma)+'\',this.checked)"></td>'
-      +'<td class="ct">'+(p.hinhAnh?'<img class="sp-th" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="sp-th"></span>')+'</td>'
-      +'<td class="mono">'+esc(p.ma||'')+'</td>'
-      +'<td><b>'+esc(p.ten||'')+'</b></td>'
-      +'<td>'+esc(p.thuongHieu||'')+'</td>'
-      +'<td>'+esc(p.hangMuc||'')+'</td>'
-      +'<td class="ct">'+esc(p.congSuat||'')+'</td>'
-      +'<td class="ct">'+esc(p.nhietDo||'')+'</td>'
-      +'<td class="ct">'+esc(p.cri||'')+'</td>'
-      +'<td class="num sp-price">'+money(p.donGiaBan)+'</td>'
-      +'<td class="ct act-sp" onclick="event.stopPropagation()"><button class="sp-act" title="Xem chi tiết" onclick="spModal('+i+')">'+icon('eye',16)+'</button>'
+      +'<td class="thumbcol">'+(p.hinhAnh?'<img class="sp-th" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="sp-th"></span>')+'</td>'
+      +'<td class="sp-name"><b>'+esc(p.ten||'')+'</b><span class="sp-code">'+esc(p.ma||'')+'</span></td>'
+      +'<td>'+(p.thuongHieu?'<span class="tag-brand">'+esc(p.thuongHieu)+'</span>':'')+'</td>'
+      +'<td>'+(p.hangMuc?'<span class="tag-cat">'+esc(p.hangMuc)+'</span>':'')+'</td>'
+      +'<td class="sp-specs">'+spSpecs_(p)+'</td>'
+      +'<td class="num sp-price">'+money(p.donGiaBan)+'<span class="unit">đ</span></td>'
+      +'<td class="act-sp" onclick="event.stopPropagation()"><button class="sp-act" title="Xem chi tiết" onclick="spModal('+i+')">'+icon('eye',16)+'</button>'
         +(isAdmin?'<button class="sp-act del" title="Xoá" onclick="spDelete('+i+')">'+icon('trash',16)+'</button>':'')+'</td>'
     +'</tr>';
-  }).join(''):'<tr><td colspan="11" class="empty">Không có sản phẩm khớp.</td></tr>';
+  }).join(''):'<tr><td colspan="8"><div class="empty" style="margin:10px">Không có sản phẩm khớp bộ lọc.</div></td></tr>';
   var all=document.getElementById('spCkAll'); if(all) all.checked = list.length>0 && list.every(function(p){return S._spSel[p.ma];});
   spBulkBar_();
 }
@@ -2866,8 +2877,25 @@ async function renderAdmin(){
   box.innerHTML='<div class="sechd"><h2>Quản trị — Tài khoản & phân quyền</h2></div><div id="admBody"><div class="empty">Đang tải…</div></div>';
   try{
     var users=await api('adminListUsers'); var reqs=await api('listDeleteRequests'); var purs=await api('listPurchaseRequests'); var logs=await api('getAuditLog',120); S._admUsers=users;
-    document.getElementById('admBody').innerHTML=admUsersCard_(users)+admPurCard_(purs)+admReqCard_(reqs)+admLogCard_(logs);
+    document.getElementById('admBody').innerHTML=admStats_(users,reqs,purs)+admUsersCard_(users)+admReqCard_(reqs)+admPurCard_(purs)+admLogCard_(logs);
   }catch(e){ document.getElementById('admBody').innerHTML='<div class="empty">Lỗi tải: '+esc(e.message)+'</div>'; }
+}
+function admStats_(users,reqs,purs){
+  var pendDel=(reqs||[]).filter(function(r){return r.status==='pending';}).length;
+  var pendPur=(purs||[]).filter(function(r){return r.status==='Chờ duyệt';}).length;
+  function tile(ic,val,label,warn){ return '<div class="astat'+(warn&&val?' warn':'')+'"><span class="astat-ic">'+ic+'</span><div><div class="astat-v">'+val+'</div><div class="astat-l">'+label+'</div></div></div>'; }
+  return '<div class="astats">'
+    +tile(icon('lock',18),(users||[]).length,'Tài khoản',false)
+    +tile(icon('trash',18),pendDel,'Yêu cầu xóa chờ duyệt',true)
+    +tile(icon('cart',18),pendPur,'Đơn mua hàng chờ duyệt',true)+'</div>';
+}
+function rqItem_(opts){
+  // opts: {cls, icon, title, meta, badgeCls, badgeText, actions, time}
+  return '<div class="rq-item '+opts.cls+'"><span class="rq-ic '+opts.cls+'">'+opts.icon+'</span>'
+    +'<div class="rq-main"><div class="rq-title">'+opts.title+'</div>'+(opts.meta?'<div class="rq-meta">'+opts.meta+'</div>':'')+'</div>'
+    +'<div class="rq-side"><span class="drq-badge '+opts.badgeCls+'">'+opts.badgeText+'</span>'
+      +(opts.actions?'<div class="rq-act">'+opts.actions+'</div>':'')
+      +'<span class="rq-time">'+opts.time+'</span></div></div>';
 }
 function admUsersCard_(users){
   var lbl={}; PERM_TABS.forEach(function(t){ lbl[t[0]]=t[1]; });
@@ -2893,15 +2921,17 @@ function admUsersCard_(users){
 }
 function admPurCard_(purs){
   purs=purs||[]; var pending=purs.filter(function(r){return r.status==='Chờ duyệt';});
+  var lbl={'Đã duyệt':'approved','Từ chối':'rejected','Chờ duyệt':'pending','Đã gửi':'pending'};
   var body= purs.length? purs.map(function(r){
-    var st=r.status||''; var scls=st==='Đã duyệt'?'approved':(st==='Từ chối'?'rejected':'pending');
-    return '<div class="drq '+scls+'"><div class="drq-hd"><b>'+esc(r.maDon)+'</b> · '+esc(r.supplier||'—')+' · '+money(r.total)+'đ '
-      +'<span class="drq-badge '+scls+'">'+esc(st)+'</span><span class="sp" style="flex:1"></span><span class="muted">'+fmtDateTime_(r.at)+'</span></div>'
-      +'<div class="muted" style="font-size:12px;margin:2px 0 4px">Dự án: '+esc(r.project||'—')+' · Người gửi: <b>'+esc(r.requester||'—')+'</b>'+(r.phongBan?(' · '+esc(r.phongBan)):'')+' · '+(r.soSp||0)+' SP</div>'
-      +(scls==='pending'?'<div class="drq-act"><button class="btn blue sm" onclick="purResolve(\''+esc(r.maDon)+'\',true)">Duyệt</button><button class="btn ghost sm danger" onclick="purResolve(\''+esc(r.maDon)+'\',false)">Từ chối</button></div>':'')
-    +'</div>';
+    var scls=lbl[r.status]||'pending';
+    return rqItem_({ cls:scls, icon:icon('cart',16),
+      title:'<b>'+esc(r.maDon)+'</b> · '+esc(r.supplier||'—')+' · <span class="rq-amt">'+money(r.total)+'đ</span>',
+      meta:'Người gửi <b>'+esc(r.requester||'—')+'</b>'+(r.phongBan?(' · '+esc(r.phongBan)):'')+' · Dự án '+esc(r.project||'—')+' · '+(r.soSp||0)+' SP',
+      badgeCls:scls, badgeText:esc(r.status||''),
+      actions: scls==='pending'?'<button class="btn blue xs" onclick="purResolve(\''+esc(r.maDon)+'\',true)">Duyệt</button><button class="btn ghost xs danger" onclick="purResolve(\''+esc(r.maDon)+'\',false)">Từ chối</button>':'',
+      time: fmtDateTime_(r.at) });
   }).join(''):'<div class="empty">Chưa có đơn mua hàng nào.</div>';
-  return '<div class="dbcard" id="purCard"><div class="dbcard-h"><span class="dbcard-ic">'+icon('cart',18)+'</span><h3>Yêu cầu mua hàng'+(pending.length?' — '+pending.length+' chờ duyệt':'')+'</h3></div><div class="dbcard-b">'+body+'</div></div>';
+  return '<div class="dbcard" id="purCard"><div class="dbcard-h"><span class="dbcard-ic">'+icon('cart',18)+'</span><h3>Yêu cầu mua hàng</h3>'+(pending.length?'<span class="pend-badge">'+pending.length+' chờ duyệt</span>':'')+'</div><div class="dbcard-b rq-body">'+body+'</div></div>';
 }
 function purResolve(maDon,approve){
   if(!approve && !confirm('Từ chối đơn mua hàng '+maDon+'?')) return;
@@ -2911,15 +2941,15 @@ function admReqCard_(reqs){
   reqs=reqs||[]; var pending=reqs.filter(function(r){return r.status==='pending';});
   var lbl={pending:'Chờ duyệt',approved:'Đã duyệt',rejected:'Từ chối'};
   var body= reqs.length? reqs.map(function(r){
-    return '<div class="drq '+r.status+'"><div class="drq-hd"><b>'+esc(r.requester||'')+'</b> yêu cầu xóa '+r.items.length+' sản phẩm '
-      +'<span class="drq-badge '+r.status+'">'+(lbl[r.status]||r.status)+'</span><span class="sp" style="flex:1"></span><span class="muted">'+fmtDateTime_(r.at)+'</span></div>'
-      +'<div class="drq-items">'+r.items.map(function(it){return '<span class="it">'+esc(it.ten||it.maSP)+'</span>';}).join('')+'</div>'
-      +(r.status==='pending'
-        ? '<div class="drq-act"><button class="btn blue sm" onclick="drqResolve('+r.id+',true)">Duyệt &amp; xóa</button><button class="btn ghost sm danger" onclick="drqResolve('+r.id+',false)">Từ chối</button></div>'
-        : '<div class="muted" style="font-size:12px">'+(r.resolver?('Xử lý bởi '+esc(r.resolver)+' · '+fmtDateTime_(r.resolvedAt)):'')+'</div>')
-    +'</div>';
+    var meta=r.items.map(function(it){return '<span class="it">'+esc(it.ten||it.maSP)+'</span>';}).join('')
+      +(r.status!=='pending'&&r.resolver?'<span class="rq-by">Xử lý bởi '+esc(r.resolver)+'</span>':'');
+    return rqItem_({ cls:r.status, icon:icon('trash',16),
+      title:'<b>'+esc(r.requester||'')+'</b> yêu cầu xóa '+r.items.length+' sản phẩm',
+      meta:meta, badgeCls:r.status, badgeText:(lbl[r.status]||r.status),
+      actions: r.status==='pending'?'<button class="btn blue xs" onclick="drqResolve('+r.id+',true)">Duyệt &amp; xóa</button><button class="btn ghost xs danger" onclick="drqResolve('+r.id+',false)">Từ chối</button>':'',
+      time: fmtDateTime_(r.at) });
   }).join(''):'<div class="empty">Chưa có yêu cầu xóa nào.</div>';
-  return '<div class="dbcard" id="drqCard"><div class="dbcard-h"><span class="dbcard-ic">'+icon('trash',18)+'</span><h3>Yêu cầu xóa sản phẩm'+(pending.length?' — '+pending.length+' chờ duyệt':'')+'</h3></div><div class="dbcard-b">'+body+'</div></div>';
+  return '<div class="dbcard" id="drqCard"><div class="dbcard-h"><span class="dbcard-ic">'+icon('trash',18)+'</span><h3>Yêu cầu xóa sản phẩm</h3>'+(pending.length?'<span class="pend-badge">'+pending.length+' chờ duyệt</span>':'')+'</div><div class="dbcard-b rq-body">'+body+'</div></div>';
 }
 function drqResolve(id,approve){
   if(!approve && !confirm('Từ chối yêu cầu xóa này?')) return;

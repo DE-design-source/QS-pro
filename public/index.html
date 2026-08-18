@@ -1052,21 +1052,60 @@ input:focus,select:focus,textarea:focus{outline:none}
 /* ============================================================
    POLISH — Danh sách sản phẩm + Trang Admin
    ============================================================ */
-/* ---- Danh sách SP ---- */
-.spbar{background:#f7f9fc;border:1px solid #eceff4;border-radius:12px;padding:10px 12px;margin:12px 0 14px;row-gap:8px}
-.spbar .lb{color:#7a8794;text-transform:uppercase;font-size:11px;letter-spacing:.3px}
-#v-sanpham .panel{border:1px solid #e7ebf0;border-radius:14px;box-shadow:0 1px 5px #0b1f3a0a}
-.sp-table thead th{background:#f3f6f9;font-size:11px;text-transform:uppercase;letter-spacing:.35px;padding:12px 12px;color:#66727d}
-.sp-table td{padding:11px 12px}
-.sp-table tbody tr:nth-child(even){background:#fbfcfe}
-.sp-row:hover{background:#eef5ff}
-.sp-row.selrow{background:#e9f1ff}
-.sp-row.selrow td{border-bottom-color:#dbe6f5}
-.sp-th{width:46px;height:46px;box-shadow:0 1px 3px rgba(20,40,80,.09)}
-.sp-price{font-weight:800;color:var(--navy)}
-.sp-table td.act-sp{white-space:nowrap;width:96px;text-align:right}
+/* ---- Danh sách SP (thiết kế mới) ---- */
+.sp-card{padding:0;overflow:hidden}
+.sp-toolbar{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #eef1f5}
+.sp-flex{flex:1}
+.sp-search-wrap{position:relative;flex:0 0 340px;max-width:50%}
+.sp-search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:#9aa7b4;pointer-events:none}
+.sp-search-wrap input{width:100%;border:1px solid #dde3ea;border-radius:10px;padding:9px 12px 9px 36px;font:inherit;font-size:13.5px;background:#f8fafc;box-sizing:border-box}
+.sp-search-wrap input:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px #2f6bff22;outline:none}
+.spbar{display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:12px 16px;border-bottom:1px solid #eef1f5;background:#fbfcfe}
+.spbar .lb{color:#8a96a5;text-transform:uppercase;font-size:10.5px;letter-spacing:.4px;font-weight:700;margin-right:2px}
+.spchip.clr{color:#c0392b;background:#fdeceb;border-color:#f3c9c6}
+.sp-table thead th{background:#fff;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;padding:12px 14px;color:#8a96a5;border-bottom:1px solid #eceff4}
+.sp-table td{padding:12px 14px;border-bottom:1px solid #f2f4f7;vertical-align:middle}
+.sp-table tbody tr:last-child td{border-bottom:none}
+.sp-row{cursor:pointer;transition:background .1s}
+.sp-row:hover{background:#f6f9ff}
+.sp-row.selrow{background:#eff5ff}
+.sp-table th.thumbcol,.sp-table td.thumbcol{width:56px;padding-left:16px;padding-right:0}
+.sp-th{width:44px;height:44px;border-radius:9px;object-fit:contain;background:#f4f6f8;border:1px solid #edf0f3;box-shadow:0 1px 3px rgba(20,40,80,.08);display:inline-block;vertical-align:middle}
+.sp-name b{display:block;font-size:13.5px;color:#1f2b38;line-height:1.35}
+.sp-name .sp-code{display:block;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#98a4b0;margin-top:2px}
+.tag-brand{display:inline-block;font-size:12px;font-weight:600;color:#3a4653;background:#eef2f7;border-radius:7px;padding:3px 9px}
+.tag-cat{display:inline-block;font-size:11.5px;color:#5b6b7b;background:#f3f6f9;border:1px solid #e8edf2;border-radius:7px;padding:3px 9px}
+.sp-specs{white-space:nowrap} .sp-specs .spec{display:inline-block;font-size:11px;font-weight:600;color:#4a5866;background:#f1f4f8;border-radius:6px;padding:2px 7px;margin:1px 2px 1px 0}
+.sp-specs .spec.k{background:#fff5e6;color:#b7791f}
+.sp-price{font-weight:800;color:var(--navy);white-space:nowrap;font-size:14px} .sp-price .unit{font-weight:600;color:#9aa7b4;font-size:11px;margin-left:1px}
+.sp-table th.act-sp,.sp-table td.act-sp{white-space:nowrap;width:92px;text-align:right;padding-right:16px}
 .sp-act{width:30px;height:30px}
-.sp-table td.mono{color:#8894a0}
+.selcol{padding-left:14px !important}
+/* ---- Admin: thống kê + hàng yêu cầu (thiết kế mới) ---- */
+.astats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:14px 0}
+@media(max-width:720px){.astats{grid-template-columns:1fr}}
+.astat{display:flex;align-items:center;gap:13px;background:#fff;border:1px solid #e7ebf0;border-radius:14px;padding:15px 18px;box-shadow:0 1px 5px #0b1f3a0a}
+.astat.warn{border-color:#f6d99a;background:#fffdf6}
+.astat-ic{width:42px;height:42px;border-radius:11px;background:#eef2f7;color:#5b6b7b;display:flex;align-items:center;justify-content:center;flex:none}
+.astat.warn .astat-ic{background:#fef1d8;color:#b7791f}
+.astat-v{font-size:22px;font-weight:800;color:#1f2b38;line-height:1}
+.astat-l{font-size:12px;color:#8a96a5;margin-top:4px}
+.pend-badge{background:#fff2d9;color:#b7791f;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;margin-left:8px}
+.rq-body{padding:6px 8px}
+.rq-item{display:flex;align-items:center;gap:12px;padding:12px 10px}
+.rq-item+.rq-item{border-top:1px solid #f2f4f7}
+.rq-item:hover{background:#f7f9fc;border-radius:10px}
+.rq-ic{width:34px;height:34px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center}
+.rq-ic.pending{background:#fef1d8;color:#b7791f} .rq-ic.approved{background:#e6f6ec;color:#2f855a} .rq-ic.rejected{background:#fdecec;color:#c0392b}
+.rq-ic svg{width:16px;height:16px}
+.rq-main{flex:1;min-width:0}
+.rq-title{font-size:13.5px;color:#1f2b38} .rq-title b{color:var(--navy)} .rq-amt{font-weight:700;color:var(--navy)}
+.rq-meta{font-size:12px;color:#7a8794;margin-top:4px;display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.rq-meta .it{background:#f1f4f8;border-radius:6px;padding:2px 8px;color:#475569;font-size:11px}
+.rq-meta .rq-by{color:#9aa7b4}
+.rq-side{display:flex;align-items:center;gap:12px;flex:none}
+.rq-act{display:flex;gap:6px}
+.rq-time{font-size:11px;color:#aab3c0;white-space:nowrap;min-width:92px;text-align:right}
 /* ---- Admin: avatar + hover + card ---- */
 .uav{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#e6eefb;color:var(--blue);font-weight:800;font-size:12px;margin-right:9px;vertical-align:middle}
 .uav.adm{background:#eef0ff;color:#4f46e5}
