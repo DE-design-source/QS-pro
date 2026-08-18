@@ -93,6 +93,13 @@ async function changePassword(actor, oldPw, newPw) {
 }
 
 /* ---------- Admin: quản lý tài khoản ---------- */
+function permsColErr_(e) {
+  var m = (e && e.message) || '';
+  if (/perms/.test(m) && /(column|schema cache)/i.test(m)) {
+    return new Error('Chưa cài cột phân quyền. Vào Supabase → SQL Editor chạy:  alter table public.users add column if not exists perms text default \'\';  rồi thử lại.');
+  }
+  return e;
+}
 async function adminListUsers() {
   const rows = await supa.select('users', { order: 'created_at.asc', limit: 500 });
   return rows.map(userOut);
@@ -105,10 +112,10 @@ async function adminCreateUser(actor, data) {
   if (await getUserByName(username)) throw new Error('Tên đăng nhập đã tồn tại');
   const role = data.role === 'admin' ? 'admin' : 'staff';
   const perms = role === 'admin' ? '' : (Array.isArray(data.perms) ? data.perms.join(',') : '');
-  const res = await supa.insert('users', {
-    username: username, ho_ten: String(data.hoTen || ''), password_hash: bcrypt.hashSync(String(data.password), 10),
-    role: role, perms: perms, active: true
-  });
+  const row = { username: username, ho_ten: String(data.hoTen || ''), password_hash: bcrypt.hashSync(String(data.password), 10), role: role, perms: perms, active: true };
+  let res;
+  try { res = await supa.insert('users', row); }
+  catch (e) { throw permsColErr_(e); }
   await audit(actor, 'create_user', 'Tạo tài khoản ' + username + ' (' + role + ')');
   return userOut(res[0]);
 }
@@ -121,7 +128,9 @@ async function adminUpdateUser(actor, id, fields) {
   // Admin thì bỏ giới hạn perms
   if (patch.role === 'admin') patch.perms = '';
   if (!Object.keys(patch).length) return { ok: true };
-  const res = await supa.update('users', supa.eq('id', id), patch);
+  let res;
+  try { res = await supa.update('users', supa.eq('id', id), patch); }
+  catch (e) { throw permsColErr_(e); }
   await audit(actor, 'update_user', 'Sửa tài khoản ' + (res[0] && res[0].username) + ' ' + JSON.stringify(patch));
   return res[0] ? userOut(res[0]) : { ok: true };
 }
