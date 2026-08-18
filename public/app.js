@@ -1257,9 +1257,12 @@ function renderActGutter(){
 }
 function syncActGutter(){
   var norm=document.getElementById('tkNormal'), g=document.getElementById('actGutter'); if(!norm||!g) return;
-  var wrap=norm.querySelector('.tbl-wrap'); if(!wrap) return;
+  var wrap=norm.querySelector('.tbl-wrap'), t=document.getElementById('tkTable'); if(!wrap||!t) return;
   var nb=norm.getBoundingClientRect(), wr=wrap.getBoundingClientRect();
   var headH=(document.querySelector('#tkTable tr:first-child th')||{}).offsetHeight||46;
+  // bám mép PHẢI CỦA BẢNG thật (nếu bảng hẹp hơn khung), tối đa tới mép khung (khi bảng tràn/cuộn)
+  var edge=Math.min(t.getBoundingClientRect().right, wr.right);
+  g.style.left=(edge - nb.left + 2)+'px'; g.style.right='auto';
   g.style.top=(wr.top-nb.top)+'px'; g.style.height=wr.height+'px';
   var rows=document.querySelectorAll('#tkTable tr.drow');
   var btns=document.querySelectorAll('#actGutterInner .agx');
