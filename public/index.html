@@ -290,15 +290,15 @@ tr.pt-grand>td{background:var(--navy);color:#fff;font-weight:800;font-size:13.5p
 /* Khu bóc tách = cột cao đúng viewport: bảng cuộn trong, tổng ghim đáy (chuẩn 1280–1920px) */
 .tk-panel{position:sticky;top:74px;max-height:calc(100vh - 90px);display:flex;flex-direction:column;overflow:hidden}
 .tk-panel #tkNormal{display:flex;flex-direction:column;min-height:0;flex:1}
-.tk-panel #tkNormal .tbl-wrap{flex:1;min-height:140px;max-height:none;overflow:auto}
+.tk-panel #tkNormal .tbl-wrap{flex:1;min-height:140px;max-height:none;overflow-x:auto;overflow-y:auto}
 .tk-panel #ptWrap{flex:1;min-height:0;overflow-y:auto}
 @media(max-width:1120px){ .tk-panel{position:static;max-height:none;overflow:visible} .tk-panel #tkNormal .tbl-wrap{max-height:70vh} }
 #tkNormal table.tk th{position:sticky;top:0;z-index:5}
 /* dòng tầng dính ngay dưới header (không lộ sọc navy khi cuộn) */
 #tkNormal table.tk tr.grp td{position:sticky;top:var(--thH,50px);z-index:4}
-#tkNormal .tbl-wrap::-webkit-scrollbar{width:10px;height:10px}
-#tkNormal .tbl-wrap::-webkit-scrollbar-track{background:#f0f3f6}
-#tkNormal .tbl-wrap::-webkit-scrollbar-thumb{background:#c2cddb;border-radius:6px;border:2px solid #f0f3f6}
+#tkNormal .tbl-wrap::-webkit-scrollbar{width:0;height:9px}
+#tkNormal .tbl-wrap::-webkit-scrollbar-track{background:transparent}
+#tkNormal .tbl-wrap::-webkit-scrollbar-thumb{background:#c2cddb;border-radius:6px}
 #tkNormal .tbl-wrap::-webkit-scrollbar-thumb:hover{background:#a6b6c8}
 table.tk{width:100%;min-width:820px;border-collapse:collapse;font-size:12.5px}
 table.tk th{background:var(--navy);color:#fff;text-align:left;padding:9px 11px;font-size:12px;font-weight:700;letter-spacing:.2px;line-height:1.2;white-space:normal;vertical-align:middle;text-transform:uppercase}
@@ -467,8 +467,8 @@ table.tk tr.drow.dropBot td{box-shadow:inset 0 -3px 0 var(--blue)}
 table.tk tr.grp.dropInto td{outline:2px dashed #ffffff88;outline-offset:-3px}
 /* nút xoá ĐẶT NGOÀI bảng: gutter phải nhỏ gọn, sát mép, đồng bộ cuộn */
 #tkNormal{position:relative}
-#tkNormal .tbl-wrap{margin-right:24px}
-.actgutter{position:absolute;left:0;width:22px;overflow:hidden;pointer-events:none;z-index:6}
+#tkNormal .tbl-wrap{margin-right:20px}
+.actgutter{position:absolute;left:0;width:20px;overflow:hidden;pointer-events:none;z-index:6}
 #actGutterInner{position:relative;width:100%;height:100%;pointer-events:none}
 .agx{position:absolute;left:2px;width:18px;height:18px;border:none;background:transparent;color:#d0524b;font-size:13px;line-height:1;cursor:pointer;pointer-events:auto;opacity:.55;transition:opacity .12s,color .12s,transform .12s;display:flex;align-items:center;justify-content:center}
 .agx:hover{opacity:1;color:#c0392b;transform:scale(1.18)}

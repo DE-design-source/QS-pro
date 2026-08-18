@@ -1260,10 +1260,8 @@ function syncActGutter(){
   var wrap=norm.querySelector('.tbl-wrap'), t=document.getElementById('tkTable'); if(!wrap||!t) return;
   var nb=norm.getBoundingClientRect(), wr=wrap.getBoundingClientRect();
   var headH=(document.querySelector('#tkTable tr:first-child th')||{}).offsetHeight||46;
-  // Bảng TRÀN NGANG (có cuộn ngang) -> ghim ở mép ngoài khung, QUA thanh cuộn dọc (tránh đè).
-  // Bảng HẸP hơn khung -> bám sát mép phải của bảng thật.
-  var overflowX = wrap.scrollWidth > wrap.clientWidth + 1;
-  var edge = overflowX ? wr.right : Math.min(t.getBoundingClientRect().right, wr.left + wrap.clientWidth);
+  // Thanh cuộn dọc là OVERLAY (không chiếm chỗ) -> nút bám sát mép nội dung/bảng, không hở, không đè.
+  var edge = Math.min(t.getBoundingClientRect().right, wr.left + wrap.clientWidth);
   var hsb = wrap.offsetHeight - wrap.clientHeight;   // chiều cao thanh cuộn ngang (đáy)
   g.style.left=(edge - nb.left + 2)+'px'; g.style.right='auto';
   // gutter bắt đầu DƯỚI header dính, kết thúc TRÊN thanh cuộn ngang -> overflow:hidden che phần thừa
