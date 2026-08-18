@@ -68,16 +68,30 @@ const REGISTRY = {
   adminSetPassword: auth.adminSetPassword,
   adminSetActive: auth.adminSetActive,
   adminDeleteUser: auth.adminDeleteUser,
-  getAuditLog: auth.getAuditLog
+  getAuditLog: auth.getAuditLog,
+  notifCount: auth.notifCount,
+  notifList: auth.notifList,
+  notifRead: auth.notifRead,
+  notifReadAll: auth.notifReadAll,
+  requestDeleteProducts: auth.requestDeleteProducts,
+  listDeleteRequests: auth.listDeleteRequests,
+  resolveDeleteRequest: auth.resolveDeleteRequest,
+  listPurchaseRequests: auth.listPurchaseRequests,
+  resolvePurchaseRequest: auth.resolvePurchaseRequest
 };
 // Hàm không cần đăng nhập
 const PUBLIC_FNS = new Set(['login']);
 // Hàm cần đưa "actor" (người thao tác) làm tham số đầu
 const ACTOR_FNS = new Set(['me', 'logout', 'changePassword',
-  'adminCreateUser', 'adminUpdateUser', 'adminSetPassword', 'adminSetActive', 'adminDeleteUser']);
+  'adminCreateUser', 'adminUpdateUser', 'adminSetPassword', 'adminSetActive', 'adminDeleteUser',
+  'notifCount', 'notifList', 'notifRead', 'notifReadAll',
+  'requestDeleteProducts', 'listDeleteRequests', 'resolveDeleteRequest',
+  'sendPurchaseRequest', 'listPurchaseRequests', 'resolvePurchaseRequest']);
 // Hàm chỉ Admin được gọi
 const ADMIN_FNS = new Set(['adminListUsers', 'adminCreateUser', 'adminUpdateUser',
-  'adminSetPassword', 'adminSetActive', 'adminDeleteUser', 'getAuditLog']);
+  'adminSetPassword', 'adminSetActive', 'adminDeleteUser', 'getAuditLog',
+  'listDeleteRequests', 'resolveDeleteRequest', 'listPurchaseRequests', 'resolvePurchaseRequest',
+  'deleteDbProduct']);   // Xóa sản phẩm trực tiếp: CHỈ Admin (nhân viên phải gửi yêu cầu)
 
 // ===== Gửi yêu cầu mua hàng tới webhook Lark (bot incoming webhook) =====
 const PURCHASE_WEBHOOK = process.env.PURCHASE_WEBHOOK ||
@@ -152,22 +166,27 @@ function buildPurchaseCard(o) {
     }
   };
 }
-async function sendPurchaseRequest(order) {
-  const payload = buildPurchaseCard(order || {});
+async function sendPurchaseRequest(actor, order) {
+  order = order || {};
+  const payload = buildPurchaseCard(order);
   const r = await fetch(PURCHASE_WEBHOOK, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
   });
   let data = null; try { data = await r.json(); } catch (e) { data = null; }
   const ok = data && (data.code === 0 || data.StatusCode === 0 || data.msg === 'success');
   if (!ok) throw new Error((data && (data.msg || data.StatusMessage)) || ('HTTP ' + r.status));
-  // Lưu đơn mua hàng vào DB (best-effort — không chặn kết quả gửi Lark)
+  // Lưu đơn mua hàng vào DB + thông báo Admin duyệt (best-effort — không chặn kết quả gửi Lark)
   let savedMa = [];
   try {
     if (typeof store.savePurchaseOrder === 'function') {
-      const rs = await store.savePurchaseOrder(Object.assign({ kenh: 'Lark', ketQua: 'ok' }, order || {}));
+      const rs = await store.savePurchaseOrder(Object.assign({ kenh: 'Lark', ketQua: 'ok', requesterId: actor && actor.uid }, order));
       savedMa = (rs && rs.saved) || [];
+      if (savedMa.length) {
+        const ords = (Array.isArray(order.orders) ? order.orders : []);
+        await auth.notifyPurchaseAdmins(actor, savedMa.map(function (ma, i) { return { maDon: ma, supplier: ords[i] && ords[i].supplier }; }));
+      }
     }
-  } catch (e) { console.warn('[mua hàng] lưu DB lỗi:', e && e.message); }
+  } catch (e) { console.warn('[mua hàng] lưu/notify lỗi:', e && e.message); }
   return { ok: true, saved: savedMa };
 }
 

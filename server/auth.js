@@ -8,6 +8,7 @@
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const supa = require('./supa');
+const store = require('./store_supa');   // để xóa sản phẩm khi admin duyệt yêu cầu
 
 const SECRET = process.env.AUTH_SECRET || 'qs-pro-dev-secret-change-me';
 const TOKEN_TTL_MS = 7 * 24 * 3600 * 1000; // 7 ngày
@@ -167,8 +168,102 @@ async function getAuditLog(limit) {
   return rows.map(function (r) { return { id: r.id, username: r.username, action: r.action, detail: r.detail, at: r.created_at }; });
 }
 
+/* ---------- Thông báo (notifications) ---------- */
+async function getAdmins_() { return (await supa.select('users', { filter: supa.eq('role', 'admin') })).filter(function (u) { return u.active !== false; }); }
+async function notify_(userId, kind, title, body, refId) {
+  if (!userId) return;
+  try { await supa.insert('notifications', { user_id: userId, kind: kind, title: title || '', body: body || '', ref_id: refId || null }); } catch (e) { }
+}
+async function notifCount(actor) {
+  const rows = await supa.select('notifications', { select: 'id', filter: supa.eq('user_id', actor.uid) + '&' + supa.eq('is_read', false), limit: 500 });
+  return { unread: rows.length };
+}
+async function notifList(actor, limit) {
+  const rows = await supa.select('notifications', { filter: supa.eq('user_id', actor.uid), order: 'created_at.desc', limit: Math.min(Number(limit) || 30, 100) });
+  return rows.map(function (n) { return { id: n.id, kind: n.kind, title: n.title, body: n.body, refId: n.ref_id, read: n.is_read !== false ? n.is_read === true : false, at: n.created_at }; });
+}
+async function notifRead(actor, id) { await supa.update('notifications', supa.eq('id', id) + '&' + supa.eq('user_id', actor.uid), { is_read: true }); return { ok: true }; }
+async function notifReadAll(actor) { await supa.update('notifications', supa.eq('user_id', actor.uid) + '&' + supa.eq('is_read', false), { is_read: true }); return { ok: true }; }
+
+/* ---------- Yêu cầu xóa sản phẩm (duyệt bởi admin) ---------- */
+function parseItems_(s) { try { return JSON.parse(s || '[]') || []; } catch (e) { return []; } }
+async function requestDeleteProducts(actor, items) {
+  items = (Array.isArray(items) ? items : []).map(function (it) { return { maSP: String(it.maSP || it.ma || ''), ten: String(it.ten || '') }; }).filter(function (it) { return it.maSP; });
+  if (!items.length) throw new Error('Chưa chọn sản phẩm hợp lệ');
+  const me = await getUserById(actor.uid);
+  const who = me ? (me.ho_ten || me.username) : actor.u;
+  const req = (await supa.insert('delete_requests', { requester_id: actor.uid, requester_name: who, items: JSON.stringify(items), status: 'pending' }))[0];
+  const admins = await getAdmins_();
+  for (var i = 0; i < admins.length; i++) await notify_(admins[i].id, 'delete_request', 'Yêu cầu xóa sản phẩm', who + ' yêu cầu xóa ' + items.length + ' sản phẩm', req.id);
+  await audit(actor, 'request_delete', who + ' yêu cầu xóa ' + items.length + ' SP');
+  return { ok: true, count: items.length };
+}
+async function listDeleteRequests(actor) {
+  const rows = await supa.select('delete_requests', { order: 'created_at.desc', limit: 200 });
+  return rows.map(function (r) { return { id: r.id, requester: r.requester_name, items: parseItems_(r.items), status: r.status, at: r.created_at, resolvedAt: r.resolved_at, resolver: r.resolver_name }; });
+}
+async function resolveDeleteRequest(actor, id, approve) {
+  const r = (await supa.select('delete_requests', { filter: supa.eq('id', id), limit: 1 }))[0];
+  if (!r) throw new Error('Không tìm thấy yêu cầu');
+  if (r.status !== 'pending') throw new Error('Yêu cầu đã được xử lý');
+  const items = parseItems_(r.items);
+  const me = await getUserById(actor.uid);
+  const resolver = me ? (me.ho_ten || me.username) : actor.u;
+  const now = new Date().toISOString();
+  if (approve) {
+    var deleted = 0;
+    for (var i = 0; i < items.length; i++) { try { await store.deleteDbProduct(items[i].maSP); deleted++; } catch (e) { } }
+    await supa.update('delete_requests', supa.eq('id', id), { status: 'approved', resolver_name: resolver, resolved_at: now });
+    await notify_(r.requester_id, 'delete_approved', 'Yêu cầu xóa đã được duyệt', 'Đã xóa ' + deleted + '/' + items.length + ' sản phẩm bạn yêu cầu', r.id);
+    await audit(actor, 'approve_delete', 'Duyệt xóa ' + deleted + ' SP (yêu cầu #' + id + ' của ' + r.requester_name + ')');
+    return { ok: true, deleted: deleted };
+  } else {
+    await supa.update('delete_requests', supa.eq('id', id), { status: 'rejected', resolver_name: resolver, resolved_at: now });
+    await notify_(r.requester_id, 'delete_rejected', 'Yêu cầu xóa bị từ chối', 'Yêu cầu xóa ' + items.length + ' sản phẩm không được duyệt', r.id);
+    await audit(actor, 'reject_delete', 'Từ chối yêu cầu xóa #' + id);
+    return { ok: true };
+  }
+}
+
+/* ---------- Yêu cầu mua hàng (thông báo + duyệt) ---------- */
+async function notifyPurchaseAdmins(actor, orders) {
+  orders = orders || [];
+  const me = await getUserById(actor.uid);
+  const who = me ? (me.ho_ten || me.username) : (actor.u || '');
+  const admins = await getAdmins_();
+  for (var i = 0; i < orders.length; i++) {
+    for (var j = 0; j < admins.length; j++) {
+      await notify_(admins[j].id, 'purchase_request', 'Yêu cầu mua hàng', who + ' gửi đơn ' + orders[i].maDon + (orders[i].supplier ? ' (' + orders[i].supplier + ')' : ''), String(orders[i].maDon));
+    }
+  }
+  await audit(actor, 'request_purchase', who + ' gửi ' + orders.length + ' đơn mua hàng');
+}
+async function listPurchaseRequests(actor) {
+  const rows = await supa.select('don_mua_hang', { order: 'ngay_gui.desc', limit: 200 });
+  return rows.map(function (r) {
+    return { maDon: r.ma_don, project: r.ten_du_an, supplier: r.nha_cung_cap, soSp: Number(r.so_sp) || 0,
+      total: Number(r.tong_cong) || 0, status: r.trang_thai, requester: r.nguoi_gui, phongBan: r.phong_ban, at: r.ngay_gui };
+  });
+}
+async function resolvePurchaseRequest(actor, maDon, approve) {
+  const r = (await supa.select('don_mua_hang', { filter: supa.eq('ma_don', maDon), limit: 1 }))[0];
+  if (!r) throw new Error('Không tìm thấy đơn mua hàng');
+  const me = await getUserById(actor.uid);
+  const resolver = me ? (me.ho_ten || me.username) : actor.u;
+  const status = approve ? 'Đã duyệt' : 'Từ chối';
+  await supa.update('don_mua_hang', supa.eq('ma_don', maDon), { trang_thai: status });
+  if (r.requester_id) await notify_(r.requester_id, approve ? 'purchase_approved' : 'purchase_rejected',
+    approve ? 'Đơn mua hàng đã được duyệt' : 'Đơn mua hàng bị từ chối',
+    'Đơn ' + maDon + (r.nha_cung_cap ? ' (' + r.nha_cung_cap + ')' : ''), String(maDon));
+  await audit(actor, approve ? 'approve_purchase' : 'reject_purchase', status + ' đơn ' + maDon + ' của ' + (r.nguoi_gui || ''));
+  return { ok: true };
+}
+
 module.exports = {
   verifyToken, login, me, logout, changePassword,
   adminListUsers, adminCreateUser, adminUpdateUser, adminSetPassword, adminSetActive, adminDeleteUser, getAuditLog,
+  notifCount, notifList, notifRead, notifReadAll,
+  requestDeleteProducts, listDeleteRequests, resolveDeleteRequest,
+  notifyPurchaseAdmins, listPurchaseRequests, resolvePurchaseRequest,
   audit
 };

@@ -388,8 +388,9 @@ async function savePurchaseOrder(order) {
     await supa.insert('don_mua_hang', {
       ma_don: maDon, ma_du_an: s(order.maDA), ten_du_an: s(order.project), hang_muc: s(order.hangMuc || order.node),
       nha_cung_cap: s(od.supplier), so_sp: items.length, tong_truoc_vat: total - vat, vat_pct: n(od.vatPct),
-      vat: vat, tong_cong: total, trang_thai: 'Đã gửi', kenh_gui: s(order.kenh) || 'Lark',
-      ket_qua_gui: s(order.ketQua) || 'ok', nguoi_gui: s(order.nguoiGui), phong_ban: s(order.phongBan), ghi_chu: s(order.ghiChu)
+      vat: vat, tong_cong: total, trang_thai: 'Chờ duyệt', kenh_gui: s(order.kenh) || 'Lark',
+      ket_qua_gui: s(order.ketQua) || 'ok', nguoi_gui: s(order.nguoiGui), phong_ban: s(order.phongBan), ghi_chu: s(order.ghiChu),
+      requester_id: order.requesterId || null
     });
     if (items.length) {
       await supa.insert('chi_tiet_mua_hang', items.map(function (it, i) {

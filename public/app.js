@@ -733,18 +733,38 @@ function renderSanpham(){
   box.innerHTML='<div class="sechd"><h2>Danh sách sản phẩm</h2><span class="count" id="spCount">[00]</span><span class="sp"></span>'
     +'<input id="spSearch" class="sp-search" placeholder="Tìm tên / mã / thương hiệu…" oninput="spFilter()">'
     +'<button class="btn blue sm" onclick="showTab(\'import\')">＋ Thêm sản phẩm</button></div>'
+    +'<div class="spbar" id="spBar"></div>'
     +'<div class="panel" style="padding:0;overflow:hidden;max-width:100%"><div class="tbl-wrap"><table class="sp-table">'
-    +'<thead><tr><th style="width:64px">Ảnh</th><th>Mã SP</th><th>Tên sản phẩm</th><th>Thương hiệu</th><th>Hạng mục</th><th class="ct">Công suất</th><th class="ct">Nhiệt độ</th><th class="ct">CRI</th><th class="num">Giá đại lý</th><th style="width:84px"></th></tr></thead>'
-    +'<tbody id="spBody"></tbody></table></div></div>';
-  spFilter();
+    +'<thead><tr><th class="selcol"><input type="checkbox" class="spck" id="spCkAll" onclick="spSelAll(this.checked)"></th><th style="width:60px">Ảnh</th><th>Mã SP</th><th>Tên sản phẩm</th><th>Thương hiệu</th><th>Hạng mục</th><th class="ct">Công suất</th><th class="ct">Nhiệt độ</th><th class="ct">CRI</th><th class="num">Giá đại lý</th><th style="width:70px"></th></tr></thead>'
+    +'<tbody id="spBody"></tbody></table></div></div><div id="spBulkWrap"></div>';
+  S._spSel=S._spSel||{}; S._spFilters=S._spFilters||{};
+  renderSpChips_(); spFilter();
 }
+function renderSpChips_(){
+  var bar=document.getElementById('spBar'); if(!bar) return; var f=S._spFilters||{};
+  var brands={},cats={}; (S.products||[]).forEach(function(p){ if(p.thuongHieu)brands[p.thuongHieu]=1; if(p.hangMuc)cats[p.hangMuc]=1; });
+  function chips(map,key){ return Object.keys(map).sort().map(function(v){ return '<span class="spchip'+(f[key]===v?' on':'')+'" data-k="'+key+'" data-v="'+esc(v)+'" onclick="spSetFilter(this.dataset.k,this.dataset.v)">'+esc(v)+'</span>'; }).join(''); }
+  bar.innerHTML='<span class="lb">Thương hiệu:</span>'+chips(brands,'brand')
+    +'<span class="lb" style="margin-left:6px">Hạng mục:</span>'+chips(cats,'hangMuc')
+    +((f.brand||f.hangMuc)?'<span class="spchip" onclick="spClearFilters()">✕ Xóa lọc</span>':'');
+}
+function spSetFilter(key,val){ S._spFilters=S._spFilters||{}; if(S._spFilters[key]===val) delete S._spFilters[key]; else S._spFilters[key]=val; renderSpChips_(); spFilter(); }
+function spClearFilters(){ S._spFilters={}; renderSpChips_(); spFilter(); }
 function spFilter(){
-  var el=document.getElementById('spSearch'); var q=(el&&el.value||'').toLowerCase().trim();
-  var list=(S.products||[]).filter(function(p){ return !q || (p.ten+' '+p.ma+' '+p.thuongHieu+' '+p.ncc).toLowerCase().indexOf(q)>=0; });
-  S._spList=list;
+  var el=document.getElementById('spSearch'); var q=(el&&el.value||'').toLowerCase().trim(); var f=S._spFilters||{};
+  var list=(S.products||[]).filter(function(p){
+    if(q && (p.ten+' '+p.ma+' '+p.thuongHieu+' '+p.ncc).toLowerCase().indexOf(q)<0) return false;
+    if(f.brand && p.thuongHieu!==f.brand) return false;
+    if(f.hangMuc && p.hangMuc!==f.hangMuc) return false;
+    return true;
+  });
+  S._spList=list; S._spSel=S._spSel||{};
   document.getElementById('spCount').textContent='['+pad2(list.length)+']';
+  var isAdmin=S.me&&S.me.role==='admin';
   document.getElementById('spBody').innerHTML=list.length?list.map(function(p,i){
-    return '<tr class="sp-row" onclick="spModal('+i+')">'
+    var sel=!!S._spSel[p.ma];
+    return '<tr class="sp-row'+(sel?' selrow':'')+'" onclick="spModal('+i+')">'
+      +'<td class="selcol" onclick="event.stopPropagation()"><input type="checkbox" class="spck" '+(sel?'checked':'')+' onclick="spSelToggle(\''+esc(p.ma)+'\',this.checked)"></td>'
       +'<td class="ct">'+(p.hinhAnh?'<img class="sp-th" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="sp-th"></span>')+'</td>'
       +'<td class="mono">'+esc(p.ma||'')+'</td>'
       +'<td><b>'+esc(p.ten||'')+'</b></td>'
@@ -754,9 +774,38 @@ function spFilter(){
       +'<td class="ct">'+esc(p.nhietDo||'')+'</td>'
       +'<td class="ct">'+esc(p.cri||'')+'</td>'
       +'<td class="num">'+money(p.donGiaBan)+'</td>'
-      +'<td class="ct" onclick="event.stopPropagation()"><button class="sp-act" title="Xem chi tiết" onclick="spModal('+i+')">'+icon('eye',16)+'</button><button class="sp-act del" title="Xoá" onclick="spDelete('+i+')">'+icon('trash',16)+'</button></td>'
+      +'<td class="ct" onclick="event.stopPropagation()"><button class="sp-act" title="Xem chi tiết" onclick="spModal('+i+')">'+icon('eye',16)+'</button>'
+        +(isAdmin?'<button class="sp-act del" title="Xoá" onclick="spDelete('+i+')">'+icon('trash',16)+'</button>':'')+'</td>'
     +'</tr>';
-  }).join(''):'<tr><td colspan="10" class="empty">Chưa có sản phẩm. Bấm ＋ Thêm sản phẩm.</td></tr>';
+  }).join(''):'<tr><td colspan="11" class="empty">Không có sản phẩm khớp.</td></tr>';
+  var all=document.getElementById('spCkAll'); if(all) all.checked = list.length>0 && list.every(function(p){return S._spSel[p.ma];});
+  spBulkBar_();
+}
+function spSelToggle(ma,on){ S._spSel=S._spSel||{}; if(on) S._spSel[ma]=1; else delete S._spSel[ma]; spFilter(); }
+function spSelAll(on){ S._spSel={}; if(on)(S._spList||[]).forEach(function(p){ if(p.ma) S._spSel[p.ma]=1; }); spFilter(); }
+function spClearSel(){ S._spSel={}; spFilter(); }
+function spBulkBar_(){
+  var wrap=document.getElementById('spBulkWrap'); if(!wrap) return;
+  var n=Object.keys(S._spSel||{}).length; if(!n){ wrap.innerHTML=''; return; }
+  var isAdmin=S.me&&S.me.role==='admin';
+  wrap.innerHTML='<div class="spbulk"><span class="n">Đã chọn '+n+' sản phẩm</span><span class="sp"></span>'
+    +'<button class="clr" onclick="spClearSel()">Bỏ chọn</button>'
+    +(isAdmin?'<button class="go red" onclick="spBulkDelete()">Xóa '+n+' sản phẩm</button>'
+             :'<button class="go" onclick="spBulkRequest()">Gửi yêu cầu xóa ('+n+')</button>')+'</div>';
+}
+async function spBulkDelete(){
+  var mas=Object.keys(S._spSel||{}); if(!mas.length) return;
+  if(!confirm('Xóa '+mas.length+' sản phẩm khỏi danh mục? Không thể hoàn tác.')) return;
+  var ok=0; for(var i=0;i<mas.length;i++){ try{ await api('deleteDbProduct', mas[i]); ok++; }catch(e){} }
+  S._spSel={}; S.products=await api('getProducts')||S.products; spFilter(); renderFilters&&renderFilters(); renderCatalog&&renderCatalog();
+  toast('Đã xóa '+ok+' sản phẩm');
+}
+async function spBulkRequest(){
+  var sel=S._spSel||{}; var byMa={}; (S.products||[]).forEach(function(p){ byMa[p.ma]=p; });
+  var items=Object.keys(sel).map(function(ma){ var p=byMa[ma]||{}; return {maSP:ma, ten:p.ten||''}; });
+  if(!items.length) return;
+  try{ var r=await api('requestDeleteProducts', items); S._spSel={}; spFilter(); refreshNotifCount_(); toast('Đã gửi yêu cầu xóa '+r.count+' sản phẩm tới Admin'); }
+  catch(e){ toast('Lỗi: '+e.message); }
 }
 function spModal(i){
   var p=(S._spList||[])[i]; if(!p) return;
@@ -2772,7 +2821,36 @@ function applyRoleUI_(){
     var t=a.getAttribute('data-tab'); if(t==='admin') return;   // admin nav xử lý riêng ở trên
     a.style.display = canTab(t)?'':'none';
   });
+  var bell=byId('notifBell'); if(bell) bell.style.display='';
+  startNotifPoll_();
 }
+/* ===== Thông báo (chuông) ===== */
+function toggleNotif(e){ e.stopPropagation(); var m=document.getElementById('nbMenu'); if(!m)return; var open=m.style.display!=='none'; m.style.display=open?'none':'block';
+  if(!open){ renderNotif_(); setTimeout(function(){ document.addEventListener('mousedown',nbOut_); },0); } }
+function nbOut_(e){ if(!e.target.closest('#notifBell')){ var m=document.getElementById('nbMenu'); if(m)m.style.display='none'; document.removeEventListener('mousedown',nbOut_); } }
+async function renderNotif_(){
+  var list=document.getElementById('nbList'); if(!list) return; list.innerHTML='<div class="nb-empty">Đang tải…</div>';
+  try{ var ns=await api('notifList',30);
+    if(!ns.length){ list.innerHTML='<div class="nb-empty">Chưa có thông báo</div>'; return; }
+    list.innerHTML=ns.map(function(n){
+      var cls=n.kind==='delete_approved'?'ok':(n.kind==='delete_rejected'?'no':'req');
+      var em=n.kind==='delete_approved'?'✓':(n.kind==='delete_rejected'?'✕':'🗑');
+      return '<div class="nb-item'+(n.read?'':' unread')+'" onclick="notifClick('+n.id+',\''+n.kind+'\')"><div class="nb-ic '+cls+'">'+em+'</div>'
+        +'<div class="nb-tx"><b>'+esc(n.title||'')+'</b><span>'+esc(n.body||'')+'</span><i>'+fmtDateTime_(n.at)+'</i></div></div>';
+    }).join('');
+  }catch(e){ list.innerHTML='<div class="nb-empty">Lỗi: '+esc(e.message)+'</div>'; }
+}
+function notifClick(id,kind){ api('notifRead',id).then(refreshNotifCount_).catch(function(){});
+  var isAdmin=S.me&&S.me.role==='admin';
+  if(isAdmin && (kind==='delete_request'||kind==='purchase_request')){ var m=document.getElementById('nbMenu'); if(m)m.style.display='none'; showTab('admin');
+    var target = kind==='purchase_request'?'purCard':'drqCard';
+    setTimeout(function(){ var el=document.getElementById(target); if(el) el.scrollIntoView({block:'center'}); },350); }
+  else renderNotif_();
+}
+function notifMarkAll(e){ if(e)e.stopPropagation(); api('notifReadAll').then(function(){ refreshNotifCount_(); renderNotif_(); }).catch(function(){}); }
+async function refreshNotifCount_(){ if(!S.me) return; try{ var c=await api('notifCount'); var b=document.getElementById('nbBadge'); if(!b)return;
+  if(c && c.unread>0){ b.textContent=c.unread>99?'99+':c.unread; b.style.display=''; } else b.style.display='none'; }catch(e){} }
+function startNotifPoll_(){ refreshNotifCount_(); if(S._notifTimer) clearInterval(S._notifTimer); S._notifTimer=setInterval(refreshNotifCount_,30000); }
 function toggleUserMenu(e){ e.stopPropagation(); var m=document.getElementById('ucMenu'); if(!m)return; var open=m.style.display!=='none'; m.style.display=open?'none':'block'; if(!open) setTimeout(function(){ document.addEventListener('mousedown',ucOut_); },0); }
 function ucOut_(e){ if(!e.target.closest('#userChip')){ var m=document.getElementById('ucMenu'); if(m)m.style.display='none'; document.removeEventListener('mousedown',ucOut_); } }
 function openChangePw(){ var m=document.getElementById('ucMenu'); if(m)m.style.display='none';
@@ -2787,8 +2865,8 @@ async function renderAdmin(){
   if(!S.me||S.me.role!=='admin'){ box.innerHTML='<div class="sechd"><h2>Quản trị</h2></div><div class="empty">Bạn không có quyền truy cập.</div>'; return; }
   box.innerHTML='<div class="sechd"><h2>Quản trị — Tài khoản & phân quyền</h2></div><div id="admBody"><div class="empty">Đang tải…</div></div>';
   try{
-    var users=await api('adminListUsers'); var logs=await api('getAuditLog',120); S._admUsers=users;
-    document.getElementById('admBody').innerHTML=admUsersCard_(users)+admLogCard_(logs);
+    var users=await api('adminListUsers'); var reqs=await api('listDeleteRequests'); var purs=await api('listPurchaseRequests'); var logs=await api('getAuditLog',120); S._admUsers=users;
+    document.getElementById('admBody').innerHTML=admUsersCard_(users)+admPurCard_(purs)+admReqCard_(reqs)+admLogCard_(logs);
   }catch(e){ document.getElementById('admBody').innerHTML='<div class="empty">Lỗi tải: '+esc(e.message)+'</div>'; }
 }
 function admUsersCard_(users){
@@ -2811,6 +2889,44 @@ function admUsersCard_(users){
   var inner='<div style="margin-bottom:12px"><button class="btn blue sm" onclick="admCreate()">'+icon('plus',14)+' Thêm tài khoản</button></div>'
     +'<div class="tbl-wrap"><table class="admtbl"><tr><th>Tên đăng nhập</th><th>Họ tên</th><th>Vai trò</th><th>Quyền truy cập</th><th>Trạng thái</th><th>Đăng nhập gần nhất</th><th></th></tr>'+rows+'</table></div>';
   return dbCard_('Tài khoản ('+users.length+')','lock','Admin toàn quyền · Nhân viên không mở được trang này.',inner);
+}
+function admPurCard_(purs){
+  purs=purs||[]; var pending=purs.filter(function(r){return r.status==='Chờ duyệt';});
+  var body= purs.length? purs.map(function(r){
+    var st=r.status||''; var scls=st==='Đã duyệt'?'approved':(st==='Từ chối'?'rejected':'pending');
+    return '<div class="drq '+scls+'"><div class="drq-hd"><b>'+esc(r.maDon)+'</b> · '+esc(r.supplier||'—')+' · '+money(r.total)+'đ '
+      +'<span class="drq-badge '+scls+'">'+esc(st)+'</span><span class="sp" style="flex:1"></span><span class="muted">'+fmtDateTime_(r.at)+'</span></div>'
+      +'<div class="muted" style="font-size:12px;margin:2px 0 4px">Dự án: '+esc(r.project||'—')+' · Người gửi: <b>'+esc(r.requester||'—')+'</b>'+(r.phongBan?(' · '+esc(r.phongBan)):'')+' · '+(r.soSp||0)+' SP</div>'
+      +(scls==='pending'?'<div class="drq-act"><button class="btn blue sm" onclick="purResolve(\''+esc(r.maDon)+'\',true)">Duyệt</button><button class="btn ghost sm danger" onclick="purResolve(\''+esc(r.maDon)+'\',false)">Từ chối</button></div>':'')
+    +'</div>';
+  }).join(''):'<div class="empty">Chưa có đơn mua hàng nào.</div>';
+  return '<div class="dbcard" id="purCard"><div class="dbcard-h"><span class="dbcard-ic">'+icon('cart',18)+'</span><h3>Yêu cầu mua hàng'+(pending.length?' — '+pending.length+' chờ duyệt':'')+'</h3></div><div class="dbcard-b">'+body+'</div></div>';
+}
+function purResolve(maDon,approve){
+  if(!approve && !confirm('Từ chối đơn mua hàng '+maDon+'?')) return;
+  api('resolvePurchaseRequest',maDon,approve).then(function(){ toast(approve?'Đã duyệt đơn '+maDon:'Đã từ chối đơn '+maDon); renderAdmin(); refreshNotifCount_(); }).catch(function(e){ toast('Lỗi: '+e.message); });
+}
+function admReqCard_(reqs){
+  reqs=reqs||[]; var pending=reqs.filter(function(r){return r.status==='pending';});
+  var lbl={pending:'Chờ duyệt',approved:'Đã duyệt',rejected:'Từ chối'};
+  var body= reqs.length? reqs.map(function(r){
+    return '<div class="drq '+r.status+'"><div class="drq-hd"><b>'+esc(r.requester||'')+'</b> yêu cầu xóa '+r.items.length+' sản phẩm '
+      +'<span class="drq-badge '+r.status+'">'+(lbl[r.status]||r.status)+'</span><span class="sp" style="flex:1"></span><span class="muted">'+fmtDateTime_(r.at)+'</span></div>'
+      +'<div class="drq-items">'+r.items.map(function(it){return '<span class="it">'+esc(it.ten||it.maSP)+'</span>';}).join('')+'</div>'
+      +(r.status==='pending'
+        ? '<div class="drq-act"><button class="btn blue sm" onclick="drqResolve('+r.id+',true)">Duyệt &amp; xóa</button><button class="btn ghost sm danger" onclick="drqResolve('+r.id+',false)">Từ chối</button></div>'
+        : '<div class="muted" style="font-size:12px">'+(r.resolver?('Xử lý bởi '+esc(r.resolver)+' · '+fmtDateTime_(r.resolvedAt)):'')+'</div>')
+    +'</div>';
+  }).join(''):'<div class="empty">Chưa có yêu cầu xóa nào.</div>';
+  return '<div class="dbcard" id="drqCard"><div class="dbcard-h"><span class="dbcard-ic">'+icon('trash',18)+'</span><h3>Yêu cầu xóa sản phẩm'+(pending.length?' — '+pending.length+' chờ duyệt':'')+'</h3></div><div class="dbcard-b">'+body+'</div></div>';
+}
+function drqResolve(id,approve){
+  if(!approve && !confirm('Từ chối yêu cầu xóa này?')) return;
+  api('resolveDeleteRequest',id,approve).then(function(r){
+    toast(approve?('Đã duyệt & xóa '+(r.deleted||0)+' sản phẩm'):'Đã từ chối yêu cầu');
+    renderAdmin(); refreshNotifCount_();
+    if(approve){ api('getProducts').then(function(ps){ if(ps) S.products=ps; }).catch(function(){}); }
+  }).catch(function(e){ toast('Lỗi: '+e.message); });
 }
 function admLogCard_(logs){
   var rows=logs.map(function(l){ return '<tr><td class="muted">'+fmtDateTime_(l.at)+'</td><td><b>'+esc(l.username||'')+'</b></td><td>'+esc(admActionLabel_(l.action))+'</td><td class="muted">'+esc(l.detail||'')+'</td></tr>'; }).join('');
