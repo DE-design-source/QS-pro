@@ -322,10 +322,16 @@ document.querySelector('.topnav .right').addEventListener('click',function(e){
   var a=e.target.closest('a[data-tab]'); if(a){ e.preventDefault(); showTab(a.getAttribute('data-tab')); }
 });
 function showTab(tab){
+  // Chặn tab không được cấp quyền -> chuyển về tab đầu tiên hợp lệ
+  if(S.me && !canTab(tab)){ var f=firstAllowedTab_(); if(!f){ toast('Tài khoản chưa được cấp quyền vào phần nào'); return; } if(f!==tab){ tab=f; } }
   document.querySelectorAll('#nav a, .topnav .right a').forEach(function(a){ a.classList.toggle('active',a.getAttribute('data-tab')===tab); });
   ['boc','project','dash','chiphi','export','import','sanpham','muahang','admin'].forEach(function(v){
     var el=document.getElementById('v-'+v); if(el) el.classList.toggle('on',v===tab);
   });
+  // Ẩn breadcrumb + banner dự án ở các trang KHÔNG thuộc 1 dự án cụ thể
+  var noProj = (tab==='admin' || tab==='sanpham' || tab==='import');
+  var crumb=document.querySelector('.crumb'); if(crumb) crumb.style.display = noProj?'none':'';
+  var pcard=document.getElementById('pcard'); if(pcard) pcard.style.display = noProj?'none':'';
   if(tab==='project') renderProjects();
   if(tab==='dash') renderDash();
   if(tab==='chiphi') renderChiphi();
@@ -2739,7 +2745,19 @@ async function doLogin_(){
   catch(e){ err(e.message||'Đăng nhập thất bại'); }
   btn.disabled=false; btn.textContent='Đăng nhập';
 }
-function onAuthed_(){ var ls=document.getElementById('loginScreen'); if(ls) ls.style.display='none'; applyRoleUI_(); boot(); }
+function loginTogglePw(){ var i=document.getElementById('loginPw'), e=document.querySelector('.login-eye'); if(!i)return; var show=i.type==='password'; i.type=show?'text':'password'; if(e) e.classList.toggle('on',show); i.focus(); }
+function onAuthed_(){ var ls=document.getElementById('loginScreen'); if(ls) ls.style.display='none'; applyRoleUI_(); boot();
+  // Nếu tài khoản không có quyền vào tab đang mở -> chuyển tới tab đầu tiên hợp lệ
+  var cur=document.querySelector('#nav a.active, .topnav .right a.active'); var t=cur?cur.getAttribute('data-tab'):'boc';
+  if(!canTab(t)){ var f=firstAllowedTab_(); if(f) showTab(f); }
+}
+var PERM_TABS=[['dash','Bảng điều khiển'],['project','Thông tin dự án'],['boc','Bóc tách'],
+  ['chiphi','Chi phí'],['export','Xuất báo giá'],['muahang','Mua hàng'],
+  ['sanpham','Danh sách sản phẩm'],['import','Nhập dữ liệu']];
+function canTab(tab){ var me=S.me||{}; if(me.role==='admin') return true; if(tab==='admin') return false;
+  return (me.perms||[]).indexOf(tab)>=0; }
+function firstAllowedTab_(){ var me=S.me||{}; if(me.role==='admin') return 'boc';
+  for(var i=0;i<PERM_TABS.length;i++){ if(canTab(PERM_TABS[i][0])) return PERM_TABS[i][0]; } return null; }
 function applyRoleUI_(){
   var me=S.me||{}, nm=me.hoTen||me.username||'';
   var chip=document.getElementById('userChip'); if(chip) chip.style.display='';
@@ -2749,6 +2767,11 @@ function applyRoleUI_(){
   if(byId('ucFull')) byId('ucFull').textContent=nm;
   if(byId('ucRole')) byId('ucRole').textContent = me.role==='admin'?'Quản trị viên':'Nhân viên';
   var na=byId('navAdmin'); if(na) na.style.display = me.role==='admin'?'':'none';
+  // Ẩn các tab mà tài khoản không được cấp quyền
+  document.querySelectorAll('#nav a[data-tab], .topnav .right a[data-tab]').forEach(function(a){
+    var t=a.getAttribute('data-tab'); if(t==='admin') return;   // admin nav xử lý riêng ở trên
+    a.style.display = canTab(t)?'':'none';
+  });
 }
 function toggleUserMenu(e){ e.stopPropagation(); var m=document.getElementById('ucMenu'); if(!m)return; var open=m.style.display!=='none'; m.style.display=open?'none':'block'; if(!open) setTimeout(function(){ document.addEventListener('mousedown',ucOut_); },0); }
 function ucOut_(e){ if(!e.target.closest('#userChip')){ var m=document.getElementById('ucMenu'); if(m)m.style.display='none'; document.removeEventListener('mousedown',ucOut_); } }
@@ -2769,10 +2792,15 @@ async function renderAdmin(){
   }catch(e){ document.getElementById('admBody').innerHTML='<div class="empty">Lỗi tải: '+esc(e.message)+'</div>'; }
 }
 function admUsersCard_(users){
+  var lbl={}; PERM_TABS.forEach(function(t){ lbl[t[0]]=t[1]; });
+  function permCell(u){ if(u.role==='admin') return '<span class="muted">Toàn quyền</span>';
+    var p=u.perms||[]; if(!p.length) return '<span class="st-lk">Chưa cấp</span>';
+    return p.map(function(k){ return '<span class="permchip">'+esc(lbl[k]||k)+'</span>'; }).join(' '); }
   var rows=users.map(function(u){
     return '<tr class="'+(u.active?'':'locked')+'">'
       +'<td><b>'+esc(u.username)+'</b></td><td>'+esc(u.hoTen||'')+'</td>'
       +'<td><span class="rolebadge '+(u.role==='admin'?'adm':'stf')+'">'+(u.role==='admin'?'Admin':'Nhân viên')+'</span></td>'
+      +'<td class="permcol">'+permCell(u)+'</td>'
       +'<td>'+(u.active?'<span class="st-ok">● Hoạt động</span>':'<span class="st-lk">● Đã khóa</span>')+'</td>'
       +'<td class="muted">'+(u.lastLogin?fmtDateTime_(u.lastLogin):'—')+'</td>'
       +'<td class="admact"><button class="btn ghost xs" onclick="admEdit(\''+u.id+'\')">Sửa</button>'
@@ -2781,24 +2809,47 @@ function admUsersCard_(users){
         +'<button class="btn ghost xs danger" onclick="admDelete(\''+u.id+'\')">Xóa</button></td></tr>';
   }).join('');
   var inner='<div style="margin-bottom:12px"><button class="btn blue sm" onclick="admCreate()">'+icon('plus',14)+' Thêm tài khoản</button></div>'
-    +'<div class="tbl-wrap"><table class="admtbl"><tr><th>Tên đăng nhập</th><th>Họ tên</th><th>Vai trò</th><th>Trạng thái</th><th>Đăng nhập gần nhất</th><th></th></tr>'+rows+'</table></div>';
+    +'<div class="tbl-wrap"><table class="admtbl"><tr><th>Tên đăng nhập</th><th>Họ tên</th><th>Vai trò</th><th>Quyền truy cập</th><th>Trạng thái</th><th>Đăng nhập gần nhất</th><th></th></tr>'+rows+'</table></div>';
   return dbCard_('Tài khoản ('+users.length+')','lock','Admin toàn quyền · Nhân viên không mở được trang này.',inner);
 }
 function admLogCard_(logs){
   var rows=logs.map(function(l){ return '<tr><td class="muted">'+fmtDateTime_(l.at)+'</td><td><b>'+esc(l.username||'')+'</b></td><td>'+esc(admActionLabel_(l.action))+'</td><td class="muted">'+esc(l.detail||'')+'</td></tr>'; }).join('');
   return dbCard_('Nhật ký hoạt động','list','', '<div class="tbl-wrap"><table class="admtbl"><tr><th style="width:170px">Thời gian</th><th>Người dùng</th><th>Hành động</th><th>Chi tiết</th></tr>'+(rows||'<tr><td colspan="4" class="muted">Chưa có</td></tr>')+'</table></div>');
 }
-function admCreate(){
-  var username=prompt('Tên đăng nhập (chữ thường, số, . _ -):'); if(!username) return;
-  var hoTen=prompt('Họ tên:')||'';
-  var role=confirm('Cấp quyền ADMIN?\n\nOK = Admin (toàn quyền)\nCancel = Nhân viên')?'admin':'staff';
-  var pw=prompt('Mật khẩu ban đầu (≥4 ký tự):'); if(!pw) return;
-  api('adminCreateUser',{username:username,hoTen:hoTen,role:role,password:pw}).then(function(){ toast('Đã tạo tài khoản '+username); renderAdmin(); }).catch(function(e){ toast('Lỗi: '+e.message); });
+function admCreate(){ admUserModal(null); }
+function admEdit(id){ var u=(S._admUsers||[]).filter(function(x){return x.id===id;})[0]; if(u) admUserModal(u); }
+function admUserModal(user){
+  var isEdit=!!user; user=user||{role:'staff',perms:[]};
+  var perms=user.perms||[];
+  var permHtml=PERM_TABS.map(function(t){ return '<label class="admck"><input type="checkbox" value="'+t[0]+'"'+(perms.indexOf(t[0])>=0?' checked':'')+'>'+esc(t[1])+'</label>'; }).join('');
+  var m=document.createElement('div'); m.className='amodal-ov'; m.id='admModal'; m.onclick=function(e){ if(e.target===m) admModalClose(); };
+  m.innerHTML='<div class="amodal">'
+    +'<div class="amodal-hd">'+(isEdit?'Sửa tài khoản':'Thêm tài khoản')+'<span class="amodal-x" onclick="admModalClose()">✕</span></div>'
+    +'<div class="amodal-bd">'
+      +'<div class="afield"><label>Tên đăng nhập</label><input id="am_user" '+(isEdit?'disabled':'')+' value="'+esc(user.username||'')+'" placeholder="vd: nguyenvana" autocomplete="off"></div>'
+      +'<div class="afield"><label>Họ tên</label><input id="am_ht" value="'+esc(user.hoTen||'')+'" placeholder="Nguyễn Văn A"></div>'
+      +(isEdit?'':'<div class="afield"><label>Mật khẩu</label><input id="am_pw" type="text" placeholder="≥4 ký tự" autocomplete="new-password"></div>')
+      +'<div class="afield"><label>Vai trò</label><select id="am_role" onchange="admModalRole()"><option value="staff"'+(user.role!=='admin'?' selected':'')+'>Nhân viên</option><option value="admin"'+(user.role==='admin'?' selected':'')+'>Admin (toàn quyền)</option></select></div>'
+      +'<div class="afield" id="am_permwrap"><label>Quyền truy cập</label><div class="admperms">'+permHtml+'</div>'
+        +'<div class="admperm-quick"><a onclick="admPermAll(1)">Chọn tất cả</a> · <a onclick="admPermAll(0)">Bỏ hết</a></div></div>'
+    +'</div>'
+    +'<div class="amodal-ft"><button class="btn ghost" onclick="admModalClose()">Hủy</button><button class="btn blue" id="am_save" onclick="admModalSave('+(isEdit?'\''+user.id+'\'':'null')+')">'+(isEdit?'Lưu':'Tạo tài khoản')+'</button></div>'
+    +'</div>';
+  document.body.appendChild(m); admModalRole();
 }
-function admEdit(id){ var u=(S._admUsers||[]).filter(function(x){return x.id===id;})[0]; if(!u)return;
-  var hoTen=prompt('Họ tên:',u.hoTen||''); if(hoTen===null) return;
-  var role=confirm('Vai trò ADMIN?  (hiện tại: '+(u.role==='admin'?'Admin':'Nhân viên')+')\n\nOK = Admin\nCancel = Nhân viên')?'admin':'staff';
-  api('adminUpdateUser',id,{hoTen:hoTen,role:role}).then(function(){ toast('Đã cập nhật'); renderAdmin(); }).catch(function(e){ toast('Lỗi: '+e.message); });
+function admModalRole(){ var r=document.getElementById('am_role'); var pw=document.getElementById('am_permwrap'); if(r&&pw) pw.style.display = r.value==='admin'?'none':''; }
+function admPermAll(on){ document.querySelectorAll('#am_permwrap input[type=checkbox]').forEach(function(c){ c.checked=!!on; }); }
+function admModalClose(){ var m=document.getElementById('admModal'); if(m)m.remove(); }
+function admModalSave(id){
+  var role=document.getElementById('am_role').value;
+  var perms = role==='admin'?[]:[].slice.call(document.querySelectorAll('#am_permwrap input:checked')).map(function(c){return c.value;});
+  var hoTen=document.getElementById('am_ht').value;
+  var btn=document.getElementById('am_save'); btn.disabled=true;
+  var done=function(msg){ toast(msg); admModalClose(); renderAdmin(); };
+  var fail=function(e){ toast('Lỗi: '+e.message); btn.disabled=false; };
+  if(id){ api('adminUpdateUser',id,{hoTen:hoTen,role:role,perms:perms}).then(function(){ done('Đã cập nhật'); }).catch(fail); }
+  else { var username=document.getElementById('am_user').value; var pw=document.getElementById('am_pw').value;
+    api('adminCreateUser',{username:username,hoTen:hoTen,role:role,password:pw,perms:perms}).then(function(){ done('Đã tạo tài khoản'); }).catch(fail); }
 }
 function admResetPw(id){ var np=prompt('Mật khẩu mới (≥4 ký tự):'); if(!np) return; api('adminSetPassword',id,np).then(function(){ toast('Đã đặt lại mật khẩu'); }).catch(function(e){ toast('Lỗi: '+e.message); }); }
 function admToggleActive(id,active){ api('adminSetActive',id,active).then(function(){ toast(active?'Đã mở khóa':'Đã khóa'); renderAdmin(); }).catch(function(e){ toast('Lỗi: '+e.message); }); }

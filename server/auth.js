@@ -43,9 +43,10 @@ async function audit(actor, action, detail) {
 }
 
 /* ---------- helpers ---------- */
+function permsArr_(v) { return String(v || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean); }
 function userOut(r) {
   return { id: r.id, username: r.username, hoTen: r.ho_ten || '', role: r.role || 'staff',
-    active: r.active !== false, createdAt: r.created_at, lastLogin: r.last_login };
+    perms: permsArr_(r.perms), active: r.active !== false, createdAt: r.created_at, lastLogin: r.last_login };
 }
 async function getUserByName(username) {
   const rows = await supa.select('users', { filter: supa.eq('username', String(username || '').trim()), limit: 1 });
@@ -103,9 +104,10 @@ async function adminCreateUser(actor, data) {
   if (String(data.password || '').length < 4) throw new Error('Mật khẩu tối thiểu 4 ký tự');
   if (await getUserByName(username)) throw new Error('Tên đăng nhập đã tồn tại');
   const role = data.role === 'admin' ? 'admin' : 'staff';
+  const perms = role === 'admin' ? '' : (Array.isArray(data.perms) ? data.perms.join(',') : '');
   const res = await supa.insert('users', {
     username: username, ho_ten: String(data.hoTen || ''), password_hash: bcrypt.hashSync(String(data.password), 10),
-    role: role, active: true
+    role: role, perms: perms, active: true
   });
   await audit(actor, 'create_user', 'Tạo tài khoản ' + username + ' (' + role + ')');
   return userOut(res[0]);
@@ -115,6 +117,9 @@ async function adminUpdateUser(actor, id, fields) {
   const patch = {};
   if (fields.hasOwnProperty('hoTen')) patch.ho_ten = String(fields.hoTen || '');
   if (fields.hasOwnProperty('role')) patch.role = fields.role === 'admin' ? 'admin' : 'staff';
+  if (fields.hasOwnProperty('perms')) patch.perms = Array.isArray(fields.perms) ? fields.perms.join(',') : '';
+  // Admin thì bỏ giới hạn perms
+  if (patch.role === 'admin') patch.perms = '';
   if (!Object.keys(patch).length) return { ok: true };
   const res = await supa.update('users', supa.eq('id', id), patch);
   await audit(actor, 'update_user', 'Sửa tài khoản ' + (res[0] && res[0].username) + ' ' + JSON.stringify(patch));

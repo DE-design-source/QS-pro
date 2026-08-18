@@ -10,6 +10,7 @@ create table if not exists public.users (
   ho_ten       text default '',
   password_hash text not null,
   role         text not null default 'staff',   -- 'admin' | 'staff'
+  perms        text default '',                 -- staff: danh sách tab được vào, phân tách bằng dấu phẩy
   active       boolean not null default true,
   created_at   timestamptz not null default now(),
   last_login   timestamptz

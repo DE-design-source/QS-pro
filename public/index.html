@@ -897,17 +897,44 @@ tr.mhf-tot td.n:last-child{font-size:17px;color:var(--blue)}
 .mhsum-f{border-top:1px solid var(--line);padding:14px 16px;background:#fbfcfe}
 .mhsum-grand{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;font-size:13px;color:var(--muted)}
 .mhsum-grand b{font-size:17px;color:var(--blue)}
-/* ===== Đăng nhập ===== */
-#loginScreen{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;background:linear-gradient(160deg,#eef3fb,#e4ecf7)}
-.login-card{background:#fff;width:360px;max-width:92vw;border-radius:16px;box-shadow:0 18px 60px rgba(20,40,80,.18);padding:30px 28px 26px;text-align:center}
-.login-t{font-size:19px;font-weight:800;color:#1f2b38;margin-top:6px}
-.login-sub{font-size:12.5px;color:#8a96a5;margin-bottom:16px}
-.login-lb{display:block;text-align:left;font-size:12px;font-weight:600;color:#3a4653;margin:12px 0 5px}
-.login-in{width:100%;border:1px solid #d7dde4;border-radius:10px;padding:11px 12px;font:inherit;font-size:14px;box-sizing:border-box}
-.login-in:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2f6bff22;outline:none}
-.login-btn{width:100%;margin-top:18px;background:var(--blue);color:#fff;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:700;cursor:pointer}
-.login-btn:hover{filter:brightness(1.05)} .login-btn:disabled{opacity:.6;cursor:default}
-.login-msg{display:none;background:#fdecec;color:#c0392b;border:1px solid #f3c9c6;border-radius:8px;padding:8px 10px;font-size:12.5px;margin-bottom:4px}
+/* ===== Đăng nhập (mới) ===== */
+#loginScreen{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;
+  background:radial-gradient(1200px 600px at 15% -10%,#1b3a5f 0%,transparent 55%),radial-gradient(1000px 700px at 110% 120%,#2f6bff33 0%,transparent 50%),linear-gradient(150deg,#0f2338,#13314f 55%,#1c4a76)}
+.login-card{width:380px;max-width:92vw;background:#fff;border-radius:20px;box-shadow:0 30px 80px rgba(8,20,40,.45);overflow:hidden}
+.login-brand{background:linear-gradient(135deg,#12314f,#1c4a76);color:#fff;padding:26px 30px 22px;text-align:center}
+.login-logo{font-size:26px;font-weight:900;letter-spacing:2px;line-height:1}
+.login-logo span{color:#7fb0ff;font-weight:800}
+.login-tag{font-size:12px;color:#b9cbe0;margin-top:7px;letter-spacing:.2px}
+.login-body{padding:24px 30px 26px}
+.login-h{font-size:20px;font-weight:800;color:#1f2b38}
+.login-sub2{font-size:12.5px;color:#8a96a5;margin:2px 0 16px}
+.login-msg{display:none;background:#fdecec;color:#c0392b;border:1px solid #f3c9c6;border-radius:9px;padding:9px 11px;font-size:12.5px;margin-bottom:12px}
+.login-field{position:relative;margin-bottom:12px}
+.login-field .login-ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:#9aa7b4;pointer-events:none}
+.login-field input{width:100%;border:1px solid #dde3ea;border-radius:11px;padding:12px 40px 12px 40px;font:inherit;font-size:14px;box-sizing:border-box;background:#f8fafc;transition:.12s}
+.login-field input:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px #2f6bff22;outline:none}
+.login-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:26px;height:26px;display:flex;align-items:center;justify-content:center;color:#9aa7b4;cursor:pointer;border-radius:7px}
+.login-eye svg{width:17px;height:17px} .login-eye:hover{color:var(--blue);background:#eef5ff} .login-eye.on{color:var(--blue)}
+.login-btn{width:100%;margin-top:8px;background:linear-gradient(135deg,#2f6bff,#1c4fd6);color:#fff;border:none;border-radius:11px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 8px 20px rgba(47,107,255,.32);transition:.12s}
+.login-btn:hover{filter:brightness(1.06);transform:translateY(-1px)} .login-btn:disabled{opacity:.65;cursor:default;transform:none}
+.login-foot{text-align:center;font-size:11px;color:#aab3c0;margin-top:16px}
+/* ===== Modal quản lý tài khoản ===== */
+.amodal-ov{position:fixed;inset:0;z-index:2100;background:rgba(15,30,55,.5);display:flex;align-items:center;justify-content:center;padding:20px}
+.amodal{width:460px;max-width:94vw;background:#fff;border-radius:16px;box-shadow:0 26px 70px rgba(10,25,50,.4);overflow:hidden;max-height:90vh;display:flex;flex-direction:column}
+.amodal-hd{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;font-size:16px;font-weight:800;color:#1f2b38;border-bottom:1px solid #eef1f5;background:linear-gradient(180deg,#fbfcfe,#f5f8fc)}
+.amodal-x{cursor:pointer;color:#9aa7b4;font-size:16px} .amodal-x:hover{color:#c0392b}
+.amodal-bd{padding:18px 20px;overflow:auto}
+.afield{margin-bottom:14px}
+.afield label{display:block;font-size:12px;font-weight:600;color:#3a4653;margin-bottom:6px}
+.afield input,.afield select{width:100%;border:1px solid #d7dde4;border-radius:10px;padding:10px 12px;font:inherit;font-size:14px;box-sizing:border-box;background:#fff}
+.afield input:disabled{background:#f2f4f7;color:#8a96a5}
+.afield input:focus,.afield select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2f6bff22;outline:none}
+.admperms{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin-top:2px}
+.admck{display:flex;align-items:center;gap:8px;font-size:13px;color:#3a4653;background:#f7f9fc;border:1px solid #eaeef3;border-radius:9px;padding:8px 10px;cursor:pointer}
+.admck input{width:16px;height:16px;accent-color:var(--blue)}
+.admperm-quick{margin-top:8px;font-size:12px;color:#8a96a5} .admperm-quick a{color:var(--blue);cursor:pointer} .admperm-quick a:hover{text-decoration:underline}
+.amodal-ft{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid #eef1f5;background:#fbfcfe}
+.permcol{white-space:normal;max-width:280px} .permchip{display:inline-block;font-size:10.5px;background:#eef2ff;color:#4f46e5;border-radius:6px;padding:2px 7px;margin:1px 0}
 /* ===== Chip user ===== */
 .userchip{display:inline-flex;align-items:center;gap:8px;cursor:pointer;padding:5px 10px 5px 5px;border:1px solid #e2e8f0;border-radius:22px;background:#fff;position:relative;margin-left:6px}
 .userchip:hover{border-color:#c3ccd8}
@@ -961,15 +988,28 @@ table.admtbl .muted{color:#94a3b8;font-size:12px}
 <!-- ===== MÀN ĐĂNG NHẬP ===== -->
 <div id="loginScreen" style="display:none">
   <div class="login-card">
-    <img class="logo" src="logo.svg" alt="Dezon Pro" style="height:34px;margin:0 auto 6px">
-    <div class="login-t">Đăng nhập hệ thống</div>
-    <div class="login-sub">Dezon Pro — Dự toán chuyên nghiệp</div>
-    <div class="login-msg" id="loginMsg"></div>
-    <label class="login-lb">Tên đăng nhập</label>
-    <input id="loginUser" class="login-in" autocomplete="username" placeholder="vd: admin" onkeydown="if(event.key==='Enter')doLogin_()">
-    <label class="login-lb">Mật khẩu</label>
-    <input id="loginPw" class="login-in" type="password" autocomplete="current-password" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin_()">
-    <button class="login-btn" id="loginBtn" onclick="doLogin_()">Đăng nhập</button>
+    <div class="login-brand">
+      <div class="login-logo">DEZON<span>&nbsp;PRO</span></div>
+      <div class="login-tag">Hệ thống dự toán &amp; báo giá chuyên nghiệp</div>
+    </div>
+    <div class="login-body">
+      <div class="login-h">Đăng nhập</div>
+      <div class="login-sub2">Nhập tài khoản để tiếp tục</div>
+      <div class="login-msg" id="loginMsg"></div>
+      <div class="login-field">
+        <svg class="login-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <input id="loginUser" autocomplete="username" placeholder="Tên đăng nhập" onkeydown="if(event.key==='Enter')doLogin_()">
+      </div>
+      <div class="login-field">
+        <svg class="login-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <input id="loginPw" type="password" autocomplete="current-password" placeholder="Mật khẩu" onkeydown="if(event.key==='Enter')doLogin_()">
+        <span class="login-eye" onclick="loginTogglePw()" title="Hiện/ẩn mật khẩu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+        </span>
+      </div>
+      <button class="login-btn" id="loginBtn" onclick="doLogin_()">Đăng nhập</button>
+      <div class="login-foot">© Dezon Pro · Dự toán chuyên nghiệp</div>
+    </div>
   </div>
 </div>
 
