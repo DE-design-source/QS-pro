@@ -773,8 +773,8 @@ function spFilter(){
       +'<td class="ct">'+esc(p.congSuat||'')+'</td>'
       +'<td class="ct">'+esc(p.nhietDo||'')+'</td>'
       +'<td class="ct">'+esc(p.cri||'')+'</td>'
-      +'<td class="num">'+money(p.donGiaBan)+'</td>'
-      +'<td class="ct" onclick="event.stopPropagation()"><button class="sp-act" title="Xem chi tiết" onclick="spModal('+i+')">'+icon('eye',16)+'</button>'
+      +'<td class="num sp-price">'+money(p.donGiaBan)+'</td>'
+      +'<td class="ct act-sp" onclick="event.stopPropagation()"><button class="sp-act" title="Xem chi tiết" onclick="spModal('+i+')">'+icon('eye',16)+'</button>'
         +(isAdmin?'<button class="sp-act del" title="Xoá" onclick="spDelete('+i+')">'+icon('trash',16)+'</button>':'')+'</td>'
     +'</tr>';
   }).join(''):'<tr><td colspan="11" class="empty">Không có sản phẩm khớp.</td></tr>';
@@ -2875,8 +2875,9 @@ function admUsersCard_(users){
     var p=u.perms||[]; if(!p.length) return '<span class="st-lk">Chưa cấp</span>';
     return p.map(function(k){ return '<span class="permchip">'+esc(lbl[k]||k)+'</span>'; }).join(' '); }
   var rows=users.map(function(u){
+    var av=(u.hoTen||u.username||'?').trim().charAt(0).toUpperCase();
     return '<tr class="'+(u.active?'':'locked')+'">'
-      +'<td><b>'+esc(u.username)+'</b></td><td>'+esc(u.hoTen||'')+'</td>'
+      +'<td><span class="uav '+(u.role==='admin'?'adm':'')+'">'+esc(av)+'</span><b>'+esc(u.username)+'</b></td><td>'+esc(u.hoTen||'')+'</td>'
       +'<td><span class="rolebadge '+(u.role==='admin'?'adm':'stf')+'">'+(u.role==='admin'?'Admin':'Nhân viên')+'</span></td>'
       +'<td class="permcol">'+permCell(u)+'</td>'
       +'<td>'+(u.active?'<span class="st-ok">● Hoạt động</span>':'<span class="st-lk">● Đã khóa</span>')+'</td>'

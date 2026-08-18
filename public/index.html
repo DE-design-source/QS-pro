@@ -1048,6 +1048,34 @@ input:focus,select:focus,textarea:focus{outline:none}
 .drq-act{display:flex;gap:8px;margin-top:6px}
 .drq-badge{font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px}
 .drq-badge.approved{background:#e6f6ec;color:#2f855a} .drq-badge.rejected{background:#fdecec;color:#c0392b} .drq-badge.pending{background:#fff2d9;color:#b7791f}
+
+/* ============================================================
+   POLISH — Danh sách sản phẩm + Trang Admin
+   ============================================================ */
+/* ---- Danh sách SP ---- */
+.spbar{background:#f7f9fc;border:1px solid #eceff4;border-radius:12px;padding:10px 12px;margin:12px 0 14px;row-gap:8px}
+.spbar .lb{color:#7a8794;text-transform:uppercase;font-size:11px;letter-spacing:.3px}
+#v-sanpham .panel{border:1px solid #e7ebf0;border-radius:14px;box-shadow:0 1px 5px #0b1f3a0a}
+.sp-table thead th{background:#f3f6f9;font-size:11px;text-transform:uppercase;letter-spacing:.35px;padding:12px 12px;color:#66727d}
+.sp-table td{padding:11px 12px}
+.sp-table tbody tr:nth-child(even){background:#fbfcfe}
+.sp-row:hover{background:#eef5ff}
+.sp-row.selrow{background:#e9f1ff}
+.sp-row.selrow td{border-bottom-color:#dbe6f5}
+.sp-th{width:46px;height:46px;box-shadow:0 1px 3px rgba(20,40,80,.09)}
+.sp-price{font-weight:800;color:var(--navy)}
+.sp-table td.act-sp{white-space:nowrap;width:96px;text-align:right}
+.sp-act{width:30px;height:30px}
+.sp-table td.mono{color:#8894a0}
+/* ---- Admin: avatar + hover + card ---- */
+.uav{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#e6eefb;color:var(--blue);font-weight:800;font-size:12px;margin-right:9px;vertical-align:middle}
+.uav.adm{background:#eef0ff;color:#4f46e5}
+table.admtbl tbody tr{transition:background .1s} table.admtbl tbody tr:hover{background:#f7f9fc}
+.drq{transition:box-shadow .12s,transform .06s} .drq:hover{box-shadow:0 5px 16px rgba(20,40,80,.09)}
+.drq-hd b{color:var(--navy);font-size:14px}
+#v-admin .dbcard-b .empty{margin:0}
+/* segment/nút trong header dbcard cách đều */
+#v-admin .dbcard-h{gap:8px}
 </style>
 
 <!-- ===== TOP NAV ===== -->
