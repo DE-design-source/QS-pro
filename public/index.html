@@ -957,6 +957,57 @@ table.admtbl .muted{color:#94a3b8;font-size:12px}
 .admact{white-space:nowrap;display:flex;gap:5px}
 .btn.xs{padding:3px 9px;font-size:12px;border-radius:7px}
 .btn.ghost.danger{color:#c0392b} .btn.ghost.danger:hover{background:#fdeceb;border-color:#e0a39d}
+
+/* ============================================================
+   UI POLISH — đồng bộ, mượt, responsive (chỉ CSS, không đụng logic)
+   ============================================================ */
+.btn{transition:background .13s,box-shadow .13s,transform .08s,filter .13s;cursor:pointer}
+.btn:not(.xs):not(.iconbtn):hover{box-shadow:0 3px 10px rgba(20,40,80,.13)}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.6;cursor:default;box-shadow:none;transform:none}
+.btn.ghost:hover{background:#f6f8fb;border-color:#c3ccd8;box-shadow:none}
+.rbtn:hover{border-color:#c3ccd8;background:#f7f9fc}
+.rbtn.primary:hover{filter:brightness(1.05)}
+
+/* Empty state đẹp hơn */
+.empty{padding:44px 24px;text-align:center;color:var(--muted);font-size:14px;background:#fbfcfe;border:1px dashed #dfe4ea;border-radius:12px}
+
+/* Toast mượt + rõ */
+#toast{background:rgba(17,24,32,.93);box-shadow:0 12px 34px rgba(10,20,40,.32);font-size:13.5px;font-weight:500;letter-spacing:.2px;transform:translateX(-50%) translateY(10px)}
+#toast.on{transform:translateX(-50%) translateY(0)}
+
+/* Tiêu đề mục có thanh nhấn */
+.sechd h2{position:relative;padding-left:13px}
+.sechd h2::before{content:'';position:absolute;left:0;top:52%;transform:translateY(-50%);width:4px;height:18px;border-radius:3px;background:linear-gradient(180deg,var(--blue),var(--navy))}
+
+/* Focus đồng bộ */
+input:focus,select:focus,textarea:focus{outline:none}
+
+/* Chuyển tab mượt (fade nhẹ) */
+.view.on{animation:qsFade .18s ease}
+@keyframes qsFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* Thẻ KPI/dự án bấm được — hover nổi nhẹ */
+.kpi,.proj-card2,.draft-row{transition:box-shadow .13s,transform .13s,border-color .13s}
+.pcard{transition:box-shadow .15s,transform .12s} .pcard:hover{box-shadow:0 10px 28px rgba(15,40,80,.16)}
+
+/* ===== Responsive ===== */
+@media(max-width:1120px){
+  .topnav .row{flex-wrap:wrap;height:auto;gap:12px 18px;padding:10px 0}
+  .nav{order:3;width:100%;overflow-x:auto;gap:18px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+  .nav::-webkit-scrollbar{height:0}
+  .nav a{white-space:nowrap;padding-bottom:8px}
+  .right{order:2;margin-left:auto}
+  .crumb{flex-wrap:wrap;gap:8px}
+}
+@media(max-width:720px){
+  .wrap{padding-left:14px;padding-right:14px}
+  .nav a svg,.rbtn svg{display:none}
+  .rbtn{padding:8px 12px}
+  .sechd{flex-wrap:wrap}
+  table.admtbl{font-size:12px} table.admtbl th,table.admtbl td{padding:7px 8px}
+  .amodal{width:100%}
+}
 </style>
 
 <!-- ===== TOP NAV ===== -->
