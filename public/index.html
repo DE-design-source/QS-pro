@@ -1063,6 +1063,23 @@ input:focus,select:focus,textarea:focus{outline:none}
 .spbar{display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:12px 16px;border-bottom:1px solid #eef1f5;background:#fbfcfe}
 .spbar .lb{color:#8a96a5;text-transform:uppercase;font-size:10.5px;letter-spacing:.4px;font-weight:700;margin-right:2px}
 .spchip.clr{color:#c0392b;background:#fdeceb;border-color:#f3c9c6}
+.spchip .cc{margin-left:6px;font-size:10px;font-weight:700;opacity:.6;font-variant-numeric:tabular-nums}
+.spchip.on .cc{opacity:.75}
+#spBoLocBtn{position:relative;display:inline-flex;align-items:center;gap:6px}
+#spBoLocBtn.on{border-color:var(--chip-on);color:var(--chip-on);background:#f2f6fc}
+.spflt-badge{display:none;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--chip-on);color:#fff;font-size:10.5px;font-weight:800;line-height:1}
+/* popover bộ lọc DS SP */
+.spfltpop{width:340px;max-height:70vh}
+.spfltpop .fgrp{padding:8px 4px;border-top:1px solid #f0f2f5}
+.spfltpop .fgt{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:#8a96a5;font-weight:700;margin-bottom:7px}
+.spfltpop .fchips{display:flex;flex-wrap:wrap;gap:6px}
+.spchip.sm{padding:4px 9px;font-size:11.5px;display:inline-flex;align-items:center;gap:5px}
+.spchip.sm .cdot{width:9px;height:9px;border-radius:50%;border:1px solid #00000018}
+.spfltpop .fprice{display:flex;align-items:center;gap:8px}
+.spfltpop .fprice input{flex:1;width:0;border:1px solid #dde3ea;border-radius:8px;padding:7px 9px;font:inherit;font-size:12.5px;background:#f8fafc}
+.spfltpop .fprice input:focus{border-color:var(--blue);background:#fff;outline:none}
+.spfltpop .fprice span{color:#9aa7b4}
+.spfltpop .fftr{display:flex;justify-content:space-between;gap:8px;padding:12px 2px 2px;border-top:1px solid #f0f2f5;margin-top:4px}
 .sp-table thead th{background:#fff;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;padding:12px 14px;color:#8a96a5;border-bottom:1px solid #eceff4}
 .sp-table td{padding:12px 14px;border-bottom:1px solid #f2f4f7;vertical-align:middle}
 .sp-table tbody tr:last-child td{border-bottom:none}

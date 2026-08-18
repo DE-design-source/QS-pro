@@ -736,6 +736,7 @@ function renderSanpham(){
       +'<div class="sp-toolbar">'
         +'<div class="sp-search-wrap">'+searchIc+'<input id="spSearch" placeholder="Tìm theo tên, mã hoặc thương hiệu…" oninput="spFilter()"></div>'
         +'<span class="sp-flex"></span>'
+        +'<button class="btn ghost sm" id="spBoLocBtn" onclick="spToggleBoLoc(event)">'+icon('sliders',14)+' Bộ lọc<span class="spflt-badge" id="spFltBadge"></span></button>'
         +'<button class="btn blue sm" onclick="showTab(\'import\')">'+icon('plus',14)+' Thêm sản phẩm</button>'
       +'</div>'
       +'<div class="spbar" id="spBar"></div>'
@@ -748,16 +749,73 @@ function renderSanpham(){
   S._spSel=S._spSel||{}; S._spFilters=S._spFilters||{};
   renderSpChips_(); spFilter();
 }
+// Thanh chip "Hạng mục đã bóc" = nhóm/dòng SP (giống bộ chọn hạng mục bên Bóc tách)
 function renderSpChips_(){
   var bar=document.getElementById('spBar'); if(!bar) return; var f=S._spFilters||{};
-  var brands={},cats={}; (S.products||[]).forEach(function(p){ if(p.thuongHieu)brands[p.thuongHieu]=1; if(p.hangMuc)cats[p.hangMuc]=1; });
-  function chips(map,key){ return Object.keys(map).sort().map(function(v){ return '<span class="spchip'+(f[key]===v?' on':'')+'" data-k="'+key+'" data-v="'+esc(v)+'" onclick="spSetFilter(this.dataset.k,this.dataset.v)">'+esc(v)+'</span>'; }).join(''); }
-  bar.innerHTML='<span class="lb">Thương hiệu</span>'+chips(brands,'brand')
-    +'<span class="lb" style="margin-left:10px">Hạng mục</span>'+chips(cats,'hangMuc')
-    +((f.brand||f.hangMuc)?'<span class="spchip clr" onclick="spClearFilters()">✕ Xóa lọc</span>':'');
+  var nhoms={}; (S.products||[]).forEach(function(p){ if(p.nhom) nhoms[p.nhom]=(nhoms[p.nhom]||0)+1; });
+  var keys=Object.keys(nhoms).sort(function(a,b){ return a.localeCompare(b,'vi'); });
+  var chips='<span class="spchip'+(!f.nhom?' on':'')+'" onclick="spSetFilter(\'nhom\',\'\')">Tất cả</span>'
+    +keys.map(function(v){ return '<span class="spchip'+(f.nhom===v?' on':'')+'" data-v="'+esc(v)+'" onclick="spSetFilter(\'nhom\',this.dataset.v)">'+esc(v)+'<i class="cc">'+nhoms[v]+'</i></span>'; }).join('');
+  bar.innerHTML='<span class="lb">Hạng mục</span>'+chips
+    +(spFltCount_()?'<span class="spchip clr" onclick="spClearFilters()">✕ Xóa bộ lọc</span>':'');
+  var badge=document.getElementById('spFltBadge'); var n=spFltCount_();
+  if(badge){ badge.textContent=n||''; badge.style.display=n?'inline-flex':'none'; }
+  var btn=document.getElementById('spBoLocBtn'); if(btn) btn.classList.toggle('on', n>0);
 }
-function spSetFilter(key,val){ S._spFilters=S._spFilters||{}; if(S._spFilters[key]===val) delete S._spFilters[key]; else S._spFilters[key]=val; renderSpChips_(); spFilter(); }
-function spClearFilters(){ S._spFilters={}; renderSpChips_(); spFilter(); }
+function spSetFilter(key,val){ S._spFilters=S._spFilters||{}; if(!val) delete S._spFilters[key]; else if(S._spFilters[key]===val) delete S._spFilters[key]; else S._spFilters[key]=val; renderSpChips_(); spFilter(); }
+function spClearFilters(){ S._spFilters={watt:{},kelvin:{},angle:{},cri:{}}; renderSpChips_(); spFilter(); if(document.getElementById('spFltPop')) spBoLocPop_(); }
+// đếm số điều kiện "bộ lọc nâng cao" đang bật (không tính chip Hạng mục hiển thị sẵn)
+function actKeys_(o){ return Object.keys(o||{}).filter(function(k){ return o[k]; }); }
+function spFltCount_(){ var f=S._spFilters||{}; var n=0; if(f.brand)n++; if(f.hangMuc)n++; if(f.min)n++; if(f.max)n++;
+  ['watt','kelvin','angle','cri'].forEach(function(g){ n+=actKeys_(f[g]).length; }); return n; }
+// ==== Popover "Bộ lọc" cho Danh sách SP (công suất / nhiệt độ / góc / CRI / thương hiệu / giá) ====
+function spSingleVals_(field){ var m={}; (S.products||[]).forEach(function(p){ if(p[field]) m[p[field]]=(m[p[field]]||0)+1; }); return m; }
+function spSpecOpts_(field){ var m={}; (S.products||[]).forEach(function(p){ splitVals(p[field]).forEach(function(v){ m[v]=(m[v]||0)+1; }); }); return m; }
+function spToggleBoLoc(e){ if(e&&e.stopPropagation) e.stopPropagation();
+  if(document.getElementById('spFltPop')){ document.getElementById('spFltPop').remove(); document.removeEventListener('mousedown',spFltOutside); return; }
+  spBoLocPop_(); }
+function spFltOutside(e){ var p=document.getElementById('spFltPop'), b=document.getElementById('spBoLocBtn');
+  if(p && !p.contains(e.target) && b && !b.contains(e.target)){ p.remove(); document.removeEventListener('mousedown',spFltOutside); } }
+function spBoLocPop_(){
+  var f=S._spFilters=S._spFilters||{}; f.watt=f.watt||{}; f.kelvin=f.kelvin||{}; f.angle=f.angle||{}; f.cri=f.cri||{};
+  var old=document.getElementById('spFltPop'); if(old) old.remove();
+  function esq(s){ return esc(s).replace(/'/g,"\\'"); }
+  function single(title,key,field){ var m=spSingleVals_(field||key); var keys=Object.keys(m); if(keys.length<2) return '';
+    keys.sort(function(a,b){ return a.localeCompare(b,'vi'); });
+    return '<div class="fgrp"><div class="fgt">'+title+'</div><div class="fchips">'
+      +'<span class="spchip sm'+(!f[key]?' on':'')+'" onclick="spFltSet(\''+key+'\',\'\')">Tất cả</span>'
+      +keys.map(function(v){ return '<span class="spchip sm'+(f[key]===v?' on':'')+'" onclick="spFltSet(\''+key+'\',\''+esq(v)+'\')">'+esc(v)+'</span>'; }).join('')
+      +'</div></div>'; }
+  function multi(title,field,fkey,opt){ opt=opt||{}; var m=spSpecOpts_(field); var keys=Object.keys(m); if(!keys.length) return '';
+    keys.sort(function(a,b){ var na=parseFloat(a),nb=parseFloat(b); if(!isNaN(na)&&!isNaN(nb)&&na!==nb) return na-nb; return a.localeCompare(b); });
+    return '<div class="fgrp"><div class="fgt">'+title+'</div><div class="fchips">'
+      +keys.map(function(k){ var on=!!f[fkey][k]; var dot=opt.dot?'<i class="cdot" style="background:'+opt.dot(k)+'"></i>':'';
+        return '<span class="spchip sm'+(on?' on':'')+'" onclick="spFltSpec(\''+fkey+'\',\''+esq(k)+'\')">'+dot+esc(k)+'</span>'; }).join('')
+      +'</div></div>'; }
+  var pop=document.createElement('div'); pop.className='fltpop spfltpop'; pop.id='spFltPop';
+  pop.innerHTML='<div class="fhdr">Bộ lọc nâng cao</div>'
+    +single('Thương hiệu','brand','thuongHieu')
+    +single('Loại đèn','hangMuc','hangMuc')
+    +multi('Công suất','congSuat','watt')
+    +multi('Nhiệt độ màu','nhietDo','kelvin',{dot:ctColor})
+    +multi('Góc chiếu','gocChieu','angle')
+    +multi('CRI','cri','cri')
+    +'<div class="fgrp"><div class="fgt">Khoảng giá (đ)</div><div class="fprice">'
+      +'<input type="number" id="spFMin" placeholder="Từ" value="'+(f.min||'')+'" oninput="spFltPrice()">'
+      +'<span>–</span><input type="number" id="spFMax" placeholder="Đến" value="'+(f.max||'')+'" oninput="spFltPrice()"></div></div>'
+    +'<div class="fftr"><button class="btn ghost sm" onclick="spFltReset()">Xóa lọc</button>'
+      +'<button class="btn blue sm" onclick="spToggleBoLoc()">Xong</button></div>';
+  document.body.appendChild(pop);
+  var btn=document.getElementById('spBoLocBtn'); var w=pop.offsetWidth||340;
+  if(btn){ var r=btn.getBoundingClientRect(); pop.style.top=(r.bottom+6)+'px'; pop.style.left=Math.max(8,Math.min(r.right-w,window.innerWidth-w-8))+'px'; }
+  setTimeout(function(){ document.addEventListener('mousedown',spFltOutside); },0);
+}
+function spAfterFlt_(){ renderSpChips_(); spFilter(); }
+function spFltSet(key,val){ S._spFilters=S._spFilters||{}; if(!val) delete S._spFilters[key]; else S._spFilters[key]=val; spAfterFlt_(); spBoLocPop_(); }
+function spFltSpec(fkey,val){ S._spFilters=S._spFilters||{}; var o=S._spFilters[fkey]=S._spFilters[fkey]||{}; if(o[val]) delete o[val]; else o[val]=1; spAfterFlt_(); spBoLocPop_(); }
+function spFltPrice(){ var f=S._spFilters=S._spFilters||{}; var mn=document.getElementById('spFMin'), mx=document.getElementById('spFMax');
+  f.min=mn?(Number(mn.value)||0):0; f.max=mx?(Number(mx.value)||0):0; spAfterFlt_(); }
+function spFltReset(){ S._spFilters={watt:{},kelvin:{},angle:{},cri:{}}; spAfterFlt_(); spBoLocPop_(); }
 function spSpecs_(p){ var out=[];
   if(p.congSuat) out.push('<span class="spec">'+esc(p.congSuat)+'</span>');
   if(p.nhietDo) out.push('<span class="spec k">'+esc(p.nhietDo)+'</span>');
@@ -766,10 +824,18 @@ function spSpecs_(p){ var out=[];
   return out.join('')||'<span class="muted">—</span>'; }
 function spFilter(){
   var el=document.getElementById('spSearch'); var q=(el&&el.value||'').toLowerCase().trim(); var f=S._spFilters||{};
+  var watts=actKeys_(f.watt), kels=actKeys_(f.kelvin), angs=actKeys_(f.angle), cris=actKeys_(f.cri);
+  var mn=Number(f.min)||0, mx=Number(f.max)||0;
   var list=(S.products||[]).filter(function(p){
     if(q && (p.ten+' '+p.ma+' '+p.thuongHieu+' '+p.ncc).toLowerCase().indexOf(q)<0) return false;
+    if(f.nhom && p.nhom!==f.nhom) return false;
     if(f.brand && p.thuongHieu!==f.brand) return false;
     if(f.hangMuc && p.hangMuc!==f.hangMuc) return false;
+    var pr=Number(p.donGiaBan)||0; if(mn&&pr<mn) return false; if(mx&&pr>mx) return false;
+    if(watts.length){ var pw=splitVals(p.congSuat); if(!pw.some(function(x){return watts.indexOf(x)>=0;})) return false; }
+    if(kels.length){ var pk=splitVals(p.nhietDo); if(!pk.some(function(x){return kels.indexOf(x)>=0;})) return false; }
+    if(angs.length){ var pa=splitVals(p.gocChieu); if(!pa.some(function(x){return angs.indexOf(x)>=0;})) return false; }
+    if(cris.length){ var pc=splitVals(p.cri); if(!pc.some(function(x){return cris.indexOf(x)>=0;})) return false; }
     return true;
   });
   S._spList=list; S._spSel=S._spSel||{};
