@@ -59,14 +59,21 @@ async function getUserById(id) {
 /* ---------- đăng nhập / phiên ---------- */
 async function login(username, password) {
   username = String(username || '').trim();
+  password = String(password || '');
   const u = await getUserByName(username);
-  if (!u || !bcrypt.compareSync(String(password || ''), u.password_hash || '')) {
+  const stored = u ? String(u.password_hash || '') : '';
+  const isBcrypt = /^\$2[aby]\$/.test(stored);
+  const ok = u && (isBcrypt ? bcrypt.compareSync(password, stored) : (password !== '' && password === stored));
+  if (!ok) {
     await audit({ u: username }, 'login_fail', 'Sai tài khoản hoặc mật khẩu');
     throw new Error('Sai tài khoản hoặc mật khẩu');
   }
   if (u.active === false) throw new Error('Tài khoản đã bị khóa');
-  await supa.update('users', supa.eq('id', u.id), { last_login: new Date().toISOString() });
-  await audit({ uid: u.id, u: u.username }, 'login', 'Đăng nhập');
+  const patch = { last_login: new Date().toISOString() };
+  // Tự nâng cấp mật khẩu chữ thường (nhập tay trên Supabase) -> băm bcrypt để an toàn
+  if (!isBcrypt) patch.password_hash = bcrypt.hashSync(password, 10);
+  await supa.update('users', supa.eq('id', u.id), patch);
+  await audit({ uid: u.id, u: u.username }, 'login', 'Đăng nhập' + (isBcrypt ? '' : ' (tự băm mật khẩu)'));
   return { token: makeToken(u), user: userOut(u) };
 }
 async function me(actor) {
