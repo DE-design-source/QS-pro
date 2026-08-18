@@ -423,6 +423,38 @@ table.tk tr.grp .addrow:hover{background:#eef5ff;border-color:var(--blue)}
 table.tk .qty,table.tk .price{width:72px;border:1px solid transparent;border-radius:6px;padding:5px 6px;text-align:right;font:inherit;background:transparent}
 table.tk .qty:focus,table.tk .price:focus{border-color:var(--blue);background:#fff;outline:none}
 table.tk .del{border:none;background:transparent;color:#c33;font-size:15px}
+/* ===== Công cụ bảng kiểu Excel: menu tiêu đề + chuột phải + sort + freeze + tô màu + tìm/thay ===== */
+.fltpop .fpa{padding:8px 12px;font-size:13px;color:#334155;cursor:pointer;display:flex;align-items:center;gap:8px}
+.fltpop .fpa:hover{background:#eef5ff;color:var(--blue)}
+.fltpop .fpsep{height:1px;background:#eef1f5;margin:4px 0}
+.fltpop .fhdr.sm{font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.3px;padding-bottom:2px}
+.fltpop.ctxmenu{padding:4px 0}
+.fltpop.ctxmenu .fhdr{padding:6px 12px 2px}
+.fltpop.ctxmenu .fchk{padding:7px 12px}
+table.tk .thl{cursor:pointer;user-select:none}
+table.tk th.sortOn{background:#1a4066}
+table.tk th.sortOn .thl{color:#fff;font-weight:800}
+.cfdot{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px;border:1px solid #0002}
+.cf-red{background:#fde2e1}.cf-yellow{background:#fdf3cf}.cf-grey{background:#eef1f4}
+.cfdot.cf-red{background:#ef6b63}.cfdot.cf-yellow{background:#f2c94c}.cfdot.cf-grey{background:#c7ced6}
+table.tk tr.drow.cf-red td{background:#fdecec !important}
+table.tk tr.drow.cf-yellow td{background:#fdf6da !important}
+table.tk tr.drow.cf-grey td{background:#f1f4f7 !important}
+/* freeze cột đầu (sticky-left) */
+table.tk.frz1 tr.drow td:first-child, table.tk.frz2 tr.drow td:first-child,
+table.tk.frz1 th:first-child, table.tk.frz2 th:first-child{position:sticky;left:0;z-index:4}
+table.tk.frz2 tr.drow td:nth-child(2), table.tk.frz2 th:nth-child(2){position:sticky;left:var(--frz1w);z-index:4}
+table.tk.frz1 th:first-child, table.tk.frz2 th:first-child, table.tk.frz2 th:nth-child(2){z-index:7}
+table.tk.frz1 tr.drow td:first-child, table.tk.frz1 th:first-child,
+table.tk.frz2 tr.drow td:nth-child(2), table.tk.frz2 th:nth-child(2){box-shadow:2px 0 5px -2px rgba(15,30,60,.22)}
+/* tìm & thay */
+.fr-panel{position:fixed;z-index:120;background:#fff;border:1px solid #d7dee7;border-radius:12px;box-shadow:0 12px 36px rgba(20,40,80,.2);padding:12px;width:280px;display:flex;flex-direction:column;gap:8px}
+.fr-row{display:flex;align-items:center;gap:8px}
+.fr-row input{flex:1;border:1px solid #d7dde4;border-radius:8px;padding:7px 9px;font:inherit;font-size:13px}
+.fr-row input:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 3px #2f6bff22}
+.fr-cnt{font-size:12px;font-weight:700;color:var(--blue);min-width:30px;text-align:right}
+table.tk td.fr-hit{background:#fff3bf !important;box-shadow:inset 0 0 0 1px #f0c000}
+table.tk td.fr-hit-cur{background:#ffe08a !important;box-shadow:inset 0 0 0 2px #e0a800}
 /* kéo di chuyển + kéo chỉnh cao dòng */
 table.tk tr.drow{cursor:default}
 table.tk td.dragH{cursor:grab;color:#8894a0;user-select:none;white-space:nowrap}
@@ -961,7 +993,7 @@ tr.mhf-tot td.n:last-child{font-size:17px;color:var(--blue)}
         <div id="tkNormal">
           <div class="floorhint" id="floorHint"></div>
           <div class="colchips" id="colChips"></div>
-          <div class="tbl-wrap"><table class="tk" id="tkTable"></table></div>
+          <div class="tbl-wrap"><table class="tk" id="tkTable" oncontextmenu="tkCtx(event)"></table></div>
         </div>
         <div id="ptWrap" style="display:none"></div>
       </div>
