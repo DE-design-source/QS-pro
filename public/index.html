@@ -897,6 +897,39 @@ tr.mhf-tot td.n:last-child{font-size:17px;color:var(--blue)}
 .mhsum-f{border-top:1px solid var(--line);padding:14px 16px;background:#fbfcfe}
 .mhsum-grand{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;font-size:13px;color:var(--muted)}
 .mhsum-grand b{font-size:17px;color:var(--blue)}
+/* ===== Đăng nhập ===== */
+#loginScreen{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;background:linear-gradient(160deg,#eef3fb,#e4ecf7)}
+.login-card{background:#fff;width:360px;max-width:92vw;border-radius:16px;box-shadow:0 18px 60px rgba(20,40,80,.18);padding:30px 28px 26px;text-align:center}
+.login-t{font-size:19px;font-weight:800;color:#1f2b38;margin-top:6px}
+.login-sub{font-size:12.5px;color:#8a96a5;margin-bottom:16px}
+.login-lb{display:block;text-align:left;font-size:12px;font-weight:600;color:#3a4653;margin:12px 0 5px}
+.login-in{width:100%;border:1px solid #d7dde4;border-radius:10px;padding:11px 12px;font:inherit;font-size:14px;box-sizing:border-box}
+.login-in:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2f6bff22;outline:none}
+.login-btn{width:100%;margin-top:18px;background:var(--blue);color:#fff;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:700;cursor:pointer}
+.login-btn:hover{filter:brightness(1.05)} .login-btn:disabled{opacity:.6;cursor:default}
+.login-msg{display:none;background:#fdecec;color:#c0392b;border:1px solid #f3c9c6;border-radius:8px;padding:8px 10px;font-size:12.5px;margin-bottom:4px}
+/* ===== Chip user ===== */
+.userchip{display:inline-flex;align-items:center;gap:8px;cursor:pointer;padding:5px 10px 5px 5px;border:1px solid #e2e8f0;border-radius:22px;background:#fff;position:relative;margin-left:6px}
+.userchip:hover{border-color:#c3ccd8}
+.uc-av{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.uc-name{font-size:13px;font-weight:600;color:#3a4653}
+.uc-menu{position:absolute;top:110%;right:0;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 12px 34px rgba(20,40,80,.16);min-width:200px;padding:6px;z-index:60}
+.uc-hd{padding:8px 10px;border-bottom:1px solid #eef1f5;margin-bottom:4px}
+.uc-hd b{display:block;font-size:13.5px;color:#1f2b38} .uc-role{font-size:11.5px;color:#8a96a5}
+.uc-menu a{display:block;padding:9px 10px;font-size:13px;color:#3a4653;border-radius:8px;cursor:pointer}
+.uc-menu a:hover{background:#eef5ff;color:var(--blue)} .uc-menu a.danger{color:#c0392b} .uc-menu a.danger:hover{background:#fdeceb}
+/* ===== Bảng admin ===== */
+table.admtbl{width:100%;border-collapse:collapse;font-size:13px}
+table.admtbl th{background:#f4f6f9;color:#5b6b7b;font-weight:700;text-align:left;padding:9px 11px;font-size:11.5px;border-bottom:1px solid #e6ebf0}
+table.admtbl td{padding:9px 11px;border-bottom:1px solid #eef1f5;vertical-align:middle}
+table.admtbl tr.locked{opacity:.55}
+table.admtbl .muted{color:#94a3b8;font-size:12px}
+.rolebadge{font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px}
+.rolebadge.adm{background:#eef2ff;color:#4f46e5} .rolebadge.stf{background:#eef5f0;color:#2f855a}
+.st-ok{color:#2f855a;font-size:12px;font-weight:600} .st-lk{color:#c0392b;font-size:12px;font-weight:600}
+.admact{white-space:nowrap;display:flex;gap:5px}
+.btn.xs{padding:3px 9px;font-size:12px;border-radius:7px}
+.btn.ghost.danger{color:#c0392b} .btn.ghost.danger:hover{background:#fdeceb;border-color:#e0a39d}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -913,8 +946,32 @@ tr.mhf-tot td.n:last-child{font-size:17px;color:var(--blue)}
   <div class="right">
     <a class="rbtn" data-tab="sanpham"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="4" rx="1.2"/><rect x="3" y="10" width="18" height="4" rx="1.2"/><rect x="3" y="16" width="18" height="4" rx="1.2"/></svg>Danh sách sản phẩm</a>
     <a class="rbtn primary" data-tab="import"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M4 21h16"/></svg>Nhập dữ liệu</a>
+    <a class="rbtn" id="navAdmin" data-tab="admin" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Admin</a>
+    <div class="userchip" id="userChip" style="display:none" onclick="toggleUserMenu(event)">
+      <span class="uc-av" id="ucAv">?</span><span class="uc-name" id="ucName">—</span>
+      <div class="uc-menu" id="ucMenu" style="display:none">
+        <div class="uc-hd"><b id="ucFull">—</b><span id="ucRole" class="uc-role">—</span></div>
+        <a onclick="openChangePw()">Đổi mật khẩu</a>
+        <a class="danger" onclick="authLogout_()">Đăng xuất</a>
+      </div>
+    </div>
   </div>
 </div></div></div>
+
+<!-- ===== MÀN ĐĂNG NHẬP ===== -->
+<div id="loginScreen" style="display:none">
+  <div class="login-card">
+    <img class="logo" src="logo.svg" alt="Dezon Pro" style="height:34px;margin:0 auto 6px">
+    <div class="login-t">Đăng nhập hệ thống</div>
+    <div class="login-sub">Dezon Pro — Dự toán chuyên nghiệp</div>
+    <div class="login-msg" id="loginMsg"></div>
+    <label class="login-lb">Tên đăng nhập</label>
+    <input id="loginUser" class="login-in" autocomplete="username" placeholder="vd: admin" onkeydown="if(event.key==='Enter')doLogin_()">
+    <label class="login-lb">Mật khẩu</label>
+    <input id="loginPw" class="login-in" type="password" autocomplete="current-password" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin_()">
+    <button class="login-btn" id="loginBtn" onclick="doLogin_()">Đăng nhập</button>
+  </div>
+</div>
 
 <div class="wrap">
   <!-- breadcrumb -->
@@ -1028,6 +1085,7 @@ tr.mhf-tot td.n:last-child{font-size:17px;color:var(--blue)}
   <!-- ===== VIEW: NHẬP DỮ LIỆU ===== -->
   <div class="view" id="v-import"></div>
   <div class="view" id="v-sanpham"></div>
+  <div class="view" id="v-admin"></div>
 </div>
 
 <!-- create project modal -->

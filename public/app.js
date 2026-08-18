@@ -1,13 +1,19 @@
 /* DECOX QS Pro — logic giao diện mới, nối backend /api/:fn */
 'use strict';
 
+/* ===== AUTH token ===== */
+function authToken(){ try{ return localStorage.getItem('qs_token')||''; }catch(e){ return ''; } }
+function setAuthToken(t){ try{ if(t) localStorage.setItem('qs_token',t); else localStorage.removeItem('qs_token'); }catch(e){} }
+function authLogout_(){ setAuthToken(''); try{ localStorage.removeItem('qs_user'); }catch(e){} location.reload(); }
+
 /* ===== API ===== */
 function api(fn){
   var args = Array.prototype.slice.call(arguments,1);
-  return fetch('/api/'+encodeURIComponent(fn),{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({args:args})})
-    .then(function(r){ return r.json().catch(function(){ return {error:'HTTP '+r.status}; }); })
-    .then(function(d){ if(d&&d.error) throw new Error(d.error); return d?d.result:null; });
+  var h={'Content-Type':'application/json'}; var t=authToken(); if(t) h['Authorization']='Bearer '+t;
+  return fetch('/api/'+encodeURIComponent(fn),{method:'POST',headers:h, body:JSON.stringify({args:args})})
+    .then(function(r){ return r.json().catch(function(){ return {error:'HTTP '+r.status}; }).then(function(d){ d=d||{}; d._status=r.status; return d; }); })
+    .then(function(d){ if(d && d.code==='NOAUTH'){ setAuthToken(''); if(typeof showLogin_==='function') showLogin_('Phiên đã hết, mời đăng nhập lại.'); throw new Error('Chưa đăng nhập'); }
+      if(d&&d.error) throw new Error(d.error); return d?d.result:null; });
 }
 function money(n){ return (Math.round(Number(n)||0)).toLocaleString('vi-VN'); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];}); }
@@ -317,7 +323,7 @@ document.querySelector('.topnav .right').addEventListener('click',function(e){
 });
 function showTab(tab){
   document.querySelectorAll('#nav a, .topnav .right a').forEach(function(a){ a.classList.toggle('active',a.getAttribute('data-tab')===tab); });
-  ['boc','project','dash','chiphi','export','import','sanpham','muahang'].forEach(function(v){
+  ['boc','project','dash','chiphi','export','import','sanpham','muahang','admin'].forEach(function(v){
     var el=document.getElementById('v-'+v); if(el) el.classList.toggle('on',v===tab);
   });
   if(tab==='project') renderProjects();
@@ -327,6 +333,7 @@ function showTab(tab){
   if(tab==='import') renderImport();
   if(tab==='sanpham') renderSanpham();
   if(tab==='muahang') renderMuahang();
+  if(tab==='admin') renderAdmin();
 }
 
 /* ===== PROJECT ===== */
@@ -2708,7 +2715,96 @@ function renderPhanTho(){
     + '</div>';
 }
 
+/* ===================== AUTH & ADMIN ===================== */
+async function authStart_(){
+  var t=authToken();
+  if(!t){ showLogin_(); return; }
+  try{ var u=await api('me'); S.me=u; onAuthed_(); }
+  catch(e){ setAuthToken(''); showLogin_(); }
+}
+function showLogin_(msg){
+  var ls=document.getElementById('loginScreen'); if(ls) ls.style.display='flex';
+  var m=document.getElementById('loginMsg'); if(m){ m.textContent=msg||''; m.style.display=msg?'block':'none'; }
+  var u=document.getElementById('loginUser'); if(u) setTimeout(function(){u.focus();},60);
+}
+async function doLogin_(){
+  var user=(document.getElementById('loginUser').value||'').trim();
+  var pw=document.getElementById('loginPw').value||'';
+  var btn=document.getElementById('loginBtn'), msg=document.getElementById('loginMsg');
+  function err(t){ if(msg){ msg.style.display='block'; msg.textContent=t; } }
+  if(!user||!pw){ err('Nhập tên đăng nhập và mật khẩu'); return; }
+  btn.disabled=true; btn.textContent='Đang đăng nhập…';
+  try{ var r=await api('login',user,pw); setAuthToken(r.token); S.me=r.user;
+    document.getElementById('loginPw').value=''; onAuthed_(); }
+  catch(e){ err(e.message||'Đăng nhập thất bại'); }
+  btn.disabled=false; btn.textContent='Đăng nhập';
+}
+function onAuthed_(){ var ls=document.getElementById('loginScreen'); if(ls) ls.style.display='none'; applyRoleUI_(); boot(); }
+function applyRoleUI_(){
+  var me=S.me||{}, nm=me.hoTen||me.username||'';
+  var chip=document.getElementById('userChip'); if(chip) chip.style.display='';
+  var byId=function(id){return document.getElementById(id);};
+  if(byId('ucName')) byId('ucName').textContent=me.username||'';
+  if(byId('ucAv')) byId('ucAv').textContent=(nm||'?').trim().charAt(0).toUpperCase();
+  if(byId('ucFull')) byId('ucFull').textContent=nm;
+  if(byId('ucRole')) byId('ucRole').textContent = me.role==='admin'?'Quản trị viên':'Nhân viên';
+  var na=byId('navAdmin'); if(na) na.style.display = me.role==='admin'?'':'none';
+}
+function toggleUserMenu(e){ e.stopPropagation(); var m=document.getElementById('ucMenu'); if(!m)return; var open=m.style.display!=='none'; m.style.display=open?'none':'block'; if(!open) setTimeout(function(){ document.addEventListener('mousedown',ucOut_); },0); }
+function ucOut_(e){ if(!e.target.closest('#userChip')){ var m=document.getElementById('ucMenu'); if(m)m.style.display='none'; document.removeEventListener('mousedown',ucOut_); } }
+function openChangePw(){ var m=document.getElementById('ucMenu'); if(m)m.style.display='none';
+  var oldp=prompt('Mật khẩu hiện tại:'); if(oldp===null) return;
+  var np=prompt('Mật khẩu mới (≥4 ký tự):'); if(np===null) return;
+  api('changePassword',oldp,np).then(function(){ toast('Đã đổi mật khẩu'); }).catch(function(e){ toast('Lỗi: '+e.message); });
+}
+function fmtDateTime_(s){ if(!s)return'—'; try{ return new Date(s).toLocaleString('vi-VN'); }catch(e){ return String(s); } }
+function admActionLabel_(a){ var m={login:'Đăng nhập',logout:'Đăng xuất',login_fail:'ĐN lỗi',create_user:'Tạo TK',update_user:'Sửa TK',delete_user:'Xóa TK',reset_password:'Đặt lại MK',change_password:'Đổi MK',lock_user:'Khóa TK',unlock_user:'Mở khóa'}; return m[a]||a; }
+async function renderAdmin(){
+  var box=document.getElementById('v-admin'); if(!box) return;
+  if(!S.me||S.me.role!=='admin'){ box.innerHTML='<div class="sechd"><h2>Quản trị</h2></div><div class="empty">Bạn không có quyền truy cập.</div>'; return; }
+  box.innerHTML='<div class="sechd"><h2>Quản trị — Tài khoản & phân quyền</h2></div><div id="admBody"><div class="empty">Đang tải…</div></div>';
+  try{
+    var users=await api('adminListUsers'); var logs=await api('getAuditLog',120); S._admUsers=users;
+    document.getElementById('admBody').innerHTML=admUsersCard_(users)+admLogCard_(logs);
+  }catch(e){ document.getElementById('admBody').innerHTML='<div class="empty">Lỗi tải: '+esc(e.message)+'</div>'; }
+}
+function admUsersCard_(users){
+  var rows=users.map(function(u){
+    return '<tr class="'+(u.active?'':'locked')+'">'
+      +'<td><b>'+esc(u.username)+'</b></td><td>'+esc(u.hoTen||'')+'</td>'
+      +'<td><span class="rolebadge '+(u.role==='admin'?'adm':'stf')+'">'+(u.role==='admin'?'Admin':'Nhân viên')+'</span></td>'
+      +'<td>'+(u.active?'<span class="st-ok">● Hoạt động</span>':'<span class="st-lk">● Đã khóa</span>')+'</td>'
+      +'<td class="muted">'+(u.lastLogin?fmtDateTime_(u.lastLogin):'—')+'</td>'
+      +'<td class="admact"><button class="btn ghost xs" onclick="admEdit(\''+u.id+'\')">Sửa</button>'
+        +'<button class="btn ghost xs" onclick="admResetPw(\''+u.id+'\')">Đặt MK</button>'
+        +'<button class="btn ghost xs" onclick="admToggleActive(\''+u.id+'\','+(u.active?'false':'true')+')">'+(u.active?'Khóa':'Mở')+'</button>'
+        +'<button class="btn ghost xs danger" onclick="admDelete(\''+u.id+'\')">Xóa</button></td></tr>';
+  }).join('');
+  var inner='<div style="margin-bottom:12px"><button class="btn blue sm" onclick="admCreate()">'+icon('plus',14)+' Thêm tài khoản</button></div>'
+    +'<div class="tbl-wrap"><table class="admtbl"><tr><th>Tên đăng nhập</th><th>Họ tên</th><th>Vai trò</th><th>Trạng thái</th><th>Đăng nhập gần nhất</th><th></th></tr>'+rows+'</table></div>';
+  return dbCard_('Tài khoản ('+users.length+')','lock','Admin toàn quyền · Nhân viên không mở được trang này.',inner);
+}
+function admLogCard_(logs){
+  var rows=logs.map(function(l){ return '<tr><td class="muted">'+fmtDateTime_(l.at)+'</td><td><b>'+esc(l.username||'')+'</b></td><td>'+esc(admActionLabel_(l.action))+'</td><td class="muted">'+esc(l.detail||'')+'</td></tr>'; }).join('');
+  return dbCard_('Nhật ký hoạt động','list','', '<div class="tbl-wrap"><table class="admtbl"><tr><th style="width:170px">Thời gian</th><th>Người dùng</th><th>Hành động</th><th>Chi tiết</th></tr>'+(rows||'<tr><td colspan="4" class="muted">Chưa có</td></tr>')+'</table></div>');
+}
+function admCreate(){
+  var username=prompt('Tên đăng nhập (chữ thường, số, . _ -):'); if(!username) return;
+  var hoTen=prompt('Họ tên:')||'';
+  var role=confirm('Cấp quyền ADMIN?\n\nOK = Admin (toàn quyền)\nCancel = Nhân viên')?'admin':'staff';
+  var pw=prompt('Mật khẩu ban đầu (≥4 ký tự):'); if(!pw) return;
+  api('adminCreateUser',{username:username,hoTen:hoTen,role:role,password:pw}).then(function(){ toast('Đã tạo tài khoản '+username); renderAdmin(); }).catch(function(e){ toast('Lỗi: '+e.message); });
+}
+function admEdit(id){ var u=(S._admUsers||[]).filter(function(x){return x.id===id;})[0]; if(!u)return;
+  var hoTen=prompt('Họ tên:',u.hoTen||''); if(hoTen===null) return;
+  var role=confirm('Vai trò ADMIN?  (hiện tại: '+(u.role==='admin'?'Admin':'Nhân viên')+')\n\nOK = Admin\nCancel = Nhân viên')?'admin':'staff';
+  api('adminUpdateUser',id,{hoTen:hoTen,role:role}).then(function(){ toast('Đã cập nhật'); renderAdmin(); }).catch(function(e){ toast('Lỗi: '+e.message); });
+}
+function admResetPw(id){ var np=prompt('Mật khẩu mới (≥4 ký tự):'); if(!np) return; api('adminSetPassword',id,np).then(function(){ toast('Đã đặt lại mật khẩu'); }).catch(function(e){ toast('Lỗi: '+e.message); }); }
+function admToggleActive(id,active){ api('adminSetActive',id,active).then(function(){ toast(active?'Đã mở khóa':'Đã khóa'); renderAdmin(); }).catch(function(e){ toast('Lỗi: '+e.message); }); }
+function admDelete(id){ var u=(S._admUsers||[]).filter(function(x){return x.id===id;})[0]; if(!confirm('Xóa tài khoản "'+(u?u.username:'')+'"? Không thể hoàn tác.')) return; api('adminDeleteUser',id).then(function(){ toast('Đã xóa'); renderAdmin(); }).catch(function(e){ toast('Lỗi: '+e.message); }); }
+
 /* ===== GO ===== */
 initCols();
 initTableInteractions();
-boot();
+authStart_();

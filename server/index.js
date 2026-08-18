@@ -12,6 +12,7 @@ const supa = require('./supa');
 // Dùng Supabase nếu đã cấu hình (SUPABASE_URL/KEY), ngược lại dùng Lark.
 const store = supa.ok() ? require('./store_supa') : require('./store');
 const lark = require('./lark');
+const auth = require('./auth');
 const exportBaoGia = require('./export');
 console.log('Nguồn dữ liệu:', supa.ok() ? 'Supabase' : 'Lark');
 
@@ -55,8 +56,28 @@ const REGISTRY = {
   importCommit: store.importCommit,
   exportBaoGia: exportBaoGia,
   sendPurchaseRequest: sendPurchaseRequest,
-  getPurchaseOrders: store.getPurchaseOrders
+  getPurchaseOrders: store.getPurchaseOrders,
+  // ===== Auth & phân quyền =====
+  login: auth.login,
+  me: auth.me,
+  logout: auth.logout,
+  changePassword: auth.changePassword,
+  adminListUsers: auth.adminListUsers,
+  adminCreateUser: auth.adminCreateUser,
+  adminUpdateUser: auth.adminUpdateUser,
+  adminSetPassword: auth.adminSetPassword,
+  adminSetActive: auth.adminSetActive,
+  adminDeleteUser: auth.adminDeleteUser,
+  getAuditLog: auth.getAuditLog
 };
+// Hàm không cần đăng nhập
+const PUBLIC_FNS = new Set(['login']);
+// Hàm cần đưa "actor" (người thao tác) làm tham số đầu
+const ACTOR_FNS = new Set(['me', 'logout', 'changePassword',
+  'adminCreateUser', 'adminUpdateUser', 'adminSetPassword', 'adminSetActive', 'adminDeleteUser']);
+// Hàm chỉ Admin được gọi
+const ADMIN_FNS = new Set(['adminListUsers', 'adminCreateUser', 'adminUpdateUser',
+  'adminSetPassword', 'adminSetActive', 'adminDeleteUser', 'getAuditLog']);
 
 // ===== Gửi yêu cầu mua hàng tới webhook Lark (bot incoming webhook) =====
 const PURCHASE_WEBHOOK = process.env.PURCHASE_WEBHOOK ||
@@ -156,9 +177,17 @@ app.post('/api/:fn', async function (req, res) {
   if (typeof handler !== 'function') {
     return res.status(404).json({ error: 'Không hỗ trợ hàm: ' + fn });
   }
+  // ---- Xác thực & phân quyền ----
+  const tok = (req.headers.authorization || '').replace(/^Bearer\s+/i, '') || (req.body && req.body.token) || '';
+  const actor = tok ? auth.verifyToken(tok) : null;
+  if (!PUBLIC_FNS.has(fn)) {
+    if (!actor) return res.status(401).json({ error: 'Chưa đăng nhập', code: 'NOAUTH' });
+    if (ADMIN_FNS.has(fn) && actor.r !== 'admin') return res.status(403).json({ error: 'Không có quyền (chỉ Admin)' });
+  }
   const args = (req.body && Array.isArray(req.body.args)) ? req.body.args : [];
   try {
-    const result = await handler.apply(null, args);
+    const callArgs = ACTOR_FNS.has(fn) ? [actor].concat(args) : args;
+    const result = await handler.apply(null, callArgs);
     res.json({ ok: true, result: result === undefined ? null : result });
   } catch (e) {
     console.error('[api] ' + fn + ' lỗi:', e && e.message);
