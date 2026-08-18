@@ -1264,14 +1264,16 @@ function syncActGutter(){
   // Bảng HẸP hơn khung -> bám sát mép phải của bảng thật.
   var overflowX = wrap.scrollWidth > wrap.clientWidth + 1;
   var edge = overflowX ? wr.right : Math.min(t.getBoundingClientRect().right, wr.left + wrap.clientWidth);
+  var hsb = wrap.offsetHeight - wrap.clientHeight;   // chiều cao thanh cuộn ngang (đáy)
   g.style.left=(edge - nb.left + 2)+'px'; g.style.right='auto';
-  g.style.top=(wr.top-nb.top)+'px'; g.style.height=wr.height+'px';
+  // gutter bắt đầu DƯỚI header dính, kết thúc TRÊN thanh cuộn ngang -> overflow:hidden che phần thừa
+  g.style.top=(wr.top - nb.top + headH)+'px'; g.style.height=Math.max(0, wr.height - headH - hsb)+'px';
   var rows=document.querySelectorAll('#tkTable tr.drow');
   var btns=document.querySelectorAll('#actGutterInner .agx');
   btns.forEach(function(b,i){ var tr=rows[i]; if(!tr){ b.style.display='none'; return; }
-    var r=tr.getBoundingClientRect();
-    var vis=(r.bottom>wr.top+headH+2 && r.top<wr.bottom-2);
-    b.style.top=(r.top-wr.top + r.height/2 - 9.5)+'px';
+    var r=tr.getBoundingClientRect(), mid=r.top + r.height/2;
+    var vis = mid > wr.top+headH+1 && mid < wr.bottom-hsb-1;   // chỉ hiện khi TÂM dòng trong vùng nhìn thấy
+    b.style.top=(mid - (wr.top+headH) - 9.5)+'px';
     b.style.display=vis?'':'none';
   });
 }
