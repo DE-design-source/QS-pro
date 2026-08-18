@@ -465,7 +465,9 @@ table.tk tr.drow.dragging{opacity:.4}
 table.tk tr.drow.dropTop td{box-shadow:inset 0 3px 0 var(--blue)}
 table.tk tr.drow.dropBot td{box-shadow:inset 0 -3px 0 var(--blue)}
 table.tk tr.grp.dropInto td{outline:2px dashed #ffffff88;outline-offset:-3px}
-table.tk td.actcell{position:relative;min-width:44px}
+table.tk td.actcell{position:sticky;right:0;z-index:3;min-width:42px;background:#fff;box-shadow:-3px 0 6px -3px rgba(15,30,60,.22)}
+table.tk th.actcol{position:sticky;right:0;z-index:7;background:var(--navy);box-shadow:-3px 0 6px -3px rgba(15,30,60,.22)}
+table.tk tr.drow:hover td.actcell{background:#f5f8fc}
 table.tk .rgrip{cursor:row-resize;color:#9aa;font-size:12px;line-height:1;margin-top:6px;user-select:none;text-align:center}
 table.tk .rgrip:hover{color:var(--blue)}
 table.tk tr.drow td{overflow:hidden}
@@ -953,13 +955,14 @@ tr.mhf-tot td.n:last-child{font-size:17px;color:var(--blue)}
           <div class="msel" id="fNhom" onclick="openNhomMsel(event)"><span class="mlabel">Tất cả hạng mục</span><span class="mplus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
           <div class="mlbl">Đèn trong dự án</div>
           <div class="msel" id="fInProj" onclick="toggleInProj()"><span class="mlabel" id="fInProjLabel">Tất cả sản phẩm</span><span class="mplus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
-          </div>
-
-          <!-- Tile bộ lọc (popover nổi, mở bằng nút "bộ lọc") -->
-          <div id="lightFilters" class="filt-pop" style="display:none">
-          <div class="filt-pop-hd"><b>Bộ lọc liên quan</b><span class="filt-pop-x" onclick="toggleFiltDrop()">✕</span></div>
+          <!-- Lọc nhanh luôn hiện: Công suất + Nhiệt độ màu -->
           <div class="fsec open" id="sec_watt"><div class="fsec-h" onclick="toggleFsec('watt')"><span class="fsec-t">Công suất</span><span class="fsec-n" id="nWatt"></span><span class="fsec-c">▾</span></div><div class="chips" id="fWatt"></div></div>
           <div class="fsec open" id="sec_kelvin"><div class="fsec-h" onclick="toggleFsec('kelvin')"><span class="fsec-t">Nhiệt độ màu</span><span class="fsec-n" id="nKelvin"></span><span class="fsec-c">▾</span></div><div class="chips" id="fKelvin"></div></div>
+          </div>
+
+          <!-- Tile bộ lọc (popover nổi, mở bằng nút "bộ lọc") — lọc phụ -->
+          <div id="lightFilters" class="filt-pop" style="display:none">
+          <div class="filt-pop-hd"><b>Bộ lọc liên quan</b><span class="filt-pop-x" onclick="toggleFiltDrop()">✕</span></div>
           <div class="fsec open" id="sec_angle"><div class="fsec-h" onclick="toggleFsec('angle')"><span class="fsec-t">Góc chiếu sáng</span><span class="fsec-n" id="nAngle"></span><span class="fsec-c">▾</span></div><div class="chips" id="fAngle"></div></div>
           <input id="fSearch" type="hidden" value="">
           <div class="lbl">Thương hiệu</div>

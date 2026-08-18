@@ -920,26 +920,26 @@ function renderTable(){
   lines.forEach(function(l){ var g=(l.tang||'').trim()||'CHƯA PHÂN TẦNG'; (groups[g]=groups[g]||[]).push(l); });
   var order=floorsList().slice();
   Object.keys(groups).forEach(function(g){ if(order.indexOf(g)<0) order.push(g); });
-  var totalW=cols.reduce(function(s,c){ return s+colW(c[0]); },0);
-  var colg='<colgroup>'+cols.map(function(c){ return '<col style="width:'+colW(c[0])+'px">'; }).join('')+'</colgroup>';
+  var totalW=cols.reduce(function(s,c){ return s+colW(c[0]); },0)+42;
+  var colg='<colgroup>'+cols.map(function(c){ return '<col style="width:'+colW(c[0])+'px">'; }).join('')+'<col style="width:42px"></colgroup>';
   var head='<tr>'+cols.map(function(c){ var cls=numK.indexOf(c[0])>=0?'num':(ctK.indexOf(c[0])>=0?'ct':'');
     var lbl=c[1], on=S.sortKey===c[0];
     return '<th class="thk '+cls+(flt[c[0]]?' fltOn':'')+(on?' sortOn':'')+'" data-k="'+c[0]+'" draggable="true"><span class="thl" onclick="toggleSort(\''+c[0]+'\')" title="Bấm để sắp xếp">'+esc(lbl)+(on?(S.sortDir==='desc'?' ▼':' ▲'):'')+'</span>'
-      +'<span class="thflt" title="Lọc cột" onclick="openFilter(event,\''+c[0]+'\')">▾</span><span class="thrsz" data-k="'+c[0]+'"></span></th>'; }).join('')+'</tr>';
+      +'<span class="thflt" title="Lọc cột" onclick="openFilter(event,\''+c[0]+'\')">▾</span><span class="thrsz" data-k="'+c[0]+'"></span></th>'; }).join('')+'<th class="actcol"></th></tr>';
   var body='';
-  if(!order.length){ body='<tr><td class="empty" colspan="'+cols.length+'">Chưa có tầng/hạng mục. Bấm “＋ Tầng”, rồi “＋ Hạng mục” — hoặc thêm sản phẩm từ danh mục bên trái.</td></tr>'; }
+  if(!order.length){ body='<tr><td class="empty" colspan="'+(cols.length+1)+'">Chưa có tầng/hạng mục. Bấm “＋ Tầng”, rồi “＋ Hạng mục” — hoặc thêm sản phẩm từ danh mục bên trái.</td></tr>'; }
   order.forEach(function(g,gi){
     var roman=['I','II','III','IV','V','VI','VII','VIII','IX','X'][gi]||(gi+1);
     var col=S.collapsed[g]?'▸':'▾';
     var gval=(g==='CHƯA PHÂN TẦNG'?'':g), isSel=((S.selFloor||'')===gval);
     var gsum=(groups[g]||[]).reduce(function(s,l){ return s+(Number(l.thanhTienBan)||0); },0);
-    body+='<tr class="grp'+(isSel?' selFloor':'')+'" draggable="true" data-g="'+esc(g)+'"><td colspan="'+cols.length+'" data-f="'+esc(g)+'">'
+    body+='<tr class="grp'+(isSel?' selFloor':'')+'" draggable="true" data-g="'+esc(g)+'"><td colspan="'+(cols.length+1)+'" data-f="'+esc(g)+'">'
       +'<span class="gcol" onclick="event.stopPropagation();toggleFloor(this.closest(\'td\').dataset.f)">'+col+'</span> '
       +'<span class="gname" onclick="selectFloor(this.closest(\'td\').dataset.f)" ondblclick="renameFloor(this.closest(\'td\').dataset.f)" title="Bấm để chọn tầng · bấm đúp đổi tên" style="cursor:pointer">'+roman+'. '+esc(g)+'</span>'
       +'<span class="gsel" onclick="selectFloor(this.closest(\'td\').dataset.f)">'+(isSel?'✓ đang thêm':'chọn')+'</span>'
       +'<span class="gsum">Tổng tầng: <b>'+money(gsum)+' đ</b></span></td></tr>';
     if(S.collapsed[g]) return;
-    var tkSpacer='<tr class="tk-spacer"><td colspan="'+cols.length+'"></td></tr>';   // khoảng trắng: 1 ô, KHÔNG kẻ dọc
+    var tkSpacer='<tr class="tk-spacer"><td colspan="'+(cols.length+1)+'"></td></tr>';   // khoảng trắng: 1 ô, KHÔNG kẻ dọc
     body+=tkSpacer;   // dòng khoảng trắng sau header tầng (như PDF)
     sortLines_(groups[g]||[]).forEach(function(l,ri){
       var hs=S.rowH[l.lineId]?' style="height:'+S.rowH[l.lineId]+'px"':'';
@@ -947,12 +947,12 @@ function renderTable(){
         var k=c[0];
         if(k==='stt') return '<td class="ct dragH" title="Kéo để di chuyển dòng · chuột phải để xoá"><span class="grip">⠿</span> '+(gi+1)+'.'+(ri+1)+'</td>';
         return cellInput(l,k);
-      }).join('')+'</tr>';
+      }).join('')+'<td class="ct actcell"><button class="del" title="Xoá dòng" onclick="delLine(\''+l.lineId+'\')">✕</button><div class="rgrip" data-id="'+l.lineId+'" title="Kéo để chỉnh chiều cao dòng">⇕</div></td></tr>';
     });
     body+=tkSpacer;   // dòng khoảng trắng trước tầng kế (như PDF)
   });
   var selF=(S.selFloor||'').trim();
-  body+='<tr class="addrow"><td colspan="'+cols.length+'">'
+  body+='<tr class="addrow"><td colspan="'+(cols.length+1)+'">'
     +'<button class="addbtn floor" onclick="openAddFloor(event)">'+icon('plus',15)+'Thêm tầng</button>'
     +'<button class="addbtn item" onclick="addBlankItem()" title="Thêm 1 hạng mục trống vào tầng đang chọn">'+icon('plus',15)+'Thêm hạng mục'
       +(selF?'<span class="addbtn-sub">vào '+esc(selF)+'</span>':'')+'</button>'
