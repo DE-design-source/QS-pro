@@ -1266,7 +1266,7 @@ function syncActGutter(){
   btns.forEach(function(b,i){ var tr=rows[i]; if(!tr){ b.style.display='none'; return; }
     var r=tr.getBoundingClientRect();
     var vis=(r.bottom>wr.top+headH+2 && r.top<wr.bottom-2);
-    b.style.top=(r.top-wr.top + r.height/2 - 11)+'px';
+    b.style.top=(r.top-wr.top + r.height/2 - 9.5)+'px';
     b.style.display=vis?'':'none';
   });
 }
