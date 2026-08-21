@@ -1657,9 +1657,9 @@ function renderChiphi(){
     +cpKpi_(icon('money',17),'Tổng giá bán',money(ban)+' đ','blue')
     +cpKpi_(icon('gauge',17),'Lợi nhuận',money(lnT)+' đ',lnCls)
     +cpKpi_(icon('gauge',17),'Biên lợi nhuận',bien.toFixed(1)+'%',lnCls)+'</div>';
-  var open=S._cpColsOpen;
-  var colbar='<div class="cp-colbar"><button class="btn ghost sm'+(open?' on':'')+'" onclick="cpColsToggle()">'+icon('sliders',14)+' Cột hiển thị</button>'
-    +'<div class="cp-chips'+(open?' open':'')+'">'+CP_KEYS.map(function(k){ return '<span class="spchip sm'+(S.cpCols[k]?' on':'')+'" onclick="cpToggle(\''+k+'\')">'+esc(cpLabel_(k))+'</span>'; }).join('')+'</div></div>';
+  // hàng chip cột hiện sẵn (giống .colchips bên Bóc tách)
+  var colbar='<div class="colchips cp-colchips"><span class="cp-collbl">Cột hiển thị</span>'
+    +CP_KEYS.map(function(k){ return '<span class="chip'+(S.cpCols[k]?' on':'')+'" onclick="cpToggle(\''+k+'\')">'+esc(cpLabel_(k))+'</span>'; }).join('')+'</div>';
   // ---- Bảng y hệt Bóc tách: colgroup + header navy + nhóm theo tầng + spacer + drow alt ----
   var ncol=keys.length+1;
   var totalW=64+keys.reduce(function(s,k){ return s+colW(k); },0);
