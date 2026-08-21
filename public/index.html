@@ -497,34 +497,12 @@ table.tk textarea.cin{min-height:34px;resize:vertical;line-height:1.3;white-spac
 .cp-chips{display:none;flex-wrap:wrap;gap:6px;padding:10px 12px;background:#fbfcfe;border:1px solid var(--line);border-radius:12px}
 .cp-chips.open{display:flex}
 .cp-card{padding:0;overflow:hidden}
-.cp-card .tbl-wrap{max-height:none}
-table.cp-tbl{width:100%}
-table.cp-tbl th{background:var(--navy)}
-table.cp-tbl th.cp-cost,table.cp-tbl th.cp-sell,table.cp-tbl th.cp-kq{border-top:3px solid transparent}
-table.cp-tbl th.cp-cost{border-top-color:#94a3b8}
-table.cp-tbl th.cp-sell{border-top-color:#60a5fa}
-table.cp-tbl th.cp-kq{border-top-color:#34d399}
-table.cp-tbl td.cp-cost{background:#f9fafb}
-table.cp-tbl td.cp-sell{background:#f6faff}
-table.cp-tbl td.cp-kq{background:#f6fbf8}
-table.cp-tbl tbody tr:hover td{background:#eef5ff}
-table.cp-tbl td{padding:8px 10px;border-right:1px solid #e6eaef;border-bottom:1px solid #eef1f5}
-table.cp-tbl .cp-sub{display:block;font-size:11px;color:#98a4b0;font-weight:400;margin-top:1px}
-table.cp-tbl .cp-strong{color:var(--navy);font-size:13.5px}
-table.cp-tbl .cp-neg{color:#dc2626;font-weight:700} table.cp-tbl .cp-pos{color:#16a34a;font-weight:600}
-table.cp-tbl .cp-u{color:#9aa7b4;font-size:11px;margin-left:1px}
-/* ô nhập trong tab chi phí: hiện rõ là editable */
-table.cp-tbl .cin{border:1px solid #d7dee6;background:#fff;border-radius:7px;padding:6px 8px;min-width:0;box-shadow:inset 0 1px 2px rgba(0,0,0,.03)}
-table.cp-tbl .cin:hover{border-color:#bcc7d3}
-table.cp-tbl .cin:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px #2f6bff22;outline:none}
-table.cp-tbl .cin.cin-money{width:110px;text-align:right;font-weight:600}
-table.cp-tbl .cin.cin-sl{width:64px;text-align:center}
-.cp-pctwrap{display:inline-flex;align-items:center;position:relative}
-.cp-pctwrap .cin-pct{width:70px;text-align:right;padding-right:20px}
-.cp-pctwrap i{position:absolute;right:8px;color:#9aa7b4;font-size:11px;font-style:normal;pointer-events:none}
-table.cp-tbl tr.cp-foot td{position:sticky;bottom:0;background:#eef2f7;border-top:2px solid #cdd6e0;font-size:13px;padding:11px 10px}
-table.cp-tbl tr.cp-foot td.cp-kq{background:#e8f0ea}
-table.cp-tbl tr.cp-foot .cp-strong{font-size:14.5px}
+.cp-card .tbl-wrap{max-height:none;overflow:auto}
+/* bảng Chi phí = y hệt Bóc tách (.tk) + header dính + hàng TỔNG */
+table.tk.cpflat th{position:sticky;top:0;z-index:5}
+table.tk.cpflat .cp-neg{color:#dc2626;font-weight:700} table.tk.cpflat .cp-pos{color:#16a34a;font-weight:600}
+table.tk.cpflat tr.cp-foot td{position:sticky;bottom:0;background:#eef2f7;border-top:2px solid var(--navy);font-size:13px;padding:11px 12px;font-weight:700}
+table.tk.cpflat tr.cp-foot .cp-strong{color:var(--navy);font-size:14.5px}
 table.tk .lv1 td{background:#e9edf1;font-weight:700}
 table.tk .lv2 td{background:#f3f5f8}
 /* header cột: kéo đổi thứ tự / độ rộng / lọc */
