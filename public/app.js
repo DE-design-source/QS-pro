@@ -740,14 +740,44 @@ function renderSanpham(){
         +'<button class="btn blue sm" onclick="showTab(\'import\')">'+icon('plus',14)+' Thêm sản phẩm</button>'
       +'</div>'
       +'<div class="spbar" id="spBar"></div>'
-      +'<div class="tbl-wrap"><table class="sp-table"><thead><tr>'
-        +'<th class="selcol"><input type="checkbox" class="spck" id="spCkAll" onclick="spSelAll(this.checked)"></th>'
-        +'<th class="thumbcol"></th><th>Sản phẩm</th><th>Thương hiệu</th><th>Hạng mục</th><th>Thông số</th>'
-        +'<th class="num">Giá đại lý</th><th class="act-sp"></th></tr></thead>'
+      +'<div class="colchips sp-colchips" id="spColBar"></div>'
+      +'<div class="tbl-wrap"><table class="sp-table"><thead id="spHead"></thead>'
         +'<tbody id="spBody"></tbody></table></div>'
     +'</div><div id="spBulkWrap"></div>';
   S._spSel=S._spSel||{}; S._spFilters=S._spFilters||{};
-  renderSpChips_(); spFilter();
+  if(!S._spCols) S._spCols={thumb:1,ten:1,thuongHieu:1,hangMuc:1,specs:1,giaDaiLy:1};
+  renderSpChips_(); spColChips_(); spRenderHead_(); spFilter();
+}
+// ==== Cột bảng SP có thể ẩn/hiện (giữa cột chọn và cột thao tác) ====
+var SP_COLS=[
+  ['thumb','Ảnh','thumbcol',function(p){ return p.hinhAnh?'<img class="sp-th" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="sp-th"></span>'; }],
+  ['ten','Sản phẩm','sp-name',function(p){ return '<b>'+esc(p.ten||'')+'</b><span class="sp-code">'+esc(p.ma||'')+'</span>'; }],
+  ['thuongHieu','Thương hiệu','',function(p){ return p.thuongHieu?'<span class="tag-brand">'+esc(p.thuongHieu)+'</span>':''; }],
+  ['hangMuc','Loại đèn','',function(p){ return p.hangMuc?'<span class="tag-cat">'+esc(p.hangMuc)+'</span>':''; }],
+  ['ncc','Nhà cung cấp','',function(p){ return esc(p.ncc||''); }],
+  ['specs','Thông số','sp-specs',function(p){ return spSpecs_(p); }],
+  ['congSuat','Công suất','ct',function(p){ return p.congSuat?'<span class="spec">'+esc(p.congSuat)+'</span>':'—'; }],
+  ['nhietDo','Nhiệt độ màu','ct',function(p){ return p.nhietDo?'<span class="spec k">'+esc(p.nhietDo)+'</span>':'—'; }],
+  ['gocChieu','Góc chiếu','ct',function(p){ return p.gocChieu?esc(p.gocChieu):'—'; }],
+  ['cri','CRI','ct',function(p){ return p.cri?'CRI '+esc(p.cri):'—'; }],
+  ['giaDaiLy','Giá đại lý','num sp-price',function(p){ return money(p.donGiaBan)+'<span class="unit">đ</span>'; }]
+];
+function spColOn_(k){ return k==='ten' ? true : !!(S._spCols&&S._spCols[k]); }
+function spThCls_(c){ var cl=c[2]||''; if(cl.indexOf('num')>=0)return 'num'; if(cl.indexOf('ct')>=0)return 'ct'; if(cl.indexOf('thumbcol')>=0)return 'thumbcol'; return ''; }
+function spVisCols_(){ return SP_COLS.filter(function(c){ return spColOn_(c[0]); }); }
+function spColToggle(k){ if(k==='ten') return; S._spCols=S._spCols||{}; S._spCols[k]=!S._spCols[k]; spColChips_(); spRenderHead_(); spFilter(); }
+function spColChips_(){
+  var bar=document.getElementById('spColBar'); if(!bar) return;
+  bar.innerHTML='<span class="cp-collbl">Cột hiển thị</span>'+SP_COLS.map(function(c){
+    var lock=c[0]==='ten', on=spColOn_(c[0]);
+    return '<span class="chip'+(on?' on':'')+(lock?' lock':'')+'"'+(lock?'':' onclick="spColToggle(\''+c[0]+'\')"')+'>'+esc(c[1])+'</span>';
+  }).join('');
+}
+function spRenderHead_(){
+  var head=document.getElementById('spHead'); if(!head) return;
+  head.innerHTML='<tr><th class="selcol"><input type="checkbox" class="spck" id="spCkAll" onclick="spSelAll(this.checked)"></th>'
+    +spVisCols_().map(function(c){ return '<th class="'+spThCls_(c)+'">'+esc(c[1])+'</th>'; }).join('')
+    +'<th class="act-sp"></th></tr>';
 }
 // Thanh chip "Hạng mục đã bóc" = nhóm/dòng SP (giống bộ chọn hạng mục bên Bóc tách)
 // chuẩn hoá tên (gộp trùng hoa/thường + khoảng trắng)
@@ -766,8 +796,7 @@ function renderSpChips_(){
     +'<div class="sp-catwrap"><button class="tree-btn sp-catbtn" id="spCatBtn" onclick="spCatToggle(event)"><span class="sp-catlbl">'+esc(label)+'</span><span class="cnt">['+pad2(cnt)+']</span><span class="sp-caret">▾</span></button>'
       +'<div class="tree-pop" id="spCatPop" style="display:none"></div></div>'
     +(spFltCount_()?'<span class="spchip clr" onclick="spClearFilters()">✕ Xóa bộ lọc</span>':'')+'</div>';
-  // hàng 2: chip lọc nhanh theo Dòng SP (nhom) — theo hạng mục đang chọn
-  bar.innerHTML=catRow+spDongChips_();
+  bar.innerHTML=catRow;
   var badge=document.getElementById('spFltBadge'); var n=spFltCount_();
   if(badge){ badge.textContent=n||''; badge.style.display=n?'inline-flex':'none'; }
   var btn=document.getElementById('spBoLocBtn'); if(btn) btn.classList.toggle('on', n>0);
@@ -887,20 +916,16 @@ function spFilter(){
   S._spList=list; S._spSel=S._spSel||{};
   var cnt=document.getElementById('spCount'); if(cnt) cnt.textContent=list.length+' SP';
   var isAdmin=S.me&&S.me.role==='admin';
+  var vis=spVisCols_(), ncol=vis.length+2;
   document.getElementById('spBody').innerHTML=list.length?list.map(function(p,i){
     var sel=!!S._spSel[p.ma];
     return '<tr class="sp-row'+(sel?' selrow':'')+'" onclick="spModal('+i+')">'
       +'<td class="selcol" onclick="event.stopPropagation()"><input type="checkbox" class="spck" '+(sel?'checked':'')+' onclick="spSelToggle(\''+esc(p.ma)+'\',this.checked)"></td>'
-      +'<td class="thumbcol">'+(p.hinhAnh?'<img class="sp-th" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="sp-th"></span>')+'</td>'
-      +'<td class="sp-name"><b>'+esc(p.ten||'')+'</b><span class="sp-code">'+esc(p.ma||'')+'</span></td>'
-      +'<td>'+(p.thuongHieu?'<span class="tag-brand">'+esc(p.thuongHieu)+'</span>':'')+'</td>'
-      +'<td>'+(p.hangMuc?'<span class="tag-cat">'+esc(p.hangMuc)+'</span>':'')+'</td>'
-      +'<td class="sp-specs">'+spSpecs_(p)+'</td>'
-      +'<td class="num sp-price">'+money(p.donGiaBan)+'<span class="unit">đ</span></td>'
+      +vis.map(function(c){ return '<td class="'+c[2]+'">'+c[3](p)+'</td>'; }).join('')
       +'<td class="act-sp" onclick="event.stopPropagation()"><button class="sp-act" title="Xem chi tiết" onclick="spModal('+i+')">'+icon('eye',16)+'</button>'
         +(isAdmin?'<button class="sp-act del" title="Xoá" onclick="spDelete('+i+')">'+icon('trash',16)+'</button>':'')+'</td>'
     +'</tr>';
-  }).join(''):'<tr><td colspan="8"><div class="empty" style="margin:10px">Không có sản phẩm khớp bộ lọc.</div></td></tr>';
+  }).join(''):'<tr><td colspan="'+ncol+'"><div class="empty" style="margin:10px">Không có sản phẩm khớp bộ lọc.</div></td></tr>';
   var all=document.getElementById('spCkAll'); if(all) all.checked = list.length>0 && list.every(function(p){return S._spSel[p.ma];});
   spBulkBar_();
 }
