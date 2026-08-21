@@ -779,9 +779,12 @@ function spCatToggle(e){ if(e&&e.stopPropagation)e.stopPropagation();
   setTimeout(function(){ document.addEventListener('mousedown',spCatOutside); },0);
 }
 function spCatOutside(e){ if(!e.target.closest('#spCatPop') && !e.target.closest('#spCatBtn')){ var p=document.getElementById('spCatPop'); if(p)p.style.display='none'; document.removeEventListener('mousedown',spCatOutside); } }
-function spCatPickNode(code){ S._spFilters=S._spFilters||{}; if(!code) delete S._spFilters.node; else S._spFilters.node=code;
+function spCatPickNode(code){
+  // đổi hạng mục -> reset bộ lọc nâng cao cho tương ứng phạm vi hạng mục mới
+  S._spFilters={watt:{},kelvin:{},angle:{},cri:{}}; if(code) S._spFilters.node=code;
   var p=document.getElementById('spCatPop'); if(p)p.style.display='none'; document.removeEventListener('mousedown',spCatOutside);
   renderSpChips_(); spFilter();
+  if(document.getElementById('spFltPop')) spBoLocPop_();
 }
 function spSetFilter(key,val){ S._spFilters=S._spFilters||{}; if(!val) delete S._spFilters[key]; else if(S._spFilters[key]===val) delete S._spFilters[key]; else S._spFilters[key]=val; renderSpChips_(); spFilter(); }
 function spClearFilters(){ S._spFilters={watt:{},kelvin:{},angle:{},cri:{}}; renderSpChips_(); spFilter(); if(document.getElementById('spFltPop')) spBoLocPop_(); }
@@ -790,8 +793,11 @@ function actKeys_(o){ return Object.keys(o||{}).filter(function(k){ return o[k];
 function spFltCount_(){ var f=S._spFilters||{}; var n=0; if(f.brand)n++; if(f.hangMuc)n++; if(f.min)n++; if(f.max)n++;
   ['watt','kelvin','angle','cri'].forEach(function(g){ n+=actKeys_(f[g]).length; }); return n; }
 // ==== Popover "Bộ lọc" cho Danh sách SP (công suất / nhiệt độ / góc / CRI / thương hiệu / giá) ====
-function spSingleVals_(field){ var m={}; (S.products||[]).forEach(function(p){ if(p[field]) m[p[field]]=(m[p[field]]||0)+1; }); return m; }
-function spSpecOpts_(field){ var m={}; (S.products||[]).forEach(function(p){ splitVals(p[field]).forEach(function(v){ m[v]=(m[v]||0)+1; }); }); return m; }
+// phạm vi bộ lọc = sản phẩm thuộc hạng mục (node) đang chọn — để option lọc tương ứng hạng mục
+function spScopeProducts_(){ var f=S._spFilters||{}; if(!f.node) return S.products||[];
+  return (S.products||[]).filter(function(p){ var c=spNodeCodeOf_(p); return c===f.node || c.indexOf(f.node+'.')===0; }); }
+function spSingleVals_(field){ var m={}; spScopeProducts_().forEach(function(p){ if(p[field]) m[p[field]]=(m[p[field]]||0)+1; }); return m; }
+function spSpecOpts_(field){ var m={}; spScopeProducts_().forEach(function(p){ splitVals(p[field]).forEach(function(v){ m[v]=(m[v]||0)+1; }); }); return m; }
 function spToggleBoLoc(e){ if(e&&e.stopPropagation) e.stopPropagation();
   if(document.getElementById('spFltPop')){ document.getElementById('spFltPop').remove(); document.removeEventListener('mousedown',spFltOutside); return; }
   spBoLocPop_(); }
