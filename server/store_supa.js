@@ -219,6 +219,9 @@ async function updateLine(lineId, fields) {
   let ln = fields.hasOwnProperty('lnPct') ? Number(fields.lnPct) || 0 : n(cur.loi_nhuan_pct);
   let ban = null;
   if (fields.hasOwnProperty('donGiaBan')) { ban = n(fields.donGiaBan); ln = von > 0 ? Math.round((ban - von) / von * 100) : 0; }
+  // Chỉ tính lại giá bán từ %LN khi trường giá thật sự đổi (donGiaBan/lnPct/donGiaVon).
+  // Nếu chỉ sửa trường khác (khu vực, ghi chú...) thì GIỮ nguyên giá bán đã lưu — tránh trôi giá do %LN đã làm tròn.
+  else if (!fields.hasOwnProperty('lnPct') && !fields.hasOwnProperty('donGiaVon')) { ban = n(cur.gia_ban); }
   const c = calc_(von, ckDaiLy, ln, ban, ckKhach, sl);
   Object.assign(patch, { so_luong: sl, gia_ban_le: von, ck_dai_ly_pct: ckDaiLy, loi_nhuan_pct: ln, gia_dai_ly: c.giaDaiLy,
     gia_ban: c.ban, ck_khach_hang_pct: ckKhach, don_gia: c.donGia, thanh_tien: c.thanhTien, markup_pct: c.markup, margin_pct: c.margin, loi_nhuan_vnd: c.lnVnd });

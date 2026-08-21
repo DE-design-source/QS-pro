@@ -995,6 +995,21 @@ function visCols(){ var byK={}; COLS.forEach(function(c){ byK[c[0]]=c; });
 // giá đại lý = giá bán lẻ (giá vốn NCC) sau chiết khấu đại lý  |  đơn giá = giá bán sau chiết khấu khách
 function giaDaiLy_(l){ return Math.round((Number(l.donGiaVon)||0)*(1-(Number(l.chietKhau)||0)/100)); }
 function donGiaCK_(l){ return Math.round((Number(l.donGiaBan)||0)*(1-(Number(l.ckKhach)||0)/100)); }
+// các cột dẫn xuất — tính trực tiếp từ dòng để luôn nhất quán với server (không phụ thuộc field đã lưu)
+function ttVon_(l){ return Math.round((Number(l.soLuong)||0)*giaDaiLy_(l)); }
+function ttBan_(l){ return Math.round((Number(l.soLuong)||0)*donGiaCK_(l)); }
+function lnVnd_(l){ return Math.round((donGiaCK_(l)-giaDaiLy_(l))*(Number(l.soLuong)||0)); }
+function markup_(l){ var g=giaDaiLy_(l); return g>0?Math.round((donGiaCK_(l)-g)/g*100):0; }
+function margin_(l){ var d=donGiaCK_(l); return d>0?Math.round((d-giaDaiLy_(l))/d*100):0; }
+// Tính lại dòng khi sửa — mirror y hệt calc_() ở server. Chỉ đổi hướng giá bán khi trường liên quan bị sửa
+function recalcLine_(l, changed){
+  changed=changed||{};
+  var von=Number(l.donGiaVon)||0;
+  if(changed.hasOwnProperty('donGiaBan')){ l.lnPct = von>0 ? Math.round(((Number(l.donGiaBan)||0)-von)/von*100) : 0; }
+  else if(changed.hasOwnProperty('lnPct') || changed.hasOwnProperty('donGiaVon')){ l.donGiaBan = Math.round(von*(1+(Number(l.lnPct)||0)/100)); }
+  l.thanhTienVon=ttVon_(l); l.thanhTienBan=ttBan_(l);
+  l.lnVnd=lnVnd_(l); l.markup=markup_(l); l.margin=margin_(l);
+}
 function cellVal(l,key){
   switch(key){
     case 'khuVuc': return esc(l.khuVuc||'');
@@ -1129,9 +1144,7 @@ function editLine(id,fields){
   var l=S.lines.filter(function(x){return x.lineId===id;})[0];
   if(l){
     Object.keys(fields).forEach(function(k){ l[k]=fields[k]; });
-    var sl=Number(l.soLuong)||0;
-    l.thanhTienBan=Math.round(sl*(Number(l.donGiaBan)||0));
-    l.thanhTienVon=Math.round(sl*(Number(l.donGiaVon)||0));
+    recalcLine_(l, fields);   // mirror calc_() ở server -> optimistic khớp, không nhảy số / không lag
     renderTable(); renderCard();
     if(document.getElementById('v-chiphi').classList.contains('on')) renderChiphi();
     if(bgVis()) drawBaogia();
@@ -1589,41 +1602,62 @@ function renderDash(){
 }
 
 /* ===== CHI PHÍ (bảng linh hoạt + chip chọn cột) ===== */
-function cpIn(l,field,w){ return '<input class="cin num" type="number"'+(w?' style="width:'+w+'px"':'')+' value="'+(Number(l[field])||0)+'" onchange="editLine(\''+l.lineId+'\',{'+field+':this.value})">'; }
+function cpIn(l,field,cls){ return '<input class="cin '+(cls||'')+'" type="number" min="0" value="'+(Number(l[field])||0)+'" onchange="editLine(\''+l.lineId+'\',{'+field+':this.value})" onclick="event.stopPropagation()">'; }
+function cpPctIn(l,field){ return '<span class="cp-pctwrap"><input class="cin cin-pct" type="number" min="0" value="'+(Number(l[field])||0)+'" onchange="editLine(\''+l.lineId+'\',{'+field+':this.value})" onclick="event.stopPropagation()"><i>%</i></span>'; }
 function cpToggle(k){ S.cpCols=S.cpCols||{}; S.cpCols[k]=!S.cpCols[k]; renderChiphi(); }
+function cpColsToggle(){ S._cpColsOpen=!S._cpColsOpen; renderChiphi(); }
+function cpSigned_(v){ v=Math.round(Number(v)||0); return '<span class="'+(v<0?'cp-neg':(v>0?'cp-pos':''))+'">'+money(v)+'</span>'; }
+function cpPctTxt_(v){ v=Math.round(Number(v)||0); return v+'<span class="cp-u">%</span>'; }
+function cpKpi_(ic,label,val,cls){ return '<div class="cp-kpi '+(cls||'')+'"><span class="cp-kpi-ic">'+ic+'</span><div class="cp-kpi-t"><div class="cp-kpi-v">'+val+'</div><div class="cp-kpi-l">'+label+'</div></div></div>'; }
+function cpCls_(c){ var base=c[2]==='n'?'num':(c[2]==='c'?'ct':(c[0]==='ten'?'td-ten l':'')); return base+(c[4]?' cp-'+c[4]:''); }
+// [key, nhãn, canh(l/c/n), render(l), nhóm(cost/sell/kq)]
 var CP_COLS=[
-  ['ten','Tên sản phẩm','l',function(l){return '<b>'+esc(l.ten||'')+'</b>';}],
-  ['dvt','ĐVT','c',function(l){return esc(l.dvt||'');}],
-  ['soLuong','SL','n',function(l){return l.soLuong||0;}],
-  ['giaNCC','Giá bán lẻ NCC','n',function(l){return money(l.donGiaVon);}],
-  ['chietKhau','CK đại lý %','n',function(l){return (Number(l.chietKhau)||0);}],
-  ['giaDaiLy','Giá đại lý','n',function(l){return money(giaDaiLy_(l));}],
-  ['donGiaVon','Đơn giá vốn','n',function(l){return cpIn(l,'donGiaVon');}],
-  ['lnPct','% LN','n',function(l){return cpIn(l,'lnPct',66);}],
-  ['donGiaBan','Đơn giá bán','n',function(l){return cpIn(l,'donGiaBan');}],
-  ['ckKhach','CK khách %','n',function(l){return (Number(l.ckKhach)||0);}],
-  ['donGiaCK','Đơn giá (báo khách)','n',function(l){return money(donGiaCK_(l));}],
-  ['markup','Markup %','n',function(l){return (Number(l.markup)||0);}],
-  ['margin','Margin %','n',function(l){return (Number(l.margin)||0);}],
-  ['lnVnd','Lợi nhuận (VND)','n',function(l){return money(l.lnVnd);}],
-  ['thanhTienVon','TT vốn','n',function(l){return money(l.thanhTienVon);}],
-  ['thanhTien','TT bán','n',function(l){return money(l.thanhTienBan);}]
+  ['ten','Sản phẩm','l',function(l){var sub=[l.maSP,l.thuongHieu].filter(Boolean).join(' · ');return '<b>'+esc(l.ten||'')+'</b>'+(sub?'<span class="cp-sub">'+esc(sub)+'</span>':'');},''],
+  ['dvt','ĐVT','c',function(l){return esc(l.dvt||'');},''],
+  ['soLuong','SL','n',function(l){return cpIn(l,'soLuong','cin-sl');},''],
+  ['donGiaVon','Giá bán lẻ NCC','n',function(l){return cpIn(l,'donGiaVon','cin-money');},'cost'],
+  ['chietKhau','CK đại lý %','n',function(l){return cpPctIn(l,'chietKhau');},'cost'],
+  ['giaDaiLy','Giá vốn (đại lý)','n',function(l){return '<b>'+money(giaDaiLy_(l))+'</b>';},'cost'],
+  ['lnPct','% LN','n',function(l){return cpPctIn(l,'lnPct');},'sell'],
+  ['donGiaBan','Đơn giá bán','n',function(l){return cpIn(l,'donGiaBan','cin-money');},'sell'],
+  ['ckKhach','CK khách %','n',function(l){return cpPctIn(l,'ckKhach');},'sell'],
+  ['donGiaCK','Đơn giá báo khách','n',function(l){return money(donGiaCK_(l));},'sell'],
+  ['markup','Markup %','n',function(l){return cpPctTxt_(markup_(l));},'kq'],
+  ['margin','Margin %','n',function(l){return cpPctTxt_(margin_(l));},'kq'],
+  ['thanhTienVon','Thành tiền vốn','n',function(l){return money(ttVon_(l));},'kq'],
+  ['lnVnd','Lợi nhuận','n',function(l){return cpSigned_(lnVnd_(l));},'kq'],
+  ['thanhTien','Thành tiền bán','n',function(l){return '<b class="cp-strong">'+money(ttBan_(l))+'</b>';},'kq']
 ];
 function renderChiphi(){
   var box=document.getElementById('v-chiphi');
   if(!S.cur){ box.innerHTML='<div class="empty" style="padding:26px;text-align:center">Chưa chọn dự án.</div>'; return; }
-  if(!S.cpCols) S.cpCols={ten:1,dvt:1,soLuong:1,donGiaVon:1,lnPct:1,donGiaBan:1,thanhTienVon:1,thanhTien:1};
+  if(!S.cpCols) S.cpCols={ten:1,dvt:1,soLuong:1,donGiaVon:1,chietKhau:1,giaDaiLy:1,lnPct:1,donGiaBan:1,thanhTienVon:1,lnVnd:1,thanhTien:1};
   var vis=CP_COLS.filter(function(c){ return S.cpCols[c[0]]; });
-  var von=0,ban=0; S.lines.forEach(function(l){ von+=Number(l.thanhTienVon)||0; ban+=Number(l.thanhTienBan)||0; });
-  var lnT=ban-von, bien=ban>0?(lnT/ban*100):0;
-  var chips=CP_COLS.map(function(c){ return '<span class="chip'+(S.cpCols[c[0]]?' on':'')+'" onclick="cpToggle(\''+c[0]+'\')">'+esc(c[1])+'</span>'; }).join('');
-  var head='<tr>'+vis.map(function(c){ return '<th class="'+(c[2]==='n'?'num':(c[2]==='c'?'ct':''))+'">'+esc(c[1])+'</th>'; }).join('')+'</tr>';
-  var rows=S.lines.map(function(l){ return '<tr>'+vis.map(function(c){ return '<td class="'+(c[2]==='n'?'num':(c[2]==='c'?'ct':(c[0]==='ten'?'td-ten':'')))+'">'+c[3](l)+'</td>'; }).join('')+'</tr>'; }).join('');
-  box.innerHTML='<div class="sechd"><h2>Chi phí</h2><span class="sp"></span><span style="color:var(--muted);font-size:13px">Sửa giá vốn · % LN · giá bán · bấm chip để hiện/ẩn cột</span></div>'
-    +'<div class="stat">'+card('Giá trị vốn',money(von)+' đ')+card('Tổng giá bán',money(ban)+' đ')+card('Lợi nhuận',money(lnT)+' đ')+card('Biên LN',bien.toFixed(1)+'%')+'</div>'
-    +'<div class="colchips" style="max-height:none">'+chips+'</div>'
-    +'<div class="tbl-wrap"><table class="tk">'+head
-    +(S.lines.length?rows:'<tr><td class="empty" colspan="'+vis.length+'">Chưa có hạng mục.</td></tr>')+'</table></div>';
+  var von=0,ban=0; S.lines.forEach(function(l){ von+=ttVon_(l); ban+=ttBan_(l); });
+  var lnT=ban-von, bien=ban>0?(lnT/ban*100):0, lnCls=lnT<0?'red':'green';
+  var stat='<div class="cp-kpis">'
+    +cpKpi_(icon('lock',17),'Giá trị vốn',money(von)+' đ','')
+    +cpKpi_(icon('money',17),'Tổng giá bán',money(ban)+' đ','blue')
+    +cpKpi_(icon('gauge',17),'Lợi nhuận',money(lnT)+' đ',lnCls)
+    +cpKpi_(icon('gauge',17),'Biên lợi nhuận',bien.toFixed(1)+'%',lnCls)+'</div>';
+  var open=S._cpColsOpen;
+  var colbar='<div class="cp-colbar"><button class="btn ghost sm'+(open?' on':'')+'" onclick="cpColsToggle()">'+icon('sliders',14)+' Cột hiển thị</button>'
+    +'<div class="cp-chips'+(open?' open':'')+'">'+CP_COLS.map(function(c){ return '<span class="spchip sm'+(S.cpCols[c[0]]?' on':'')+'" onclick="cpToggle(\''+c[0]+'\')">'+esc(c[1])+'</span>'; }).join('')+'</div></div>';
+  var head='<tr>'+vis.map(function(c){ return '<th class="'+cpCls_(c)+'">'+esc(c[1])+'</th>'; }).join('')+'</tr>';
+  var rows=S.lines.map(function(l){ return '<tr>'+vis.map(function(c){ return '<td class="'+cpCls_(c)+'">'+c[3](l)+'</td>'; }).join('')+'</tr>'; }).join('');
+  var foot='';
+  if(S.lines.length){ foot='<tr class="cp-foot">'+vis.map(function(c){
+      if(c[0]==='ten') return '<td class="l"><b>TỔNG · '+S.lines.length+' hạng mục</b></td>';
+      if(c[0]==='thanhTienVon') return '<td class="num cp-kq"><b>'+money(von)+'</b></td>';
+      if(c[0]==='thanhTien') return '<td class="num cp-kq"><b class="cp-strong">'+money(ban)+'</b></td>';
+      if(c[0]==='lnVnd') return '<td class="num cp-kq">'+cpSigned_(lnT)+'</td>';
+      return '<td class="'+cpCls_(c)+'"></td>';
+    }).join('')+'</tr>'; }
+  box.innerHTML='<div class="sechd"><h2>Chi phí</h2><span class="count">'+S.lines.length+'</span><span class="sp" style="flex:1"></span><span class="cp-hint">'+icon('sliders',13)+' Ô có viền là ô nhập — sửa giá NCC · CK · %LN · giá bán, số tính lại ngay</span></div>'
+    +stat+colbar
+    +'<div class="dbcard cp-card"><div class="tbl-wrap"><table class="tk cp-tbl">'+head
+    +(S.lines.length?rows:'<tr><td class="empty" colspan="'+Math.max(1,vis.length)+'">Chưa có hạng mục. Vào tab <b>Bóc tách</b> để thêm sản phẩm.</td></tr>')
+    +foot+'</table></div></div>';
 }
 
 /* ===== MUA HÀNG (gom theo Nhà cung cấp) ===== */

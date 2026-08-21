@@ -480,6 +480,51 @@ table.tk .cin{border:1px solid transparent;border-radius:6px;padding:5px 6px;fon
 table.tk .cin:focus{border-color:var(--blue);background:#fff;outline:none}
 table.tk .cin.num{text-align:right}
 table.tk textarea.cin{min-height:34px;resize:vertical;line-height:1.3;white-space:normal}
+/* ===== Tab Chi phí (thiết kế mới) ===== */
+.sechd .count{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:22px;padding:0 8px;border-radius:11px;background:#eef2f7;color:#5b6b7b;font-size:12px;font-weight:700;margin-left:8px}
+.cp-hint{display:inline-flex;align-items:center;gap:6px;color:#94a3b0;font-size:12px;white-space:nowrap}
+.cp-hint svg{opacity:.7}
+.cp-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:2px 0 14px}
+.cp-kpi{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:0 1px 3px rgba(20,40,80,.05)}
+.cp-kpi-ic{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;background:#f1f5f9;color:#64748b;flex:none}
+.cp-kpi-v{font-size:19px;font-weight:800;color:var(--navy);line-height:1.15;font-variant-numeric:tabular-nums}
+.cp-kpi-l{font-size:11.5px;color:#8a96a5;font-weight:600;margin-top:2px}
+.cp-kpi.blue .cp-kpi-ic{background:#e8f0ff;color:var(--blue)} .cp-kpi.blue .cp-kpi-v{color:var(--blue)}
+.cp-kpi.green .cp-kpi-ic{background:#e7f7ec;color:#16a34a} .cp-kpi.green .cp-kpi-v{color:#16a34a}
+.cp-kpi.red .cp-kpi-ic{background:#fdecec;color:#dc2626} .cp-kpi.red .cp-kpi-v{color:#dc2626}
+.cp-colbar{display:flex;flex-direction:column;gap:8px;margin:0 0 12px}
+.cp-colbar .btn.ghost.sm.on{border-color:var(--chip-on);color:var(--chip-on);background:#f2f6fc}
+.cp-chips{display:none;flex-wrap:wrap;gap:6px;padding:10px 12px;background:#fbfcfe;border:1px solid var(--line);border-radius:12px}
+.cp-chips.open{display:flex}
+.cp-card{padding:0;overflow:hidden}
+.cp-card .tbl-wrap{max-height:none}
+table.cp-tbl{width:100%}
+table.cp-tbl th{background:var(--navy)}
+table.cp-tbl th.cp-cost,table.cp-tbl th.cp-sell,table.cp-tbl th.cp-kq{border-top:3px solid transparent}
+table.cp-tbl th.cp-cost{border-top-color:#94a3b8}
+table.cp-tbl th.cp-sell{border-top-color:#60a5fa}
+table.cp-tbl th.cp-kq{border-top-color:#34d399}
+table.cp-tbl td.cp-cost{background:#f9fafb}
+table.cp-tbl td.cp-sell{background:#f6faff}
+table.cp-tbl td.cp-kq{background:#f6fbf8}
+table.cp-tbl tbody tr:hover td{background:#eef5ff}
+table.cp-tbl td{padding:8px 10px;border-right:1px solid #e6eaef;border-bottom:1px solid #eef1f5}
+table.cp-tbl .cp-sub{display:block;font-size:11px;color:#98a4b0;font-weight:400;margin-top:1px}
+table.cp-tbl .cp-strong{color:var(--navy);font-size:13.5px}
+table.cp-tbl .cp-neg{color:#dc2626;font-weight:700} table.cp-tbl .cp-pos{color:#16a34a;font-weight:600}
+table.cp-tbl .cp-u{color:#9aa7b4;font-size:11px;margin-left:1px}
+/* ô nhập trong tab chi phí: hiện rõ là editable */
+table.cp-tbl .cin{border:1px solid #d7dee6;background:#fff;border-radius:7px;padding:6px 8px;min-width:0;box-shadow:inset 0 1px 2px rgba(0,0,0,.03)}
+table.cp-tbl .cin:hover{border-color:#bcc7d3}
+table.cp-tbl .cin:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px #2f6bff22;outline:none}
+table.cp-tbl .cin.cin-money{width:110px;text-align:right;font-weight:600}
+table.cp-tbl .cin.cin-sl{width:64px;text-align:center}
+.cp-pctwrap{display:inline-flex;align-items:center;position:relative}
+.cp-pctwrap .cin-pct{width:70px;text-align:right;padding-right:20px}
+.cp-pctwrap i{position:absolute;right:8px;color:#9aa7b4;font-size:11px;font-style:normal;pointer-events:none}
+table.cp-tbl tr.cp-foot td{position:sticky;bottom:0;background:#eef2f7;border-top:2px solid #cdd6e0;font-size:13px;padding:11px 10px}
+table.cp-tbl tr.cp-foot td.cp-kq{background:#e8f0ea}
+table.cp-tbl tr.cp-foot .cp-strong{font-size:14.5px}
 table.tk .lv1 td{background:#e9edf1;font-weight:700}
 table.tk .lv2 td{background:#f3f5f8}
 /* header cột: kéo đổi thứ tự / độ rộng / lọc */
