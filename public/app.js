@@ -750,12 +750,18 @@ function renderSanpham(){
   renderSpChips_(); spFilter();
 }
 // Thanh chip "Hạng mục đã bóc" = nhóm/dòng SP (giống bộ chọn hạng mục bên Bóc tách)
+// chuẩn hoá tên hạng mục để gộp chip trùng (hoa/thường + khoảng trắng thừa)
+function spNorm_(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,' '); }
 function renderSpChips_(){
   var bar=document.getElementById('spBar'); if(!bar) return; var f=S._spFilters||{};
-  var nhoms={}; (S.products||[]).forEach(function(p){ if(p.nhom) nhoms[p.nhom]=(nhoms[p.nhom]||0)+1; });
-  var keys=Object.keys(nhoms).sort(function(a,b){ return a.localeCompare(b,'vi'); });
+  // gộp theo key chuẩn hoá; nhãn hiển thị = biến thể xuất hiện nhiều nhất
+  var map={}; (S.products||[]).forEach(function(p){ if(!p.nhom) return; var k=spNorm_(p.nhom);
+    if(!map[k]) map[k]={count:0,labels:{}}; map[k].count++; map[k].labels[p.nhom]=(map[k].labels[p.nhom]||0)+1; });
+  Object.keys(map).forEach(function(k){ var lb=map[k].labels,best='',bc=-1; Object.keys(lb).forEach(function(v){ if(lb[v]>bc){bc=lb[v];best=v;} }); map[k].label=best; });
+  var keys=Object.keys(map).sort(function(a,b){ return map[a].label.localeCompare(map[b].label,'vi'); });
+  var fk=f.nhom?spNorm_(f.nhom):'';
   var chips='<span class="spchip'+(!f.nhom?' on':'')+'" onclick="spSetFilter(\'nhom\',\'\')">Tất cả</span>'
-    +keys.map(function(v){ return '<span class="spchip'+(f.nhom===v?' on':'')+'" data-v="'+esc(v)+'" onclick="spSetFilter(\'nhom\',this.dataset.v)">'+esc(v)+'<i class="cc">'+nhoms[v]+'</i></span>'; }).join('');
+    +keys.map(function(k){ var v=map[k].label; return '<span class="spchip'+(fk===k?' on':'')+'" data-v="'+esc(v)+'" onclick="spSetFilter(\'nhom\',this.dataset.v)">'+esc(v)+'<i class="cc">'+map[k].count+'</i></span>'; }).join('');
   bar.innerHTML='<span class="lb">Hạng mục</span>'+chips
     +(spFltCount_()?'<span class="spchip clr" onclick="spClearFilters()">✕ Xóa bộ lọc</span>':'');
   var badge=document.getElementById('spFltBadge'); var n=spFltCount_();
@@ -828,7 +834,7 @@ function spFilter(){
   var mn=Number(f.min)||0, mx=Number(f.max)||0;
   var list=(S.products||[]).filter(function(p){
     if(q && (p.ten+' '+p.ma+' '+p.thuongHieu+' '+p.ncc).toLowerCase().indexOf(q)<0) return false;
-    if(f.nhom && p.nhom!==f.nhom) return false;
+    if(f.nhom && spNorm_(p.nhom)!==spNorm_(f.nhom)) return false;
     if(f.brand && p.thuongHieu!==f.brand) return false;
     if(f.hangMuc && p.hangMuc!==f.hangMuc) return false;
     var pr=Number(p.donGiaBan)||0; if(mn&&pr<mn) return false; if(mx&&pr>mx) return false;
