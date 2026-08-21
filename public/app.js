@@ -750,23 +750,44 @@ function renderSanpham(){
   renderSpChips_(); spFilter();
 }
 // Thanh chip "Hạng mục đã bóc" = nhóm/dòng SP (giống bộ chọn hạng mục bên Bóc tách)
-// chuẩn hoá tên hạng mục để gộp chip trùng (hoa/thường + khoảng trắng thừa)
+// chuẩn hoá tên hạng mục để gộp trùng (hoa/thường + khoảng trắng thừa)
 function spNorm_(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,' '); }
-function renderSpChips_(){
-  var bar=document.getElementById('spBar'); if(!bar) return; var f=S._spFilters||{};
-  // gộp theo key chuẩn hoá; nhãn hiển thị = biến thể xuất hiện nhiều nhất
-  var map={}; (S.products||[]).forEach(function(p){ if(!p.nhom) return; var k=spNorm_(p.nhom);
+// gộp nhóm theo key chuẩn hoá; nhãn = biến thể xuất hiện nhiều nhất
+function spCatMap_(){ var map={}; (S.products||[]).forEach(function(p){ if(!p.nhom) return; var k=spNorm_(p.nhom);
     if(!map[k]) map[k]={count:0,labels:{}}; map[k].count++; map[k].labels[p.nhom]=(map[k].labels[p.nhom]||0)+1; });
   Object.keys(map).forEach(function(k){ var lb=map[k].labels,best='',bc=-1; Object.keys(lb).forEach(function(v){ if(lb[v]>bc){bc=lb[v];best=v;} }); map[k].label=best; });
-  var keys=Object.keys(map).sort(function(a,b){ return map[a].label.localeCompare(map[b].label,'vi'); });
-  var fk=f.nhom?spNorm_(f.nhom):'';
-  var chips='<span class="spchip'+(!f.nhom?' on':'')+'" onclick="spSetFilter(\'nhom\',\'\')">Tất cả</span>'
-    +keys.map(function(k){ var v=map[k].label; return '<span class="spchip'+(fk===k?' on':'')+'" data-v="'+esc(v)+'" onclick="spSetFilter(\'nhom\',this.dataset.v)">'+esc(v)+'<i class="cc">'+map[k].count+'</i></span>'; }).join('');
-  bar.innerHTML='<span class="lb">Hạng mục</span>'+chips
+  return map; }
+function renderSpChips_(){
+  var bar=document.getElementById('spBar'); if(!bar) return; var f=S._spFilters||{};
+  var map=spCatMap_(); S._spCatMap=map;
+  var total=(S.products||[]).length;
+  var sel=f.nhom?map[spNorm_(f.nhom)]:null;
+  var label=sel?sel.label:'Tất cả hạng mục', cnt=sel?sel.count:total;
+  // nút chọn hạng mục dạng thả xuống (giống bộ chọn "Hạng mục đã bóc" bên Bóc tách)
+  bar.innerHTML='<span class="lb">Hạng mục</span>'
+    +'<div class="sp-catwrap"><button class="tree-btn sp-catbtn" id="spCatBtn" onclick="spCatToggle(event)"><span class="sp-catlbl">'+esc(label)+'</span><span class="cnt">['+pad2(cnt)+']</span><span class="sp-caret">▾</span></button>'
+      +'<div class="tree-pop" id="spCatPop" style="display:none"></div></div>'
     +(spFltCount_()?'<span class="spchip clr" onclick="spClearFilters()">✕ Xóa bộ lọc</span>':'');
   var badge=document.getElementById('spFltBadge'); var n=spFltCount_();
   if(badge){ badge.textContent=n||''; badge.style.display=n?'inline-flex':'none'; }
   var btn=document.getElementById('spBoLocBtn'); if(btn) btn.classList.toggle('on', n>0);
+}
+function spCatToggle(e){ if(e&&e.stopPropagation)e.stopPropagation();
+  var pop=document.getElementById('spCatPop'); if(!pop) return;
+  if(pop.style.display==='block'){ pop.style.display='none'; document.removeEventListener('mousedown',spCatOutside); return; }
+  var f=S._spFilters||{}, map=S._spCatMap||spCatMap_(), total=(S.products||[]).length;
+  var keys=Object.keys(map).sort(function(a,b){ return map[a].label.localeCompare(map[b].label,'vi'); });
+  var curKey=f.nhom?spNorm_(f.nhom):'';
+  function esq(s){ return esc(s).replace(/'/g,"\\'"); }
+  var html='<div class="tnode'+(!curKey?' on':'')+'" onclick="spCatPick(\'\')"><span class="rd"></span><span class="nm">Tất cả hạng mục</span><span class="cn">['+pad2(total)+']</span></div>'
+    +keys.map(function(k){ var m=map[k]; return '<div class="tnode'+(curKey===k?' on':'')+'" onclick="spCatPick(\''+esq(m.label)+'\')"><span class="rd"></span><span class="nm">'+esc(m.label)+'</span><span class="cn">['+pad2(m.count)+']</span></div>'; }).join('');
+  pop.innerHTML=html; pop.style.display='block';
+  setTimeout(function(){ document.addEventListener('mousedown',spCatOutside); },0);
+}
+function spCatOutside(e){ if(!e.target.closest('#spCatPop') && !e.target.closest('#spCatBtn')){ var p=document.getElementById('spCatPop'); if(p)p.style.display='none'; document.removeEventListener('mousedown',spCatOutside); } }
+function spCatPick(label){ S._spFilters=S._spFilters||{}; if(!label) delete S._spFilters.nhom; else S._spFilters.nhom=label;
+  var p=document.getElementById('spCatPop'); if(p)p.style.display='none'; document.removeEventListener('mousedown',spCatOutside);
+  renderSpChips_(); spFilter();
 }
 function spSetFilter(key,val){ S._spFilters=S._spFilters||{}; if(!val) delete S._spFilters[key]; else if(S._spFilters[key]===val) delete S._spFilters[key]; else S._spFilters[key]=val; renderSpChips_(); spFilter(); }
 function spClearFilters(){ S._spFilters={watt:{},kelvin:{},angle:{},cri:{}}; renderSpChips_(); spFilter(); if(document.getElementById('spFltPop')) spBoLocPop_(); }
