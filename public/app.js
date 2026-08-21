@@ -750,20 +750,16 @@ function renderSanpham(){
   renderSpChips_(); spFilter();
 }
 // Thanh chip "Hạng mục đã bóc" = nhóm/dòng SP (giống bộ chọn hạng mục bên Bóc tách)
-// chuẩn hoá tên hạng mục để gộp trùng (hoa/thường + khoảng trắng thừa)
-function spNorm_(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,' '); }
-// gộp nhóm theo key chuẩn hoá; nhãn = biến thể xuất hiện nhiều nhất
-function spCatMap_(){ var map={}; (S.products||[]).forEach(function(p){ if(!p.nhom) return; var k=spNorm_(p.nhom);
-    if(!map[k]) map[k]={count:0,labels:{}}; map[k].count++; map[k].labels[p.nhom]=(map[k].labels[p.nhom]||0)+1; });
-  Object.keys(map).forEach(function(k){ var lb=map[k].labels,best='',bc=-1; Object.keys(lb).forEach(function(v){ if(lb[v]>bc){bc=lb[v];best=v;} }); map[k].label=best; });
-  return map; }
+// map sản phẩm -> node cây đề mục qua "muc" (vd "Thiết bị đèn" -> 3.2.6.1)
+function spNodeCodeOf_(p){ var muc=(p&&p.muc)||''; for(var i=0;i<TREE.length;i++){ if(TREE[i][1]===muc) return TREE[i][0]; } return ''; }
+function spNodeCount_(code){ if(!code) return (S.products||[]).length;
+  return (S.products||[]).filter(function(p){ var c=spNodeCodeOf_(p); return c===code || c.indexOf(code+'.')===0; }).length; }
 function renderSpChips_(){
   var bar=document.getElementById('spBar'); if(!bar) return; var f=S._spFilters||{};
-  var map=spCatMap_(); S._spCatMap=map;
   var total=(S.products||[]).length;
-  var sel=f.nhom?map[spNorm_(f.nhom)]:null;
-  var label=sel?sel.label:'Tất cả hạng mục', cnt=sel?sel.count:total;
-  // nút chọn hạng mục dạng thả xuống (giống bộ chọn "Hạng mục đã bóc" bên Bóc tách)
+  var label = f.node ? (f.node+'.'+nodeName(f.node)) : 'Tất cả hạng mục';
+  var cnt = f.node ? spNodeCount_(f.node) : total;
+  // nút chọn hạng mục dạng thả xuống — dùng cây đề mục (TREE) giống hệt Bóc tách
   bar.innerHTML='<span class="lb">Hạng mục</span>'
     +'<div class="sp-catwrap"><button class="tree-btn sp-catbtn" id="spCatBtn" onclick="spCatToggle(event)"><span class="sp-catlbl">'+esc(label)+'</span><span class="cnt">['+pad2(cnt)+']</span><span class="sp-caret">▾</span></button>'
       +'<div class="tree-pop" id="spCatPop" style="display:none"></div></div>'
@@ -775,17 +771,15 @@ function renderSpChips_(){
 function spCatToggle(e){ if(e&&e.stopPropagation)e.stopPropagation();
   var pop=document.getElementById('spCatPop'); if(!pop) return;
   if(pop.style.display==='block'){ pop.style.display='none'; document.removeEventListener('mousedown',spCatOutside); return; }
-  var f=S._spFilters||{}, map=S._spCatMap||spCatMap_(), total=(S.products||[]).length;
-  var keys=Object.keys(map).sort(function(a,b){ return map[a].label.localeCompare(map[b].label,'vi'); });
-  var curKey=f.nhom?spNorm_(f.nhom):'';
-  function esq(s){ return esc(s).replace(/'/g,"\\'"); }
-  var html='<div class="tnode'+(!curKey?' on':'')+'" onclick="spCatPick(\'\')"><span class="rd"></span><span class="nm">Tất cả hạng mục</span><span class="cn">['+pad2(total)+']</span></div>'
-    +keys.map(function(k){ var m=map[k]; return '<div class="tnode'+(curKey===k?' on':'')+'" onclick="spCatPick(\''+esq(m.label)+'\')"><span class="rd"></span><span class="nm">'+esc(m.label)+'</span><span class="cn">['+pad2(m.count)+']</span></div>'; }).join('');
+  var f=S._spFilters||{}, total=(S.products||[]).length;
+  var html='<div class="tnode lvl1'+(!f.node?' on':'')+'" onclick="spCatPickNode(\'\')"><span class="nm">Tất cả hạng mục</span><span class="cn">['+pad2(total)+']</span><span class="rd"></span></div>'
+    +TREE.filter(function(t){return t[0]!=='X';}).map(function(t){ var c=spNodeCount_(t[0]);
+      return '<div class="tnode lvl'+t[2]+(f.node===t[0]?' on':'')+'" onclick="spCatPickNode(\''+t[0]+'\')"><span class="nm">'+esc(t[0]+'.'+t[1])+'</span><span class="cn">['+pad2(c)+']</span><span class="rd"></span></div>'; }).join('');
   pop.innerHTML=html; pop.style.display='block';
   setTimeout(function(){ document.addEventListener('mousedown',spCatOutside); },0);
 }
 function spCatOutside(e){ if(!e.target.closest('#spCatPop') && !e.target.closest('#spCatBtn')){ var p=document.getElementById('spCatPop'); if(p)p.style.display='none'; document.removeEventListener('mousedown',spCatOutside); } }
-function spCatPick(label){ S._spFilters=S._spFilters||{}; if(!label) delete S._spFilters.nhom; else S._spFilters.nhom=label;
+function spCatPickNode(code){ S._spFilters=S._spFilters||{}; if(!code) delete S._spFilters.node; else S._spFilters.node=code;
   var p=document.getElementById('spCatPop'); if(p)p.style.display='none'; document.removeEventListener('mousedown',spCatOutside);
   renderSpChips_(); spFilter();
 }
@@ -855,7 +849,7 @@ function spFilter(){
   var mn=Number(f.min)||0, mx=Number(f.max)||0;
   var list=(S.products||[]).filter(function(p){
     if(q && (p.ten+' '+p.ma+' '+p.thuongHieu+' '+p.ncc).toLowerCase().indexOf(q)<0) return false;
-    if(f.nhom && spNorm_(p.nhom)!==spNorm_(f.nhom)) return false;
+    if(f.node){ var c=spNodeCodeOf_(p); if(!(c===f.node || c.indexOf(f.node+'.')===0)) return false; }
     if(f.brand && p.thuongHieu!==f.brand) return false;
     if(f.hangMuc && p.hangMuc!==f.hangMuc) return false;
     var pr=Number(p.donGiaBan)||0; if(mn&&pr<mn) return false; if(mx&&pr>mx) return false;
