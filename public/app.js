@@ -1505,7 +1505,7 @@ async function saveDraftInfo(btn){
 }
 async function saveProgress(btn){ var v=Number(document.getElementById('pf_prog').value)||0;
   try{ var p=await api('updateProject',S.cur.maDA,{tienDo:v}); syncProj(p); renderCard(); toast('Đã cập nhật tiến độ '+v+'%'); }catch(e){ toast('Lỗi: '+e.message); } }
-async function pickProject(maDA){ S.cur=S.projects.filter(function(p){return p.maDA===maDA;})[0]; S.lines=await api('getLines',maDA)||[]; S._coverDA=null; renderAll(); showTab('boc'); }
+async function pickProject(maDA){ S.cur=S.projects.filter(function(p){return p.maDA===maDA;})[0]; S.lines=await api('getLines',maDA)||[]; S._coverDA=null; renderAll(); renderProjects(); showTab('project'); }
 async function removeProject(maDA){ if(!confirm('Xoá bản nháp này?'))return; await api('deleteProject',maDA); if(S.cur&&S.cur.maDA===maDA)S.cur=null; await boot(); renderDash(); renderProjects(); }
 
 /* ===== DASHBOARD ===== */
