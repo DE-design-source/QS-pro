@@ -732,22 +732,48 @@ function renderSanpham(){
   var box=document.getElementById('v-sanpham');
   var searchIc='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>';
   box.innerHTML='<div class="sechd"><h2>Danh sách sản phẩm</h2><span class="count" id="spCount">0</span></div>'
-    +'<div class="dbcard sp-card">'
-      +'<div class="sp-toolbar">'
-        +'<div class="sp-search-wrap">'+searchIc+'<input id="spSearch" placeholder="Tìm theo tên, mã hoặc thương hiệu…" oninput="spFilter()"></div>'
-        +'<span class="sp-flex"></span>'
-        +'<button class="btn ghost sm" id="spBoLocBtn" onclick="spToggleBoLoc(event)">'+icon('sliders',14)+' Bộ lọc<span class="spflt-badge" id="spFltBadge"></span></button>'
-        +'<button class="btn blue sm" onclick="showTab(\'import\')">'+icon('plus',14)+' Thêm sản phẩm</button>'
+    +'<div class="sp-workspace">'
+      +'<div class="sp-projpanel" id="spProjPanel"></div>'
+      +'<div class="sp-main">'
+        +'<div class="dbcard sp-card">'
+          +'<div class="sp-toolbar">'
+            +'<div class="sp-search-wrap">'+searchIc+'<input id="spSearch" placeholder="Tìm theo tên, mã hoặc thương hiệu…" oninput="spFilter()"></div>'
+            +'<span class="sp-flex"></span>'
+            +'<button class="btn ghost sm" id="spBoLocBtn" onclick="spToggleBoLoc(event)">'+icon('sliders',14)+' Bộ lọc<span class="spflt-badge" id="spFltBadge"></span></button>'
+            +'<button class="btn blue sm" onclick="showTab(\'import\')">'+icon('plus',14)+' Thêm sản phẩm</button>'
+          +'</div>'
+          +'<div class="spbar" id="spBar"></div>'
+          +'<div class="colchips sp-colchips" id="spColBar"></div>'
+          +'<div class="tbl-wrap"><table class="sp-table"><thead id="spHead"></thead>'
+            +'<tbody id="spBody"></tbody></table></div>'
+        +'</div><div id="spBulkWrap"></div>'
       +'</div>'
-      +'<div class="spbar" id="spBar"></div>'
-      +'<div class="colchips sp-colchips" id="spColBar"></div>'
-      +'<div class="tbl-wrap"><table class="sp-table"><thead id="spHead"></thead>'
-        +'<tbody id="spBody"></tbody></table></div>'
-    +'</div><div id="spBulkWrap"></div>';
+    +'</div>';
   S._spSel=S._spSel||{}; S._spFilters=S._spFilters||{};
   if(!S._spCols) S._spCols={thumb:1,ten:1,thuongHieu:1,hangMuc:1,specs:1,giaDaiLy:1};
-  renderSpChips_(); spColChips_(); spRenderHead_(); spFilter();
+  renderSpProjPanel_(); renderSpChips_(); spColChips_(); spRenderHead_(); spFilter();
 }
+// LEFT: sản phẩm đã ghi danh vào dự án hiện tại (S.lines)
+function renderSpProjPanel_(){
+  var el=document.getElementById('spProjPanel'); if(!el) return;
+  var head='<div class="spp-head"><span class="spp-ic">'+icon('layers',16)+'</span><h3>Sản phẩm trong dự án</h3><span class="spp-count">'+((S.cur?S.lines:[])||[]).length+'</span></div>';
+  if(!S.cur){ el.innerHTML=head+'<div class="spp-empty">Chưa chọn dự án.<br>Vào <b>Bảng điều khiển</b> để chọn/tạo dự án.</div>'; return; }
+  var lines=S.lines||[];
+  var rows=lines.map(function(l){
+    var im=imgSrc1_(l.hinhAnh);
+    var sub=[l.kichThuoc,l.tang].map(function(x){return String(x||'').trim();}).filter(Boolean).join(' · ');
+    return '<div class="spp-item">'
+      +(im?'<img class="spp-img" src="'+esc(im)+'" onerror="this.style.visibility=\'hidden\'">':'<span class="spp-img"></span>')
+      +'<div class="spp-info"><div class="spp-name" title="'+esc(l.ten||'')+'">'+esc(l.ten||'')+'</div>'+(sub?'<div class="spp-sub">'+esc(sub)+'</div>':'')+'</div>'
+      +'<span class="spp-qty">×'+(Number(l.soLuong)||0)+'</span>'
+      +'<button class="spp-del" title="Bỏ khỏi dự án" onclick="spRemoveFromProject(\''+l.lineId+'\')">✕</button>'
+    +'</div>';
+  }).join('')||'<div class="spp-empty">Chưa có sản phẩm.<br>Bấm ＋ ở danh mục bên phải để ghi danh vào dự án.</div>';
+  el.innerHTML=head+'<div class="spp-proj">'+icon('building',13)+' '+esc(S.cur.ten||'')+'</div><div class="spp-list">'+rows+'</div>';
+}
+function spAddToProject(i){ var p=(S._spList||[])[i]; if(!p) return; if(!S.cur){ toast('Chưa chọn dự án'); return; }
+  addProdObj(p); renderSpProjPanel_(); setTimeout(renderSpProjPanel_,700); }
+async function spRemoveFromProject(id){ await delLine(id); renderSpProjPanel_(); }
 // ==== Cột bảng SP có thể ẩn/hiện (giữa cột chọn và cột thao tác) ====
 var SP_COLS=[
   ['thumb','Ảnh','thumbcol',function(p){ return p.hinhAnh?'<img class="sp-th" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="sp-th"></span>'; }],
@@ -922,7 +948,9 @@ function spFilter(){
     return '<tr class="sp-row'+(sel?' selrow':'')+'" onclick="spModal('+i+')">'
       +'<td class="selcol" onclick="event.stopPropagation()"><input type="checkbox" class="spck" '+(sel?'checked':'')+' onclick="spSelToggle(\''+esc(p.ma)+'\',this.checked)"></td>'
       +vis.map(function(c){ return '<td class="'+c[2]+'">'+c[3](p)+'</td>'; }).join('')
-      +'<td class="act-sp" onclick="event.stopPropagation()"><button class="sp-act" title="Xem chi tiết" onclick="spModal('+i+')">'+icon('eye',16)+'</button>'
+      +'<td class="act-sp" onclick="event.stopPropagation()">'
+        +'<button class="sp-act add" title="Ghi danh vào dự án" onclick="spAddToProject('+i+')">'+icon('pluscircle',18)+'</button>'
+        +'<button class="sp-act" title="Xem chi tiết" onclick="spModal('+i+')">'+icon('eye',16)+'</button>'
         +(isAdmin?'<button class="sp-act del" title="Xoá" onclick="spDelete('+i+')">'+icon('trash',16)+'</button>':'')+'</td>'
     +'</tr>';
   }).join(''):'<tr><td colspan="'+ncol+'"><div class="empty" style="margin:10px">Không có sản phẩm khớp bộ lọc.</div></td></tr>';
