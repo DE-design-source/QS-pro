@@ -46,6 +46,9 @@ const REGISTRY = {
   saveDbProduct: store.saveDbProduct,
   uploadImage: store.uploadImage,
   deleteDbProduct: store.deleteDbProduct,
+  getDbProduct: store.getDbProduct,
+  updateDbProductTracked: store.updateDbProductTracked,
+  getProductHistory: store.getProductHistory,
   getCover: store.getCover,
   saveCover: store.saveCover,
   buildCoverFromTemplate: store.buildCoverFromTemplate,
@@ -86,7 +89,8 @@ const ACTOR_FNS = new Set(['me', 'logout', 'changePassword',
   'adminCreateUser', 'adminUpdateUser', 'adminSetPassword', 'adminSetActive', 'adminDeleteUser',
   'notifCount', 'notifList', 'notifRead', 'notifReadAll',
   'requestDeleteProducts', 'listDeleteRequests', 'resolveDeleteRequest',
-  'sendPurchaseRequest', 'listPurchaseRequests', 'resolvePurchaseRequest']);
+  'sendPurchaseRequest', 'listPurchaseRequests', 'resolvePurchaseRequest',
+  'updateDbProductTracked']);
 // Hàm chỉ Admin được gọi
 const ADMIN_FNS = new Set(['adminListUsers', 'adminCreateUser', 'adminUpdateUser',
   'adminSetPassword', 'adminSetActive', 'adminDeleteUser', 'getAuditLog',

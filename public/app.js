@@ -96,7 +96,9 @@ var ICONS={
   cart:'<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>',
   home:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
   pluscircle:'<circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/>',
-  copy:'<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>'
+  copy:'<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'
 };
 function icon(name,size){ size=size||16; var p=ICONS[name]; if(!p) return ''; return '<svg class="ico" width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'; }
 // Độ rộng mặc định + cấu hình cột (thứ tự, rộng, lọc) lưu localStorage
@@ -976,6 +978,7 @@ function spFilter(){
       +vis.map(function(c){ return '<td class="'+c[2]+'">'+c[3](p)+'</td>'; }).join('')
       +'<td class="act-sp" onclick="event.stopPropagation()">'
         +'<button class="sp-act add" title="Ghi danh vào dự án" onclick="spAddToProject('+i+')">'+icon('pluscircle',18)+'</button>'
+        +'<button class="sp-act edit" title="Cập nhật sản phẩm" onclick="spEditModal('+i+')">'+icon('edit',16)+'</button>'
         +'<button class="sp-act" title="Xem chi tiết" onclick="spModal('+i+')">'+icon('eye',16)+'</button>'
         +(isAdmin?'<button class="sp-act del" title="Xoá" onclick="spDelete('+i+')">'+icon('trash',16)+'</button>':'')+'</td>'
     +'</tr>';
@@ -1021,6 +1024,70 @@ function spModal(i){
   document.body.appendChild(ov);
 }
 function spClose(){ var o=document.getElementById('spModalOv'); if(o)o.remove(); }
+// ===== Cập nhật sản phẩm + lịch sử =====
+var SP_EDIT_FIELDS=[
+  ['TÊN SẢN PHẨM','ten_sp','text'],['MÃ SẢN PHẨM','ma_sp','ro'],
+  ['THƯƠNG HIỆU','thuong_hieu','text'],['NHÀ CUNG CẤP','nha_cung_cap','text'],
+  ['DÒNG SẢN PHẨM','dong_sp','text'],['ĐƠN VỊ TÍNH','dvt','text'],
+  ['GIÁ BÁN LẺ','gia_ban_le','num'],['CHIẾT KHẤU ĐẠI LÝ (%)','ck_dai_ly_pct','num'],
+  ['CÔNG SUẤT (W)','cong_suat_w','num'],['NHIỆT ĐỘ MÀU (K)','nhiet_do_mau_k','text'],
+  ['GÓC CHIẾU (°)','goc_chieu_deg','text'],['CRI','cri','text'],
+  ['CHẤT LIỆU','chat_lieu','text'],['TRẠNG THÁI','trang_thai','text'],['GHI CHÚ','ghi_chu','area']
+];
+var SP_COL2LABEL_={}; SP_EDIT_FIELDS.forEach(function(f){ SP_COL2LABEL_[f[1]]=f[0]; });
+function fmtDateTime_(v){ if(!v) return ''; var d=new Date(v); if(isNaN(d)) return String(v);
+  function z(n){return (n<10?'0':'')+n;} return z(d.getDate())+'/'+z(d.getMonth()+1)+'/'+d.getFullYear()+' '+z(d.getHours())+':'+z(d.getMinutes()); }
+async function spEditModal(i){
+  var p=(S._spList||[])[i]; if(!p) return;
+  if(!p.ma){ toast('Sản phẩm chưa có mã — không cập nhật được'); return; }
+  var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='spEditOv';
+  ov.onclick=function(e){ if(e.target===ov) spEditClose(); };
+  ov.innerHTML='<div class="sp-modal sp-edit pd"><div class="pd-head"><h3>'+icon('edit',16)+' Cập nhật sản phẩm</h3><button class="pd-x" onclick="spEditClose()">✕</button></div><div class="spe-body"><div class="empty" style="padding:24px">Đang tải…</div></div></div>';
+  document.body.appendChild(ov);
+  var raw=null, hist=[];
+  try{ raw=await api('getDbProduct', p.ma); hist=await api('getProductHistory', p.ma)||[]; }catch(e){}
+  if(!raw){ ov.querySelector('.spe-body').innerHTML='<div class="empty" style="padding:24px">Không tải được dữ liệu sản phẩm.</div>'; return; }
+  S._spEditMa=p.ma; S._spEditImg=raw.anh_sp||'';
+  var fields=SP_EDIT_FIELDS.map(function(f){ var val=raw[f[1]]==null?'':raw[f[1]];
+    if(f[2]==='area') return '<div class="spe-f wide"><label>'+esc(f[0])+'</label><textarea data-col="'+f[1]+'">'+esc(val)+'</textarea></div>';
+    return '<div class="spe-f"><label>'+esc(f[0])+'</label><input type="'+(f[2]==='num'?'number':'text')+'" data-col="'+f[1]+'" value="'+esc(val)+'"'+(f[2]==='ro'?' readonly':'')+'></div>';
+  }).join('');
+  var img=S._spEditImg?imgSrc1_(S._spEditImg):'';
+  var imgBox='<div class="spe-imgbox"><div class="spe-lbl">Hình ảnh</div>'
+    +(img?'<img id="speImg" src="'+esc(img)+'" onerror="this.style.visibility=\'hidden\'">':'<div id="speImg" class="spe-noimg">Chưa có ảnh</div>')
+    +'<button class="btn ghost sm" onclick="spEditPickImg()">'+icon('camera',14)+' Đổi ảnh</button></div>';
+  var histHtml=hist.length?hist.map(function(h){
+    return '<div class="spe-h"><div class="spe-h-top"><b>'+esc(h.field)+'</b><span class="spe-h-by">'+icon('clock',11)+' '+esc(h.by||'?')+' · '+fmtDateTime_(h.at)+'</span></div>'
+      +'<div class="spe-h-diff"><span class="old">'+esc(h.old||'—')+'</span><span class="arr">→</span><span class="new">'+esc(h.new||'—')+'</span></div></div>';
+  }).join(''):'<div class="empty" style="padding:14px;font-size:12.5px">Chưa có lịch sử cập nhật.</div>';
+  ov.querySelector('.spe-body').innerHTML='<div class="spe-grid">'+imgBox+'<div class="spe-fields">'+fields+'</div></div>'
+    +'<div class="spe-actions"><button class="btn ghost sm" onclick="spEditClose()">Huỷ</button><button class="btn blue" id="speSaveBtn" onclick="spEditSave()">'+icon('check',15)+' Lưu cập nhật</button></div>'
+    +'<div class="spe-hist"><div class="spe-hist-h">'+icon('clock',15)+' Lịch sử cập nhật <span class="spe-hist-n">'+hist.length+'</span></div><div class="spe-hist-list">'+histHtml+'</div></div>';
+}
+function spEditClose(){ var o=document.getElementById('spEditOv'); if(o)o.remove(); }
+function spEditPickImg(){
+  var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+  inp.onchange=async function(){ var f=inp.files&&inp.files[0]; if(!f) return; toast('Đang tải ảnh…');
+    try{ var d=await downscaleImage_(f,1600,0.82); if(!d||d==='__DECODE_FAIL__'){ toast('Không đọc được ảnh (thử JPG/PNG)'); return; }
+      var tok=await uploadImg_(d,f.name); S._spEditImg=tok;
+      var el=document.getElementById('speImg'), src=imgSrc1_(tok);
+      var img=document.createElement('img'); img.id='speImg'; img.src=src; if(el) el.replaceWith(img);
+      toast('Đã đổi ảnh (bấm Lưu để áp dụng)');
+    }catch(e){ toast('Tải ảnh lỗi: '+e.message); }
+  };
+  inp.click();
+}
+async function spEditSave(){
+  var ov=document.getElementById('spEditOv'); if(!ov) return;
+  var data={};
+  ov.querySelectorAll('[data-col]').forEach(function(el){ var lbl=SP_COL2LABEL_[el.getAttribute('data-col')]; if(lbl) data[lbl]=el.value; });
+  data['ẢNH SẢN PHẨM']=S._spEditImg||'';
+  var btn=document.getElementById('speSaveBtn'); if(btn){ btn.disabled=true; btn.textContent='Đang lưu…'; }
+  try{ var r=await api('updateDbProductTracked', S._spEditMa, data);
+    if(r&&r.updated){ toast('Đã cập nhật '+r.changes+' trường'); S.products=await api('getProducts')||S.products; spFilter(); if(typeof renderCatalog==='function') renderCatalog(); spEditClose(); }
+    else { toast('Không có thay đổi nào để lưu'); if(btn){ btn.disabled=false; btn.innerHTML=icon('check',15)+' Lưu cập nhật'; } }
+  }catch(e){ toast('Lỗi lưu: '+e.message); if(btn){ btn.disabled=false; btn.innerHTML=icon('check',15)+' Lưu cập nhật'; } }
+}
 async function spDelete(i){
   var p=(S._spList||[])[i]; if(!p) return;
   if(!confirm('Xoá sản phẩm "'+p.ten+'" khỏi danh mục?')) return;

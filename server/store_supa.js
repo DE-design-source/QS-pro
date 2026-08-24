@@ -304,6 +304,49 @@ async function deleteDbProduct(key) {
   await supa.remove('db_san_pham', filter); _cache = null;
   return { ok: true };
 }
+// ===== Cập nhật SP + LƯU LỊCH SỬ (ai, lúc nào, đổi gì) =====
+const COL2LABEL = {}; Object.keys(DB_LABEL2COL).forEach(function (lb) { COL2LABEL[DB_LABEL2COL[lb]] = lb; });
+async function getDbProduct(ma) {
+  ma = s(ma).trim(); if (!ma) return null;
+  const rows = await supa.select('db_san_pham', { select: '*', filter: supa.eq('ma_sp', ma), limit: 1 });
+  return rows[0] || null;
+}
+async function updateDbProductTracked(actor, ma, data) {
+  ma = s(ma).trim(); if (!ma) throw new Error('Thiếu mã sản phẩm.');
+  const cur = await getDbProduct(ma); if (!cur) throw new Error('Không tìm thấy sản phẩm.');
+  data = data || {};
+  const row = {};
+  Object.keys(data).forEach(function (label) {
+    const col = DB_LABEL2COL[label]; if (!col) return;
+    let v = data[label];
+    if (label === 'LẮP NGUỒN RỜI') v = /^(có|yes|true|1|x)$/i.test(String(v));
+    else if (DB_NUM.indexOf(label) >= 0) v = (v === '' || v == null) ? null : n(v);
+    else v = (v == null) ? '' : String(v);
+    row[col] = v;
+  });
+  // so sánh cũ/mới -> danh sách thay đổi
+  const changes = [];
+  Object.keys(row).forEach(function (col) {
+    const oldS = (cur[col] == null ? '' : String(cur[col]));
+    const newS = (row[col] == null ? '' : String(row[col]));
+    if (oldS !== newS) changes.push({ field: COL2LABEL[col] || col, old: oldS, new: newS });
+  });
+  if (!changes.length) return { updated: false, changes: 0 };
+  row.ngay_cap_nhat = new Date().toISOString();
+  await supa.update('db_san_pham', supa.eq('ma_sp', ma), row); _cache = null;
+  const who = (actor && actor.u) || 'ẩn danh';
+  try {
+    await supa.insert('db_san_pham_history', changes.map(function (c) {
+      return { ma_sp: ma, field: c.field, old_value: c.old, new_value: c.new, changed_by: (actor && actor.uid) || null, changed_by_name: who };
+    }));
+  } catch (e) { console.warn('[product history] insert lỗi:', e && e.message); }
+  return { updated: true, changes: changes.length, ten: s(cur.ten_sp) };
+}
+async function getProductHistory(ma) {
+  ma = s(ma).trim(); if (!ma) return [];
+  const rows = await supa.select('db_san_pham_history', { filter: supa.eq('ma_sp', ma), order: 'changed_at.desc', limit: 200 });
+  return rows.map(function (r) { return { field: s(r.field), old: s(r.old_value), new: s(r.new_value), by: s(r.changed_by_name), at: s(r.changed_at) }; });
+}
 async function saveLineAsProduct(p) {
   p = p || {};
   const data = { 'TÊN SẢN PHẨM': p.ten, 'MÃ SẢN PHẨM': p.ma, 'DÒNG SẢN PHẨM': p.nhom, 'HẠNG MỤC': p.hangMuc,
@@ -426,6 +469,7 @@ async function getPurchaseOrders(maDA) {
 module.exports = {
   bootstrap, buildCatalog, getProducts, getCatalogSheets, getProjects, getProject, createProject, updateProject, deleteProject, duplicateProject,
   getLines, addLine, addBlankLine, updateLine, deleteLine, saveLineAsProduct, saveDbProduct, deleteDbProduct, uploadImage,
+  getDbProduct, updateDbProductTracked, getProductHistory,
   getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, getDashboard, getQuote, importParse, importCommit,
   savePurchaseOrder, getPurchaseOrders
 };

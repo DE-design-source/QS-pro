@@ -52,6 +52,37 @@ a{color:inherit}
 .sp-act.del:hover{background:#fde2e2;color:#c33}
 .sp-modal-ov{position:fixed;inset:0;background:#0e1a2b66;backdrop-filter:blur(2px);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
 .sp-modal{background:#fff;border-radius:14px;width:420px;max-width:100%;padding:18px 20px;box-shadow:0 20px 60px #0005}
+/* modal Cập nhật sản phẩm + lịch sử */
+.sp-modal.sp-edit{width:760px}
+.sp-edit .pd-head h3{display:flex;align-items:center;gap:7px}
+.spe-grid{display:grid;grid-template-columns:180px 1fr;gap:16px;margin-top:8px}
+.spe-imgbox{display:flex;flex-direction:column;gap:8px}
+.spe-lbl{font-size:11px;font-weight:700;color:#8a96a5;text-transform:uppercase;letter-spacing:.3px}
+.spe-imgbox img,.spe-noimg{width:100%;height:150px;object-fit:contain;background:#f4f6f8;border:1px solid #edf0f3;border-radius:10px}
+.spe-noimg{display:flex;align-items:center;justify-content:center;color:#9aa7b4;font-size:12.5px}
+.spe-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.spe-f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.spe-f.wide{grid-column:1/-1}
+.spe-f label{font-size:11px;font-weight:600;color:#5b6b7b}
+.spe-f input,.spe-f textarea{border:1px solid #dde3ea;border-radius:8px;padding:8px 10px;font:inherit;font-size:13px;background:#fff;width:100%;box-sizing:border-box}
+.spe-f input:focus,.spe-f textarea:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 3px #2f6bff22}
+.spe-f input[readonly]{background:#f4f6f8;color:#8a96a5}
+.spe-f textarea{min-height:52px;resize:vertical}
+.spe-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid #eef1f5}
+.spe-hist{margin-top:16px;border-top:1px solid #eef1f5;padding-top:12px}
+.spe-hist-h{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:800;color:var(--navy);margin-bottom:10px}
+.spe-hist-n{background:#eef2f7;color:#5b6b7b;font-size:11px;font-weight:700;border-radius:9px;padding:1px 7px}
+.spe-hist-list{display:flex;flex-direction:column;gap:8px;max-height:220px;overflow:auto}
+.spe-h{border:1px solid #eef1f5;border-radius:9px;padding:8px 10px;background:#fbfcfe}
+.spe-h-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.spe-h-top b{font-size:12.5px;color:#1f2b38}
+.spe-h-by{font-size:11px;color:#98a4b0;display:inline-flex;align-items:center;gap:3px}
+.spe-h-diff{margin-top:4px;font-size:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.spe-h-diff .old{color:#c0392b;text-decoration:line-through;opacity:.75;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.spe-h-diff .new{color:#16a34a;font-weight:600;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.spe-h-diff .arr{color:#9aa7b4}
+.sp-act.edit{color:#0d7a5f} .sp-act.edit:hover{background:#e6f6f0}
+@media(max-width:680px){.spe-grid{grid-template-columns:1fr}.spe-fields{grid-template-columns:1fr}.sp-modal.sp-edit{width:100%}}
 /* Popup chi tiết SP dạng chữ nhật (2 cột) */
 .sp-modal-wide{width:940px;max-width:96vw}
 .pdm-grid{display:grid;grid-template-columns:320px 1fr;gap:28px;align-items:start;margin-top:6px}
@@ -1155,7 +1186,7 @@ input:focus,select:focus,textarea:focus{outline:none}
 .sp-specs{white-space:nowrap} .sp-specs .spec{display:inline-block;font-size:11px;font-weight:600;color:#4a5866;background:#f1f4f8;border-radius:6px;padding:2px 7px;margin:1px 2px 1px 0}
 .sp-specs .spec.k{background:#fff5e6;color:#b7791f}
 .sp-price{font-weight:800;color:var(--navy);white-space:nowrap;font-size:14px} .sp-price .unit{font-weight:600;color:#9aa7b4;font-size:11px;margin-left:1px}
-.sp-table th.act-sp,.sp-table td.act-sp{white-space:nowrap;width:120px;text-align:right;padding-right:16px}
+.sp-table th.act-sp,.sp-table td.act-sp{white-space:nowrap;width:150px;text-align:right;padding-right:16px}
 .sp-act{width:30px;height:30px}
 .sp-act.add{color:var(--blue)} .sp-act.add:hover{background:#e8f0ff}
 /* workspace: trái = SP trong dự án, phải = catalog */
