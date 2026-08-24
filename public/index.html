@@ -443,10 +443,12 @@ table.tk tr.drow.cf-red td{background:#fdecec !important}
 table.tk tr.drow.cf-yellow td{background:#fdf6da !important}
 table.tk tr.drow.cf-grey td{background:#f1f4f7 !important}
 /* freeze cột đầu (sticky-left) */
-table.tk.frz1 tr.drow td:first-child, table.tk.frz2 tr.drow td:first-child,
-table.tk.frz1 th:first-child, table.tk.frz2 th:first-child{position:sticky;left:0;z-index:4}
-table.tk.frz2 tr.drow td:nth-child(2), table.tk.frz2 th:nth-child(2){position:sticky;left:var(--frz1w);z-index:4}
-table.tk.frz1 th:first-child, table.tk.frz2 th:first-child, table.tk.frz2 th:nth-child(2){z-index:7}
+/* ô DỮ LIỆU cột cố định z-index 3 (DƯỚI hàng tầng z-index 4 -> hàng tầng luôn phủ kín, không bị "hở") */
+table.tk.frz1 tr.drow td:first-child, table.tk.frz2 tr.drow td:first-child{position:sticky;left:0;z-index:3}
+table.tk.frz2 tr.drow td:nth-child(2){position:sticky;left:var(--frz1w);z-index:3}
+/* ô TIÊU ĐỀ cột cố định z-index 7 (trên cùng) */
+table.tk.frz1 th:first-child, table.tk.frz2 th:first-child{position:sticky;left:0;z-index:7}
+table.tk.frz2 th:nth-child(2){position:sticky;left:var(--frz1w);z-index:7}
 table.tk.frz1 tr.drow td:first-child, table.tk.frz1 th:first-child,
 table.tk.frz2 tr.drow td:nth-child(2), table.tk.frz2 th:nth-child(2){box-shadow:2px 0 5px -2px rgba(15,30,60,.22)}
 /* tìm & thay */
