@@ -55,11 +55,13 @@ a{color:inherit}
 /* modal Cập nhật sản phẩm + lịch sử */
 .sp-modal.sp-edit{width:760px}
 .sp-edit .pd-head h3{display:flex;align-items:center;gap:7px}
-.spe-grid{display:grid;grid-template-columns:180px 1fr;gap:16px;margin-top:8px}
-.spe-imgbox{display:flex;flex-direction:column;gap:8px}
-.spe-lbl{font-size:11px;font-weight:700;color:#8a96a5;text-transform:uppercase;letter-spacing:.3px}
-.spe-imgbox img,.spe-noimg{width:100%;height:150px;object-fit:contain;background:#f4f6f8;border:1px solid #edf0f3;border-radius:10px}
-.spe-noimg{display:flex;align-items:center;justify-content:center;color:#9aa7b4;font-size:12.5px}
+.spe-lbl{font-size:11px;font-weight:700;color:#8a96a5;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px}
+/* 2 vùng ảnh: đại diện + chi tiết */
+.spe-imgs{display:grid;grid-template-columns:200px 1fr;gap:16px;margin:8px 0 14px}
+.spe-imgcol{min-width:0}
+.spe-imgs .upzone.upmain{height:150px}
+.spe-imgs .upzone.sm{min-height:64px;padding:12px;font-size:12.5px}
+.spe-imgs .upurl{margin-top:8px}
 .spe-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
 .spe-f{display:flex;flex-direction:column;gap:4px;min-width:0}
 .spe-f.wide{grid-column:1/-1}

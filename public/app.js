@@ -1047,42 +1047,46 @@ async function spEditModal(i){
   var raw=null, hist=[];
   try{ raw=await api('getDbProduct', p.ma); hist=await api('getProductHistory', p.ma)||[]; }catch(e){}
   if(!raw){ ov.querySelector('.spe-body').innerHTML='<div class="empty" style="padding:24px">Không tải được dữ liệu sản phẩm.</div>'; return; }
-  S._spEditMa=p.ma; S._spEditImg=raw.anh_sp||'';
+  S._spEditMa=p.ma;
+  // tách anh_sp: ảnh đầu = đại diện, còn lại = ảnh chi tiết/mô tả (dùng chung bộ upload với trang Nhập dữ liệu)
+  var imgsRaw=String(raw.anh_sp||'').split('\n').map(function(s){return s.trim();}).filter(Boolean);
+  S._imgMain=imgsRaw[0]||''; S._imgList=imgsRaw.slice(1);
   var fields=SP_EDIT_FIELDS.map(function(f){ var val=raw[f[1]]==null?'':raw[f[1]];
     if(f[2]==='area') return '<div class="spe-f wide"><label>'+esc(f[0])+'</label><textarea data-col="'+f[1]+'">'+esc(val)+'</textarea></div>';
     return '<div class="spe-f"><label>'+esc(f[0])+'</label><input type="'+(f[2]==='num'?'number':'text')+'" data-col="'+f[1]+'" value="'+esc(val)+'"'+(f[2]==='ro'?' readonly':'')+'></div>';
   }).join('');
-  var img=S._spEditImg?imgSrc1_(S._spEditImg):'';
-  var imgBox='<div class="spe-imgbox"><div class="spe-lbl">Hình ảnh</div>'
-    +(img?'<img id="speImg" src="'+esc(img)+'" onerror="this.style.visibility=\'hidden\'">':'<div id="speImg" class="spe-noimg">Chưa có ảnh</div>')
-    +'<button class="btn ghost sm" onclick="spEditPickImg()">'+icon('camera',14)+' Đổi ảnh</button></div>';
   var histHtml=hist.length?hist.map(function(h){
     return '<div class="spe-h"><div class="spe-h-top"><b>'+esc(h.field)+'</b><span class="spe-h-by">'+icon('clock',11)+' '+esc(h.by||'?')+' · '+fmtDateTime_(h.at)+'</span></div>'
       +'<div class="spe-h-diff"><span class="old">'+esc(h.old||'—')+'</span><span class="arr">→</span><span class="new">'+esc(h.new||'—')+'</span></div></div>';
   }).join(''):'<div class="empty" style="padding:14px;font-size:12.5px">Chưa có lịch sử cập nhật.</div>';
-  ov.querySelector('.spe-body').innerHTML='<div class="spe-grid">'+imgBox+'<div class="spe-fields">'+fields+'</div></div>'
+  ov.querySelector('.spe-body').innerHTML=spEditImgSection_()
+    +'<div class="spe-fields">'+fields+'</div>'
     +'<div class="spe-actions"><button class="btn ghost sm" onclick="spEditClose()">Huỷ</button><button class="btn blue" id="speSaveBtn" onclick="spEditSave()">'+icon('check',15)+' Lưu cập nhật</button></div>'
     +'<div class="spe-hist"><div class="spe-hist-h">'+icon('clock',15)+' Lịch sử cập nhật <span class="spe-hist-n">'+hist.length+'</span></div><div class="spe-hist-list">'+histHtml+'</div></div>';
 }
-function spEditClose(){ var o=document.getElementById('spEditOv'); if(o)o.remove(); }
-function spEditPickImg(){
-  var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
-  inp.onchange=async function(){ var f=inp.files&&inp.files[0]; if(!f) return; toast('Đang tải ảnh…');
-    try{ var d=await downscaleImage_(f,1600,0.82); if(!d||d==='__DECODE_FAIL__'){ toast('Không đọc được ảnh (thử JPG/PNG)'); return; }
-      var tok=await uploadImg_(d,f.name); S._spEditImg=tok;
-      var el=document.getElementById('speImg'), src=imgSrc1_(tok);
-      var img=document.createElement('img'); img.id='speImg'; img.src=src; if(el) el.replaceWith(img);
-      toast('Đã đổi ảnh (bấm Lưu để áp dụng)');
-    }catch(e){ toast('Tải ảnh lỗi: '+e.message); }
-  };
-  inp.click();
+// 2 vùng ảnh (đại diện + chi tiết) — tái dùng upMain/upGrid + upPick/upFile/upRefresh của trang Nhập dữ liệu
+function spEditImgSection_(){
+  return '<div class="spe-imgs">'
+    +'<div class="spe-imgcol"><div class="spe-lbl">Ảnh đại diện</div>'
+      +'<div class="upzone upmain" id="upMain" onclick="upPick(\'main\')" ondragover="upDrag(event,1)" ondragleave="upDrag(event,0)" ondrop="upDrop(event,\'main\')">'+upMainInner()+'</div>'
+      +'<div class="upurl"><input id="upMainUrl" placeholder="Hoặc dán URL ảnh…"><button class="btn blue sm" onclick="upAddUrl(\'main\')">Thêm</button></div></div>'
+    +'<div class="spe-imgcol wide"><div class="spe-lbl">Ảnh chi tiết / mô tả sản phẩm</div>'
+      +'<div class="upzone sm" id="upMore" onclick="upPick(\'more\')" ondragover="upDrag(event,1)" ondragleave="upDrag(event,0)" ondrop="upDrop(event,\'more\')"><span class="upic">'+icon('camera',22)+'</span> Bấm/kéo-thả để thêm <b>ảnh chi tiết</b></div>'
+      +'<div class="upgrid" id="upGrid">'+upGridInner()+'</div>'
+      +'<div class="upurl"><input id="upMoreUrl" placeholder="Hoặc dán URL ảnh…"><button class="btn blue sm" onclick="upAddUrl(\'more\')">Thêm</button></div></div>'
+    +'</div>';
 }
+function spEditClose(){ var o=document.getElementById('spEditOv'); if(o)o.remove(); }
 async function spEditSave(){
   var ov=document.getElementById('spEditOv'); if(!ov) return;
   var data={};
   ov.querySelectorAll('[data-col]').forEach(function(el){ var lbl=SP_COL2LABEL_[el.getAttribute('data-col')]; if(lbl) data[lbl]=el.value; });
-  data['ẢNH SẢN PHẨM']=S._spEditImg||'';
   var btn=document.getElementById('speSaveBtn'); if(btn){ btn.disabled=true; btn.textContent='Đang lưu…'; }
+  if((S._imgUploading||0)>0){ if(btn) btn.textContent='⏳ Đợi tải ảnh…'; await waitUploads_(15000); }
+  // gộp ảnh: đại diện (đầu) + chi tiết; bỏ preview base64 chưa upload xong
+  var imgs=[S._imgMain].concat(S._imgList||[]).filter(Boolean).filter(function(v){ return v.indexOf('data:')!==0; });
+  data['ẢNH SẢN PHẨM']=imgs.join('\n');
+  if(btn) btn.textContent='Đang lưu…';
   try{ var r=await api('updateDbProductTracked', S._spEditMa, data);
     if(r&&r.updated){ toast('Đã cập nhật '+r.changes+' trường'); S.products=await api('getProducts')||S.products; spFilter(); if(typeof renderCatalog==='function') renderCatalog(); spEditClose(); }
     else { toast('Không có thay đổi nào để lưu'); if(btn){ btn.disabled=false; btn.innerHTML=icon('check',15)+' Lưu cập nhật'; } }
