@@ -1325,8 +1325,10 @@ function initTableInteractions(){
   document.addEventListener('mousedown',function(e){
     var rs=e.target.closest('.thrsz');
     if(rs){ e.preventDefault(); e.stopPropagation(); var k=rs.dataset.k, sx=e.clientX, sw=colW(k);
-      function cmv(ev){ S.colW[k]=Math.max(50, sw+(ev.clientX-sx)); renderWidths(); }
-      function cup(){ document.removeEventListener('mousemove',cmv); document.removeEventListener('mouseup',cup); saveCols(); }
+      function cmv(ev){ var w=Math.max(50, sw+(ev.clientX-sx)); S.colW[k]=w; renderWidths(); cpflatColW_(k,w); }
+      function cup(){ document.removeEventListener('mousemove',cmv); document.removeEventListener('mouseup',cup); saveCols();
+        if(document.getElementById('v-duan').classList.contains('on')) renderDuAn();
+        if(document.getElementById('v-chiphi').classList.contains('on')) renderChiphi(); }
       document.addEventListener('mousemove',cmv); document.addEventListener('mouseup',cup); return; }
     var g=e.target.closest('.rgrip'); if(!g) return; e.preventDefault();
     var tr=g.closest('tr'), id=g.dataset.id, sy=e.clientY, sh=tr.offsetHeight;
@@ -1785,12 +1787,27 @@ function renderChiphi(){
 /* ===== DỰ ÁN — Sản phẩm trong dự án (gom theo tầng, y kiểu Bóc tách) ===== */
 var DA_KEYS=['khuVuc','maBanVe','nganh','maSP','ten','thuongHieu','ncc','moTa','kichThuoc','hinhAnh','dvt','soLuong','giaNCC','chietKhau','giaDaiLy','lnPct','donGia','thanhTien'];
 function daColToggle(k){ S._daCols=S._daCols||{}; S._daCols[k]=!S._daCols[k]; renderDuAn(); }
+// kéo đổi vị trí cột (tab Dự án)
+function daColDragStart(e,k){ S._daDragK=k; try{ e.dataTransfer.setData('text/plain',k); }catch(x){} }
+function daColDrop(e,k){ e.preventDefault(); var from=S._daDragK; S._daDragK=null; if(!from||from===k) return;
+  var ord=(S._daOrder||DA_KEYS.slice()).filter(function(x){ return x!==from; });
+  var idx=ord.indexOf(k); if(idx<0) idx=ord.length; ord.splice(idx,0,from); S._daOrder=ord; renderDuAn(); }
+// cập nhật rộng cột trực tiếp cho các bảng .cpflat khi kéo mép (dùng chung S.colW)
+function cpflatColW_(k,w){
+  document.querySelectorAll('table.cpflat').forEach(function(t){
+    var ths=t.querySelectorAll('tr:first-child th'), cols=t.querySelectorAll('colgroup col');
+    for(var i=0;i<ths.length;i++){ if(ths[i].getAttribute('data-k')===k){ if(cols[i]) cols[i].style.width=w+'px'; break; } }
+    var total=0; cols.forEach(function(c){ total+=parseFloat(c.style.width)||0; }); if(total) t.style.width=total+'px';
+  });
+}
 function renderDuAn(){
   var box=document.getElementById('v-duan'); if(!box) return;
   if(!S.cur){ box.innerHTML='<div class="sechd"><h2>Sản phẩm trong dự án</h2></div>'
     +'<div class="empty" style="padding:30px;text-align:center;background:#fff;border:1px solid var(--line);border-radius:14px">Chưa chọn dự án. Vào <b>Bảng điều khiển</b> để chọn/tạo dự án.</div>'; return; }
   if(!S._daCols) S._daCols={khuVuc:1,ten:1,thuongHieu:1,moTa:1,kichThuoc:1,hinhAnh:1,dvt:1,soLuong:1,donGia:1,thanhTien:1};
-  var keys=DA_KEYS.filter(function(k){ return S._daCols[k]; });
+  if(!S._daOrder) S._daOrder=DA_KEYS.slice();
+  DA_KEYS.forEach(function(k){ if(S._daOrder.indexOf(k)<0) S._daOrder.push(k); });   // đồng bộ nếu DA_KEYS thêm cột mới
+  var keys=S._daOrder.filter(function(k){ return S._daCols[k]; });
   var numK=['soLuong','giaNCC','giaDaiLy','donGia','donGiaCK','lnVnd','thanhTien'], ctK=['maBanVe','nganh','hinhAnh','dvt','chietKhau','lnPct','ckKhach','markup','margin'];
   function alignCls(k){ return numK.indexOf(k)>=0?'num':(ctK.indexOf(k)>=0?'ct':''); }
   var ban=0; S.lines.forEach(function(l){ ban+=ttBan_(l); });
@@ -1808,7 +1825,10 @@ function renderDuAn(){
   var ncol=keys.length+1;
   var totalW=64+keys.reduce(function(s,k){ return s+colW(k); },0);
   var colg='<colgroup><col style="width:64px">'+keys.map(function(k){ return '<col style="width:'+colW(k)+'px">'; }).join('')+'</colgroup>';
-  var head='<tr><th class="ct">STT</th>'+keys.map(function(k){ return '<th class="thk '+alignCls(k)+'">'+esc(cpLabel_(k))+'</th>'; }).join('')+'</tr>';
+  var head='<tr><th class="ct">STT</th>'+keys.map(function(k){
+      return '<th class="thk '+alignCls(k)+'" data-k="'+k+'" draggable="true" title="Kéo để đổi vị trí cột · kéo mép phải để chỉnh rộng"'
+        +' ondragstart="daColDragStart(event,\''+k+'\')" ondragover="event.preventDefault()" ondrop="daColDrop(event,\''+k+'\')">'
+        +'<span class="thl">'+esc(cpLabel_(k))+'</span><span class="thrsz" data-k="'+k+'"></span></th>'; }).join('')+'</tr>';
   var groups={}; S.lines.forEach(function(l){ var g=(l.tang||'').trim()||'CHƯA PHÂN TẦNG'; (groups[g]=groups[g]||[]).push(l); });
   var order=floorsList().slice(); Object.keys(groups).forEach(function(g){ if(order.indexOf(g)<0) order.push(g); });
   order=order.filter(function(g){ return groups[g]&&groups[g].length; });
@@ -1821,7 +1841,7 @@ function renderDuAn(){
     body+='<tr class="grp"><td colspan="'+ncol+'"><span class="gname">'+roman+'. '+esc(g)+'</span><span class="gsum">Tổng tầng: <b>'+money(gsum)+' đ</b></span></td></tr>'+spacer;
     (groups[g]||[]).forEach(function(l,ri){
       body+='<tr class="drow'+(ri%2===0?' alt':'')+'" data-id="'+l.lineId+'"><td class="ct">'+(gi+1)+'.'+(ri+1)+'</td>'
-        +keys.map(function(k){ return cellInput(l,k); }).join('')+'</tr>';
+        +keys.map(function(k){ return cpCell_(l,k); }).join('')+'</tr>';
     });
     body+=spacer;
   });
