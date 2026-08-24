@@ -1788,7 +1788,7 @@ function renderChiphi(){
 var DA_KEYS=['khuVuc','maBanVe','nganh','maSP','ten','thuongHieu','ncc','moTa','kichThuoc','hinhAnh','dvt','soLuong','giaNCC','chietKhau','giaDaiLy','lnPct','donGia','thanhTien'];
 function daColToggle(k){ S._daCols=S._daCols||{}; S._daCols[k]=!S._daCols[k]; renderDuAn(); }
 // kéo đổi vị trí cột (tab Dự án)
-function daColDragStart(e,k){ S._daDragK=k; try{ e.dataTransfer.setData('text/plain',k); }catch(x){} }
+function daColDragStart(e,k){ if(e.target&&e.target.closest&&e.target.closest('.thrsz')){ e.preventDefault(); return; } S._daDragK=k; try{ e.dataTransfer.setData('text/plain',k); }catch(x){} }
 function daColDrop(e,k){ e.preventDefault(); var from=S._daDragK; S._daDragK=null; if(!from||from===k) return;
   var ord=(S._daOrder||DA_KEYS.slice()).filter(function(x){ return x!==from; });
   var idx=ord.indexOf(k); if(idx<0) idx=ord.length; ord.splice(idx,0,from); S._daOrder=ord; renderDuAn(); }
