@@ -758,7 +758,12 @@ function renderSanpham(){
 function renderSpProjPanel_(){
   var el=document.getElementById('spProjPanel'); if(!el) return;
   var head='<div class="spp-head"><span class="spp-ic">'+icon('layers',16)+'</span><h3>Sản phẩm trong dự án</h3><span class="spp-count">'+((S.cur?S.lines:[])||[]).length+'</span></div>';
-  if(!S.cur){ el.innerHTML=head+'<div class="spp-empty">Chưa chọn dự án.<br>Vào <b>Bảng điều khiển</b> để chọn/tạo dự án.</div>'; return; }
+  // dropdown chọn/tạo dự án ngay trong panel (bám mockup)
+  var projSel='<select class="spp-projsel" onchange="spSwitchProject(this.value)">'
+    +'<option value="">— Chọn hoặc tạo dự án —</option>'
+    +(S.projects||[]).map(function(p){ return '<option value="'+esc(p.maDA)+'"'+(S.cur&&S.cur.maDA===p.maDA?' selected':'')+'>'+esc(p.ten)+'</option>'; }).join('')
+    +'<option value="__new__">＋ Tạo dự án mới…</option></select>';
+  if(!S.cur){ el.innerHTML=head+projSel+'<div class="spp-empty">Chưa chọn dự án.<br>Chọn dự án ở trên để bắt đầu ghi danh sản phẩm.</div>'; return; }
   var lines=S.lines||[];
   var rows=lines.map(function(l){
     var im=imgSrc1_(l.hinhAnh);
@@ -770,7 +775,15 @@ function renderSpProjPanel_(){
       +'<button class="spp-del" title="Bỏ khỏi dự án" onclick="spRemoveFromProject(\''+l.lineId+'\')">✕</button>'
     +'</div>';
   }).join('')||'<div class="spp-empty">Chưa có sản phẩm.<br>Bấm ＋ ở danh mục bên phải để ghi danh vào dự án.</div>';
-  el.innerHTML=head+'<div class="spp-proj">'+icon('building',13)+' '+esc(S.cur.ten||'')+'</div><div class="spp-list">'+rows+'</div>';
+  el.innerHTML=head+projSel+'<div class="spp-sub2">Danh sách sản phẩm tham gia dự án</div><div class="spp-list">'+rows+'</div>';
+}
+async function spSwitchProject(maDA){
+  if(maDA==='__new__'){ if(typeof openCreate==='function') openCreate(); renderSpProjPanel_(); return; }
+  if(!maDA){ return; }
+  var p=(S.projects||[]).filter(function(x){return x.maDA===maDA;})[0]; if(!p) return;
+  S.cur=p; S._coverDA=null; try{ S.lines=await api('getLines',maDA)||[]; }catch(e){ S.lines=[]; }
+  if(typeof renderProjSel==='function') renderProjSel();
+  renderSpProjPanel_(); renderSpChips_(); spFilter();
 }
 function spAddToProject(i){ var p=(S._spList||[])[i]; if(!p) return; if(!S.cur){ toast('Chưa chọn dự án'); return; }
   addProdObj(p); renderSpProjPanel_(); setTimeout(renderSpProjPanel_,700); }
@@ -818,16 +831,29 @@ function renderSpChips_(){
   var total=(S.products||[]).length;
   var label = f.node ? (f.node+'.'+nodeName(f.node)) : 'Tất cả hạng mục';
   var cnt = f.node ? spNodeCount_(f.node) : total;
-  // hàng 1: chọn hạng mục dạng cây (TREE) giống Bóc tách
-  var catRow='<div class="sp-catrow"><span class="lb">Hạng mục</span>'
+  var scope=spScopeProducts_();
+  // options trong phạm vi hạng mục đang chọn (gộp trùng hoa/thường)
+  function optList(field){ var m={}; scope.forEach(function(p){ if(p[field]) m[spNorm_(p[field])]=p[field]; });
+    return Object.keys(m).sort(function(a,b){ return m[a].localeCompare(m[b],'vi'); }).map(function(k){ return m[k]; }); }
+  function fsel(key,lb,field,ph){ var opts=optList(field), cur=f[key]||'';
+    return '<div class="sp-fcol"><label>'+lb+'</label><select class="sp-fsel" onchange="spSelFilter(\''+key+'\',this.value)">'
+      +'<option value="">'+ph+'</option>'
+      +opts.map(function(v){ return '<option value="'+esc(v)+'"'+(spNorm_(cur)===spNorm_(v)?' selected':'')+'>'+esc(v)+'</option>'; }).join('')+'</select></div>'; }
+  // hàng lọc: cây Hạng mục + 3 dropdown (Thương hiệu / Hạng mục SP / Dòng SP)  — bám mockup
+  var treeCol='<div class="sp-fcol"><label>Danh sách sản phẩm</label>'
     +'<div class="sp-catwrap"><button class="tree-btn sp-catbtn" id="spCatBtn" onclick="spCatToggle(event)"><span class="sp-catlbl">'+esc(label)+'</span><span class="cnt">['+pad2(cnt)+']</span><span class="sp-caret">▾</span></button>'
-      +'<div class="tree-pop" id="spCatPop" style="display:none"></div></div>'
-    +(spFltCount_()?'<span class="spchip clr" onclick="spClearFilters()">✕ Xóa bộ lọc</span>':'')+'</div>';
-  bar.innerHTML=catRow;
+      +'<div class="tree-pop" id="spCatPop" style="display:none"></div></div></div>';
+  bar.innerHTML='<div class="sp-filtrow">'+treeCol
+    +fsel('brand','Danh sách thương hiệu','thuongHieu','Tất cả thương hiệu')
+    +fsel('hangMuc','Hạng mục sản phẩm','hangMuc','Tất cả loại đèn')
+    +fsel('dong','Dòng sản phẩm','nhom','Tất cả dòng SP')
+    +(spAnyFilter_()?'<div class="sp-fcol" style="justify-content:flex-end"><span class="spchip clr" onclick="spClearFilters()">✕ Xóa lọc</span></div>':'')
+    +'</div>';
   var badge=document.getElementById('spFltBadge'); var n=spFltCount_();
   if(badge){ badge.textContent=n||''; badge.style.display=n?'inline-flex':'none'; }
   var btn=document.getElementById('spBoLocBtn'); if(btn) btn.classList.toggle('on', n>0);
 }
+function spSelFilter(key,val){ S._spFilters=S._spFilters||{}; if(!val) delete S._spFilters[key]; else S._spFilters[key]=val; renderSpChips_(); spFilter(); }
 // chip "Dòng SP" — gộp nhom (đã chuẩn hoá) trong phạm vi hạng mục đang chọn
 function spDongChips_(){
   var scope=spScopeProducts_(), map={};
@@ -864,8 +890,9 @@ function spSetFilter(key,val){ S._spFilters=S._spFilters||{}; if(!val) delete S.
 function spClearFilters(){ S._spFilters={watt:{},kelvin:{},angle:{},cri:{}}; renderSpChips_(); spFilter(); if(document.getElementById('spFltPop')) spBoLocPop_(); }
 // đếm số điều kiện "bộ lọc nâng cao" đang bật (không tính chip Hạng mục hiển thị sẵn)
 function actKeys_(o){ return Object.keys(o||{}).filter(function(k){ return o[k]; }); }
-function spFltCount_(){ var f=S._spFilters||{}; var n=0; if(f.brand)n++; if(f.hangMuc)n++; if(f.min)n++; if(f.max)n++;
+function spFltCount_(){ var f=S._spFilters||{}; var n=0; if(f.min)n++; if(f.max)n++;
   ['watt','kelvin','angle','cri'].forEach(function(g){ n+=actKeys_(f[g]).length; }); return n; }
+function spAnyFilter_(){ var f=S._spFilters||{}; return !!(f.brand||f.hangMuc||f.dong||spFltCount_()); }
 // ==== Popover "Bộ lọc" cho Danh sách SP (công suất / nhiệt độ / góc / CRI / thương hiệu / giá) ====
 // phạm vi bộ lọc = sản phẩm thuộc hạng mục (node) đang chọn — để option lọc tương ứng hạng mục
 function spScopeProducts_(){ var f=S._spFilters||{}; if(!f.node) return S.products||[];
@@ -895,8 +922,6 @@ function spBoLocPop_(){
       +'</div></div>'; }
   var pop=document.createElement('div'); pop.className='fltpop spfltpop'; pop.id='spFltPop';
   pop.innerHTML='<div class="fhdr">Bộ lọc nâng cao</div>'
-    +single('Thương hiệu','brand','thuongHieu')
-    +single('Loại đèn','hangMuc','hangMuc')
     +multi('Công suất','congSuat','watt')
     +multi('Nhiệt độ màu','nhietDo','kelvin',{dot:ctColor})
     +multi('Góc chiếu','gocChieu','angle')
