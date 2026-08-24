@@ -477,7 +477,8 @@ function filteredProducts(){
   var hmucSel=Object.keys(S.fNhomSet||{}).filter(function(k){return S.fNhomSet[k];});
   var dk=(S.demucKw||'').toLowerCase().trim();
   var usedKeys=null;
-  if(S.onlyProject){ usedKeys={}; (S.lines||[]).forEach(function(l){ var k=String(l.maSP||l.ten||'').toLowerCase().trim(); if(k) usedKeys[k]=1; }); }
+  if(S._inProjKeys){ usedKeys=S._inProjKeys; }                 // đã chọn 1 dự án cụ thể ở "Đèn trong dự án"
+  else if(S.onlyProject){ usedKeys={}; (S.lines||[]).forEach(function(l){ var k=String(l.maSP||l.ten||'').toLowerCase().trim(); if(k) usedKeys[k]=1; }); }
   return S.products.filter(function(p){
     if(hmucSel.length && hmucSel.indexOf(prodHmuc_(p))<0) return false;
     if(usedKeys){ var uk=String(p.ma||p.ten||'').toLowerCase().trim(); if(!usedKeys[uk]) return false; }
@@ -520,12 +521,38 @@ function toggleOnlyProject(){ S.onlyProject=!S.onlyProject; var b=document.getEl
 var SVG_PLUS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg>';
 var SVG_MINUS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 12h7"/></svg>';
 function setMselIcon(id,minus){ var el=document.getElementById(id); if(!el)return; var p=el.querySelector('.mplus'); if(p) p.innerHTML=minus?SVG_MINUS:SVG_PLUS; }
-function toggleInProj(){ S.onlyProject=!S.onlyProject; updateInProj_(); renderCatalog(); }
+// "Đèn trong dự án": mở dropdown chọn 1 dự án -> chỉ hiện SP đã bóc trong dự án đó
+function openInProjSel(e){
+  if(e){ e.stopPropagation(); } closePop();
+  var cur=S._inProjMa||'';
+  var pop=document.createElement('div'); pop.className='fltpop'; pop.id='qs_pop'; pop.style.width='300px'; pop.style.maxHeight='60vh';
+  pop.innerHTML='<div class="fhdr">Đèn trong dự án</div>'
+    +'<input class="fsearch" placeholder="Tìm dự án…" oninput="filterPop(this.value)">'
+    +'<div id="fpItems"><div class="demuc-opt'+(!cur?' on':'')+'" data-t="tất cả sản phẩm" onclick="pickInProj(\'\')">Tất cả sản phẩm</div>'
+    +(S.projects||[]).map(function(p){ return '<div class="demuc-opt'+(cur===p.maDA?' on':'')+'" data-t="'+esc(String(p.ten||'').toLowerCase())+'" onclick="pickInProj(\''+esc(p.maDA)+'\')"><span>'+esc(p.ten||p.maDA)+'</span></div>'; }).join('')
+    +((S.projects||[]).length?'':'<div class="fi">Chưa có dự án nào.</div>')+'</div>';
+  document.body.appendChild(pop);
+  var r=e.currentTarget.getBoundingClientRect(); pop.style.left=Math.max(8,r.left)+'px'; pop.style.top=(r.bottom+4)+'px'; pop.style.width=Math.max(260,r.width)+'px';
+  setMselIcon('fInProj',true);
+  setTimeout(function(){ document.addEventListener('mousedown',popOutside); },0);
+}
+async function pickInProj(maDA){
+  closePop();
+  if(!maDA){ S._inProjMa=''; S._inProjKeys=null; S.onlyProject=false; updateInProj_(); renderCatalog(); return; }
+  var lines;
+  if(S.cur && S.cur.maDA===maDA){ lines=S.lines||[]; }
+  else { try{ lines=await api('getLines',maDA)||[]; }catch(e){ lines=[]; } }
+  var keys={}; lines.forEach(function(l){ var k=String(l.maSP||l.ten||'').toLowerCase().trim(); if(k) keys[k]=1; });
+  S._inProjMa=maDA; S._inProjKeys=keys; S.onlyProject=true;
+  updateInProj_(); renderCatalog();
+}
+function toggleInProj(){ openInProjSel({stopPropagation:function(){},currentTarget:document.getElementById('fInProj')}); }
 function updateInProj_(){
   var box=document.getElementById('fInProj'), lb=document.getElementById('fInProjLabel'); if(!lb) return;
-  lb.textContent = S.onlyProject ? 'Chỉ đèn trong dự án' : 'Tất cả sản phẩm';
-  if(box) box.classList.toggle('active', S.onlyProject);
-  setMselIcon('fInProj', S.onlyProject);
+  var name=''; if(S._inProjMa){ var p=(S.projects||[]).filter(function(x){return x.maDA===S._inProjMa;})[0]; name=p?(p.ten||p.maDA):S._inProjMa; }
+  lb.textContent = S._inProjMa ? name : 'Tất cả sản phẩm';
+  if(box) box.classList.toggle('active', !!S._inProjMa);
+  setMselIcon('fInProj', !!S._inProjMa);
 }
 /* lọc danh mục theo đề mục đang chọn ở cây */
 function setDemucFilter(code){
@@ -597,7 +624,7 @@ function activeFiltCount_(){
   var mn=document.getElementById('fMin'), mx=document.getElementById('fMax');
   if((mn&&mn.value)||(mx&&mx.value)) n++;
   if(Object.keys(S.fNhomSet||{}).some(function(k){return S.fNhomSet[k];})) n++;
-  if(S.onlyProject) n++;
+  if(S._inProjMa) n++;
   return n;
 }
 function positionFiltPop_(){
