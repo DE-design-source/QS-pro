@@ -168,18 +168,11 @@ function buildPurchaseCard(o) {
 }
 async function sendPurchaseRequest(actor, order) {
   order = order || {};
-  const payload = buildPurchaseCard(order);
-  const r = await fetch(PURCHASE_WEBHOOK, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-  });
-  let data = null; try { data = await r.json(); } catch (e) { data = null; }
-  const ok = data && (data.code === 0 || data.StatusCode === 0 || data.msg === 'success');
-  if (!ok) throw new Error((data && (data.msg || data.StatusMessage)) || ('HTTP ' + r.status));
-  // Lưu đơn mua hàng vào DB + thông báo Admin duyệt (best-effort — không chặn kết quả gửi Lark)
+  // 1) Lưu đơn + thông báo Admin duyệt — luồng duyệt TRONG APP, luôn chạy (không phụ thuộc webhook Lark)
   let savedMa = [];
   try {
     if (typeof store.savePurchaseOrder === 'function') {
-      const rs = await store.savePurchaseOrder(Object.assign({ kenh: 'Lark', ketQua: 'ok', requesterId: actor && actor.uid }, order));
+      const rs = await store.savePurchaseOrder(Object.assign({ kenh: 'Lark', ketQua: 'pending', requesterId: actor && actor.uid }, order));
       savedMa = (rs && rs.saved) || [];
       if (savedMa.length) {
         const ords = (Array.isArray(order.orders) ? order.orders : []);
@@ -187,7 +180,18 @@ async function sendPurchaseRequest(actor, order) {
       }
     }
   } catch (e) { console.warn('[mua hàng] lưu/notify lỗi:', e && e.message); }
-  return { ok: true, saved: savedMa };
+  // 2) Gửi thẻ qua Lark — best-effort, KHÔNG chặn duyệt trong app nếu webhook lỗi
+  let larkOk = false;
+  try {
+    const payload = buildPurchaseCard(order);
+    const r = await fetch(PURCHASE_WEBHOOK, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    });
+    let data = null; try { data = await r.json(); } catch (e) { data = null; }
+    larkOk = !!(data && (data.code === 0 || data.StatusCode === 0 || data.msg === 'success'));
+    if (!larkOk) console.warn('[mua hàng] webhook Lark trả lỗi:', (data && (data.msg || data.StatusMessage)) || ('HTTP ' + r.status));
+  } catch (e) { console.warn('[mua hàng] webhook Lark lỗi:', e && e.message); }
+  return { ok: true, saved: savedMa, lark: larkOk };
 }
 
 app.post('/api/:fn', async function (req, res) {
