@@ -2552,6 +2552,12 @@ function renderImport(){
     +DB_GROUPS.map(function(gr){
       return dbCard_(gr.g, DB_GICON[gr.g]||'doc', gr.note, '<div class="dbgrid">'+gr.f.map(dbInput).join('')+'</div>');
     }).join('')
+    +dbCard_('Ghi danh vào dự án','building','Tuỳ chọn — đưa sản phẩm này vào một dự án ngay sau khi lưu vào Database.',
+      '<div class="dbgrid">'
+      +'<div class="field"><label>Dự án</label><select id="impProjSel"><option value="">— Không ghi danh —</option>'
+        +(S.projects||[]).map(function(p){ return '<option value="'+esc(p.maDA)+'"'+(S.cur&&S.cur.maDA===p.maDA?' selected':'')+'>'+esc(p.ten)+'</option>'; }).join('')+'</select></div>'
+      +'<div class="field"><label>Số lượng</label><input type="number" id="impGhiSL" min="1" value="1"></div>'
+      +'</div><label class="imp-ghck"><input type="checkbox" id="impGhiDanh"> Thêm sản phẩm này vào dự án đã chọn sau khi lưu</label>')
     +'<div class="savebar"><button class="btn blue block" onclick="tdSave(this)">Thêm sản phẩm vào Database</button><button class="btn ghost sm" onclick="renderImport()" style="margin-top:8px">Xoá form</button></div>'
     +dbCard_('Nhập hàng loạt từ file', 'download', 'Tải file mẫu → điền dữ liệu → chọn file lên. Hệ thống tự dò cột theo tiêu đề; sau đó tải ảnh cho từng SP rồi lưu vào DB_Sản phẩm.',
       '<div class="imp-file-row"><a class="btn ghost sm" href="/mau-nhap-hang-loat.xlsx" download="Mau-nhap-hang-loat-DezonQS.xlsx">'+icon('download',14)+' Tải file mẫu</a>'
@@ -2761,7 +2767,20 @@ async function tdSave(btn){
   btn.textContent='⏳ Đang lưu…';
   try{ var r=await api('saveDbProduct',data);
     sessionAdd_({ten:ten, thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'', hinhAnh:data['ẢNH SẢN PHẨM']||''});
-    toast((r.updated?'Đã cập nhật':'Đã thêm')+' "'+ten+'" vào DB_Sản phẩm'); renderImport(); }
+    toast((r.updated?'Đã cập nhật':'Đã thêm')+' "'+ten+'" vào DB_Sản phẩm');
+    // Ghi danh vào dự án (tuỳ chọn)
+    var gd=document.getElementById('impGhiDanh'), ps=document.getElementById('impProjSel'), sl=document.getElementById('impGhiSL');
+    if(gd&&gd.checked&&ps&&ps.value){
+      var gia=Number(data['GIÁ BÁN LẺ'])||0, qty=Math.max(1,Number(sl&&sl.value)||1);
+      var prod={ ten:ten, ma:data['MÃ SẢN PHẨM']||'', thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'',
+        moTa:data['MÔ TẢ']||'', kichThuoc:data['KÍCH THƯỚC']||'', dvt:data['ĐƠN VỊ TÍNH']||'Cái', hinhAnh:data['ẢNH SẢN PHẨM']||'',
+        donGiaVon:gia, donGiaBan:gia, nhom:'3.2.6.1', hangMuc:nodeName('3.2.6.1'), loai:nodeName('3.2.6.1'), tang:'', extra:{nganh:data['DÒNG SẢN PHẨM']||''} };
+      try{ await api('addLine', ps.value, prod, qty);
+        if(S.cur&&S.cur.maDA===ps.value){ S.lines=await api('getLines',ps.value)||S.lines; }
+        toast('Đã ghi danh "'+ten+'" vào dự án (×'+qty+')'); }
+      catch(e2){ toast('Lưu OK nhưng ghi danh lỗi: '+e2.message); }
+    }
+    renderImport(); }
   catch(e){ toast('Lỗi: '+e.message); btn.disabled=false; btn.textContent=o; }
 }
 
