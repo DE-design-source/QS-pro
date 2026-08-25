@@ -1664,26 +1664,22 @@ function currentGroup(){
     .sort(function(a,b){ return String(a.ngayTao||'').localeCompare(String(b.ngayTao||'')); });
   return {name:S.cur.ten, drafts:drafts, idx:drafts.findIndex(function(d){return d.maDA===S.cur.maDA;})};
 }
-function renderProjects(){
-  var el=document.getElementById('v-project');
-  var head='<div class="sechd"><h2>Thông tin dự án</h2><span class="sp" style="flex:1"></span>'
-    +'<button class="btn ghost sm" onclick="showTab(\'dash\')">'+icon('list',14)+' Danh sách dự án</button></div>';
-  if(!S.cur){ el.innerHTML=head+'<div class="dash-empty">'+icon('building',40)+'<h3>Chưa chọn dự án</h3><p>Vào <b>Bảng điều khiển</b> để tạo hoặc chọn một bản nháp.</p></div>'; return; }
-  var p=S.cur, gr=currentGroup();
-  // Header dự án + thanh chuyển bản nháp
+// tên bản nháp: dùng tên tuỳ chỉnh nếu có, ngược lại "Bản nháp N"
+function draftName_(d,i){ return String(d.tenBanNhap||'').trim() || ('Bản nháp '+(i+1)); }
+// Nội dung form thông tin dự án (dùng cho cả popup)
+function projInfoInner_(p, gr){
   var tabs=gr.drafts.map(function(d,i){ var on=d.maDA===p.maDA;
-    return '<button class="draft-tab'+(on?' on':'')+'" onclick="openDraft(\''+esc(d.maDA)+'\')">'+icon('doc',12)+' Bản nháp '+(i+1)+'</button>'; }).join('');
+    return '<button class="draft-tab'+(on?' on':'')+'" onclick="openDraft(\''+esc(d.maDA)+'\')">'+icon('doc',12)+' '+esc(draftName_(d,i))+'</button>'; }).join('');
   var switcher='<div class="proj-switch2">'
     +'<div class="ps2-l"><span class="ps2-ic">'+icon('building',20)+'</span>'
       +'<div><div class="ps2-name">'+esc(gr.name)+'</div><div class="ps2-sub">'+esc(p.khachHang||'Chưa có khách hàng')+(p.sdt?' · '+esc(p.sdt):'')+' · '+gr.drafts.length+' bản nháp</div></div></div>'
     +'<div class="ps2-tabs">'+tabs+'<button class="draft-tab add" onclick="addDraftForCur()">'+icon('plus',13)+' Thêm bản nháp</button></div></div>';
-  // Thẻ 1 — Thông tin dự án (dùng chung)
   var shared=dbCard_('Thông tin dự án','building','Áp dụng cho tất cả bản nháp của dự án này.',
     '<div class="dbgrid">'+pf_('Tên dự án','pf_ten',p.ten)+pf_('Khách hàng','pf_kh',p.khachHang)+pf_('Số điện thoại','pf_sdt',p.sdt)
     +pf_('Địa chỉ','pf_addr',p.diaChi)+'</div>'
     +'<div class="pf-save"><button class="btn blue" onclick="saveProjectShared(this)">'+icon('check',15)+' Lưu thông tin dự án</button></div>');
-  // Thẻ 2 — Thông tin bản nháp này (card tùy biến để có badge mã + nút xoá)
   var draftInner='<div class="dbgrid">'
+    +pf_('Tên bản nháp','pf_tbn',p.tenBanNhap)
     +'<div class="field"><label>Trạng thái</label><select id="pf_tt">'+['Bản nháp','Đang thực hiện','Hoàn thành'].map(function(s){return '<option'+(p.trangThai===s?' selected':'')+'>'+s+'</option>';}).join('')+'</select></div>'
     +pf_('VAT (%)','pf_vat',p.vat,'number')+pf_('Mã báo giá','pf_mbg',p.maBaoGia)
     +pf_('Quy mô','pf_qm',p.quyMo)+pf_('Tổng DT XD (m²)','pf_tdt',p.tongDT)+pf_('DT báo giá (m²)','pf_dtbg',p.dtBaoGia)
@@ -1693,24 +1689,53 @@ function renderProjects(){
     +'<input id="pf_prog" type="range" min="0" max="100" value="'+(Number(p.tienDo)||0)+'" oninput="document.getElementById(\'pf_pv\').textContent=this.value+\'%\'">'
     +'<b id="pf_pv">'+(Number(p.tienDo)||0)+'%</b><button class="btn ghost sm" onclick="saveProgress(this)">Cập nhật</button></div>'
     +'<div class="pf-save"><button class="btn blue" onclick="saveDraftInfo(this)">'+icon('check',15)+' Lưu bản nháp</button></div>';
-  var draft='<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">'+icon('doc',18)+'</span><h3>Thông tin bản nháp — Bản nháp '+(gr.idx+1)+'</h3>'
+  var draft='<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">'+icon('doc',18)+'</span><h3>Thông tin bản nháp — '+esc(draftName_(p,gr.idx))+'</h3>'
     +'<span class="ps2-badge">'+esc(p.maDA)+'</span><span class="sp" style="flex:1"></span>'
     +(gr.drafts.length>1?'<button class="btn ghost sm" onclick="removeProject(\''+esc(p.maDA)+'\')">'+icon('trash',13)+' Xoá bản nháp</button>':'')+'</div>'
     +'<div class="dbcard-b">'+draftInner+'</div></div>';
-  el.innerHTML=head+switcher+shared+draft;
+  return switcher+shared+draft;
+}
+function renderProjects(){
+  var el=document.getElementById('v-project'); if(!el) return;
+  var head='<div class="sechd"><h2>Thông tin dự án</h2><span class="sp" style="flex:1"></span>'
+    +'<button class="btn ghost sm" onclick="showTab(\'dash\')">'+icon('list',14)+' Danh sách dự án</button></div>';
+  if(!S.cur){ el.innerHTML=head+'<div class="dash-empty">'+icon('building',40)+'<h3>Chưa chọn dự án</h3><p>Vào <b>Bảng điều khiển</b> để tạo hoặc chọn một bản nháp.</p></div>'; return; }
+  el.innerHTML=head+projInfoInner_(S.cur, currentGroup());
+}
+// ===== Popup Thông tin dự án (mở từ Bảng điều khiển) =====
+async function projInfoModal(maDA){
+  var p=(S.projects||[]).filter(function(x){return x.maDA===maDA;})[0]; if(!p) return;
+  S.cur=p; S._coverDA=null;
+  try{ S.lines=await api('getLines',maDA)||[]; }catch(e){}
+  renderCard&&renderCard();
+  var ov=document.getElementById('projModalOv');
+  if(!ov){ ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='projModalOv';
+    ov.onclick=function(e){ if(e.target===ov) projModalClose(); }; document.body.appendChild(ov); }
+  ov.innerHTML='<div class="sp-modal proj-modal pd"><div class="pd-head"><h3>'+icon('building',16)+' Thông tin dự án</h3><button class="pd-x" onclick="projModalClose()">✕</button></div><div class="proj-modal-b" id="projModalBody">'+projInfoInner_(S.cur, currentGroup())+'</div></div>';
+}
+function projModalClose(){ var o=document.getElementById('projModalOv'); if(o)o.remove(); }
+function projModalRefresh_(){ var b=document.getElementById('projModalBody'); if(b && S.cur){ b.innerHTML=projInfoInner_(S.cur, currentGroup()); } }
+// đổi tên bản nháp
+async function renameDraft(maDA){
+  var p=(S.projects||[]).filter(function(x){return x.maDA===maDA;})[0]; if(!p) return;
+  var gr=projectGroups().filter(function(g){ return g.drafts.some(function(d){return d.maDA===maDA;}); })[0];
+  var i=gr?gr.drafts.findIndex(function(d){return d.maDA===maDA;}):0;
+  var name=prompt('Tên bản nháp:', p.tenBanNhap||('Bản nháp '+(i+1))); if(name==null) return; name=name.trim();
+  try{ var np=await api('updateProject',maDA,{tenBanNhap:name}); syncProj(np); renderDash(); if(document.getElementById('projModalOv')) projModalRefresh_(); toast('Đã đổi tên bản nháp'); }
+  catch(e){ toast('Lỗi: '+e.message); }
 }
 // Mở 1 bản nháp (ở lại trang Thông tin dự án)
 async function openDraft(maDA){
   var p=(S.projects||[]).filter(function(x){return x.maDA===maDA;})[0]; if(!p) return;
   S.cur=p; S.lines=await api('getLines',maDA)||[]; S._coverDA=null;
-  renderCard(); renderProjects(); renderDash();
+  projRefreshUI_();
   if(document.getElementById('v-boc').classList.contains('on')) renderAll();
 }
 // Thêm bản nháp cho dự án đang mở
 async function addDraftForCur(){
   var gr=currentGroup(); if(!gr) return;
   try{ var p=await api('createProject',{ten:gr.name,khachHang:S.cur.khachHang,sdt:S.cur.sdt,diaChi:S.cur.diaChi,vat:Number(S.cur.vat)||0});
-    S.cur=p; S.lines=[]; await boot(); renderProjects(); renderDash(); toast('Đã thêm bản nháp mới'); }catch(e){ toast('Lỗi: '+e.message); }
+    S.cur=p; S.lines=[]; await boot(); projRefreshUI_(); toast('Đã thêm bản nháp mới'); }catch(e){ toast('Lỗi: '+e.message); }
 }
 // Lưu thông tin dự án -> áp dụng cho MỌI bản nháp (giữ nhóm nhất quán)
 async function saveProjectShared(btn){
@@ -1719,19 +1744,23 @@ async function saveProjectShared(btn){
   var gr=currentGroup(); if(!gr) return; btn.disabled=true;
   try{
     for(var i=0;i<gr.drafts.length;i++){ var pp=await api('updateProject',gr.drafts[i].maDA,shared); syncProj(pp); }
-    renderCard(); renderProjects(); renderDash(); toast('Đã lưu thông tin dự án ('+gr.drafts.length+' bản nháp)');
+    projRefreshUI_(); toast('Đã lưu thông tin dự án ('+gr.drafts.length+' bản nháp)');
   }catch(e){ toast('Lỗi: '+e.message); } btn.disabled=false;
 }
 // Lưu thông tin của riêng bản nháp đang mở
+function projRefreshUI_(){ renderCard&&renderCard();
+  if(document.getElementById('projModalOv')) projModalRefresh_();
+  else { var vp=document.getElementById('v-project'); if(vp&&vp.classList.contains('on')) renderProjects(); }
+  renderDash&&renderDash(); }
 async function saveDraftInfo(btn){
   var g=function(id){var e=document.getElementById(id);return e?e.value:'';};
-  var data={trangThai:g('pf_tt'),vat:Number(g('pf_vat'))||0,maBaoGia:g('pf_mbg'),quyMo:g('pf_qm'),tongDT:g('pf_tdt'),dtBaoGia:g('pf_dtbg'),nhuCau:g('pf_nc'),phanKhuc:g('pf_pk'),ghiChu:g('pf_gc')};
-  btn.disabled=true; try{ var p=await api('updateProject',S.cur.maDA,data); syncProj(p); renderCard(); renderProjects(); toast('Đã lưu bản nháp'); }catch(e){ toast('Lỗi: '+e.message); } btn.disabled=false;
+  var data={tenBanNhap:g('pf_tbn'),trangThai:g('pf_tt'),vat:Number(g('pf_vat'))||0,maBaoGia:g('pf_mbg'),quyMo:g('pf_qm'),tongDT:g('pf_tdt'),dtBaoGia:g('pf_dtbg'),nhuCau:g('pf_nc'),phanKhuc:g('pf_pk'),ghiChu:g('pf_gc')};
+  btn.disabled=true; try{ var p=await api('updateProject',S.cur.maDA,data); syncProj(p); projRefreshUI_(); toast('Đã lưu bản nháp'); }catch(e){ toast('Lỗi: '+e.message); } btn.disabled=false;
 }
 async function saveProgress(btn){ var v=Number(document.getElementById('pf_prog').value)||0;
-  try{ var p=await api('updateProject',S.cur.maDA,{tienDo:v}); syncProj(p); renderCard(); toast('Đã cập nhật tiến độ '+v+'%'); }catch(e){ toast('Lỗi: '+e.message); } }
-async function pickProject(maDA){ S.cur=S.projects.filter(function(p){return p.maDA===maDA;})[0]; S.lines=await api('getLines',maDA)||[]; S._coverDA=null; renderAll(); renderProjects(); showTab('project'); }
-async function removeProject(maDA){ if(!confirm('Xoá bản nháp này?'))return; await api('deleteProject',maDA); if(S.cur&&S.cur.maDA===maDA)S.cur=null; await boot(); renderDash(); renderProjects(); }
+  try{ var p=await api('updateProject',S.cur.maDA,{tienDo:v}); syncProj(p); renderCard(); renderDash&&renderDash(); toast('Đã cập nhật tiến độ '+v+'%'); }catch(e){ toast('Lỗi: '+e.message); } }
+async function pickProject(maDA){ S.cur=S.projects.filter(function(p){return p.maDA===maDA;})[0]; S.lines=await api('getLines',maDA)||[]; S._coverDA=null; renderAll(); projInfoModal(maDA); }
+async function removeProject(maDA){ if(!confirm('Xoá bản nháp này?'))return; await api('deleteProject',maDA); if(S.cur&&S.cur.maDA===maDA)S.cur=null; projModalClose(); await boot(); renderDash(); }
 
 /* ===== DASHBOARD ===== */
 function card(t,n){ return '<div class="scard"><div class="n">'+n+'</div><div class="t">'+t+'</div></div>'; }
@@ -1754,15 +1783,16 @@ function draftListHtml(){
     var drafts=g.drafts.map(function(p,i){
       var on=S.cur&&S.cur.maDA===p.maDA;
       return '<div class="draft-row'+(on?' active':'')+'">'
-        +'<div class="draft-info"><b>Bản nháp '+(i+1)+'</b><span class="draft-code">'+esc(p.maDA)+' · '+fmtDate(p.ngayTao)+'</span></div>'
+        +'<div class="draft-info" onclick="projInfoModal(\''+esc(p.maDA)+'\')" title="Bấm xem/sửa thông tin"><b>'+esc(draftName_(p,i))+'</b><span class="draft-code">'+esc(p.maDA)+' · '+fmtDate(p.ngayTao)+'</span></div>'
         +'<div class="draft-act">'
         +(on?'<span class="draft-badge">'+icon('check',12)+' Đang dùng</span>'
             :'<button class="btn blue xs" onclick="pickProject(\''+esc(p.maDA)+'\')">Dùng</button>')
+        +'<button class="btn ghost xs iconbtn" title="Sửa tên bản nháp" onclick="renameDraft(\''+esc(p.maDA)+'\')">'+icon('edit',12)+'</button>'
         +'<button class="btn ghost xs iconbtn" title="Nhân bản bản nháp" onclick="duplicateDraft(\''+esc(p.maDA)+'\')">'+icon('copy',12)+'</button>'
         +'<button class="btn ghost xs iconbtn" title="Xoá bản nháp" onclick="removeProject(\''+esc(p.maDA)+'\')">'+icon('trash',12)+'</button></div></div>';
     }).join('');
     return '<div class="proj-card2">'
-      +'<div class="proj-head2"><span class="proj-ic">'+icon('building',17)+'</span>'
+      +'<div class="proj-head2 clickable" onclick="projInfoModal(\''+esc(g.drafts[0].maDA)+'\')" title="Bấm xem thông tin dự án"><span class="proj-ic">'+icon('building',17)+'</span>'
         +'<div class="proj-ht"><div class="proj-name">'+esc(g.name)+'</div>'
           +'<div class="proj-meta">'+esc(g.khachHang||'Chưa có khách hàng')+(g.sdt?' · '+esc(g.sdt):'')+'</div></div>'
         +'<span class="proj-count">'+g.drafts.length+' bản nháp</span></div>'
@@ -3238,7 +3268,7 @@ function onAuthed_(){ var ls=document.getElementById('loginScreen'); if(ls) ls.s
   var cur=document.querySelector('#nav a.active, .topnav .right a.active'); var t=cur?cur.getAttribute('data-tab'):'boc';
   if(!canTab(t)){ var f=firstAllowedTab_(); if(f) showTab(f); }
 }
-var PERM_TABS=[['dash','Bảng điều khiển'],['project','Thông tin dự án'],['boc','Bóc tách'],
+var PERM_TABS=[['dash','Bảng điều khiển'],['boc','Bóc tách'],
   ['chiphi','Chi phí'],['export','Xuất báo giá'],['muahang','Mua hàng'],
   ['duan','Dự án'],['sanpham','Danh sách sản phẩm'],['import','Nhập dữ liệu']];
 function canTab(tab){ var me=S.me||{}; if(me.role==='admin') return true; if(tab==='admin') return false;

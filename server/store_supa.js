@@ -77,7 +77,8 @@ async function buildCatalog() { _cache = null; const p = await getProducts(); re
 /*** ===== DỰ ÁN (du_an) ===== ***/
 const PROJ_MAP = { ten: 'ten_du_an', khachHang: 'khach_hang', diaChi: 'dia_chi', sdt: 'sdt', trangThai: 'trang_thai',
   vat: 'vat_pct', tienDo: 'tien_do_pct', ghiChu: 'ghi_chu', quyMo: 'quy_mo', tongDT: 'tong_dt', dtBaoGia: 'dt_bao_gia',
-  nhuCau: 'nhu_cau', phanKhuc: 'phan_khuc', maBaoGia: 'ma_bao_gia', nhomTuTao: 'nhom_tu_tao', tangTuTao: 'tang_tu_tao' };
+  nhuCau: 'nhu_cau', phanKhuc: 'phan_khuc', maBaoGia: 'ma_bao_gia', nhomTuTao: 'nhom_tu_tao', tangTuTao: 'tang_tu_tao',
+  tenBanNhap: 'ten_ban_nhap' };
 function projToObj(r) {
   const o = { maDA: s(r.ma_da), ngayTao: s(r.ngay_tao), capNhat: s(r.cap_nhat) };
   Object.keys(PROJ_MAP).forEach(function (k) { var col = PROJ_MAP[k]; o[k] = (k === 'vat' || k === 'tienDo') ? n(r[col]) : s(r[col]); });
