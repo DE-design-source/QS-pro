@@ -2558,7 +2558,7 @@ function dl(res){ var b=atob(res.base64),a=new Uint8Array(b.length); for(var i=0
   var u=URL.createObjectURL(new Blob([a],{type:res.mimeType})); var el=document.createElement('a'); el.href=u; el.download=res.name; el.click(); setTimeout(function(){URL.revokeObjectURL(u);},1500); }
 async function printQuote(cols){
   var q=await api('getQuote',S.cur.maDA)||{lines:[]}; var p=q.project||{};
-  var rows=(q.lines||[]).map(function(l,i){ return '<tr><td>'+(i+1)+'</td><td>'+esc(l.khuVuc||'')+'</td><td>'+esc(l.ten||'')+'</td><td>'+esc(l.thuongHieu||'')+'</td><td style="text-align:right">'+l.soLuong+'</td><td style="text-align:right">'+money(l.donGiaBan)+'</td><td style="text-align:right">'+money(l.thanhTienBan)+'</td></tr>'; }).join('');
+  var rows=(q.lines||[]).map(function(l,i){ var dgNet=(l.donGia!=null&&l.donGia!==0)?l.donGia:(typeof donGiaCK_==='function'?donGiaCK_(l):l.donGiaBan); return '<tr><td>'+(i+1)+'</td><td>'+esc(l.khuVuc||'')+'</td><td>'+esc(l.ten||'')+'</td><td>'+esc(l.thuongHieu||'')+'</td><td style="text-align:right">'+l.soLuong+'</td><td style="text-align:right">'+money(dgNet)+'</td><td style="text-align:right">'+money(l.thanhTienBan)+'</td></tr>'; }).join('');
   var w=window.open('','_blank'); if(!w){toast('Cho phép popup để in');return;}
   w.document.write('<title>Báo giá '+esc(p.ten||'')+'</title><style>body{font-family:Arial;margin:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #b8c4d4;padding:5px 7px;font-size:12px}th{background:#12324a;color:#fff}h2{color:#12324a}</style>'
     +'<h2>BÁO GIÁ — '+esc(p.ten||'')+'</h2><div>Khách hàng: '+esc(p.khachHang||'')+' — '+esc(p.diaChi||'')+'</div><br>'

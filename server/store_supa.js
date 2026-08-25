@@ -153,7 +153,7 @@ function lineToObj(r) {
     thuongHieu: s(r.thuong_hieu), ncc: s(r.nha_cung_cap), moTa: s(r.mo_ta), kichThuoc: s(r.kich_thuoc),
     hinhAnh: s(r.hinh_anh), dvt: s(r.dvt) || 'Cái', khuVuc: s(r.phong), maBanVe: s(r.ma_so_ban_ve),
     soLuong: sl, donGiaVon: von, chietKhau: ck, lnPct: n(r.loi_nhuan_pct), donGiaBan: n(r.gia_ban),
-    ckKhach: n(r.ck_khach_hang_pct),
+    ckKhach: n(r.ck_khach_hang_pct), donGia: n(r.don_gia),   // đơn giá NET (sau CK khách) — dùng cho xuất để đơn giá×SL = thành tiền
     thanhTienVon: round0_(sl * giaDaiLy), thanhTienBan: n(r.thanh_tien),
     trangThai: s(r.trang_thai), ghiChu: s(r.ghi_chu), tuNhap: r.tu_nhap ? 1 : 0, daLuuDM: r.da_luu_dm ? 1 : 0,
     extra: r.extra || {}

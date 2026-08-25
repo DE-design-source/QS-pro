@@ -240,7 +240,7 @@ async function buildDetailSheet(wb, ws, items, p, EXCOLS, catName) {
         if (c.k === 'stt') cell.value = idx + 1;
         else if (c.k === 'hinhAnh') cell.value = '';
         else if (c.k === 'soLuong') cell.value = l.soLuong;
-        else if (c.k === 'donGiaBan') cell.value = l.donGiaBan;
+        else if (c.k === 'donGiaBan') cell.value = (l.donGia != null && l.donGia !== 0) ? l.donGia : l.donGiaBan;  // đơn giá NET -> đơn giá×SL = thành tiền
         else if (c.k === 'thanhTienBan') cell.value = l.thanhTienBan;
         else cell.value = l[c.k] || '';
         cell.alignment = { horizontal: c.al || 'left', wrapText: !!c.wrap, vertical: 'middle' };
