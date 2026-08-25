@@ -1091,14 +1091,14 @@ async function spEditModal(i){
     +'<div class="spe-actions"><button class="btn ghost sm" onclick="spEditClose()">Huỷ</button><button class="btn blue" id="speSaveBtn" onclick="spEditSave()">'+icon('check',15)+' Lưu cập nhật</button></div>'
     +'<div class="spe-hist"><div class="spe-hist-h">'+icon('clock',15)+' Lịch sử cập nhật <span class="spe-hist-n">'+hist.length+'</span></div><div class="spe-hist-list">'+histHtml+'</div></div>';
 }
-// 2 vùng ảnh (đại diện + chi tiết) — tái dùng upMain/upGrid + upPick/upFile/upRefresh của trang Nhập dữ liệu
+// 2 vùng ảnh (đại diện + chi tiết) — DÙNG ĐÚNG layout .imgup của trang Nhập dữ liệu (2 cột đều, đồng nhất)
 function spEditImgSection_(){
-  return '<div class="spe-imgs">'
-    +'<div class="spe-imgcol"><div class="spe-lbl">Ảnh đại diện</div>'
+  return '<div class="imgup spe-imgup">'
+    +'<div><div class="uplabel">Hình đại diện</div>'
       +'<div class="upzone upmain" id="upMain" onclick="upPick(\'main\')" ondragover="upDrag(event,1)" ondragleave="upDrag(event,0)" ondrop="upDrop(event,\'main\')">'+upMainInner()+'</div>'
       +'<div class="upurl"><input id="upMainUrl" placeholder="Hoặc dán URL ảnh…"><button class="btn blue sm" onclick="upAddUrl(\'main\')">Thêm</button></div></div>'
-    +'<div class="spe-imgcol wide"><div class="spe-lbl">Ảnh chi tiết / mô tả sản phẩm</div>'
-      +'<div class="upzone sm" id="upMore" onclick="upPick(\'more\')" ondragover="upDrag(event,1)" ondragleave="upDrag(event,0)" ondrop="upDrop(event,\'more\')"><span class="upic">'+icon('camera',22)+'</span> Bấm/kéo-thả để thêm <b>ảnh chi tiết</b></div>'
+    +'<div><div class="uplabel">Hình chi tiết sản phẩm</div>'
+      +'<div class="upzone" id="upMore" onclick="upPick(\'more\')" ondragover="upDrag(event,1)" ondragleave="upDrag(event,0)" ondrop="upDrop(event,\'more\')"><div class="upic">'+icon('camera',28)+'</div>Kéo/thả hoặc bấm để chọn <b>hình chi tiết sản phẩm</b></div>'
       +'<div class="upgrid" id="upGrid">'+upGridInner()+'</div>'
       +'<div class="upurl"><input id="upMoreUrl" placeholder="Hoặc dán URL ảnh…"><button class="btn blue sm" onclick="upAddUrl(\'more\')">Thêm</button></div></div>'
     +'</div>';
