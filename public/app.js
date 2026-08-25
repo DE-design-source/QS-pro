@@ -1958,14 +1958,21 @@ function renderDuAn(){
 
 /* ===== MUA HÀNG (gom theo Nhà cung cấp) ===== */
 function mhPrice(l){ return giaDaiLy_(l)||Number(l.donGiaVon)||Number(l.donGiaBan)||0; }
-function mhSub_(items){ return items.reduce(function(a,l){ return a+(Number(l.soLuong)||0)*mhPrice(l); },0); }
+// Giảm giá từ NCC (%) theo dòng -> giá & thành tiền sau chiết khấu (điều chỉnh giá lần cuối khi mua hàng)
+function mhDisc_(l){ return Math.max(0,Math.min(100,Number((S._mhDisc||{})[l.lineId])||0)); }
+function mhPriceCK_(l){ return Math.round(mhPrice(l)*(1-mhDisc_(l)/100)); }
+function mhSub_(items){ return items.reduce(function(a,l){ return a+(Number(l.soLuong)||0)*mhPriceCK_(l); },0); }  // tổng = giá SAU chiết khấu
 function mhTot_(items,vatPct){ var s=mhSub_(items); return s+Math.round(s*vatPct/100); }
+function mhSetDisc(lineId,v){ S._mhDisc=S._mhDisc||{}; var p=Math.max(0,Math.min(100,Number(v)||0)); if(p) S._mhDisc[lineId]=p; else delete S._mhDisc[lineId]; renderMuahang(); }
+function mhSetDiscAll(gi,v){ var g=(S._mhGroups||[])[gi]; if(!g) return; S._mhDisc=S._mhDisc||{}; var p=Math.max(0,Math.min(100,Number(v)||0));
+  g.items.forEach(function(l){ if(p) S._mhDisc[l.lineId]=p; else delete S._mhDisc[l.lineId]; }); renderMuahang(); }
 function mhOn_(ncc){ return !(S._mhSel&&S._mhSel[ncc]===false); }
 /* Thẻ NCC — dùng lại frontend thẻ của trang Nhập dữ liệu (.dbcard + icon chip) */
 function muahangCard(g, gi, vatPct){
   var ncc=g.ncc, items=g.items, sub=0;
   var rows=items.map(function(l,i){
-    var dg=mhPrice(l), sl=Number(l.soLuong)||0, tt=sl*dg; sub+=tt;
+    var dg=mhPrice(l), sl=Number(l.soLuong)||0, ttGoc=sl*dg;
+    var pct=mhDisc_(l), ttCK=sl*mhPriceCK_(l); sub+=ttCK;
     var im=String(l.hinhAnh||'').split('\n')[0];
     var img=im?'<img class="mhp-img" src="'+esc(imgUrlOf(im))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="mhp-img ph"></span>';
     var spec=[l.moTa,l.kichThuoc].map(function(x){return String(x||'').trim();}).filter(Boolean).join(' · ');
@@ -1979,7 +1986,9 @@ function muahangCard(g, gi, vatPct){
       +'<td class="c">'+esc(l.dvt||'Cái')+'</td>'
       +'<td class="c b">'+sl+'</td>'
       +'<td class="n">'+money(dg)+'</td>'
-      +'<td class="n b">'+money(tt)+'</td></tr>';
+      +'<td class="n b">'+money(ttGoc)+'</td>'
+      +'<td class="c"><span class="mh-discwrap"><input class="mh-disc" type="number" min="0" max="100" value="'+(pct||'')+'" placeholder="0" onchange="mhSetDisc(\''+l.lineId+'\',this.value)"><i>%</i></span></td>'
+      +'<td class="n b mh-ttck">'+money(ttCK)+'</td></tr>';
   }).join('');
   var vat=Math.round(sub*vatPct/100), tot=sub+vat, on=mhOn_(ncc);
   return '<div class="dbcard mhc'+(on?' sel':'')+'">'
@@ -1992,10 +2001,12 @@ function muahangCard(g, gi, vatPct){
     +'</div>'
     +'<div class="dbcard-b mhc-b">'
       +'<div class="mh-scroll"><table class="mh-tbl2">'
-        +'<thead><tr><th class="c">#</th><th class="c">Ảnh</th><th>Sản phẩm</th><th class="c">ĐVT</th><th class="c">SL</th><th class="n">Đơn giá</th><th class="n">Thành tiền</th></tr></thead>'
-        +'<tbody>'+(rows||'<tr><td colspan="7" class="empty">—</td></tr>')+'</tbody>'
-        +'<tfoot><tr class="mhf-vat"><td colspan="5"></td><td class="n">VAT '+vatPct+'%</td><td class="n">'+money(vat)+'</td></tr>'
-        +'<tr class="mhf-tot"><td colspan="5"></td><td class="n">TỔNG</td><td class="n">'+money(tot)+'</td></tr></tfoot>'
+        +'<thead><tr><th class="c">#</th><th class="c">Ảnh</th><th>Sản phẩm</th><th class="c">ĐVT</th><th class="c">SL</th><th class="n">Đơn giá</th><th class="n">Thành tiền</th>'
+          +'<th class="c mh-disc-th">Giảm giá NCC (%)<span class="mh-bulk"><input type="number" min="0" max="100" placeholder="nhập %" onchange="mhSetDiscAll('+gi+',this.value)" title="Áp dụng % cho tất cả dòng"></span></th>'
+          +'<th class="n">Thành tiền sau CK</th></tr></thead>'
+        +'<tbody>'+(rows||'<tr><td colspan="9" class="empty">—</td></tr>')+'</tbody>'
+        +'<tfoot><tr class="mhf-vat"><td colspan="7"></td><td class="n">VAT '+vatPct+'%</td><td class="n">'+money(vat)+'</td></tr>'
+        +'<tr class="mhf-tot"><td colspan="7"></td><td class="n">TỔNG</td><td class="n">'+money(tot)+'</td></tr></tfoot>'
       +'</table></div>'
       +'<div class="mhc-f"><button class="btn navy sm" onclick="mhSend('+gi+',this)">'+icon('cart',15)+' Gửi mua hàng NCC này</button></div>'
     +'</div></div>';
@@ -2047,10 +2058,10 @@ function renderMuahang(){
 function mhToggle(gi){ var g=(S._mhGroups||[])[gi]; if(!g) return; S._mhSel=S._mhSel||{}; S._mhSel[g.ncc]=!(S._mhSel[g.ncc]!==false); renderMuahang(); }
 function mhOrderOf(g){
   var vatPct=Number(S.cur&&S.cur.vat)||0;
-  var sub=g.items.reduce(function(s,l){ return s+(Number(l.soLuong)||0)*mhPrice(l); },0);
+  var sub=g.items.reduce(function(s,l){ return s+(Number(l.soLuong)||0)*mhPriceCK_(l); },0);   // giá SAU chiết khấu
   var vat=Math.round(sub*vatPct/100);
   return { supplier:g.ncc, vatPct:vatPct, vat:vat, total:sub+vat,
-    items:g.items.map(function(l){ return {ten:l.ten||'', ma:l.maSP||'', thuongHieu:l.thuongHieu||'', khuVuc:l.khuVuc||'', hinhAnh:String(l.hinhAnh||'').split('\n')[0], sl:Number(l.soLuong)||0, dvt:l.dvt||'Cái', donGia:mhPrice(l)}; }) };
+    items:g.items.map(function(l){ return {ten:l.ten||'', ma:l.maSP||'', thuongHieu:l.thuongHieu||'', khuVuc:l.khuVuc||'', hinhAnh:String(l.hinhAnh||'').split('\n')[0], sl:Number(l.soLuong)||0, dvt:l.dvt||'Cái', donGia:mhPriceCK_(l), giamGiaPct:mhDisc_(l)}; }) };
 }
 function mhBase(){ var mi=S._mhInfo||{}; return { project:S.cur&&S.cur.ten, maDA:S.cur&&S.cur.maDA, khachHang:S.cur&&S.cur.khachHang, sdt:S.cur&&S.cur.sdt, node:S.node, hangMuc:nodeName(S.node), nguoiGui:mi.nguoiGui||'', phongBan:mi.phongBan||'', ghiChu:mi.ghiChu||'' }; }
 function mhValidateInfo(){
