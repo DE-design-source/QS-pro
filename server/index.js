@@ -104,78 +104,82 @@ function fmtVN(n) { return (Math.round(Number(n) || 0)).toLocaleString('vi-VN');
 function buildPurchaseCard(o) {
   o = o || {};
   const orders = Array.isArray(o.orders) ? o.orders : [];
+  // ---- helpers dựng bảng bằng column_set (nhìn như bảng thật) ----
+  const md = function (content, align) { const e = { tag: 'markdown', content: content }; if (align) e.text_align = align; return e; };
+  const colv = function (content, weight, align) { return { tag: 'column', width: 'weighted', weight: weight, vertical_align: 'center', elements: [md(content, align)] }; };
+  const rowset = function (cols, bg) { const cs = { tag: 'column_set', flex_mode: 'none', horizontal_spacing: 'small', columns: cols }; if (bg) cs.background_style = bg; return cs; };
+  const info = function (label, val) { return { is_short: true, text: { tag: 'lark_md', content: '<font color=\'grey\'>' + label + '</font>\n**' + (val || '—') + '**' } }; };
   const els = [];
-  // Thông tin dự án — 2 cột
-  els.push({
-    tag: 'div', fields: [
-      { is_short: true, text: { tag: 'lark_md', content: '**🏗 Dự án**\n' + (o.project || '—') } },
-      { is_short: true, text: { tag: 'lark_md', content: '**🔖 Mã dự án**\n' + (o.maDA || '—') } },
-      { is_short: true, text: { tag: 'lark_md', content: '**👤 Khách hàng**\n' + (o.khachHang || '—') } },
-      { is_short: true, text: { tag: 'lark_md', content: '**📞 Điện thoại**\n' + (o.sdt || '—') } }
-    ]
-  });
-  // Người gửi / Phòng ban (nếu có)
-  if (o.nguoiGui || o.phongBan) {
-    els.push({
-      tag: 'div', fields: [
-        { is_short: true, text: { tag: 'lark_md', content: '**🙋 Người gửi**\n' + (o.nguoiGui || '—') } },
-        { is_short: true, text: { tag: 'lark_md', content: '**🏢 Phòng ban**\n' + (o.phongBan || '—') } }
-      ]
-    });
-  }
-  if (o.ghiChu) els.push({ tag: 'div', text: { tag: 'lark_md', content: '**📝 Ghi chú:** ' + o.ghiChu } });
+
+  // ==== Khối thông tin dự án / người gửi ====
+  const infoFields = [info('🏗 Dự án', o.project), info('🔖 Mã dự án', o.maDA)];
+  if (o.khachHang || o.sdt) infoFields.push(info('👤 Khách hàng', o.khachHang), info('📞 Điện thoại', o.sdt));
+  infoFields.push(info('🙋 Người gửi', o.nguoiGui), info('🏢 Phòng ban', o.phongBan));
+  els.push({ tag: 'div', fields: infoFields });
+  if (o.ghiChu) els.push({ tag: 'div', text: { tag: 'lark_md', content: '<font color=\'grey\'>📝 Ghi chú</font>\n' + o.ghiChu } });
+
   let grand = 0, nSup = 0, nItems = 0;
   orders.forEach(function (od) {
     grand += Number(od.total) || 0; nSup++;
+    const items = od.items || [];
     els.push({ tag: 'hr' });
-    els.push({ tag: 'div', text: { tag: 'lark_md', content: '🏭 **Nhà cung cấp:** <font color=\'blue\'>**' + (od.supplier || '—') + '**</font>' } });
-    // Bảng SP bằng fields 2 cột (Lark render đẹp)
-    const pf = [
-      { is_short: true, text: { tag: 'lark_md', content: '<font color=\'grey\'>**SẢN PHẨM**</font>' } },
-      { is_short: true, text: { tag: 'lark_md', content: '<font color=\'grey\'>**THÀNH TIỀN**</font>' } }
-    ];
+    // Tiêu đề NCC
+    els.push(md('🏭 <font color=\'blue\'>**' + (od.supplier || '—') + '**</font>　·　' + items.length + ' sản phẩm'));
+    // Hàng tiêu đề bảng (nền xám)
+    els.push(rowset([
+      colv('<font color=\'grey\'>**#**</font>', 1),
+      colv('<font color=\'grey\'>**SẢN PHẨM**</font>', 8),
+      colv('<font color=\'grey\'>**SL × ĐƠN GIÁ**</font>', 6, 'right'),
+      colv('<font color=\'grey\'>**THÀNH TIỀN**</font>', 5, 'right')
+    ], 'grey'));
     let sumGoc = 0;
-    (od.items || []).forEach(function (it, i) {
+    items.forEach(function (it, i) {
       nItems++;
       const sl = Number(it.sl) || 0;
       const disc = Number(it.giamGiaPct) || 0;
       const goc = Number(it.donGiaGoc) || Number(it.donGia) || 0;
       const tt = sl * (Number(it.donGia) || 0);
       sumGoc += sl * goc;
-      // dòng giá: nếu có giảm giá NCC -> hiện giá gốc + % giảm + giá sau CK
-      const priceLine = disc > 0
-        ? sl + ' ' + (it.dvt || '') + ' × <font color=\'green\'>' + fmtVN(it.donGia) + ' đ</font> (giảm ' + disc + '% từ ' + fmtVN(goc) + ' đ)'
-        : sl + ' ' + (it.dvt || '') + ' × ' + fmtVN(it.donGia) + ' đ';
-      pf.push({ is_short: true, text: { tag: 'lark_md', content: '**' + (i + 1) + '.** ' + (it.ten || '') + '\n<font color=\'grey\'>' + priceLine + '</font>' } });
-      pf.push({ is_short: true, text: { tag: 'lark_md', content: '**' + fmtVN(tt) + ' đ**' } });
+      const sub = [it.khuVuc, it.thuongHieu].filter(Boolean).join(' · ');
+      const nameCell = '**' + (it.ten || '') + '**' + (sub ? '\n<font color=\'grey\'>' + sub + '</font>' : '');
+      const priceCell = disc > 0
+        ? sl + ' ' + (it.dvt || '') + ' × ' + fmtVN(it.donGia) + '\n<font color=\'green\'>▼ ' + disc + '% (gốc ' + fmtVN(goc) + ')</font>'
+        : sl + ' ' + (it.dvt || '') + ' × ' + fmtVN(it.donGia);
+      els.push(rowset([
+        colv(String(i + 1), 1),
+        colv(nameCell, 8),
+        colv(priceCell, 6, 'right'),
+        colv('**' + fmtVN(tt) + '**', 5, 'right')
+      ]));
     });
-    els.push({ tag: 'div', fields: pf });
-    const tienGiam = Math.max(0, sumGoc - (Number(od.total) - Number(od.vat)));
-    els.push({
-      tag: 'div', text: {
-        tag: 'lark_md',
-        content: (tienGiam > 0 ? '🏷️ <font color=\'green\'>**Đã giảm từ NCC: -' + fmtVN(tienGiam) + ' đ**</font> (từ ' + fmtVN(sumGoc) + ' đ)\n' : '') +
-          'VAT ' + (od.vatPct || 0) + '%: ' + fmtVN(od.vat) + ' đ　　💰 <font color=\'red\'>**TỔNG: ' + fmtVN(od.total) + ' đ**</font>'
-      }
-    });
+    // Khối tổng của NCC — căn phải
+    const tamTinh = Number(od.total) - Number(od.vat);
+    const tienGiam = Math.max(0, sumGoc - tamTinh);
+    let tot = '<font color=\'grey\'>Tạm tính: ' + fmtVN(sumGoc) + ' đ</font>';
+    if (tienGiam > 0) tot += '\n<font color=\'green\'>Giảm giá NCC: −' + fmtVN(tienGiam) + ' đ</font>';
+    if (Number(od.vat) > 0) tot += '\n<font color=\'grey\'>VAT ' + (od.vatPct || 0) + '%: ' + fmtVN(od.vat) + ' đ</font>';
+    tot += '\n💰 <font color=\'red\'>**TỔNG: ' + fmtVN(od.total) + ' đ**</font>';
+    els.push(md(tot, 'right'));
   });
+
+  // ==== Tổng tất cả (nếu nhiều NCC) ====
   els.push({ tag: 'hr' });
-  els.push({
-    tag: 'div', text: {
-      tag: 'lark_md',
-      content: (orders.length > 1 ? '💵 <font color=\'red\'>**TỔNG TẤT CẢ: ' + fmtVN(grand) + ' đ**</font>\n' : '') +
-        '📦 ' + nSup + ' nhà cung cấp · ' + nItems + ' sản phẩm'
-    }
-  });
-  els.push({ tag: 'note', elements: [{ tag: 'plain_text', content: '⚡ Gửi tự động từ Dezon QS Pro' }] });
+  if (orders.length > 1) {
+    els.push(md('💵 <font color=\'red\'>**TỔNG CỘNG: ' + fmtVN(grand) + ' đ**</font>', 'right'));
+  }
+  els.push(md('📦 ' + nSup + ' nhà cung cấp　·　' + nItems + ' sản phẩm　·　⏳ <font color=\'orange\'>**Chờ duyệt**</font>'));
+  const now = new Date();
+  const stamp = ('0' + now.getDate()).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear();
+  els.push({ tag: 'note', elements: [{ tag: 'plain_text', content: '⚡ Gửi tự động từ Dezon QS Pro · ' + stamp }] });
+
   return {
     msg_type: 'interactive',
     card: {
       config: { wide_screen_mode: true },
       header: {
         template: 'blue',
-        title: { tag: 'plain_text', content: '🛒 Yêu cầu mua hàng' },
-        subtitle: { tag: 'plain_text', content: (o.project || '') }
+        title: { tag: 'plain_text', content: '🛒 YÊU CẦU MUA HÀNG' },
+        subtitle: { tag: 'plain_text', content: (o.project || '') + (o.nguoiGui ? ' — ' + o.nguoiGui : '') }
       },
       elements: els
     }
