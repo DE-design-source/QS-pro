@@ -3059,16 +3059,43 @@ function ptR0(x){ return Math.round(x||0); }
 function ptR2(x){ return Math.round((x||0)*100)/100; }
 function ptQty(x){ x=Number(x)||0; return x.toLocaleString('vi-VN',{maximumFractionDigits:2}); }
 // Thư viện nội dung công việc (Phần thô) — hiện ở panel trái, bấm + để thêm vào bảng ước tính
+var PT_CONTRACTORS=['H77','Decox','TTP','Unicons'];
+function ptLibDg_(sec,a){ if(sec.mode==='item') return Number(a[3])||0; if(sec.mode==='area'||sec.mode==='area0') return Number(sec.up)||0; return 0; }
 function renderPTLibrary(){
   var el=document.getElementById('catList'); if(!el) return;
   var cc=document.getElementById('catCount'); if(cc) cc.textContent=PT_TEMPLATE.reduce(function(s,se){return s+se.items.length;},0)+' công việc';
-  el.innerHTML='<div class="ptlib">'+PT_TEMPLATE.map(function(sec,si){
-    return '<div class="ptlib-sec"><div class="ptlib-h">'+esc(sec.r)+'. '+esc(String(sec.t).split('\n')[0])+'</div>'
-      +sec.items.map(function(a,ii){
+  var cur=S._ptContractor||'';
+  // dropdown Nhà thầu + Báo giá mẫu (theo Figma)
+  var top='<div class="ptlib-top">'
+    +'<div class="ptlib-fld"><label>Nhà thầu</label><div class="ptlib-selwrap"><select class="ptlib-sel" onchange="ptSetContractor(this.value)">'
+      +'<option value="">Đơn giá theo nhà thầu</option>'
+      +PT_CONTRACTORS.map(function(c){ return '<option'+(cur===c?' selected':'')+'>'+esc(c)+'</option>'; }).join('')+'</select></div></div>'
+    +'<div class="ptlib-fld"><label>Báo giá mẫu dự án</label><div class="ptlib-selwrap"><select class="ptlib-sel"><option>Tạo dự án mới hoặc xem báo giá mẫu dự án cũ</option></select></div></div>'
+    +'</div>';
+  el.innerHTML=top+'<div class="ptlib">'+PT_TEMPLATE.map(function(sec,si){
+    var col=S._ptLibCol&&S._ptLibCol[si];
+    return '<div class="ptlib-sec"><div class="ptlib-h" onclick="ptLibToggle('+si+')">'
+        +'<span class="ptlib-caret">'+(col?'▸':'▾')+'</span><span class="ptlib-htt">'+esc(sec.r)+'. '+esc(String(sec.t).split('\n')[0])+'</span>'
+        +'<button class="ptlib-secadd" title="Thêm dòng trống vào bảng" onclick="event.stopPropagation();ptAddToSec_('+si+')">+</button></div>'
+      +(col?'':'<div class="ptlib-items">'+sec.items.map(function(a,ii){
+        var dg=ptLibDg_(sec,a);
         return '<div class="ptlib-item"><div class="ptlib-nm" title="'+esc(String(a[0]).replace(/\n/g,' '))+'">'+esc(String(a[0]).split('\n')[0])+'</div>'
-          +'<button class="ptlib-add" title="Thêm vào bảng ước tính" onclick="ptAddFromLib('+si+','+ii+')">+</button></div>';
-      }).join('')+'</div>';
+          +'<span class="ptlib-dvt">'+esc(a[1]||'')+'</span>'
+          +'<span class="ptlib-dg">'+(dg?money(dg):'—')+'</span>'
+          +'<button class="ptlib-add" title="Thêm vào bảng ước tính" onclick="ptAddFromLib('+si+','+ii+')">'+icon('plus',14)+'</button></div>';
+      }).join('')+'</div>')+'</div>';
   }).join('')+'</div>';
+}
+function ptSetContractor(v){ S._ptContractor=v||''; toast(v?('Đơn giá theo nhà thầu: '+v):'Bỏ chọn nhà thầu'); }
+function ptLibToggle(si){ S._ptLibCol=S._ptLibCol||{}; S._ptLibCol[si]=!S._ptLibCol[si]; renderPTLibrary(); }
+// nút + đỏ ở section: thêm 1 dòng trống vào section tương ứng trong bảng ước tính
+function ptAddToSec_(si){
+  var tsec=PT_TEMPLATE[si]; if(!tsec) return; ptEnsure();
+  var sec=(S.phanTho||[]).filter(function(s){ return s.t===tsec.t; })[0];
+  if(!sec){ sec={t:tsec.t,mode:tsec.mode,note:tsec.note||'',up:tsec.up||0,items:[]}; S.phanTho.push(sec); }
+  var blank = tsec.mode==='item'?{n:'',dvt:'',kl:0,dg:0,gc:'',dgnt:0}:(tsec.mode==='area'||tsec.mode==='area0')?{n:'',dvt:'',dt:0,hs:1,gc:''}:{n:'',dvt:'',gc:''};
+  sec.items.push(blank); ptPersist(); renderPhanTho();
+  toast('Đã thêm dòng trống vào "'+String(tsec.t).split('\n')[0]+'"');
 }
 function ptAddFromLib(si,ii){
   var tsec=PT_TEMPLATE[si]; if(!tsec) return; var a=tsec.items[ii]; if(!a) return;
