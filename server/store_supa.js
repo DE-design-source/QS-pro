@@ -119,7 +119,10 @@ async function deleteProject(maDA) {
   return { ok: true };
 }
 // Nhân bản 1 bản nháp: copy nguyên project (mã mới) + toàn bộ dòng bóc tách + tờ bìa
-async function duplicateProject(maDA) {
+async function duplicateProject(maDA, opts) {
+  opts = opts || {};
+  const cpBoc = opts.boc !== false;      // mặc định copy dòng bóc tách
+  const cpCover = opts.cover !== false;  // mặc định copy tờ bìa
   const src = (await supa.select('du_an', { filter: supa.eq('ma_da', maDA), limit: 1 }))[0];
   if (!src) throw new Error('Không tìm thấy bản nháp nguồn');
   const newMa = genMaDA_();
@@ -127,14 +130,16 @@ async function duplicateProject(maDA) {
   delete projRow.id;
   projRow.ma_da = newMa; projRow.ngay_tao = nowIso(); projRow.cap_nhat = nowIso();
   const proj = (await supa.insert('du_an', projRow))[0];
-  // copy dòng bóc tách
-  const lines = await supa.select('db_bao_gia', { select: '*', filter: supa.eq('ma_du_an', maDA), order: 'sort_no.asc', limit: 5000 });
-  if (lines.length) {
-    const rows = lines.map(function (r) { const o = Object.assign({}, r); delete o.id; delete o.created_at; o.ma_du_an = newMa; return o; });
-    await supa.insert('db_bao_gia', rows);
+  // copy dòng bóc tách (tuỳ chọn)
+  if (cpBoc) {
+    const lines = await supa.select('db_bao_gia', { select: '*', filter: supa.eq('ma_du_an', maDA), order: 'sort_no.asc', limit: 5000 });
+    if (lines.length) {
+      const rows = lines.map(function (r) { const o = Object.assign({}, r); delete o.id; delete o.created_at; o.ma_du_an = newMa; return o; });
+      await supa.insert('db_bao_gia', rows);
+    }
   }
-  // copy tờ bìa (khái toán) nếu có
-  try {
+  // copy tờ bìa (khái toán) nếu có (tuỳ chọn)
+  if (cpCover) try {
     const cover = await supa.select('khai_toan', { select: '*', filter: supa.eq('ma_da', maDA), limit: 2000 });
     if (cover.length) {
       const crows = cover.map(function (r) { const o = Object.assign({}, r); delete o.id; delete o.created_at; o.ma_da = newMa; return o; });

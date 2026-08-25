@@ -1814,14 +1814,34 @@ async function addDraft(gi){
   }catch(e){ toast('Lỗi: '+e.message); }
 }
 // Nhân bản 1 bản nháp (copy toàn bộ hạng mục + tờ bìa sang bản nháp mới)
-async function duplicateDraft(maDA){
+// Nhân bản: popup chọn phần cần sao chép
+function duplicateDraft(maDA){
+  var hasPT=false; try{ hasPT=!!localStorage.getItem('pt_'+maDA); }catch(e){}
+  var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='dupOv';
+  ov.onclick=function(e){ if(e.target===ov) dupClose_(); };
+  ov.innerHTML='<div class="sp-modal dup-modal pd"><div class="pd-head"><h3>'+icon('copy',15)+' Nhân bản bản nháp</h3><button class="pd-x" onclick="dupClose_()">✕</button></div>'
+    +'<p class="dup-hint">Chọn phần cần sao chép sang bản nháp mới (Thông tin dự án luôn được copy):</p>'
+    +'<div class="dup-list">'
+      +'<label class="dup-ck"><input type="checkbox" id="dupBoc" checked><span><b>Bóc tách</b> — sản phẩm đã bóc (Chi phí · Mua hàng đi theo phần này)</span></label>'
+      +'<label class="dup-ck"><input type="checkbox" id="dupCover" checked><span><b>Xuất báo giá</b> — tờ bìa / ước tính chi phí</span></label>'
+      +(hasPT?'<label class="dup-ck"><input type="checkbox" id="dupPT" checked><span><b>Phần thô</b> — bảng ước tính xây thô</span></label>':'')
+    +'</div>'
+    +'<div class="dup-f"><button class="btn ghost sm" onclick="dupClose_()">Huỷ</button><button class="btn blue" onclick="dupDo_(\''+esc(maDA)+'\',this)">'+icon('copy',14)+' Nhân bản</button></div></div>';
+  document.body.appendChild(ov);
+}
+function dupClose_(){ var o=document.getElementById('dupOv'); if(o)o.remove(); }
+async function dupDo_(maDA, btn){
+  var g=function(id){var e=document.getElementById(id);return e?e.checked:false;};
+  var opts={boc:g('dupBoc'), cover:g('dupCover')}, cpPT=g('dupPT');
+  if(btn){ btn.disabled=true; btn.textContent='Đang nhân bản…'; }
   try{
-    toast('Đang nhân bản…');
-    var p=await api('duplicateProject',maDA);
-    S.cur=p; S._coverDA=null;
-    await boot(); renderDash(); renderProjects();
+    var p=await api('duplicateProject',maDA,opts);
+    if(cpPT){ try{ var v=localStorage.getItem('pt_'+maDA); if(v) localStorage.setItem('pt_'+p.maDA, v);
+      var vv=localStorage.getItem('pt_'+maDA+'_vat'); if(vv) localStorage.setItem('pt_'+p.maDA+'_vat', vv); }catch(e){} }
+    S.cur=p; S._coverDA=null; S._ptKey=null;
+    await boot(); renderDash(); dupClose_(); projModalClose&&projModalClose();
     toast('Đã nhân bản ('+ ((S.lines||[]).length) +' hạng mục)');
-  }catch(e){ toast('Lỗi nhân bản: '+e.message); }
+  }catch(e){ toast('Lỗi nhân bản: '+e.message); if(btn){ btn.disabled=false; btn.innerHTML=icon('copy',14)+' Nhân bản'; } }
 }
 function kpi(ic,label,val,accent){ return '<div class="kpi"><div class="kpi-ic '+(accent||'')+'">'+ic+'</div><div class="kpi-b"><div class="kpi-n">'+val+'</div><div class="kpi-t">'+esc(label)+'</div></div></div>'; }
 function renderDash(){
