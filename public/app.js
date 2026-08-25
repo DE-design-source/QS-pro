@@ -2045,7 +2045,8 @@ function renderMuahang(){
   var groups={}, order=[];
   lines.forEach(function(l){ var s=String(l.ncc||l.thuongHieu||'Khác').trim()||'Khác'; if(!groups[s]){groups[s]=[];order.push(s);} groups[s].push(l); });
   S._mhGroups=order.map(function(k){ return {ncc:k, items:groups[k]}; });
-  var grand=order.reduce(function(sum,k){ return sum+mhTot_(groups[k],vatPct); },0);
+  // Tổng cộng CHỈ tính các NCC đang được chọn (mhOn_) — khớp với "Gửi N đơn đã chọn"
+  var grand=order.reduce(function(sum,k){ return mhOn_(k) ? sum+mhTot_(groups[k],vatPct) : sum; },0);
   function stat(v,l){ return '<div class="imp-stat"><div class="imp-stat-v">'+v+'</div><div class="imp-stat-l">'+l+'</div></div>'; }
   var statbar='<div class="imp-statbar">'
     +'<div class="imp-nganh"><label>Hạng mục</label><div class="msel" style="min-width:210px"><span class="mlabel">'+icon('layers',15)+' '+esc(nodeName(code))+'</span><span class="mplus">▾</span></div></div>'
@@ -2061,7 +2062,7 @@ function mhOrderOf(g){
   var sub=g.items.reduce(function(s,l){ return s+(Number(l.soLuong)||0)*mhPriceCK_(l); },0);   // giá SAU chiết khấu
   var vat=Math.round(sub*vatPct/100);
   return { supplier:g.ncc, vatPct:vatPct, vat:vat, total:sub+vat,
-    items:g.items.map(function(l){ return {ten:l.ten||'', ma:l.maSP||'', thuongHieu:l.thuongHieu||'', khuVuc:l.khuVuc||'', hinhAnh:String(l.hinhAnh||'').split('\n')[0], sl:Number(l.soLuong)||0, dvt:l.dvt||'Cái', donGia:mhPriceCK_(l), giamGiaPct:mhDisc_(l)}; }) };
+    items:g.items.map(function(l){ return {ten:l.ten||'', ma:l.maSP||'', thuongHieu:l.thuongHieu||'', khuVuc:l.khuVuc||'', hinhAnh:String(l.hinhAnh||'').split('\n')[0], sl:Number(l.soLuong)||0, dvt:l.dvt||'Cái', donGia:mhPriceCK_(l), donGiaGoc:mhPrice(l), giamGiaPct:mhDisc_(l)}; }) };
 }
 function mhBase(){ var mi=S._mhInfo||{}; return { project:S.cur&&S.cur.ten, maDA:S.cur&&S.cur.maDA, khachHang:S.cur&&S.cur.khachHang, sdt:S.cur&&S.cur.sdt, node:S.node, hangMuc:nodeName(S.node), nguoiGui:mi.nguoiGui||'', phongBan:mi.phongBan||'', ghiChu:mi.ghiChu||'' }; }
 function mhValidateInfo(){

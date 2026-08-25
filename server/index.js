@@ -134,17 +134,28 @@ function buildPurchaseCard(o) {
       { is_short: true, text: { tag: 'lark_md', content: '<font color=\'grey\'>**SẢN PHẨM**</font>' } },
       { is_short: true, text: { tag: 'lark_md', content: '<font color=\'grey\'>**THÀNH TIỀN**</font>' } }
     ];
+    let sumGoc = 0;
     (od.items || []).forEach(function (it, i) {
       nItems++;
-      const tt = (Number(it.sl) || 0) * (Number(it.donGia) || 0);
-      pf.push({ is_short: true, text: { tag: 'lark_md', content: '**' + (i + 1) + '.** ' + (it.ten || '') + '\n<font color=\'grey\'>' + (it.sl || 0) + ' ' + (it.dvt || '') + ' × ' + fmtVN(it.donGia) + ' đ</font>' } });
+      const sl = Number(it.sl) || 0;
+      const disc = Number(it.giamGiaPct) || 0;
+      const goc = Number(it.donGiaGoc) || Number(it.donGia) || 0;
+      const tt = sl * (Number(it.donGia) || 0);
+      sumGoc += sl * goc;
+      // dòng giá: nếu có giảm giá NCC -> hiện giá gốc + % giảm + giá sau CK
+      const priceLine = disc > 0
+        ? sl + ' ' + (it.dvt || '') + ' × <font color=\'green\'>' + fmtVN(it.donGia) + ' đ</font> (giảm ' + disc + '% từ ' + fmtVN(goc) + ' đ)'
+        : sl + ' ' + (it.dvt || '') + ' × ' + fmtVN(it.donGia) + ' đ';
+      pf.push({ is_short: true, text: { tag: 'lark_md', content: '**' + (i + 1) + '.** ' + (it.ten || '') + '\n<font color=\'grey\'>' + priceLine + '</font>' } });
       pf.push({ is_short: true, text: { tag: 'lark_md', content: '**' + fmtVN(tt) + ' đ**' } });
     });
     els.push({ tag: 'div', fields: pf });
+    const tienGiam = Math.max(0, sumGoc - (Number(od.total) - Number(od.vat)));
     els.push({
       tag: 'div', text: {
         tag: 'lark_md',
-        content: 'VAT ' + (od.vatPct || 0) + '%: ' + fmtVN(od.vat) + ' đ　　💰 <font color=\'red\'>**TỔNG: ' + fmtVN(od.total) + ' đ**</font>'
+        content: (tienGiam > 0 ? '🏷️ <font color=\'green\'>**Đã giảm từ NCC: -' + fmtVN(tienGiam) + ' đ**</font> (từ ' + fmtVN(sumGoc) + ' đ)\n' : '') +
+          'VAT ' + (od.vatPct || 0) + '%: ' + fmtVN(od.vat) + ' đ　　💰 <font color=\'red\'>**TỔNG: ' + fmtVN(od.total) + ' đ**</font>'
       }
     });
   });
