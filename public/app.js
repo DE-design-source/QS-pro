@@ -1772,7 +1772,7 @@ async function saveDraftInfo(btn){
 }
 async function saveProgress(btn){ var v=Number(document.getElementById('pf_prog').value)||0;
   try{ var p=await api('updateProject',S.cur.maDA,{tienDo:v}); syncProj(p); renderCard(); renderDash&&renderDash(); toast('Đã cập nhật tiến độ '+v+'%'); }catch(e){ toast('Lỗi: '+e.message); } }
-async function pickProject(maDA){ S.cur=S.projects.filter(function(p){return p.maDA===maDA;})[0]; S.lines=await api('getLines',maDA)||[]; S._coverDA=null; renderAll(); projInfoModal(maDA); }
+async function pickProject(maDA){ S.cur=S.projects.filter(function(p){return p.maDA===maDA;})[0]; S.lines=await api('getLines',maDA)||[]; S._coverDA=null; renderAll(); renderProjSel&&renderProjSel(); showTab('boc'); }
 async function removeProject(maDA){ if(!confirm('Xoá bản nháp này?'))return; await api('deleteProject',maDA); if(S.cur&&S.cur.maDA===maDA)S.cur=null; projModalClose(); await boot(); renderDash(); }
 
 /* ===== DASHBOARD ===== */
@@ -1860,8 +1860,7 @@ function kpi(ic,label,val,accent){ return '<div class="kpi"><div class="kpi-ic '
 function renderDash(){
   var el=document.getElementById('v-dash');
   var drafts=draftListHtml();
-  var header='<div class="sechd"><h2>Bảng điều khiển</h2><span class="sp" style="flex:1"></span>'
-    +'<button class="btn blue sm" onclick="openCreate()">'+icon('plus',14)+' Tạo dự án</button></div>';
+  var header='<div class="sechd"><h2>Bảng điều khiển</h2></div>';   // nút Tạo dự án đã có ở thanh trên + thẻ Danh sách dự án
   if(!S.cur){
     el.innerHTML=header
       +'<div class="dash-empty">'+icon('layers',40)+'<h3>Chưa chọn bản nháp</h3><p>Chọn một bản nháp trong dự án bên dưới để xem tổng quan — hoặc tạo dự án mới.</p></div>'
