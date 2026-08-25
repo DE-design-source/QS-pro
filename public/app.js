@@ -2008,14 +2008,16 @@ function renderDuAn(){
 
 /* ===== MUA HÀNG (gom theo Nhà cung cấp) ===== */
 function mhPrice(l){ return giaDaiLy_(l)||Number(l.donGiaVon)||Number(l.donGiaBan)||0; }
-// Giảm giá từ NCC (%) theo dòng -> giá & thành tiền sau chiết khấu (điều chỉnh giá lần cuối khi mua hàng)
-function mhDisc_(l){ return Math.max(0,Math.min(100,Number((S._mhDisc||{})[l.lineId])||0)); }
+// Giảm giá từ NCC (%) theo dòng -> lưu TRÊN DÒNG (giamGiaNcc) nên copy theo khi nhân bản
+function mhDisc_(l){ return Math.max(0,Math.min(100,Number(l.giamGiaNcc)||0)); }
 function mhPriceCK_(l){ return Math.round(mhPrice(l)*(1-mhDisc_(l)/100)); }
 function mhSub_(items){ return items.reduce(function(a,l){ return a+(Number(l.soLuong)||0)*mhPriceCK_(l); },0); }  // tổng = giá SAU chiết khấu
 function mhTot_(items,vatPct){ var s=mhSub_(items); return s+Math.round(s*vatPct/100); }
-function mhSetDisc(lineId,v){ S._mhDisc=S._mhDisc||{}; var p=Math.max(0,Math.min(100,Number(v)||0)); if(p) S._mhDisc[lineId]=p; else delete S._mhDisc[lineId]; renderMuahang(); }
-function mhSetDiscAll(gi,v){ var g=(S._mhGroups||[])[gi]; if(!g) return; S._mhDisc=S._mhDisc||{}; var p=Math.max(0,Math.min(100,Number(v)||0));
-  g.items.forEach(function(l){ if(p) S._mhDisc[l.lineId]=p; else delete S._mhDisc[l.lineId]; }); renderMuahang(); }
+function mhSetDisc(lineId,v){ var l=(S.lines||[]).filter(function(x){return x.lineId===lineId;})[0]; if(!l) return;
+  var p=Math.max(0,Math.min(100,Number(v)||0)); l.giamGiaNcc=p; renderMuahang();
+  api('updateLine',lineId,{giamGiaNcc:p}).catch(function(){}); }
+function mhSetDiscAll(gi,v){ var g=(S._mhGroups||[])[gi]; if(!g) return; var p=Math.max(0,Math.min(100,Number(v)||0));
+  g.items.forEach(function(l){ l.giamGiaNcc=p; api('updateLine',l.lineId,{giamGiaNcc:p}).catch(function(){}); }); renderMuahang(); }
 function mhOn_(ncc){ return !(S._mhSel&&S._mhSel[ncc]===false); }
 /* Thẻ NCC — dùng lại frontend thẻ của trang Nhập dữ liệu (.dbcard + icon chip) */
 function muahangCard(g, gi, vatPct){

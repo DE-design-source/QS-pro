@@ -160,6 +160,7 @@ function lineToObj(r) {
     hinhAnh: s(r.hinh_anh), dvt: s(r.dvt) || 'Cái', khuVuc: s(r.phong), maBanVe: s(r.ma_so_ban_ve),
     soLuong: sl, donGiaVon: von, chietKhau: ck, lnPct: n(r.loi_nhuan_pct), donGiaBan: n(r.gia_ban),
     ckKhach: n(r.ck_khach_hang_pct), donGia: n(r.don_gia),   // đơn giá NET (sau CK khách) — dùng cho xuất để đơn giá×SL = thành tiền
+    giamGiaNcc: n(r.giam_gia_ncc_pct),   // % giảm giá từ NCC khi mua hàng (lưu trên dòng để copy theo)
     thanhTienVon: round0_(sl * giaDaiLy), thanhTienBan: n(r.thanh_tien),
     trangThai: s(r.trang_thai), ghiChu: s(r.ghi_chu), tuNhap: r.tu_nhap ? 1 : 0, daLuuDM: r.da_luu_dm ? 1 : 0,
     extra: r.extra || {}
@@ -214,6 +215,7 @@ async function updateLine(lineId, fields) {
   if (!cur) return null;
   const patch = {};
   Object.keys(LINE_MAP).forEach(function (k) { if (fields.hasOwnProperty(k)) patch[LINE_MAP[k]] = fields[k] == null ? '' : fields[k]; });
+  if (fields.hasOwnProperty('giamGiaNcc')) patch.giam_gia_ncc_pct = Number(fields.giamGiaNcc) || 0;
   if (fields.hasOwnProperty('tuNhap')) patch.tu_nhap = Number(fields.tuNhap) || 0;
   if (fields.hasOwnProperty('daLuuDM')) patch.da_luu_dm = Number(fields.daLuuDM) || 0;
   if (fields.hasOwnProperty('stt')) { patch.sort_no = Number(fields.stt) || 0; patch.stt = String(fields.stt); }
