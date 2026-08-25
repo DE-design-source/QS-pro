@@ -333,7 +333,8 @@ function showTab(tab){
   // Ẩn breadcrumb + banner dự án ở các trang KHÔNG thuộc 1 dự án cụ thể
   var noProj = (tab==='admin' || tab==='sanpham' || tab==='import');
   var crumb=document.querySelector('.crumb'); if(crumb) crumb.style.display = noProj?'none':'';
-  var pcard=document.getElementById('pcard'); if(pcard) pcard.style.display = noProj?'none':'';
+  // Dashboard đã có banner "Đang làm việc" + KPI riêng -> ẩn banner #pcard để khỏi TRÙNG LẶP
+  var pcard=document.getElementById('pcard'); if(pcard) pcard.style.display = (noProj||tab==='dash')?'none':'';
   if(tab==='project') renderProjects();
   if(tab==='dash') renderDash();
   if(tab==='chiphi') renderChiphi();
@@ -1707,7 +1708,7 @@ async function projInfoModal(maDA){
   var p=(S.projects||[]).filter(function(x){return x.maDA===maDA;})[0]; if(!p) return;
   S.cur=p; S._coverDA=null;
   try{ S.lines=await api('getLines',maDA)||[]; }catch(e){}
-  renderCard&&renderCard();
+  renderCard&&renderCard(); renderProjSel&&renderProjSel(); renderDash&&renderDash();
   var ov=document.getElementById('projModalOv');
   if(!ov){ ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='projModalOv';
     ov.onclick=function(e){ if(e.target===ov) projModalClose(); }; document.body.appendChild(ov); }
@@ -1715,13 +1716,25 @@ async function projInfoModal(maDA){
 }
 function projModalClose(){ var o=document.getElementById('projModalOv'); if(o)o.remove(); }
 function projModalRefresh_(){ var b=document.getElementById('projModalBody'); if(b && S.cur){ b.innerHTML=projInfoInner_(S.cur, currentGroup()); } }
-// đổi tên bản nháp
-async function renameDraft(maDA){
+// đổi tên bản nháp (modal — không dùng prompt vì 1 số trình duyệt chặn)
+function renameDraft(maDA){
   var p=(S.projects||[]).filter(function(x){return x.maDA===maDA;})[0]; if(!p) return;
   var gr=projectGroups().filter(function(g){ return g.drafts.some(function(d){return d.maDA===maDA;}); })[0];
   var i=gr?gr.drafts.findIndex(function(d){return d.maDA===maDA;}):0;
-  var name=prompt('Tên bản nháp:', p.tenBanNhap||('Bản nháp '+(i+1))); if(name==null) return; name=name.trim();
-  try{ var np=await api('updateProject',maDA,{tenBanNhap:name}); syncProj(np); renderDash(); if(document.getElementById('projModalOv')) projModalRefresh_(); toast('Đã đổi tên bản nháp'); }
+  var cur=p.tenBanNhap||('Bản nháp '+(i+1));
+  var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='rnOv';
+  ov.onclick=function(e){ if(e.target===ov) rnClose_(); };
+  ov.innerHTML='<div class="sp-modal rn-modal pd"><div class="pd-head"><h3>'+icon('edit',15)+' Đổi tên bản nháp</h3><button class="pd-x" onclick="rnClose_()">✕</button></div>'
+    +'<input class="rn-in" id="rnInput" value="'+esc(cur)+'" placeholder="Tên bản nháp" onkeydown="if(event.key===\'Enter\')rnSave_(\''+esc(maDA)+'\')">'
+    +'<div class="rn-f"><button class="btn ghost sm" onclick="rnClose_()">Huỷ</button><button class="btn blue" onclick="rnSave_(\''+esc(maDA)+'\')">'+icon('check',14)+' Lưu</button></div></div>';
+  document.body.appendChild(ov);
+  setTimeout(function(){ var el=document.getElementById('rnInput'); if(el){ el.focus(); el.select(); } },40);
+}
+function rnClose_(){ var o=document.getElementById('rnOv'); if(o)o.remove(); }
+async function rnSave_(maDA){
+  var el=document.getElementById('rnInput'); var name=el?el.value.trim():'';
+  try{ var np=await api('updateProject',maDA,{tenBanNhap:name}); syncProj(np); rnClose_(); renderDash();
+    if(document.getElementById('projModalOv')) projModalRefresh_(); toast('Đã đổi tên bản nháp'); }
   catch(e){ toast('Lỗi: '+e.message); }
 }
 // Mở 1 bản nháp (ở lại trang Thông tin dự án)
@@ -1748,7 +1761,7 @@ async function saveProjectShared(btn){
   }catch(e){ toast('Lỗi: '+e.message); } btn.disabled=false;
 }
 // Lưu thông tin của riêng bản nháp đang mở
-function projRefreshUI_(){ renderCard&&renderCard();
+function projRefreshUI_(){ renderCard&&renderCard(); renderProjSel&&renderProjSel();
   if(document.getElementById('projModalOv')) projModalRefresh_();
   else { var vp=document.getElementById('v-project'); if(vp&&vp.classList.contains('on')) renderProjects(); }
   renderDash&&renderDash(); }
@@ -1863,7 +1876,7 @@ function renderDash(){
   var banner='<div class="dash-banner"><div class="db-l"><div class="db-eyebrow">Đang làm việc</div>'
     +'<div class="db-title">'+icon('building',18)+esc(S.cur.ten)+'<span class="db-sep">›</span>Bản nháp '+((gr?gr.idx:0)+1)+'</div>'
     +'<div class="db-code">'+esc(S.cur.maDA)+' · Tạo '+fmtDate(S.cur.ngayTao)+'</div></div>'
-    +'<div class="db-r"><button class="btn light sm" onclick="showTab(\'project\')">'+icon('doc',14)+' Thông tin</button>'
+    +'<div class="db-r"><button class="btn light sm" onclick="projInfoModal(S.cur.maDA)">'+icon('doc',14)+' Thông tin</button>'
     +'<button class="btn white sm" onclick="showTab(\'boc\')">'+icon('layers',14)+' Mở bóc tách</button></div></div>';
   var lnT=ban-von;
   var kpis='<div class="kpis">'

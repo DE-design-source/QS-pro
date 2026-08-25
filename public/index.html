@@ -54,6 +54,11 @@ a{color:inherit}
 .sp-modal{background:#fff;border-radius:14px;width:420px;max-width:100%;padding:18px 20px;box-shadow:0 20px 60px #0005}
 /* modal Cập nhật sản phẩm + lịch sử */
 .sp-modal.sp-edit{width:760px}
+/* Popup Đổi tên bản nháp */
+.sp-modal.rn-modal{width:380px}
+.rn-in{width:100%;box-sizing:border-box;border:1px solid #d7dde4;border-radius:9px;padding:10px 12px;font:inherit;font-size:14px;margin-top:6px}
+.rn-in:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 3px #2f6bff22}
+.rn-f{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
 /* Popup Nhân bản */
 .sp-modal.dup-modal{width:440px}
 .dup-hint{font-size:13px;color:#5b6b7b;margin:6px 0 12px}
@@ -1357,7 +1362,7 @@ table.admtbl tbody tr{transition:background .1s} table.admtbl tbody tr:hover{bac
   </div>
 
   <!-- project card (gọn) -->
-  <div class="pcard" id="pcard" onclick="showTab('project')" title="Bấm để sửa thông tin dự án">
+  <div class="pcard" id="pcard" onclick="S.cur&&projInfoModal(S.cur.maDA)" title="Bấm để sửa thông tin dự án">
     <div class="pc-main">
       <div class="pc-top"><h1 id="pcName">Chưa chọn dự án</h1><span class="status" id="pcStatus">Bản nháp</span><span class="pc-edit">Bấm để sửa ›</span></div>
       <div class="macode">Mã: <span id="pcCode">—</span></div>
