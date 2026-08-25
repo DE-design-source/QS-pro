@@ -125,13 +125,6 @@ function buildPurchaseCard(o) {
     els.push({ tag: 'hr' });
     // Tiêu đề NCC
     els.push(md('🏭 <font color=\'blue\'>**' + (od.supplier || '—') + '**</font>　·　' + items.length + ' sản phẩm'));
-    // Hàng tiêu đề bảng (nền xám)
-    els.push(rowset([
-      colv('<font color=\'grey\'>**#**</font>', 1),
-      colv('<font color=\'grey\'>**SẢN PHẨM**</font>', 8),
-      colv('<font color=\'grey\'>**SL × ĐƠN GIÁ**</font>', 6, 'right'),
-      colv('<font color=\'grey\'>**THÀNH TIỀN**</font>', 5, 'right')
-    ], 'grey'));
     let sumGoc = 0;
     items.forEach(function (it, i) {
       nItems++;
@@ -141,24 +134,22 @@ function buildPurchaseCard(o) {
       const tt = sl * (Number(it.donGia) || 0);
       sumGoc += sl * goc;
       const sub = [it.khuVuc, it.thuongHieu].filter(Boolean).join(' · ');
-      const nameCell = '**' + (it.ten || '') + '**' + (sub ? '\n<font color=\'grey\'>' + sub + '</font>' : '');
-      const priceCell = disc > 0
-        ? sl + ' ' + (it.dvt || '') + ' × ' + fmtVN(it.donGia) + '\n<font color=\'green\'>▼ ' + disc + '% (gốc ' + fmtVN(goc) + ')</font>'
-        : sl + ' ' + (it.dvt || '') + ' × ' + fmtVN(it.donGia);
+      let left = '**' + (i + 1) + '. ' + (it.ten || '') + '**';
+      left += '\n<font color=\'grey\'>' + sl + ' ' + (it.dvt || '') + ' × ' + fmtVN(it.donGia) + ' đ' + (sub ? '　·　' + sub : '') + '</font>';
+      if (disc > 0) left += '\n<font color=\'green\'>▼ giảm ' + disc + '% (gốc ' + fmtVN(goc) + ' đ)</font>';
       els.push(rowset([
-        colv(String(i + 1), 1),
-        colv(nameCell, 8),
-        colv(priceCell, 6, 'right'),
-        colv('**' + fmtVN(tt) + '**', 5, 'right')
+        colv(left, 3),
+        colv('**' + fmtVN(tt) + ' đ**', 1, 'right')
       ]));
     });
     // Khối tổng của NCC — căn phải
     const tamTinh = Number(od.total) - Number(od.vat);
     const tienGiam = Math.max(0, sumGoc - tamTinh);
-    let tot = '<font color=\'grey\'>Tạm tính: ' + fmtVN(sumGoc) + ' đ</font>';
-    if (tienGiam > 0) tot += '\n<font color=\'green\'>Giảm giá NCC: −' + fmtVN(tienGiam) + ' đ</font>';
-    if (Number(od.vat) > 0) tot += '\n<font color=\'grey\'>VAT ' + (od.vatPct || 0) + '%: ' + fmtVN(od.vat) + ' đ</font>';
-    tot += '\n💰 <font color=\'red\'>**TỔNG: ' + fmtVN(od.total) + ' đ**</font>';
+    els.push({ tag: 'hr' });
+    let tot = '<font color=\'grey\'>Tạm tính</font>　　' + fmtVN(sumGoc) + ' đ';
+    if (tienGiam > 0) tot += '\n<font color=\'green\'>Giảm giá NCC</font>　　<font color=\'green\'>−' + fmtVN(tienGiam) + ' đ</font>';
+    if (Number(od.vat) > 0) tot += '\n<font color=\'grey\'>VAT ' + (od.vatPct || 0) + '%</font>　　' + fmtVN(od.vat) + ' đ';
+    tot += '\n**💰 TỔNG THANH TOÁN**　　<font color=\'red\'>**' + fmtVN(od.total) + ' đ**</font>';
     els.push(md(tot, 'right'));
   });
 
