@@ -3153,28 +3153,34 @@ function renderPhanTho(){
   if(!S.cur){ pw.innerHTML='<div class="empty" style="padding:24px;text-align:center">Chưa chọn dự án.</div>'; return; }
   ptEnsure();
   var comp=ptComputeAll();
-  var COLS=['STT','NỘI DUNG CÔNG VIỆC','ĐVT','DIỆN TÍCH','HỆ SỐ','KHỐI LƯỢNG','ĐƠN GIÁ','THÀNH TIỀN','GHI CHÚ','ĐƠN GIÁ (NHÀ THẦU)','THÀNH TIỀN (NHÀ THẦU)','LỢI NHUẬN','ĐƠN GIÁ (BÁO KHÁCH)','THÀNH TIỀN (BÁO KHÁCH)'];
+  // Thứ tự + tên cột ĐÚNG như hình mẫu Phần thô
+  var COLS=['STT','NỘI DUNG CÔNG VIỆC','ĐVT','DIỆN TÍCH','HỆ SỐ','KHỐI LƯỢNG','ĐƠN GIÁ (NHÀ THẦU)','THÀNH TIỀN (NHÀ THẦU)','LỢI NHUẬN (VND)','LỢI NHUẬN/GIÁ BÁN (%)','LỢI NHUẬN/GIÁ VỐN (%)','ĐƠN GIÁ','THÀNH TIỀN','GHI CHÚ'];
+  function ptPct(v){ v=Number(v)||0; return v?(v.toFixed(1)+'%'):''; }
   var body='';
   S.phanTho.forEach(function(sec,si){
     var st=comp.sections[si];
-    // ---- dòng tiêu đề hạng mục ----
-    var upCell = sec.mode==='area' ? ptInp(si,-1,'up',sec.up,'pt-money') : '';
-    var klCell = (sec.mode==='area'||sec.mode==='area0') ? ptQty(st.sumKL) : '';
+    var isSecArea = sec.mode==='area';
+    var sumDG = sec.items.reduce(function(s,it){ return s+ptN(it.dg); },0);
+    var klCell = st.sumKL ? ptQty(st.sumKL) : '';
+    var upCell = isSecArea ? ptInp(si,-1,'up',sec.up,'pt-money') : (sumDG?money(sumDG):'');
+    // ---- dòng tiêu đề hạng mục (đơn giá + thành tiền ở 2 cột cuối) ----
     body+='<tr class="pt-sec">'
       +'<td class="c">'+PT_ROMAN[si]+'</td>'
       +'<td class="pt-secname"><div class="pt-secttl">'+esc(sec.t).replace(/\n/g,'<br>')+'</div>'+(sec.note?'<span class="pt-note">'+esc(sec.note)+'</span>':'')+'<span class="pt-secdel" title="Xoá hạng mục" onclick="ptDelSection('+si+')">'+icon('trash',13)+'</span></td>'
-      +'<td></td><td></td><td></td><td class="n">'+klCell+'</td>'
-      +'<td class="n pt-upcell">'+upCell+'</td>'
+      +'<td></td><td></td><td></td>'
+      +'<td class="n">'+klCell+'</td>'
+      +'<td></td><td></td><td></td><td></td><td></td>'
+      +'<td class="n pt-upcell b">'+upCell+'</td>'
       +'<td class="n b">'+(st.tt?money(st.tt):'-')+'</td>'
-      +'<td></td><td></td>'
-      +'<td class="n">'+(st.ttnt?money(st.ttnt):'')+'</td>'
-      +'<td class="n">'+((st.tt-st.ttnt)?money(st.tt-st.ttnt):'')+'</td>'
-      +'<td></td><td class="n">'+(st.tt?money(st.tt):'')+'</td></tr>';
-    body+='<tr class="pt-spacer"><td colspan="15"></td></tr>';   // dòng khoảng trắng sau header nhóm (như PDF)
+      +'<td></td><td></td></tr>';
+    body+='<tr class="pt-spacer"><td colspan="15"></td></tr>';
     // ---- các dòng chi tiết ----
     sec.items.forEach(function(it,ii){
       var kl=it._kl, tt=it._tt, ttnt=it._ttnt;
-      var isNone=sec.mode==='none', isArea=(sec.mode==='area'||sec.mode==='area0'), isItem=sec.mode==='item';
+      var isArea=(sec.mode==='area'||sec.mode==='area0'), isItem=sec.mode==='item';
+      var lnVnd = isItem?(tt-ttnt):0;
+      var margin = (isItem&&tt)?(lnVnd/tt*100):0;   // lợi nhuận / giá bán
+      var markup = (isItem&&ttnt)?(lnVnd/ttnt*100):0; // lợi nhuận / giá vốn
       body+='<tr class="pt-row">'
         +'<td class="c">'+(ii+1)+'</td>'
         +'<td>'+ptTxt(si,ii,'n',it.n)+'</td>'
@@ -3182,35 +3188,34 @@ function renderPhanTho(){
         +'<td class="n">'+(isArea?ptInp(si,ii,'dt',it.dt):'')+'</td>'
         +'<td class="n">'+(isArea?ptInp(si,ii,'hs',it.hs):'')+'</td>'
         +'<td class="n">'+(isArea?'<span class="pt-ro">'+ptQty(kl)+'</span>':(isItem?ptInp(si,ii,'kl',it.kl):''))+'</td>'
-        +'<td class="n">'+(isItem?ptInp(si,ii,'dg',it.dg,'pt-money'):'')+'</td>'
-        +'<td class="n">'+(isItem?'<span class="pt-ro b">'+money(tt)+'</span>':'<span class="pt-dash">-</span>')+'</td>'
-        +'<td>'+ptTxt(si,ii,'gc',it.gc)+'</td>'
         +'<td class="n">'+(isItem?ptInp(si,ii,'dgnt',it.dgnt,'pt-money'):'')+'</td>'
         +'<td class="n">'+(isItem?'<span class="pt-ro">'+money(ttnt)+'</span>':'')+'</td>'
-        +'<td class="n">'+(isItem?'<span class="pt-ro">'+money(tt-ttnt)+'</span>':'')+'</td>'
-        +'<td class="n">'+(isItem?'<span class="pt-ro">'+money(it.dg)+'</span>':'')+'</td>'
-        +'<td class="n">'+(isItem?'<span class="pt-ro">'+money(tt)+'</span>':'')+'</td>'
+        +'<td class="n">'+(isItem?'<span class="pt-ro">'+money(lnVnd)+'</span>':'')+'</td>'
+        +'<td class="n">'+(isItem?'<span class="pt-ro pt-pctc">'+ptPct(margin)+'</span>':'')+'</td>'
+        +'<td class="n">'+(isItem?'<span class="pt-ro pt-pctc">'+ptPct(markup)+'</span>':'')+'</td>'
+        +'<td class="n">'+(isItem?ptInp(si,ii,'dg',it.dg,'pt-money'):'')+'</td>'
+        +'<td class="n">'+(isItem?'<span class="pt-ro b">'+money(tt)+'</span>':'<span class="pt-dash">-</span>')+'</td>'
+        +'<td class="pt-gc">'+ptTxt(si,ii,'gc',it.gc)+'</td>'
         +'<td class="pt-del"><button title="Xoá dòng" onclick="ptDelItem('+si+','+ii+')">'+icon('trash',13)+'</button></td></tr>';
     });
     body+='<tr class="pt-add"><td></td><td colspan="13"><span onclick="ptAddItem('+si+')">＋ Thêm dòng</span></td><td></td></tr>';
-    body+='<tr class="pt-spacer"><td colspan="15"></td></tr>';   // dòng khoảng trắng trước nhóm kế (như PDF)
+    body+='<tr class="pt-spacer"><td colspan="15"></td></tr>';
   });
-  // ---- tổng cộng / VAT / sau thuế ----
+  // ---- tổng cộng / VAT / sau thuế ----  (cột 8=TT nhà thầu, 9=lợi nhuận, 13=thành tiền)
   body+='<tr class="pt-total"><td class="c" colspan="7">TỔNG CỘNG</td>'
-    +'<td class="n b">'+money(comp.grand)+'</td><td></td><td></td>'
-    +'<td class="n">'+money(comp.contractor)+'</td>'
-    +'<td class="n b">'+money(comp.profit)+' <span class="pt-pct">('+comp.profitPct.toFixed(2)+'%)</span></td>'
-    +'<td></td><td class="n b">'+money(comp.grand)+'</td><td></td></tr>';
-  body+='<tr class="pt-total2"><td class="c" colspan="6">VAT</td>'
-    +'<td class="n"><input class="pt-in pt-vat" type="number" step="any" value="'+comp.vatPct+'" onchange="ptSetVat(this.value)">%</td>'
-    +'<td class="n b">'+money(comp.vat)+'</td><td colspan="7"></td></tr>';
-  body+='<tr class="pt-grand"><td class="c" colspan="7">THÀNH TIỀN SAU THUẾ</td>'
-    +'<td class="n b">'+money(comp.afterTax)+'</td><td colspan="7"></td></tr>';
+    +'<td class="n b">'+money(comp.contractor)+'</td>'
+    +'<td class="n b">'+money(comp.profit)+' <span class="pt-pct">('+comp.profitPct.toFixed(1)+'%)</span></td>'
+    +'<td colspan="3"></td>'
+    +'<td class="n b">'+money(comp.grand)+'</td><td colspan="2"></td></tr>';
+  body+='<tr class="pt-total2"><td class="c" colspan="12">VAT <input class="pt-in pt-vat" type="number" step="any" value="'+comp.vatPct+'" onchange="ptSetVat(this.value)">%</td>'
+    +'<td class="n b">'+money(comp.vat)+'</td><td colspan="2"></td></tr>';
+  body+='<tr class="pt-grand"><td class="c" colspan="12">THÀNH TIỀN SAU THUẾ</td>'
+    +'<td class="n b">'+money(comp.afterTax)+'</td><td colspan="2"></td></tr>';
 
   var colg='<colgroup>'
-    +'<col style="width:38px"><col style="width:300px"><col style="width:54px"><col style="width:76px"><col style="width:56px"><col style="width:86px">'
-    +'<col style="width:104px"><col style="width:126px"><col style="width:190px"><col style="width:112px"><col style="width:128px"><col style="width:120px"><col style="width:112px"><col style="width:128px"><col style="width:34px"></colgroup>';
-  var thead='<tr>'+COLS.map(function(c,i){ var cls=(i>=3?'n':(i===0?'c':'')); return '<th class="'+cls+'">'+esc(c)+'</th>'; }).join('')+'<th></th></tr>';
+    +'<col style="width:40px"><col style="width:280px"><col style="width:52px"><col style="width:70px"><col style="width:54px"><col style="width:92px">'
+    +'<col style="width:120px"><col style="width:130px"><col style="width:116px"><col style="width:120px"><col style="width:120px"><col style="width:116px"><col style="width:130px"><col style="width:150px"><col style="width:34px"></colgroup>';
+  var thead='<tr>'+COLS.map(function(c,i){ var cls=(i>=3&&i!==13?'n':(i===0?'c':'')); return '<th class="'+cls+'">'+esc(c)+'</th>'; }).join('')+'<th></th></tr>';
 
   // Thanh tổng dùng chung (giống các hạng mục SP khác) — hiện cho cả Phần thô
   var teP=document.getElementById('tkTotals');
