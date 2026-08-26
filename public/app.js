@@ -892,7 +892,7 @@ var SP_COLS=[
   ['thumb','Ảnh','thumbcol',function(p){ return p.hinhAnh?'<img class="sp-th" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="sp-th"></span>'; }],
   ['ten','Sản phẩm','sp-name',function(p){ return '<b>'+esc(p.ten||'')+'</b><span class="sp-code">'+esc(p.ma||'')+'</span>'; }],
   ['thuongHieu','Thương hiệu','',function(p){ return p.thuongHieu?'<span class="tag-brand">'+esc(p.thuongHieu)+'</span>':''; }],
-  ['hangMuc','Loại đèn','',function(p){ return p.hangMuc?'<span class="tag-cat">'+esc(p.hangMuc)+'</span>':''; }],
+  ['hangMuc','Hạng mục SP','',function(p){ return p.hangMuc?'<span class="tag-cat">'+esc(p.hangMuc)+'</span>':''; }],
   ['ncc','Nhà cung cấp','',function(p){ return esc(p.ncc||''); }],
   ['specs','Thông số','sp-specs',function(p){ return spSpecs_(p); }],
   ['congSuat','Công suất','ct',function(p){ return p.congSuat?'<span class="spec">'+esc(p.congSuat)+'</span>':'—'; }],
@@ -944,7 +944,7 @@ function renderSpChips_(){
       +'<div class="tree-pop" id="spCatPop" style="display:none"></div></div></div>';
   bar.innerHTML='<div class="sp-filtrow">'+treeCol
     +fsel('brand','Danh sách thương hiệu','thuongHieu','Tất cả thương hiệu')
-    +fsel('hangMuc','Hạng mục sản phẩm','hangMuc','Tất cả loại đèn')
+    +fsel('hangMuc','Hạng mục sản phẩm','hangMuc','Tất cả hạng mục SP')
     +fsel('dong','Dòng sản phẩm','nhom','Tất cả dòng SP')
     +(spAnyFilter_()?'<div class="sp-fcol" style="justify-content:flex-end"><span class="spchip clr" onclick="spClearFilters()">✕ Xóa lọc</span></div>':'')
     +'</div>';
@@ -2959,6 +2959,12 @@ function renderImport(){
     +DB_GROUPS.map(function(gr){
       return dbCard_(gr.g, DB_GICON[gr.g]||'doc', gr.note, '<div class="dbgrid">'+gr.f.map(dbInput).join('')+'</div>');
     }).join('')
+    +dbCard_('Nhập biến thể (tuỳ chọn)','sliders','Nhập nhiều giá trị cách nhau bằng dấu phẩy — hệ thống tạo 1 sản phẩm cho MỖI tổ hợp (cùng mã SP, khác thông số).',
+      '<div class="dbgrid">'
+      +'<div class="field"><label>Nhiệt độ màu (K)</label><input id="varKelvin" placeholder="VD: 3000, 4000, 6500" oninput="varPreview_()"></div>'
+      +'<div class="field"><label>Công suất (W)</label><input id="varWatt" placeholder="VD: 7, 9, 12" oninput="varPreview_()"></div>'
+      +'<div class="field"><label>Góc chiếu (°)</label><input id="varAngle" placeholder="VD: 24, 36, 60" oninput="varPreview_()"></div>'
+      +'</div><div class="var-note" id="varNote">Bỏ trống = chỉ tạo 1 sản phẩm theo thông số đã nhập ở trên.</div>')
     +dbCard_('Ghi danh vào dự án','building','Tuỳ chọn — đưa sản phẩm này vào một dự án ngay sau khi lưu vào Database.',
       '<div class="dbgrid">'
       +'<div class="field"><label>Dự án</label><select id="impProjSel"><option value="">— Không ghi danh —</option>'
@@ -2974,6 +2980,20 @@ function renderImport(){
   box.innerHTML=impStatBar()+'<div class="imp-layout">'+form+impRecentList()+'</div>';
 }
 /* ==== Upload ảnh ==== */
+// Chặn trình duyệt MỞ FILE khi thả trượt ra ngoài vùng upload (nếu không, cả trang bị điều hướng
+// -> người dùng tưởng "không kéo thả được"). Đồng thời sáng vùng thả gần nhất khi đang kéo file.
+(function guardFileDrop_(){
+  function hasFiles(e){ var d=e.dataTransfer; return d && d.types && [].indexOf.call(d.types,'Files')>=0; }
+  document.addEventListener('dragover',function(e){ if(hasFiles(e)) e.preventDefault(); });
+  document.addEventListener('drop',function(e){
+    if(!hasFiles(e)) return;
+    if(e.target.closest && e.target.closest('.upzone')) return;   // để vùng upload tự xử lý
+    e.preventDefault();
+    var zones=document.querySelectorAll('.upzone');
+    if(zones.length) toast('Thả ảnh vào đúng khung "Hình đại diện" hoặc "Hình chi tiết" nhé');
+  });
+})();
+
 function upDrag(e,on){ e.preventDefault(); e.currentTarget.classList.toggle('drag',!!on); }
 async function upFilesSeq_(zone,fs){
   if(zone==='main'){ if(fs.length>1) toast('Hình đại diện chỉ 1 ảnh — lấy ảnh đầu.'); fs=fs.slice(0,1); }  // RULE: đại diện chỉ 1 ảnh
@@ -3160,6 +3180,29 @@ async function impCommit(btn){
     toast('Đã nhập '+r.inserted+' sản phẩm vào danh mục'); renderImport(); renderFilters(); renderCatalog(); }
   catch(e){ toast('Lỗi nhập: '+e.message); btn.disabled=false; btn.textContent=o; }
 }
+/* ===== BIẾN THỂ: sinh tổ hợp nhiệt độ màu × công suất × góc chiếu ===== */
+function varList_(id){ var e=document.getElementById(id); if(!e) return [];
+  return String(e.value||'').split(',').map(function(x){return x.trim();}).filter(Boolean); }
+function varCombos_(){
+  var K=varList_('varKelvin'), W=varList_('varWatt'), A=varList_('varAngle');
+  if(!K.length && !W.length && !A.length) return [];          // không dùng biến thể
+  var out=[];
+  (K.length?K:[null]).forEach(function(k){
+    (W.length?W:[null]).forEach(function(w){
+      (A.length?A:[null]).forEach(function(a){ out.push({k:k,w:w,a:a}); });
+    });
+  });
+  return out;
+}
+function varPreview_(){
+  var el=document.getElementById('varNote'); if(!el) return;
+  var c=varCombos_();
+  if(!c.length){ el.className='var-note'; el.textContent='Bỏ trống = chỉ tạo 1 sản phẩm theo thông số đã nhập ở trên.'; return; }
+  el.className='var-note on';
+  el.innerHTML='Sẽ tạo <b>'+c.length+' sản phẩm</b> (biến thể): '
+    +c.slice(0,6).map(function(x){ return '<span class="var-chip">'+[x.w?x.w+'W':'',x.k?x.k+'K':'',x.a?x.a+'°':''].filter(Boolean).join(' · ')+'</span>'; }).join('')
+    +(c.length>6?' <i>… +'+(c.length-6)+' nữa</i>':'');
+}
 async function tdSave(btn){
   var data={};
   DB_FLAT.forEach(function(f,i){ var e=document.getElementById('dbf_'+i); if(e){ var v=(e.value||'').trim(); if(v) data[f[0]]=v; } });
@@ -3172,9 +3215,27 @@ async function tdSave(btn){
   var imgs=[S._imgMain].concat(S._imgList||[]).filter(Boolean).filter(function(v){return v.indexOf('data:')!==0;}); // bỏ preview base64 chưa upload xong
   if(imgs.length) data['ẢNH SẢN PHẨM']=imgs.join('\n');
   btn.textContent='⏳ Đang lưu…';
-  try{ var r=await api('saveDbProduct',data);
-    sessionAdd_({ten:ten, thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'', hinhAnh:data['ẢNH SẢN PHẨM']||''});
-    toast((r.updated?'Đã cập nhật':'Đã thêm')+' "'+ten+'" vào DB_Sản phẩm');
+  try{
+    var combos=varCombos_(), r;
+    if(combos.length){
+      // BIẾN THỂ: tạo 1 sản phẩm cho mỗi tổ hợp (cùng mã SP, khác nhiệt độ/công suất/góc)
+      var okN=0, errN=0;
+      for(var ci=0; ci<combos.length; ci++){
+        var c=combos[ci], d2=Object.assign({},data);
+        if(c.k) d2['NHIỆT ĐỘ MÀU (K)']=c.k;
+        if(c.w) d2['CÔNG SUẤT (W)']=c.w;
+        if(c.a) d2['GÓC CHIẾU (°)']=c.a;
+        if(btn) btn.textContent='⏳ Đang lưu biến thể '+(ci+1)+'/'+combos.length+'…';
+        try{ await api('saveDbProduct',d2); okN++; }catch(e2){ errN++; }
+      }
+      r={updated:false};
+      sessionAdd_({ten:ten+' ('+okN+' biến thể)', thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'', hinhAnh:data['ẢNH SẢN PHẨM']||''});
+      toast('Đã lưu '+okN+' biến thể của "'+ten+'"'+(errN?(' · '+errN+' lỗi'):''));
+    } else {
+      r=await api('saveDbProduct',data);
+      sessionAdd_({ten:ten, thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'', hinhAnh:data['ẢNH SẢN PHẨM']||''});
+      toast((r.updated?'Đã cập nhật':'Đã thêm')+' "'+ten+'" vào DB_Sản phẩm');
+    }
     // Ghi danh vào dự án (tuỳ chọn)
     var gd=document.getElementById('impGhiDanh'), ps=document.getElementById('impProjSel'), sl=document.getElementById('impGhiSL');
     if(gd&&gd.checked&&ps&&ps.value){

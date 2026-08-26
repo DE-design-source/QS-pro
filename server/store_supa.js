@@ -299,9 +299,16 @@ async function saveDbProduct(data) {
     row[col] = v;
   });
   const ma = s(data['MÃ SẢN PHẨM']).trim();
+  // Khoá trùng = MÃ SP + các trục BIẾN THỂ (nhiệt độ màu / công suất / góc chiếu).
+  // Nhờ vậy cùng mã nhưng khác nhiệt độ màu sẽ là 2 SẢN PHẨM RIÊNG (biến thể), không ghi đè nhau.
   if (ma) {
-    const ex = await supa.select('db_san_pham', { select: 'id', filter: supa.eq('ma_sp', ma), limit: 1 });
-    if (ex.length) { await supa.update('db_san_pham', supa.eq('ma_sp', ma), row); _cache = null; return { updated: true, ma: ma, ten: ten }; }
+    let filter = supa.eq('ma_sp', ma);
+    ['nhiet_do_mau_k', 'cong_suat_w', 'goc_chieu_deg'].forEach(function (col) {
+      const v = row[col];
+      filter += '&' + (v == null || v === '' ? col + '=is.null' : supa.eq(col, v));
+    });
+    const ex = await supa.select('db_san_pham', { select: 'id', filter: filter, limit: 1 });
+    if (ex.length) { await supa.update('db_san_pham', supa.eq('id', ex[0].id), row); _cache = null; return { updated: true, ma: ma, ten: ten }; }
   }
   await supa.insert('db_san_pham', row); _cache = null;
   return { created: true, ma: ma, ten: ten };
