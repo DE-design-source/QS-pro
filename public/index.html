@@ -1714,6 +1714,43 @@ table.pt .pt-add span{color:var(--blue);font-size:12px;font-weight:550;cursor:po
 .ptlib-minus{flex:none;width:22px;height:25px;border:none;background:none;color:#b4bcc6;font-size:15px;cursor:pointer;line-height:1}
 .ptlib-minus:hover{color:#c0392b}
 
+/* ═══ 16d. DROPDOWN ĐỀ MỤC / HẠNG MỤC SP — gọn, phân cấp rõ, sang ═══ */
+.fltpop{padding:5px;border-radius:var(--r-lg);box-shadow:0 14px 40px rgba(18,50,76,.14),0 0 0 1px var(--hair)}
+.fltpop .fhdr{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
+  font-weight:600;padding:8px 9px 7px;border-bottom:1px solid var(--hair);margin-bottom:4px}
+/* mỗi dòng: thấp hơn, chữ nhỏ hơn, phân cấp bằng thụt lề + màu */
+.demuc-opt{padding:6px 9px;border-radius:var(--r-sm);font-size:12px;color:var(--ink-2);
+  line-height:1.35;gap:10px;transition:background .1s,color .1s}
+.demuc-opt:hover{background:#f4f7fb;color:var(--ink)}
+.demuc-opt.on{background:#eef4fd;color:var(--navy);font-weight:600}
+/* cấp 1: đậm hơn, có gạch phân nhóm nhẹ */
+.demuc-opt.l1{font-weight:600;color:var(--ink);font-size:12px;margin-top:3px}
+.demuc-opt.l2{padding-left:20px;font-size:11.5px}
+.demuc-opt.l3{padding-left:34px;font-size:11.5px;color:var(--ink-2)}
+.demuc-opt.l4{padding-left:48px;font-size:11px;color:var(--ink-3)}
+.demuc-opt.l4.on,.demuc-opt.l3.on{color:var(--navy)}
+/* badge số lượng: nhỏ, mảnh, chỉ nổi khi có số */
+.demuc-opt .dc{font-size:10px;font-weight:500;color:#c2c9d2;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.demuc-opt.on .dc{color:var(--blue);font-weight:600}
+/* ô tìm trong popup */
+.fltpop .fsearch{border-radius:var(--r-sm);font-size:12px;padding:7px 10px;margin:2px 2px 6px;
+  width:calc(100% - 4px);border-color:var(--hair-2)}
+/* giới hạn chiều cao + cuộn mảnh */
+.fltpop,.tree-pop{max-height:62vh}
+.fltpop::-webkit-scrollbar,.tree-pop::-webkit-scrollbar{width:5px}
+.fltpop::-webkit-scrollbar-thumb,.tree-pop::-webkit-scrollbar-thumb{background:#d3d9e0;border:none;border-radius:3px}
+/* dropdown cây (tnode) — đồng bộ cùng ngôn ngữ */
+.tnode{padding:6px 9px;font-size:12px;gap:9px;border-radius:var(--r-sm)}
+.tnode .nm{font-weight:500}
+.tnode.lvl1{font-weight:600;color:var(--ink);margin-top:3px}
+.tnode.lvl2{padding-left:20px;font-size:11.5px}
+.tnode.lvl3{padding-left:34px;font-size:11.5px}
+.tnode.lvl4{padding-left:48px;font-size:11px}
+.tnode .cn{font-size:10px;font-weight:500;color:#c2c9d2}
+.tnode.on{background:#eef4fd}
+.tnode.on .cn{color:var(--blue);font-weight:600}
+.tnode .rd{width:12px;height:12px;border-width:1.5px}
+
 /* ---------- 17. MONTSERRAT tuning ---------- */
 /* Montserrat rộng & tròn hơn font hệ thống -> siết tracking, giảm 1 bậc độ đậm */
 body,button,input,select,textarea{font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
