@@ -1858,6 +1858,25 @@ table.pt tr.pt-empty td{border:none;background:#fcfdfe;padding:0}
   transform:scale(1.08);box-shadow:0 3px 10px rgba(208,82,75,.20)}
 .agx:active{transform:scale(.94);background:#fdeceb}
 
+/* ═══ 16j. Nút xoá không bị cắt + THANH KÉO NGANG cho bảng ═══ */
+/* chừa chỗ cho gutter, panel không cắt nút */
+.tk-panel{overflow:visible;min-width:0}
+#tkNormal{min-width:0;max-width:100%}
+#tkNormal .tbl-wrap{margin-right:34px;max-width:100%;overflow-x:auto;overflow-y:auto}
+.actgutter{width:34px;overflow:hidden}
+.agx{left:4px}
+/* THANH KÉO NGANG của bảng — hiện rõ, kiểu viên thuốc như thanh kéo panel */
+#tkNormal .tbl-wrap,.pt-scroll{overflow-x:auto;scrollbar-width:auto;scrollbar-color:#dfe4ea transparent}
+#tkNormal .tbl-wrap::-webkit-scrollbar,.pt-scroll::-webkit-scrollbar{display:block;height:12px;width:0}
+#tkNormal .tbl-wrap::-webkit-scrollbar-track,.pt-scroll::-webkit-scrollbar-track{
+  background:transparent;margin:0 2px}
+#tkNormal .tbl-wrap::-webkit-scrollbar-thumb,.pt-scroll::-webkit-scrollbar-thumb{
+  background:#d7dde4;border:3px solid transparent;background-clip:content-box;border-radius:99px;
+  transition:background-color .15s;min-width:60px;display:block}
+#tkNormal .tbl-wrap:hover::-webkit-scrollbar-thumb,.pt-scroll:hover::-webkit-scrollbar-thumb{background:#b9c3ce;background-clip:content-box}
+#tkNormal .tbl-wrap::-webkit-scrollbar-thumb:hover,.pt-scroll::-webkit-scrollbar-thumb:hover{background:var(--blue);background-clip:content-box}
+#tkNormal .tbl-wrap::-webkit-scrollbar-thumb:active,.pt-scroll::-webkit-scrollbar-thumb:active{background:var(--blue-d);background-clip:content-box}
+
 /* ---------- 17. MONTSERRAT tuning ---------- */
 /* Montserrat rộng & tròn hơn font hệ thống -> siết tracking, giảm 1 bậc độ đậm */
 body,button,input,select,textarea{font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}

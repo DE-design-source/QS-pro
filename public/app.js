@@ -1750,7 +1750,7 @@ function syncActGutter(){
   btns.forEach(function(b,i){ var tr=rows[i]; if(!tr){ b.style.display='none'; return; }
     var r=tr.getBoundingClientRect(), mid=r.top + r.height/2;
     var vis = mid > wr.top+headH+1 && mid < wr.bottom-hsb-1;   // chỉ hiện khi TÂM dòng trong vùng nhìn thấy
-    b.style.top=(mid - (wr.top+headH) - 9.5)+'px';
+    b.style.top=(mid - (wr.top+headH) - (b.offsetHeight/2||12))+'px';
     b.style.display=vis?'':'none';
   });
 }
