@@ -1880,6 +1880,16 @@ html,body,.catpanel,.catpanel-top,.cat-list,#pdPanel,.fltpop,.tree-pop,.spe-hist
 #tkNormal .tbl-wrap::-webkit-scrollbar-thumb:hover,.pt-scroll::-webkit-scrollbar-thumb:hover{background:var(--blue);background-clip:content-box}
 #tkNormal .tbl-wrap::-webkit-scrollbar-thumb:active,.pt-scroll::-webkit-scrollbar-thumb:active{background:var(--blue-d);background-clip:content-box}
 
+/* ═══ 16k. THANH KÉO NGANG TỰ DỰNG cho bảng — mảnh, luôn kéo được ═══ */
+#tkNormal .tbl-wrap,.pt-scroll{overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+#tkNormal .tbl-wrap::-webkit-scrollbar,.pt-scroll::-webkit-scrollbar{width:0;height:0;display:none}
+.tk-hbar{position:relative;height:6px;margin:6px 34px 2px 0;border-radius:99px;background:#f0f2f5;cursor:pointer;user-select:none}
+.tk-hthumb{position:absolute;top:0;left:0;height:100%;min-width:48px;border-radius:99px;
+  background:#c8d0d9;cursor:grab;transition:background-color .14s}
+.tk-hbar:hover .tk-hthumb{background:#a9b4c1}
+.tk-hthumb:hover{background:var(--blue)}
+.tk-hthumb.dragging{background:var(--blue-d);cursor:grabbing}
+
 /* ---------- 17. MONTSERRAT tuning ---------- */
 /* Montserrat rộng & tròn hơn font hệ thống -> siết tracking, giảm 1 bậc độ đậm */
 body,button,input,select,textarea{font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
@@ -2072,6 +2082,7 @@ table.tk tr.tk-spacer td{height:12px}
           <div class="colchips" id="colChips"></div>
           <div class="tbl-wrap"><table class="tk" id="tkTable" oncontextmenu="tkCtx(event)"></table></div>
           <div class="actgutter" id="actGutter"><div id="actGutterInner"></div></div>
+          <div class="tk-hbar" id="tkHBar" style="display:none"><div class="tk-hthumb" id="tkHThumb"></div></div>
         </div>
         <div id="ptWrap" style="display:none"></div>
       </div>

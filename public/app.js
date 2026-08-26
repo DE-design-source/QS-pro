@@ -1731,9 +1731,10 @@ function renderActGutter(){
   var rows=document.querySelectorAll('#tkTable tr.drow');
   inner.innerHTML=[].map.call(rows,function(tr){ var id=tr.getAttribute('data-id');
     return '<button class="agx" data-id="'+id+'" title="Xoá hạng mục này" onclick="delLine(\''+id+'\')"></button>'; }).join('');
-  if(!S._agBound){ var wrap=document.querySelector('#v-boc .tbl-wrap'); if(wrap){ wrap.addEventListener('scroll',syncActGutter,{passive:true}); window.addEventListener('resize',syncActGutter); S._agBound=1; } }
+  if(!S._agBound){ var wrap=document.querySelector('#tkNormal .tbl-wrap'); if(wrap){ wrap.addEventListener('scroll',syncActGutter,{passive:true}); window.addEventListener('resize',syncActGutter); S._agBound=1; } }
   bindActGutterHover_();
   syncActGutter();
+  tkHBarInit_(); tkHBarSync_();
 }
 // ✕ chỉ hiện ở DÒNG đang rê chuột (nút nằm ngoài bảng nên phải gắn bằng JS)
 function bindActGutterHover_(){
@@ -1754,7 +1755,47 @@ function bindActGutterHover_(){
   });
   norm.addEventListener('mouseleave',clear);
 }
+/* ===== Thanh kéo ngang tự dựng cho bảng Bóc tách ===== */
+function tkHBarSync_(){
+  var wrap=document.querySelector('#tkNormal .tbl-wrap'), bar=document.getElementById('tkHBar'), th=document.getElementById('tkHThumb');
+  if(!wrap||!bar||!th) return;
+  var sw=wrap.scrollWidth, cw=wrap.clientWidth;
+  if(sw<=cw+1){ bar.style.display='none'; return; }
+  bar.style.display='';
+  var bw=bar.clientWidth;
+  var tw=Math.max(48, Math.round(bw*cw/sw));
+  var maxLeft=bw-tw, maxScroll=sw-cw;
+  th.style.width=tw+'px';
+  th.style.left=Math.round(maxScroll?(wrap.scrollLeft/maxScroll)*maxLeft:0)+'px';
+}
+function tkHBarInit_(){
+  if(S._hbarBound) return;
+  var wrap=document.querySelector('#tkNormal .tbl-wrap'), bar=document.getElementById('tkHBar'), th=document.getElementById('tkHThumb');
+  if(!wrap||!bar||!th) return; S._hbarBound=1;
+  wrap.addEventListener('scroll',tkHBarSync_,{passive:true});
+  window.addEventListener('resize',tkHBarSync_);
+  // kéo thumb
+  th.addEventListener('mousedown',function(e){
+    e.preventDefault(); e.stopPropagation();
+    var sx=e.clientX, sl=wrap.scrollLeft;
+    var bw=bar.clientWidth, tw=th.offsetWidth, maxLeft=bw-tw, maxScroll=wrap.scrollWidth-wrap.clientWidth;
+    th.classList.add('dragging'); document.body.style.cursor='grabbing';
+    function mv(ev){ var d=ev.clientX-sx; wrap.scrollLeft = sl + (maxLeft? d*maxScroll/maxLeft : 0); tkHBarSync_(); }
+    function up(){ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up);
+      th.classList.remove('dragging'); document.body.style.cursor=''; }
+    document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+  });
+  // bấm vào rãnh -> nhảy tới vị trí đó
+  bar.addEventListener('mousedown',function(e){
+    if(e.target===th) return;
+    var r=bar.getBoundingClientRect(), tw=th.offsetWidth;
+    var pos=Math.min(Math.max(0,e.clientX-r.left-tw/2), r.width-tw);
+    var maxScroll=wrap.scrollWidth-wrap.clientWidth, maxLeft=r.width-tw;
+    wrap.scrollLeft = maxLeft? pos*maxScroll/maxLeft : 0; tkHBarSync_();
+  });
+}
 function syncActGutter(){
+  tkHBarSync_();   // đồng bộ luôn thanh kéo ngang (hàm này đã chạy mỗi khi cuộn bảng)
   var norm=document.getElementById('tkNormal'), g=document.getElementById('actGutter'); if(!norm||!g) return;
   var wrap=norm.querySelector('.tbl-wrap'), t=document.getElementById('tkTable'); if(!wrap||!t) return;
   var nb=norm.getBoundingClientRect(), wr=wrap.getBoundingClientRect();
