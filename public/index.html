@@ -1605,6 +1605,56 @@ table.mh-tbl2 td{border-bottom:1px solid var(--hair)}
 *::-webkit-scrollbar-thumb{background:#d3d9e0;border-radius:5px;border:2px solid #fff}
 *::-webkit-scrollbar-thumb:hover{background:#b9c2cc}
 
+/* ═══ 16b. PANEL TRÁI — thiết kế lại: sang, thoáng, phân cấp rõ ═══ */
+.catpanel{padding:16px 14px}
+/* header: Hạng mục + badge + nút bộ lọc */
+.cat-hd{margin-bottom:16px;gap:9px}
+.cat-hd h3{font-size:14px;font-weight:600;letter-spacing:-.022em;color:var(--ink)}
+#catCount{background:#eef3fb;color:var(--blue);font-size:10.5px;font-weight:600;border-radius:20px;
+  padding:3px 9px;letter-spacing:.01em}
+#filtBtn{border:1px solid var(--hair-2);background:#fff;color:var(--ink-2);border-radius:20px;
+  padding:6px 12px;font-size:11.5px;font-weight:500;display:inline-flex;align-items:center;gap:6px;transition:all .14s}
+#filtBtn:hover{border-color:#c3ccd8;background:#fafbfc}
+#filtBtn.open{border-color:var(--navy);background:var(--navy);color:#fff}
+/* nhãn nhóm lọc */
+.mlbl{font-size:9.5px;letter-spacing:.11em;font-weight:600;color:#a0a9b4;margin-bottom:6px;text-transform:uppercase}
+/* dropdown chọn: tinh, nhấn nhá bằng hover */
+.msel{border:1px solid var(--hair-2);border-radius:var(--r-md);padding:9px 12px;font-size:12.5px;
+  font-weight:500;color:var(--ink);background:#fff;transition:all .14s;margin-bottom:14px}
+.msel:hover{border-color:#c3ccd8;background:#fcfdfe}
+.msel.active{border-color:var(--navy);background:#f7f9fc;font-weight:600}
+.msel .mplus{color:#b4bcc6;transition:color .14s}
+.msel:hover .mplus,.msel.active .mplus{color:var(--navy)}
+/* nhóm lọc chip: bỏ khung nặng -> nền phớt + hairline */
+.fsec{border:1px solid var(--hair);border-radius:var(--r-lg);background:#fcfdfe;margin-bottom:9px;overflow:hidden}
+.fsec-h{padding:10px 12px;gap:7px}
+.fsec-t{font-size:12px;font-weight:600;color:var(--ink);letter-spacing:-.012em}
+.fsec-n{font-size:10.5px;color:var(--ink-3);font-weight:500}
+.fsec-n::before{content:'·';margin-right:4px;color:#c8ced6}
+.fsec-c{color:#b4bcc6;font-size:10px}
+.fsec.open{background:#fff;border-color:var(--hair-2)}
+.fsec.open .chips{padding:0 12px 12px;gap:6px;max-height:132px}
+.fsec .chip{border-radius:20px;padding:5px 11px;font-size:11px;font-weight:500;background:#fff;border-color:var(--hair-2)}
+.fsec .chip:hover{border-color:var(--navy);background:#f7f9fc;color:var(--navy)}
+.fsec .chip.on{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
+.fsec .chip .dot{width:7px;height:7px;border-radius:50%;margin-right:5px;display:inline-block;vertical-align:-1px}
+/* danh sách sản phẩm: hairline, thoáng, phân cấp rõ */
+.cat-list{margin-top:6px}
+.citem{gap:12px;padding:12px 4px;border-bottom:1px solid var(--hair);transition:background .13s;border-radius:var(--r-sm)}
+.citem:hover{background:#fafbfd}
+.citem .no{width:14px;font-size:11px;color:#b4bcc6;font-weight:500}
+.citem .thumb{width:48px;height:48px;border-radius:var(--r-md);border:1px solid var(--hair);background:#fafbfc;padding:3px}
+.citem .nm{font-size:12.5px;font-weight:600;color:var(--ink);letter-spacing:-.015em;line-height:1.35;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.citem .meta{gap:5px;margin-top:4px}
+.citem .pr{font-size:13px;font-weight:600;color:var(--navy);letter-spacing:-.028em;font-variant-numeric:tabular-nums}
+.citem .sz.brand{background:transparent;border:1px solid var(--hair-2);color:var(--ink-3);
+  font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;letter-spacing:.02em}
+.citem .add{width:28px;height:28px;background:#fff;border:1px solid var(--blue);color:var(--blue);
+  font-size:15px;font-weight:400;display:flex;align-items:center;justify-content:center;transition:all .14s}
+.citem .add:hover{background:var(--blue);color:#fff;transform:scale(1.06)}
+.citem:hover .add{box-shadow:0 0 0 3px rgba(37,99,235,.09)}
+
 /* ---------- 17. MONTSERRAT tuning ---------- */
 /* Montserrat rộng & tròn hơn font hệ thống -> siết tracking, giảm 1 bậc độ đậm */
 body,button,input,select,textarea{font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}

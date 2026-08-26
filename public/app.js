@@ -347,13 +347,28 @@ function showTab(tab){
 }
 
 /* ===== PROJECT ===== */
+// Render lại tab đang mở (dùng sau khi đổi dự án/bản nháp -> UI cập nhật tức thì, không cần bấm lại tab)
+function refreshActiveTab_(){
+  var on=[].slice.call(document.querySelectorAll('.view')).filter(function(v){ return v.classList.contains('on'); })[0];
+  var tab=on?on.id.replace('v-',''):'';
+  if(tab==='dash') renderDash();
+  else if(tab==='chiphi') renderChiphi();
+  else if(tab==='export') renderExport();
+  else if(tab==='muahang') renderMuahang();
+  else if(tab==='duan') renderDuAn();
+  else if(tab==='sanpham'){ renderSpProjPanel_&&renderSpProjPanel_(); }
+}
 function renderProjSel(){
   var s=document.getElementById('projSel');
   s.innerHTML = S.projects.length ? S.projects.map(function(p){
     return '<option value="'+esc(p.maDA)+'"'+(S.cur&&S.cur.maDA===p.maDA?' selected':'')+'>'+esc(p.ten)+'</option>';
   }).join('') : '<option>— Chưa có dự án —</option>';
   s.onchange=async function(){ S.cur=S.projects.filter(function(p){return p.maDA===s.value;})[0];
-    S.lines=await api('getLines',S.cur.maDA)||[]; renderAll(); };
+    if(!S.cur) return;
+    S._coverDA=null;
+    try{ S.lines=await api('getLines',S.cur.maDA)||[]; }catch(e){ S.lines=[]; }
+    renderAll(); refreshActiveTab_();   // render lại ĐÚNG tab đang mở -> cập nhật tức thì
+  };
 }
 function renderCard(){
   var p=S.cur||{};
@@ -831,6 +846,7 @@ async function spSwitchProject(maDA){
   var p=(S.projects||[]).filter(function(x){return x.maDA===maDA;})[0]; if(!p) return;
   S.cur=p; S._coverDA=null; try{ S.lines=await api('getLines',maDA)||[]; }catch(e){ S.lines=[]; }
   if(typeof renderProjSel==='function') renderProjSel();
+  renderCard&&renderCard();
   renderSpProjPanel_(); renderSpChips_(); spFilter();
 }
 function spAddToProject(i){ var p=(S._spList||[])[i]; if(!p) return; if(!S.cur){ toast('Chưa chọn dự án'); return; }
@@ -1759,7 +1775,7 @@ async function rnSave_(maDA){
 async function openDraft(maDA){
   var p=(S.projects||[]).filter(function(x){return x.maDA===maDA;})[0]; if(!p) return;
   S.cur=p; S.lines=await api('getLines',maDA)||[]; S._coverDA=null;
-  projRefreshUI_();
+  projRefreshUI_(); refreshActiveTab_();
   if(document.getElementById('v-boc').classList.contains('on')) renderAll();
 }
 // Thêm bản nháp cho dự án đang mở
