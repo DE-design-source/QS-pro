@@ -696,13 +696,16 @@ function specRows_(text){
   }).join('');
 }
 // 1 nhóm thông số: chỉ hiện dòng có giá trị; cả nhóm ẩn nếu rỗng hết
+// title dạng "English|Tiếng Việt" -> render EN đậm + (VN) nghiêng nhạt
 function pdSection_(title, rows){
   var body=rows.filter(function(r){return r[1]!=null && r[1]!=='';}).map(function(r){
     return '<div class="spec"><span class="k">'+esc(r[0])+'</span><span class="v">'+esc(r[1])+'</span></div>';
   }).join('');
-  return body?'<div class="pd-block"><div class="pd-sec">'+esc(title)+'</div>'+body+'</div>':'';
+  var t=String(title).split('|');
+  var head=esc(t[0])+(t[1]?' <i>('+esc(t[1])+')</i>':'');
+  return body?'<div class="pd-block"><div class="pd-sec">'+head+'</div>'+body+'</div>':'';
 }
-// Ảnh + mã + tên + Key Product Info
+// Ảnh (gallery nhiều ảnh) + mã + tên + Key Product Info — bám Figma
 function pdMedia_(p){
   var cong=p.congSuat||parseWatt(p.ten), nd=p.nhietDo||parseKelvin(p.ten);
   var keyItems=[
@@ -711,40 +714,55 @@ function pdMedia_(p){
     ['color', p.mauSac],
     ['angle', p.gocChieu]
   ].filter(function(x){ return x[1] && String(x[1]).trim(); });
-  // Key Product Info (Thông tin chính) = Công suất, Nhiệt độ màu, Góc chiếu, Màu sắc (icon) + Chất liệu
-  var kpiRows=[['Chất liệu',p.chatLieu]].filter(function(r){ return r[1] && String(r[1]).trim(); });
   var keyHtml='';
-  if(keyItems.length||kpiRows.length){
-    keyHtml='<div class="pd-block"><div class="pd-sec">Key Product Info (Thông tin chính)</div>';
-    if(keyItems.length) keyHtml+='<div class="pd-keys">'+keyItems.map(function(x){ return '<div class="pd-key"><span class="ic">'+icon(x[0],16)+'</span><span>'+esc(x[1])+'</span></div>'; }).join('')+'</div>';
-    keyHtml+=kpiRows.map(function(r){ return '<div class="spec"><span class="k">'+esc(r[0])+'</span><span class="v">'+esc(r[1])+'</span></div>'; }).join('')+'</div>';
+  if(keyItems.length){
+    keyHtml='<div class="pd-block"><div class="pd-sec">Key Product Info <i>(Thông tin chính)</i></div>'
+      +'<div class="pd-keys">'+keyItems.map(function(x){ return '<div class="pd-key"><span class="ic">'+icon(x[0],15)+'</span><span>'+esc(x[1])+'</span></div>'; }).join('')+'</div></div>';
   }
-  var img=p.hinhAnh?'<div class="imgbox"><img src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.parentNode.innerHTML=\'<span style=&quot;color:#9aa&quot;>Không tải được ảnh</span>\'"></div>'
-    :'<div class="imgbox"><span style="color:#9aa">Không có ảnh</span></div>';
-  return img
+  // gallery: ảnh chính + thumbnail chọn ảnh
+  var imgs=String(p.hinhAnh||'').split('\n').map(function(s){return s.trim();}).filter(Boolean);
+  var main=imgs[0]?'<img id="pdMainImg" src="'+esc(imgUrlOf(imgs[0]))+'" onclick="imgPop_(this.src)" title="Bấm xem ảnh lớn" onerror="this.style.visibility=\'hidden\'">':'<span class="pd-noimg">Không có ảnh</span>';
+  var dl=imgs[0]?'<a class="pd-imgdl" href="'+esc(imgUrlOf(imgs[0]))+'" target="_blank" rel="noopener" title="Mở ảnh gốc">'+icon('download',14)+'</a>':'';
+  var thumbs=imgs.length>1?'<div class="pd-thumbs">'+imgs.map(function(v,i){
+      return '<button class="pd-thumb'+(i===0?' on':'')+'" onclick="pdPickImg_(this,\''+esc(imgUrlOf(v))+'\')"><img src="'+esc(imgUrlOf(v))+'" onerror="this.style.visibility=\'hidden\'"></button>';
+    }).join('')+'</div>':'';
+  return '<div class="pd-gal"><div class="imgbox">'+main+dl+'</div>'+thumbs+'</div>'
     +'<div class="pcode">'+esc(p.ma||p.ten)+'</div>'
     +(p.ten?'<div class="pd-name">'+esc(p.ten)+'</div>':'')
     +keyHtml;
 }
-// Các nhóm thông số — phân nhóm ĐÚNG theo từ điển trường (Google Sheet)
+function pdPickImg_(btn,src){
+  var im=document.getElementById('pdMainImg'); if(im){ im.src=src; im.style.visibility='visible'; }
+  var wrap=btn.parentNode; [].slice.call(wrap.children).forEach(function(b){ b.classList.remove('on'); }); btn.classList.add('on');
+}
+// Các nhóm thông số — tiêu đề song ngữ + thứ tự theo Figma
 function pdSpecs_(p){
-  return pdSection_('Thông số thiết kế',[
-      ['Góc nghiêng (°)',p.gocNghieng],['Chiều cao (mm)',p.chieuCao],['Đường kính (mm)',p.duongKinh]])
-    +pdSection_('Performance Specifications (Thông số hiệu suất)',[
-      ['Quang thông (lm)',p.quangThong],['Chỉ số IP (Chống bụi, nước)',p.capBaoVe],['CRI',p.cri],
-      ['Hiệu suất phát quang (lm/W)',p.hieuSuat],['UGR',p.ugr],['SDCM',p.sdcm],['COI',p.coi],
-      ['Tuổi thọ',p.tuoiTho],['Loại chip LED',p.chipLed]])
-    +pdSection_('Driver (Nguồn LED / Chấn lưu)',[
-      ['Lắp nguồn rời',p.lapNguonRoi],['Tên bộ nguồn',p.tenBoNguon],['Mã bộ nguồn',p.maBoNguon],
-      ['Hãng bộ nguồn',p.hangBoNguon],['Vị trí lắp nguồn',p.viTriNguon],
-      ['Tương thích điều khiển',p.tuongThich],['Dòng ra tối đa (mA)',p.dongRa]])
-    +pdSection_('Installation Specifications (Thông số lắp đặt)',[
-      ['Lỗ khoét trần (mm)',p.loKhoet],['Cấp bảo vệ điện',p.capBaoVeDien]])
-    +(p.moTa && !p.chatLieu && !p.quangThong ? '<div class="pd-block"><div class="pd-sec">Thông số kỹ thuật (mô tả)</div>'+specRows_(p.moTa)+'</div>' : '');
+  return pdSection_('Design Specifications|Thông số thiết kế',[
+      ['Chất liệu',p.chatLieu],['Chiều cao',p.chieuCao],['Đường kính',p.duongKinh],
+      ['Góc nghiêng / góc chỉnh hướng',p.gocNghieng],['Dòng sản phẩm',p.dongSanPham||p.nhom]])
+    +pdSection_('Performance Specifications|Thông số hiệu suất',[
+      ['Quang thông',p.quangThong],['Chỉ số IP (Chống bụi, nước)',p.capBaoVe],['CRI',p.cri],
+      ['Hiệu suất phát quang (Efficacy)',p.hieuSuat],['Chỉ số gây chói mắt (UGR)',p.ugr],
+      ['Tuổi thọ đèn',p.tuoiTho],['Loại chip LED',p.chipLed],
+      ['Độ đồng nhất màu sắc (SDCM)',p.sdcm],['Chỉ số ngộ độc Cyanosis (COI Compliance)',p.coi],
+      ['Thời gian bảo hành',p.baoHanh]])
+    +pdSection_('Driver|Nguồn LED / Chấn lưu',[
+      ['Bộ nguồn',p.tenBoNguon],['Mã sản phẩm',p.maBoNguon],['Hãng bộ nguồn',p.hangBoNguon],
+      ['Vị trí lắp đặt bộ nguồn',p.viTriNguon],['Tương thích điều khiển (Control Type)',p.tuongThich],
+      ['Cường độ dòng điện đầu ra tối đa',p.dongRa]])
+    +pdSection_('Installation Specifications|Thông số lắp đặt',[
+      ['Lắp đặt bộ nguồn rời',p.lapNguonRoi],['Kích thước lỗ khoét trần (Cutout Size)',p.loKhoet],
+      ['Cấp bảo vệ an toàn điện (Class Rating)',p.capBaoVeDien]])
+    +(p.moTa && !p.chatLieu && !p.quangThong ? '<div class="pd-block"><div class="pd-sec">Thông số kỹ thuật <i>(mô tả)</i></div>'+specRows_(p.moTa)+'</div>' : '');
 }
 function pdPriceFoot_(p){
+  var ds=p.linkDatasheet;
   return '<div class="pd-price"><span>Đơn giá</span><b>'+money(p.donGiaBan)+' đ</b></div>'
-    +(p.linkDatasheet?'<div class="pd-foot"><a href="'+esc(p.linkDatasheet)+'" target="_blank" rel="noopener">'+icon('doc',15)+' Tài liệu kỹ thuật</a></div>':'');
+    +'<div class="pd-foot2">'
+      +(ds?'<a class="pd-fbtn" href="'+esc(ds)+'" target="_blank" rel="noopener">'+icon('doc',14)+' Tài liệu kỹ thuật</a>'
+          :'<span class="pd-fbtn dis" title="Sản phẩm chưa có link datasheet">'+icon('doc',14)+' Tài liệu kỹ thuật</span>')
+      +(ds?'<a class="pd-fbtn" href="'+esc(ds)+'" download target="_blank" rel="noopener">'+icon('download',14)+' Tải về</a>':'')
+    +'</div>';
 }
 // Nội dung chi tiết SP xếp dọc (panel Bóc tách)
 function pdContent_(p){ return pdMedia_(p)+pdSpecs_(p)+pdPriceFoot_(p); }
