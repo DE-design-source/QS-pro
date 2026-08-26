@@ -1515,19 +1515,19 @@ table.tk.cpflat tr.cp-foot td{background:#f4f6f8;border-top:1px solid var(--navy
 .ptlib-item{border-color:var(--hair);border-radius:var(--r-md)}
 .ptlib-nm{font-size:12px}
 .ptlib-dg{font-size:11.5px;font-weight:600}
-/* nút + từng công tác: TRÒN XANH ĐẶC — giống danh sách thiết bị đèn */
-.ptlib-add{width:30px;height:30px;border-radius:50%;background:var(--blue);border:none;color:#fff;
-  font-size:17px;font-weight:400;line-height:1;display:flex;align-items:center;justify-content:center;flex:none;
-  box-shadow:0 2px 6px rgba(37,99,235,.28);transition:all .16s cubic-bezier(.4,0,.2,1);padding:0}
-.ptlib-add svg{width:15px;height:15px}
-.ptlib-add:hover{background:var(--blue-d);transform:scale(1.1);box-shadow:0 4px 12px rgba(37,99,235,.38)}
-.ptlib-add:active{transform:scale(.95)}
-/* nút + nhóm (chọn tất cả): TRÒN ĐỎ ĐẶC cùng ngôn ngữ thiết kế */
-.ptlib-secadd{width:26px;height:26px;border-radius:50%;background:#e5484d;border:none;color:#fff;
-  font-size:17px;font-weight:400;line-height:1;display:flex;align-items:center;justify-content:center;flex:none;
-  box-shadow:0 2px 6px rgba(229,72,77,.30);transition:all .16s cubic-bezier(.4,0,.2,1);padding:0}
-.ptlib-secadd:hover{background:#c93b40;transform:scale(1.1);box-shadow:0 4px 12px rgba(229,72,77,.40)}
-.ptlib-secadd:active{transform:scale(.95)}
+/* PHẦN THÔ — mọi nút tròn CÙNG SIZE 26px, mặc định trắng, hover/bấm mới đổ màu */
+.ptlib-add,.ptlib-secadd{width:26px;height:26px;border-radius:50%;background:#fff;
+  font-size:15px;font-weight:400;line-height:1;display:flex;align-items:center;justify-content:center;flex:none;
+  padding:0;box-shadow:none;transition:all .16s cubic-bezier(.4,0,.2,1)}
+.ptlib-add svg,.ptlib-secadd svg{width:14px;height:14px}
+/* + từng công tác (xanh) */
+.ptlib-add{border:1.5px solid var(--blue);color:var(--blue)}
+.ptlib-add:hover{background:var(--blue);border-color:var(--blue);color:#fff;transform:scale(1.12);box-shadow:0 3px 10px rgba(37,99,235,.32)}
+.ptlib-add:active{background:var(--blue-d);border-color:var(--blue-d);transform:scale(.96)}
+/* + cả nhóm (đỏ) */
+.ptlib-secadd{border:1.5px solid #e5484d;color:#e5484d}
+.ptlib-secadd:hover{background:#e5484d;border-color:#e5484d;color:#fff;transform:scale(1.12);box-shadow:0 3px 10px rgba(229,72,77,.34)}
+.ptlib-secadd:active{background:#c93b40;border-color:#c93b40;transform:scale(.96)}
 .ptlib-sel{border-radius:var(--r-md);font-size:12.5px}
 .ptlib-fld>label{font-size:11.5px;font-weight:600;color:var(--ink-2)}
 
@@ -1666,12 +1666,13 @@ table.mh-tbl2 td{border-bottom:1px solid var(--hair)}
 .citem .pr{font-size:13px;font-weight:600;color:var(--navy);letter-spacing:-.028em;font-variant-numeric:tabular-nums}
 .citem .sz.brand{background:transparent;border:1px solid var(--hair-2);color:var(--ink-3);
   font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;letter-spacing:.02em}
-/* nút + : tròn xanh đặc, bóng nhẹ — hover nhấn thêm */
-.citem .add{width:30px;height:30px;border-radius:50%;background:var(--blue);border:none;color:#fff;
-  font-size:17px;font-weight:400;line-height:1;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 2px 6px rgba(37,99,235,.28);transition:all .16s cubic-bezier(.4,0,.2,1)}
-.citem .add:hover{background:var(--blue-d);transform:scale(1.1);box-shadow:0 4px 12px rgba(37,99,235,.38)}
-.citem .add:active{transform:scale(.95)}
+/* nút + : mặc định TRẮNG viền xanh — hover/bấm mới thành XANH đặc */
+.citem .add{width:26px;height:26px;border-radius:50%;background:#fff;border:1.5px solid var(--blue);color:var(--blue);
+  font-size:15px;font-weight:400;line-height:1;display:flex;align-items:center;justify-content:center;flex:none;
+  padding:0;box-shadow:none;transition:all .16s cubic-bezier(.4,0,.2,1)}
+.citem .add:hover{background:var(--blue);border-color:var(--blue);color:#fff;
+  transform:scale(1.12);box-shadow:0 3px 10px rgba(37,99,235,.32)}
+.citem .add:active{background:var(--blue-d);border-color:var(--blue-d);transform:scale(.96)}
 
 /* ═══ 16c. BẢNG PHẦN THÔ — đồng bộ style với bảng Bóc tách ═══ */
 .pt-colchips{align-items:center;gap:5px;margin:0 0 10px;flex-wrap:wrap;display:flex}
