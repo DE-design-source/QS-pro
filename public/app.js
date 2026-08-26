@@ -3444,10 +3444,7 @@ function renderPhanTho(){
       lnvnd:'<td class="n b">'+money(comp.profit)+' <span class="pt-pct">('+comp.profitPct.toFixed(1)+'%)</span></td>',
       tt:'<td class="n b">'+money(comp.grand)+'</td>'
     })+'<td></td></tr>';
-  body+='<tr class="pt-total2"><td class="c" colspan="'+Math.max(1,iTT-1)+'">VAT <input class="pt-in pt-vat" type="number" step="any" value="'+comp.vatPct+'" onchange="ptSetVat(this.value)">%</td>'
-    +'<td class="n b">'+money(comp.vat)+'</td><td colspan="'+Math.max(1,ptVis.length-iTT+1)+'"></td></tr>';
-  body+='<tr class="pt-grand"><td class="c" colspan="'+Math.max(1,iTT-1)+'">THÀNH TIỀN SAU THUẾ</td>'
-    +'<td class="n b">'+money(comp.afterTax)+'</td><td colspan="'+Math.max(1,ptVis.length-iTT+1)+'"></td></tr>';
+  // (VAT + Thành tiền sau thuế đã hiển thị ở thanh tổng phía trên -> bỏ khỏi bảng cho gọn)
 
   var colg='<colgroup>'+ptVis.map(function(c){ return '<col style="width:'+ptW_(c)+'px">'; }).join('')+'<col style="width:34px"></colgroup>';
   // header: bấm nhãn = sắp xếp · kéo th = đổi vị trí cột · kéo mép = chỉnh rộng (giống bảng Bóc tách)
@@ -3479,15 +3476,7 @@ function renderPhanTho(){
       + '<button class="btn blue sm" onclick="ptAddSection()">'+icon('plus',14)+' Thêm hạng mục</button>'
     + '</div>'
     + ptChips
-    + '<div class="pt-scroll"><table class="pt">'+colg+'<thead>'+thead+'</thead><tbody>'+body+'</tbody></table></div>'
-    + '<div class="pt-foot">'
-      + '<div class="pt-notes"><b>Ghi chú:</b>'
-        + '<ol><li>Khối lượng trên là tạm tính, khối lượng quyết toán theo diện tích xây dựng thực tế.</li>'
-        + '<li>Giá trên chưa bao gồm nhân công hoàn thiện.</li>'
-        + '<li>Giá trên đã bao gồm thuế VAT.</li></ol></div>'
-      + '<div class="pt-sign"><div><div class="pt-sign-t">KHÁCH HÀNG / CUSTOMER</div></div>'
-        + '<div><div class="pt-sign-t">ĐƠN VỊ THI CÔNG / CONSTRUCTION UNIT</div></div></div>'
-    + '</div>';
+    + '<div class="pt-scroll"><table class="pt">'+colg+'<thead>'+thead+'</thead><tbody>'+body+'</tbody></table></div>';
 }
 
 /* ===================== AUTH & ADMIN ===================== */
