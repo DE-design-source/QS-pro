@@ -2,6 +2,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dezon Pro - Dự toán chuyên nghiệp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300..800;1,400..600&display=swap" rel="stylesheet">
 <style>
 :root{
   --navy:#12324c; --navy2:#0d2740; --blue:#2563eb; --blue-d:#1d4fd7;
@@ -17,7 +20,7 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:13px;-webkit-font-smoothing:antialiased}
+  font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:13px;-webkit-font-smoothing:antialiased}
 button{font-family:inherit;cursor:pointer}
 a{color:inherit}
 .wrap{max-width:1720px;margin:0 auto;padding:0 24px}
@@ -1601,6 +1604,40 @@ table.mh-tbl2 td{border-bottom:1px solid var(--hair)}
 *::-webkit-scrollbar-track{background:transparent}
 *::-webkit-scrollbar-thumb{background:#d3d9e0;border-radius:5px;border:2px solid #fff}
 *::-webkit-scrollbar-thumb:hover{background:#b9c2cc}
+
+/* ---------- 17. MONTSERRAT tuning ---------- */
+/* Montserrat rộng & tròn hơn font hệ thống -> siết tracking, giảm 1 bậc độ đậm */
+body,button,input,select,textarea{font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+html,body{letter-spacing:-.012em}
+h1,h2,h3,h4,.sechd h2,.dh-title,.pc-top h1{letter-spacing:-.03em;font-weight:600}
+b,strong,.btn,.rbtn,.nav a.active{font-weight:600}
+.dbcard-h h3,.dh-card-h,.pd .pd-sec,.spe-hist-h,.cat-hd h3{font-weight:600;letter-spacing:-.02em}
+.kpi-n,.dh-kpi-v,.cp-kpi-v,.dh-proj-n,.sp-price,.pd .pd-price b{font-weight:600;letter-spacing:-.035em}
+/* nhãn viết hoa: Montserrat cần giãn chữ rộng hơn mới đẹp */
+.cp-collbl,.spbar .lb,.sp-fcol>label,.mlbl,.spe-f label,.dh-eyebrow,
+.sp-table thead th,table.mh-tbl2 th,.ptlib-h{letter-spacing:.08em;font-weight:600}
+/* mã SP / mã dự án: giữ chất kỹ thuật bằng tracking rộng thay vì monospace */
+.pd .pcode,.sp-name .sp-code,.dh-draft-i span,.macode,.draft-code{
+  font-family:'Montserrat',sans-serif;letter-spacing:.02em;font-weight:500}
+/* số tiền: tabular để cột thẳng hàng tuyệt đối */
+table.tk td.num,table.tk th.num,.sp-price,.kpi-n,.dh-kpi-v,.cp-kpi-v,.mhs-tot,.mhc-tot,
+table.mh-tbl2 td.n,.dh-bar-t b,.ptlib-dg{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+
+/* ---------- 18. Tinh chỉnh theo góp ý ---------- */
+/* a) header bảng: chữ TO & rõ hơn */
+table.tk th{font-size:11.5px;letter-spacing:.045em;padding:11px 11px}
+table.tk th .thl{font-size:11.5px}
+/* b) khoảng trắng giữa các tầng: ngắn lại */
+table.tk tr.tk-spacer td{height:12px}
+/* c) khung "Hạng mục đã bóc" gọn hơn */
+.tk-panel .toolbar{margin-bottom:6px;gap:8px;padding:2px 0}
+.tk-panel .toolbar h3{font-size:13px;font-weight:600;letter-spacing:-.02em}
+.tk-panel .toolbar .count{font-size:11px}
+.tree-btn{padding:6px 11px;min-width:210px;font-size:12px}
+/* d) panel trái: các khối lọc gọn, cuộn mượt */
+.catpanel .fsec{margin-bottom:10px}
+.catpanel .cat-hd{padding-bottom:8px}
+.msel{padding:7px 11px}
 
 /* ---------- 16. empty state / toast ---------- */
 .empty,.dh-empty2{font-size:12.5px;color:var(--ink-3)}
