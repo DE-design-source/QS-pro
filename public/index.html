@@ -1680,6 +1680,17 @@ table.pt{border-collapse:collapse}
 table.pt th{background:var(--navy);color:#fff;font-size:11.5px;font-weight:600;letter-spacing:.045em;
   padding:11px 10px;text-transform:uppercase;border-right:1px solid rgba(255,255,255,.13);line-height:1.25;vertical-align:middle}
 table.pt th:last-child{border-right:none}
+/* header tương tác: sắp xếp · kéo đổi vị trí · kéo mép chỉnh rộng (giống bảng Bóc tách) */
+table.pt th.thk{position:relative;cursor:grab;overflow:hidden;vertical-align:middle}
+table.pt th.thk:active{cursor:grabbing}
+table.pt th.thk .thl{display:inline-block;max-width:calc(100% - 10px);white-space:normal;word-break:break-word;
+  line-height:1.25;cursor:pointer;transition:opacity .13s}
+table.pt th.thk .thl:hover{opacity:.75}
+table.pt th.thk .ptrsz{position:absolute;right:0;top:0;width:8px;height:100%;cursor:col-resize;z-index:2}
+table.pt th.thk .ptrsz:hover{background:rgba(255,255,255,.18)}
+table.pt th.thk.sortOn{background:#1a4066}
+table.pt th.thk.sortOn .thl{font-weight:700}
+table.pt th.thk.dragging{opacity:.5}
 table.pt td{padding:9px 10px;border-right:1px solid var(--hair);border-bottom:1px solid var(--hair);font-size:12.5px;vertical-align:middle}
 table.pt td:last-child{border-right:none}
 table.pt tr.pt-sec td{background:#f4f6f8;border-top:1px solid var(--hair-2);border-bottom:1px solid var(--hair-2);

@@ -3313,6 +3313,49 @@ var PT_COLS=[
   ['tt','THÀNH TIỀN','n',130],['ghichu','GHI CHÚ','l',150]
 ];
 function ptColToggle(k){ S._ptCols=S._ptCols||{}; S._ptCols[k]=!S._ptCols[k]; renderPhanTho(); }
+// ===== Chức năng bảng (giống Bóc tách): rộng cột · đổi vị trí cột · sắp xếp =====
+function ptW_(c){ return (S._ptColW&&S._ptColW[c[0]])||c[3]; }
+function ptColDragStart(e,k){ if(e.target&&e.target.closest&&e.target.closest('.ptrsz')){ e.preventDefault(); return; }
+  S._ptDragK=k; try{ e.dataTransfer.setData('text/plain',k); }catch(x){} }
+function ptColDrop(e,k){ e.preventDefault(); var from=S._ptDragK; S._ptDragK=null; if(!from||from===k) return;
+  var ord=(S._ptOrder||PT_COLS.map(function(c){return c[0];})).filter(function(x){ return x!==from; });
+  var i=ord.indexOf(k); if(i<0) i=ord.length; ord.splice(i,0,from); S._ptOrder=ord; renderPhanTho(); }
+// sắp xếp các dòng TRONG TỪNG hạng mục (giữ nguyên cấu trúc nhóm)
+function ptToggleSort(k){
+  if(S._ptSort!==k){ S._ptSort=k; S._ptSortDir='asc'; }
+  else if(S._ptSortDir==='asc'){ S._ptSortDir='desc'; }
+  else { S._ptSort=''; S._ptSortDir='asc'; }
+  renderPhanTho();
+}
+var PT_SORTKEY={noidung:'n',dvt:'dvt',dientich:'dt',heso:'hs',khoiluong:'kl',dgnt:'dgnt',dg:'dg',ghichu:'gc'};
+// trả [{it, oi}] — oi = index GỐC trong sec.items để sửa ô ghi đúng dòng dù đang sắp xếp
+function ptSortItems_(items){
+  var arr=items.map(function(it,i){ return {it:it, oi:i}; });
+  if(!S._ptSort) return arr;
+  var f=PT_SORTKEY[S._ptSort]; if(!f) return arr;             // cột tính toán -> bỏ qua
+  var dir=S._ptSortDir==='desc'?-1:1, num=['dt','hs','kl','dgnt','dg'].indexOf(f)>=0;
+  return arr.sort(function(a,b){
+    var va=a.it[f], vb=b.it[f];
+    if(num) return ((Number(va)||0)-(Number(vb)||0))*dir;
+    return String(va||'').localeCompare(String(vb||''),'vi',{numeric:true})*dir;
+  });
+}
+// kéo mép chỉnh rộng cột bảng Phần thô
+document.addEventListener('mousedown',function(e){
+  var rs=e.target.closest&&e.target.closest('.ptrsz'); if(!rs) return;
+  e.preventDefault(); e.stopPropagation();
+  var k=rs.dataset.k, sx=e.clientX;
+  var col=PT_COLS.filter(function(c){return c[0]===k;})[0]; if(!col) return;
+  var sw=ptW_(col);
+  S._ptColW=S._ptColW||{};
+  var tb=document.querySelector('#ptWrap table.pt');
+  var ths=tb?[].slice.call(tb.querySelectorAll('thead th')):[];
+  var idx=ths.map(function(t){return t.getAttribute('data-k');}).indexOf(k);
+  var colEl=(tb&&idx>=0)?tb.querySelectorAll('colgroup col')[idx]:null;
+  function mv(ev){ var w=Math.max(44, sw+(ev.clientX-sx)); S._ptColW[k]=w; if(colEl) colEl.style.width=w+'px'; }
+  function up(){ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); renderPhanTho(); }
+  document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+});
 // ghép ô theo đúng danh sách cột đang hiện (ô nào không có -> ô trống)
 function ptCells_(vis,map){ return vis.map(function(c){ return map[c[0]]||'<td class="'+(c[2]==='n'?'n':(c[2]==='c'?'c':''))+'"></td>'; }).join(''); }
 // vị trí (1-based) của 1 cột trong danh sách đang hiện; 0 nếu đang ẩn
@@ -3325,7 +3368,11 @@ function renderPhanTho(){
   var comp=ptComputeAll();
   // Thứ tự + tên cột ĐÚNG như hình mẫu Phần thô
   var COLS=PT_COLS.map(function(c){return c[1];});
-  var ptVis=PT_COLS.filter(function(c){ return S._ptCols[c[0]]; });   // cột đang hiện (theo chip)
+  // thứ tự cột tuỳ biến (kéo th để đổi) + lọc theo chip đang bật
+  if(!S._ptOrder) S._ptOrder=PT_COLS.map(function(c){return c[0];});
+  PT_COLS.forEach(function(c){ if(S._ptOrder.indexOf(c[0])<0) S._ptOrder.push(c[0]); });
+  var byKey={}; PT_COLS.forEach(function(c){ byKey[c[0]]=c; });
+  var ptVis=S._ptOrder.map(function(k){ return byKey[k]; }).filter(function(c){ return c && S._ptCols[c[0]]; });
   function ptPct(v){ v=Number(v)||0; return v?(v.toFixed(1)+'%'):''; }
   var body='';
   S.phanTho.forEach(function(sec,si){
@@ -3345,14 +3392,15 @@ function renderPhanTho(){
     body+='<tr class="pt-sec">'+ptCells_(ptVis,secCells)+'<td></td></tr>';
     body+='<tr class="pt-spacer"><td colspan="'+(ptVis.length+1)+'"></td></tr>';
     // ---- các dòng chi tiết ----
-    sec.items.forEach(function(it,ii){
+    ptSortItems_(sec.items).forEach(function(_r,_pos){
+      var it=_r.it, ii=_r.oi;          // ii = index GỐC (sửa ô đúng dòng), _pos = vị trí hiển thị
       var kl=it._kl, tt=it._tt, ttnt=it._ttnt;
       var isArea=(sec.mode==='area'||sec.mode==='area0'), isItem=sec.mode==='item';
       var lnVnd = isItem?(tt-ttnt):0;
       var margin = (isItem&&tt)?(lnVnd/tt*100):0;   // lợi nhuận / giá bán
       var markup = (isItem&&ttnt)?(lnVnd/ttnt*100):0; // lợi nhuận / giá vốn
       var rowCells={
-        stt:'<td class="c">'+(ii+1)+'</td>',
+        stt:'<td class="c">'+(_pos+1)+'</td>',
         noidung:'<td>'+ptTxt(si,ii,'n',it.n)+'</td>',
         dvt:'<td class="c dvt-cell">'+ptTxt(si,ii,'dvt',it.dvt)+'</td>',
         dientich:'<td class="n">'+(isArea?ptInp(si,ii,'dt',it.dt):'')+'</td>',
@@ -3387,8 +3435,16 @@ function renderPhanTho(){
   body+='<tr class="pt-grand"><td class="c" colspan="'+Math.max(1,iTT-1)+'">THÀNH TIỀN SAU THUẾ</td>'
     +'<td class="n b">'+money(comp.afterTax)+'</td><td colspan="'+Math.max(1,ptVis.length-iTT+1)+'"></td></tr>';
 
-  var colg='<colgroup>'+ptVis.map(function(c){ return '<col style="width:'+c[3]+'px">'; }).join('')+'<col style="width:34px"></colgroup>';
-  var thead='<tr>'+ptVis.map(function(c){ var cls=c[2]==='n'?'n':(c[2]==='c'?'c':''); return '<th class="'+cls+'">'+esc(c[1])+'</th>'; }).join('')+'<th></th></tr>';
+  var colg='<colgroup>'+ptVis.map(function(c){ return '<col style="width:'+ptW_(c)+'px">'; }).join('')+'<col style="width:34px"></colgroup>';
+  // header: bấm nhãn = sắp xếp · kéo th = đổi vị trí cột · kéo mép = chỉnh rộng (giống bảng Bóc tách)
+  var thead='<tr>'+ptVis.map(function(c){
+      var cls=c[2]==='n'?'n':(c[2]==='c'?'c':'');
+      var on=S._ptSort===c[0], ar=on?(S._ptSortDir==='desc'?' ▼':' ▲'):'';
+      return '<th class="thk '+cls+(on?' sortOn':'')+'" data-k="'+c[0]+'" draggable="true" title="Bấm nhãn để sắp xếp · kéo để đổi vị trí · kéo mép phải để chỉnh rộng"'
+        +' ondragstart="ptColDragStart(event,\''+c[0]+'\')" ondragover="event.preventDefault()" ondrop="ptColDrop(event,\''+c[0]+'\')">'
+        +'<span class="thl" onclick="ptToggleSort(\''+c[0]+'\')">'+esc(c[1])+ar+'</span>'
+        +'<span class="ptrsz" data-k="'+c[0]+'"></span></th>';
+    }).join('')+'<th></th></tr>';
   // hàng CHIP chọn cột (giống Bóc tách)
   var ptChips='<div class="colchips pt-colchips"><span class="cp-collbl">Cột hiển thị</span>'
     +PT_COLS.map(function(c){ return '<span class="chip'+(S._ptCols[c[0]]?' on':'')+'" onclick="ptColToggle(\''+c[0]+'\')">'+esc(c[1])+'</span>'; }).join('')+'</div>';
