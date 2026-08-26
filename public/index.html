@@ -1777,7 +1777,9 @@ table.pt tr.pt-empty td{border:none;background:#fcfdfe;padding:0}
 .cat-list{flex:1;min-height:0;overflow:auto}
 
 /* ═══ 16f. THANH CUỘN — ẨN HẲN, vẫn cuộn được bình thường ═══ */
-*{scrollbar-width:none;-ms-overflow-style:none}
+html,body,.catpanel,.catpanel-top,.cat-list,#pdPanel,.fltpop,.tree-pop,.spe-hist-list,
+.mh-scroll,.view,.wrap,.dbcard,.dh-card,.spp-list,.dh-projgrid,.fsec .chips,.cp-card .tbl-wrap,
+.sp-card .tbl-wrap{scrollbar-width:none;-ms-overflow-style:none}
 *::-webkit-scrollbar{width:0;height:0;display:none}
 *::-webkit-scrollbar-track,*::-webkit-scrollbar-thumb,*::-webkit-scrollbar-corner{background:transparent;border:none}
 /* vẫn cuộn được bằng lăn chuột / trackpad / kéo — chỉ ẩn phần hiển thị */
@@ -1852,8 +1854,8 @@ table.pt tr.pt-empty td{border:none;background:#fcfdfe;padding:0}
   background:currentColor;border-radius:1px;transition:background .16s}
 .agx::before{transform:translate(-50%,-50%) rotate(45deg)}
 .agx::after{transform:translate(-50%,-50%) rotate(-45deg)}
-/* hiện khi rê chuột vào bảng — không "ồn" khi chỉ đọc số liệu */
-#tkNormal:hover .agx{opacity:.55;transform:scale(1)}
+/* GIỮ CHỖ sẵn, chỉ hiện ✕ khi rê đúng dòng đó (JS gắn .on) */
+.agx.on{opacity:.62;transform:scale(1)}
 .agx:hover{opacity:1;border-color:#f0b7b3;background:#fef6f5;color:#d0524b;
   transform:scale(1.08);box-shadow:0 3px 10px rgba(208,82,75,.20)}
 .agx:active{transform:scale(.94);background:#fdeceb}
@@ -1866,12 +1868,13 @@ table.pt tr.pt-empty td{border:none;background:#fcfdfe;padding:0}
 .actgutter{width:34px;overflow:hidden}
 .agx{left:4px}
 /* THANH KÉO NGANG của bảng — hiện rõ, kiểu viên thuốc như thanh kéo panel */
-#tkNormal .tbl-wrap,.pt-scroll{overflow-x:auto;scrollbar-width:auto;scrollbar-color:#dfe4ea transparent}
-#tkNormal .tbl-wrap::-webkit-scrollbar,.pt-scroll::-webkit-scrollbar{display:block;height:12px;width:0}
+/* KHÔNG set scrollbar-width ở đây -> ::-webkit-scrollbar có hiệu lực -> thanh mảnh đúng ý */
+#tkNormal .tbl-wrap,.pt-scroll{overflow-x:auto}
+#tkNormal .tbl-wrap::-webkit-scrollbar,.pt-scroll::-webkit-scrollbar{display:block;height:6px;width:6px}
 #tkNormal .tbl-wrap::-webkit-scrollbar-track,.pt-scroll::-webkit-scrollbar-track{
   background:transparent;margin:0 2px}
 #tkNormal .tbl-wrap::-webkit-scrollbar-thumb,.pt-scroll::-webkit-scrollbar-thumb{
-  background:#d7dde4;border:3px solid transparent;background-clip:content-box;border-radius:99px;
+  background:#d7dde4;border:none;border-radius:99px;
   transition:background-color .15s;min-width:60px;display:block}
 #tkNormal .tbl-wrap:hover::-webkit-scrollbar-thumb,.pt-scroll:hover::-webkit-scrollbar-thumb{background:#b9c3ce;background-clip:content-box}
 #tkNormal .tbl-wrap::-webkit-scrollbar-thumb:hover,.pt-scroll::-webkit-scrollbar-thumb:hover{background:var(--blue);background-clip:content-box}

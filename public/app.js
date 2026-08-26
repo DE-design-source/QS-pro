@@ -1732,7 +1732,27 @@ function renderActGutter(){
   inner.innerHTML=[].map.call(rows,function(tr){ var id=tr.getAttribute('data-id');
     return '<button class="agx" data-id="'+id+'" title="Xoá hạng mục này" onclick="delLine(\''+id+'\')"></button>'; }).join('');
   if(!S._agBound){ var wrap=document.querySelector('#v-boc .tbl-wrap'); if(wrap){ wrap.addEventListener('scroll',syncActGutter,{passive:true}); window.addEventListener('resize',syncActGutter); S._agBound=1; } }
+  bindActGutterHover_();
   syncActGutter();
+}
+// ✕ chỉ hiện ở DÒNG đang rê chuột (nút nằm ngoài bảng nên phải gắn bằng JS)
+function bindActGutterHover_(){
+  if(S._agHoverBound) return; S._agHoverBound=1;
+  function clear(){ document.querySelectorAll('#actGutterInner .agx.on').forEach(function(b){ b.classList.remove('on'); }); }
+  function markByRow(tr){
+    clear(); if(!tr) return;
+    var rows=[].slice.call(document.querySelectorAll('#tkTable tr.drow'));
+    var i=rows.indexOf(tr); if(i<0) return;
+    var b=document.querySelectorAll('#actGutterInner .agx')[i];
+    if(b && b.style.display!=='none') b.classList.add('on');
+  }
+  var norm=document.getElementById('tkNormal'); if(!norm) return;
+  norm.addEventListener('mouseover',function(e){
+    var t=e.target;
+    if(t.closest && t.closest('.agx')){ t.closest('.agx').classList.add('on'); return; }  // giữ hiện khi rê vào chính nút
+    markByRow(t.closest?t.closest('#tkTable tr.drow'):null);
+  });
+  norm.addEventListener('mouseleave',clear);
 }
 function syncActGutter(){
   var norm=document.getElementById('tkNormal'), g=document.getElementById('actGutter'); if(!norm||!g) return;
