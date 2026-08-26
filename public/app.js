@@ -1194,6 +1194,38 @@ async function addProdObj(p,floor){
   });
 }
 
+/* ===== Thanh kéo: thu gọn / mở rộng khối lọc ở panel trái ===== */
+function catSplitInit_(){
+  var sp=document.getElementById('catSplit'), top=document.querySelector('#leftCat .catpanel-top'), panel=document.getElementById('leftCat');
+  if(!sp||!top||sp._init) return; sp._init=1;
+  // khôi phục chiều cao đã lưu
+  try{ var h=localStorage.getItem('qs_catTopH'); if(h) top.style.height=h+'px';
+       if(localStorage.getItem('qs_catCollapsed')==='1') panel.classList.add('filt-collapsed'); }catch(e){}
+  sp.addEventListener('mousedown',function(e){
+    e.preventDefault();
+    if(panel.classList.contains('filt-collapsed')) return;      // đang gập thì kéo lại mở bằng dblclick
+    var sy=e.clientY, sh=top.getBoundingClientRect().height;
+    sp.classList.add('dragging'); document.body.style.cursor='row-resize';
+    function mv(ev){
+      var max=panel.getBoundingClientRect().height-120;
+      var h=Math.max(44, Math.min(max, sh+(ev.clientY-sy)));
+      top.style.height=h+'px';
+    }
+    function up(){
+      document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up);
+      sp.classList.remove('dragging'); document.body.style.cursor='';
+      try{ localStorage.setItem('qs_catTopH', Math.round(top.getBoundingClientRect().height)); }catch(x){}
+    }
+    document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+  });
+  // bấm đúp: gập / mở nhanh
+  sp.addEventListener('dblclick',function(){
+    var on=panel.classList.toggle('filt-collapsed');
+    try{ localStorage.setItem('qs_catCollapsed', on?'1':'0'); }catch(x){}
+    toast(on?'Đã thu gọn bộ lọc — bấm đúp thanh kéo để mở lại':'Đã mở lại bộ lọc');
+  });
+}
+
 /* ===== CATEGORY TREE ===== */
 function nodeCount(code){
   return S.lines.filter(function(l){ return l.nhom===code || String(l.nhom||'').indexOf(code+'.')===0; }).length;
@@ -3703,4 +3735,5 @@ function admDelete(id){ var u=(S._admUsers||[]).filter(function(x){return x.id==
 /* ===== GO ===== */
 initCols();
 initTableInteractions();
+catSplitInit_();
 authStart_();
