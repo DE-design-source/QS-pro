@@ -1776,6 +1776,38 @@ table.pt tr.pt-empty td{border:none;background:#fcfdfe;padding:0}
 .catpanel.filt-collapsed .catpanel-top{height:0!important;min-height:0;padding:0;margin:0;opacity:0}
 .cat-list{flex:1;min-height:0;overflow:auto}
 
+/* ═══ 16f. THANH CUỘN — đồng bộ ngôn ngữ với thanh kéo: mảnh, bo tròn, hover xanh ═══ */
+*{scrollbar-width:thin;scrollbar-color:#dbe0e6 transparent}
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-track{background:transparent;border:none}
+*::-webkit-scrollbar-corner{background:transparent}
+*::-webkit-scrollbar-thumb{background:#dbe0e6;border:2px solid transparent;background-clip:content-box;
+  border-radius:99px;transition:background-color .14s}
+*::-webkit-scrollbar-thumb:hover{background:#9fb2c8;background-clip:content-box}
+*::-webkit-scrollbar-thumb:active{background:var(--blue);background-clip:content-box}
+/* panel trái + danh sách SP + popup: mảnh hơn nữa, chỉ hiện khi cần */
+.catpanel,.catpanel-top,.cat-list,#pdPanel,.fltpop,.tree-pop,.spe-hist-list,.mh-scroll,.tbl-wrap,.pt-scroll{
+  scrollbar-color:#dfe4ea transparent}
+.catpanel::-webkit-scrollbar,.catpanel-top::-webkit-scrollbar,.cat-list::-webkit-scrollbar,
+#pdPanel::-webkit-scrollbar,.fltpop::-webkit-scrollbar,.tree-pop::-webkit-scrollbar,
+.spe-hist-list::-webkit-scrollbar,.fsec.open .chips::-webkit-scrollbar{width:10px;height:10px}
+.catpanel::-webkit-scrollbar-track,.catpanel-top::-webkit-scrollbar-track,.cat-list::-webkit-scrollbar-track,
+#pdPanel::-webkit-scrollbar-track,.fsec.open .chips::-webkit-scrollbar-track{background:transparent;margin:2px 0}
+.catpanel::-webkit-scrollbar-thumb,.catpanel-top::-webkit-scrollbar-thumb,.cat-list::-webkit-scrollbar-thumb,
+#pdPanel::-webkit-scrollbar-thumb,.fltpop::-webkit-scrollbar-thumb,.tree-pop::-webkit-scrollbar-thumb,
+.spe-hist-list::-webkit-scrollbar-thumb,.fsec.open .chips::-webkit-scrollbar-thumb{
+  background:#dfe4ea;border:2px solid transparent;background-clip:content-box;border-radius:99px}
+.catpanel::-webkit-scrollbar-thumb:hover,.catpanel-top::-webkit-scrollbar-thumb:hover,.cat-list::-webkit-scrollbar-thumb:hover,
+#pdPanel::-webkit-scrollbar-thumb:hover,.fltpop::-webkit-scrollbar-thumb:hover,.tree-pop::-webkit-scrollbar-thumb:hover,
+.spe-hist-list::-webkit-scrollbar-thumb:hover,.fsec.open .chips::-webkit-scrollbar-thumb:hover{
+  background:var(--blue);background-clip:content-box}
+/* thanh cuộn NGANG của bảng: cùng kiểu */
+.tbl-wrap::-webkit-scrollbar,.pt-scroll::-webkit-scrollbar,#tkNormal .tbl-wrap::-webkit-scrollbar{height:9px}
+.tbl-wrap::-webkit-scrollbar-thumb,.pt-scroll::-webkit-scrollbar-thumb,#tkNormal .tbl-wrap::-webkit-scrollbar-thumb{
+  background:#dfe4ea;border:2px solid transparent;background-clip:content-box;border-radius:99px}
+.tbl-wrap::-webkit-scrollbar-thumb:hover,.pt-scroll::-webkit-scrollbar-thumb:hover,#tkNormal .tbl-wrap::-webkit-scrollbar-thumb:hover{
+  background:var(--blue);background-clip:content-box}
+
 /* ---------- 17. MONTSERRAT tuning ---------- */
 /* Montserrat rộng & tròn hơn font hệ thống -> siết tracking, giảm 1 bậc độ đậm */
 body,button,input,select,textarea{font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
