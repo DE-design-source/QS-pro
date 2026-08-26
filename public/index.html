@@ -1515,8 +1515,19 @@ table.tk.cpflat tr.cp-foot td{background:#f4f6f8;border-top:1px solid var(--navy
 .ptlib-item{border-color:var(--hair);border-radius:var(--r-md)}
 .ptlib-nm{font-size:12px}
 .ptlib-dg{font-size:11.5px;font-weight:600}
-.ptlib-add{border-radius:var(--r-sm);width:25px;height:25px}
-.ptlib-secadd{width:20px;height:20px;font-size:14px}
+/* nút + từng công tác: TRÒN XANH ĐẶC — giống danh sách thiết bị đèn */
+.ptlib-add{width:30px;height:30px;border-radius:50%;background:var(--blue);border:none;color:#fff;
+  font-size:17px;font-weight:400;line-height:1;display:flex;align-items:center;justify-content:center;flex:none;
+  box-shadow:0 2px 6px rgba(37,99,235,.28);transition:all .16s cubic-bezier(.4,0,.2,1);padding:0}
+.ptlib-add svg{width:15px;height:15px}
+.ptlib-add:hover{background:var(--blue-d);transform:scale(1.1);box-shadow:0 4px 12px rgba(37,99,235,.38)}
+.ptlib-add:active{transform:scale(.95)}
+/* nút + nhóm (chọn tất cả): TRÒN ĐỎ ĐẶC cùng ngôn ngữ thiết kế */
+.ptlib-secadd{width:26px;height:26px;border-radius:50%;background:#e5484d;border:none;color:#fff;
+  font-size:17px;font-weight:400;line-height:1;display:flex;align-items:center;justify-content:center;flex:none;
+  box-shadow:0 2px 6px rgba(229,72,77,.30);transition:all .16s cubic-bezier(.4,0,.2,1);padding:0}
+.ptlib-secadd:hover{background:#c93b40;transform:scale(1.1);box-shadow:0 4px 12px rgba(229,72,77,.40)}
+.ptlib-secadd:active{transform:scale(.95)}
 .ptlib-sel{border-radius:var(--r-md);font-size:12.5px}
 .ptlib-fld>label{font-size:11.5px;font-weight:600;color:var(--ink-2)}
 
