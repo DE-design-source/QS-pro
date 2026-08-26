@@ -3233,7 +3233,8 @@ function ptEnsure(){
   if(S._ptKey===key && S.phanTho) return;
   S._ptKey=key;
   var saved=null; try{ saved=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){}
-  S.phanTho = (saved&&saved.length)?saved:ptCloneTemplate();
+  // Bắt đầu TRỐNG — user tự chọn hạng mục từ thư viện bên trái (chọn xong tự lưu)
+  S.phanTho = Array.isArray(saved) ? saved : [];
   var v=null; try{ v=localStorage.getItem(key+'_vat'); }catch(e){}
   S.ptVat = (v!=null&&v!=='')?+v:8;
 }
@@ -3282,7 +3283,13 @@ function ptAddItem(si){
 function ptDelItem(si,ii){ var sec=S.phanTho[si]; if(!sec) return; sec.items.splice(ii,1); ptPersist(); renderPhanTho(); }
 function ptAddSection(){ S.phanTho.push({t:'HẠNG MỤC MỚI',mode:'item',note:'',up:0,items:[]}); ptPersist(); renderPhanTho(); }
 function ptDelSection(si){ if(!confirm('Xoá cả hạng mục "'+((S.phanTho[si]||{}).t||'')+'" ?')) return; S.phanTho.splice(si,1); ptPersist(); renderPhanTho(); }
-function ptReset(){ if(!confirm('Khôi phục lại bảng theo mẫu gốc? Mọi chỉnh sửa hiện tại sẽ mất.')) return; S.phanTho=ptCloneTemplate(); S.ptVat=8; ptPersist(); renderPhanTho(); }
+// Xoá hết bảng -> chỉ còn tên cột; user tự chọn lại hạng mục từ thư viện bên trái
+function ptReset(){
+  var n=(S.phanTho||[]).reduce(function(s,x){ return s+((x.items||[]).length); },0);
+  if(n && !confirm('Xoá toàn bộ '+n+' dòng trong bảng? Bạn sẽ chọn lại hạng mục từ danh sách bên trái.')) return;
+  S.phanTho=[]; ptPersist(); renderPhanTho(); renderCatalog();
+  toast('Đã xoá bảng — chọn hạng mục từ danh sách bên trái');
+}
 /* Khối header giống Excel */
 function ptHeaderHtml(){
   var p=S.cur||{};
@@ -3375,6 +3382,13 @@ function renderPhanTho(){
   var ptVis=S._ptOrder.map(function(k){ return byKey[k]; }).filter(function(c){ return c && S._ptCols[c[0]]; });
   function ptPct(v){ v=Number(v)||0; return v?(v.toFixed(1)+'%'):''; }
   var body='';
+  if(!S.phanTho.length){
+    body+='<tr class="pt-empty"><td colspan="'+(ptVis.length+1)+'">'
+      +'<div class="pt-empty-b">'+icon('layers',30)
+      +'<h4>Bảng đang trống</h4>'
+      +'<p>Chọn hạng mục từ danh sách bên trái — bấm <b class="pe-b">＋</b> để thêm từng công tác, hoặc <b class="pe-r">＋</b> ở tên nhóm để thêm cả nhóm.<br>Mọi lựa chọn được <b>lưu tự động</b>.</p>'
+      +'</div></td></tr>';
+  }
   S.phanTho.forEach(function(sec,si){
     var st=comp.sections[si];
     var isSecArea = sec.mode==='area';
@@ -3461,7 +3475,7 @@ function renderPhanTho(){
     '<div class="pt-toolbar">'
       + '<div class="pt-tt">Bảng ước tính chi phí — <b>Xây dựng thô</b></div>'
       + '<div class="sp"></div>'
-      + '<button class="btn ghost sm" onclick="ptReset()">Khôi phục mẫu</button>'
+      + '<button class="btn ghost sm" onclick="ptReset()">'+icon('trash',14)+' Xoá hết</button>'
       + '<button class="btn blue sm" onclick="ptAddSection()">'+icon('plus',14)+' Thêm hạng mục</button>'
     + '</div>'
     + ptChips
