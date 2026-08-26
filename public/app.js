@@ -1730,7 +1730,7 @@ function renderActGutter(){
   var inner=document.getElementById('actGutterInner'); if(!inner) return;
   var rows=document.querySelectorAll('#tkTable tr.drow');
   inner.innerHTML=[].map.call(rows,function(tr){ var id=tr.getAttribute('data-id');
-    return '<button class="agx" data-id="'+id+'" title="Xoá hạng mục này" onclick="delLine(\''+id+'\')">✕</button>'; }).join('');
+    return '<button class="agx" data-id="'+id+'" title="Xoá hạng mục này" onclick="delLine(\''+id+'\')"></button>'; }).join('');
   if(!S._agBound){ var wrap=document.querySelector('#v-boc .tbl-wrap'); if(wrap){ wrap.addEventListener('scroll',syncActGutter,{passive:true}); window.addEventListener('resize',syncActGutter); S._agBound=1; } }
   syncActGutter();
 }
