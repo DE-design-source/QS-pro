@@ -1660,6 +1660,35 @@ table.mh-tbl2 td{border-bottom:1px solid var(--hair)}
 .citem .add:hover{background:var(--blue);color:#fff;transform:scale(1.06)}
 .citem:hover .add{box-shadow:0 0 0 3px rgba(37,99,235,.09)}
 
+/* ═══ 16c. BẢNG PHẦN THÔ — đồng bộ style với bảng Bóc tách ═══ */
+.pt-colchips{align-items:center;gap:5px;margin:0 0 10px;flex-wrap:wrap;display:flex}
+table.pt{border-collapse:collapse}
+table.pt th{background:var(--navy);color:#fff;font-size:11.5px;font-weight:600;letter-spacing:.045em;
+  padding:11px 10px;text-transform:uppercase;border-right:1px solid rgba(255,255,255,.13);line-height:1.25;vertical-align:middle}
+table.pt th:last-child{border-right:none}
+table.pt td{padding:9px 10px;border-right:1px solid var(--hair);border-bottom:1px solid var(--hair);font-size:12.5px;vertical-align:middle}
+table.pt td:last-child{border-right:none}
+table.pt tr.pt-sec td{background:#f4f6f8;border-top:1px solid var(--hair-2);border-bottom:1px solid var(--hair-2);
+  font-weight:600;color:var(--navy);padding:11px 10px}
+table.pt tr.pt-sec .pt-secttl{font-size:12.5px;font-weight:600;letter-spacing:.01em}
+table.pt tr.pt-spacer td{height:12px;padding:0;background:#fff;border:none}
+table.pt tr.pt-row:hover td{background:#fafbfd}
+table.pt tr.pt-total td,table.pt tr.pt-total2 td,table.pt tr.pt-grand td{background:#f4f6f8;font-weight:600;font-size:12.5px;padding:11px 10px}
+table.pt tr.pt-grand td{border-top:1px solid var(--navy);color:var(--navy)}
+table.pt .pt-in,table.pt .pt-tx{border:1px solid transparent;border-radius:var(--r-xs);background:transparent;
+  font:inherit;font-size:12.5px;padding:5px 6px;width:100%;transition:all .13s}
+table.pt .pt-in:hover,table.pt .pt-tx:hover{border-color:var(--hair-2);background:#fff}
+table.pt .pt-in:focus,table.pt .pt-tx:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 2.5px rgba(37,99,235,.10);outline:none}
+table.pt td.n,table.pt th.n{text-align:right;font-variant-numeric:tabular-nums}
+table.pt td.c,table.pt th.c{text-align:center}
+table.pt .pt-ro{font-variant-numeric:tabular-nums}
+table.pt .pt-add span{color:var(--blue);font-size:12px;font-weight:550;cursor:pointer}
+.pt-toolbar{margin-bottom:10px}
+.pt-tt{font-size:13px;font-weight:600;letter-spacing:-.015em;color:var(--ink)}
+/* thư viện trái: nút − (bỏ khỏi bảng) + + (thêm) */
+.ptlib-minus{flex:none;width:22px;height:25px;border:none;background:none;color:#b4bcc6;font-size:15px;cursor:pointer;line-height:1}
+.ptlib-minus:hover{color:#c0392b}
+
 /* ---------- 17. MONTSERRAT tuning ---------- */
 /* Montserrat rộng & tròn hơn font hệ thống -> siết tracking, giảm 1 bậc độ đậm */
 body,button,input,select,textarea{font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
