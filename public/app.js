@@ -797,7 +797,7 @@ function renderSanpham(){
   var searchIc='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>';
   box.innerHTML='<div class="sechd"><h2>Danh sách sản phẩm</h2><span class="count" id="spCount">0</span></div>'
     +'<div class="sp-workspace">'
-      +'<div class="sp-projpanel" id="spProjPanel"></div>'
+      +'<div class="sp-projpanel" id="spProjPanel" ondragover="spPanelDragOver(event)" ondragleave="spPanelDragLeave(event)" ondrop="spPanelDrop(event)"></div>'
       +'<div class="sp-main">'
         +'<div class="dbcard sp-card">'
           +'<div class="sp-toolbar">'
@@ -837,7 +837,7 @@ function renderSpProjPanel_(){
       +'<span class="spp-qty">×'+(Number(l.soLuong)||0)+'</span>'
       +'<button class="spp-del" title="Bỏ khỏi dự án" onclick="spRemoveFromProject(\''+l.lineId+'\')">✕</button>'
     +'</div>';
-  }).join('')||'<div class="spp-empty">Chưa có sản phẩm.<br>Bấm ＋ ở danh mục bên phải để ghi danh vào dự án.</div>';
+  }).join('')||'<div class="spp-empty">Chưa có sản phẩm.<br><b>Kéo sản phẩm</b> từ bảng bên phải thả vào đây,<br>hoặc bấm ＋ trên từng dòng.</div>';
   el.innerHTML=head+projSel+'<div class="spp-sub2">Danh sách sản phẩm tham gia dự án</div><div class="spp-list">'+rows+'</div>';
 }
 async function spSwitchProject(maDA){
@@ -848,6 +848,41 @@ async function spSwitchProject(maDA){
   if(typeof renderProjSel==='function') renderProjSel();
   renderCard&&renderCard();
   renderSpProjPanel_(); renderSpChips_(); spFilter();
+}
+/* ===== Kéo–thả sản phẩm từ bảng vào panel "Sản phẩm trong dự án" ===== */
+function spRowDragStart(e,i){
+  var p=(S._spList||[])[i]; if(!p){ e.preventDefault(); return; }
+  S._spDragProd=p;
+  try{
+    e.dataTransfer.effectAllowed='copy'; e.dataTransfer.setData('text/plain',p.ten||'');
+    var img=p.hinhAnh?'<img src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="dg-img"></span>';
+    var g=document.createElement('div'); g.className='drag-ghost';
+    g.innerHTML=img+'<span class="dg-b"><span class="dg-nm">'+esc(p.ten||'')+'</span><span class="dg-pr">'+money(p.donGiaBan)+' đ</span></span>'
+      +'<span class="dg-add">'+icon('plus',14)+'Thả vào dự án</span>';
+    document.body.appendChild(g); S._spDragGhost=g;
+    e.dataTransfer.setDragImage(g,24,28);
+  }catch(x){}
+  var tr=e.target.closest&&e.target.closest('.sp-row'); if(tr) tr.classList.add('dragging');
+  var panel=document.getElementById('spProjPanel'); if(panel) panel.classList.add('drop-ready');
+}
+function spRowDragEnd(){
+  S._spDragProd=null;
+  if(S._spDragGhost){ try{ S._spDragGhost.remove(); }catch(x){} S._spDragGhost=null; }
+  document.querySelectorAll('.sp-row.dragging').forEach(function(x){ x.classList.remove('dragging'); });
+  var panel=document.getElementById('spProjPanel'); if(panel) panel.classList.remove('drop-ready','drop-over');
+}
+function spPanelDragOver(e){ if(!S._spDragProd) return; e.preventDefault();
+  try{ e.dataTransfer.dropEffect='copy'; }catch(x){}
+  var panel=document.getElementById('spProjPanel'); if(panel) panel.classList.add('drop-over'); }
+function spPanelDragLeave(e){
+  var panel=document.getElementById('spProjPanel');
+  if(panel && (!e.relatedTarget || !panel.contains(e.relatedTarget))) panel.classList.remove('drop-over'); }
+function spPanelDrop(e){
+  e.preventDefault();
+  var p=S._spDragProd; spRowDragEnd();
+  if(!p) return;
+  if(!S.cur){ toast('Chưa chọn dự án — chọn dự án ở ô trên trước'); return; }
+  addProdObj(p); renderSpProjPanel_(); setTimeout(renderSpProjPanel_,700);
 }
 function spAddToProject(i){ var p=(S._spList||[])[i]; if(!p) return; if(!S.cur){ toast('Chưa chọn dự án'); return; }
   addProdObj(p); renderSpProjPanel_(); setTimeout(renderSpProjPanel_,700); }
@@ -1035,7 +1070,7 @@ function spFilter(){
   var vis=spVisCols_(), ncol=vis.length+2;
   document.getElementById('spBody').innerHTML=list.length?list.map(function(p,i){
     var sel=!!S._spSel[p.ma];
-    return '<tr class="sp-row'+(sel?' selrow':'')+'" onclick="spModal('+i+')">'
+    return '<tr class="sp-row'+(sel?' selrow':'')+'" draggable="true" ondragstart="spRowDragStart(event,'+i+')" ondragend="spRowDragEnd()" onclick="spModal('+i+')">'
       +'<td class="selcol" onclick="event.stopPropagation()"><input type="checkbox" class="spck" '+(sel?'checked':'')+' onclick="spSelToggle(\''+esc(p.ma)+'\',this.checked)"></td>'
       +vis.map(function(c){ return '<td class="'+c[2]+'">'+c[3](p)+'</td>'; }).join('')
       +'<td class="act-sp" onclick="event.stopPropagation()">'
