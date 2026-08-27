@@ -1476,6 +1476,12 @@ function editLine(id,fields){
   }
   api('updateLine',id,fields).then(function(u){
     if(u){ var i=S.lines.findIndex(function(x){return x.lineId===id;}); if(i>=0) S.lines[i]=u; renderTable(); renderCard(); }
+    else {
+      // Server không tìm thấy dòng (đã bị xoá ở nơi khác) -> trước đây mất im lặng, nay báo + đồng bộ lại
+      S.lines=S.lines.filter(function(x){ return x.lineId!==id; });
+      renderTable(); renderCard(); renderActGutter&&renderActGutter();
+      toast('Dòng này không còn tồn tại (đã bị xoá) — đã cập nhật lại bảng');
+    }
     if(document.getElementById('v-chiphi').classList.contains('on')) renderChiphi();
     if(document.getElementById('v-dash').classList.contains('on')) renderDash();
     if(bgVis()) drawBaogia();
