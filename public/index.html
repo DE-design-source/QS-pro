@@ -1186,7 +1186,7 @@ input:focus,select:focus,textarea:focus{outline:none}
 .pcard{transition:box-shadow .15s,transform .12s} .pcard:hover{box-shadow:0 10px 28px rgba(15,40,80,.16)}
 
 /* ===== Responsive ===== */
-@media(max-width:1120px){
+@media(max-width:1120px) and (min-width:901px){
   .topnav .row{flex-wrap:wrap;height:auto;gap:12px 18px;padding:10px 0}
   .nav{order:3;width:100%;overflow-x:auto;gap:18px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
   .nav::-webkit-scrollbar{height:0}
@@ -1196,7 +1196,7 @@ input:focus,select:focus,textarea:focus{outline:none}
 }
 @media(max-width:720px){
   .wrap{padding-left:14px;padding-right:14px}
-  .nav a svg,.rbtn svg{display:none}
+  .rbtn svg{display:block}
   .rbtn{padding:8px 12px}
   .sechd{flex-wrap:wrap}
   table.admtbl{font-size:12px} table.admtbl th,table.admtbl td{padding:7px 8px}
@@ -1898,6 +1898,126 @@ html,body,.catpanel,.catpanel-top,.cat-list,#pdPanel,.fltpop,.tree-pop,.spe-hist
   padding:2px 9px;font-size:11px;font-weight:500;margin:2px 3px 0 0}
 .var-note i{color:var(--ink-3);font-style:normal;font-size:11.5px}
 
+/* ═══════════════════ 16m. GIAO DIỆN ĐIỆN THOẠI ═══════════════════ */
+.mb-burger{display:none;flex-direction:column;justify-content:center;gap:4px;width:38px;height:38px;
+  border:1px solid var(--hair-2);background:#fff;border-radius:var(--r-md);padding:0 9px;flex:none}
+.mb-burger span{display:block;height:1.8px;background:var(--navy);border-radius:2px;transition:all .2s}
+.mb-burger.on span:nth-child(1){transform:translateY(5.8px) rotate(45deg)}
+.mb-burger.on span:nth-child(2){opacity:0}
+.mb-burger.on span:nth-child(3){transform:translateY(-5.8px) rotate(-45deg)}
+.mb-scrim{display:none;position:fixed;inset:0;background:rgba(12,26,42,.42);z-index:98;backdrop-filter:blur(2px)}
+
+@media(max-width:900px){
+  /* ---- nav: ngăn kéo trượt từ trái ---- */
+  .mb-burger{display:flex}
+  .wrap{padding:0 14px}
+  .topnav .row{height:54px;gap:12px}
+  .logo{height:24px}
+  .nav{position:fixed;top:0;left:0;bottom:0;width:270px;max-width:82vw;background:#fff;z-index:99;
+    flex-direction:column;gap:2px;padding:18px 12px;overflow-y:auto;
+    box-shadow:8px 0 32px rgba(18,50,76,.16);transform:translateX(-102%);transition:transform .26s cubic-bezier(.4,0,.2,1)}
+  .nav.open{transform:translateX(0)}
+  .mb-scrim.on{display:block}
+  .nav a{width:100%;padding:12px 12px;border-radius:var(--r-md);border-bottom:none;font-size:14px;min-height:46px}
+  .nav a.active{background:#eef4fd;color:var(--blue)}
+  .nav a svg{width:17px;height:17px;display:block!important;opacity:.75;flex:none}
+  .nav a.active svg{opacity:1}
+  /* nút phải: gọn thành icon */
+  .topnav .right{gap:6px;margin-left:auto}
+  .rbtn{padding:8px 10px;font-size:12px;min-height:40px}
+  .rbtn span.rb-txt{display:none}
+  /* ---- breadcrumb + chọn dự án: xếp dọc ---- */
+  .crumb{flex-wrap:wrap;gap:8px;padding:10px 0}
+  .crumb .sp{display:none}
+  .crumb .select,#projSel{flex:1;min-width:140px}
+  .crumb .btn{padding:8px 12px}
+  /* ---- banner dự án ---- */
+  .pcard{padding:14px;gap:10px}
+  .pc-info{grid-template-columns:1fr 1fr;gap:8px}
+  .pc-top h1{font-size:16px}
+  .pc-kpi{flex-wrap:wrap;gap:8px}
+  /* ---- dashboard ---- */
+  .dh-hero{padding:16px;flex-direction:column;align-items:flex-start;gap:14px}
+  .dh-title{font-size:17px}
+  .dh-hero-r{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .dh-act{justify-content:center;min-height:42px}
+  .dh-kpis,.kpis,.cp-kpis{grid-template-columns:1fr 1fr;gap:9px}
+  .dh-kpi,.kpi,.cp-kpi{padding:12px}
+  .dh-kpi-v,.kpi-n,.cp-kpi-v{font-size:16px}
+  .dh-card-h{flex-wrap:wrap;gap:8px}
+  .dh-search{flex:1 1 100%;max-width:none;order:3}
+  .dh-projgrid{grid-template-columns:1fr}
+  /* ---- bố cục 3 cột -> 1 cột ---- */
+  .boc,.boc.detail{grid-template-columns:1fr!important;gap:12px}
+  .catpanel,#pdPanel,.tk-panel{position:static!important;max-height:none!important}
+  .catpanel-top{height:auto!important;max-height:280px}
+  .cat-split{display:none}
+  .sp-workspace{flex-direction:column}
+  .sp-projpanel{width:100%;position:static;max-height:320px}
+  .imp-layout{grid-template-columns:1fr}
+  /* ---- BẢNG: cuộn ngang, cột đầu dính ---- */
+  .tbl-wrap,.pt-scroll,.mh-scroll{-webkit-overflow-scrolling:touch}
+  #tkNormal .tbl-wrap{margin-right:0;max-height:64vh}
+  .actgutter{display:none}                       /* nút xoá gutter -> dùng chuột phải/menu trên mobile */
+  table.tk td,table.pt td{padding:9px 8px;font-size:12px}
+  table.tk th,table.pt th{padding:9px 8px;font-size:10.5px}
+  table.tk .cin{font-size:12px}
+  /* hàng chip cột: cuộn ngang thay vì xuống dòng dài */
+  .colchips,.sp-colchips,.cp-colchips,.pt-colchips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px}
+  .colchips .chip,.sp-colchips .chip{flex:none}
+  /* thanh tổng tiền: mỗi mục 1 hàng cho dễ đọc */
+  .tkt-bar{flex-wrap:wrap;gap:8px}
+  .tkt-seg{flex:1 1 100%;min-width:0;padding:11px 13px}
+  .tkt-seg.grand{order:3}
+  .tkt-vat{width:56px}
+  /* tiêu đề "Hạng mục đã bóc": 1 hàng, không xuống dòng cụt */
+  .tk-panel .toolbar{flex-wrap:wrap;gap:8px}
+  .tk-panel .toolbar h3{white-space:nowrap;font-size:13px}
+  .tk-panel .toolbar .count{flex:none}
+  .tk-panel .toolbar>div{flex:1 1 100%}
+  .tree-btn{width:100%;min-width:0}
+  /* ---- Danh sách SP: bảng -> thẻ ---- */
+  .sp-filtrow{grid-template-columns:1fr;gap:9px}
+  .sp-toolbar{flex-wrap:wrap;gap:8px}
+  .sp-search-wrap{flex:1 1 100%;max-width:none}
+  .sp-table thead{display:none}
+  .sp-table,.sp-table tbody,.sp-table tr,.sp-table td{display:block;width:100%}
+  .sp-table tr.sp-row{border:1px solid var(--hair);border-radius:var(--r-lg);margin-bottom:9px;
+    padding:10px 12px;position:relative;background:#fff}
+  .sp-table td{border:none!important;padding:3px 0!important;text-align:left!important}
+  .sp-table td.selcol{position:absolute;top:10px;right:10px;width:auto;padding:0!important}
+  .sp-table td.thumbcol{float:left;margin-right:11px;width:auto}
+  .sp-table td.act-sp{clear:both;padding-top:9px!important;text-align:right!important;width:auto}
+  .sp-table td.num{text-align:left!important}
+  .sp-price{font-size:15px}
+  /* ---- modal: gần full màn ---- */
+  .sp-modal-ov{padding:0;align-items:flex-end}
+  .sp-modal{width:100%!important;max-width:100%;border-radius:16px 16px 0 0;padding:18px 16px;
+    max-height:92vh;overflow-y:auto}
+  .spe-fields{grid-template-columns:1fr}
+  .imgup{grid-template-columns:1fr}
+  .fltpop,.tree-pop{max-width:92vw}
+  /* ---- Mua hàng / Phần thô ---- */
+  .mhc-h{flex-wrap:wrap;gap:7px}
+  .imp-statbar{flex-wrap:wrap;gap:10px}
+  .pt-toolbar{flex-wrap:wrap;gap:8px}
+  /* ---- chạm: tối thiểu 44px ---- */
+  .btn,.rbtn,select,input[type=text],input[type=number],input[type=password]{min-height:42px}
+  .btn.xs,.dh-use{min-height:34px}
+  .citem .add,.ptlib-add,.ptlib-secadd,.sp-act,.dh-ic{width:34px;height:34px}
+  .sechd{flex-wrap:wrap;gap:8px}
+  .sechd h2{font-size:15px}
+}
+@media(max-width:480px){
+  .wrap{padding:0 11px}
+  .dh-kpis,.kpis,.cp-kpis{grid-template-columns:1fr}
+  .dh-hero-r{grid-template-columns:1fr}
+  .dh-quick{grid-template-columns:1fr 1fr}
+  .pc-info{grid-template-columns:1fr}
+  .dbgrid{grid-template-columns:1fr}
+  .dh-title{font-size:15.5px}
+}
+
 /* ---------- 17. MONTSERRAT tuning ---------- */
 /* Montserrat rộng & tròn hơn font hệ thống -> siết tracking, giảm 1 bậc độ đậm */
 body,button,input,select,textarea{font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
@@ -1940,7 +2060,10 @@ table.tk tr.tk-spacer td{height:12px}
 
 <!-- ===== TOP NAV ===== -->
 <div class="topnav"><div class="wrap"><div class="row">
+  <button class="mb-burger" id="mbBurger" onclick="mbToggleNav()" aria-label="Menu">
+    <span></span><span></span><span></span></button>
   <img class="logo" src="logo.svg" alt="Dezon Pro" title="Dezon Pro — Dự toán chuyên nghiệp" draggable="false">
+  <div class="mb-scrim" id="mbScrim" onclick="mbToggleNav()"></div>
   <div class="nav" id="nav">
     <a data-tab="dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Bảng điều khiển</a>
     <a data-tab="boc" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83zM2 12l8.6 3.91a2 2 0 0 0 1.65 0L21 12M2 17l8.6 3.91a2 2 0 0 0 1.65 0L21 17"/></svg>Bóc tách</a>
@@ -1950,9 +2073,9 @@ table.tk tr.tk-spacer td{height:12px}
     <a data-tab="duan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>Dự án</a>
   </div>
   <div class="right">
-    <a class="rbtn" data-tab="sanpham"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="4" rx="1.2"/><rect x="3" y="10" width="18" height="4" rx="1.2"/><rect x="3" y="16" width="18" height="4" rx="1.2"/></svg>Danh sách sản phẩm</a>
-    <a class="rbtn primary" data-tab="import"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M4 21h16"/></svg>Nhập dữ liệu</a>
-    <a class="rbtn" id="navAdmin" data-tab="admin" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Admin</a>
+    <a class="rbtn" data-tab="sanpham"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="4" rx="1.2"/><rect x="3" y="10" width="18" height="4" rx="1.2"/><rect x="3" y="16" width="18" height="4" rx="1.2"/></svg><span class="rb-txt">Danh sách sản phẩm</span></a>
+    <a class="rbtn primary" data-tab="import"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M4 21h16"/></svg><span class="rb-txt">Nhập dữ liệu</span></a>
+    <a class="rbtn" id="navAdmin" data-tab="admin" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="rb-txt">Admin</span></a>
     <div class="notifbell" id="notifBell" style="display:none" onclick="toggleNotif(event)" title="Thông báo">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
       <span class="nb-badge" id="nbBadge" style="display:none">0</span>

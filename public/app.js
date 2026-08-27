@@ -323,7 +323,20 @@ document.getElementById('nav').addEventListener('click',function(e){
 document.querySelector('.topnav .right').addEventListener('click',function(e){
   var a=e.target.closest('a[data-tab]'); if(a){ e.preventDefault(); showTab(a.getAttribute('data-tab')); }
 });
+/* ===== MOBILE: ngăn kéo menu ===== */
+function mbToggleNav(force){
+  var nav=document.getElementById('nav'), sc=document.getElementById('mbScrim'), bg=document.getElementById('mbBurger');
+  if(!nav) return;
+  var open = force==null ? !nav.classList.contains('open') : !!force;
+  nav.classList.toggle('open',open);
+  if(sc) sc.classList.toggle('on',open);
+  if(bg) bg.classList.toggle('on',open);
+  document.body.style.overflow = open?'hidden':'';
+}
+function mbIsMobile_(){ return window.innerWidth<=900; }
 function showTab(tab){
+  if(mbIsMobile_()) mbToggleNav(false);   // chọn tab xong tự đóng menu
+
   // Chặn tab không được cấp quyền -> chuyển về tab đầu tiên hợp lệ
   if(S.me && !canTab(tab)){ var f=firstAllowedTab_(); if(!f){ toast('Tài khoản chưa được cấp quyền vào phần nào'); return; } if(f!==tab){ tab=f; } }
   document.querySelectorAll('#nav a, .topnav .right a').forEach(function(a){ a.classList.toggle('active',a.getAttribute('data-tab')===tab); });
