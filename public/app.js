@@ -1155,9 +1155,10 @@ async function spEditModal(i){
   ov.innerHTML='<div class="sp-modal sp-edit pd"><div class="pd-head"><h3>'+icon('edit',16)+' Cập nhật sản phẩm</h3><button class="pd-x" onclick="spEditClose()">✕</button></div><div class="spe-body"><div class="empty" style="padding:24px">Đang tải…</div></div></div>';
   document.body.appendChild(ov);
   var raw=null, hist=[];
-  try{ raw=await api('getDbProduct', p.ma); hist=await api('getProductHistory', p.ma)||[]; }catch(e){}
+  var editKey = (p.recordId!=null && p.recordId!=='') ? String(p.recordId) : p.ma;   // id dòng = đúng biến thể
+  try{ raw=await api('getDbProduct', editKey); hist=await api('getProductHistory', p.ma)||[]; }catch(e){}
   if(!raw){ ov.querySelector('.spe-body').innerHTML='<div class="empty" style="padding:24px">Không tải được dữ liệu sản phẩm.</div>'; return; }
-  S._spEditMa=p.ma;
+  S._spEditMa=editKey;
   // tách anh_sp: ảnh đầu = đại diện, còn lại = ảnh chi tiết/mô tả (dùng chung bộ upload với trang Nhập dữ liệu)
   var imgsRaw=String(raw.anh_sp||'').split('\n').map(function(s){return s.trim();}).filter(Boolean);
   S._imgMain=imgsRaw[0]||''; S._imgList=imgsRaw.slice(1);

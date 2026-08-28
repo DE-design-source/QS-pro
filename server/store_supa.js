@@ -329,14 +329,17 @@ async function deleteDbProduct(key) {
 }
 // ===== Cập nhật SP + LƯU LỊCH SỬ (ai, lúc nào, đổi gì) =====
 const COL2LABEL = {}; Object.keys(DB_LABEL2COL).forEach(function (lb) { COL2LABEL[DB_LABEL2COL[lb]] = lb; });
-async function getDbProduct(ma) {
-  ma = s(ma).trim(); if (!ma) return null;
-  const rows = await supa.select('db_san_pham', { select: '*', filter: supa.eq('ma_sp', ma), limit: 1 });
+// Nhận ID dòng (chính xác 1 BIẾN THỂ). Nếu truyền mã SP thì lấy biến thể đầu (tương thích ngược).
+async function getDbProduct(key) {
+  key = s(key).trim(); if (!key) return null;
+  const filter = /^\d+$/.test(key) ? supa.eq('id', key) : supa.eq('ma_sp', key);
+  const rows = await supa.select('db_san_pham', { select: '*', filter: filter, limit: 1 });
   return rows[0] || null;
 }
-async function updateDbProductTracked(actor, ma, data) {
-  ma = s(ma).trim(); if (!ma) throw new Error('Thiếu mã sản phẩm.');
-  const cur = await getDbProduct(ma); if (!cur) throw new Error('Không tìm thấy sản phẩm.');
+async function updateDbProductTracked(actor, key, data) {
+  key = s(key).trim(); if (!key) throw new Error('Thiếu mã/ID sản phẩm.');
+  const cur = await getDbProduct(key); if (!cur) throw new Error('Không tìm thấy sản phẩm.');
+  const ma = s(cur.ma_sp);
   data = data || {};
   const row = {};
   Object.keys(data).forEach(function (label) {
@@ -356,7 +359,8 @@ async function updateDbProductTracked(actor, ma, data) {
   });
   if (!changes.length) return { updated: false, changes: 0 };
   row.ngay_cap_nhat = new Date().toISOString();
-  await supa.update('db_san_pham', supa.eq('ma_sp', ma), row); _cache = null;
+  // CHỈ cập nhật ĐÚNG dòng đang sửa (trước đây eq('ma_sp') -> ghi đè MỌI biến thể cùng mã -> lỗi trùng khoá)
+  await supa.update('db_san_pham', supa.eq('id', cur.id), row); _cache = null;
   const who = (actor && actor.u) || 'ẩn danh';
   try {
     await supa.insert('db_san_pham_history', changes.map(function (c) {
