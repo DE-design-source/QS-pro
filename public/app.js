@@ -2884,7 +2884,7 @@ var DB_GROUPS=[
     ['HÃNG BỘ NGUỒN','Hãng bộ nguồn','text',0],['VỊ TRÍ LẮP NGUỒN','Vị trí lắp nguồn','sel',0,['Lắp rời','Tích hợp trong thân đèn']],
     ['TƯƠNG THÍCH ĐIỀU KHIỂN','Tương thích điều khiển','sel',0,['DALI','0-10V','Triac','On-Off']],['DÒNG RA TỐI ĐA (mA)','Dòng ra tối đa (mA)','num',0] ]},
   {g:'Installation Specifications (Thông số lắp đặt)', f:[
-    ['LỖ KHOÉT TRẦN (mm)','Lỗ khoét trần (mm)','num',1],
+    ['LỖ KHOÉT TRẦN (mm)','Lỗ khoét trần (Cutout)','text',1,null,'VD: Ø75  ·  Ø40×78  ·  60×60'],
     ['CẤP BẢO VỆ ĐIỆN','Cấp bảo vệ điện','sel',0,['Class I','Class II','Class III']] ]},
   {g:'Thương mại', f:[
     ['BẢO HÀNH (năm)','Bảo hành (năm)','num',0],['ĐƠN VỊ TÍNH','Đơn vị tính','sel',1,['Cái','Bộ','Mét']] ]}
@@ -2892,12 +2892,13 @@ var DB_GROUPS=[
 var DB_FLAT=[]; DB_GROUPS.forEach(function(gr){ gr.f.forEach(function(f){ DB_FLAT.push(f); }); });
 function dbInput(f){
   var i=DB_FLAT.indexOf(f), lark=f[0], label=f[1], type=f[2], req=f[3], opts=f[4]||[];
+  var ph=f[5]||label;                       // gợi ý nhập riêng (nếu có)
   var id='dbf_'+i, star=req?' <span style="color:#c33">*</span>':'', inner;
   var trg=(lark==='GIÁ BÁN LẺ'||lark==='CHIẾT KHẤU ĐẠI LÝ (%)')?' oninput="dbCalcDaiLy()"':'';
   if(type==='calc') inner='<input id="'+id+'" class="calc" type="number" placeholder="Tự tính từ giá bán & %CK" readonly>';
   else if(type==='area') inner='<textarea id="'+id+'" placeholder="'+esc(label)+'" style="min-height:54px"></textarea>';
   else if(type==='sel') inner='<input id="'+id+'" list="dl_'+i+'" placeholder="'+esc(label)+'"><datalist id="dl_'+i+'">'+opts.map(function(o){return '<option value="'+esc(o)+'">';}).join('')+'</datalist>';
-  else inner='<input id="'+id+'"'+(type==='num'?' type="number"':'')+trg+' placeholder="'+esc(label)+'">';
+  else inner='<input id="'+id+'"'+(type==='num'?' type="number"':'')+trg+' placeholder="'+esc(ph)+'">';
   return '<div class="field"><label>'+esc(label)+star+'</label>'+inner+'</div>';
 }
 function dbIdOf(label){ for(var i=0;i<DB_FLAT.length;i++) if(DB_FLAT[i][0]===label) return 'dbf_'+i; return ''; }

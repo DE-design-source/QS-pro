@@ -15,6 +15,14 @@ function firstImg(v) { var a = s(v).split('\n').map(function (x) { return x.trim
 function fmtUnit(v, unit) { if (v == null || v === '') return ''; var t = String(v); return new RegExp(unit + '$', 'i').test(t) ? t : t + unit; }
 function fmtList(v, unit) { return s(v).split(',').map(function (x) { return x.trim(); }).filter(Boolean).map(function (x) { return new RegExp(unit + '$', 'i').test(x) ? x : x + unit; }).join(', '); }
 
+// Lỗ khoét: cho nhập tự do (Ø75 · Ø40×78 · 60×60). Chỉ thêm Ø/mm khi người dùng CHƯA gõ.
+function fmtCutout_(v) {
+  var t = s(v).trim(); if (!t) return '';
+  if (/^[\d.,]+$/.test(t)) return 'Ø' + t + 'mm';          // chỉ có số -> đường kính tròn
+  if (!/mm$/i.test(t)) t += 'mm';                            // có ký hiệu (× x *) -> giữ nguyên, thêm mm
+  return t;
+}
+
 /*** ===== SẢN PHẨM (db_san_pham) ===== ***/
 function prodToObj(r) {
   const congSuat = fmtUnit(r.cong_suat_w, 'W'), nhietDo = fmtList(r.nhiet_do_mau_k, 'K'), gocChieu = fmtList(r.goc_chieu_deg, '°');
@@ -46,7 +54,7 @@ function prodToObj(r) {
     congSuat: congSuat, nhietDo: nhietDo, gocChieu: gocChieu,
     mauSac: s(r.mau_sac), chatLieu: chatLieu,
     chieuCao: chieuCao, duongKinh: duongKinh,
-    gocNghieng: gocNghieng, loKhoet: r.cutout_mm ? ('Ø' + r.cutout_mm + 'mm') : '',
+    gocNghieng: gocNghieng, loKhoet: fmtCutout_(r.cutout_mm),
     capBaoVe: s(r.chi_so_ip), cri: cri, hieuSuat: r.hieu_suat_lm_w ? (r.hieu_suat_lm_w + ' lm/W') : '',
     ugr: s(r.ugr), sdcm: s(r.sdcm), coi: s(r.coi), tuoiTho: s(r.tuoi_tho), chipLed: chip,
     quangThong: qt, baoHanh: r.bao_hanh_nam ? (r.bao_hanh_nam + ' năm') : '',
@@ -272,7 +280,7 @@ async function saveCover(maDA, rows) {
 
 /*** ===== SP MỚI / ẢNH ===== ***/
 const DB_NUM = ['CÔNG SUẤT (W)', 'NHIỆT ĐỘ MÀU (K)', 'QUANG THÔNG (lm)', 'GÓC CHIẾU (°)', 'GÓC NGHIÊNG (°)',
-  'CHIỀU CAO (mm)', 'ĐƯỜNG KÍNH (mm)', 'LỖ KHOÉT TRẦN (mm)', 'HIỆU SUẤT PHÁT QUANG (lm/W)', 'DÒNG RA TỐI ĐA (mA)',
+  'CHIỀU CAO (mm)', 'ĐƯỜNG KÍNH (mm)', 'HIỆU SUẤT PHÁT QUANG (lm/W)', 'DÒNG RA TỐI ĐA (mA)',
   'BẢO HÀNH (năm)', 'GIÁ BÁN LẺ', 'CHIẾT KHẤU ĐẠI LÝ (%)'];
 const DB_LABEL2COL = {
   'MÃ SẢN PHẨM': 'ma_sp', 'TÊN SẢN PHẨM': 'ten_sp', 'DÒNG SẢN PHẨM': 'dong_sp', 'HẠNG MỤC': 'hang_muc', 'NHÓM SẢN PHẨM': 'nhom_sp',
