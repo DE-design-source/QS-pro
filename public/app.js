@@ -2967,6 +2967,8 @@ function impRecentList(){
       +'<td>'+esc(p.thuongHieu||'—')+'</td><td class="imp-rdate">'+(impDateTime_(p.capNhat)||'—')+'</td></tr>';
   }).join('') || '<tr><td colspan="5" class="empty" style="padding:24px 12px;font-size:12.5px;line-height:1.5">Chưa nhập sản phẩm nào trong phiên này.<br>Sản phẩm bạn <b>thêm / nhập file</b> ở phiên này sẽ hiện ở đây.</td></tr>';
   return '<div class="imp-recent"><div class="imp-recent-h">Sản phẩm vừa nhập (phiên này) <span class="count">'+pad2(ps.length)+'</span></div>'
+    +'<div class="imp-recent-note">Danh sách này chỉ ghi lại thao tác của <b>phiên đang mở</b> — tải lại trang sẽ trống. '
+    +'Sản phẩm đã lưu <b>vẫn nằm trong Database</b>: <a onclick="showTab(\'sanpham\')">xem Danh sách sản phẩm →</a></div>'
     +'<div class="imp-recent-b"><table class="imp-rtbl"><thead><tr><th class="c">STT</th><th>Tên sản phẩm</th><th class="c">Hình ảnh</th><th>Thương hiệu</th><th>Ngày cập nhật</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
 }
 function sessionAdd_(o){ S._sessionAdded=S._sessionAdded||[]; S._sessionAdded.unshift({ten:o.ten||'',thuongHieu:o.thuongHieu||'',ncc:o.ncc||'',hinhAnh:o.hinhAnh||'',capNhat:o.capNhat||nowIsoClient_()}); }
@@ -3217,12 +3219,18 @@ function varCombos_(){
 }
 function varPreview_(){
   var el=document.getElementById('varNote'); if(!el) return;
+  var K=varList_('varKelvin'), W=varList_('varWatt'), A=varList_('varAngle');
   var c=varCombos_();
   if(!c.length){ el.className='var-note'; el.textContent='Bỏ trống = chỉ tạo 1 sản phẩm theo thông số đã nhập ở trên.'; return; }
+  // Ghi RÕ phép nhân để không hiểu nhầm số lượng (VD 2 nhiệt độ × 2 góc = 4, KHÔNG phải 12)
+  var parts=[];
+  if(K.length) parts.push(K.length+' nhiệt độ');
+  if(W.length) parts.push(W.length+' công suất');
+  if(A.length) parts.push(A.length+' góc');
   el.className='var-note on';
-  el.innerHTML='Sẽ tạo <b>'+c.length+' sản phẩm</b> (biến thể): '
-    +c.slice(0,6).map(function(x){ return '<span class="var-chip">'+[x.w?x.w+'W':'',x.k?x.k+'K':'',x.a?x.a+'°':''].filter(Boolean).join(' · ')+'</span>'; }).join('')
-    +(c.length>6?' <i>… +'+(c.length-6)+' nữa</i>':'');
+  el.innerHTML='<div class="var-math">'+parts.join(' <b>×</b> ')+' <b>=</b> <span class="var-total">'+c.length+' sản phẩm</span></div>'
+    +'<div class="var-list">'+c.slice(0,8).map(function(x){ return '<span class="var-chip">'+[x.w?x.w+'W':'',x.k?x.k+'K':'',x.a?x.a+'°':''].filter(Boolean).join(' · ')+'</span>'; }).join('')
+    +(c.length>8?' <i>… +'+(c.length-8)+' nữa</i>':'')+'</div>';
 }
 async function tdSave(btn){
   var data={};
@@ -3240,18 +3248,20 @@ async function tdSave(btn){
     var combos=varCombos_(), r;
     if(combos.length){
       // BIẾN THỂ: tạo 1 sản phẩm cho mỗi tổ hợp (cùng mã SP, khác nhiệt độ/công suất/góc)
-      var okN=0, errN=0;
+      var okN=0, errN=0, varErrs=[];
       for(var ci=0; ci<combos.length; ci++){
         var c=combos[ci], d2=Object.assign({},data);
         if(c.k) d2['NHIỆT ĐỘ MÀU (K)']=c.k;
         if(c.w) d2['CÔNG SUẤT (W)']=c.w;
         if(c.a) d2['GÓC CHIẾU (°)']=c.a;
         if(btn) btn.textContent='⏳ Đang lưu biến thể '+(ci+1)+'/'+combos.length+'…';
-        try{ await api('saveDbProduct',d2); okN++; }catch(e2){ errN++; }
+        try{ await api('saveDbProduct',d2); okN++; }
+        catch(e2){ errN++; if(varErrs.length<3) varErrs.push([c.w?c.w+'W':'',c.k?c.k+'K':'',c.a?c.a+'°':''].filter(Boolean).join('/')+': '+e2.message.slice(0,70)); }
       }
       r={updated:false};
       sessionAdd_({ten:ten+' ('+okN+' biến thể)', thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'', hinhAnh:data['ẢNH SẢN PHẨM']||''});
-      toast('Đã lưu '+okN+' biến thể của "'+ten+'"'+(errN?(' · '+errN+' lỗi'):''));
+      if(errN){ toast('Lưu '+okN+'/'+(okN+errN)+' biến thể — '+errN+' LỖI: '+varErrs.join(' | ')); console.warn('[biến thể] lỗi:',varErrs); }
+      else toast('Đã lưu đủ '+okN+' biến thể của "'+ten+'"');
     } else {
       r=await api('saveDbProduct',data);
       sessionAdd_({ten:ten, thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'', hinhAnh:data['ẢNH SẢN PHẨM']||''});
