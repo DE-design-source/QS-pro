@@ -3036,19 +3036,52 @@ function dbCalcDaiLy(){
   if(!oe) return; var g=Number(ge&&ge.value)||0, ck=Number(ce&&ce.value)||0;
   oe.value = g ? Math.round(g*(1-ck/100)) : '';
 }
-function imgUrlOf(v){ v=String(v||''); return v.indexOf('http')===0?v:(v?('/media?token='+encodeURIComponent(v)):''); }
+function imgUrlOf(v){
+  v=String(v||'').trim(); if(!v) return '';
+  // data:/blob: là ảnh XEM TRƯỚC lúc đang tải lên -> dùng THẲNG.
+  // (Trước đây bị bọc thành /media?token=data:... -> 404 -> luôn hiện "ảnh lỗi")
+  if(/^(data:|blob:)/i.test(v)) return v;
+  if(v.indexOf('http')===0) return v;
+  return '/media?token='+encodeURIComponent(v);
+}
 function imgPop_(src){ if(!src)return; var o=document.getElementById('imgPop'); if(!o){ o=document.createElement('div'); o.id='imgPop'; o.className='imgpop'; o.onclick=function(){ o.style.display='none'; }; o.innerHTML='<img><span class="imgpop-x">✕</span>'; document.body.appendChild(o); } o.querySelector('img').src=src; o.style.display='flex'; }
 // Ảnh đầu tiên (nhiều ảnh nối bằng xuống dòng) -> URL hợp lệ cho <img src>
 function imgSrc1_(v){ return imgUrlOf(String(v||'').split('\n')[0].trim()); }
+// Ảnh lỗi: giữ nguyên thẻ img, chỉ báo nhẹ trên khung + cho bấm thử lại (không phá huỷ như trước)
+function upImgErr_(img){
+  var box=img.closest('.upzone,.upthumb'); if(!box) return;
+  if(box.querySelector('.up-err')) return;
+  box.classList.add('has-err');
+  var d=document.createElement('span'); d.className='up-err';
+  d.innerHTML='<b>Không tải được ảnh</b><i onclick="event.stopPropagation();upImgRetry_(this)">Thử lại</i>';
+  box.appendChild(d);
+}
+function upImgOk_(img){
+  var box=img.closest('.upzone,.upthumb'); if(!box) return;
+  box.classList.remove('has-err');
+  var e=box.querySelector('.up-err'); if(e) e.remove();
+}
+function upImgRetry_(el){
+  var box=el.closest('.upzone,.upthumb'); if(!box) return;
+  var img=box.querySelector('img'); if(!img) return;
+  var e=box.querySelector('.up-err'); if(e) e.remove();
+  box.classList.remove('has-err');
+  var src=img.getAttribute('src'); img.setAttribute('src','');
+  setTimeout(function(){ img.setAttribute('src', src+(src.indexOf('?')>=0?'&':'?')+'r='+Date.now()); },40);
+}
+// Vùng thả LUÔN giữ nguyên (không bị ảnh chiếm chỗ) -> 2 cột giống hệt nhau
 function upMainInner(){
-  return S._imgMain
-    ? '<img src="'+esc(imgUrlOf(S._imgMain))+'" onerror="this.replaceWith(document.createTextNode(\'ảnh lỗi\'))">'
-      +'<button class="upx" title="Xoá ảnh" onclick="event.stopPropagation();upRemove(\'main\')">✕</button>'
-      +'<span class="up-swap">'+icon('edit',12)+' Đổi ảnh</span>'
-    : '<div class="upic">'+icon('camera',26)+'</div>'
-      +'<div class="up-t">Kéo/thả hoặc bấm để chọn</div>'
-      +'<div class="up-s">ảnh chính hiện trong bảng &amp; báo giá — <b>chỉ 1 ảnh</b></div>'
-      +'<div class="up-paste">'+icon('copy',11)+' hoặc dán ảnh bằng Ctrl+V</div>';
+  return '<div class="upic">'+icon('camera',26)+'</div>'
+    +'<div class="up-t">'+(S._imgMain?'Kéo/thả hoặc bấm để ĐỔI ảnh':'Kéo/thả hoặc bấm để chọn')+'</div>'
+    +'<div class="up-s">ảnh chính hiện trong bảng &amp; báo giá — <b>chỉ 1 ảnh</b></div>'
+    +'<div class="up-paste">'+icon('copy',11)+' hoặc dán ảnh bằng Ctrl+V</div>';
+}
+// Ảnh đại diện hiện thành THUMBNAIL Ở GÓC — cùng kiểu, cùng vị trí với ảnh chi tiết
+function upMainGridInner_(){
+  if(!S._imgMain) return '';
+  return '<div class="upthumb is-main"><img src="'+esc(imgUrlOf(S._imgMain))+'" onerror="upImgErr_(this)" onload="upImgOk_(this)">'
+    +'<button class="upx" title="Xoá ảnh" onclick="event.stopPropagation();upRemove(\'main\')">✕</button>'
+    +'<span class="upnum main">'+icon('star',10)+'</span></div>';
 }
 function upGridInner(){
   return (S._imgList||[]).map(function(v,i){
@@ -3067,6 +3100,7 @@ function upMakeMain_(i){
 }
 function upRefresh(){
   var a=document.getElementById('upMain'); if(a)a.innerHTML=upMainInner();
+  var g=document.getElementById('upMainGrid'); if(g)g.innerHTML=upMainGridInner_();
   var b=document.getElementById('upGrid'); if(b)b.innerHTML=upGridInner();
   var bs=document.querySelectorAll('.imgup .upbadge');
   if(bs[0]) bs[0].textContent=S._imgMain?'1 ảnh':'bắt buộc';
@@ -3081,6 +3115,7 @@ function imgUpBlock_(cls){
     +'<div class="upcol">'
       +'<div class="uphead"><span class="uplabel">Hình đại diện</span><span class="upbadge">'+(S._imgMain?'1 ảnh':'bắt buộc')+'</span></div>'
       +'<div class="upzone upmain" id="upMain" tabindex="0" onclick="upPick(\'main\')" ondragover="upDrag(event,1)" ondragleave="upDrag(event,0)" ondrop="upDrop(event,\'main\')">'+upMainInner()+'</div>'
+      +'<div class="upgrid" id="upMainGrid">'+upMainGridInner_()+'</div>'
       +upUrlRow_('main')
     +'</div>'
     +'<div class="upcol">'
