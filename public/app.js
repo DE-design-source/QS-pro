@@ -1445,7 +1445,8 @@ function pickNode(code){ S.node=code; document.getElementById('treePop').style.d
 function pickNodeIdx(i){ var t=(S._tree||[])[i]; if(t) pickNode(t.code); }
 async function addCustomGroup(){
   if(!S.cur){ toast('Chưa chọn dự án'); return; }
-  var name=prompt('Tên hạng mục/nhóm mới:'); if(name==null) return; name=name.trim(); if(!name) return;
+  var name=await askInput_({title:'Thêm hạng mục', label:'Tên hạng mục / nhóm mới', placeholder:'VD: Thiết bị vệ sinh', confirmText:'Thêm'});
+  if(name==null) return; name=String(name).trim(); if(!name) return;
   var cur=customGroups(); if(cur.indexOf(name)<0) cur.push(name);
   try{ var p=await api('updateProject',S.cur.maDA,{nhomTuTao:cur.join('|')}); syncProj(p); S.node=name;
     document.getElementById('treePop').style.display='none'; renderTree(); renderTable(); toast('Đã thêm hạng mục: '+name); }
@@ -1712,7 +1713,8 @@ async function moveFloor(from,to){
 function toggleFloor(g){ S.collapsed[g]=!S.collapsed[g]; renderTable(); }
 async function renameFloor(g){
   if(g==='CHƯA PHÂN TẦNG')return;
-  var name=prompt('Đổi tên tầng:', g); if(name==null)return; name=name.trim(); if(!name||name===g)return;
+  var name=await askInput_({title:'Đổi tên tầng', label:'Tên tầng', value:g, confirmText:'Lưu'});
+  if(name==null)return; name=String(name).trim(); if(!name||name===g)return;
   var fl=floorsList().filter(function(t){return t!=='CHƯA PHÂN TẦNG';}).map(function(t){return t===g?name:t;});
   try{ var p=await api('updateProject',S.cur.maDA,{tangTuTao:fl.join('|')}); syncProj(p);
     var aff=S.lines.filter(function(l){return (l.tang||'')===g;});
@@ -2042,6 +2044,45 @@ async function projInfoModal(maDA){
 function projModalClose(){ var o=document.getElementById('projModalOv'); if(o)o.remove(); }
 function projModalRefresh_(){ var b=document.getElementById('projModalBody'); if(b && S.cur){ b.innerHTML=projInfoInner_(S.cur, currentGroup()); } }
 // đổi tên bản nháp (modal — không dùng prompt vì 1 số trình duyệt chặn)
+/* ===== Hộp nhập liệu dùng chung — THAY prompt() (bị nhiều trình duyệt chặn) ===== */
+function askInput_(o){
+  o=o||{};
+  var fields=o.fields||[{key:'v', label:o.label||'', value:o.value||'', type:o.type||'text', placeholder:o.placeholder||''}];
+  return new Promise(function(resolve){
+    var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='askOv';
+    function done(val){ try{ ov.remove(); }catch(e){} document.removeEventListener('keydown',esckey); resolve(val); }
+    function esckey(e){ if(e.key==='Escape') done(null); }
+    document.addEventListener('keydown',esckey);
+    ov.onclick=function(e){ if(e.target===ov) done(null); };
+    ov.innerHTML='<div class="sp-modal ask-modal pd"><div class="pd-head"><h3>'+esc(o.title||'Nhập thông tin')+'</h3>'
+      +'<button class="pd-x" data-ask="cancel">✕</button></div>'
+      +(o.note?'<p class="ask-note">'+esc(o.note)+'</p>':'')
+      +fields.map(function(f,i){
+        return '<div class="ask-f"><label>'+esc(f.label||'')+'</label>'
+          +'<input class="ask-in" data-k="'+esc(f.key)+'" type="'+(f.type||'text')+'" value="'+esc(f.value||'')+'" placeholder="'+esc(f.placeholder||'')+'">'
+          +'</div>';
+      }).join('')
+      +'<div class="ask-err" style="display:none"></div>'
+      +'<div class="ask-f-btn"><button class="btn ghost sm" data-ask="cancel">Huỷ</button>'
+      +'<button class="btn blue" data-ask="ok">'+esc(o.confirmText||'Xác nhận')+'</button></div></div>';
+    document.body.appendChild(ov);
+    function submit(){
+      var out={}, ok=true;
+      ov.querySelectorAll('.ask-in').forEach(function(el){
+        var v=String(el.value||'').trim(); out[el.getAttribute('data-k')]=v;
+        if(!v && o.required!==false) ok=false;
+      });
+      if(!ok){ var er=ov.querySelector('.ask-err'); er.textContent='Vui lòng nhập đầy đủ.'; er.style.display='block'; return; }
+      done(fields.length===1 ? out[fields[0].key] : out);
+    }
+    ov.addEventListener('click',function(e){
+      var b=e.target.closest('[data-ask]'); if(!b) return;
+      if(b.getAttribute('data-ask')==='ok') submit(); else done(null);
+    });
+    ov.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); submit(); } });
+    setTimeout(function(){ var f=ov.querySelector('.ask-in'); if(f){ f.focus(); f.select(); } },40);
+  });
+}
 function renameDraft(maDA){
   var p=(S.projects||[]).filter(function(x){return x.maDA===maDA;})[0]; if(!p) return;
   var gr=projectGroups().filter(function(g){ return g.drafts.some(function(d){return d.maDA===maDA;}); })[0];
@@ -4032,10 +4073,13 @@ async function refreshNotifCount_(){ if(!S.me) return; try{ var c=await api('not
 function startNotifPoll_(){ refreshNotifCount_(); if(S._notifTimer) clearInterval(S._notifTimer); S._notifTimer=setInterval(refreshNotifCount_,30000); }
 function toggleUserMenu(e){ e.stopPropagation(); var m=document.getElementById('ucMenu'); if(!m)return; var open=m.style.display!=='none'; m.style.display=open?'none':'block'; if(!open) setTimeout(function(){ document.addEventListener('mousedown',ucOut_); },0); }
 function ucOut_(e){ if(!e.target.closest('#userChip')){ var m=document.getElementById('ucMenu'); if(m)m.style.display='none'; document.removeEventListener('mousedown',ucOut_); } }
-function openChangePw(){ var m=document.getElementById('ucMenu'); if(m)m.style.display='none';
-  var oldp=prompt('Mật khẩu hiện tại:'); if(oldp===null) return;
-  var np=prompt('Mật khẩu mới (≥4 ký tự):'); if(np===null) return;
-  api('changePassword',oldp,np).then(function(){ toast('Đã đổi mật khẩu'); }).catch(function(e){ toast('Lỗi: '+e.message); });
+async function openChangePw(){ var m=document.getElementById('ucMenu'); if(m)m.style.display='none';
+  var r=await askInput_({title:'Đổi mật khẩu', confirmText:'Đổi mật khẩu', fields:[
+    {key:'old', label:'Mật khẩu hiện tại', type:'password'},
+    {key:'np',  label:'Mật khẩu mới (≥4 ký tự)', type:'password'} ]});
+  if(!r) return;
+  if(String(r.np).length<4){ toast('Mật khẩu mới phải từ 4 ký tự'); return; }
+  api('changePassword',r.old,r.np).then(function(){ toast('Đã đổi mật khẩu'); }).catch(function(e){ toast('Lỗi: '+e.message); });
 }
 function fmtDateTime_(s){ if(!s)return'—'; try{ return new Date(s).toLocaleString('vi-VN'); }catch(e){ return String(s); } }
 function admActionLabel_(a){ var m={login:'Đăng nhập',logout:'Đăng xuất',login_fail:'ĐN lỗi',create_user:'Tạo TK',update_user:'Sửa TK',delete_user:'Xóa TK',reset_password:'Đặt lại MK',change_password:'Đổi MK',lock_user:'Khóa TK',unlock_user:'Mở khóa'}; return m[a]||a; }
@@ -4217,7 +4261,10 @@ function admModalSave(id){
   else { var username=document.getElementById('am_user').value; var pw=document.getElementById('am_pw').value;
     api('adminCreateUser',{username:username,hoTen:hoTen,role:role,password:pw,perms:perms}).then(function(){ done('Đã tạo tài khoản'); }).catch(fail); }
 }
-function admResetPw(id){ var np=prompt('Mật khẩu mới (≥4 ký tự):'); if(!np) return; api('adminSetPassword',id,np).then(function(){ toast('Đã đặt lại mật khẩu'); }).catch(function(e){ toast('Lỗi: '+e.message); }); }
+async function admResetPw(id){
+  var np=await askInput_({title:'Đặt lại mật khẩu', label:'Mật khẩu mới (≥4 ký tự)', type:'password', confirmText:'Đặt lại'});
+  if(!np) return; if(String(np).length<4){ toast('Mật khẩu phải từ 4 ký tự'); return; }
+  api('adminSetPassword',id,np).then(function(){ toast('Đã đặt lại mật khẩu'); }).catch(function(e){ toast('Lỗi: '+e.message); }); }
 function admToggleActive(id,active){ api('adminSetActive',id,active).then(function(){ toast(active?'Đã mở khóa':'Đã khóa'); renderAdmin(); }).catch(function(e){ toast('Lỗi: '+e.message); }); }
 function admDelete(id){ var u=(S._admUsers||[]).filter(function(x){return x.id===id;})[0]; if(!confirm('Xóa tài khoản "'+(u?u.username:'')+'"? Không thể hoàn tác.')) return; api('adminDeleteUser',id).then(function(){ toast('Đã xóa'); renderAdmin(); }).catch(function(e){ toast('Lỗi: '+e.message); }); }
 
