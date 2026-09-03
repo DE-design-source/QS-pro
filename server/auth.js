@@ -245,6 +245,25 @@ async function listPurchaseRequests(actor) {
       total: Number(r.tong_cong) || 0, status: r.trang_thai, requester: r.nguoi_gui, phongBan: r.phong_ban, at: r.ngay_gui };
   });
 }
+// Chi tiết 1 đơn mua hàng (header + danh sách sản phẩm) — để Admin xem trước khi duyệt
+async function getPurchaseOrder(actor, maDon) {
+  const h = (await supa.select('don_mua_hang', { filter: supa.eq('ma_don', maDon), limit: 1 }))[0];
+  if (!h) throw new Error('Không tìm thấy đơn mua hàng');
+  const dt = await supa.select('chi_tiet_mua_hang', { filter: supa.eq('ma_don', maDon), order: 'sort_no.asc' });
+  const n = function (v) { return Number(v) || 0; };
+  const s = function (v) { return v == null ? '' : String(v); };
+  return {
+    maDon: s(h.ma_don), project: s(h.ten_du_an), maDA: s(h.ma_du_an), supplier: s(h.nha_cung_cap),
+    hangMuc: s(h.hang_muc), soSp: n(h.so_sp), tongTruocVat: n(h.tong_truoc_vat), vatPct: n(h.vat_pct),
+    vat: n(h.vat), total: n(h.tong_cong), status: s(h.trang_thai), requester: s(h.nguoi_gui),
+    phongBan: s(h.phong_ban), ghiChu: s(h.ghi_chu), at: s(h.ngay_gui),
+    nguoiDuyet: s(h.nguoi_duyet), ngayDuyet: s(h.ngay_duyet),
+    items: dt.map(function (r) {
+      return { ma: s(r.ma_sp), ten: s(r.ten_sp), thuongHieu: s(r.thuong_hieu), phong: s(r.phong),
+        dvt: s(r.dvt), sl: n(r.so_luong), donGia: n(r.don_gia), thanhTien: n(r.thanh_tien), hinhAnh: s(r.hinh_anh) };
+    })
+  };
+}
 async function resolvePurchaseRequest(actor, maDon, approve) {
   const r = (await supa.select('don_mua_hang', { filter: supa.eq('ma_don', maDon), limit: 1 }))[0];
   if (!r) throw new Error('Không tìm thấy đơn mua hàng');
@@ -260,6 +279,7 @@ async function resolvePurchaseRequest(actor, maDon, approve) {
 }
 
 module.exports = {
+  getPurchaseOrder,
   verifyToken, login, me, logout, changePassword,
   adminListUsers, adminCreateUser, adminUpdateUser, adminSetPassword, adminSetActive, adminDeleteUser, getAuditLog,
   notifCount, notifList, notifRead, notifReadAll,

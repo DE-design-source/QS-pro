@@ -4059,7 +4059,7 @@ function admStats_(users,reqs,purs){
 }
 function rqItem_(opts){
   // opts: {cls, icon, title, meta, badgeCls, badgeText, actions, time}
-  return '<div class="rq-item '+opts.cls+'"><span class="rq-ic '+opts.cls+'">'+opts.icon+'</span>'
+  return '<div class="rq-item '+opts.cls+'"'+(opts.onclick?' onclick="'+opts.onclick+'"':'')+'><span class="rq-ic '+opts.cls+'">'+opts.icon+'</span>'
     +'<div class="rq-main"><div class="rq-title">'+opts.title+'</div>'+(opts.meta?'<div class="rq-meta">'+opts.meta+'</div>':'')+'</div>'
     +'<div class="rq-side"><span class="drq-badge '+opts.badgeCls+'">'+opts.badgeText+'</span>'
       +(opts.actions?'<div class="rq-act">'+opts.actions+'</div>':'')
@@ -4087,16 +4087,67 @@ function admUsersCard_(users){
     +'<div class="tbl-wrap"><table class="admtbl"><tr><th>Tên đăng nhập</th><th>Họ tên</th><th>Vai trò</th><th>Quyền truy cập</th><th>Trạng thái</th><th>Đăng nhập gần nhất</th><th></th></tr>'+rows+'</table></div>';
   return dbCard_('Tài khoản ('+users.length+')','lock','Admin toàn quyền · Nhân viên không mở được trang này.',inner);
 }
+/* ===== Chi tiết đơn mua hàng (Admin bấm vào 1 đơn) ===== */
+async function purDetail(maDon){
+  var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='purOv';
+  ov.onclick=function(e){ if(e.target===ov) purClose(); };
+  ov.innerHTML='<div class="sp-modal pur-modal pd"><div class="pd-head"><h3>'+icon('cart',16)+' Chi tiết đơn mua hàng</h3>'
+    +'<button class="pd-x" onclick="purClose()">✕</button></div><div class="pur-body"><div class="empty" style="padding:26px">Đang tải…</div></div></div>';
+  document.body.appendChild(ov);
+  try{
+    var o=await api('getPurchaseOrder', maDon);
+    ov.querySelector('.pur-body').innerHTML=purDetailHtml_(o);
+  }catch(e){ ov.querySelector('.pur-body').innerHTML='<div class="empty" style="padding:26px">Lỗi tải đơn: '+esc(e.message)+'</div>'; }
+}
+function purClose(){ var o=document.getElementById('purOv'); if(o)o.remove(); }
+function purDetailHtml_(o){
+  var scls={'Đã duyệt':'approved','Từ chối':'rejected','Chờ duyệt':'pending','Đã gửi':'pending'}[o.status]||'pending';
+  var rows=(o.items||[]).map(function(it,i){
+    return '<tr><td class="c">'+(i+1)+'</td>'
+      +'<td class="pur-th">'+(it.hinhAnh?'<img src="'+esc(imgSrc1_(it.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="pur-noimg"></span>')+'</td>'
+      +'<td><b>'+esc(it.ten||'')+'</b>'+(it.ma?'<span class="pur-code">'+esc(it.ma)+'</span>':'')
+        +(it.phong?'<span class="pur-room">'+icon('building',10)+' '+esc(it.phong)+'</span>':'')+'</td>'
+      +'<td>'+esc(it.thuongHieu||'')+'</td>'
+      +'<td class="c">'+esc(it.dvt||'')+'</td>'
+      +'<td class="n">'+(it.sl||0)+'</td>'
+      +'<td class="n">'+money(it.donGia)+'</td>'
+      +'<td class="n b">'+money(it.thanhTien)+'</td></tr>';
+  }).join('') || '<tr><td colspan="8" class="empty" style="padding:18px">Đơn không có sản phẩm.</td></tr>';
+  var info=function(k,v){ return v?('<div class="pur-i"><span>'+esc(k)+'</span><b>'+esc(v)+'</b></div>'):''; };
+  return '<div class="pur-head">'
+      +'<div class="pur-ma">'+esc(o.maDon)+'<span class="drq-badge '+scls+'">'+esc(o.status||'')+'</span></div>'
+      +'<div class="pur-grid">'
+        +info('Nhà cung cấp',o.supplier)+info('Dự án',o.project)
+        +info('Người gửi',o.requester)+info('Phòng ban',o.phongBan)
+        +info('Hạng mục',o.hangMuc)+info('Ngày gửi',fmtDateTime_(o.at))
+        +(o.nguoiDuyet?info('Người duyệt',o.nguoiDuyet):'')
+        +(o.ngayDuyet?info('Ngày duyệt',fmtDateTime_(o.ngayDuyet)):'')
+      +'</div>'+(o.ghiChu?'<div class="pur-note">'+icon('doc',12)+' '+esc(o.ghiChu)+'</div>':'')+'</div>'
+    +'<div class="tbl-wrap pur-tblwrap"><table class="pur-tbl"><thead><tr>'
+      +'<th class="c">STT</th><th>Ảnh</th><th>Sản phẩm</th><th>Thương hiệu</th><th class="c">ĐVT</th>'
+      +'<th class="n">SL</th><th class="n">Đơn giá</th><th class="n">Thành tiền</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
+    +'<div class="pur-tot">'
+      +'<div><span>Tạm tính ('+(o.soSp||0)+' SP)</span><b>'+money(o.tongTruocVat)+' đ</b></div>'
+      +'<div><span>VAT '+(o.vatPct||0)+'%</span><b>'+money(o.vat)+' đ</b></div>'
+      +'<div class="grand"><span>TỔNG THANH TOÁN</span><b>'+money(o.total)+' đ</b></div>'
+    +'</div>'
+    +(o.status==='Chờ duyệt'
+      ? '<div class="pur-act"><button class="btn ghost sm danger" onclick="purResolve(\''+esc(o.maDon)+'\',false);purClose()">Từ chối</button>'
+        +'<button class="btn blue" onclick="purResolve(\''+esc(o.maDon)+'\',true);purClose()">'+icon('check',15)+' Duyệt đơn</button></div>'
+      : '');
+}
 function admPurCard_(purs){
   purs=purs||[]; var pending=purs.filter(function(r){return r.status==='Chờ duyệt';});
   var lbl={'Đã duyệt':'approved','Từ chối':'rejected','Chờ duyệt':'pending','Đã gửi':'pending'};
   var body= purs.length? purs.map(function(r){
     var scls=lbl[r.status]||'pending';
-    return rqItem_({ cls:scls, icon:icon('cart',16),
-      title:'<b>'+esc(r.maDon)+'</b> · '+esc(r.supplier||'—')+' · <span class="rq-amt">'+money(r.total)+'đ</span>',
+    return rqItem_({ cls:scls+' clickable', icon:icon('cart',16),
+      onclick:'purDetail(\''+esc(r.maDon)+'\')',
+      title:'<b>'+esc(r.maDon)+'</b> · '+esc(r.supplier||'—')+' · <span class="rq-amt">'+money(r.total)+'đ</span>'
+        +'<span class="rq-view">'+icon('eye',12)+' Xem chi tiết</span>',
       meta:'Người gửi <b>'+esc(r.requester||'—')+'</b>'+(r.phongBan?(' · '+esc(r.phongBan)):'')+' · Dự án '+esc(r.project||'—')+' · '+(r.soSp||0)+' SP',
       badgeCls:scls, badgeText:esc(r.status||''),
-      actions: scls==='pending'?'<button class="btn blue xs" onclick="purResolve(\''+esc(r.maDon)+'\',true)">Duyệt</button><button class="btn ghost xs danger" onclick="purResolve(\''+esc(r.maDon)+'\',false)">Từ chối</button>':'',
+      actions: scls==='pending'?'<button class="btn blue xs" onclick="event.stopPropagation();purResolve(\''+esc(r.maDon)+'\',true)">Duyệt</button><button class="btn ghost xs danger" onclick="event.stopPropagation();purResolve(\''+esc(r.maDon)+'\',false)">Từ chối</button>':'',
       time: fmtDateTime_(r.at) });
   }).join(''):'<div class="empty">Chưa có đơn mua hàng nào.</div>';
   return '<div class="dbcard" id="purCard"><div class="dbcard-h"><span class="dbcard-ic">'+icon('cart',18)+'</span><h3>Yêu cầu mua hàng</h3>'+(pending.length?'<span class="pend-badge">'+pending.length+' chờ duyệt</span>':'')+'</div><div class="dbcard-b rq-body">'+body+'</div></div>';

@@ -80,6 +80,7 @@ const REGISTRY = {
   listDeleteRequests: auth.listDeleteRequests,
   resolveDeleteRequest: auth.resolveDeleteRequest,
   listPurchaseRequests: auth.listPurchaseRequests,
+  getPurchaseOrder: auth.getPurchaseOrder,
   resolvePurchaseRequest: auth.resolvePurchaseRequest
 };
 // Hàm không cần đăng nhập
@@ -89,12 +90,12 @@ const ACTOR_FNS = new Set(['me', 'logout', 'changePassword',
   'adminCreateUser', 'adminUpdateUser', 'adminSetPassword', 'adminSetActive', 'adminDeleteUser',
   'notifCount', 'notifList', 'notifRead', 'notifReadAll',
   'requestDeleteProducts', 'listDeleteRequests', 'resolveDeleteRequest',
-  'sendPurchaseRequest', 'listPurchaseRequests', 'resolvePurchaseRequest',
+  'sendPurchaseRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest',
   'updateDbProductTracked']);
 // Hàm chỉ Admin được gọi
 const ADMIN_FNS = new Set(['adminListUsers', 'adminCreateUser', 'adminUpdateUser',
   'adminSetPassword', 'adminSetActive', 'adminDeleteUser', 'getAuditLog',
-  'listDeleteRequests', 'resolveDeleteRequest', 'listPurchaseRequests', 'resolvePurchaseRequest',
+  'listDeleteRequests', 'resolveDeleteRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest',
   'deleteDbProduct']);   // Xóa sản phẩm trực tiếp: CHỈ Admin (nhân viên phải gửi yêu cầu)
 
 // ===== Gửi yêu cầu mua hàng tới webhook Lark (bot incoming webhook) =====
