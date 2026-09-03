@@ -2996,7 +2996,8 @@ var DB_GROUPS=[
   {g:'Thông tin cơ bản', f:[
     ['THƯƠNG HIỆU','Thương hiệu','text',1],['NHÀ CUNG CẤP','Nhà cung cấp','text',1],
     ['HẠNG MỤC','Hạng mục','sel',1,['Đèn nội thất','Đèn ngoại thất','Đèn kỹ thuật']],
-    ['DÒNG SẢN PHẨM','Dòng sản phẩm','text',1],['TÊN SẢN PHẨM','Tên sản phẩm','text',1],['MÃ SẢN PHẨM','Mã sản phẩm','text',1] ]},
+    ['DÒNG SẢN PHẨM','Dòng sản phẩm','text',1],['NHÓM SẢN PHẨM','Nhóm sản phẩm','text',0,null,'Để trống = lấy theo Dòng sản phẩm'],
+    ['TÊN SẢN PHẨM','Tên sản phẩm','text',1],['MÃ SẢN PHẨM','Mã sản phẩm','text',1] ]},
   {g:'Thông tin giá bán', note:'Giá đại lý tự tính = Giá bán lẻ × (1 − %Chiết khấu).', f:[
     ['GIÁ BÁN LẺ','Giá bán lẻ','num',1],['CHIẾT KHẤU ĐẠI LÝ (%)','%Chiết khấu','num',1],['GIÁ ĐẠI LÝ','Giá đại lý','calc',1] ]},
   {g:'Key Product Info (Thông tin chính)', f:[
@@ -3016,7 +3017,10 @@ var DB_GROUPS=[
     ['LỖ KHOÉT TRẦN (mm)','Lỗ khoét trần (Cutout)','text',1,null,'VD: Ø75  ·  Ø40×78  ·  60×60'],
     ['CẤP BẢO VỆ ĐIỆN','Cấp bảo vệ điện','sel',0,['Class I','Class II','Class III']] ]},
   {g:'Thương mại', f:[
-    ['BẢO HÀNH (năm)','Bảo hành (năm)','num',0],['ĐƠN VỊ TÍNH','Đơn vị tính','sel',1,['Cái','Bộ','Mét']] ]}
+    ['BẢO HÀNH (năm)','Bảo hành (năm)','num',0],['ĐƠN VỊ TÍNH','Đơn vị tính','sel',1,['Cái','Bộ','Mét']],
+    ['TRẠNG THÁI','Trạng thái','sel',0,['Đang kinh doanh','Ngưng kinh doanh','Đặt hàng']],
+    ['LINK DATASHEET','Link tài liệu kỹ thuật','text',0,null,'Dán link PDF catalogue / datasheet'],
+    ['GHI CHÚ','Ghi chú','area',0] ]}
 ];
 var DB_FLAT=[]; DB_GROUPS.forEach(function(gr){ gr.f.forEach(function(f){ DB_FLAT.push(f); }); });
 function dbInput(f){
