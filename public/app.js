@@ -1140,7 +1140,7 @@ var SP_EDIT_FIELDS=[
   ['THƯƠNG HIỆU','thuong_hieu','text'],['NHÀ CUNG CẤP','nha_cung_cap','text'],
   ['DÒNG SẢN PHẨM','dong_sp','text'],['ĐƠN VỊ TÍNH','dvt','text'],
   ['GIÁ BÁN LẺ','gia_ban_le','num'],['CHIẾT KHẤU ĐẠI LÝ (%)','ck_dai_ly_pct','num'],
-  ['CÔNG SUẤT (W)','cong_suat_w','num'],['NHIỆT ĐỘ MÀU (K)','nhiet_do_mau_k','text'],
+  ['CÔNG SUẤT (W)','cong_suat_w','text'],['NHIỆT ĐỘ MÀU (K)','nhiet_do_mau_k','text'],
   ['GÓC CHIẾU (°)','goc_chieu_deg','text'],['CRI','cri','text'],
   ['CHẤT LIỆU','chat_lieu','text'],['TRẠNG THÁI','trang_thai','text'],['GHI CHÚ','ghi_chu','area']
 ];
@@ -2872,7 +2872,7 @@ var DB_GROUPS=[
   {g:'Thông tin giá bán', note:'Giá đại lý tự tính = Giá bán lẻ × (1 − %Chiết khấu).', f:[
     ['GIÁ BÁN LẺ','Giá bán lẻ','num',1],['CHIẾT KHẤU ĐẠI LÝ (%)','%Chiết khấu','num',1],['GIÁ ĐẠI LÝ','Giá đại lý','calc',1] ]},
   {g:'Key Product Info (Thông tin chính)', f:[
-    ['CÔNG SUẤT (W)','Công suất','num',1],['NHIỆT ĐỘ MÀU (K)','Nhiệt độ màu','sel',1,['2700','3000','4000','5000','6500']],
+    ['CÔNG SUẤT (W)','Công suất','text',1,null,'VD: 7  ·  2×5  ·  9/18'],['NHIỆT ĐỘ MÀU (K)','Nhiệt độ màu','sel',1,['2700','3000','4000','5000','6500']],
     ['GÓC CHIẾU (°)','Góc chiếu','num',1],['MÀU SẮC','Màu sắc','text',1],['CHẤT LIỆU','Chất liệu','text',1] ]},
   {g:'Thông số thiết kế', f:[
     ['GÓC NGHIÊNG (°)','Góc nghiêng','num',0],['CHIỀU CAO (mm)','Chiều cao','num',0],['ĐƯỜNG KÍNH (mm)','Đường kính','num',1] ]},
@@ -2987,6 +2987,7 @@ function renderImport(){
       +'<div class="field"><label>Nhiệt độ màu (K)</label><input id="varKelvin" placeholder="VD: 3000, 4000, 6500" oninput="varPreview_()"></div>'
       +'<div class="field"><label>Công suất (W)</label><input id="varWatt" placeholder="VD: 7, 9, 12" oninput="varPreview_()"></div>'
       +'<div class="field"><label>Góc chiếu (°)</label><input id="varAngle" placeholder="VD: 24, 36, 60" oninput="varPreview_()"></div>'
+      +'<div class="field"><label>Màu sắc</label><input id="varColor" placeholder="VD: Đen, Trắng, Vàng" oninput="varPreview_()"></div>'
       +'</div><div class="var-note" id="varNote">Bỏ trống = chỉ tạo 1 sản phẩm theo thông số đã nhập ở trên.</div>')
     +dbCard_('Ghi danh vào dự án','building','Tuỳ chọn — đưa sản phẩm này vào một dự án ngay sau khi lưu vào Database.',
       '<div class="dbgrid">'
@@ -3207,19 +3208,21 @@ async function impCommit(btn){
 function varList_(id){ var e=document.getElementById(id); if(!e) return [];
   return String(e.value||'').split(',').map(function(x){return x.trim();}).filter(Boolean); }
 function varCombos_(){
-  var K=varList_('varKelvin'), W=varList_('varWatt'), A=varList_('varAngle');
-  if(!K.length && !W.length && !A.length) return [];          // không dùng biến thể
+  var K=varList_('varKelvin'), W=varList_('varWatt'), A=varList_('varAngle'), C=varList_('varColor');
+  if(!K.length && !W.length && !A.length && !C.length) return [];   // không dùng biến thể
   var out=[];
   (K.length?K:[null]).forEach(function(k){
     (W.length?W:[null]).forEach(function(w){
-      (A.length?A:[null]).forEach(function(a){ out.push({k:k,w:w,a:a}); });
+      (A.length?A:[null]).forEach(function(a){
+        (C.length?C:[null]).forEach(function(c){ out.push({k:k,w:w,a:a,c:c}); });
+      });
     });
   });
   return out;
 }
 function varPreview_(){
   var el=document.getElementById('varNote'); if(!el) return;
-  var K=varList_('varKelvin'), W=varList_('varWatt'), A=varList_('varAngle');
+  var K=varList_('varKelvin'), W=varList_('varWatt'), A=varList_('varAngle'), C=varList_('varColor');
   var c=varCombos_();
   if(!c.length){ el.className='var-note'; el.textContent='Bỏ trống = chỉ tạo 1 sản phẩm theo thông số đã nhập ở trên.'; return; }
   // Ghi RÕ phép nhân để không hiểu nhầm số lượng (VD 2 nhiệt độ × 2 góc = 4, KHÔNG phải 12)
@@ -3227,9 +3230,10 @@ function varPreview_(){
   if(K.length) parts.push(K.length+' nhiệt độ');
   if(W.length) parts.push(W.length+' công suất');
   if(A.length) parts.push(A.length+' góc');
+  if(C.length) parts.push(C.length+' màu');
   el.className='var-note on';
   el.innerHTML='<div class="var-math">'+parts.join(' <b>×</b> ')+' <b>=</b> <span class="var-total">'+c.length+' sản phẩm</span></div>'
-    +'<div class="var-list">'+c.slice(0,8).map(function(x){ return '<span class="var-chip">'+[x.w?x.w+'W':'',x.k?x.k+'K':'',x.a?x.a+'°':''].filter(Boolean).join(' · ')+'</span>'; }).join('')
+    +'<div class="var-list">'+c.slice(0,8).map(function(x){ return '<span class="var-chip">'+[x.w?x.w+'W':'',x.k?x.k+'K':'',x.a?x.a+'°':'',x.c||''].filter(Boolean).join(' · ')+'</span>'; }).join('')
     +(c.length>8?' <i>… +'+(c.length-8)+' nữa</i>':'')+'</div>';
 }
 async function tdSave(btn){
@@ -3254,9 +3258,10 @@ async function tdSave(btn){
         if(c.k) d2['NHIỆT ĐỘ MÀU (K)']=c.k;
         if(c.w) d2['CÔNG SUẤT (W)']=c.w;
         if(c.a) d2['GÓC CHIẾU (°)']=c.a;
+        if(c.c) d2['MÀU SẮC']=c.c;
         if(btn) btn.textContent='⏳ Đang lưu biến thể '+(ci+1)+'/'+combos.length+'…';
         try{ await api('saveDbProduct',d2); okN++; }
-        catch(e2){ errN++; if(varErrs.length<3) varErrs.push([c.w?c.w+'W':'',c.k?c.k+'K':'',c.a?c.a+'°':''].filter(Boolean).join('/')+': '+e2.message.slice(0,70)); }
+        catch(e2){ errN++; if(varErrs.length<3) varErrs.push([c.w?c.w+'W':'',c.k?c.k+'K':'',c.a?c.a+'°':'',c.c||''].filter(Boolean).join('/')+': '+e2.message.slice(0,70)); }
       }
       r={updated:false};
       sessionAdd_({ten:ten+' ('+okN+' biến thể)', thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'', hinhAnh:data['ẢNH SẢN PHẨM']||''});

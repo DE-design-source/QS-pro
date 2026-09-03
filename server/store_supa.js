@@ -279,7 +279,7 @@ async function saveCover(maDA, rows) {
 }
 
 /*** ===== SP MỚI / ẢNH ===== ***/
-const DB_NUM = ['CÔNG SUẤT (W)', 'NHIỆT ĐỘ MÀU (K)', 'QUANG THÔNG (lm)', 'GÓC CHIẾU (°)', 'GÓC NGHIÊNG (°)',
+const DB_NUM = ['NHIỆT ĐỘ MÀU (K)', 'QUANG THÔNG (lm)', 'GÓC CHIẾU (°)', 'GÓC NGHIÊNG (°)',
   'CHIỀU CAO (mm)', 'ĐƯỜNG KÍNH (mm)', 'HIỆU SUẤT PHÁT QUANG (lm/W)', 'DÒNG RA TỐI ĐA (mA)',
   'BẢO HÀNH (năm)', 'GIÁ BÁN LẺ', 'CHIẾT KHẤU ĐẠI LÝ (%)'];
 const DB_LABEL2COL = {
@@ -311,7 +311,7 @@ async function saveDbProduct(data) {
   // Nhờ vậy cùng mã nhưng khác nhiệt độ màu sẽ là 2 SẢN PHẨM RIÊNG (biến thể), không ghi đè nhau.
   if (ma) {
     let filter = supa.eq('ma_sp', ma);
-    ['nhiet_do_mau_k', 'cong_suat_w', 'goc_chieu_deg'].forEach(function (col) {
+    ['nhiet_do_mau_k', 'cong_suat_w', 'goc_chieu_deg', 'mau_sac'].forEach(function (col) {
       const v = row[col];
       filter += '&' + (v == null || v === '' ? col + '=is.null' : supa.eq(col, v));
     });
