@@ -1135,16 +1135,39 @@ function spModal(i){
 }
 function spClose(){ var o=document.getElementById('spModalOv'); if(o)o.remove(); }
 // ===== Cập nhật sản phẩm + lịch sử =====
-var SP_EDIT_FIELDS=[
-  ['TÊN SẢN PHẨM','ten_sp','text'],['MÃ SẢN PHẨM','ma_sp','ro'],
-  ['THƯƠNG HIỆU','thuong_hieu','text'],['NHÀ CUNG CẤP','nha_cung_cap','text'],
-  ['DÒNG SẢN PHẨM','dong_sp','text'],['ĐƠN VỊ TÍNH','dvt','text'],
-  ['GIÁ BÁN LẺ','gia_ban_le','num'],['CHIẾT KHẤU ĐẠI LÝ (%)','ck_dai_ly_pct','num'],
-  ['CÔNG SUẤT (W)','cong_suat_w','text'],['NHIỆT ĐỘ MÀU (K)','nhiet_do_mau_k','text'],
-  ['GÓC CHIẾU (°)','goc_chieu_deg','text'],['CRI','cri','text'],
-  ['CHẤT LIỆU','chat_lieu','text'],['TRẠNG THÁI','trang_thai','text'],['GHI CHÚ','ghi_chu','area']
-];
-var SP_COL2LABEL_={}; SP_EDIT_FIELDS.forEach(function(f){ SP_COL2LABEL_[f[1]]=f[0]; });
+// Nhãn (Lark) -> cột DB. Modal SỬA dùng CHUNG DB_GROUPS với form NHẬP -> 2 bên luôn giống nhau.
+var DB_LABEL2COL_={
+  'MÃ SẢN PHẨM':'ma_sp','TÊN SẢN PHẨM':'ten_sp','DÒNG SẢN PHẨM':'dong_sp','HẠNG MỤC':'hang_muc','NHÓM SẢN PHẨM':'nhom_sp',
+  'THƯƠNG HIỆU':'thuong_hieu','NHÀ CUNG CẤP':'nha_cung_cap','CÔNG SUẤT (W)':'cong_suat_w','NHIỆT ĐỘ MÀU (K)':'nhiet_do_mau_k',
+  'QUANG THÔNG (lm)':'quang_thong_lm','GÓC CHIẾU (°)':'goc_chieu_deg','GÓC NGHIÊNG (°)':'goc_nghieng_deg','MÀU SẮC':'mau_sac',
+  'CHẤT LIỆU':'chat_lieu','CHIỀU CAO (mm)':'chieu_cao_mm','ĐƯỜNG KÍNH (mm)':'duong_kinh_mm','LỖ KHOÉT TRẦN (mm)':'cutout_mm',
+  'CHỈ SỐ IP':'chi_so_ip','CRI':'cri','HIỆU SUẤT PHÁT QUANG (lm/W)':'hieu_suat_lm_w','UGR':'ugr','SDCM':'sdcm','COI':'coi',
+  'TUỔI THỌ':'tuoi_tho','LOẠI CHIP LED':'loai_chip_led','CẤP BẢO VỆ ĐIỆN':'class_rating','LẮP NGUỒN RỜI':'lap_nguon_roi',
+  'TÊN BỘ NGUỒN':'ten_bo_nguon','MÃ BỘ NGUỒN':'ma_bo_nguon','HÃNG BỘ NGUỒN':'hang_bo_nguon','VỊ TRÍ LẮP NGUỒN':'vi_tri_lap_nguon',
+  'TƯƠNG THÍCH ĐIỀU KHIỂN':'dieu_khien','DÒNG RA TỐI ĐA (mA)':'dong_ra_max_ma','BẢO HÀNH (năm)':'bao_hanh_nam','ĐƠN VỊ TÍNH':'dvt',
+  'GIÁ BÁN LẺ':'gia_ban_le','CHIẾT KHẤU ĐẠI LÝ (%)':'ck_dai_ly_pct','ẢNH SẢN PHẨM':'anh_sp','LINK DATASHEET':'link_datasheet',
+  'TRẠNG THÁI':'trang_thai','GHI CHÚ':'ghi_chu',
+  'GIÁ ĐẠI LÝ':'gia_dai_ly'   // chỉ HIỂN THỊ: cột tự tính, server bỏ qua khi lưu
+};
+var SP_COL2LABEL_={}; Object.keys(DB_LABEL2COL_).forEach(function(k){ SP_COL2LABEL_[DB_LABEL2COL_[k]]=k; });
+// Dựng 1 ô nhập trong modal Sửa theo ĐÚNG định nghĩa của form Nhập (nhãn, kiểu, gợi ý, danh sách chọn)
+function speField_(f, raw){
+  var lark=f[0], label=f[1], type=f[2], req=f[3], opts=f[4]||[], ph=f[5]||label;
+  var col=DB_LABEL2COL_[lark]; if(!col) return '';
+  var val=raw[col]==null?'':String(raw[col]);
+  if(lark==='LẮP NGUỒN RỜI') val=(val===true||val==='true')?'Có':(val?'Có':'');
+  var star=req?' <span class="spe-req">*</span>':'';
+  var inner;
+  if(type==='area') inner='<textarea data-col="'+col+'" placeholder="'+esc(ph)+'">'+esc(val)+'</textarea>';
+  else if(type==='calc') inner='<input data-col="'+col+'" class="calc" value="'+esc(val)+'" readonly placeholder="Tự tính từ giá bán & %CK">';
+  else if(type==='sel') inner='<input data-col="'+col+'" list="spe_dl_'+col+'" value="'+esc(val)+'" placeholder="'+esc(ph)+'">'
+      +'<datalist id="spe_dl_'+col+'">'+opts.map(function(o){return '<option value="'+esc(o)+'">';}).join('')+'</datalist>';
+  else {
+    var trg=(lark==='GIÁ BÁN LẺ'||lark==='CHIẾT KHẤU ĐẠI LÝ (%)')?' oninput="speCalcDaiLy_()"':'';
+    inner='<input type="'+(type==='num'?'number':'text')+'" data-col="'+col+'" value="'+esc(val)+'" placeholder="'+esc(ph)+'"'+trg+(lark==='MÃ SẢN PHẨM'?' readonly':'')+'>';
+  }
+  return '<div class="spe-f'+(type==='area'?' wide':'')+'"><label>'+esc(label)+star+'</label>'+inner+'</div>';
+}
 function fmtDateTime_(v){ if(!v) return ''; var d=new Date(v); if(isNaN(d)) return String(v);
   function z(n){return (n<10?'0':'')+n;} return z(d.getDate())+'/'+z(d.getMonth()+1)+'/'+d.getFullYear()+' '+z(d.getHours())+':'+z(d.getMinutes()); }
 async function spEditModal(i){
@@ -1162,16 +1185,18 @@ async function spEditModal(i){
   // tách anh_sp: ảnh đầu = đại diện, còn lại = ảnh chi tiết/mô tả (dùng chung bộ upload với trang Nhập dữ liệu)
   var imgsRaw=String(raw.anh_sp||'').split('\n').map(function(s){return s.trim();}).filter(Boolean);
   S._imgMain=imgsRaw[0]||''; S._imgList=imgsRaw.slice(1);
-  var fields=SP_EDIT_FIELDS.map(function(f){ var val=raw[f[1]]==null?'':raw[f[1]];
-    if(f[2]==='area') return '<div class="spe-f wide"><label>'+esc(f[0])+'</label><textarea data-col="'+f[1]+'">'+esc(val)+'</textarea></div>';
-    return '<div class="spe-f"><label>'+esc(f[0])+'</label><input type="'+(f[2]==='num'?'number':'text')+'" data-col="'+f[1]+'" value="'+esc(val)+'"'+(f[2]==='ro'?' readonly':'')+'></div>';
+  // ĐẦY ĐỦ trường, chia nhóm y hệt form Nhập dữ liệu
+  var fields=DB_GROUPS.map(function(gr){
+    var inner=gr.f.map(function(f){ return speField_(f, raw); }).join('');
+    if(!inner) return '';
+    return '<div class="spe-grp"><div class="spe-grp-h">'+esc(gr.g)+'</div><div class="spe-fields">'+inner+'</div></div>';
   }).join('');
   var histHtml=hist.length?hist.map(function(h){
     return '<div class="spe-h"><div class="spe-h-top"><b>'+esc(h.field)+'</b><span class="spe-h-by">'+icon('clock',11)+' '+esc(h.by||'?')+' · '+fmtDateTime_(h.at)+'</span></div>'
       +'<div class="spe-h-diff"><span class="old">'+esc(h.old||'—')+'</span><span class="arr">→</span><span class="new">'+esc(h.new||'—')+'</span></div></div>';
   }).join(''):'<div class="empty" style="padding:14px;font-size:12.5px">Chưa có lịch sử cập nhật.</div>';
   ov.querySelector('.spe-body').innerHTML=spEditImgSection_()
-    +'<div class="spe-fields">'+fields+'</div>'
+    +fields
     +'<div class="spe-actions"><button class="btn ghost sm" onclick="spEditClose()">Huỷ</button><button class="btn blue" id="speSaveBtn" onclick="spEditSave()">'+icon('check',15)+' Lưu cập nhật</button></div>'
     +'<div class="spe-hist"><div class="spe-hist-h">'+icon('clock',15)+' Lịch sử cập nhật <span class="spe-hist-n">'+hist.length+'</span></div><div class="spe-hist-list">'+histHtml+'</div></div>';
 }
@@ -1187,11 +1212,22 @@ function spEditImgSection_(){
       +'<div class="upurl"><input id="upMoreUrl" placeholder="Hoặc dán URL ảnh…"><button class="btn blue sm" onclick="upAddUrl(\'more\')">Thêm</button></div></div>'
     +'</div>';
 }
+// Giá đại lý = Giá bán lẻ × (1 − CK%) — tính lại ngay trong modal Sửa (giống form Nhập)
+function speCalcDaiLy_(){
+  var ov=document.getElementById('spEditOv'); if(!ov) return;
+  function v(c){ var e=ov.querySelector('[data-col="'+c+'"]'); return e?(Number(e.value)||0):0; }
+  var out=ov.querySelector('[data-col="gia_dai_ly"]'); if(!out) return;
+  var g=v('gia_ban_le'), ck=v('ck_dai_ly_pct');
+  out.value = g? Math.round(g*(1-ck/100)) : '';
+}
 function spEditClose(){ var o=document.getElementById('spEditOv'); if(o)o.remove(); }
 async function spEditSave(){
   var ov=document.getElementById('spEditOv'); if(!ov) return;
   var data={};
-  ov.querySelectorAll('[data-col]').forEach(function(el){ var lbl=SP_COL2LABEL_[el.getAttribute('data-col')]; if(lbl) data[lbl]=el.value; });
+  ov.querySelectorAll('[data-col]').forEach(function(el){
+    var col=el.getAttribute('data-col'); if(col==='gia_dai_ly') return;   // cột tự tính, không gửi
+    var lbl=SP_COL2LABEL_[col]; if(lbl) data[lbl]=el.value;
+  });
   var btn=document.getElementById('speSaveBtn'); if(btn){ btn.disabled=true; btn.textContent='Đang lưu…'; }
   if((S._imgUploading||0)>0){ if(btn) btn.textContent='⏳ Đợi tải ảnh…'; await waitUploads_(15000); }
   // gộp ảnh: đại diện (đầu) + chi tiết; bỏ preview base64 chưa upload xong
