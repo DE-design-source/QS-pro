@@ -912,8 +912,33 @@ var SP_COLS=[
   ['nhietDo','Nhiệt độ màu','ct',function(p){ return p.nhietDo?'<span class="spec k">'+esc(p.nhietDo)+'</span>':'—'; }],
   ['gocChieu','Góc chiếu','ct',function(p){ return p.gocChieu?esc(p.gocChieu):'—'; }],
   ['cri','CRI','ct',function(p){ return p.cri?'CRI '+esc(p.cri):'—'; }],
+  ['giaBanLe','Giá bán lẻ','num',function(p,i){ return spCell_(i,'GIÁ BÁN LẺ', p.giaBanLe!=null?p.giaBanLe:'', 'đ'); }],
+  ['ckDaiLy','Chiết khấu','num',function(p,i){ return spCell_(i,'CHIẾT KHẤU ĐẠI LÝ (%)', p.ckDaiLy!=null?p.ckDaiLy:'', '%'); }],
   ['giaDaiLy','Giá đại lý','num sp-price',function(p){ return money(p.donGiaBan)+'<span class="unit">đ</span>'; }]
 ];
+// Ô SỬA TRỰC TIẾP trong bảng (không cần mở modal)
+function spCell_(i,lark,val,unit){
+  return '<span class="spin-wrap" onclick="event.stopPropagation()">'
+    +'<input class="spin" value="'+esc(val==null?'':String(val))+'" data-i="'+i+'" data-lark="'+esc(lark)+'"'
+    +' onchange="spInlineSave(this)" onkeydown="if(event.key===\'Enter\')this.blur()">'
+    +'<i>'+unit+'</i></span>';
+}
+async function spInlineSave(el){
+  var i=+el.getAttribute('data-i'), lark=el.getAttribute('data-lark');
+  var p=(S._spList||[])[i]; if(!p) return;
+  var v=String(el.value).trim();
+  el.classList.remove('err','ok'); el.classList.add('saving');
+  var d={}; d['MÃ SẢN PHẨM']=p.ma; d[lark]=v;
+  try{
+    await api('updateDbProductTracked', String(p.recordId||p.ma), d);
+    el.classList.remove('saving'); el.classList.add('ok');
+    S.products=await api('getProducts')||S.products;
+    setTimeout(function(){ spFilter(); },420);
+  }catch(e){
+    el.classList.remove('saving'); el.classList.add('err');
+    toast('Lỗi lưu: '+e.message.slice(0,90));
+  }
+}
 function spColOn_(k){ return k==='ten' ? true : !!(S._spCols&&S._spCols[k]); }
 function spThCls_(c){ var cl=c[2]||''; if(cl.indexOf('num')>=0)return 'num'; if(cl.indexOf('ct')>=0)return 'ct'; if(cl.indexOf('thumbcol')>=0)return 'thumbcol'; return ''; }
 function spVisCols_(){ return SP_COLS.filter(function(c){ return spColOn_(c[0]); }); }
@@ -1082,10 +1107,10 @@ function spFilter(){
   var isAdmin=S.me&&S.me.role==='admin';
   var vis=spVisCols_(), ncol=vis.length+2;
   document.getElementById('spBody').innerHTML=list.length?list.map(function(p,i){
-    var sel=!!S._spSel[p.ma];
+    var selKey=String(p.recordId||p.ma||''); var sel=!!S._spSel[selKey];
     return '<tr class="sp-row'+(sel?' selrow':'')+'" draggable="true" ondragstart="spRowDragStart(event,'+i+')" ondragend="spRowDragEnd()" onclick="spModal('+i+')">'
-      +'<td class="selcol" onclick="event.stopPropagation()"><input type="checkbox" class="spck" '+(sel?'checked':'')+' onclick="spSelToggle(\''+esc(p.ma)+'\',this.checked)"></td>'
-      +vis.map(function(c){ return '<td class="'+c[2]+'">'+c[3](p)+'</td>'; }).join('')
+      +'<td class="selcol" onclick="event.stopPropagation()"><input type="checkbox" class="spck" '+(sel?'checked':'')+' onclick="spSelToggle(\''+esc(selKey)+'\',this.checked)"></td>'
+      +vis.map(function(c){ return '<td class="'+c[2]+'">'+c[3](p,i)+'</td>'; }).join('')
       +'<td class="act-sp" onclick="event.stopPropagation()">'
         +'<button class="sp-act add" title="Ghi danh vào dự án" onclick="spAddToProject('+i+')">'+icon('pluscircle',18)+'</button>'
         +'<button class="sp-act edit" title="Cập nhật sản phẩm" onclick="spEditModal('+i+')">'+icon('edit',16)+'</button>'
@@ -1093,25 +1118,61 @@ function spFilter(){
         +(isAdmin?'<button class="sp-act del" title="Xoá" onclick="spDelete('+i+')">'+icon('trash',16)+'</button>':'')+'</td>'
     +'</tr>';
   }).join(''):'<tr><td colspan="'+ncol+'"><div class="empty" style="margin:10px">Không có sản phẩm khớp bộ lọc.</div></td></tr>';
-  var all=document.getElementById('spCkAll'); if(all) all.checked = list.length>0 && list.every(function(p){return S._spSel[p.ma];});
+  var all=document.getElementById('spCkAll'); if(all) all.checked = list.length>0 && list.every(function(p){return S._spSel[String(p.recordId||p.ma||'')];});
   spBulkBar_();
 }
-function spSelToggle(ma,on){ S._spSel=S._spSel||{}; if(on) S._spSel[ma]=1; else delete S._spSel[ma]; spFilter(); }
-function spSelAll(on){ S._spSel={}; if(on)(S._spList||[]).forEach(function(p){ if(p.ma) S._spSel[p.ma]=1; }); spFilter(); }
+function spSelToggle(k,on){ S._spSel=S._spSel||{}; if(on) S._spSel[k]=1; else delete S._spSel[k]; spFilter(); }
+function spSelAll(on){ S._spSel={}; if(on)(S._spList||[]).forEach(function(p){ var k=String(p.recordId||p.ma||''); if(k) S._spSel[k]=1; }); spFilter(); }
+// đổi khoá đã chọn -> danh sách sản phẩm tương ứng
+function spSelProds_(){ var sel=S._spSel||{};
+  return (S._spList||[]).concat(S.products||[]).filter(function(p,i,arr){
+    var k=String(p.recordId||p.ma||''); if(!sel[k]) return false;
+    return arr.findIndex(function(q){return String(q.recordId||q.ma||'')===k;})===i;   // bỏ trùng
+  }); }
 function spClearSel(){ S._spSel={}; spFilter(); }
 function spBulkBar_(){
   var wrap=document.getElementById('spBulkWrap'); if(!wrap) return;
   var n=Object.keys(S._spSel||{}).length; if(!n){ wrap.innerHTML=''; return; }
   var isAdmin=S.me&&S.me.role==='admin';
-  wrap.innerHTML='<div class="spbulk"><span class="n">Đã chọn '+n+' sản phẩm</span><span class="sp"></span>'
+  var FIELDS=[['CHIẾT KHẤU ĐẠI LÝ (%)','Chiết khấu (%)'],['GIÁ BÁN LẺ','Giá bán lẻ'],['THƯƠNG HIỆU','Thương hiệu'],
+              ['NHÀ CUNG CẤP','Nhà cung cấp'],['HẠNG MỤC','Hạng mục SP'],['DÒNG SẢN PHẨM','Dòng sản phẩm'],
+              ['BẢO HÀNH (năm)','Bảo hành (năm)'],['TRẠNG THÁI','Trạng thái'],['ĐƠN VỊ TÍNH','Đơn vị tính']];
+  wrap.innerHTML='<div class="spbulk"><span class="n">Đã chọn '+n+' sản phẩm</span>'
+    +'<span class="spb-sep"></span>'
+    +'<span class="spb-lb">Sửa hàng loạt:</span>'
+    +'<select class="spb-sel" id="spbField">'+FIELDS.map(function(f){return '<option value="'+esc(f[0])+'">'+esc(f[1])+'</option>';}).join('')+'</select>'
+    +'<input class="spb-in" id="spbValue" placeholder="Giá trị mới…" onkeydown="if(event.key===\'Enter\')spBulkApply()">'
+    +'<button class="go" id="spbApplyBtn" onclick="spBulkApply()">'+icon('check',13)+' Áp dụng cho '+n+'</button>'
+    +'<span class="sp" style="flex:1"></span>'
     +'<button class="clr" onclick="spClearSel()">Bỏ chọn</button>'
-    +(isAdmin?'<button class="go red" onclick="spBulkDelete()">Xóa '+n+' sản phẩm</button>'
+    +(isAdmin?'<button class="go red" onclick="spBulkDelete()">Xóa '+n+'</button>'
              :'<button class="go" onclick="spBulkRequest()">Gửi yêu cầu xóa ('+n+')</button>')+'</div>';
 }
+// SỬA HÀNG LOẠT: đặt 1 giá trị cho tất cả SP đang chọn
+async function spBulkApply(){
+  var f=document.getElementById('spbField'), v=document.getElementById('spbValue'), btn=document.getElementById('spbApplyBtn');
+  if(!f||!v) return;
+  var lark=f.value, val=String(v.value).trim(), label=f.options[f.selectedIndex].text;
+  if(val===''){ toast('Chưa nhập giá trị mới'); v.focus(); return; }
+  var prods=spSelProds_(); if(!prods.length) return;
+  if(!confirm('Đặt "'+label+'" = "'+val+'" cho '+prods.length+' sản phẩm đã chọn?')) return;
+  if(btn){ btn.disabled=true; }
+  var ok=0, errs=[];
+  for(var i=0;i<prods.length;i++){
+    if(btn) btn.textContent='⏳ '+(i+1)+'/'+prods.length+'…';
+    var d={}; d['MÃ SẢN PHẨM']=prods[i].ma; d[lark]=val;
+    try{ await api('updateDbProductTracked', String(prods[i].recordId||prods[i].ma), d); ok++; }
+    catch(e){ if(errs.length<3) errs.push((prods[i].ma||'?')+': '+e.message.slice(0,60)); }
+  }
+  S.products=await api('getProducts')||S.products;
+  spFilter(); renderFilters&&renderFilters(); renderCatalog&&renderCatalog();
+  if(errs.length) toast('Cập nhật '+ok+'/'+prods.length+' — lỗi: '+errs.join(' | '));
+  else toast('Đã đặt '+label+' = "'+val+'" cho '+ok+' sản phẩm');
+}
 async function spBulkDelete(){
-  var mas=Object.keys(S._spSel||{}); if(!mas.length) return;
-  if(!confirm('Xóa '+mas.length+' sản phẩm khỏi danh mục? Không thể hoàn tác.')) return;
-  var ok=0; for(var i=0;i<mas.length;i++){ try{ await api('deleteDbProduct', mas[i]); ok++; }catch(e){} }
+  var keys=Object.keys(S._spSel||{}); if(!keys.length) return;
+  if(!confirm('Xóa '+keys.length+' sản phẩm khỏi danh mục? Không thể hoàn tác.')) return;
+  var ok=0; for(var i=0;i<keys.length;i++){ try{ await api('deleteDbProduct', keys[i]); ok++; }catch(e){} }
   S._spSel={}; S.products=await api('getProducts')||S.products; spFilter(); renderFilters&&renderFilters(); renderCatalog&&renderCatalog();
   toast('Đã xóa '+ok+' sản phẩm');
 }

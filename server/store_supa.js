@@ -63,6 +63,7 @@ function prodToObj(r) {
     lapNguonRoi: r.lap_nguon_roi ? 'Có' : '', capBaoVeDien: s(r.class_rating), linkDatasheet: s(r.link_datasheet),
     kichThuoc: thongSoTK, size: size,
     dvt: s(r.dvt) || 'Cái', hinhAnh: firstImg(r.anh_sp), moTa: moTa,
+    giaBanLe: n(r.gia_ban_le), ckDaiLy: n(r.ck_dai_ly_pct),   // để sửa TRỰC TIẾP trong bảng Danh sách SP
     donGiaVon: n(r.gia_dai_ly), donGiaBan: n(r.gia_dai_ly), lnPct: 0, recordId: r.id, ngayCapNhat: s(r.ngay_cap_nhat)
   };
 }
