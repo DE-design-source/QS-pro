@@ -67,6 +67,8 @@ COLS.forEach(function(c){ S.cols[c[0]]=!!c[2]; });
 
 /* ===== Bộ icon SVG line đồng nhất (kiểu Lucide, theo màu chữ) ===== */
 var ICONS={
+  link:'<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
+  star:'<path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/>',
   power:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
   temp:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/>',
   color:'<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',
@@ -1292,17 +1294,7 @@ async function spEditModal(i){
     +'<div class="spe-hist"><div class="spe-hist-h">'+icon('clock',15)+' Lịch sử cập nhật <span class="spe-hist-n">'+hist.length+'</span></div><div class="spe-hist-list">'+histHtml+'</div></div>';
 }
 // 2 vùng ảnh (đại diện + chi tiết) — DÙNG ĐÚNG layout .imgup của trang Nhập dữ liệu (2 cột đều, đồng nhất)
-function spEditImgSection_(){
-  return '<div class="imgup spe-imgup">'
-    +'<div><div class="uplabel">Hình đại diện</div>'
-      +'<div class="upzone upmain" id="upMain" onclick="upPick(\'main\')" ondragover="upDrag(event,1)" ondragleave="upDrag(event,0)" ondrop="upDrop(event,\'main\')">'+upMainInner()+'</div>'
-      +'<div class="upurl"><input id="upMainUrl" placeholder="Hoặc dán URL ảnh…"><button class="btn blue sm" onclick="upAddUrl(\'main\')">Thêm</button></div></div>'
-    +'<div><div class="uplabel">Hình chi tiết sản phẩm</div>'
-      +'<div class="upzone" id="upMore" onclick="upPick(\'more\')" ondragover="upDrag(event,1)" ondragleave="upDrag(event,0)" ondrop="upDrop(event,\'more\')"><div class="upic">'+icon('camera',28)+'</div>Kéo/thả hoặc bấm để chọn <b>hình chi tiết sản phẩm</b></div>'
-      +'<div class="upgrid" id="upGrid">'+upGridInner()+'</div>'
-      +'<div class="upurl"><input id="upMoreUrl" placeholder="Hoặc dán URL ảnh…"><button class="btn blue sm" onclick="upAddUrl(\'more\')">Thêm</button></div></div>'
-    +'</div>';
-}
+function spEditImgSection_(){ return imgUpBlock_('spe-imgup'); }
 // Giá đại lý = Giá bán lẻ × (1 − CK%) — tính lại ngay trong modal Sửa (giống form Nhập)
 function speCalcDaiLy_(){
   var ov=document.getElementById('spEditOv'); if(!ov) return;
@@ -3050,27 +3042,65 @@ function imgPop_(src){ if(!src)return; var o=document.getElementById('imgPop'); 
 function imgSrc1_(v){ return imgUrlOf(String(v||'').split('\n')[0].trim()); }
 function upMainInner(){
   return S._imgMain
-    ? '<img src="'+esc(imgUrlOf(S._imgMain))+'" onerror="this.replaceWith(document.createTextNode(\'ảnh lỗi\'))"><button class="upx" title="Xoá" onclick="event.stopPropagation();upRemove(\'main\')">✕</button>'
-    : '<div class="upic">'+icon('camera',28)+'</div>Kéo/thả hoặc bấm để chọn <b>hình đại diện</b>';
+    ? '<img src="'+esc(imgUrlOf(S._imgMain))+'" onerror="this.replaceWith(document.createTextNode(\'ảnh lỗi\'))">'
+      +'<button class="upx" title="Xoá ảnh" onclick="event.stopPropagation();upRemove(\'main\')">✕</button>'
+      +'<span class="up-swap">'+icon('edit',12)+' Đổi ảnh</span>'
+    : '<div class="upic">'+icon('camera',26)+'</div>'
+      +'<div class="up-t">Kéo/thả hoặc bấm để chọn</div>'
+      +'<div class="up-s">ảnh chính hiện trong bảng &amp; báo giá</div>'
+      +'<div class="up-paste">'+icon('copy',11)+' hoặc dán ảnh bằng Ctrl+V</div>';
 }
 function upGridInner(){
-  return (S._imgList||[]).map(function(v,i){ return '<div class="upthumb"><img src="'+esc(imgUrlOf(v))+'"><button class="upx" onclick="upRemove(\'more\','+i+')">✕</button></div>'; }).join('')
-    || '<span style="color:#9aa;font-size:12px">Chưa có ảnh chi tiết.</span>';
+  return (S._imgList||[]).map(function(v,i){
+    return '<div class="upthumb"><img src="'+esc(imgUrlOf(v))+'" onerror="this.style.visibility=\'hidden\'">'
+      +'<button class="upx" title="Xoá" onclick="event.stopPropagation();upRemove(\'more\','+i+')">✕</button>'
+      +'<button class="upstar" title="Đặt làm hình đại diện" onclick="event.stopPropagation();upMakeMain_('+i+')">'+icon('star',11)+'</button>'
+      +'<span class="upnum">'+(i+1)+'</span></div>';
+  }).join('') || '';
 }
-function upRefresh(){ var a=document.getElementById('upMain'); if(a)a.innerHTML=upMainInner(); var b=document.getElementById('upGrid'); if(b)b.innerHTML=upGridInner(); }
-function imgSection(){
-  return '<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">'+icon('camera',18)+'</span><h3>Ảnh sản phẩm</h3></div><div class="dbcard-b">'
-    +'<div class="imgup">'
-      +'<div><div class="uplabel">Hình đại diện</div>'
-        +'<div class="upzone upmain" id="upMain" onclick="upPick(\'main\')" ondragover="upDrag(event,1)" ondragleave="upDrag(event,0)" ondrop="upDrop(event,\'main\')">'+upMainInner()+'</div>'
-        +'<div class="upurl"><input id="upMainUrl" placeholder="Hoặc dán URL ảnh…."><button class="btn blue sm" onclick="upAddUrl(\'main\')">Thêm</button></div>'
-      +'</div>'
-      +'<div><div class="uplabel">Hình chi tiết sản phẩm</div>'
-        +'<div class="upzone" id="upMore" onclick="upPick(\'more\')" ondragover="upDrag(event,1)" ondragleave="upDrag(event,0)" ondrop="upDrop(event,\'more\')"><div class="upic">'+icon('camera',28)+'</div>Kéo/thả hoặc bấm để chọn <b>hình chi tiết sản phẩm</b></div>'
-        +'<div class="upgrid" id="upGrid">'+upGridInner()+'</div>'
-        +'<div class="upurl"><input id="upMoreUrl" placeholder="Hoặc dán URL ảnh…."><button class="btn blue sm" onclick="upAddUrl(\'more\')">Thêm</button></div>'
-      +'</div>'
-    +'</div></div></div>';
+// đặt 1 ảnh chi tiết thành ảnh đại diện (đổi chỗ)
+function upMakeMain_(i){
+  var list=S._imgList||[]; if(i<0||i>=list.length) return;
+  var old=S._imgMain; S._imgMain=list[i];
+  if(old) list[i]=old; else list.splice(i,1);
+  upRefresh(); toast('Đã đặt làm hình đại diện');
+}
+function upRefresh(){
+  var a=document.getElementById('upMain'); if(a)a.innerHTML=upMainInner();
+  var b=document.getElementById('upGrid'); if(b)b.innerHTML=upGridInner();
+  var bs=document.querySelectorAll('.imgup .upbadge');
+  if(bs[0]) bs[0].textContent=S._imgMain?'1 ảnh':'bắt buộc';
+  if(bs[1]) bs[1].textContent=(S._imgList||[]).length?((S._imgList||[]).length+' ảnh'):'tuỳ chọn';
+}
+function imgSection(){ return '<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">'+icon('camera',18)+'</span><h3>Ảnh sản phẩm</h3>'
+    +'<span class="sp" style="flex:1"></span><span class="up-hint2">'+icon('image',13)+' JPG · PNG · WEBP · tối đa 5MB</span></div>'
+    +'<div class="dbcard-b">'+imgUpBlock_()+'</div></div>'; }
+// Khối upload ảnh — dùng CHUNG cho trang Nhập dữ liệu và modal Sửa sản phẩm
+function imgUpBlock_(cls){
+  return '<div class="imgup '+(cls||'')+'">'
+    +'<div class="upcol">'
+      +'<div class="uphead"><span class="uplabel">Hình đại diện</span><span class="upbadge">'+(S._imgMain?'1 ảnh':'bắt buộc')+'</span></div>'
+      +'<div class="upzone upmain" id="upMain" tabindex="0" onclick="upPick(\'main\')" ondragover="upDrag(event,1)" ondragleave="upDrag(event,0)" ondrop="upDrop(event,\'main\')">'+upMainInner()+'</div>'
+      +upUrlRow_('main')
+    +'</div>'
+    +'<div class="upcol">'
+      +'<div class="uphead"><span class="uplabel">Hình chi tiết sản phẩm</span><span class="upbadge">'+((S._imgList||[]).length?((S._imgList||[]).length+' ảnh'):'tuỳ chọn')+'</span></div>'
+      +'<div class="upzone upmore" id="upMore" tabindex="0" onclick="upPick(\'more\')" ondragover="upDrag(event,1)" ondragleave="upDrag(event,0)" ondrop="upDrop(event,\'more\')">'+upMoreInner_()+'</div>'
+      +'<div class="upgrid" id="upGrid">'+upGridInner()+'</div>'
+      +upUrlRow_('more')
+    +'</div></div>';
+}
+function upUrlRow_(k){
+  var id=(k==='main'?'upMainUrl':'upMoreUrl');
+  return '<div class="upurl"><span class="upurl-ic">'+icon('link',13)+'</span>'
+    +'<input id="'+id+'" placeholder="Dán link ảnh…" onkeydown="if(event.key===\'Enter\'){event.preventDefault();upAddUrl(\''+k+'\');}">'
+    +'<button class="upurl-btn" onclick="upAddUrl(\''+k+'\')">Thêm</button></div>';
+}
+function upMoreInner_(){
+  return '<div class="upic">'+icon('camera',26)+'</div>'
+    +'<div class="up-t">Kéo/thả hoặc bấm để chọn</div>'
+    +'<div class="up-s">chọn được <b>nhiều ảnh</b> cùng lúc</div>'
+    +'<div class="up-paste">'+icon('copy',11)+' hoặc dán ảnh bằng Ctrl+V</div>';
 }
 var DB_GICON={'Thông tin cơ bản':'tag','Thông tin giá bán':'money','Key Product Info (Thông tin chính)':'bulb','Thông số thiết kế':'ruler','Performance Specifications (Thông số hiệu suất)':'gauge','Driver (Nguồn LED / Chấn lưu)':'plug','Installation Specifications (Thông số lắp đặt)':'wrench','Thương mại':'sliders'};
 function dbCard_(title, ic, note, inner){
@@ -3140,6 +3170,31 @@ function renderImport(){
   box.innerHTML=impStatBar()+'<div class="imp-layout">'+form+impRecentList()+'</div>';
 }
 /* ==== Upload ảnh ==== */
+// Dán ảnh trực tiếp bằng Ctrl+V — vào ô đang focus, mặc định là "hình chi tiết"
+(function pasteImage_(){
+  document.addEventListener('paste', function(e){
+    var zones=document.querySelectorAll('.upzone'); if(!zones.length) return;
+    var items=(e.clipboardData&&e.clipboardData.items)||[];
+    var files=[];
+    for(var i=0;i<items.length;i++){ if(items[i].type&&/^image\//.test(items[i].type)){ var f=items[i].getAsFile(); if(f) files.push(f); } }
+    if(!files.length) return;
+    if(document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName)
+       && !document.activeElement.closest('.upzone')) return;   // đang gõ chữ -> bỏ qua
+    e.preventDefault();
+    var main=document.getElementById('upMain');
+    var zone = (main && main.classList.contains('focus')) ? 'main'
+             : (!S._imgMain ? 'main' : 'more');                  // chưa có ảnh đại diện -> ưu tiên
+    upFilesSeq_(zone, files);
+    toast('Đã dán '+files.length+' ảnh vào '+(zone==='main'?'hình đại diện':'hình chi tiết'));
+  });
+  // đánh dấu vùng đang chọn để dán đúng chỗ
+  document.addEventListener('focusin', function(e){
+    var z=e.target.closest&&e.target.closest('.upzone');
+    document.querySelectorAll('.upzone.focus').forEach(function(x){x.classList.remove('focus');});
+    if(z) z.classList.add('focus');
+  });
+})();
+
 // Chặn trình duyệt MỞ FILE khi thả trượt ra ngoài vùng upload (nếu không, cả trang bị điều hướng
 // -> người dùng tưởng "không kéo thả được"). Đồng thời sáng vùng thả gần nhất khi đang kéo file.
 (function guardFileDrop_(){

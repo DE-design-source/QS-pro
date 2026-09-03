@@ -2083,6 +2083,69 @@ html,body,.catpanel,.catpanel-top,.cat-list,#pdPanel,.fltpop,.tree-pop,.spe-hist
   justify-content:center;padding:0 6px;border:2px solid #fff;box-shadow:0 2px 6px rgba(37,99,235,.35)}
 .drag-ghost{position:relative}
 
+/* ═══ 16n. KHỐI ẢNH SẢN PHẨM — thiết kế lại ═══ */
+.up-hint2{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:500;color:var(--ink-3)}
+.up-hint2 svg{color:var(--ink-3)}
+.imgup{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.upcol{display:flex;flex-direction:column;min-width:0}
+.uphead{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.uplabel{font-size:12px;font-weight:600;color:var(--ink-2);margin:0}
+.upbadge{font-size:10px;font-weight:600;color:var(--ink-3);background:#f2f4f7;border-radius:99px;padding:2px 8px}
+/* vùng thả — thấp hơn nhiều, nét mảnh */
+.imgup .upzone{flex:none;min-height:0;height:168px;border:1.5px dashed #d7dee6;border-radius:var(--r-lg);
+  background:#fbfcfd;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  text-align:center;cursor:pointer;transition:all .15s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;padding:12px}
+.imgup .upzone:hover{border-color:var(--blue);background:#f6faff}
+.imgup .upzone:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.10)}
+.imgup .upzone.drag{border-color:var(--blue);border-style:solid;background:#eef5ff;
+  box-shadow:0 0 0 3px rgba(37,99,235,.14) inset;transform:scale(.995)}
+.upzone .upic{color:#b4c2d2;margin-bottom:4px;transition:color .15s}
+.upzone:hover .upic,.upzone.drag .upic{color:var(--blue)}
+.up-t{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.upzone:hover .up-t{color:var(--blue)}
+.up-s{font-size:11px;color:var(--ink-3);line-height:1.4}
+.up-s b{color:var(--ink-2);font-weight:600}
+.up-paste{margin-top:7px;display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#a8b2be;
+  border:1px solid var(--hair);border-radius:99px;padding:3px 9px;background:#fff}
+/* ảnh đại diện đã có */
+.upzone.upmain img{max-width:100%;max-height:100%;object-fit:contain;border-radius:var(--r-sm)}
+.up-swap{position:absolute;left:50%;bottom:9px;transform:translateX(-50%) translateY(6px);
+  display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#fff;
+  background:rgba(18,50,76,.85);border-radius:99px;padding:5px 11px;opacity:0;transition:all .16s;pointer-events:none}
+.upzone.upmain:hover .up-swap{opacity:1;transform:translateX(-50%) translateY(0)}
+/* nút xoá trên ảnh */
+.upx{position:absolute;top:7px;right:7px;width:24px;height:24px;border-radius:50%;border:none;
+  background:rgba(18,50,76,.72);color:#fff;font-size:12px;line-height:1;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;opacity:0;transition:all .15s;z-index:2}
+.upzone:hover .upx,.upthumb:hover .upx{opacity:1}
+.upx:hover{background:#e5484d}
+/* lưới ảnh chi tiết */
+.upgrid{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-content:flex-start}
+.upgrid:empty{margin-top:0}
+.upthumb{position:relative;width:72px;height:72px;border:1px solid var(--hair);border-radius:var(--r-md);
+  overflow:hidden;background:#fafbfc;transition:all .15s}
+.upthumb:hover{border-color:var(--blue);box-shadow:0 3px 10px rgba(37,99,235,.16);transform:translateY(-1px)}
+.upthumb img{width:100%;height:100%;object-fit:cover}
+.upthumb .upx{width:20px;height:20px;top:4px;right:4px;font-size:10px}
+.upstar{position:absolute;left:4px;top:4px;width:20px;height:20px;border-radius:50%;border:none;
+  background:rgba(18,50,76,.72);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:all .15s;z-index:2;padding:0}
+.upthumb:hover .upstar{opacity:1}
+.upstar:hover{background:var(--amber)}
+.upnum{position:absolute;left:5px;bottom:4px;font-size:9.5px;font-weight:600;color:#fff;
+  background:rgba(18,50,76,.6);border-radius:99px;padding:1px 6px;line-height:1.5}
+/* hàng dán URL — mảnh, phụ trợ */
+.upurl{display:flex;align-items:center;gap:0;margin-top:9px;border:1px solid var(--hair-2);
+  border-radius:var(--r-md);background:#fff;overflow:hidden;transition:border-color .14s}
+.upurl:focus-within{border-color:var(--blue);box-shadow:0 0 0 2.5px rgba(37,99,235,.10)}
+.upurl-ic{display:flex;align-items:center;padding:0 0 0 10px;color:var(--ink-3);flex:none}
+.upurl input{flex:1;border:none;background:transparent;padding:8px 10px;font:inherit;font-size:12px;min-width:0}
+.upurl input:focus{outline:none;box-shadow:none}
+.upurl-btn{flex:none;border:none;border-left:1px solid var(--hair);background:#fbfcfd;color:var(--blue);
+  padding:8px 13px;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer;transition:all .13s}
+.upurl-btn:hover{background:var(--blue);color:#fff;border-left-color:var(--blue)}
+@media(max-width:900px){ .imgup{grid-template-columns:1fr;gap:16px} .imgup .upzone{height:150px} }
+
 /* ---------- 17. MONTSERRAT tuning ---------- */
 /* Montserrat rộng & tròn hơn font hệ thống -> siết tracking, giảm 1 bậc độ đậm */
 body,button,input,select,textarea{font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
