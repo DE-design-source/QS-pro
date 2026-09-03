@@ -2093,7 +2093,7 @@ html,body,.catpanel,.catpanel-top,.cat-list,#pdPanel,.fltpop,.tree-pop,.spe-hist
 .uplabel{font-size:12px;font-weight:600;color:var(--ink-2);margin:0}
 .upbadge{font-size:10px;font-weight:600;color:var(--ink-3);background:#f2f4f7;border-radius:99px;padding:2px 8px}
 /* vùng thả — thấp hơn nhiều, nét mảnh */
-.imgup .upzone{flex:1 1 auto;min-height:150px;max-height:300px;border:1.5px dashed #d7dee6;border-radius:var(--r-lg);
+.imgup .upzone{flex:none;height:230px;border:1.5px dashed #d7dee6;border-radius:var(--r-lg);
   background:#fbfcfd;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   text-align:center;cursor:pointer;transition:all .15s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;padding:12px}
 .imgup .upzone:hover{border-color:var(--blue);background:#f6faff}
@@ -2106,6 +2106,7 @@ html,body,.catpanel,.catpanel-top,.cat-list,#pdPanel,.fltpop,.tree-pop,.spe-hist
 .upzone:hover .up-t{color:var(--blue)}
 .up-s{font-size:11px;color:var(--ink-3);line-height:1.4}
 .up-s b{color:var(--ink-2);font-weight:600}
+.up-only1{margin-top:5px;font-size:10.5px;color:#a8b2be}
 .up-paste{margin-top:7px;display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#a8b2be;
   border:1px solid var(--hair);border-radius:99px;padding:3px 9px;background:#fff}
 /* ảnh đại diện đã có */
@@ -2145,7 +2146,7 @@ html,body,.catpanel,.catpanel-top,.cat-list,#pdPanel,.fltpop,.tree-pop,.spe-hist
 .upurl-btn{flex:none;border:none;border-left:1px solid var(--hair);background:#fbfcfd;color:var(--blue);
   padding:8px 13px;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer;transition:all .13s}
 .upurl-btn:hover{background:var(--blue);color:#fff;border-left-color:var(--blue)}
-@media(max-width:900px){ .imgup{grid-template-columns:1fr;gap:16px} .imgup .upzone{min-height:140px;max-height:200px} }
+@media(max-width:900px){ .imgup{grid-template-columns:1fr;gap:16px} .imgup .upzone{height:180px} }
 
 /* ---------- 17. MONTSERRAT tuning ---------- */
 /* Montserrat rộng & tròn hơn font hệ thống -> siết tracking, giảm 1 bậc độ đậm */

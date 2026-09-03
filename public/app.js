@@ -3047,7 +3047,7 @@ function upMainInner(){
       +'<span class="up-swap">'+icon('edit',12)+' Đổi ảnh</span>'
     : '<div class="upic">'+icon('camera',26)+'</div>'
       +'<div class="up-t">Kéo/thả hoặc bấm để chọn</div>'
-      +'<div class="up-s">ảnh chính hiện trong bảng &amp; báo giá</div>'
+      +'<div class="up-s">ảnh chính hiện trong bảng &amp; báo giá — <b>chỉ 1 ảnh</b></div>'
       +'<div class="up-paste">'+icon('copy',11)+' hoặc dán ảnh bằng Ctrl+V</div>';
 }
 function upGridInner(){
