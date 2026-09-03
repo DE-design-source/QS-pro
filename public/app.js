@@ -1349,10 +1349,13 @@ async function addProdObj(p,floor){
   // cộng dồn SL nếu đã có cùng SP trong cùng hạng mục + tầng
   // Gộp SL chỉ khi TRÙNG CẢ THÔNG SỐ. Biến thể khác nhiệt độ/công suất/góc/màu tuy cùng mã+tên
   // vẫn là 2 DÒNG RIÊNG (trước đây gộp mất, kéo 4 biến thể chỉ vào 1 dòng).
+  // Gộp SL chỉ khi: cùng hạng mục + tầng, TRÙNG CẢ THÔNG SỐ (biến thể khác = dòng riêng)
+  // VÀ dòng đó CHƯA điền PHÒNG. Đã gán phòng -> thêm SP đó nữa nghĩa là cho PHÒNG KHÁC -> tạo DÒNG MỚI.
   var same=S.lines.filter(function(l){
     return l.nhom===S.node && (l.tang||'')===floor
       && ((p.ma&&l.maSP&&l.maSP===p.ma)||l.ten===p.ten)
-      && String(l.moTa||'').trim()===String(p.moTa||'').trim();
+      && String(l.moTa||'').trim()===String(p.moTa||'').trim()
+      && !String(l.khuVuc||'').trim();
   })[0];
   if(same){ editLine(same.lineId,{soLuong:(Number(same.soLuong)||0)+1}); toast('+1 số lượng: '+p.ten); return; }
   var prod=Object.assign({},p,{ nhom:S.node, hangMuc:nodeName(S.node), loai:nodeName(S.node), tang:floor, extra:{nganh:p.nhom||''} });
