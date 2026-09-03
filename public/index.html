@@ -2162,6 +2162,22 @@ html,body,.catpanel,.catpanel-top,.cat-list,#pdPanel,.fltpop,.tree-pop,.spe-hist
 .upthumb .up-err{inset:auto 3px 3px;padding:3px 5px;font-size:9px;gap:4px;flex-direction:column}
 .upthumb .up-err b{display:none}
 
+/* ═══ Thu gọn panel "Sản phẩm trong dự án" ═══ */
+.sp-workspace{position:relative}
+.spp-hide{margin-left:auto;width:26px;height:26px;border:1px solid var(--hair);background:#fff;border-radius:var(--r-sm);
+  color:var(--ink-3);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;transition:all .14s}
+.spp-hide:hover{border-color:var(--blue);color:var(--blue);background:#f6faff}
+/* nút mở lại — ẩn khi panel đang hiện */
+.spp-show{display:none;position:sticky;top:80px;align-self:flex-start;width:42px;height:52px;flex:none;
+  border:1px solid var(--hair);background:#fff;border-radius:var(--r-lg);color:var(--blue);cursor:pointer;
+  flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:var(--sh-1);transition:all .14s;margin-right:12px}
+.spp-show:hover{border-color:var(--blue);background:#f6faff;box-shadow:var(--sh-2)}
+.spp-show-n{font-size:10px;font-weight:700;color:var(--navy);background:#eef4fd;border-radius:99px;padding:0 5px;line-height:1.5}
+/* trạng thái THU GỌN */
+.sp-workspace.panel-hidden .sp-projpanel{display:none}
+.sp-workspace.panel-hidden .spp-show{display:flex}
+@media(max-width:1000px){ .spp-show{position:static;width:100%;height:40px;flex-direction:row;gap:8px;margin:0 0 10px} }
+
 /* ---------- 17. MONTSERRAT tuning ---------- */
 /* Montserrat rộng & tròn hơn font hệ thống -> siết tracking, giảm 1 bậc độ đậm */
 body,button,input,select,textarea{font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}

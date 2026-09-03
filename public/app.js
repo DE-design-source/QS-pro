@@ -67,6 +67,7 @@ COLS.forEach(function(c){ S.cols[c[0]]=!!c[2]; });
 
 /* ===== Bộ icon SVG line đồng nhất (kiểu Lucide, theo màu chữ) ===== */
 var ICONS={
+  left:'<path d="M15 18l-6-6 6-6"/>',
   link:'<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
   star:'<path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/>',
   power:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
@@ -811,7 +812,9 @@ function renderSanpham(){
   var box=document.getElementById('v-sanpham');
   var searchIc='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>';
   box.innerHTML='<div class="sechd"><h2>Danh sách sản phẩm</h2><span class="count" id="spCount">0</span></div>'
-    +'<div class="sp-workspace">'
+    +'<div class="sp-workspace'+(spPanelHidden_()?' panel-hidden':'')+'" id="spWorkspace">'
+      +'<button class="spp-show" id="sppShow" title="Hiện panel Sản phẩm trong dự án" onclick="spPanelToggle()">'
+        +icon('layers',15)+'<span class="spp-show-n">'+((S.cur?S.lines:[])||[]).length+'</span></button>'
       +'<div class="sp-projpanel" id="spProjPanel" ondragover="spPanelDragOver(event)" ondragleave="spPanelDragLeave(event)" ondrop="spPanelDrop(event)"></div>'
       +'<div class="sp-main">'
         +'<div class="dbcard sp-card">'
@@ -835,7 +838,9 @@ function renderSanpham(){
 // LEFT: sản phẩm đã ghi danh vào dự án hiện tại (S.lines)
 function renderSpProjPanel_(){
   var el=document.getElementById('spProjPanel'); if(!el) return;
-  var head='<div class="spp-head"><span class="spp-ic">'+icon('layers',16)+'</span><h3>Sản phẩm trong dự án</h3><span class="spp-count">'+((S.cur?S.lines:[])||[]).length+'</span></div>';
+  var head='<div class="spp-head"><span class="spp-ic">'+icon('layers',16)+'</span><h3>Sản phẩm trong dự án</h3>'
+    +'<span class="spp-count">'+((S.cur?S.lines:[])||[]).length+'</span>'
+    +'<button class="spp-hide" title="Thu gọn panel (mở rộng bảng)" onclick="spPanelToggle()">'+icon('left',14)+'</button></div>';
   // dropdown chọn/tạo dự án ngay trong panel (bám mockup)
   var projSel='<select class="spp-projsel" onchange="spSwitchProject(this.value)">'
     +'<option value="">— Chọn hoặc tạo dự án —</option>'
@@ -864,6 +869,16 @@ async function spSwitchProject(maDA){
   renderCard&&renderCard();
   renderSpProjPanel_(); renderSpChips_(); spFilter();
 }
+/* ===== Thu gọn / hiện panel "Sản phẩm trong dự án" ===== */
+function spPanelHidden_(){ try{ return localStorage.getItem('qs_spPanelHide')==='1'; }catch(e){ return false; } }
+function spPanelToggle(){
+  var on=!spPanelHidden_();
+  try{ localStorage.setItem('qs_spPanelHide', on?'1':'0'); }catch(e){}
+  var ws=document.getElementById('spWorkspace');
+  if(ws) ws.classList.toggle('panel-hidden', on);
+  toast(on?'Đã thu gọn panel — bấm nút bên trái để hiện lại':'Đã hiện panel Sản phẩm trong dự án');
+}
+
 /* ===== Kéo–thả sản phẩm từ bảng vào panel "Sản phẩm trong dự án" ===== */
 function spRowDragStart(e,i){
   var p=(S._spList||[])[i]; if(!p){ e.preventDefault(); return; }
