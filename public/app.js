@@ -1182,18 +1182,29 @@ function spBulkBar_(){
   var FIELDS=[['CHIẾT KHẤU ĐẠI LÝ (%)','Chiết khấu (%)'],['GIÁ BÁN LẺ','Giá bán lẻ'],['THƯƠNG HIỆU','Thương hiệu'],
               ['NHÀ CUNG CẤP','Nhà cung cấp'],['HẠNG MỤC','Hạng mục SP'],['DÒNG SẢN PHẨM','Dòng sản phẩm'],
               ['BẢO HÀNH (năm)','Bảo hành (năm)'],['TRẠNG THÁI','Trạng thái'],['ĐƠN VỊ TÍNH','Đơn vị tính']];
-  wrap.innerHTML='<div class="spbulk"><span class="n">Đã chọn '+n+' sản phẩm</span>'
-    +'<span class="spb-sep"></span>'
-    +'<span class="spb-lb">Sửa hàng loạt:</span>'
-    +'<select class="spb-sel" id="spbField">'+FIELDS.map(function(f){return '<option value="'+esc(f[0])+'">'+esc(f[1])+'</option>';}).join('')+'</select>'
-    +'<input class="spb-in" id="spbValue" placeholder="Giá trị mới…" onkeydown="if(event.key===\'Enter\')spBulkApply()">'
-    +'<button class="go" id="spbApplyBtn" onclick="spBulkApply()">'+icon('check',13)+' Áp dụng cho '+n+'</button>'
-    +'<span class="spb-sep"></span>'
-    +'<button class="go" onclick="spBulkToProject()">'+icon('plus',13)+' Thêm '+n+' vào dự án</button>'
-    +'<span class="sp" style="flex:1"></span>'
-    +'<button class="clr" onclick="spClearSel()">Bỏ chọn</button>'
-    +(isAdmin?'<button class="go red" onclick="spBulkDelete()">Xóa '+n+'</button>'
-             :'<button class="go" onclick="spBulkRequest()">Gửi yêu cầu xóa ('+n+')</button>')+'</div>';
+  // 3 vùng rõ ràng: [đã chọn] · [sửa hàng loạt] · [hành động]
+  wrap.innerHTML='<div class="spbulk">'
+    // -- vùng 1: số đã chọn + bỏ chọn --
+    +'<div class="spb-z spb-count">'
+      +'<span class="spb-n">'+n+'</span>'
+      +'<span class="spb-ntxt">sản phẩm<br>đã chọn</span>'
+      +'<button class="spb-x" title="Bỏ chọn tất cả" onclick="spClearSel()">✕</button>'
+    +'</div>'
+    // -- vùng 2: sửa hàng loạt --
+    +'<div class="spb-z spb-edit">'
+      +'<span class="spb-lb">Sửa hàng loạt</span>'
+      +'<div class="spb-row">'
+        +'<select class="spb-sel" id="spbField">'+FIELDS.map(function(f){return '<option value="'+esc(f[0])+'">'+esc(f[1])+'</option>';}).join('')+'</select>'
+        +'<input class="spb-in" id="spbValue" placeholder="Giá trị mới…" onkeydown="if(event.key===\'Enter\')spBulkApply()">'
+        +'<button class="spb-apply" id="spbApplyBtn" onclick="spBulkApply()">'+icon('check',14)+'<span>Áp dụng</span></button>'
+      +'</div>'
+    +'</div>'
+    // -- vùng 3: hành động --
+    +'<div class="spb-z spb-act">'
+      +'<button class="spb-b primary" onclick="spBulkToProject()">'+icon('plus',14)+' Thêm vào dự án</button>'
+      +(isAdmin?'<button class="spb-b danger" title="Xoá '+n+' sản phẩm khỏi danh mục" onclick="spBulkDelete()">'+icon('trash',14)+'</button>'
+               :'<button class="spb-b danger" title="Gửi yêu cầu xoá tới Admin" onclick="spBulkRequest()">'+icon('trash',14)+'</button>')
+    +'</div></div>';
 }
 // SỬA HÀNG LOẠT: đặt 1 giá trị cho tất cả SP đang chọn
 async function spBulkApply(){
