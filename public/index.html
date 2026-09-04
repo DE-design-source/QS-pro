@@ -1848,19 +1848,20 @@ html,body,.catpanel,.catpanel-top,.cat-list,#pdPanel,.fltpop,.tree-pop,.spe-hist
 /* ═══ 16i. CỘT NÚT XOÁ (gutter phải bảng Bóc tách) — tinh, sang ═══ */
 #tkNormal .tbl-wrap{margin-right:30px}
 .actgutter{width:30px}
-.agx{left:3px;width:24px;height:24px;border-radius:50%;
-  background:#fff;border:1px solid var(--hair);color:#b4bcc6;font-size:0;
-  opacity:0;transform:scale(.86);transition:all .16s cubic-bezier(.4,0,.2,1);box-shadow:var(--sh-1)}
+.agx{left:3px;width:22px;height:22px;border-radius:50%;
+  background:#fff;border:1px solid var(--hair);color:#c3cbd4;font-size:0;
+  opacity:0;transform:scale(.8);transition:all .2s cubic-bezier(.34,1.35,.5,1);
+  box-shadow:0 1px 3px rgba(18,50,76,.07)}
 /* vẽ dấu ✕ bằng 2 gạch mảnh -> nét sắc, cân đối hơn ký tự */
-.agx::before,.agx::after{content:'';position:absolute;left:50%;top:50%;width:9px;height:1.3px;
-  background:currentColor;border-radius:1px;transition:background .16s}
+.agx::before,.agx::after{content:'';position:absolute;left:50%;top:50%;width:8px;height:1.2px;
+  background:currentColor;border-radius:1px;transition:all .2s}
 .agx::before{transform:translate(-50%,-50%) rotate(45deg)}
 .agx::after{transform:translate(-50%,-50%) rotate(-45deg)}
 /* GIỮ CHỖ sẵn, chỉ hiện ✕ khi rê đúng dòng đó (JS gắn .on) */
-.agx.on{opacity:.62;transform:scale(1)}
-.agx:hover{opacity:1;border-color:#f0b7b3;background:#fef6f5;color:#d0524b;
-  transform:scale(1.08);box-shadow:0 3px 10px rgba(208,82,75,.20)}
-.agx:active{transform:scale(.94);background:#fdeceb}
+.agx.on{opacity:.8;transform:scale(1);border-color:var(--hair-2);color:#9aa5b1}
+.agx:hover{opacity:1;border-color:#e5484d;background:#e5484d;color:#fff;
+  transform:scale(1.15) rotate(90deg);box-shadow:0 4px 14px rgba(229,72,77,.32)}
+.agx:active{transform:scale(1.02) rotate(90deg)}
 
 /* ═══ 16j. Nút xoá không bị cắt + THANH KÉO NGANG cho bảng ═══ */
 /* chừa chỗ cho gutter, panel không cắt nút */
@@ -2255,6 +2256,33 @@ table.pur-tbl td.b{font-weight:600;color:var(--navy)}
 .ask-err{font-size:12px;color:#c0392b;background:#fdeceb;border:1px solid #f0b7b3;
   border-radius:var(--r-md);padding:7px 10px;margin-bottom:10px}
 .ask-f-btn{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+
+/* ═══ Menu chuột phải kiểu Excel ═══ */
+.fltpop.ctxmenu{width:252px;padding:5px;border-radius:var(--r-lg);max-height:none;
+  box-shadow:0 16px 44px rgba(18,50,76,.18),0 0 0 1px var(--hair)}
+.ctxmenu .cmh{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
+  font-weight:600;padding:9px 10px 5px}
+.ctxmenu .cmi{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:var(--r-sm);
+  font-size:12.5px;color:var(--ink-2);cursor:pointer;transition:background .1s,color .1s;user-select:none}
+.ctxmenu .cmi>svg{color:var(--ink-3);flex:none;transition:color .1s}
+.ctxmenu .cmi>span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctxmenu .cmi:hover{background:#f2f6fb;color:var(--ink)}
+.ctxmenu .cmi:hover>svg{color:var(--blue)}
+.ctxmenu .cmi-k{font-style:normal;font-size:10px;color:#b4bcc6;font-weight:500;flex:none;
+  border:1px solid var(--hair);border-radius:4px;padding:1px 5px;background:#fbfcfd}
+.ctxmenu .cmi.danger{color:#c0392b}
+.ctxmenu .cmi.danger>svg{color:#d0524b}
+.ctxmenu .cmi.danger:hover{background:#fdeceb;color:#a5281c}
+.ctxmenu .cmi.danger:hover>svg{color:#c0392b}
+.ctxmenu .cmsep{height:1px;background:var(--hair);margin:5px 8px}
+.ctxmenu .cmck{gap:8px}
+.ctxmenu .cmck .bx{width:15px;height:15px;border:1px solid var(--hair-2);border-radius:4px;flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;background:#fff;transition:all .12s}
+.ctxmenu .cmck.on .bx{background:var(--blue);border-color:var(--blue)}
+.ctxmenu .cfdot{width:9px;height:9px;border-radius:3px;flex:none}
+.ctxmenu .cfdot.cf-red{background:#e5484d}
+.ctxmenu .cfdot.cf-yellow{background:#f0a500}
+.ctxmenu .cfdot.cf-grey{background:#b4bcc6}
 
 /* ---------- 17. MONTSERRAT tuning ---------- */
 /* Montserrat rộng & tròn hơn font hệ thống -> siết tracking, giảm 1 bậc độ đậm */
