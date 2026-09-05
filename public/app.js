@@ -2158,7 +2158,7 @@ async function renderCongTy(){
     var fe = c.tinhNang.length ? c.tinhNang.length+'/'+CT_FEATURES.length : 'Toàn bộ';
     return '<tr class="ct-row">'
       +'<td class="ct-logo">'+(c.logoUrl?'<img src="'+esc(c.logoUrl)+'" onerror="this.style.visibility=\'hidden\'">':'<span class="ct-ini">'+esc((c.ten||'?').trim().charAt(0).toUpperCase())+'</span>')+'</td>'
-      +'<td><b>'+esc(c.ten)+'</b><span class="ct-ma">'+esc(c.ma)+'</span></td>'
+      +'<td><b>'+esc(c.ten)+'</b><span class="ct-ma">'+esc(c.ma)+(c.email?(' · '+esc(c.email)):'')+'</span></td>'
       +'<td class="c"><span class="ct-badge '+st[0]+'">'+st[1]+'</span></td>'
       +'<td class="n">'+c.soUser+(c.gioiHanUser?(' / '+c.gioiHanUser):'')+'</td>'
       +'<td class="c">'+fe+'</td>'
@@ -2191,52 +2191,120 @@ function ctViewAs(id){
 function ctCreate(){ ctForm_(null); }
 function ctEdit(i){ ctForm_((S._ctList||[])[i]||null); }
 function ctForm_(c){
-  var isNew=!c; c=c||{tinhNang:CT_FEATURES.map(function(f){return f[0];}), gioiHanUser:10, active:true};
+  var isNew=!c;
+  c=c||{tinhNang:CT_FEATURES.map(function(f){return f[0];}), gioiHanUser:10, active:true};
+  S._ctEditing=c;
   var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='ctOv';
   ov.onclick=function(e){ if(e.target===ov) ctClose(); };
   ov.innerHTML='<div class="sp-modal ct-modal pd"><div class="pd-head"><h3>'+icon('building',16)+' '
-      +(isNew?'Tạo công ty mới':'Cập nhật công ty')+'</h3><button class="pd-x" onclick="ctClose()">✕</button></div>'
-    +'<div class="ct-form">'
-      +'<div class="spe-f"><label>Tên công ty *</label><input id="ctTen" value="'+esc(c.ten||'')+'" placeholder="VD: Nội thất An Phát"></div>'
-      +(isNew?'<div class="spe-f"><label>Mã công ty</label><input id="ctMa" placeholder="tự tạo từ tên"></div>':'')
-      +'<div class="spe-f"><label>Logo (dán link ảnh)</label><input id="ctLogo" value="'+esc(c.logoUrl||'')+'" placeholder="https://…"></div>'
-      +'<div class="spe-f"><label>Giới hạn người dùng</label><input id="ctLimit" type="number" value="'+(c.gioiHanUser||10)+'"></div>'
-      +'<div class="spe-f"><label>Hạn dùng</label><input id="ctHan" type="date" value="'+esc(c.hanDung||'')+'"></div>'
-      +'<div class="spe-f"><label>Trạng thái</label><select id="ctActive"><option value="1"'+(c.active!==false?' selected':'')+'>Đang hoạt động</option><option value="0"'+(c.active===false?' selected':'')+'>Tạm khoá</option></select></div>'
+      +(isNew?'Tạo công ty mới':esc(c.ten))+'</h3><button class="pd-x" onclick="ctClose()">✕</button></div>'
+    +'<div class="ct-tabs">'
+      +'<button class="ct-tab on" data-t="info" onclick="ctTab_(\'info\')">Thông tin</button>'
+      +'<button class="ct-tab" data-t="goi" onclick="ctTab_(\'goi\')">Gói &amp; tính năng</button>'
+      +(isNew?'<button class="ct-tab" data-t="ad" onclick="ctTab_(\'ad\')">Tài khoản quản trị</button>'
+             :'<button class="ct-tab" data-t="users" onclick="ctTab_(\'users\')">Người dùng</button>')
     +'</div>'
-    +'<div class="ct-feat"><div class="ct-feat-h">Tính năng được dùng</div><div class="ct-feat-b">'
-      +CT_FEATURES.map(function(f){ var on=(c.tinhNang||[]).indexOf(f[0])>=0;
-        return '<label class="ct-fchk'+(on?' on':'')+'"><input type="checkbox" data-f="'+f[0]+'"'+(on?' checked':'')+' onchange="this.parentNode.classList.toggle(\'on\',this.checked)"><span>'+esc(f[1])+'</span></label>';
-      }).join('')+'</div></div>'
-    +(isNew?'<div class="ct-feat"><div class="ct-feat-h">Tài khoản quản trị công ty</div><div class="ct-form">'
-      +'<div class="spe-f"><label>Tên đăng nhập</label><input id="ctAdU" placeholder="vd: anphat.admin"></div>'
-      +'<div class="spe-f"><label>Mật khẩu</label><input id="ctAdP" type="password" placeholder="≥4 ký tự"></div>'
+    // ---- Thông tin ----
+    +'<div class="ct-pane on" data-p="info"><div class="ct-form">'
+      +'<div class="spe-f"><label>Tên công ty *</label><input id="ctTen" value="'+esc(c.ten||'')+'" placeholder="VD: Nội thất An Phát"></div>'
+      +'<div class="spe-f"><label>Mã công ty</label><input id="ctMa" value="'+esc(c.ma||'')+'" placeholder="tự tạo từ tên"'+(isNew?'':' readonly')+'></div>'
+      +'<div class="spe-f"><label>Email liên hệ</label><input id="ctEmail" type="email" value="'+esc(c.email||'')+'" placeholder="ketoan@congty.vn"></div>'
+      +'<div class="spe-f"><label>Điện thoại</label><input id="ctSdt" value="'+esc(c.sdt||'')+'" placeholder="09xx xxx xxx"></div>'
+      +'<div class="spe-f wide"><label>Logo (dán link ảnh)</label><input id="ctLogo" value="'+esc(c.logoUrl||'')+'" placeholder="https://…"></div>'
+    +'</div></div>'
+    // ---- Gói & tính năng ----
+    +'<div class="ct-pane" data-p="goi">'
+      +'<div class="ct-form">'
+        +'<div class="spe-f"><label>Số người dùng tối đa</label><input id="ctLimit" type="number" min="1" value="'+(c.gioiHanUser||10)+'"></div>'
+        +'<div class="spe-f"><label>Hạn dùng <i class="ct-hint">(trống = không giới hạn)</i></label><input id="ctHan" type="date" value="'+esc(c.hanDung||'')+'"></div>'
+        +'<div class="spe-f"><label>Trạng thái</label><select id="ctActive"><option value="1"'+(c.active!==false?' selected':'')+'>Đang hoạt động</option><option value="0"'+(c.active===false?' selected':'')+'>Tạm khoá</option></select></div>'
+        +'<div class="spe-f"><label>Ghi chú</label><input id="ctGhiChu" value="'+esc(c.ghiChu||'')+'" placeholder="Gói/hợp đồng…"></div>'
+      +'</div>'
+      +'<div class="ct-feat"><div class="ct-feat-h">Tính năng được dùng'
+        +'<button class="ct-all" onclick="ctToggleAll_(true)">Chọn hết</button>'
+        +'<button class="ct-all" onclick="ctToggleAll_(false)">Bỏ hết</button></div><div class="ct-feat-b">'
+        +CT_FEATURES.map(function(f){ var on=(c.tinhNang||[]).indexOf(f[0])>=0;
+          return '<label class="ct-fchk'+(on?' on':'')+'"><input type="checkbox" data-f="'+f[0]+'"'+(on?' checked':'')
+            +' onchange="this.parentNode.classList.toggle(\'on\',this.checked)"><span>'+esc(f[1])+'</span></label>';
+        }).join('')+'</div></div>'
+    +'</div>'
+    // ---- Tài khoản quản trị (khi TẠO MỚI) ----
+    +(isNew?'<div class="ct-pane" data-p="ad">'
+      +'<p class="ct-note">Tạo sẵn tài khoản quản trị để bàn giao cho công ty. Họ đăng nhập được bằng <b>tên đăng nhập hoặc email</b>.</p>'
+      +'<div class="ct-form">'
+        +'<div class="spe-f"><label>Tên đăng nhập</label><input id="ctAdU" placeholder="vd: anphat.admin"></div>'
+        +'<div class="spe-f"><label>Email đăng nhập</label><input id="ctAdE" type="email" placeholder="admin@congty.vn"></div>'
+        +'<div class="spe-f"><label>Họ tên</label><input id="ctAdN" placeholder="Nguyễn Văn A"></div>'
+        +'<div class="spe-f"><label>Mật khẩu</label><input id="ctAdP" type="password" placeholder="≥4 ký tự"></div>'
       +'</div></div>':'')
+    // ---- Người dùng (khi SỬA) ----
+    +(isNew?'':'<div class="ct-pane" data-p="users"><div id="ctUsers"><div class="empty" style="padding:20px">Đang tải…</div></div></div>')
     +'<div class="ct-f-btn"><button class="btn ghost sm" onclick="ctClose()">Huỷ</button>'
-      +'<button class="btn blue" id="ctSaveBtn" onclick="ctSave(\''+esc(isNew?'':c.id)+'\')">'+icon('check',15)+' '+(isNew?'Tạo công ty':'Lưu')+'</button></div></div>';
+      +'<button class="btn blue" id="ctSaveBtn" onclick="ctSave(\''+esc(isNew?'':c.id)+'\')">'+icon('check',15)+' '+(isNew?'Tạo công ty':'Lưu thay đổi')+'</button></div></div>';
   document.body.appendChild(ov);
 }
-function ctClose(){ var o=document.getElementById('ctOv'); if(o)o.remove(); }
+function ctTab_(t){
+  var ov=document.getElementById('ctOv'); if(!ov) return;
+  ov.querySelectorAll('.ct-tab').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-t')===t); });
+  ov.querySelectorAll('.ct-pane').forEach(function(p){ p.classList.toggle('on', p.getAttribute('data-p')===t); });
+  if(t==='users') ctLoadUsers_();
+}
+function ctToggleAll_(on){
+  var ov=document.getElementById('ctOv'); if(!ov) return;
+  ov.querySelectorAll('[data-f]').forEach(function(e){ e.checked=on; e.parentNode.classList.toggle('on',on); });
+}
+async function ctLoadUsers_(){
+  var box=document.getElementById('ctUsers'); var c=S._ctEditing; if(!box||!c) return;
+  try{
+    var us=await api('listCongTyUsers', c.id);
+    var lbl={}; CT_FEATURES.forEach(function(f){ lbl[f[0]]=f[1]; });
+    var rows=us.map(function(u){
+      var role={super:'Quản trị hệ thống',admin:'Quản trị công ty',staff:'Nhân viên'}[u.role]||u.role;
+      var q = u.role==='staff' ? ((u.perms||[]).map(function(k){return '<span class="permchip">'+esc(lbl[k]||k)+'</span>';}).join(' ')||'<span class="st-lk">Chưa cấp</span>') : '<span class="muted">Toàn quyền</span>';
+      return '<tr><td><b>'+esc(u.username)+'</b>'+(u.email?'<span class="ct-ma">'+esc(u.email)+'</span>':'')+'</td>'
+        +'<td>'+esc(u.hoTen||'')+'</td><td>'+esc(role)+'</td><td>'+q+'</td>'
+        +'<td class="c"><span class="ct-badge '+(u.active?'ok':'locked')+'">'+(u.active?'Hoạt động':'Khoá')+'</span></td></tr>';
+    }).join('') || '<tr><td colspan="5" class="empty" style="padding:18px">Công ty chưa có tài khoản nào.</td></tr>';
+    box.innerHTML='<div class="ct-uhead"><span>'+us.length+' / '+(c.gioiHanUser||'∞')+' tài khoản</span>'
+        +'<button class="btn blue xs" onclick="ctAddUser_()">'+icon('plus',13)+' Thêm tài khoản</button></div>'
+      +'<div class="tbl-wrap"><table class="sp-table"><thead><tr><th>Đăng nhập</th><th>Họ tên</th><th>Vai trò</th><th>Quyền</th><th class="ct">Trạng thái</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }catch(e){ box.innerHTML='<div class="empty" style="padding:20px">Lỗi: '+esc(e.message)+'</div>'; }
+}
+async function ctAddUser_(){
+  var c=S._ctEditing; if(!c) return;
+  var r=await askInput_({title:'Thêm tài khoản cho '+c.ten, confirmText:'Tạo tài khoản', fields:[
+    {key:'u', label:'Tên đăng nhập'}, {key:'e', label:'Email (đăng nhập được)'},
+    {key:'n', label:'Họ tên'}, {key:'p', label:'Mật khẩu (≥4 ký tự)', type:'password'} ], required:false});
+  if(!r) return;
+  if(!r.u || String(r.p).length<4){ toast('Cần tên đăng nhập và mật khẩu ≥4 ký tự'); return; }
+  try{ await api('createCongTyUser', c.id, {username:r.u, email:r.e, hoTen:r.n, password:r.p, role:'staff', perms:[]});
+    toast('Đã tạo tài khoản '+r.u); ctLoadUsers_(); renderCongTy(); }
+  catch(e){ toast('Lỗi: '+e.message); }
+}
+function ctClose(){ var o=document.getElementById('ctOv'); if(o)o.remove(); S._ctEditing=null; }
 async function ctSave(id){
   var ov=document.getElementById('ctOv'); if(!ov) return;
   function v(i){ var e=document.getElementById(i); return e?String(e.value).trim():''; }
   var feats=[].slice.call(ov.querySelectorAll('[data-f]')).filter(function(e){return e.checked;}).map(function(e){return e.getAttribute('data-f');});
-  var d={ ten:v('ctTen'), logoUrl:v('ctLogo'), tinhNang:feats,
+  var d={ ten:v('ctTen'), logoUrl:v('ctLogo'), email:v('ctEmail'), sdt:v('ctSdt'), tinhNang:feats,
           gioiHanUser:Number(v('ctLimit'))||0, hanDung:v('ctHan')||null,
-          active: v('ctActive')==='1' };
-  if(!d.ten){ toast('Chưa nhập tên công ty'); return; }
+          active:v('ctActive')==='1', ghiChu:v('ctGhiChu') };
+  if(!d.ten){ toast('Chưa nhập tên công ty'); ctTab_('info'); return; }
+  if(!feats.length){ toast('Chọn ít nhất 1 tính năng cho công ty'); ctTab_('goi'); return; }
   var btn=document.getElementById('ctSaveBtn'); if(btn){ btn.disabled=true; btn.textContent='Đang lưu…'; }
   try{
     if(id){ await api('updateCongTy', id, d); toast('Đã cập nhật công ty'); }
     else{
-      d.ma=v('ctMa'); d.adminUser=v('ctAdU'); d.adminPass=v('ctAdP');
-      if(d.adminUser && d.adminPass.length<4){ toast('Mật khẩu quản trị tối thiểu 4 ký tự'); if(btn){btn.disabled=false;btn.textContent='Tạo công ty';} return; }
+      d.ma=v('ctMa'); d.adminUser=v('ctAdU'); d.adminEmail=v('ctAdE'); d.adminHoTen=v('ctAdN'); d.adminPass=v('ctAdP');
+      if(d.adminUser && String(d.adminPass).length<4){ toast('Mật khẩu quản trị tối thiểu 4 ký tự'); ctTab_('ad');
+        if(btn){btn.disabled=false;btn.textContent='Tạo công ty';} return; }
       var c=await api('createCongTy', d);
-      toast('Đã tạo công ty "'+c.ten+'"'+(d.adminUser?(' — tài khoản: '+d.adminUser):''));
+      toast('Đã tạo "'+c.ten+'"'+(d.adminUser?(' — đăng nhập: '+d.adminUser):''));
     }
     ctClose(); renderCongTy();
-  }catch(e){ toast('Lỗi: '+e.message); if(btn){ btn.disabled=false; btn.textContent='Lưu'; } }
+  }catch(e){ toast('Lỗi: '+e.message); if(btn){ btn.disabled=false; btn.textContent=id?'Lưu thay đổi':'Tạo công ty'; } }
 }
+
 async function ctDelete(i){
   var c=(S._ctList||[])[i]; if(!c) return;
   var ok=await askInput_({title:'Xoá công ty', note:'Xoá VĨNH VIỄN công ty "'+c.ten+'" và TOÀN BỘ dữ liệu (dự án, sản phẩm, đơn hàng, tài khoản). Không thể hoàn tác.',

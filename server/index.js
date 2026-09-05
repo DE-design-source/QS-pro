@@ -86,6 +86,8 @@ const REGISTRY = {
   createCongTy: auth.createCongTy,
   updateCongTy: auth.updateCongTy,
   deleteCongTy: auth.deleteCongTy,
+  listCongTyUsers: auth.listCongTyUsers,
+  createCongTyUser: auth.createCongTyUser,
   resolvePurchaseRequest: auth.resolvePurchaseRequest
 };
 // Hàm không cần đăng nhập
@@ -96,10 +98,10 @@ const ACTOR_FNS = new Set(['me', 'logout', 'changePassword',
   'notifCount', 'notifList', 'notifRead', 'notifReadAll',
   'requestDeleteProducts', 'listDeleteRequests', 'resolveDeleteRequest',
   'sendPurchaseRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest',
-  'listCongTy', 'createCongTy', 'updateCongTy', 'deleteCongTy',
+  'listCongTy', 'createCongTy', 'updateCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser',
   'updateDbProductTracked']);
 // Hàm chỉ Admin được gọi
-const SUPER_FNS = new Set(['listCongTy', 'createCongTy', 'deleteCongTy']);
+const SUPER_FNS = new Set(['listCongTy', 'createCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser']);
 const ADMIN_FNS = new Set(['adminListUsers', 'adminCreateUser', 'adminUpdateUser',
   'adminSetPassword', 'adminSetActive', 'adminDeleteUser', 'getAuditLog',
   'listDeleteRequests', 'resolveDeleteRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest',

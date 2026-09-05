@@ -48,19 +48,29 @@ function permsArr_(v) { return String(v || '').split(',').map(function (x) { ret
 function userOut(r) {
   return { id: r.id, username: r.username, hoTen: r.ho_ten || '', role: r.role || 'staff',
     perms: permsArr_(r.perms), active: r.active !== false, createdAt: r.created_at, lastLogin: r.last_login,
-    congTyId: r.cong_ty_id || null };
+    congTyId: r.cong_ty_id || null, email: r.email || '' };
 }
 async function getUserByName(username) {
-  // noScope: lúc đăng nhập chưa biết công ty nên phải tra toàn hệ thống
-  const rows = await supa.select('users', { filter: supa.eq('username', String(username || '').trim()), limit: 1, noScope: true });
-  return rows[0] || null;
+  // Cho đăng nhập bằng TÊN ĐĂNG NHẬP hoặc EMAIL. noScope: lúc này chưa biết công ty.
+  const key = String(username || '').trim();
+  if (!key) return null;
+  let rows = await supa.select('users', { filter: supa.eq('username', key.toLowerCase()), limit: 1, noScope: true });
+  if (rows[0]) return rows[0];
+  if (key.indexOf('@') > 0) {
+    try {
+      rows = await supa.select('users', { filter: 'email=ilike.' + encodeURIComponent(key), limit: 1, noScope: true });
+      if (rows[0]) return rows[0];
+    } catch (e) { /* chưa có cột email */ }
+  }
+  return null;
 }
 /* ---------- CÔNG TY (multi-tenant) ---------- */
 function ctOut_(r) {
   return { id: r.id, ten: r.ten || '', ma: r.ma || '', logoUrl: r.logo_url || '', mauChinh: r.mau_chinh || '',
     tinhNang: String(r.tinh_nang || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean),
     gioiHanUser: Number(r.gioi_han_user) || 0, active: r.active !== false,
-    hanDung: r.han_dung || '', ghiChu: r.ghi_chu || '', ngayTao: r.ngay_tao || '' };
+    hanDung: r.han_dung || '', ghiChu: r.ghi_chu || '', ngayTao: r.ngay_tao || '',
+    email: r.email || '', sdt: r.sdt || '' };
 }
 async function getCongTy(id) {
   if (!id) return null;
@@ -88,6 +98,7 @@ async function createCongTy(actor, data) {
   const dup = await supa.select('cong_ty', { filter: supa.eq('ma', ma), limit: 1, noScope: true });
   if (dup.length) throw new Error('Mã công ty "' + ma + '" đã tồn tại');
   const row = { ten: ten, ma: ma, logo_url: String(data.logoUrl || ''),
+    email: String(data.email || ''), sdt: String(data.sdt || ''),
     tinh_nang: Array.isArray(data.tinhNang) ? data.tinhNang.join(',') : String(data.tinhNang || ''),
     gioi_han_user: Number(data.gioiHanUser) || 10, active: data.active !== false,
     han_dung: data.hanDung || null, ghi_chu: String(data.ghiChu || '') };
@@ -96,13 +107,27 @@ async function createCongTy(actor, data) {
   // tạo luôn tài khoản chủ công ty (nếu có)
   if (data.adminUser && data.adminPass) {
     await supa.insert('users', {
-      username: String(data.adminUser).trim(), ho_ten: String(data.adminHoTen || 'Quản trị ' + ten),
+      username: String(data.adminUser).trim().toLowerCase(), ho_ten: String(data.adminHoTen || 'Quản trị ' + ten),
+      email: String(data.adminEmail || data.email || ''),
       password_hash: bcrypt.hashSync(String(data.adminPass), 10), role: 'admin', perms: '',
       active: true, cong_ty_id: ct.id
     }, { noScope: true });
   }
   await audit(actor, 'create_company', 'Tạo công ty ' + ten);
   return ct;
+}
+// Danh sách user của 1 CÔNG TY — super admin xem/quản lý được mọi công ty
+async function listCongTyUsers(actor, congTyId) {
+  if (actor.r !== 'super') throw new Error('Chỉ quản trị hệ thống');
+  const rows = await supa.select('users', {
+    filter: supa.eq('cong_ty_id', congTyId), order: 'created_at.asc', limit: 500, noScope: true });
+  return rows.map(userOut);
+}
+// Super admin tạo user cho MỘT công ty bất kỳ
+async function createCongTyUser(actor, congTyId, data) {
+  if (actor.r !== 'super') throw new Error('Chỉ quản trị hệ thống');
+  data = Object.assign({}, data || {}, { congTyId: congTyId });
+  return adminCreateUser(actor, data);
 }
 async function updateCongTy(actor, id, data) {
   // Super sửa mọi công ty; chủ công ty chỉ sửa CÔNG TY MÌNH và chỉ vài trường
@@ -116,6 +141,8 @@ async function updateCongTy(actor, id, data) {
   if (data.ten != null) patch.ten = String(data.ten);
   if (data.logoUrl != null) patch.logo_url = String(data.logoUrl);
   if (data.mauChinh != null) patch.mau_chinh = String(data.mauChinh);
+  if (data.email != null) patch.email = String(data.email);
+  if (data.sdt != null) patch.sdt = String(data.sdt);
   if (isSuper) {   // chỉ super được đổi gói dịch vụ
     if (data.tinhNang != null) patch.tinh_nang = Array.isArray(data.tinhNang) ? data.tinhNang.join(',') : String(data.tinhNang);
     if (data.gioiHanUser != null) patch.gioi_han_user = Number(data.gioiHanUser) || 0;
@@ -229,7 +256,8 @@ async function adminCreateUser(actor, data) {
   const role = data.role === 'super' ? (actor.r === 'super' ? 'super' : 'staff')
              : (data.role === 'admin' ? 'admin' : 'staff');
   const perms = (role === 'admin' || role === 'super') ? '' : (Array.isArray(data.perms) ? data.perms.join(',') : '');
-  const row = { username: username, ho_ten: String(data.hoTen || ''), password_hash: bcrypt.hashSync(String(data.password), 10), role: role, perms: perms, active: true, cong_ty_id: ctId };
+  const row = { username: username, ho_ten: String(data.hoTen || ''), email: String(data.email || ''),
+    password_hash: bcrypt.hashSync(String(data.password), 10), role: role, perms: perms, active: true, cong_ty_id: ctId };
   let res;
   try { res = await supa.insert('users', row, { noScope: true }); }
   catch (e) { throw permsColErr_(e); }
@@ -395,6 +423,7 @@ async function resolvePurchaseRequest(actor, maDon, approve) {
 }
 
 module.exports = {
+  listCongTyUsers, createCongTyUser,
   listCongTy, createCongTy, updateCongTy, deleteCongTy, getCongTy,
   getPurchaseOrder,
   verifyToken, login, me, logout, changePassword,
