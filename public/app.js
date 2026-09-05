@@ -919,7 +919,7 @@ function renderSanpham(){
       +'</div>'
     +'</div>';
   S._spSel=S._spSel||{}; S._spFilters=S._spFilters||{};
-  if(!S._spCols) S._spCols={thumb:1,ten:1,thuongHieu:1,hangMuc:1,specs:1,giaDaiLy:1};
+  if(!S._spCols) S._spCols={thumb:1,ten:1,thuong_hieu:1,hang_muc:1,specs:1,giaDaiLy:1};
   renderSpProjPanel_(); renderSpChips_(); spEditBtnSync_(); spColChips_(); spRenderHead_(); spFilter();
 }
 // LEFT: sản phẩm đã ghi danh vào dự án hiện tại (S.lines)
@@ -1033,86 +1033,110 @@ function spAddToProject(i){ var p=(S._spList||[])[i]; if(!p) return; if(!S.cur){
   addProdObj(p); renderSpProjPanel_(); setTimeout(renderSpProjPanel_,700); }
 async function spRemoveFromProject(id){ await delLine(id); renderSpProjPanel_(); }
 // ==== Cột bảng SP có thể ẩn/hiện (giữa cột chọn và cột thao tác) ====
-var SP_COLS=[
-  ['thumb','Ảnh','thumbcol',function(p){ return p.hinhAnh?'<img class="sp-th" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="sp-th"></span>'; }],
-  ['ten','Sản phẩm','sp-name',function(p){ return '<b>'+esc(p.ten||'')+'</b><span class="sp-code">'+esc(p.ma||'')
-      +(p.spChung?'<span class="sp-chung" title="Sản phẩm thuộc kho chung của Dezon — chỉ xem">Kho Dezon</span>':'')+'</span>'; }],
-  ['thuongHieu','Thương hiệu','',function(p){ return p.thuongHieu?'<span class="tag-brand">'+esc(p.thuongHieu)+'</span>':''; }],
-  ['hangMuc','Hạng mục SP','',function(p){ return p.hangMuc?'<span class="tag-cat">'+esc(p.hangMuc)+'</span>':''; }],
-  ['ncc','Nhà cung cấp','',function(p){ return esc(p.ncc||''); }],
-  ['specs','Thông số','sp-specs',function(p){ return spSpecs_(p); }],
-  ['congSuat','Công suất','ct',function(p){ return p.congSuat?'<span class="spec">'+esc(p.congSuat)+'</span>':'—'; }],
-  ['nhietDo','Nhiệt độ màu','ct',function(p){ return p.nhietDo?'<span class="spec k">'+esc(p.nhietDo)+'</span>':'—'; }],
-  ['gocChieu','Góc chiếu','ct',function(p){ return p.gocChieu?esc(p.gocChieu):'—'; }],
-  ['cri','CRI','ct',function(p){ return p.cri?'CRI '+esc(p.cri):'—'; }],
-  ['tenChip','Tên chip','',function(p){ return p.tenChip?esc(p.tenChip):'—'; }],
-  ['chipLed','Loại chip','ct',function(p){ return p.chipLed?esc(p.chipLed):'—'; }],
-  ['giaBanLe','Giá bán lẻ','num',function(p,i){ return spCell_(i,'GIÁ BÁN LẺ', p.giaBanLe!=null?p.giaBanLe:'', 'đ'); }],
-  ['ckDaiLy','Chiết khấu','num',function(p,i){ return spCell_(i,'CHIẾT KHẤU ĐẠI LÝ (%)', p.ckDaiLy!=null?p.ckDaiLy:'', '%'); }],
-  ['giaDaiLy','Giá đại lý','num sp-price',function(p){ return money(p.donGiaBan)+'<span class="unit">đ</span>'; }]
-];
-/* ═══ CHẾ ĐỘ SỬA NHANH: bật nút Edit -> mọi cột có thể nhập thành ô input ═══
-   Nhãn trường phải trùng DB_LABEL2COL bên server (store_supa.js).
-   u  = đơn vị NẰM TRONG giá trị hiển thị (phải bóc ra khi sửa, gắn lại khi lưu)
-   sfx= đơn vị chỉ HIỂN THỊ cạnh ô nhập (không nằm trong giá trị)                */
-var SP_EDIT={
-  ten:       {lark:'TÊN SẢN PHẨM',            sfx:'', u:'', src:'ten'},
-  thuongHieu:{lark:'THƯƠNG HIỆU',             sfx:'', u:'', src:'thuongHieu'},
-  hangMuc:   {lark:'HẠNG MỤC',                sfx:'', u:'', src:'hangMuc'},
-  ncc:       {lark:'NHÀ CUNG CẤP',            sfx:'', u:'', src:'ncc'},
-  congSuat:  {lark:'CÔNG SUẤT (W)',           sfx:'W', u:'W', src:'congSuat', col:'cong_suat_w'},
-  nhietDo:   {lark:'NHIỆT ĐỘ MÀU (K)',        sfx:'K', u:'K', src:'nhietDo', col:'nhiet_do_mau_k'},
-  gocChieu:  {lark:'GÓC CHIẾU (°)',           sfx:'°', u:'°', src:'gocChieu', col:'goc_chieu_deg'},
-  cri:       {lark:'CRI',                     sfx:'', u:'', src:'cri'},
-  tenChip:   {lark:'TÊN CHIP LED',            sfx:'', u:'', src:'tenChip'},
-  chipLed:   {lark:'LOẠI CHIP LED',           sfx:'', u:'', src:'chipLed'},
-  giaBanLe:  {lark:'GIÁ BÁN LẺ',              sfx:'đ', u:'', src:'giaBanLe', num:1},
-  ckDaiLy:   {lark:'CHIẾT KHẤU ĐẠI LÝ (%)',   sfx:'%', u:'', src:'ckDaiLy',  num:1}
-};
+/* ═══ CỘT BẢNG DANH SÁCH SP = ĐÚNG BỘ TRƯỜNG CỦA FORM NHẬP ═══
+   Ngoài 4 cột đặc biệt (Ảnh · Sản phẩm · Thông số · Giá đại lý), MỌI trường trong
+   DB_GROUPS đều tự sinh ra 1 chip cột + 1 cột sửa được -> form nhập có bao nhiêu
+   trường thì bảng có bấy nhiêu chip, thêm trường mới không phải sửa chỗ này.   */
+
+// cột DB -> thuộc tính đã format sẵn trong object sản phẩm (hiển thị cho đẹp: "12W", "Ø100mm"…)
+var COL2PROP={ thuong_hieu:'thuongHieu', nha_cung_cap:'ncc', hang_muc:'hangMuc', dong_sp:'dongSanPham',
+  cong_suat_w:'congSuat', nhiet_do_mau_k:'nhietDo', goc_chieu_deg:'gocChieu', goc_nghieng_deg:'gocNghieng',
+  mau_sac:'mauSac', chat_lieu:'chatLieu', chieu_cao_mm:'chieuCao', duong_kinh_mm:'duongKinh',
+  cutout_mm:'loKhoet', chi_so_ip:'capBaoVe', cri:'cri', hieu_suat_lm_w:'hieuSuat', quang_thong_lm:'quangThong',
+  ugr:'ugr', sdcm:'sdcm', coi:'coi', tuoi_tho:'tuoiTho', ten_chip_led:'tenChip', loai_chip_led:'chipLed',
+  class_rating:'capBaoVeDien', lap_nguon_roi:'lapNguonRoi', ten_bo_nguon:'tenBoNguon', ma_bo_nguon:'maBoNguon',
+  hang_bo_nguon:'hangBoNguon', vi_tri_lap_nguon:'viTriNguon', dieu_khien:'tuongThich', dong_ra_max_ma:'dongRa',
+  bao_hanh_nam:'baoHanh', dvt:'dvt', link_datasheet:'linkDatasheet' };
+var SP_NUMCOL={gia_ban_le:1, ck_dai_ly_pct:1, quang_thong_lm:1, hieu_suat_lm_w:1, dong_ra_max_ma:1,
+  bao_hanh_nam:1, chieu_cao_mm:1, duong_kinh_mm:1};
+var SP_CTCOL={cong_suat_w:1, nhiet_do_mau_k:1, goc_chieu_deg:1, goc_nghieng_deg:1, cri:1, chi_so_ip:1,
+  ugr:1, sdcm:1, coi:1, dvt:1, loai_chip_led:1, lap_nguon_roi:1, class_rating:1};
+var SP_SFX={gia_ban_le:'đ', ck_dai_ly_pct:'%'};      // đơn vị chỉ hiện cạnh ô, KHÔNG nằm trong giá trị
+var SP_ALWAYS={gia_ban_le:1, ck_dai_ly_pct:1};       // 2 cột này sửa được cả khi CHƯA bật Edit
+var SP_SKIP={'TÊN SẢN PHẨM':1,'MÃ SẢN PHẨM':1,'GIÁ ĐẠI LÝ':1,'ẢNH SẢN PHẨM':1};   // đã có cột đặc biệt lo
+
+// giá trị HIỂN THỊ của 1 cột: ưu tiên bản đã format, không có thì lấy giá trị gốc
+function spColVal_(p,col){
+  var prop=COL2PROP[col];
+  var v=(prop && p[prop]!=null && p[prop]!=='') ? p[prop] : (p.raw||{})[col];
+  return v==null?'':String(v);
+}
+// giá trị đưa vào Ô NHẬP: ĐÚNG giá trị gốc trong DB (giống modal Sửa)
+function spEditRaw_(p,col){ var r=p.raw||{}; return r[col]!=null?String(r[col]):spColVal_(p,col); }
+function spDash_(v){ return v?esc(v):'<span class="muted">—</span>'; }
+
+var _spColCache=null;
+function spAllCols_(){
+  if(_spColCache) return _spColCache;
+  var head=[
+    ['thumb','Ảnh','thumbcol',function(p){ return p.hinhAnh?'<img class="sp-th" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="sp-th"></span>'; }],
+    ['ten','Sản phẩm','sp-name',function(p){ return '<b>'+esc(p.ten||'')+'</b><span class="sp-code">'+esc(p.ma||'')
+        +(p.spChung?'<span class="sp-chung" title="Sản phẩm thuộc kho chung của Dezon — chỉ xem">Kho Dezon</span>':'')+'</span>'; },
+      {lark:'TÊN SẢN PHẨM', col:'ten_sp', sfx:''}],
+    ['specs','Thông số','sp-specs',function(p){ return spSpecs_(p); }]
+  ];
+  var tail=[
+    ['giaDaiLy','Giá đại lý','num sp-price',function(p){ return money(p.donGiaBan)+'<span class="unit">đ</span>'; }]
+  ];
+  var gen=[];
+  (typeof DB_FLAT!=='undefined'?DB_FLAT:[]).forEach(function(f){
+    var lark=f[0]; if(SP_SKIP[lark]) return;
+    var col=DB_LABEL2COL_[lark]; if(!col) return;
+    var e={lark:lark, col:col, sfx:SP_SFX[col]||'', num:!!SP_NUMCOL[col]};
+    var cls=SP_NUMCOL[col]?'num':(SP_CTCOL[col]?'ct':'');
+    gen.push([col, f[1], cls, function(p,i){
+      if(SP_ALWAYS[col]) return spInp_(i,e,spEditRaw_(p,col),p);          // giá bán lẻ / chiết khấu: luôn sửa được
+      var v=spColVal_(p,col);
+      if(col==='thuong_hieu') return v?'<span class="tag-brand">'+esc(v)+'</span>':'';
+      if(col==='hang_muc')    return v?'<span class="tag-cat">'+esc(v)+'</span>':'';
+      if(col==='cong_suat_w') return v?'<span class="spec">'+esc(v)+'</span>':'<span class="muted">—</span>';
+      if(col==='nhiet_do_mau_k') return v?'<span class="spec k">'+esc(v)+'</span>':'<span class="muted">—</span>';
+      if(col==='cri')         return v?'CRI '+esc(v):'<span class="muted">—</span>';
+      if(col==='link_datasheet') return v?'<a href="'+esc(v)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">Datasheet</a>':'<span class="muted">—</span>';
+      return spDash_(v);
+    }, e]);
+  });
+  _spColCache=head.concat(gen).concat(tail);
+  return _spColCache;
+}
+/* ═══ CHẾ ĐỘ SỬA NHANH: bật nút Edit -> mọi cột nhập được thành ô input ═══ */
 function spUnitRe_(u){ return new RegExp(u.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$','i'); }
-// "4000K, 3000K" -> "4000, 3000"   (bóc đơn vị để người dùng sửa số thuần)
-function spStripUnit_(v,u){ var t=String(v==null?'':v); if(!u) return t; var re=spUnitRe_(u);
-  return t.split(',').map(function(x){ return x.trim().replace(re,''); }).filter(Boolean).join(', '); }
-// "4000, 3000" -> "4000K, 3000K"   (gắn lại để hiển thị đúng như server trả về)
+// "4000, 3000" -> "4000K, 3000K"  (chỉ dùng để cập nhật phần HIỂN THỊ sau khi lưu)
 function spAddUnit_(v,u){ var t=String(v==null?'':v).trim(); if(!u||!t) return t; var re=spUnitRe_(u);
   return t.split(',').map(function(x){ x=x.trim(); return x?(re.test(x)?x:x+u):''; }).filter(Boolean).join(', '); }
-// Giá trị đưa vào ô nhập = ĐÚNG giá trị gốc trong DB (giống modal Sửa), không tự thêm/bớt đơn vị.
-// Bản cũ của server chưa gửi p.raw -> tạm bóc đơn vị khỏi giá trị hiển thị.
-function spEditVal_(p,e){
-  if(e.col && p.raw && p.raw[e.col]!=null) return String(p.raw[e.col]);
-  var v=p[e.src]; if(v==null) v='';
-  return e.u?spStripUnit_(v,e.u):String(v);
-}
 // 1 ô nhập trong bảng
-function spInp_(i,e,val,extra){
+function spInp_(i,e,val,p){
+  val=(val==null?'':String(val));
+  if(p&&p.spChung) return '<span class="spin-wrap'+(e.num?'':' tx')+' ro" title="Sản phẩm kho chung — không sửa được">'
+    +'<span class="spin-ro">'+esc(val)+'</span>'+(e.sfx?'<i>'+e.sfx+'</i>':'')+'</span>';
   return '<span class="spin-wrap'+(e.num?'':' tx')+'" onclick="event.stopPropagation()">'
-    +'<input class="spin'+(e.num?'':' spin-tx')+(extra||'')+'" value="'+esc(val==null?'':String(val))+'"'
-    +' data-i="'+i+'" data-lark="'+esc(e.lark)+'" data-u="'+esc(e.u||'')+'" data-col="'+esc(e.col||'')+'" data-old="'+esc(val==null?'':String(val))+'"'
+    +'<input class="spin'+(e.num?'':' spin-tx')+'" value="'+esc(val)+'"'
+    +' data-i="'+i+'" data-lark="'+esc(e.lark)+'" data-col="'+esc(e.col||'')+'" data-old="'+esc(val)+'"'
     +' onchange="spInlineSave(this)" onkeydown="if(event.key===\'Enter\')this.blur()">'
     +(e.sfx?'<i>'+e.sfx+'</i>':'')+'</span>';
 }
 // Cột "Sản phẩm" khi sửa = 2 ô: tên + mã
 function spNameEdit_(p,i){
   return '<span class="spin-name" onclick="event.stopPropagation()">'
-    +'<input class="spin spin-tx" value="'+esc(p.ten||'')+'" data-i="'+i+'" data-lark="TÊN SẢN PHẨM" data-u="" data-old="'+esc(p.ten||'')+'"'
+    +'<input class="spin spin-tx" value="'+esc(p.ten||'')+'" data-i="'+i+'" data-lark="TÊN SẢN PHẨM" data-col="ten_sp" data-old="'+esc(p.ten||'')+'"'
     +' onchange="spInlineSave(this)" onkeydown="if(event.key===\'Enter\')this.blur()" placeholder="Tên sản phẩm">'
-    +'<input class="spin spin-tx code" value="'+esc(p.ma||'')+'" data-i="'+i+'" data-lark="MÃ SẢN PHẨM" data-u="" data-old="'+esc(p.ma||'')+'"'
+    +'<input class="spin spin-tx code" value="'+esc(p.ma||'')+'" data-i="'+i+'" data-lark="MÃ SẢN PHẨM" data-col="ma_sp" data-old="'+esc(p.ma||'')+'"'
     +' onchange="spInlineSave(this)" onkeydown="if(event.key===\'Enter\')this.blur()" placeholder="Mã sản phẩm">'
     +'</span>';
 }
-// Ô của 1 cột khi ĐANG ở chế độ sửa (cột không sửa được thì vẽ như bình thường)
+// Ô của 1 cột khi ĐANG ở chế độ sửa (cột không nhập được thì vẽ như bình thường)
 function spEditCell_(c,p,i){
   if(p&&p.spChung) return c[3](p,i);            // kho chung Dezon: chỉ xem
-  var e=SP_EDIT[c[0]]; if(!e) return c[3](p,i); // ảnh / thông số / giá đại lý: hiển thị
   if(c[0]==='ten') return spNameEdit_(p,i);
-  return spInp_(i,e,spEditVal_(p,e));
+  var e=c[4]; if(!e) return c[3](p,i);          // Ảnh / Thông số / Giá đại lý: hiển thị
+  return spInp_(i,e,spEditRaw_(p,e.col),p);
 }
 function spEditToggle(){
   S._spEdit=!S._spEdit;
   if(S._spEdit){
     S._spColsBak=Object.assign({},S._spCols||{});
     S._spCols=S._spCols||{}; S._spCols.thumb=1;
-    Object.keys(SP_EDIT).forEach(function(k){ S._spCols[k]=1; });   // hiện TẤT CẢ cột nhập được
+    spAllCols_().forEach(function(c){ if(c[4]) S._spCols[c[0]]=1; });   // hiện TẤT CẢ cột nhập được
   }else if(S._spColsBak){ S._spCols=S._spColsBak; S._spColsBak=null; }
   spEditBtnSync_(); spColChips_(); spRenderHead_(); spFilter();
   toast(S._spEdit?'Sửa nhanh: gõ thẳng vào ô, rời ô là tự lưu':'Đã tắt chế độ sửa nhanh');
@@ -1123,18 +1147,8 @@ function spEditBtnSync_(){
   b.innerHTML = S._spEdit ? (icon('check',14)+' Xong') : (icon('edit',14)+' Edit');
   b.title = S._spEdit ? 'Tắt chế độ sửa nhanh' : 'Sửa nhanh ngay trên bảng — hiện tất cả cột nhập liệu';
 }
-// Ô SỬA TRỰC TIẾP trong bảng (không cần mở modal)
-function spCell_(i,lark,val,unit){
-  var p=(S._spList||[])[i];
-  if(p&&p.spChung) return '<span class="spin-wrap ro" title="Sản phẩm kho chung — không sửa được">'
-    +'<span class="spin-ro">'+esc(val==null?'':String(val))+'</span><i>'+unit+'</i></span>';
-  return '<span class="spin-wrap" onclick="event.stopPropagation()">'
-    +'<input class="spin" value="'+esc(val==null?'':String(val))+'" data-i="'+i+'" data-lark="'+esc(lark)+'" data-old="'+esc(val==null?'':String(val))+'"'
-    +' onchange="spInlineSave(this)" onkeydown="if(event.key===\'Enter\')this.blur()">'
-    +'<i>'+unit+'</i></span>';
-}
 async function spInlineSave(el){
-  var i=+el.getAttribute('data-i'), lark=el.getAttribute('data-lark'), u=el.getAttribute('data-u')||'';
+  var i=+el.getAttribute('data-i'), lark=el.getAttribute('data-lark'), col=el.getAttribute('data-col')||'';
   var p=(S._spList||[])[i]; if(!p) return;
   var v=String(el.value).trim();
   var old=el.getAttribute('data-old'); if(old!=null && old===v) return;   // không đổi thì khỏi gọi server
@@ -1146,7 +1160,7 @@ async function spInlineSave(el){
     await api('updateDbProductTracked', String(p.recordId||p.ma), d);
     el.classList.remove('saving'); el.classList.add('ok');
     el.setAttribute('data-old', v);
-    spPatchLocal_(p, lark, v, u, el.getAttribute('data-col')||'');
+    spPatchLocal_(p, lark, col, v);
     spSyncRow_(el, p);
     setTimeout(function(){ el.classList.remove('ok'); }, 1300);
   }catch(e){
@@ -1155,27 +1169,20 @@ async function spInlineSave(el){
   }
 }
 // Cập nhật object sản phẩm trong bộ nhớ (S._spList dùng CHUNG tham chiếu với S.products)
-function spPatchLocal_(p,lark,v,u,col){
-  var val = u ? spAddUnit_(v,u) : v;
+var SP_DISPUNIT={cong_suat_w:'W', nhiet_do_mau_k:'K', goc_chieu_deg:'°', goc_nghieng_deg:'°'};
+function spPatchLocal_(p,lark,col,v){
   if(col){ p.raw=p.raw||{}; p.raw[col]=v; }
-  if(lark==='TÊN SẢN PHẨM') p.ten=v;
-  else if(lark==='MÃ SẢN PHẨM') p.ma=v;
-  else if(lark==='THƯƠNG HIỆU') p.thuongHieu=v;
-  else if(lark==='HẠNG MỤC') p.hangMuc=v;
-  else if(lark==='NHÀ CUNG CẤP') p.ncc=v;
-  else if(lark==='CÔNG SUẤT (W)') p.congSuat=val;
-  else if(lark==='NHIỆT ĐỘ MÀU (K)') p.nhietDo=val;
-  else if(lark==='GÓC CHIẾU (°)') p.gocChieu=val;
-  else if(lark==='CRI') p.cri=v;
-  else if(lark==='TÊN CHIP LED') p.tenChip=v;
-  else if(lark==='LOẠI CHIP LED') p.chipLed=v;
-  else if(lark==='GIÁ BÁN LẺ') p.giaBanLe=Number(v)||0;
-  else if(lark==='CHIẾT KHẤU ĐẠI LÝ (%)') p.ckDaiLy=Number(v)||0;
+  var prop=COL2PROP[col];
+  if(prop) p[prop]=SP_DISPUNIT[col]?spAddUnit_(v,SP_DISPUNIT[col]):v;
+  if(col==='ten_sp') p.ten=v;
+  else if(col==='ma_sp') p.ma=v;
+  else if(col==='gia_ban_le') p.giaBanLe=Number(v)||0;
+  else if(col==='ck_dai_ly_pct') p.ckDaiLy=Number(v)||0;
   // GIÁ ĐẠI LÝ là cột generated trong DB: round(giá bán lẻ × (1 − CK/100)) — tính lại y hệt để hiện ngay
-  p.donGiaBan = Math.round((Number(p.giaBanLe)||0) * (1 - (Number(p.ckDaiLy)||0)/100));
-  p.donGiaVon = p.donGiaBan;
+  p.donGiaBan=Math.round((Number(p.giaBanLe)||0)*(1-(Number(p.ckDaiLy)||0)/100));
+  p.donGiaVon=p.donGiaBan;
 }
-// Vẽ lại các ô CHỈ ĐỌC của đúng dòng vừa sửa (giá đại lý, thông số) — giữ nguyên con trỏ đang gõ
+// Vẽ lại các ô CHỈ ĐỌC của đúng dòng vừa sửa — giữ nguyên con trỏ đang gõ
 function spSyncRow_(el,p){
   var tr=el.closest('tr'); if(!tr) return;
   var i=+el.getAttribute('data-i');
@@ -1186,13 +1193,14 @@ function spSyncRow_(el,p){
 }
 function spColOn_(k){ return k==='ten' ? true : !!(S._spCols&&S._spCols[k]); }
 function spThCls_(c){ var cl=c[2]||''; if(cl.indexOf('num')>=0)return 'num'; if(cl.indexOf('ct')>=0)return 'ct'; if(cl.indexOf('thumbcol')>=0)return 'thumbcol'; return ''; }
-function spVisCols_(){ return SP_COLS.filter(function(c){ return spColOn_(c[0]); }); }
+function spVisCols_(){ return spAllCols_().filter(function(c){ return spColOn_(c[0]); }); }
 function spColToggle(k){ if(k==='ten') return; S._spCols=S._spCols||{}; S._spCols[k]=!S._spCols[k]; spColChips_(); spRenderHead_(); spFilter(); }
 function spColChips_(){
   var bar=document.getElementById('spColBar'); if(!bar) return;
-  bar.innerHTML='<span class="cp-collbl">Cột hiển thị</span>'+SP_COLS.map(function(c){
-    var lock=c[0]==='ten', on=spColOn_(c[0]);
-    return '<span class="chip'+(on?' on':'')+(lock?' lock':'')+'"'+(lock?'':' onclick="spColToggle(\''+c[0]+'\')"')+'>'+esc(c[1])+'</span>';
+  var cols=spAllCols_(), on=cols.filter(function(c){ return spColOn_(c[0]); }).length;
+  bar.innerHTML='<span class="cp-collbl">Cột hiển thị <b>'+on+'/'+cols.length+'</b></span>'+cols.map(function(c){
+    var lock=c[0]==='ten', act=spColOn_(c[0]);
+    return '<span class="chip'+(act?' on':'')+(lock?' lock':'')+'"'+(lock?'':' onclick="spColToggle(\''+c[0]+'\')"')+'>'+esc(c[1])+'</span>';
   }).join('');
 }
 function spRenderHead_(){
@@ -1356,7 +1364,7 @@ function spFilter(){
     return '<tr class="sp-row'+(sel?' selrow':'')+(edit?' editrow':'')+'"'
       +(edit?'':' draggable="true" ondragstart="spRowDragStart(event,'+i+')" ondragend="spRowDragEnd()" onclick="spModal('+i+')"')+'>'
       +'<td class="selcol" onclick="event.stopPropagation()"><input type="checkbox" class="spck" '+(sel?'checked':'')+' onclick="spSelToggle(\''+esc(selKey)+'\',this.checked)"></td>'
-      +vis.map(function(c){ return '<td class="'+c[2]+(edit&&SP_EDIT[c[0]]&&!p.spChung?' edt':'')+'">'+(edit?spEditCell_(c,p,i):c[3](p,i))+'</td>'; }).join('')
+      +vis.map(function(c){ return '<td class="'+c[2]+(edit&&c[4]&&!p.spChung?' edt':'')+'">'+(edit?spEditCell_(c,p,i):c[3](p,i))+'</td>'; }).join('')
       +'<td class="act-sp" onclick="event.stopPropagation()">'
         +'<button class="sp-act add" title="Ghi danh vào dự án" onclick="spAddToProject('+i+')">'+icon('pluscircle',18)+'</button>'
         +(p.spChung?'':'<button class="sp-act edit" title="Cập nhật sản phẩm" onclick="spEditModal('+i+')">'+icon('edit',16)+'</button>')

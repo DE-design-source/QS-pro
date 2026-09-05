@@ -2071,6 +2071,13 @@ html,body,.catpanel,.catpanel-top,.cat-list,#pdPanel,.fltpop,.tree-pop,.spe-hist
 .sp-table tr.editrow .spin:focus{border-color:var(--blue);background:#fff}
 .sp-table tr.editrow td.ct .spin-wrap.tx{justify-content:center}
 .sp-table tr.editrow td.ct .spin.spin-tx{text-align:center;min-width:78px}
+
+/* Thanh chip cột giờ có ~40 chip (bằng số trường form Nhập) -> giới hạn 3 hàng, dư thì cuộn */
+.sp-colchips{max-height:110px;overflow-y:auto;align-content:flex-start}
+.sp-colchips::-webkit-scrollbar{width:0;height:0}
+.sp-colchips{scrollbar-width:none}
+.sp-colchips .cp-collbl{position:sticky;left:0;flex:none}
+.sp-colchips .cp-collbl b{color:var(--blue);font-weight:700;margin-left:3px}
 /* thanh hàng loạt */
 /* ═══ Thanh SỬA HÀNG LOẠT — nổi cố định, chia 3 vùng rõ ràng ═══ */
 .spbulk{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:60;

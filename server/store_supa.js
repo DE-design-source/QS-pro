@@ -67,10 +67,23 @@ function prodToObj(r) {
     dvt: s(r.dvt) || 'Cái', hinhAnh: firstImg(r.anh_sp), moTa: moTa,
     giaBanLe: n(r.gia_ban_le), ckDaiLy: n(r.ck_dai_ly_pct),   // để sửa TRỰC TIẾP trong bảng Danh sách SP
     donGiaVon: n(r.gia_dai_ly), donGiaBan: n(r.gia_dai_ly), lnPct: 0, recordId: r.id, ngayCapNhat: s(r.ngay_cap_nhat),
-    // Giá trị GỐC của các cột có đơn vị — để sửa trực tiếp trong bảng đúng như modal Sửa
-    // (hiển thị là '12W'/'4000K' nhưng DB có thể lưu '12'/'4000'; sửa phải ghi lại đúng dạng gốc)
-    raw: { cong_suat_w: s(r.cong_suat_w), nhiet_do_mau_k: s(r.nhiet_do_mau_k), goc_chieu_deg: s(r.goc_chieu_deg) }
+    // Giá trị GỐC của TẤT CẢ trường trong form Nhập — để bảng Danh sách SP hiển thị/sửa
+    // được đúng bộ cột như form (hiển thị là '12W'/'4000K' nhưng DB lưu '12'/'4000').
+    raw: rawCols_(r)
   };
+}
+// Bộ cột "thô" gửi kèm mỗi sản phẩm = đúng các trường của form Nhập (bỏ ảnh vì đã có ở hinhAnh
+// và chuỗi rất dài). Nhờ vậy bảng Danh sách SP sinh cột thẳng từ danh sách trường, không lệch nhau.
+let _rawCols = null;
+function rawCols_(r) {
+  if (!_rawCols) _rawCols = Object.keys(DB_LABEL2COL).map(function (k) { return DB_LABEL2COL[k]; })
+    .filter(function (c) { return c !== 'anh_sp'; });
+  const o = {};
+  _rawCols.forEach(function (c) {
+    if (c === 'lap_nguon_roi') { o[c] = r[c] ? 'Có' : ''; return; }
+    const v = r[c]; o[c] = (v == null) ? '' : String(v);
+  });
+  return o;
 }
 let _cache = null, _cacheAt = 0;
 // Công ty có được dùng kho SP chung của Dezon không? -> trả id công ty Dezon
