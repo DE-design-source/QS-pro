@@ -65,7 +65,10 @@ function prodToObj(r) {
     kichThuoc: thongSoTK, size: size,
     dvt: s(r.dvt) || 'Cái', hinhAnh: firstImg(r.anh_sp), moTa: moTa,
     giaBanLe: n(r.gia_ban_le), ckDaiLy: n(r.ck_dai_ly_pct),   // để sửa TRỰC TIẾP trong bảng Danh sách SP
-    donGiaVon: n(r.gia_dai_ly), donGiaBan: n(r.gia_dai_ly), lnPct: 0, recordId: r.id, ngayCapNhat: s(r.ngay_cap_nhat)
+    donGiaVon: n(r.gia_dai_ly), donGiaBan: n(r.gia_dai_ly), lnPct: 0, recordId: r.id, ngayCapNhat: s(r.ngay_cap_nhat),
+    // Giá trị GỐC của các cột có đơn vị — để sửa trực tiếp trong bảng đúng như modal Sửa
+    // (hiển thị là '12W'/'4000K' nhưng DB có thể lưu '12'/'4000'; sửa phải ghi lại đúng dạng gốc)
+    raw: { cong_suat_w: s(r.cong_suat_w), nhiet_do_mau_k: s(r.nhiet_do_mau_k), goc_chieu_deg: s(r.goc_chieu_deg) }
   };
 }
 let _cache = null, _cacheAt = 0;
@@ -314,7 +317,10 @@ async function saveCover(maDA, rows) {
 }
 
 /*** ===== SP MỚI / ẢNH ===== ***/
-const DB_NUM = ['NHIỆT ĐỘ MÀU (K)', 'QUANG THÔNG (lm)', 'GÓC CHIẾU (°)', 'GÓC NGHIÊNG (°)',
+// Các trường ÉP KIỂU SỐ khi lưu. CHỈ liệt kê cột thật sự là numeric trong DB —
+// nhiet_do_mau_k / goc_chieu_deg / goc_nghieng_deg / cong_suat_w / cutout_mm đều là TEXT
+// (cho nhập "3000, 4000", "2×5W", "24°/38°"); ép n() sẽ biến các giá trị đó thành 0 -> MẤT DỮ LIỆU.
+const DB_NUM = ['QUANG THÔNG (lm)',
   'CHIỀU CAO (mm)', 'ĐƯỜNG KÍNH (mm)', 'HIỆU SUẤT PHÁT QUANG (lm/W)', 'DÒNG RA TỐI ĐA (mA)',
   'BẢO HÀNH (năm)', 'GIÁ BÁN LẺ', 'CHIẾT KHẤU ĐẠI LÝ (%)'];
 const DB_LABEL2COL = {
