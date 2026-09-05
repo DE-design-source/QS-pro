@@ -427,11 +427,11 @@ function showTab(tab){
   // Chặn tab không được cấp quyền -> chuyển về tab đầu tiên hợp lệ
   if(S.me && !canTab(tab)){ var f=firstAllowedTab_(); if(!f){ toast('Tài khoản chưa được cấp quyền vào phần nào'); return; } if(f!==tab){ tab=f; } }
   document.querySelectorAll('#nav a, .topnav .right a').forEach(function(a){ a.classList.toggle('active',a.getAttribute('data-tab')===tab); });
-  ['boc','project','dash','chiphi','export','import','sanpham','muahang','duan','admin'].forEach(function(v){
+  ['boc','project','dash','chiphi','export','import','sanpham','muahang','duan','admin','congty'].forEach(function(v){
     var el=document.getElementById('v-'+v); if(el) el.classList.toggle('on',v===tab);
   });
   // Ẩn breadcrumb + banner dự án ở các trang KHÔNG thuộc 1 dự án cụ thể
-  var noProj = (tab==='admin' || tab==='sanpham' || tab==='import');
+  var noProj = (tab==='admin' || tab==='sanpham' || tab==='import' || tab==='congty');
   var crumb=document.querySelector('.crumb'); if(crumb) crumb.style.display = noProj?'none':'';
   // Dashboard đã có banner "Đang làm việc" + KPI riêng -> ẩn banner #pcard để khỏi TRÙNG LẶP
   var pcard=document.getElementById('pcard'); if(pcard) pcard.style.display = (noProj||tab==='dash')?'none':'';
