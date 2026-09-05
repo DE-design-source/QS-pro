@@ -2078,6 +2078,44 @@ html,body,.catpanel,.catpanel-top,.cat-list,#pdPanel,.fltpop,.tree-pop,.spe-hist
 .sp-colchips{scrollbar-width:none}
 .sp-colchips .cp-collbl{position:sticky;left:0;flex:none}
 .sp-colchips .cp-collbl b{color:var(--blue);font-weight:700;margin-left:3px}
+
+/* ═══ ĐÓNG BĂNG như Excel: 1 hàng tiêu đề + 2 cột đầu (kèm cột chọn) ═══
+   Bảng có riêng vùng cuộn (cả dọc lẫn ngang) thì sticky mới bám được.       */
+.sp-card .tbl-wrap{max-height:calc(100vh - 262px);overflow:auto;overscroll-behavior:contain}
+.sp-table thead th{position:sticky;top:0;z-index:3}
+.sp-table th.frz,.sp-table td.frz{position:sticky;z-index:2;background:#fff}
+.sp-table thead th.frz{z-index:4;background:#fcfdfe}
+.sp-table tbody tr:hover td.frz{background:#fafbfd}
+.sp-table tbody tr.selrow td.frz{background:#f3f8ff}
+/* đường kẻ dọc ngăn vùng đóng băng với phần cuộn */
+.sp-table th.frz-last,.sp-table td.frz-last{box-shadow:1px 0 0 var(--hair-2)}
+.sp-table .tbl-wrap-scrolled th.frz-last,.sp-table .tbl-wrap-scrolled td.frz-last{box-shadow:3px 0 6px -2px rgba(18,50,76,.14)}
+.sp-card .tbl-wrap.xscroll .frz-last{box-shadow:3px 0 6px -2px rgba(18,50,76,.14)}
+@media(max-width:900px){ .sp-card .tbl-wrap{max-height:none;overflow:visible} .sp-table th.frz,.sp-table td.frz{position:static} }
+
+/* ═══ Cột SỐ SKU ═══ */
+.sku-badge{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;padding:0 6px;
+  border-radius:var(--r-sm);background:#f2f4f7;color:var(--ink-3);font-size:11px;font-weight:650;font-variant-numeric:tabular-nums}
+.sku-badge.multi{background:#eaf1fe;color:var(--blue)}
+
+/* ═══ Nút Hoàn tác ═══ */
+.sp-undobtn:disabled{opacity:.42;cursor:not-allowed}
+
+/* ═══ Phân trang cuối bảng ═══ */
+.sppg{display:flex;align-items:center;gap:10px;padding:11px 16px;border-top:1px solid var(--hair);background:#fcfdfe;flex-wrap:wrap}
+.sppg-info{font-size:12px;color:var(--ink-3)}
+.sppg-info b{color:var(--ink);font-weight:650;font-variant-numeric:tabular-nums}
+.sppg-nav{display:flex;align-items:center;gap:3px;margin-left:auto}
+.sppg-n,.sppg-b{min-width:28px;height:28px;padding:0 7px;border:1px solid var(--hair-2);background:#fff;color:var(--ink-2);
+  border-radius:var(--r-md);font:inherit;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;
+  align-items:center;justify-content:center;transition:all .13s;font-variant-numeric:tabular-nums}
+.sppg-n:hover,.sppg-b:not(:disabled):hover{border-color:var(--blue);color:var(--blue);background:#f7faff}
+.sppg-n.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.sppg-b:disabled{opacity:.35;cursor:not-allowed}
+.sppg-dots{color:var(--ink-3);padding:0 2px;font-size:12px}
+.sppg-per{border:1px solid var(--hair-2);border-radius:var(--r-md);padding:5px 8px;font:inherit;font-size:12px;
+  color:var(--ink-2);background:#fff;cursor:pointer}
+@media(max-width:900px){ .sppg{gap:7px} .sppg-nav{margin-left:0;width:100%;justify-content:center} }
 /* thanh hàng loạt */
 /* ═══ Thanh SỬA HÀNG LOẠT — nổi cố định, chia 3 vùng rõ ràng ═══ */
 .spbulk{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:60;
