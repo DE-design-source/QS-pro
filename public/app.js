@@ -1234,7 +1234,7 @@ function spFilter(){
   });
   S._spList=list; S._spSel=S._spSel||{};
   var cnt=document.getElementById('spCount'); if(cnt) cnt.textContent=list.length+' SP';
-  var isAdmin=S.me&&S.me.role==='admin';
+  var isAdmin=isAdminRole_();
   var vis=spVisCols_(), ncol=vis.length+2;
   document.getElementById('spBody').innerHTML=list.length?list.map(function(p,i){
     var selKey=String(p.recordId||p.ma||''); var sel=!!S._spSel[selKey];
@@ -1263,7 +1263,7 @@ function spClearSel(){ S._spSel={}; spFilter(); }
 function spBulkBar_(){
   var wrap=document.getElementById('spBulkWrap'); if(!wrap) return;
   var n=Object.keys(S._spSel||{}).length; if(!n){ wrap.innerHTML=''; return; }
-  var isAdmin=S.me&&S.me.role==='admin';
+  var isAdmin=isAdminRole_();
   var FIELDS=[['CHIẾT KHẤU ĐẠI LÝ (%)','Chiết khấu (%)'],['GIÁ BÁN LẺ','Giá bán lẻ'],['THƯƠNG HIỆU','Thương hiệu'],
               ['NHÀ CUNG CẤP','Nhà cung cấp'],['HẠNG MỤC','Hạng mục SP'],['DÒNG SẢN PHẨM','Dòng sản phẩm'],
               ['BẢO HÀNH (năm)','Bảo hành (năm)'],['TRẠNG THÁI','Trạng thái'],['ĐƠN VỊ TÍNH','Đơn vị tính']];
@@ -2152,34 +2152,69 @@ async function renderCongTy(){
   try{ list=await api('listCongTy')||[]; }
   catch(e){ box.innerHTML='<div class="sechd"><h2>Quản lý công ty</h2></div><div class="empty" style="padding:26px">'+esc(e.message)+'</div>'; return; }
   S._ctList=list;
-  var rows=list.map(function(c,i){
-    var het = c.hanDung && new Date(c.hanDung) < new Date(new Date().toDateString());
+  var today=new Date(new Date().toDateString());
+  function ngayConLai(h){ if(!h) return null; return Math.round((new Date(h)-today)/86400000); }
+  // ---- thống kê nhanh ----
+  var tong=list.length, dangHD=0, sapHet=0, tongUser=0;
+  list.forEach(function(c){
+    var d=ngayConLai(c.hanDung);
+    if(c.active && !(d!==null&&d<0)) dangHD++;
+    if(d!==null && d>=0 && d<=30) sapHet++;
+    tongUser+=c.soUser||0;
+  });
+  var stats='<div class="ct-stats">'
+    +'<div class="ct-stat"><span class="ct-stat-ic">'+icon('building',17)+'</span><div><b>'+tong+'</b><i>Công ty</i></div></div>'
+    +'<div class="ct-stat ok"><span class="ct-stat-ic">'+icon('check',17)+'</span><div><b>'+dangHD+'</b><i>Đang hoạt động</i></div></div>'
+    +'<div class="ct-stat warn"><span class="ct-stat-ic">'+icon('clock',17)+'</span><div><b>'+sapHet+'</b><i>Sắp hết hạn (30 ngày)</i></div></div>'
+    +'<div class="ct-stat"><span class="ct-stat-ic">'+icon('list',17)+'</span><div><b>'+tongUser+'</b><i>Tổng người dùng</i></div></div>'
+    +'</div>';
+  // ---- thẻ từng công ty ----
+  var cards=list.map(function(c,i){
+    var d=ngayConLai(c.hanDung), het=(d!==null&&d<0);
     var st = !c.active ? ['locked','Tạm khoá'] : (het ? ['expired','Hết hạn'] : ['ok','Đang hoạt động']);
-    var fe = c.tinhNang.length ? c.tinhNang.length+'/'+CT_FEATURES.length : 'Toàn bộ';
-    return '<tr class="ct-row">'
-      +'<td class="ct-logo">'+(c.logoUrl?'<img src="'+esc(c.logoUrl)+'" onerror="this.style.visibility=\'hidden\'">':'<span class="ct-ini">'+esc((c.ten||'?').trim().charAt(0).toUpperCase())+'</span>')+'</td>'
-      +'<td><b>'+esc(c.ten)+'</b><span class="ct-ma">'+esc(c.ma)+(c.email?(' · '+esc(c.email)):'')+'</span></td>'
-      +'<td class="c"><span class="ct-badge '+st[0]+'">'+st[1]+'</span></td>'
-      +'<td class="n">'+c.soUser+(c.gioiHanUser?(' / '+c.gioiHanUser):'')+'</td>'
-      +'<td class="c">'+fe+'</td>'
-      +'<td class="c">'+(c.hanDung?fmtDate(c.hanDung):'—')+'</td>'
-      +'<td class="ct-act">'
-        +'<button class="sp-act" title="Xem như công ty này" onclick="ctViewAs(\''+esc(c.id)+'\')">'+icon('eye',15)+'</button>'
-        +'<button class="sp-act" title="Sửa gói / tính năng" onclick="ctEdit('+i+')">'+icon('edit',15)+'</button>'
-        +'<button class="sp-act del" title="Xoá công ty và toàn bộ dữ liệu" onclick="ctDelete('+i+')">'+icon('trash',15)+'</button>'
-      +'</td></tr>';
-  }).join('') || '<tr><td colspan="7" class="empty" style="padding:24px">Chưa có công ty nào.</td></tr>';
+    var pct = c.gioiHanUser>0 ? Math.min(100, Math.round((c.soUser||0)/c.gioiHanUser*100)) : 0;
+    var fullUser = c.gioiHanUser>0 && (c.soUser||0)>=c.gioiHanUser;
+    var fpct = Math.round((c.tinhNang.length/CT_FEATURES.length)*100);
+    var lbl={}; CT_FEATURES.forEach(function(f){ lbl[f[0]]=f[1]; });
+    var chips=CT_FEATURES.map(function(f){
+      var on=c.tinhNang.indexOf(f[0])>=0;
+      return '<span class="ct-fc'+(on?' on':'')+'" title="'+esc(f[1])+(on?' — đã bật':' — chưa bật')+'">'+esc(f[1])+'</span>';
+    }).join('');
+    var hanTxt = c.hanDung
+      ? (het ? '<span class="ct-han expired">Hết hạn '+fmtDate(c.hanDung)+'</span>'
+             : (d<=30 ? '<span class="ct-han warn">Còn '+d+' ngày · '+fmtDate(c.hanDung)+'</span>'
+                      : '<span class="ct-han">Đến '+fmtDate(c.hanDung)+'</span>'))
+      : '<span class="ct-han muted">Không giới hạn</span>';
+    return '<div class="ct-card'+(c.active?'':' off')+'">'
+      +'<div class="ct-card-h">'
+        +(c.logoUrl?'<img class="ct-lg" src="'+esc(c.logoUrl)+'" onerror="this.outerHTML=\'<span class=&quot;ct-ini&quot;>'+esc((c.ten||'?').trim().charAt(0).toUpperCase())+'</span>\'">'
+                   :'<span class="ct-ini">'+esc((c.ten||'?').trim().charAt(0).toUpperCase())+'</span>')
+        +'<div class="ct-card-t"><div class="ct-nm">'+esc(c.ten)+'</div>'
+          +'<div class="ct-sub">'+esc(c.ma)+(c.email?(' · '+esc(c.email)):'')+(c.sdt?(' · '+esc(c.sdt)):'')+'</div></div>'
+        +'<span class="ct-badge '+st[0]+'">'+st[1]+'</span>'
+      +'</div>'
+      +'<div class="ct-card-b">'
+        +'<div class="ct-metric"><div class="ct-mh"><span>Người dùng</span><b'+(fullUser?' class="full"':'')+'>'+(c.soUser||0)+' / '+(c.gioiHanUser||'∞')+'</b></div>'
+          +'<div class="ct-bar"><i class="'+(fullUser?'full':'')+'" style="width:'+pct+'%"></i></div></div>'
+        +'<div class="ct-metric"><div class="ct-mh"><span>Tính năng</span><b>'+c.tinhNang.length+' / '+CT_FEATURES.length+'</b></div>'
+          +'<div class="ct-bar"><i style="width:'+fpct+'%"></i></div></div>'
+        +'<div class="ct-metric"><div class="ct-mh"><span>Hạn dùng</span></div>'+hanTxt+'</div>'
+      +'</div>'
+      +'<div class="ct-chips">'+chips+'</div>'
+      +'<div class="ct-card-f">'
+        +'<button class="ct-b" onclick="ctViewAs(\''+esc(c.id)+'\')">'+icon('eye',14)+' Xem dữ liệu</button>'
+        +'<button class="ct-b" onclick="ctEdit('+i+')">'+icon('edit',14)+' Phân quyền</button>'
+        +'<span class="sp" style="flex:1"></span>'
+        +'<button class="ct-b del" title="Xoá công ty và toàn bộ dữ liệu" onclick="ctDelete('+i+')">'+icon('trash',14)+'</button>'
+      +'</div></div>';
+  }).join('') || '<div class="empty" style="padding:40px;text-align:center">Chưa có công ty nào. Bấm <b>Tạo công ty</b> để bắt đầu.</div>';
   var viewing=S._viewAs?(list.filter(function(c){return String(c.id)===String(S._viewAs);})[0]||{}).ten:'';
   box.innerHTML='<div class="sechd"><h2>Quản lý công ty</h2><span class="count">'+list.length+'</span>'
       +'<span class="sp" style="flex:1"></span>'
       +'<button class="btn blue sm" onclick="ctCreate()">'+icon('plus',14)+' Tạo công ty</button></div>'
     +(viewing?'<div class="ct-viewbar">'+icon('eye',15)+' Đang xem dữ liệu của <b>'+esc(viewing)+'</b>'
       +'<button class="btn ghost xs" onclick="ctViewAs(\'\')">Thoát chế độ xem</button></div>':'')
-    +'<div class="dbcard"><div class="dbcard-b" style="padding:0">'
-    +'<div class="tbl-wrap"><table class="sp-table ct-tbl"><thead><tr>'
-      +'<th></th><th>Công ty</th><th class="ct">Trạng thái</th><th class="num">Người dùng</th>'
-      +'<th class="ct">Tính năng</th><th class="ct">Hạn dùng</th><th></th></tr></thead>'
-    +'<tbody>'+rows+'</tbody></table></div></div></div>';
+    +stats+'<div class="ct-grid">'+cards+'</div>';
 }
 // Super admin "xem như" 1 công ty -> mọi API gắn header x-view-company
 function ctViewAs(id){
@@ -4301,6 +4336,8 @@ function ctHasFeature_(tab){
   var f=ct.tinhNang||[]; if(!f.length) return true;      // gói trống = mở hết
   return f.indexOf(tab)>=0;
 }
+// 'super' (quản trị hệ thống) có mọi quyền của admin công ty
+function isAdminRole_(){ var r=(S.me||{}).role; return r==='admin'||r==='super'; }
 function canTab(tab){
   var me=S.me||{};
   if(tab==='congty') return me.role==='super';           // trang quản lý công ty: chỉ super
@@ -4309,7 +4346,7 @@ function canTab(tab){
   if(me.role==='admin'||me.role==='super') return true;
   return (me.perms||[]).indexOf(tab)>=0;
 }
-function firstAllowedTab_(){ var me=S.me||{}; if(me.role==='admin') return 'boc';
+function firstAllowedTab_(){ var me=S.me||{}; if(isAdminRole_()) return 'boc';
   for(var i=0;i<PERM_TABS.length;i++){ if(canTab(PERM_TABS[i][0])) return PERM_TABS[i][0]; } return null; }
 // Thương hiệu riêng của công ty: logo + màu
 function applyBrand_(){
@@ -4361,7 +4398,7 @@ async function renderNotif_(){
   }catch(e){ list.innerHTML='<div class="nb-empty">Lỗi: '+esc(e.message)+'</div>'; }
 }
 function notifClick(id,kind){ api('notifRead',id).then(refreshNotifCount_).catch(function(){});
-  var isAdmin=S.me&&S.me.role==='admin';
+  var isAdmin=isAdminRole_();
   if(isAdmin && (kind==='delete_request'||kind==='purchase_request')){ var m=document.getElementById('nbMenu'); if(m)m.style.display='none'; showTab('admin');
     var target = kind==='purchase_request'?'purCard':'drqCard';
     setTimeout(function(){ var el=document.getElementById(target); if(el) el.scrollIntoView({block:'center'}); },350); }
@@ -4385,7 +4422,7 @@ function fmtDateTime_(s){ if(!s)return'—'; try{ return new Date(s).toLocaleStr
 function admActionLabel_(a){ var m={login:'Đăng nhập',logout:'Đăng xuất',login_fail:'ĐN lỗi',create_user:'Tạo TK',update_user:'Sửa TK',delete_user:'Xóa TK',reset_password:'Đặt lại MK',change_password:'Đổi MK',lock_user:'Khóa TK',unlock_user:'Mở khóa'}; return m[a]||a; }
 async function renderAdmin(){
   var box=document.getElementById('v-admin'); if(!box) return;
-  if(!S.me||S.me.role!=='admin'){ box.innerHTML='<div class="sechd"><h2>Quản trị</h2></div><div class="empty">Bạn không có quyền truy cập.</div>'; return; }
+  if(!isAdminRole_()){ box.innerHTML='<div class="sechd"><h2>Quản trị</h2></div><div class="empty">Bạn không có quyền truy cập.</div>'; return; }
   box.innerHTML='<div class="sechd"><h2>Quản trị — Tài khoản & phân quyền</h2></div><div id="admBody"><div class="empty">Đang tải…</div></div>';
   try{
     var users=await api('adminListUsers'); var reqs=await api('listDeleteRequests'); var purs=await api('listPurchaseRequests'); var logs=await api('getAuditLog',120); S._admUsers=users;
@@ -4411,14 +4448,15 @@ function rqItem_(opts){
 }
 function admUsersCard_(users){
   var lbl={}; PERM_TABS.forEach(function(t){ lbl[t[0]]=t[1]; });
-  function permCell(u){ if(u.role==='admin') return '<span class="muted">Toàn quyền</span>';
+  function permCell(u){ if(u.role==='admin'||u.role==='super') return '<span class="muted">Toàn quyền</span>';
     var p=u.perms||[]; if(!p.length) return '<span class="st-lk">Chưa cấp</span>';
     return p.map(function(k){ return '<span class="permchip">'+esc(lbl[k]||k)+'</span>'; }).join(' '); }
   var rows=users.map(function(u){
     var av=(u.hoTen||u.username||'?').trim().charAt(0).toUpperCase();
     return '<tr class="'+(u.active?'':'locked')+'">'
-      +'<td><span class="uav '+(u.role==='admin'?'adm':'')+'">'+esc(av)+'</span><b>'+esc(u.username)+'</b></td><td>'+esc(u.hoTen||'')+'</td>'
-      +'<td><span class="rolebadge '+(u.role==='admin'?'adm':'stf')+'">'+(u.role==='admin'?'Admin':'Nhân viên')+'</span></td>'
+      +'<td><span class="uav '+(u.role!=='staff'?'adm':'')+'">'+esc(av)+'</span><b>'+esc(u.username)+'</b>'+(u.email?'<span class="ct-ma">'+esc(u.email)+'</span>':'')+'</td><td>'+esc(u.hoTen||'')+'</td>'
+      +'<td><span class="rolebadge '+(u.role==='super'?'sup':(u.role==='admin'?'adm':'stf'))+'">'
+        +({super:'Quản trị hệ thống',admin:'Admin công ty',staff:'Nhân viên'}[u.role]||u.role)+'</span></td>'
       +'<td class="permcol">'+permCell(u)+'</td>'
       +'<td>'+(u.active?'<span class="st-ok">● Hoạt động</span>':'<span class="st-lk">● Đã khóa</span>')+'</td>'
       +'<td class="muted">'+(u.lastLogin?fmtDateTime_(u.lastLogin):'—')+'</td>'
