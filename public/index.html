@@ -2386,6 +2386,34 @@ table.ct-tbl td{vertical-align:middle}
 .rolebadge.sup{background:#f3e8ff;color:#7c3aed}
 @media(max-width:720px){ .ct-grid{grid-template-columns:1fr} .ct-stats{grid-template-columns:1fr 1fr} }
 
+/* ═══ Upload LOGO công ty ═══ */
+.ctlogo-wrap{cursor:pointer}
+.ctlogo-box{position:relative;height:120px;border:1.5px dashed #d7dee6;border-radius:var(--r-lg);
+  background:#fbfcfd;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  text-align:center;transition:all .15s cubic-bezier(.4,0,.2,1);overflow:hidden}
+.ctlogo-wrap:hover .ctlogo-box{border-color:var(--blue);background:#f6faff}
+.ctlogo-box.drag{border-color:var(--blue);border-style:solid;background:#eef5ff;
+  box-shadow:0 0 0 3px rgba(37,99,235,.14) inset}
+.ctlogo-box.loading{border-style:solid;border-color:var(--blue);background:#f6faff}
+.ctlogo-ic{color:#b4c2d2;transition:color .15s}
+.ctlogo-wrap:hover .ctlogo-ic{color:var(--blue)}
+.ctlogo-t{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.ctlogo-wrap:hover .ctlogo-t{color:var(--blue)}
+.ctlogo-s{font-size:11px;color:var(--ink-3)}
+/* đã có logo */
+.ctlogo-box.has{border-style:solid;border-color:var(--hair);background:#fff}
+.ctlogo-box.has img{max-height:92px;max-width:80%;object-fit:contain}
+.ctlogo-x{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;border:none;
+  background:rgba(18,50,76,.72);color:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;opacity:0;transition:all .15s;z-index:2}
+.ctlogo-box.has:hover .ctlogo-x{opacity:1}
+.ctlogo-x:hover{background:#e5484d}
+.ctlogo-swap{position:absolute;left:50%;bottom:8px;transform:translateX(-50%) translateY(6px);
+  display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#fff;
+  background:rgba(18,50,76,.85);border-radius:99px;padding:5px 11px;opacity:0;transition:all .16s;pointer-events:none}
+.ctlogo-box.has:hover .ctlogo-swap{opacity:1;transform:translateX(-50%) translateY(0)}
+.ctlogo-url{margin-top:8px}
+
 /* ---------- 17. MONTSERRAT tuning ---------- */
 /* Montserrat rộng & tròn hơn font hệ thống -> siết tracking, giảm 1 bậc độ đậm */
 body,button,input,select,textarea{font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}

@@ -2258,7 +2258,13 @@ function ctForm_(c){
       +'<div class="spe-f"><label>Mã công ty</label><input id="ctMa" value="'+esc(c.ma||'')+'" placeholder="tự tạo từ tên"'+(isNew?'':' readonly')+'></div>'
       +'<div class="spe-f"><label>Email liên hệ</label><input id="ctEmail" type="email" value="'+esc(c.email||'')+'" placeholder="ketoan@congty.vn"></div>'
       +'<div class="spe-f"><label>Điện thoại</label><input id="ctSdt" value="'+esc(c.sdt||'')+'" placeholder="09xx xxx xxx"></div>'
-      +'<div class="spe-f wide"><label>Logo (dán link ảnh)</label><input id="ctLogo" value="'+esc(c.logoUrl||'')+'" placeholder="https://…"></div>'
+      +'<div class="spe-f wide"><label>Logo công ty</label>'
+        +'<input type="hidden" id="ctLogo" value="'+esc(c.logoUrl||'')+'">'
+        +'<div class="ctlogo-wrap" id="ctLogoWrap" onclick="ctLogoPick()" ondragover="ctLogoDrag(event,1)" ondragleave="ctLogoDrag(event,0)" ondrop="ctLogoDrop(event)">'+ctLogoInner_(c.logoUrl||'')+'</div>'
+        +'<div class="upurl ctlogo-url"><span class="upurl-ic">'+icon('link',13)+'</span>'
+          +'<input id="ctLogoUrl" placeholder="Hoặc dán link ảnh…" onkeydown="if(event.key===\'Enter\'){event.preventDefault();ctLogoAddUrl();}">'
+          +'<button class="upurl-btn" onclick="ctLogoAddUrl()">Dùng link</button></div>'
+      +'</div>'
     +'</div></div>'
     // ---- Gói & tính năng ----
     +'<div class="ct-pane" data-p="goi">'
@@ -2290,6 +2296,47 @@ function ctForm_(c){
     +'<div class="ct-f-btn"><button class="btn ghost sm" onclick="ctClose()">Huỷ</button>'
       +'<button class="btn blue" id="ctSaveBtn" onclick="ctSave(\''+esc(isNew?'':c.id)+'\')">'+icon('check',15)+' '+(isNew?'Tạo công ty':'Lưu thay đổi')+'</button></div></div>';
   document.body.appendChild(ov);
+}
+// ===== Logo công ty: tải ảnh lên (kéo/thả · bấm chọn · dán Ctrl+V · hoặc link) =====
+function ctLogoInner_(url){
+  if(url) return '<div class="ctlogo-box has"><img src="'+esc(imgUrlOf(url))+'" onerror="this.style.visibility=\'hidden\'">'
+    +'<button class="ctlogo-x" title="Xoá logo" onclick="event.stopPropagation();ctLogoClear()">✕</button>'
+    +'<span class="ctlogo-swap">'+icon('edit',12)+' Đổi logo</span></div>';
+  return '<div class="ctlogo-box"><div class="ctlogo-ic">'+icon('camera',24)+'</div>'
+    +'<div class="ctlogo-t">Kéo/thả hoặc bấm để tải logo</div>'
+    +'<div class="ctlogo-s">PNG nền trong suốt · tối đa 5MB</div></div>';
+}
+function ctLogoRefresh_(){
+  var w=document.getElementById('ctLogoWrap'), h=document.getElementById('ctLogo');
+  if(w&&h) w.innerHTML=ctLogoInner_(h.value||'');
+}
+function ctLogoClear(){ var h=document.getElementById('ctLogo'); if(h) h.value=''; ctLogoRefresh_(); }
+function ctLogoAddUrl(){
+  var i=document.getElementById('ctLogoUrl'), h=document.getElementById('ctLogo');
+  var v=i?String(i.value).trim():''; if(!v) return;
+  h.value=v; i.value=''; ctLogoRefresh_(); toast('Đã dùng link ảnh làm logo');
+}
+function ctLogoPick(){
+  var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+  inp.onchange=function(){ var f=(inp.files||[])[0]; if(f) ctLogoUpload_(f); };
+  inp.click();
+}
+async function ctLogoUpload_(file){
+  var w=document.getElementById('ctLogoWrap'), h=document.getElementById('ctLogo');
+  if(!w||!h) return;
+  w.innerHTML='<div class="ctlogo-box loading"><div class="ctlogo-t">Đang tải logo lên…</div></div>';
+  try{
+    var dataUrl=await downscaleImage_(file, 512, 0.9);
+    if(!dataUrl||dataUrl==='__DECODE_FAIL__'){ toast('Không đọc được ảnh — thử PNG/JPG khác'); ctLogoRefresh_(); return; }
+    var tok=await uploadImg_(dataUrl, 'logo-'+Date.now()+'.png');
+    h.value=tok; ctLogoRefresh_(); toast('Đã tải logo lên');
+  }catch(e){ toast('Lỗi tải logo: '+e.message); ctLogoRefresh_(); }
+}
+function ctLogoDrag(e,on){ e.preventDefault();
+  var b=document.querySelector('#ctLogoWrap .ctlogo-box'); if(b) b.classList.toggle('drag',!!on); }
+function ctLogoDrop(e){ e.preventDefault(); ctLogoDrag(e,0);
+  var f=[].slice.call((e.dataTransfer&&e.dataTransfer.files)||[]).filter(function(x){ return !x.type||/^image\//.test(x.type); })[0];
+  if(f) ctLogoUpload_(f);
 }
 function ctTab_(t){
   var ov=document.getElementById('ctOv'); if(!ov) return;
