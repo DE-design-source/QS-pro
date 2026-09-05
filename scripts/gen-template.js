@@ -19,7 +19,7 @@ const COLS = [
   // Performance
   ['QUANG THÔNG (lm)', 1, '1080'], ['CHỈ SỐ IP', 0, 'IP44'], ['CRI', 0, 'Ra90'],
   ['HIỆU SUẤT PHÁT QUANG (lm/W)', 0, '90'], ['UGR', 0, '<19'], ['TUỔI THỌ', 0, '30000h'],
-  ['LOẠI CHIP LED', 0, 'COB'], ['SDCM', 0, '3'], ['COI', 0, ''], ['BẢO HÀNH (năm)', 0, '2'],
+  ['TÊN CHIP LED', 0, 'Bridgelux'], ['LOẠI CHIP LED', 0, 'COB'], ['SDCM', 0, '3'], ['COI', 0, ''], ['BẢO HÀNH (năm)', 0, '2'],
   // Bộ nguồn
   ['TÊN BỘ NGUỒN', 0, ''], ['MÃ BỘ NGUỒN', 0, ''], ['HÃNG BỘ NGUỒN', 0, ''],
   ['VỊ TRÍ LẮP NGUỒN', 0, 'Lắp rời'], ['TƯƠNG THÍCH ĐIỀU KHIỂN', 0, 'Triac'], ['DÒNG RA TỐI ĐA (mA)', 0, ''],

@@ -1045,6 +1045,8 @@ var SP_COLS=[
   ['nhietDo','Nhiệt độ màu','ct',function(p){ return p.nhietDo?'<span class="spec k">'+esc(p.nhietDo)+'</span>':'—'; }],
   ['gocChieu','Góc chiếu','ct',function(p){ return p.gocChieu?esc(p.gocChieu):'—'; }],
   ['cri','CRI','ct',function(p){ return p.cri?'CRI '+esc(p.cri):'—'; }],
+  ['tenChip','Tên chip','',function(p){ return p.tenChip?esc(p.tenChip):'—'; }],
+  ['chipLed','Loại chip','ct',function(p){ return p.chipLed?esc(p.chipLed):'—'; }],
   ['giaBanLe','Giá bán lẻ','num',function(p,i){ return spCell_(i,'GIÁ BÁN LẺ', p.giaBanLe!=null?p.giaBanLe:'', 'đ'); }],
   ['ckDaiLy','Chiết khấu','num',function(p,i){ return spCell_(i,'CHIẾT KHẤU ĐẠI LÝ (%)', p.ckDaiLy!=null?p.ckDaiLy:'', '%'); }],
   ['giaDaiLy','Giá đại lý','num sp-price',function(p){ return money(p.donGiaBan)+'<span class="unit">đ</span>'; }]
@@ -1062,6 +1064,8 @@ var SP_EDIT={
   nhietDo:   {lark:'NHIỆT ĐỘ MÀU (K)',        sfx:'K', u:'K', src:'nhietDo', col:'nhiet_do_mau_k'},
   gocChieu:  {lark:'GÓC CHIẾU (°)',           sfx:'°', u:'°', src:'gocChieu', col:'goc_chieu_deg'},
   cri:       {lark:'CRI',                     sfx:'', u:'', src:'cri'},
+  tenChip:   {lark:'TÊN CHIP LED',            sfx:'', u:'', src:'tenChip'},
+  chipLed:   {lark:'LOẠI CHIP LED',           sfx:'', u:'', src:'chipLed'},
   giaBanLe:  {lark:'GIÁ BÁN LẺ',              sfx:'đ', u:'', src:'giaBanLe', num:1},
   ckDaiLy:   {lark:'CHIẾT KHẤU ĐẠI LÝ (%)',   sfx:'%', u:'', src:'ckDaiLy',  num:1}
 };
@@ -1163,6 +1167,8 @@ function spPatchLocal_(p,lark,v,u,col){
   else if(lark==='NHIỆT ĐỘ MÀU (K)') p.nhietDo=val;
   else if(lark==='GÓC CHIẾU (°)') p.gocChieu=val;
   else if(lark==='CRI') p.cri=v;
+  else if(lark==='TÊN CHIP LED') p.tenChip=v;
+  else if(lark==='LOẠI CHIP LED') p.chipLed=v;
   else if(lark==='GIÁ BÁN LẺ') p.giaBanLe=Number(v)||0;
   else if(lark==='CHIẾT KHẤU ĐẠI LÝ (%)') p.ckDaiLy=Number(v)||0;
   // GIÁ ĐẠI LÝ là cột generated trong DB: round(giá bán lẻ × (1 − CK/100)) — tính lại y hệt để hiện ngay
@@ -1463,7 +1469,7 @@ var DB_LABEL2COL_={
   'QUANG THÔNG (lm)':'quang_thong_lm','GÓC CHIẾU (°)':'goc_chieu_deg','GÓC NGHIÊNG (°)':'goc_nghieng_deg','MÀU SẮC':'mau_sac',
   'CHẤT LIỆU':'chat_lieu','CHIỀU CAO (mm)':'chieu_cao_mm','ĐƯỜNG KÍNH (mm)':'duong_kinh_mm','LỖ KHOÉT TRẦN (mm)':'cutout_mm',
   'CHỈ SỐ IP':'chi_so_ip','CRI':'cri','HIỆU SUẤT PHÁT QUANG (lm/W)':'hieu_suat_lm_w','UGR':'ugr','SDCM':'sdcm','COI':'coi',
-  'TUỔI THỌ':'tuoi_tho','LOẠI CHIP LED':'loai_chip_led','CẤP BẢO VỆ ĐIỆN':'class_rating','LẮP NGUỒN RỜI':'lap_nguon_roi',
+  'TUỔI THỌ':'tuoi_tho','TÊN CHIP LED':'ten_chip_led','LOẠI CHIP LED':'loai_chip_led','CẤP BẢO VỆ ĐIỆN':'class_rating','LẮP NGUỒN RỜI':'lap_nguon_roi',
   'TÊN BỘ NGUỒN':'ten_bo_nguon','MÃ BỘ NGUỒN':'ma_bo_nguon','HÃNG BỘ NGUỒN':'hang_bo_nguon','VỊ TRÍ LẮP NGUỒN':'vi_tri_lap_nguon',
   'TƯƠNG THÍCH ĐIỀU KHIỂN':'dieu_khien','DÒNG RA TỐI ĐA (mA)':'dong_ra_max_ma','BẢO HÀNH (năm)':'bao_hanh_nam','ĐƠN VỊ TÍNH':'dvt',
   'GIÁ BÁN LẺ':'gia_ban_le','CHIẾT KHẤU ĐẠI LÝ (%)':'ck_dai_ly_pct','ẢNH SẢN PHẨM':'anh_sp','LINK DATASHEET':'link_datasheet',
@@ -3555,7 +3561,9 @@ var DB_GROUPS=[
   {g:'Performance Specifications (Thông số hiệu suất)', f:[
     ['QUANG THÔNG (lm)','Quang thông','num',1],['CHỈ SỐ IP','Chỉ số IP (Chống bụi, nước)','sel',1,['IP20','IP44','IP54','IP65']],['CRI','CRI','text',1],
     ['HIỆU SUẤT PHÁT QUANG (lm/W)','Hiệu suất phát quang (lm/W)','num',0],['UGR','UGR','text',0],['SDCM','SDCM','text',0],
-    ['COI','COI','text',0],['TUỔI THỌ','Tuổi thọ','text',0],['LOẠI CHIP LED','Loại chip LED','sel',0,['COB','SMD','Modul']] ]},
+    ['COI','COI','text',0],['TUỔI THỌ','Tuổi thọ','text',0],
+    ['TÊN CHIP LED','Tên chip LED','sel',0,['Bridgelux','Citizen','Cree','Osram','Samsung','Lumileds','Nichia','Seoul Semiconductor','Epistar','San An'],'Hãng / model chip, VD: Samsung LM301B'],
+    ['LOẠI CHIP LED','Loại chip LED','sel',0,['COB','SMD','SMD 2835','SMD 3030','SMD 5730','Modul']] ]},
   {g:'Driver (Nguồn LED / Chấn lưu)', f:[
     ['LẮP NGUỒN RỜI','Lắp nguồn rời','sel',0,['Có','Không']],['TÊN BỘ NGUỒN','Tên bộ nguồn','text',0],['MÃ BỘ NGUỒN','Mã bộ nguồn','text',0],
     ['HÃNG BỘ NGUỒN','Hãng bộ nguồn','text',0],['VỊ TRÍ LẮP NGUỒN','Vị trí lắp nguồn','sel',0,['Lắp rời','Tích hợp trong thân đèn']],

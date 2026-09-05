@@ -27,12 +27,13 @@ function fmtCutout_(v) {
 /*** ===== SẢN PHẨM (db_san_pham) ===== ***/
 function prodToObj(r) {
   const congSuat = fmtUnit(r.cong_suat_w, 'W'), nhietDo = fmtList(r.nhiet_do_mau_k, 'K'), gocChieu = fmtList(r.goc_chieu_deg, '°');
-  const cri = s(r.cri), chip = s(r.loai_chip_led), dong = s(r.dong_sp), qt = r.quang_thong_lm ? (r.quang_thong_lm + 'lm') : '';
+  const cri = s(r.cri), chip = s(r.loai_chip_led), chipTen = s(r.ten_chip_led), dong = s(r.dong_sp), qt = r.quang_thong_lm ? (r.quang_thong_lm + 'lm') : '';
+  const chipTxt = [chipTen, chip].filter(Boolean).join(' · ');   // "Bridgelux · COB"
   const chatLieu = s(r.chat_lieu), chieuCao = fmtUnit(r.chieu_cao_mm, 'mm'), duongKinh = r.duong_kinh_mm ? ('Ø' + r.duong_kinh_mm + 'mm') : '', gocNghieng = fmtList(r.goc_nghieng_deg, '°');
   // "Thông tin chính" = gộp thông số cốt lõi (hiện ở cột bảng bóc tách)
   const ttc = [];
   if (dong) ttc.push('Dòng SP: ' + dong);
-  if (chip) ttc.push('Chip LED: ' + chip + (cri ? ', CRI ' + cri : ''));
+  if (chipTxt) ttc.push('Chip LED: ' + chipTxt + (cri ? ', CRI ' + cri : ''));
   else if (cri) ttc.push('CRI: ' + cri);
   if (congSuat) ttc.push('Công suất: ' + congSuat);
   if (nhietDo) ttc.push('Nhiệt độ màu: ' + nhietDo);
@@ -57,7 +58,7 @@ function prodToObj(r) {
     chieuCao: chieuCao, duongKinh: duongKinh,
     gocNghieng: gocNghieng, loKhoet: fmtCutout_(r.cutout_mm),
     capBaoVe: s(r.chi_so_ip), cri: cri, hieuSuat: r.hieu_suat_lm_w ? (r.hieu_suat_lm_w + ' lm/W') : '',
-    ugr: s(r.ugr), sdcm: s(r.sdcm), coi: s(r.coi), tuoiTho: s(r.tuoi_tho), chipLed: chip,
+    ugr: s(r.ugr), sdcm: s(r.sdcm), coi: s(r.coi), tuoiTho: s(r.tuoi_tho), chipLed: chip, tenChip: chipTen,
     quangThong: qt, baoHanh: r.bao_hanh_nam ? (r.bao_hanh_nam + ' năm') : '',
     tenBoNguon: s(r.ten_bo_nguon), maBoNguon: s(r.ma_bo_nguon), hangBoNguon: s(r.hang_bo_nguon),
     viTriNguon: s(r.vi_tri_lap_nguon), tuongThich: s(r.dieu_khien), dongRa: r.dong_ra_max_ma ? (r.dong_ra_max_ma + 'mA') : '',
@@ -329,12 +330,22 @@ const DB_LABEL2COL = {
   'QUANG THÔNG (lm)': 'quang_thong_lm', 'GÓC CHIẾU (°)': 'goc_chieu_deg', 'GÓC NGHIÊNG (°)': 'goc_nghieng_deg', 'MÀU SẮC': 'mau_sac',
   'CHẤT LIỆU': 'chat_lieu', 'CHIỀU CAO (mm)': 'chieu_cao_mm', 'ĐƯỜNG KÍNH (mm)': 'duong_kinh_mm', 'LỖ KHOÉT TRẦN (mm)': 'cutout_mm',
   'CHỈ SỐ IP': 'chi_so_ip', 'CRI': 'cri', 'HIỆU SUẤT PHÁT QUANG (lm/W)': 'hieu_suat_lm_w', 'UGR': 'ugr', 'SDCM': 'sdcm', 'COI': 'coi',
-  'TUỔI THỌ': 'tuoi_tho', 'LOẠI CHIP LED': 'loai_chip_led', 'CẤP BẢO VỆ ĐIỆN': 'class_rating', 'LẮP NGUỒN RỜI': 'lap_nguon_roi',
+  'TUỔI THỌ': 'tuoi_tho', 'TÊN CHIP LED': 'ten_chip_led', 'LOẠI CHIP LED': 'loai_chip_led', 'CẤP BẢO VỆ ĐIỆN': 'class_rating', 'LẮP NGUỒN RỜI': 'lap_nguon_roi',
   'TÊN BỘ NGUỒN': 'ten_bo_nguon', 'MÃ BỘ NGUỒN': 'ma_bo_nguon', 'HÃNG BỘ NGUỒN': 'hang_bo_nguon', 'VỊ TRÍ LẮP NGUỒN': 'vi_tri_lap_nguon',
   'TƯƠNG THÍCH ĐIỀU KHIỂN': 'dieu_khien', 'DÒNG RA TỐI ĐA (mA)': 'dong_ra_max_ma', 'BẢO HÀNH (năm)': 'bao_hanh_nam', 'ĐƠN VỊ TÍNH': 'dvt',
   'GIÁ BÁN LẺ': 'gia_ban_le', 'CHIẾT KHẤU ĐẠI LÝ (%)': 'ck_dai_ly_pct', 'ẢNH SẢN PHẨM': 'anh_sp', 'LINK DATASHEET': 'link_datasheet',
   'TRẠNG THÁI': 'trang_thai', 'GHI CHÚ': 'ghi_chu'
 };
+// Migration chạy tay -> nếu DB chưa có cột thì đổi lỗi kỹ thuật thành hướng dẫn cụ thể
+const COL_SQL = { ten_chip_led: 'db/chip_name.sql' };
+function colErr_(e) {
+  const m = (e && e.message) || '';
+  for (const col in COL_SQL) {
+    if (m.indexOf(col) >= 0 && /(column|schema cache)/i.test(m))
+      return new Error('Cơ sở dữ liệu chưa có cột "' + col + '". Vào Supabase → SQL Editor chạy file ' + COL_SQL[col] + ' rồi thử lại.');
+  }
+  return e;
+}
 async function saveDbProduct(data) {
   data = data || {};
   const ten = s(data['TÊN SẢN PHẨM']).trim();
@@ -357,9 +368,13 @@ async function saveDbProduct(data) {
       filter += '&' + (v == null || v === '' ? col + '=is.null' : supa.eq(col, v));
     });
     const ex = await supa.select('db_san_pham', { select: 'id', filter: filter, limit: 1 });
-    if (ex.length) { await supa.update('db_san_pham', supa.eq('id', ex[0].id), row); _cache = null; return { updated: true, ma: ma, ten: ten }; }
+    if (ex.length) {
+      try { await supa.update('db_san_pham', supa.eq('id', ex[0].id), row); } catch (e) { throw colErr_(e); }
+      _cache = null; return { updated: true, ma: ma, ten: ten };
+    }
   }
-  await supa.insert('db_san_pham', row); _cache = null;
+  try { await supa.insert('db_san_pham', row); } catch (e) { throw colErr_(e); }
+  _cache = null;
   return { created: true, ma: ma, ten: ten };
 }
 async function deleteDbProduct(key) {
@@ -403,7 +418,8 @@ async function updateDbProductTracked(actor, key, data) {
   if (!changes.length) return { updated: false, changes: 0 };
   row.ngay_cap_nhat = new Date().toISOString();
   // CHỈ cập nhật ĐÚNG dòng đang sửa (trước đây eq('ma_sp') -> ghi đè MỌI biến thể cùng mã -> lỗi trùng khoá)
-  await supa.update('db_san_pham', supa.eq('id', cur.id), row); _cache = null;
+  try { await supa.update('db_san_pham', supa.eq('id', cur.id), row); } catch (e) { throw colErr_(e); }
+  _cache = null;
   const who = (actor && actor.u) || 'ẩn danh';
   try {
     await supa.insert('db_san_pham_history', changes.map(function (c) {
