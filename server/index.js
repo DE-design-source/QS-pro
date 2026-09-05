@@ -88,6 +88,7 @@ const REGISTRY = {
   deleteCongTy: auth.deleteCongTy,
   listCongTyUsers: auth.listCongTyUsers,
   createCongTyUser: auth.createCongTyUser,
+  checkExpiry: checkExpiry,
   resolvePurchaseRequest: auth.resolvePurchaseRequest
 };
 // Hàm không cần đăng nhập
@@ -98,10 +99,10 @@ const ACTOR_FNS = new Set(['me', 'logout', 'changePassword',
   'notifCount', 'notifList', 'notifRead', 'notifReadAll',
   'requestDeleteProducts', 'listDeleteRequests', 'resolveDeleteRequest',
   'sendPurchaseRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest',
-  'listCongTy', 'createCongTy', 'updateCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser',
+  'listCongTy', 'createCongTy', 'updateCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'checkExpiry',
   'updateDbProductTracked']);
 // Hàm chỉ Admin được gọi
-const SUPER_FNS = new Set(['listCongTy', 'createCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser']);
+const SUPER_FNS = new Set(['listCongTy', 'createCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'checkExpiry']);
 const ADMIN_FNS = new Set(['adminListUsers', 'adminCreateUser', 'adminUpdateUser',
   'adminSetPassword', 'adminSetActive', 'adminDeleteUser', 'getAuditLog',
   'listDeleteRequests', 'resolveDeleteRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest',
@@ -214,6 +215,108 @@ async function sendPurchaseRequest(actor, order) {
   } catch (e) { console.warn('[mua hàng] webhook Lark lỗi:', e && e.message); }
   return { ok: true, saved: savedMa, lark: larkOk };
 }
+
+
+// ===== NHẮC GIA HẠN: gửi thẻ Lark khi công ty sắp/đã hết hạn =====
+const NHAC_MOC = [30, 14, 7, 3, 1, 0];   // số ngày còn lại sẽ nhắc
+function ngayConLai_(han) {
+  if (!han) return null;
+  const h = new Date(String(han).slice(0, 10) + 'T00:00:00');
+  const t = new Date(new Date().toDateString());
+  return Math.round((h - t) / 86400000);
+}
+function buildExpiryCard(items) {
+  const hetHan = items.filter(function (x) { return x.con < 0; });
+  const sapHet = items.filter(function (x) { return x.con >= 0; });
+  const gap = sapHet.some(function (x) { return x.con <= 3; }) || hetHan.length;
+  const el = [];
+  function md(t) { return { tag: 'markdown', content: t }; }
+  function row(x) {
+    const tt = x.con < 0 ? ('<font color=\'red\'>ĐÃ HẾT HẠN ' + Math.abs(x.con) + ' ngày</font>')
+      : (x.con === 0 ? '<font color=\'red\'>HẾT HẠN HÔM NAY</font>'
+        : (x.con <= 7 ? ('<font color=\'orange\'>Còn ' + x.con + ' ngày</font>')
+          : ('Còn ' + x.con + ' ngày')));
+    return {
+      tag: 'column_set', flex_mode: 'none',
+      columns: [
+        { tag: 'column', width: 'weighted', weight: 3, elements: [md('**' + x.ten + '**\n' + (x.email || x.ma))] },
+        { tag: 'column', width: 'weighted', weight: 2, elements: [md(tt + '\n' + x.han)] },
+        { tag: 'column', width: 'weighted', weight: 2, elements: [md(x.soUser + ' người dùng')] }
+      ]
+    };
+  }
+  if (hetHan.length) { el.push(md('**⛔ Đã hết hạn (' + hetHan.length + ')**')); hetHan.forEach(function (x) { el.push(row(x)); }); }
+  if (hetHan.length && sapHet.length) el.push({ tag: 'hr' });
+  if (sapHet.length) { el.push(md('**⏳ Sắp hết hạn (' + sapHet.length + ')**')); sapHet.forEach(function (x) { el.push(row(x)); }); }
+  el.push({ tag: 'hr' });
+  el.push({ tag: 'note', elements: [{ tag: 'plain_text', content: 'Dezon Pro · Nhắc gia hạn tự động · ' + new Date().toLocaleString('vi-VN') }] });
+  return {
+    msg_type: 'interactive',
+    card: {
+      config: { wide_screen_mode: true },
+      header: {
+        template: gap ? 'red' : 'orange',
+        title: { tag: 'plain_text', content: 'Nhắc gia hạn dịch vụ' },
+        subtitle: { tag: 'plain_text', content: items.length + ' công ty cần xử lý' }
+      },
+      elements: el
+    }
+  };
+}
+// Quét công ty sắp hết hạn -> gửi Lark (chống gửi trùng trong ngày)
+async function checkExpiry(actor, opts) {
+  opts = opts || {};
+  const rows = await supa.select('cong_ty', { limit: 500, noScope: true });
+  const today = new Date().toISOString().slice(0, 10);
+  const items = [], toMark = [];
+  rows.forEach(function (r) {
+    if (r.active === false || !r.han_dung) return;
+    const con = ngayConLai_(r.han_dung);
+    if (con === null || con > 30) return;
+    // mốc gần nhất mà số ngày còn lại đã chạm tới
+    const moc = con < 0 ? -1 : NHAC_MOC.filter(function (m) { return con <= m; }).pop();
+    const daNhac = String(r.nhac_lan_cuoi || '').slice(0, 10) === today && Number(r.nhac_moc) === moc;
+    if (daNhac && !opts.force) return;               // hôm nay đã nhắc mốc này rồi
+    items.push({ id: r.id, ten: r.ten, ma: r.ma, email: r.email || '', han: r.han_dung, con: con,
+      soUser: 0, moc: moc });
+    toMark.push({ id: r.id, moc: moc });
+  });
+  if (!items.length) return { sent: false, count: 0, message: 'Không có công ty nào cần nhắc' };
+  // đếm user từng công ty
+  try {
+    const us = await supa.select('users', { select: 'id,cong_ty_id', limit: 5000, noScope: true });
+    items.forEach(function (x) { x.soUser = us.filter(function (u) { return String(u.cong_ty_id) === String(x.id); }).length; });
+  } catch (e) { /* không quan trọng */ }
+  let larkOk = false;
+  try {
+    const r = await fetch(PURCHASE_WEBHOOK, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildExpiryCard(items))
+    });
+    let d = null; try { d = await r.json(); } catch (e) { d = null; }
+    larkOk = !!(d && (d.code === 0 || d.StatusCode === 0 || d.msg === 'success'));
+    if (!larkOk) console.warn('[nhắc gia hạn] webhook Lark lỗi:', (d && (d.msg || d.StatusMessage)) || ('HTTP ' + r.status));
+  } catch (e) { console.warn('[nhắc gia hạn] webhook Lark lỗi:', e && e.message); }
+  // đánh dấu đã nhắc
+  if (larkOk) {
+    for (const m of toMark) {
+      try { await supa.update('cong_ty', supa.eq('id', m.id), { nhac_lan_cuoi: today, nhac_moc: m.moc }, { noScope: true }); }
+      catch (e) { /* chưa có cột -> bỏ qua */ }
+    }
+  }
+  return { sent: larkOk, count: items.length,
+    companies: items.map(function (x) { return x.ten + ' (' + (x.con < 0 ? 'hết hạn ' + Math.abs(x.con) + ' ngày' : 'còn ' + x.con + ' ngày') + ')'; }) };
+}
+
+// Tự quét nhắc gia hạn: 1 phút sau khi khởi động, rồi mỗi 12 giờ.
+// (Chống gửi trùng bằng nhac_lan_cuoi/nhac_moc nên server restart nhiều lần cũng không spam.)
+function autoExpiryScan_() {
+  checkExpiry({ r: 'super' }, {})
+    .then(function (r) { if (r && r.sent) console.log('[nhắc gia hạn] đã gửi Lark cho', r.count, 'công ty'); })
+    .catch(function (e) { console.warn('[nhắc gia hạn] lỗi:', e && e.message); });
+}
+setTimeout(autoExpiryScan_, 60 * 1000);
+setInterval(autoExpiryScan_, 12 * 60 * 60 * 1000);
 
 app.post('/api/:fn', async function (req, res) {
   const fn = req.params.fn;
