@@ -13,6 +13,7 @@ const supa = require('./supa');
 const store = supa.ok() ? require('./store_supa') : require('./store');
 const lark = require('./lark');
 const auth = require('./auth');
+const tenant = require('./tenant');
 const exportBaoGia = require('./export');
 console.log('Nguồn dữ liệu:', supa.ok() ? 'Supabase' : 'Lark');
 
@@ -81,6 +82,10 @@ const REGISTRY = {
   resolveDeleteRequest: auth.resolveDeleteRequest,
   listPurchaseRequests: auth.listPurchaseRequests,
   getPurchaseOrder: auth.getPurchaseOrder,
+  listCongTy: auth.listCongTy,
+  createCongTy: auth.createCongTy,
+  updateCongTy: auth.updateCongTy,
+  deleteCongTy: auth.deleteCongTy,
   resolvePurchaseRequest: auth.resolvePurchaseRequest
 };
 // Hàm không cần đăng nhập
@@ -91,12 +96,15 @@ const ACTOR_FNS = new Set(['me', 'logout', 'changePassword',
   'notifCount', 'notifList', 'notifRead', 'notifReadAll',
   'requestDeleteProducts', 'listDeleteRequests', 'resolveDeleteRequest',
   'sendPurchaseRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest',
+  'listCongTy', 'createCongTy', 'updateCongTy', 'deleteCongTy',
   'updateDbProductTracked']);
 // Hàm chỉ Admin được gọi
+const SUPER_FNS = new Set(['listCongTy', 'createCongTy', 'deleteCongTy']);
 const ADMIN_FNS = new Set(['adminListUsers', 'adminCreateUser', 'adminUpdateUser',
   'adminSetPassword', 'adminSetActive', 'adminDeleteUser', 'getAuditLog',
   'listDeleteRequests', 'resolveDeleteRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest',
-  'deleteDbProduct']);   // Xóa sản phẩm trực tiếp: CHỈ Admin (nhân viên phải gửi yêu cầu)
+  'deleteDbProduct',     // Xóa sản phẩm trực tiếp: CHỈ Admin (nhân viên phải gửi yêu cầu)
+  'updateCongTy']);      // Chủ công ty đổi logo/tên công ty mình (hàm tự kiểm đúng công ty)
 
 // ===== Gửi yêu cầu mua hàng tới webhook Lark (bot incoming webhook) =====
 const PURCHASE_WEBHOOK = process.env.PURCHASE_WEBHOOK ||
@@ -216,12 +224,19 @@ app.post('/api/:fn', async function (req, res) {
   const actor = tok ? auth.verifyToken(tok) : null;
   if (!PUBLIC_FNS.has(fn)) {
     if (!actor) return res.status(401).json({ error: 'Chưa đăng nhập', code: 'NOAUTH' });
-    if (ADMIN_FNS.has(fn) && actor.r !== 'admin') return res.status(403).json({ error: 'Không có quyền (chỉ Admin)' });
+    // 'super' (quản trị hệ thống) có mọi quyền của admin
+    const isAdminRole = actor.r === 'admin' || actor.r === 'super';
+    if (ADMIN_FNS.has(fn) && !isAdminRole) return res.status(403).json({ error: 'Không có quyền (chỉ Admin)' });
+    if (SUPER_FNS.has(fn) && actor.r !== 'super') return res.status(403).json({ error: 'Chỉ quản trị hệ thống' });
   }
   const args = (req.body && Array.isArray(req.body.args)) ? req.body.args : [];
+  // Ngữ cảnh CÔNG TY: mọi truy vấn bên dưới tự động lọc theo công ty của người đăng nhập.
+  // Super admin không gán công ty -> thấy toàn hệ thống; có thể "xem như" 1 công ty qua header.
+  const viewAs = actor && actor.r === 'super' ? (req.headers['x-view-company'] || '') : '';
+  const tctx = actor ? { uid: actor.uid, role: actor.r, congTyId: actor.ct || null, viewAs: viewAs || null } : null;
   try {
     const callArgs = ACTOR_FNS.has(fn) ? [actor].concat(args) : args;
-    const result = await handler.apply(null, callArgs);
+    const result = await tenant.run(tctx, function () { return handler.apply(null, callArgs); });
     res.json({ ok: true, result: result === undefined ? null : result });
   } catch (e) {
     console.error('[api] ' + fn + ' lỗi:', e && e.message);

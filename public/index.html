@@ -2284,6 +2284,39 @@ table.pur-tbl td.b{font-weight:600;color:var(--navy)}
 .ctxmenu .cfdot.cf-yellow{background:#f0a500}
 .ctxmenu .cfdot.cf-grey{background:#b4bcc6}
 
+/* ═══ QUẢN LÝ CÔNG TY (super admin) ═══ */
+.uc-cty{font-size:11px;color:var(--blue);font-weight:600;margin-top:2px}
+.ct-viewbar{display:flex;align-items:center;gap:9px;background:#fff8e6;border:1px solid #f5d78e;
+  border-radius:var(--r-lg);padding:10px 14px;margin-bottom:12px;font-size:12.5px;color:#7a5a10}
+.ct-viewbar svg{color:#c68a12;flex:none}
+.ct-viewbar b{color:#5d440c}
+.ct-viewbar button{margin-left:auto}
+table.ct-tbl td{vertical-align:middle}
+.ct-logo{width:52px}
+.ct-logo img{width:38px;height:38px;object-fit:contain;border:1px solid var(--hair);border-radius:var(--r-md);background:#fafbfc}
+.ct-ini{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:var(--r-md);
+  background:#eef2f7;color:var(--navy);font-weight:650;font-size:15px}
+.ct-ma{display:block;font-size:10.5px;color:var(--ink-3);letter-spacing:.03em}
+.ct-badge{font-size:10.5px;font-weight:600;border-radius:99px;padding:3px 10px;white-space:nowrap}
+.ct-badge.ok{background:#e7f7ec;color:#15803d}
+.ct-badge.locked{background:#f2f4f7;color:var(--ink-3)}
+.ct-badge.expired{background:#fdeceb;color:#c0392b}
+.ct-act{white-space:nowrap;text-align:right;width:120px}
+/* modal công ty */
+.sp-modal.ct-modal{width:620px}
+.ct-form{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+.ct-feat{margin-top:14px;border:1px solid var(--hair);border-radius:var(--r-lg);overflow:hidden}
+.ct-feat-h{padding:10px 14px;background:#fbfcfe;border-bottom:1px solid var(--hair);
+  font-size:11.5px;font-weight:600;color:var(--navy)}
+.ct-feat-b{padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ct-fchk{display:flex;align-items:center;gap:8px;border:1px solid var(--hair-2);border-radius:var(--r-md);
+  padding:8px 11px;font-size:12.5px;color:var(--ink-2);cursor:pointer;transition:all .13s}
+.ct-fchk:hover{border-color:#c3ccd8}
+.ct-fchk.on{border-color:var(--blue);background:#f4f8ff;color:var(--navy);font-weight:600}
+.ct-fchk input{accent-color:var(--blue)}
+.ct-f-btn{display:flex;justify-content:flex-end;gap:9px;margin-top:16px;padding-top:14px;border-top:1px solid var(--hair)}
+@media(max-width:820px){ .ct-form,.ct-feat-b{grid-template-columns:1fr} .sp-modal.ct-modal{width:100%} }
+
 /* ---------- 17. MONTSERRAT tuning ---------- */
 /* Montserrat rộng & tròn hơn font hệ thống -> siết tracking, giảm 1 bậc độ đậm */
 body,button,input,select,textarea{font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
@@ -2341,6 +2374,7 @@ table.tk tr.tk-spacer td{height:12px}
   <div class="right">
     <a class="rbtn" data-tab="sanpham"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="4" rx="1.2"/><rect x="3" y="10" width="18" height="4" rx="1.2"/><rect x="3" y="16" width="18" height="4" rx="1.2"/></svg><span class="rb-txt">Danh sách sản phẩm</span></a>
     <a class="rbtn primary" data-tab="import"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M4 21h16"/></svg><span class="rb-txt">Nhập dữ liệu</span></a>
+    <a class="rbtn" id="navCongTy" data-tab="congty" style="display:none" title="Quản lý công ty (toàn hệ thống)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M15 9h.01M9 13h.01M15 13h.01M9 17h.01M15 17h.01"/></svg><span class="rb-txt">Công ty</span></a>
     <a class="rbtn" id="navAdmin" data-tab="admin" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="rb-txt">Admin</span></a>
     <div class="notifbell" id="notifBell" style="display:none" onclick="toggleNotif(event)" title="Thông báo">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -2353,7 +2387,7 @@ table.tk tr.tk-spacer td{height:12px}
     <div class="userchip" id="userChip" style="display:none" onclick="toggleUserMenu(event)">
       <span class="uc-av" id="ucAv">?</span><span class="uc-name" id="ucName">—</span>
       <div class="uc-menu" id="ucMenu" style="display:none">
-        <div class="uc-hd"><b id="ucFull">—</b><span id="ucRole" class="uc-role">—</span></div>
+        <div class="uc-hd"><b id="ucFull">—</b><span id="ucRole" class="uc-role">—</span><div class="uc-cty" id="ucCty"></div></div>
         <a onclick="openChangePw()">Đổi mật khẩu</a>
         <a class="danger" onclick="authLogout_()">Đăng xuất</a>
       </div>
@@ -2508,6 +2542,7 @@ table.tk tr.tk-spacer td{height:12px}
   <div class="view" id="v-import"></div>
   <div class="view" id="v-sanpham"></div>
   <div class="view" id="v-admin"></div>
+  <div class="view" id="v-congty"></div>
 </div>
 
 <!-- create project modal -->

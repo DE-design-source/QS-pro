@@ -10,6 +10,9 @@ function authLogout_(){ setAuthToken(''); try{ localStorage.removeItem('qs_user'
 function api(fn){
   var args = Array.prototype.slice.call(arguments,1);
   var h={'Content-Type':'application/json'}; var t=authToken(); if(t) h['Authorization']='Bearer '+t;
+  // Super admin đang "xem như" 1 công ty -> server lọc dữ liệu theo công ty đó
+  if(S._viewAs===undefined){ try{ S._viewAs=localStorage.getItem('qs_viewAs')||''; }catch(e){ S._viewAs=''; } }
+  if(S._viewAs) h['x-view-company']=S._viewAs;
   return fetch('/api/'+encodeURIComponent(fn),{method:'POST',headers:h, body:JSON.stringify({args:args})})
     .then(function(r){ return r.json().catch(function(){ return {error:'HTTP '+r.status}; }).then(function(d){ d=d||{}; d._status=r.status; return d; }); })
     .then(function(d){ if(d && d.code==='NOAUTH'){ setAuthToken(''); if(typeof showLogin_==='function') showLogin_('Phiên đã hết, mời đăng nhập lại.'); throw new Error('Chưa đăng nhập'); }
@@ -433,6 +436,7 @@ function showTab(tab){
   // Dashboard đã có banner "Đang làm việc" + KPI riêng -> ẩn banner #pcard để khỏi TRÙNG LẶP
   var pcard=document.getElementById('pcard'); if(pcard) pcard.style.display = (noProj||tab==='dash')?'none':'';
   if(tab==='project') renderProjects();
+  if(tab==='congty') renderCongTy();
   if(tab==='dash') renderDash();
   if(tab==='chiphi') renderChiphi();
   if(tab==='export') renderExport();
@@ -2136,6 +2140,113 @@ async function projInfoModal(maDA){
 function projModalClose(){ var o=document.getElementById('projModalOv'); if(o)o.remove(); }
 function projModalRefresh_(){ var b=document.getElementById('projModalBody'); if(b && S.cur){ b.innerHTML=projInfoInner_(S.cur, currentGroup()); } }
 // đổi tên bản nháp (modal — không dùng prompt vì 1 số trình duyệt chặn)
+
+/* ═══════════ QUẢN LÝ CÔNG TY (chỉ super admin) ═══════════ */
+var CT_FEATURES=[['dash','Bảng điều khiển'],['boc','Bóc tách'],['chiphi','Chi phí'],
+  ['export','Xuất báo giá'],['muahang','Mua hàng'],['duan','Dự án'],
+  ['sanpham','Danh sách sản phẩm'],['import','Nhập dữ liệu']];
+async function renderCongTy(){
+  var box=document.getElementById('v-congty'); if(!box) return;
+  box.innerHTML='<div class="sechd"><h2>Quản lý công ty</h2></div><div class="empty" style="padding:26px">Đang tải…</div>';
+  var list=[];
+  try{ list=await api('listCongTy')||[]; }
+  catch(e){ box.innerHTML='<div class="sechd"><h2>Quản lý công ty</h2></div><div class="empty" style="padding:26px">'+esc(e.message)+'</div>'; return; }
+  S._ctList=list;
+  var rows=list.map(function(c,i){
+    var het = c.hanDung && new Date(c.hanDung) < new Date(new Date().toDateString());
+    var st = !c.active ? ['locked','Tạm khoá'] : (het ? ['expired','Hết hạn'] : ['ok','Đang hoạt động']);
+    var fe = c.tinhNang.length ? c.tinhNang.length+'/'+CT_FEATURES.length : 'Toàn bộ';
+    return '<tr class="ct-row">'
+      +'<td class="ct-logo">'+(c.logoUrl?'<img src="'+esc(c.logoUrl)+'" onerror="this.style.visibility=\'hidden\'">':'<span class="ct-ini">'+esc((c.ten||'?').trim().charAt(0).toUpperCase())+'</span>')+'</td>'
+      +'<td><b>'+esc(c.ten)+'</b><span class="ct-ma">'+esc(c.ma)+'</span></td>'
+      +'<td class="c"><span class="ct-badge '+st[0]+'">'+st[1]+'</span></td>'
+      +'<td class="n">'+c.soUser+(c.gioiHanUser?(' / '+c.gioiHanUser):'')+'</td>'
+      +'<td class="c">'+fe+'</td>'
+      +'<td class="c">'+(c.hanDung?fmtDate(c.hanDung):'—')+'</td>'
+      +'<td class="ct-act">'
+        +'<button class="sp-act" title="Xem như công ty này" onclick="ctViewAs(\''+esc(c.id)+'\')">'+icon('eye',15)+'</button>'
+        +'<button class="sp-act" title="Sửa gói / tính năng" onclick="ctEdit('+i+')">'+icon('edit',15)+'</button>'
+        +'<button class="sp-act del" title="Xoá công ty và toàn bộ dữ liệu" onclick="ctDelete('+i+')">'+icon('trash',15)+'</button>'
+      +'</td></tr>';
+  }).join('') || '<tr><td colspan="7" class="empty" style="padding:24px">Chưa có công ty nào.</td></tr>';
+  var viewing=S._viewAs?(list.filter(function(c){return String(c.id)===String(S._viewAs);})[0]||{}).ten:'';
+  box.innerHTML='<div class="sechd"><h2>Quản lý công ty</h2><span class="count">'+list.length+'</span>'
+      +'<span class="sp" style="flex:1"></span>'
+      +'<button class="btn blue sm" onclick="ctCreate()">'+icon('plus',14)+' Tạo công ty</button></div>'
+    +(viewing?'<div class="ct-viewbar">'+icon('eye',15)+' Đang xem dữ liệu của <b>'+esc(viewing)+'</b>'
+      +'<button class="btn ghost xs" onclick="ctViewAs(\'\')">Thoát chế độ xem</button></div>':'')
+    +'<div class="dbcard"><div class="dbcard-b" style="padding:0">'
+    +'<div class="tbl-wrap"><table class="sp-table ct-tbl"><thead><tr>'
+      +'<th></th><th>Công ty</th><th class="ct">Trạng thái</th><th class="num">Người dùng</th>'
+      +'<th class="ct">Tính năng</th><th class="ct">Hạn dùng</th><th></th></tr></thead>'
+    +'<tbody>'+rows+'</tbody></table></div></div></div>';
+}
+// Super admin "xem như" 1 công ty -> mọi API gắn header x-view-company
+function ctViewAs(id){
+  S._viewAs=id||'';
+  try{ id?localStorage.setItem('qs_viewAs',id):localStorage.removeItem('qs_viewAs'); }catch(e){}
+  toast(id?'Đang xem dữ liệu công ty đã chọn':'Đã thoát chế độ xem');
+  boot().then(function(){ renderCongTy(); });
+}
+function ctCreate(){ ctForm_(null); }
+function ctEdit(i){ ctForm_((S._ctList||[])[i]||null); }
+function ctForm_(c){
+  var isNew=!c; c=c||{tinhNang:CT_FEATURES.map(function(f){return f[0];}), gioiHanUser:10, active:true};
+  var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='ctOv';
+  ov.onclick=function(e){ if(e.target===ov) ctClose(); };
+  ov.innerHTML='<div class="sp-modal ct-modal pd"><div class="pd-head"><h3>'+icon('building',16)+' '
+      +(isNew?'Tạo công ty mới':'Cập nhật công ty')+'</h3><button class="pd-x" onclick="ctClose()">✕</button></div>'
+    +'<div class="ct-form">'
+      +'<div class="spe-f"><label>Tên công ty *</label><input id="ctTen" value="'+esc(c.ten||'')+'" placeholder="VD: Nội thất An Phát"></div>'
+      +(isNew?'<div class="spe-f"><label>Mã công ty</label><input id="ctMa" placeholder="tự tạo từ tên"></div>':'')
+      +'<div class="spe-f"><label>Logo (dán link ảnh)</label><input id="ctLogo" value="'+esc(c.logoUrl||'')+'" placeholder="https://…"></div>'
+      +'<div class="spe-f"><label>Giới hạn người dùng</label><input id="ctLimit" type="number" value="'+(c.gioiHanUser||10)+'"></div>'
+      +'<div class="spe-f"><label>Hạn dùng</label><input id="ctHan" type="date" value="'+esc(c.hanDung||'')+'"></div>'
+      +'<div class="spe-f"><label>Trạng thái</label><select id="ctActive"><option value="1"'+(c.active!==false?' selected':'')+'>Đang hoạt động</option><option value="0"'+(c.active===false?' selected':'')+'>Tạm khoá</option></select></div>'
+    +'</div>'
+    +'<div class="ct-feat"><div class="ct-feat-h">Tính năng được dùng</div><div class="ct-feat-b">'
+      +CT_FEATURES.map(function(f){ var on=(c.tinhNang||[]).indexOf(f[0])>=0;
+        return '<label class="ct-fchk'+(on?' on':'')+'"><input type="checkbox" data-f="'+f[0]+'"'+(on?' checked':'')+' onchange="this.parentNode.classList.toggle(\'on\',this.checked)"><span>'+esc(f[1])+'</span></label>';
+      }).join('')+'</div></div>'
+    +(isNew?'<div class="ct-feat"><div class="ct-feat-h">Tài khoản quản trị công ty</div><div class="ct-form">'
+      +'<div class="spe-f"><label>Tên đăng nhập</label><input id="ctAdU" placeholder="vd: anphat.admin"></div>'
+      +'<div class="spe-f"><label>Mật khẩu</label><input id="ctAdP" type="password" placeholder="≥4 ký tự"></div>'
+      +'</div></div>':'')
+    +'<div class="ct-f-btn"><button class="btn ghost sm" onclick="ctClose()">Huỷ</button>'
+      +'<button class="btn blue" id="ctSaveBtn" onclick="ctSave(\''+esc(isNew?'':c.id)+'\')">'+icon('check',15)+' '+(isNew?'Tạo công ty':'Lưu')+'</button></div></div>';
+  document.body.appendChild(ov);
+}
+function ctClose(){ var o=document.getElementById('ctOv'); if(o)o.remove(); }
+async function ctSave(id){
+  var ov=document.getElementById('ctOv'); if(!ov) return;
+  function v(i){ var e=document.getElementById(i); return e?String(e.value).trim():''; }
+  var feats=[].slice.call(ov.querySelectorAll('[data-f]')).filter(function(e){return e.checked;}).map(function(e){return e.getAttribute('data-f');});
+  var d={ ten:v('ctTen'), logoUrl:v('ctLogo'), tinhNang:feats,
+          gioiHanUser:Number(v('ctLimit'))||0, hanDung:v('ctHan')||null,
+          active: v('ctActive')==='1' };
+  if(!d.ten){ toast('Chưa nhập tên công ty'); return; }
+  var btn=document.getElementById('ctSaveBtn'); if(btn){ btn.disabled=true; btn.textContent='Đang lưu…'; }
+  try{
+    if(id){ await api('updateCongTy', id, d); toast('Đã cập nhật công ty'); }
+    else{
+      d.ma=v('ctMa'); d.adminUser=v('ctAdU'); d.adminPass=v('ctAdP');
+      if(d.adminUser && d.adminPass.length<4){ toast('Mật khẩu quản trị tối thiểu 4 ký tự'); if(btn){btn.disabled=false;btn.textContent='Tạo công ty';} return; }
+      var c=await api('createCongTy', d);
+      toast('Đã tạo công ty "'+c.ten+'"'+(d.adminUser?(' — tài khoản: '+d.adminUser):''));
+    }
+    ctClose(); renderCongTy();
+  }catch(e){ toast('Lỗi: '+e.message); if(btn){ btn.disabled=false; btn.textContent='Lưu'; } }
+}
+async function ctDelete(i){
+  var c=(S._ctList||[])[i]; if(!c) return;
+  var ok=await askInput_({title:'Xoá công ty', note:'Xoá VĨNH VIỄN công ty "'+c.ten+'" và TOÀN BỘ dữ liệu (dự án, sản phẩm, đơn hàng, tài khoản). Không thể hoàn tác.',
+    label:'Gõ đúng mã công ty để xác nhận: '+c.ma, placeholder:c.ma, confirmText:'Xoá vĩnh viễn'});
+  if(ok==null) return;
+  if(String(ok).trim()!==c.ma){ toast('Mã xác nhận không đúng — đã huỷ'); return; }
+  try{ var r=await api('deleteCongTy', c.id); toast('Đã xoá công ty "'+r.ten+'"'); renderCongTy(); }
+  catch(e){ toast('Lỗi: '+e.message); }
+}
+
 /* ===== Hộp nhập liệu dùng chung — THAY prompt() (bị nhiều trình duyệt chặn) ===== */
 function askInput_(o){
   o=o||{};
@@ -4086,7 +4197,7 @@ function renderPhanTho(){
 async function authStart_(){
   var t=authToken();
   if(!t){ showLogin_(); return; }
-  try{ var u=await api('me'); S.me=u; onAuthed_(); }
+  try{ var u=await api('me'); S.me=u; S.congTy=u.congTy||null; onAuthed_(); }
   catch(e){ setAuthToken(''); showLogin_(); }
 }
 function showLogin_(msg){
@@ -4101,7 +4212,7 @@ async function doLogin_(){
   function err(t){ if(msg){ msg.style.display='block'; msg.textContent=t; } }
   if(!user||!pw){ err('Nhập tên đăng nhập và mật khẩu'); return; }
   btn.disabled=true; btn.textContent='Đang đăng nhập…';
-  try{ var r=await api('login',user,pw); setAuthToken(r.token); S.me=r.user;
+  try{ var r=await api('login',user,pw); setAuthToken(r.token); S.me=r.user; S.congTy=r.congTy||null;
     document.getElementById('loginPw').value=''; onAuthed_(); }
   catch(e){ err(e.message||'Đăng nhập thất bại'); }
   btn.disabled=false; btn.textContent='Đăng nhập';
@@ -4115,10 +4226,35 @@ function onAuthed_(){ var ls=document.getElementById('loginScreen'); if(ls) ls.s
 var PERM_TABS=[['dash','Bảng điều khiển'],['boc','Bóc tách'],
   ['chiphi','Chi phí'],['export','Xuất báo giá'],['muahang','Mua hàng'],
   ['duan','Dự án'],['sanpham','Danh sách sản phẩm'],['import','Nhập dữ liệu']];
-function canTab(tab){ var me=S.me||{}; if(me.role==='admin') return true; if(tab==='admin') return false;
-  return (me.perms||[]).indexOf(tab)>=0; }
+// Tính năng công ty được cấp (super admin: không giới hạn)
+function ctHasFeature_(tab){
+  var me=S.me||{}; if(me.role==='super') return true;
+  var ct=S.congTy; if(!ct) return true;                 // chưa gán công ty -> không chặn
+  var f=ct.tinhNang||[]; if(!f.length) return true;      // gói trống = mở hết
+  return f.indexOf(tab)>=0;
+}
+function canTab(tab){
+  var me=S.me||{};
+  if(tab==='congty') return me.role==='super';           // trang quản lý công ty: chỉ super
+  if(tab==='admin') return me.role==='admin'||me.role==='super';
+  if(!ctHasFeature_(tab)) return false;                  // công ty chưa mua tính năng này
+  if(me.role==='admin'||me.role==='super') return true;
+  return (me.perms||[]).indexOf(tab)>=0;
+}
 function firstAllowedTab_(){ var me=S.me||{}; if(me.role==='admin') return 'boc';
   for(var i=0;i<PERM_TABS.length;i++){ if(canTab(PERM_TABS[i][0])) return PERM_TABS[i][0]; } return null; }
+// Thương hiệu riêng của công ty: logo + màu
+function applyBrand_(){
+  var ct=S.congTy||{};
+  var logo=document.querySelector('.topnav .logo');
+  if(logo){
+    if(ct.logoUrl){ logo.src=ct.logoUrl; logo.alt=ct.ten||'Logo'; logo.title=ct.ten||''; }
+    else { logo.src='logo.svg'; logo.alt='Dezon Pro'; }
+  }
+  if(ct.mauChinh){ document.documentElement.style.setProperty('--blue', ct.mauChinh); }
+  var t=(ct.ten? (ct.ten+' — ') : '')+'Dezon Pro';
+  if(document.title!==t) document.title=t;
+}
 function applyRoleUI_(){
   var me=S.me||{}, nm=me.hoTen||me.username||'';
   var chip=document.getElementById('userChip'); if(chip) chip.style.display='';
@@ -4126,8 +4262,12 @@ function applyRoleUI_(){
   if(byId('ucName')) byId('ucName').textContent=me.username||'';
   if(byId('ucAv')) byId('ucAv').textContent=(nm||'?').trim().charAt(0).toUpperCase();
   if(byId('ucFull')) byId('ucFull').textContent=nm;
-  if(byId('ucRole')) byId('ucRole').textContent = me.role==='admin'?'Quản trị viên':'Nhân viên';
-  var na=byId('navAdmin'); if(na) na.style.display = me.role==='admin'?'':'none';
+  var roleLbl={super:'Quản trị hệ thống',admin:'Quản trị công ty',staff:'Nhân viên'};
+  if(byId('ucRole')) byId('ucRole').textContent = roleLbl[me.role]||'Nhân viên';
+  if(byId('ucCty')) byId('ucCty').textContent = (S.congTy&&S.congTy.ten)||(me.role==='super'?'Toàn hệ thống':'');
+  var na=byId('navAdmin'); if(na) na.style.display = (me.role==='admin'||me.role==='super')?'':'none';
+  var nc=byId('navCongTy'); if(nc) nc.style.display = me.role==='super'?'':'none';
+  applyBrand_();
   // Ẩn các tab mà tài khoản không được cấp quyền
   document.querySelectorAll('#nav a[data-tab], .topnav .right a[data-tab]').forEach(function(a){
     var t=a.getAttribute('data-tab'); if(t==='admin') return;   // admin nav xử lý riêng ở trên

@@ -13,6 +13,25 @@ const URL = (process.env.SUPABASE_URL_OVERRIDE || DEFAULT_URL).replace(/\/+$/, '
 const KEY = process.env.SUPABASE_KEY_OVERRIDE || DEFAULT_KEY;
 const BUCKET = process.env.SUPABASE_BUCKET || 'products';
 
+const tenant = require('./tenant');
+// Các bảng thuộc về 1 CÔNG TY -> mọi truy vấn tự động lọc theo công ty đang đăng nhập.
+// Làm ở tầng này để KHÔNG SÓT chỗ nào (an toàn hơn nhớ thêm filter ở từng hàm).
+const TENANT_TABLES = {
+  du_an: 1, db_bao_gia: 1, khai_toan: 1, db_san_pham: 1, db_san_pham_history: 1,
+  don_mua_hang: 1, chi_tiet_mua_hang: 1, notifications: 1, delete_requests: 1,
+  audit_log: 1, users: 1
+};
+function tenantFilter_(table, opt) {
+  if ((opt && opt.noScope) || !TENANT_TABLES[table]) return '';
+  if (!tenant.scoped()) return '';                       // login / super admin xem toàn hệ thống
+  return 'cong_ty_id=eq.' + encodeURIComponent(tenant.tenantId());
+}
+function withScope_(table, filter, opt) {
+  const t = tenantFilter_(table, opt);
+  if (!t) return filter || '';
+  return filter ? (filter + '&' + t) : t;
+}
+
 function ok() { return !!(URL && KEY); }
 function headers(extra) {
   return Object.assign({ apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' }, extra || {});
@@ -33,21 +52,27 @@ async function select(table, opt) {
   opt = opt || {};
   const qs = [];
   qs.push('select=' + encodeURIComponent(opt.select || '*'));
-  if (opt.filter) qs.push(opt.filter);
+  const f = withScope_(table, opt.filter, opt);
+  if (f) qs.push(f);
   if (opt.order) qs.push('order=' + encodeURIComponent(opt.order));
   if (opt.limit) qs.push('limit=' + opt.limit);
   return rest('GET', table + '?' + qs.join('&')) || [];
 }
-async function insert(table, rows) {
-  const arr = Array.isArray(rows) ? rows : [rows];
+async function insert(table, rows, opt) {
+  let arr = Array.isArray(rows) ? rows : [rows];
   if (!arr.length) return [];
+  // Tự gắn công ty cho dòng mới (nếu bảng thuộc công ty và đang có ngữ cảnh)
+  if (TENANT_TABLES[table] && !(opt && opt.noScope) && tenant.scoped()) {
+    const ct = tenant.tenantId();
+    arr = arr.map(function (r) { return r.cong_ty_id ? r : Object.assign({}, r, { cong_ty_id: ct }); });
+  }
   return rest('POST', table, { body: arr, prefer: 'return=representation' });
 }
-async function update(table, filter, patch) {
-  return rest('PATCH', table + '?' + filter, { body: patch, prefer: 'return=representation' });
+async function update(table, filter, patch, opt) {
+  return rest('PATCH', table + '?' + withScope_(table, filter, opt), { body: patch, prefer: 'return=representation' });
 }
-async function remove(table, filter) {
-  return rest('DELETE', table + '?' + filter, { prefer: 'return=representation' });
+async function remove(table, filter, opt) {
+  return rest('DELETE', table + '?' + withScope_(table, filter, opt), { prefer: 'return=representation' });
 }
 // Upload ảnh (buffer) lên Storage -> trả public URL
 async function uploadToStorage(buffer, path, contentType) {
