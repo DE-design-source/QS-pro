@@ -1034,7 +1034,8 @@ async function spRemoveFromProject(id){ await delLine(id); renderSpProjPanel_();
 // ==== Cột bảng SP có thể ẩn/hiện (giữa cột chọn và cột thao tác) ====
 var SP_COLS=[
   ['thumb','Ảnh','thumbcol',function(p){ return p.hinhAnh?'<img class="sp-th" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="sp-th"></span>'; }],
-  ['ten','Sản phẩm','sp-name',function(p){ return '<b>'+esc(p.ten||'')+'</b><span class="sp-code">'+esc(p.ma||'')+'</span>'; }],
+  ['ten','Sản phẩm','sp-name',function(p){ return '<b>'+esc(p.ten||'')+'</b><span class="sp-code">'+esc(p.ma||'')
+      +(p.spChung?'<span class="sp-chung" title="Sản phẩm thuộc kho chung của Dezon — chỉ xem">Kho Dezon</span>':'')+'</span>'; }],
   ['thuongHieu','Thương hiệu','',function(p){ return p.thuongHieu?'<span class="tag-brand">'+esc(p.thuongHieu)+'</span>':''; }],
   ['hangMuc','Hạng mục SP','',function(p){ return p.hangMuc?'<span class="tag-cat">'+esc(p.hangMuc)+'</span>':''; }],
   ['ncc','Nhà cung cấp','',function(p){ return esc(p.ncc||''); }],
@@ -1049,6 +1050,9 @@ var SP_COLS=[
 ];
 // Ô SỬA TRỰC TIẾP trong bảng (không cần mở modal)
 function spCell_(i,lark,val,unit){
+  var p=(S._spList||[])[i];
+  if(p&&p.spChung) return '<span class="spin-wrap ro" title="Sản phẩm kho chung — không sửa được">'
+    +'<span class="spin-ro">'+esc(val==null?'':String(val))+'</span><i>'+unit+'</i></span>';
   return '<span class="spin-wrap" onclick="event.stopPropagation()">'
     +'<input class="spin" value="'+esc(val==null?'':String(val))+'" data-i="'+i+'" data-lark="'+esc(lark)+'"'
     +' onchange="spInlineSave(this)" onkeydown="if(event.key===\'Enter\')this.blur()">'
@@ -1244,9 +1248,9 @@ function spFilter(){
       +vis.map(function(c){ return '<td class="'+c[2]+'">'+c[3](p,i)+'</td>'; }).join('')
       +'<td class="act-sp" onclick="event.stopPropagation()">'
         +'<button class="sp-act add" title="Ghi danh vào dự án" onclick="spAddToProject('+i+')">'+icon('pluscircle',18)+'</button>'
-        +'<button class="sp-act edit" title="Cập nhật sản phẩm" onclick="spEditModal('+i+')">'+icon('edit',16)+'</button>'
+        +(p.spChung?'':'<button class="sp-act edit" title="Cập nhật sản phẩm" onclick="spEditModal('+i+')">'+icon('edit',16)+'</button>')
         +'<button class="sp-act" title="Xem chi tiết" onclick="spModal('+i+')">'+icon('eye',16)+'</button>'
-        +(isAdmin?'<button class="sp-act del" title="Xoá" onclick="spDelete('+i+')">'+icon('trash',16)+'</button>':'')+'</td>'
+        +((isAdmin&&!p.spChung)?'<button class="sp-act del" title="Xoá" onclick="spDelete('+i+')">'+icon('trash',16)+'</button>':'')+'</td>'
     +'</tr>';
   }).join(''):'<tr><td colspan="'+ncol+'"><div class="empty" style="margin:10px">Không có sản phẩm khớp bộ lọc.</div></td></tr>';
   var all=document.getElementById('spCkAll'); if(all) all.checked = list.length>0 && list.every(function(p){return S._spSel[String(p.recordId||p.ma||'')];});
@@ -1298,8 +1302,11 @@ async function spBulkApply(){
   if(!f||!v) return;
   var lark=f.value, val=String(v.value).trim(), label=f.options[f.selectedIndex].text;
   if(val===''){ toast('Chưa nhập giá trị mới'); v.focus(); return; }
-  var prods=spSelProds_(); if(!prods.length) return;
-  if(!confirm('Đặt "'+label+'" = "'+val+'" cho '+prods.length+' sản phẩm đã chọn?')) return;
+  var all=spSelProds_(); if(!all.length) return;
+  var prods=all.filter(function(p){return !p.spChung;}), bo=all.length-prods.length;
+  if(!prods.length){ toast('Các sản phẩm đã chọn đều thuộc kho chung của Dezon — không sửa được'); return; }
+  if(!confirm('Đặt "'+label+'" = "'+val+'" cho '+prods.length+' sản phẩm đã chọn?'
+    +(bo?'\n(Bỏ qua '+bo+' sản phẩm kho chung Dezon)':''))) return;
   if(btn){ btn.disabled=true; }
   var ok=0, errs=[];
   for(var i=0;i<prods.length;i++){
@@ -1314,8 +1321,12 @@ async function spBulkApply(){
   else toast('Đã đặt '+label+' = "'+val+'" cho '+ok+' sản phẩm');
 }
 async function spBulkDelete(){
-  var keys=Object.keys(S._spSel||{}); if(!keys.length) return;
-  if(!confirm('Xóa '+keys.length+' sản phẩm khỏi danh mục? Không thể hoàn tác.')) return;
+  var prods=spSelProds_().filter(function(p){return !p.spChung;});
+  var keys=prods.map(function(p){return String(p.recordId||p.ma||'');}).filter(Boolean);
+  if(!keys.length){ toast('Không có sản phẩm nào xoá được (kho chung Dezon chỉ xem)'); return; }
+  var bo=Object.keys(S._spSel||{}).length-keys.length;
+  if(!confirm('Xóa '+keys.length+' sản phẩm khỏi danh mục? Không thể hoàn tác.'
+    +(bo?'\n(Bỏ qua '+bo+' sản phẩm kho chung Dezon)':''))) return;
   var ok=0; for(var i=0;i<keys.length;i++){ try{ await api('deleteDbProduct', keys[i]); ok++; }catch(e){} }
   S._spSel={}; S.products=await api('getProducts')||S.products; spFilter(); renderFilters&&renderFilters(); renderCatalog&&renderCatalog();
   toast('Đã xóa '+ok+' sản phẩm');
@@ -2186,6 +2197,7 @@ async function renderCongTy(){
              : (d<=30 ? '<span class="ct-han warn">Còn '+d+' ngày · '+fmtDate(c.hanDung)+'</span>'
                       : '<span class="ct-han">Đến '+fmtDate(c.hanDung)+'</span>'))
       : '<span class="ct-han muted">Không giới hạn</span>';
+    var shareBadge = c.dungSpDezon ? '<span class="ct-sharetag" title="Được dùng kho sản phẩm của Dezon">'+icon('layers',11)+' Kho SP Dezon</span>' : '';
     return '<div class="ct-card'+(c.active?'':' off')+'">'
       +'<div class="ct-card-h">'
         +(c.logoUrl?'<img class="ct-lg" src="'+esc(c.logoUrl)+'" onerror="this.outerHTML=\'<span class=&quot;ct-ini&quot;>'+esc((c.ten||'?').trim().charAt(0).toUpperCase())+'</span>\'">'
@@ -2194,6 +2206,7 @@ async function renderCongTy(){
           +'<div class="ct-sub">'+esc(c.ma)+(c.email?(' · '+esc(c.email)):'')+(c.sdt?(' · '+esc(c.sdt)):'')+'</div></div>'
         +'<span class="ct-badge '+st[0]+'">'+st[1]+'</span>'
       +'</div>'
+      +(shareBadge?'<div class="ct-sharerow">'+shareBadge+'</div>':'')
       +'<div class="ct-card-b">'
         +'<div class="ct-metric"><div class="ct-mh"><span>Người dùng</span><b'+(fullUser?' class="full"':'')+'>'+(c.soUser||0)+' / '+(c.gioiHanUser||'∞')+'</b></div>'
           +'<div class="ct-bar"><i class="'+(fullUser?'full':'')+'" style="width:'+pct+'%"></i></div></div>'
@@ -2274,6 +2287,12 @@ function ctForm_(c){
         +'<div class="spe-f"><label>Trạng thái</label><select id="ctActive"><option value="1"'+(c.active!==false?' selected':'')+'>Đang hoạt động</option><option value="0"'+(c.active===false?' selected':'')+'>Tạm khoá</option></select></div>'
         +'<div class="spe-f"><label>Ghi chú</label><input id="ctGhiChu" value="'+esc(c.ghiChu||'')+'" placeholder="Gói/hợp đồng…"></div>'
       +'</div>'
+      +'<div class="ct-share"><label class="ct-sw'+(c.dungSpDezon?' on':'')+'">'
+        +'<input type="checkbox" id="ctShareSp"'+(c.dungSpDezon?' checked':'')+' onchange="this.closest(\'.ct-sw\').classList.toggle(\'on\',this.checked)">'
+        +'<span class="ct-sw-b"></span>'
+        +'<span class="ct-sw-t"><b>Cho dùng danh sách sản phẩm của Dezon</b>'
+          +'<i>Công ty thấy thêm kho SP mẫu của Dezon (chỉ xem, không sửa/xoá được). Vẫn nhập được SP riêng.</i></span>'
+      +'</label></div>'
       +'<div class="ct-feat"><div class="ct-feat-h">Tính năng được dùng'
         +'<button class="ct-all" onclick="ctToggleAll_(true)">Chọn hết</button>'
         +'<button class="ct-all" onclick="ctToggleAll_(false)">Bỏ hết</button></div><div class="ct-feat-b">'
@@ -2383,7 +2402,8 @@ async function ctSave(id){
   var feats=[].slice.call(ov.querySelectorAll('[data-f]')).filter(function(e){return e.checked;}).map(function(e){return e.getAttribute('data-f');});
   var d={ ten:v('ctTen'), logoUrl:v('ctLogo'), email:v('ctEmail'), sdt:v('ctSdt'), tinhNang:feats,
           gioiHanUser:Number(v('ctLimit'))||0, hanDung:v('ctHan')||null,
-          active:v('ctActive')==='1', ghiChu:v('ctGhiChu') };
+          active:v('ctActive')==='1', ghiChu:v('ctGhiChu'),
+          dungSpDezon: !!(document.getElementById('ctShareSp')||{}).checked };
   if(!d.ten){ toast('Chưa nhập tên công ty'); ctTab_('info'); return; }
   if(!feats.length){ toast('Chọn ít nhất 1 tính năng cho công ty'); ctTab_('goi'); return; }
   var btn=document.getElementById('ctSaveBtn'); if(btn){ btn.disabled=true; btn.textContent='Đang lưu…'; }

@@ -65,12 +65,19 @@ async function getUserByName(username) {
   return null;
 }
 /* ---------- CÔNG TY (multi-tenant) ---------- */
+let _shareCol = null;   // cột dung_sp_dezon có tồn tại chưa (chưa chạy db/share_catalog.sql thì chưa có)
+async function hasShareCol_() {
+  if (_shareCol !== null) return _shareCol;
+  try { await supa.select('cong_ty', { select: 'dung_sp_dezon', limit: 1, noScope: true }); _shareCol = true; }
+  catch (e) { _shareCol = false; }
+  return _shareCol;
+}
 function ctOut_(r) {
   return { id: r.id, ten: r.ten || '', ma: r.ma || '', logoUrl: r.logo_url || '', mauChinh: r.mau_chinh || '',
     tinhNang: String(r.tinh_nang || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean),
     gioiHanUser: Number(r.gioi_han_user) || 0, active: r.active !== false,
     hanDung: r.han_dung || '', ghiChu: r.ghi_chu || '', ngayTao: r.ngay_tao || '',
-    email: r.email || '', sdt: r.sdt || '' };
+    email: r.email || '', sdt: r.sdt || '', dungSpDezon: r.dung_sp_dezon === true };
 }
 async function getCongTy(id) {
   if (!id) return null;
@@ -102,6 +109,10 @@ async function createCongTy(actor, data) {
     tinh_nang: Array.isArray(data.tinhNang) ? data.tinhNang.join(',') : String(data.tinhNang || ''),
     gioi_han_user: Number(data.gioiHanUser) || 10, active: data.active !== false,
     han_dung: data.hanDung || null, ghi_chu: String(data.ghiChu || '') };
+  if (data.dungSpDezon === true) {
+    if (!await hasShareCol_()) throw new Error('Chưa bật được kho SP chung: cơ sở dữ liệu thiếu cột dung_sp_dezon. Hãy chạy db/share_catalog.sql trong Supabase rồi thử lại.');
+    row.dung_sp_dezon = true;
+  }
   const res = await supa.insert('cong_ty', row, { noScope: true });
   const ct = ctOut_(res[0]);
   // tạo luôn tài khoản chủ công ty (nếu có)
@@ -147,6 +158,10 @@ async function updateCongTy(actor, id, data) {
     if (data.tinhNang != null) patch.tinh_nang = Array.isArray(data.tinhNang) ? data.tinhNang.join(',') : String(data.tinhNang);
     if (data.gioiHanUser != null) patch.gioi_han_user = Number(data.gioiHanUser) || 0;
     if (data.active != null) patch.active = !!data.active;
+    if (data.dungSpDezon != null) {
+      if (!await hasShareCol_()) { if (data.dungSpDezon) throw new Error('Chưa bật được kho SP chung: cơ sở dữ liệu thiếu cột dung_sp_dezon. Hãy chạy db/share_catalog.sql trong Supabase rồi thử lại.'); }
+      else patch.dung_sp_dezon = !!data.dungSpDezon;
+    }
     if (data.hanDung != null) patch.han_dung = data.hanDung || null;
     if (data.ghiChu != null) patch.ghi_chu = String(data.ghiChu);
   }

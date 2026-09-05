@@ -2414,6 +2414,34 @@ table.ct-tbl td{vertical-align:middle}
 .ctlogo-box.has:hover .ctlogo-swap{opacity:1;transform:translateX(-50%) translateY(0)}
 .ctlogo-url{margin-top:8px}
 
+/* ═══ Kho SP dùng chung ═══ */
+.ct-share{margin-top:14px}
+.ct-sw{display:flex;align-items:flex-start;gap:11px;border:1px solid var(--hair-2);border-radius:var(--r-lg);
+  padding:13px 14px;cursor:pointer;transition:all .14s;background:#fff}
+.ct-sw:hover{border-color:#c3ccd8}
+.ct-sw.on{border-color:var(--blue);background:#f6faff}
+.ct-sw input{position:absolute;opacity:0;pointer-events:none}
+.ct-sw-b{position:relative;width:38px;height:21px;border-radius:99px;background:#d7dee6;flex:none;
+  transition:background .18s;margin-top:1px}
+.ct-sw-b::after{content:'';position:absolute;left:2px;top:2px;width:17px;height:17px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .18s cubic-bezier(.4,0,.2,1)}
+.ct-sw.on .ct-sw-b{background:var(--blue)}
+.ct-sw.on .ct-sw-b::after{transform:translateX(17px)}
+.ct-sw-t{flex:1;min-width:0}
+.ct-sw-t b{display:block;font-size:12.5px;font-weight:600;color:var(--ink)}
+.ct-sw.on .ct-sw-t b{color:var(--navy)}
+.ct-sw-t i{display:block;font-style:normal;font-size:11.5px;color:var(--ink-3);line-height:1.5;margin-top:3px}
+.ct-sharerow{padding:0 15px;margin-top:-4px;margin-bottom:8px}
+.ct-sharetag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;
+  background:#f3e8ff;color:#7c3aed;border-radius:99px;padding:3px 9px}
+/* nhãn SP kho chung trong bảng */
+.sp-chung{display:inline-flex;align-items:center;margin-left:7px;font-size:9.5px;font-weight:600;
+  background:#f3e8ff;color:#7c3aed;border-radius:99px;padding:1px 7px;letter-spacing:.02em}
+/* ô chỉ đọc khi là SP kho chung */
+.spin-wrap.ro{opacity:.75}
+.spin-ro{display:inline-block;padding:5px 7px;font-size:12.5px;font-weight:600;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;text-align:right;min-width:78px}
+
 /* ---------- 17. MONTSERRAT tuning ---------- */
 /* Montserrat rộng & tròn hơn font hệ thống -> siết tracking, giảm 1 bậc độ đậm */
 body,button,input,select,textarea{font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}

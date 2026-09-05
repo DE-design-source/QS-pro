@@ -4,6 +4,7 @@
  * Thay cho store.js (Lark). Giữ nguyên interface cho registry.
  ************************************************************/
 const supa = require('./supa');
+const tenant = require('./tenant');
 const larkStore = require('./store');   // tái dùng hàm thuần: importParse, cover template, export helpers
 
 /*** ===== HELPERS ===== ***/
@@ -68,11 +69,44 @@ function prodToObj(r) {
   };
 }
 let _cache = null, _cacheAt = 0;
+// Công ty có được dùng kho SP chung của Dezon không? -> trả id công ty Dezon
+async function spChungId_() {
+  const t = tenant.tenantId(); if (!t) return null;          // super admin xem toàn hệ thống
+  const me = (await supa.select('cong_ty', { filter: supa.eq('id', t), limit: 1, noScope: true }))[0];
+  if (!me || me.dung_sp_dezon !== true) return null;
+  const dz = (await supa.select('cong_ty', { filter: supa.eq('ma', 'dezon'), limit: 1, noScope: true }))[0];
+  if (!dz || String(dz.id) === String(t)) return null;        // chính Dezon thì thôi
+  return dz.id;
+}
 async function getProducts() {
   const rows = await supa.select('db_san_pham', { select: '*', order: 'ten_sp.asc', limit: 5000 });
   const out = rows.map(prodToObj);
+  // Kèm KHO CHUNG của Dezon (chỉ đọc) nếu công ty được bật quyền dùng
+  try {
+    const dzId = await spChungId_();
+    if (dzId) {
+      const shared = await supa.select('db_san_pham', {
+        select: '*', filter: supa.eq('cong_ty_id', dzId), order: 'ten_sp.asc', limit: 5000, noScope: true });
+      const has = {}; out.forEach(function (p) { has[p.ma + '|' + p.congSuat + '|' + p.nhietDo + '|' + p.gocChieu + '|' + p.mauSac] = 1; });
+      shared.forEach(function (r) {
+        const o = prodToObj(r);
+        if (has[o.ma + '|' + o.congSuat + '|' + o.nhietDo + '|' + o.gocChieu + '|' + o.mauSac]) return;  // SP riêng đè kho chung
+        o.spChung = true;          // đánh dấu: của kho chung, KHÔNG cho sửa/xoá
+        out.push(o);
+      });
+      out.sort(function (a, b) { return String(a.ten).localeCompare(String(b.ten), 'vi'); });
+    }
+  } catch (e) { /* chưa có cột dung_sp_dezon -> bỏ qua */ }
   _cache = out; _cacheAt = Date.now();
   return out;
+}
+// Chặn sửa/xoá sản phẩm thuộc KHO CHUNG (không phải của công ty mình)
+async function guardSpChung_(key) {
+  const t = tenant.tenantId(); if (!t) return;               // super admin: cho phép
+  const filter = /^\d+$/.test(String(key)) ? supa.eq('id', key) : supa.eq('ma_sp', key);
+  const r = (await supa.select('db_san_pham', { select: 'id,cong_ty_id', filter: filter, limit: 1, noScope: true }))[0];
+  if (r && String(r.cong_ty_id) !== String(t))
+    throw new Error('Sản phẩm thuộc kho chung của Dezon — không sửa/xoá được. Hãy tạo bản sao riêng cho công ty bạn.');
 }
 async function getProductsCached() { if (_cache && Date.now() - _cacheAt < 300000) return _cache; return getProducts(); }
 async function getCatalogSheets() {
@@ -323,6 +357,7 @@ async function saveDbProduct(data) {
   return { created: true, ma: ma, ten: ten };
 }
 async function deleteDbProduct(key) {
+  await guardSpChung_(key);
   key = s(key).trim(); if (!key) throw new Error('Thiếu mã/ID sản phẩm.');
   const filter = /^\d+$/.test(key) ? supa.eq('id', key) : supa.eq('ma_sp', key);
   await supa.remove('db_san_pham', filter); _cache = null;
@@ -339,6 +374,7 @@ async function getDbProduct(key) {
 }
 async function updateDbProductTracked(actor, key, data) {
   key = s(key).trim(); if (!key) throw new Error('Thiếu mã/ID sản phẩm.');
+  await guardSpChung_(key);
   const cur = await getDbProduct(key); if (!cur) throw new Error('Không tìm thấy sản phẩm.');
   const ma = s(cur.ma_sp);
   data = data || {};
