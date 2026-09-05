@@ -218,7 +218,7 @@ async function sendPurchaseRequest(actor, order) {
 
 
 // ===== NHẮC GIA HẠN: gửi thẻ Lark khi công ty sắp/đã hết hạn =====
-const NHAC_MOC = [30, 14, 7, 3, 1, 0];   // số ngày còn lại sẽ nhắc
+const NHAC_MOC = [5, 3, 1];   // chỉ nhắc khi còn 5 / 3 / 1 ngày
 function ngayConLai_(han) {
   if (!han) return null;
   const h = new Date(String(han).slice(0, 10) + 'T00:00:00');
@@ -272,7 +272,7 @@ async function checkExpiry(actor, opts) {
   rows.forEach(function (r) {
     if (r.active === false || !r.han_dung) return;
     const con = ngayConLai_(r.han_dung);
-    if (con === null || con > 30) return;
+    if (con === null || con > NHAC_MOC[0]) return;   // ngoài mốc 5 ngày -> chưa nhắc
     // mốc gần nhất mà số ngày còn lại đã chạm tới
     const moc = con < 0 ? -1 : NHAC_MOC.filter(function (m) { return con <= m; }).pop();
     const daNhac = String(r.nhac_lan_cuoi || '').slice(0, 10) === today && Number(r.nhac_moc) === moc;
@@ -308,15 +308,37 @@ async function checkExpiry(actor, opts) {
     companies: items.map(function (x) { return x.ten + ' (' + (x.con < 0 ? 'hết hạn ' + Math.abs(x.con) + ' ngày' : 'còn ' + x.con + ' ngày') + ')'; }) };
 }
 
-// Tự quét nhắc gia hạn: 1 phút sau khi khởi động, rồi mỗi 12 giờ.
-// (Chống gửi trùng bằng nhac_lan_cuoi/nhac_moc nên server restart nhiều lần cũng không spam.)
-function autoExpiryScan_() {
+/* ===== LỊCH NHẮC GIA HẠN: 10h00 sáng (giờ VN) mỗi ngày =====
+   Server chạy giờ UTC nên quy đổi: 10h VN = 03h UTC.
+   Chống gửi trùng bằng nhac_lan_cuoi/nhac_moc -> mỗi mốc chỉ 1 thẻ/ngày,
+   nên nếu server ngủ (Render free) rồi thức dậy sau 10h thì GỬI BÙ, không bỏ sót. */
+const NHAC_GIO_VN = 10;                        // 10h sáng giờ Việt Nam
+const VN_OFFSET_MS = 7 * 60 * 60 * 1000;       // UTC+7
+function nowVN_() { return new Date(Date.now() + VN_OFFSET_MS); }
+function msToNextRun_() {
+  const vn = nowVN_();
+  const next = new Date(vn); next.setUTCHours(NHAC_GIO_VN, 0, 0, 0);
+  if (next <= vn) next.setUTCDate(next.getUTCDate() + 1);   // qua giờ hôm nay -> hẹn ngày mai
+  return next - vn;
+}
+function autoExpiryScan_(lyDo) {
   checkExpiry({ r: 'super' }, {})
-    .then(function (r) { if (r && r.sent) console.log('[nhắc gia hạn] đã gửi Lark cho', r.count, 'công ty'); })
+    .then(function (r) {
+      if (r && r.sent) console.log('[nhắc gia hạn][' + lyDo + '] đã gửi Lark cho', r.count, 'công ty');
+    })
     .catch(function (e) { console.warn('[nhắc gia hạn] lỗi:', e && e.message); });
 }
-setTimeout(autoExpiryScan_, 60 * 1000);
-setInterval(autoExpiryScan_, 12 * 60 * 60 * 1000);
+function scheduleExpiry_() {
+  const wait = msToNextRun_();
+  setTimeout(function () { autoExpiryScan_('đúng giờ'); scheduleExpiry_(); }, wait);
+  const h = Math.floor(wait / 3600000), m = Math.round((wait % 3600000) / 60000);
+  console.log('[nhắc gia hạn] lần gửi kế tiếp sau ' + h + 'h' + m + 'p (10h00 giờ VN mỗi ngày)');
+}
+// Khởi động: nếu HÔM NAY đã qua 10h mà chưa gửi -> gửi bù (hàm tự bỏ qua nếu đã gửi rồi)
+setTimeout(function () {
+  if (nowVN_().getUTCHours() >= NHAC_GIO_VN) autoExpiryScan_('gửi bù sau khi server thức');
+  scheduleExpiry_();
+}, 60 * 1000);
 
 app.post('/api/:fn', async function (req, res) {
   const fn = req.params.fn;
