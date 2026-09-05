@@ -913,6 +913,7 @@ function renderSanpham(){
             +'<button class="btn ghost sm" id="spBoLocBtn" onclick="spToggleBoLoc(event)">'+icon('sliders',14)+' Bộ lọc<span class="spflt-badge" id="spFltBadge"></span></button>'
             +'<button class="btn blue sm" onclick="showTab(\'import\')">'+icon('plus',14)+' Thêm sản phẩm</button>'
           +'</div>'
+          +'<div class="spviewtabs" id="spViewTabs"></div>'
           +'<div class="spbar" id="spBar"></div>'
           +'<div class="colchips sp-colchips" id="spColBar"></div>'
           +'<div class="tbl-wrap"><table class="sp-table"><thead id="spHead"></thead>'
@@ -923,7 +924,9 @@ function renderSanpham(){
     +'</div>';
   S._spSel=S._spSel||{}; S._spFilters=S._spFilters||{};
   if(!S._spCols) S._spCols={thumb:1,ten:1,sku:1,thuong_hieu:1,hang_muc:1,specs:1,giaDaiLy:1};
+  S._spView=S._spView||'dm';
   renderSpProjPanel_(); renderSpChips_(); spEditBtnSync_(); spUndoBtnSync_(); spColChips_(); spRenderHead_(); spFilter();
+  spLoadPerm_().then(function(){ spEditBtnSync_(); if(S._spView!=='dm') spSetView(S._spView); });
 }
 // LEFT: sản phẩm đã ghi danh vào dự án hiện tại (S.lines)
 function renderSpProjPanel_(){
@@ -1146,6 +1149,7 @@ function spEditCell_(c,p,i){
   var e=c[4]; if(!e) return c[3](p,i);          // Ảnh / Thông số / Giá đại lý: hiển thị
   return spInp_(i,e,spEditRaw_(p,e.col),p);
 }
+function spBumpPending_(){ S._spPending=(S._spPending||0)+1; spViewTabs_(); }
 function spEditToggle(){
   S._spEdit=!S._spEdit;
   if(S._spEdit){
@@ -1156,8 +1160,83 @@ function spEditToggle(){
   spEditBtnSync_(); spColChips_(); spRenderHead_(); spFilter();
   toast(S._spEdit?'Sửa nhanh: gõ thẳng vào ô, rời ô là tự lưu':'Đã tắt chế độ sửa nhanh');
 }
+/* ═══ QUYỀN SỬA / DUYỆT SẢN PHẨM ═══
+   S._spPerm = {edit, duyet} lấy từ server (admin/super = cả hai).            */
+function spCanEdit_(){ var p=S._spPerm; return p?!!p.edit:true; }
+function spCanDuyet_(){ var p=S._spPerm; return p?!!p.duyet:true; }
+async function spLoadPerm_(){
+  try{ S._spPerm=await api('spMyPerms'); }catch(e){ S._spPerm={edit:true,duyet:true}; }
+  try{ var c=await api('countSpEdits'); S._spPending=(c&&c.pending)||0; }catch(e){ S._spPending=0; }
+  spViewTabs_();
+}
+/* ═══ 3 khung nhìn: Danh mục · Chờ duyệt · Đã duyệt ═══ */
+function spViewTabs_(){
+  var el=document.getElementById('spViewTabs'); if(!el) return;
+  var cur=S._spView||'dm';
+  var tabs=[['dm','Danh mục',''],
+            ['cho_duyet','Chờ duyệt', S._spPending?String(S._spPending):''],
+            ['da_duyet','Đã duyệt','']];
+  el.innerHTML=tabs.map(function(t){
+    return '<button class="spvt'+(cur===t[0]?' on':'')+'" onclick="spSetView(\''+t[0]+'\')">'+esc(t[1])
+      +(t[2]?'<span class="spvt-n">'+t[2]+'</span>':'')+'</button>';
+  }).join('')
+  +(spCanDuyet_()?'':'<span class="spvt-note">Bạn chỉ được gửi duyệt — thay đổi cần người có quyền duyệt xác nhận</span>');
+}
+function spSetView(v){
+  S._spView=v;
+  var isDm=(v==='dm');
+  ['spColBar','spBar'].forEach(function(id){ var e=document.getElementById(id); if(e) e.style.display=isDm?'':'none'; });
+  var card=document.querySelector('.sp-card'); if(card) card.classList.toggle('review-mode',!isDm);
+  spViewTabs_();
+  if(isDm){ spRenderHead_(); spFilter(); } else { spRenderReview_(v); }
+}
+async function spRenderReview_(status){
+  var body=document.getElementById('spBody'), head=document.getElementById('spHead'),
+      pg=document.getElementById('spPager');
+  if(!body) return;
+  if(pg) pg.innerHTML='';
+  head.innerHTML='<tr><th>Sản phẩm</th><th>Thay đổi đề nghị</th><th>Người gửi</th><th class="ct">Thời gian</th><th class="ct">Xử lý</th></tr>';
+  body.innerHTML='<tr><td colspan="5"><div class="empty" style="margin:10px">Đang tải…</div></td></tr>';
+  var rows=[]; try{ rows=await api('listSpEdits',status,200)||[]; }catch(e){
+    body.innerHTML='<tr><td colspan="5"><div class="empty" style="margin:10px">Lỗi tải: '+esc(e.message)+'</div></td></tr>'; return; }
+  if(!rows.length){
+    body.innerHTML='<tr><td colspan="5"><div class="empty" style="margin:10px">'
+      +(status==='cho_duyet'?'Không có thay đổi nào đang chờ duyệt.':'Chưa có thay đổi nào được duyệt.')+'</div></td></tr>';
+    return;
+  }
+  var canD=spCanDuyet_();
+  body.innerHTML=rows.map(function(r){
+    var diff=r.changes.map(function(c){
+      return '<div class="spd"><span class="spd-f">'+esc(c.field)+'</span>'
+        +'<span class="spd-o">'+esc(c.old||'—')+'</span><span class="spd-a">→</span><span class="spd-n">'+esc(c.new||'—')+'</span></div>'; }).join('');
+    var act = (r.status==='cho_duyet' && canD)
+      ? '<button class="btn blue sm" onclick="spResolveEdit('+r.id+',1)">'+icon('check',14)+' Duyệt</button>'
+        +'<button class="btn ghost sm" onclick="spResolveEdit('+r.id+',0)">Từ chối</button>'
+      : '<span class="spst spst-'+esc(r.status)+'">'+(r.status==='da_duyet'?'Đã duyệt':r.status==='tu_choi'?'Đã từ chối':'Chờ duyệt')+'</span>'
+        +(r.nguoiDuyet?'<div class="spd-by">'+esc(r.nguoiDuyet)+'</div>':'');
+    return '<tr><td><b>'+esc(r.ten||'')+'</b><span class="sp-code">'+esc(r.ma||'')+'</span></td>'
+      +'<td class="sp-diffs">'+diff+'</td><td>'+esc(r.nguoiGui||'')+'</td>'
+      +'<td class="ct">'+fmtDateTime_(r.at)+'</td><td class="ct spd-act">'+act+'</td></tr>';
+  }).join('');
+}
+async function spResolveEdit(id,approve){
+  var lyDo='';
+  if(!approve){
+    lyDo=await askInput_({title:'Từ chối thay đổi', label:'Lý do (có thể để trống)',
+      confirmText:'Từ chối', required:false, value:''});
+    if(lyDo===null) return;                       // bấm Huỷ / Esc
+  }
+  try{
+    var r=await api('resolveSpEdit',id,!!approve,lyDo);
+    toast(approve?('Đã duyệt — cập nhật '+(r.applied||0)+' trường'):'Đã từ chối thay đổi');
+    S.products=await api('getProducts')||S.products;
+    try{ var c=await api('countSpEdits'); S._spPending=(c&&c.pending)||0; }catch(e){}
+    spViewTabs_(); spRenderReview_(S._spView||'cho_duyet');
+  }catch(e){ toast('Lỗi: '+e.message.slice(0,110)); }
+}
 function spEditBtnSync_(){
   var b=document.getElementById('spEditBtn'); if(!b) return;
+  b.style.display = spCanEdit_()?'':'none';
   b.classList.toggle('on',!!S._spEdit);
   b.innerHTML = S._spEdit ? (icon('check',14)+' Xong') : (icon('edit',14)+' Edit');
   b.title = S._spEdit ? 'Tắt chế độ sửa nhanh' : 'Sửa nhanh ngay trên bảng — hiện tất cả cột nhập liệu';
@@ -1222,8 +1301,15 @@ async function spInlineSave(el){
   if(lark!=='MÃ SẢN PHẨM') d['MÃ SẢN PHẨM']=p.ma;                        // khoá tra cứu, trừ khi đang sửa chính nó
   d[lark]=v;                                                             // ghi ĐÚNG giá trị gốc người dùng gõ
   try{
-    await api('updateDbProductTracked', String(p.recordId||p.ma), d);
+    var res=await api('updateDbProductTracked', String(p.recordId||p.ma), d);
     el.classList.remove('saving'); el.classList.add('ok');
+    if(res&&res.pending){                                   // chỉ có quyền sửa -> thành phiếu chờ duyệt
+      el.classList.remove('ok'); el.classList.add('pend');
+      el.value=String(old==null?'':old);                    // bảng vẫn hiện giá trị CŨ cho tới khi được duyệt
+      spBumpPending_();
+      toast('Đã gửi duyệt thay đổi — chờ người có quyền duyệt xác nhận');
+      return;
+    }
     spUndoPush_([{key:String(p.recordId||p.ma), ma:p.ma, lark:lark, col:col, old:oldRaw}],
       lark+' của "'+(p.ten||p.ma||'')+'"');
     el.setAttribute('data-old', shown); if(isMoney) el.value=shown;
@@ -1670,7 +1756,10 @@ async function spEditModal(i){
   }).join(''):'<div class="empty" style="padding:14px;font-size:12.5px">Chưa có lịch sử cập nhật.</div>';
   ov.querySelector('.spe-body').innerHTML=spEditImgSection_()
     +fields
-    +'<div class="spe-actions"><button class="btn ghost sm" onclick="spEditClose()">Huỷ</button><button class="btn blue" id="speSaveBtn" onclick="spEditSave()">'+icon('check',15)+' Lưu cập nhật</button></div>'
+    +'<div class="spe-actions">'
+      +(spCanDuyet_()?'<button class="btn ghost sm" id="speSendBtn" onclick="spEditSave(1)" title="Tạo phiếu để người khác duyệt">'+icon('clock',14)+' Gửi duyệt</button>':'')
+      +'<button class="btn ghost sm" onclick="spEditClose()">Huỷ</button>'
+      +'<button class="btn blue" id="speSaveBtn" onclick="spEditSave()">'+icon('check',15)+(spCanDuyet_()?' Lưu cập nhật':' Gửi duyệt')+'</button></div>'
     +'<div class="spe-hist"><div class="spe-hist-h">'+icon('clock',15)+' Lịch sử cập nhật <span class="spe-hist-n">'+hist.length+'</span></div><div class="spe-hist-list">'+histHtml+'</div></div>';
 }
 // 2 vùng ảnh (đại diện + chi tiết) — DÙNG ĐÚNG layout .imgup của trang Nhập dữ liệu (2 cột đều, đồng nhất)
@@ -1684,7 +1773,7 @@ function speCalcDaiLy_(){
   out.value = g? Math.round(g*(1-ck/100)) : '';
 }
 function spEditClose(){ var o=document.getElementById('spEditOv'); if(o)o.remove(); }
-async function spEditSave(){
+async function spEditSave(guiDuyet){
   var ov=document.getElementById('spEditOv'); if(!ov) return;
   var data={};
   ov.querySelectorAll('[data-col]').forEach(function(el){
@@ -1697,10 +1786,13 @@ async function spEditSave(){
   var imgs=[S._imgMain].concat(S._imgList||[]).filter(Boolean).filter(function(v){ return v.indexOf('data:')!==0; });
   data['ẢNH SẢN PHẨM']=imgs.join('\n');
   if(btn) btn.textContent='Đang lưu…';
-  try{ var r=await api('updateDbProductTracked', S._spEditMa, data);
+  var lai=function(){ if(btn){ btn.disabled=false; btn.innerHTML=icon('check',15)+(spCanDuyet_()?' Lưu cập nhật':' Gửi duyệt'); } };
+  try{
+    var r=await api(guiDuyet?'submitSpEdit':'updateDbProductTracked', S._spEditMa, data);
+    if(r&&r.pending){ toast('Đã gửi duyệt '+r.changes+' thay đổi — chờ xác nhận'); spBumpPending_(); spEditClose(); return; }
     if(r&&r.updated){ toast('Đã cập nhật '+r.changes+' trường'); S.products=await api('getProducts')||S.products; spFilter(); if(typeof renderCatalog==='function') renderCatalog(); spEditClose(); }
-    else { toast('Không có thay đổi nào để lưu'); if(btn){ btn.disabled=false; btn.innerHTML=icon('check',15)+' Lưu cập nhật'; } }
-  }catch(e){ toast('Lỗi lưu: '+e.message); if(btn){ btn.disabled=false; btn.innerHTML=icon('check',15)+' Lưu cập nhật'; } }
+    else { toast('Không có thay đổi nào để lưu'); lai(); }
+  }catch(e){ toast('Lỗi lưu: '+e.message); lai(); }
 }
 async function spDelete(i){
   var p=(S._spList||[])[i]; if(!p) return;
@@ -4909,6 +5001,11 @@ function admUserModal(user){
   var isEdit=!!user; user=user||{role:'staff',perms:[]};
   var perms=user.perms||[];
   var permHtml=PERM_TABS.map(function(t){ return '<label class="admck"><input type="checkbox" value="'+t[0]+'"'+(perms.indexOf(t[0])>=0?' checked':'')+'>'+esc(t[1])+'</label>'; }).join('');
+  // Quyền con của tab "Danh sách sản phẩm": chỉ được SỬA (thành phiếu chờ duyệt) hay được DUYỆT
+  var spSub='<div class="admsub"><div class="admsub-h">Trong tab Danh sách sản phẩm</div>'
+    +'<label class="admck"><input type="checkbox" value="sp_edit"'+(perms.indexOf('sp_edit')>=0?' checked':'')+'>Được sửa <i>(thay đổi phải chờ duyệt)</i></label>'
+    +'<label class="admck"><input type="checkbox" value="sp_duyet"'+(perms.indexOf('sp_duyet')>=0?' checked':'')+'>Được duyệt <i>(sửa thẳng + duyệt phiếu của người khác)</i></label>'
+    +'<div class="admsub-note">Không tích ô nào = giữ như cũ (sửa thẳng, không qua duyệt).</div></div>';
   var m=document.createElement('div'); m.className='amodal-ov'; m.id='admModal'; m.onclick=function(e){ if(e.target===m) admModalClose(); };
   m.innerHTML='<div class="amodal">'
     +'<div class="amodal-hd">'+(isEdit?'Sửa tài khoản':'Thêm tài khoản')+'<span class="amodal-x" onclick="admModalClose()">✕</span></div>'
@@ -4917,7 +5014,7 @@ function admUserModal(user){
       +'<div class="afield"><label>Họ tên</label><input id="am_ht" value="'+esc(user.hoTen||'')+'" placeholder="Nguyễn Văn A"></div>'
       +(isEdit?'':'<div class="afield"><label>Mật khẩu</label><input id="am_pw" type="text" placeholder="≥4 ký tự" autocomplete="new-password"></div>')
       +'<div class="afield"><label>Vai trò</label><select id="am_role" onchange="admModalRole()"><option value="staff"'+(user.role!=='admin'?' selected':'')+'>Nhân viên</option><option value="admin"'+(user.role==='admin'?' selected':'')+'>Admin (toàn quyền)</option></select></div>'
-      +'<div class="afield" id="am_permwrap"><label>Quyền truy cập</label><div class="admperms">'+permHtml+'</div>'
+      +'<div class="afield" id="am_permwrap"><label>Quyền truy cập</label><div class="admperms">'+permHtml+'</div>'+spSub
         +'<div class="admperm-quick"><a onclick="admPermAll(1)">Chọn tất cả</a> · <a onclick="admPermAll(0)">Bỏ hết</a></div></div>'
     +'</div>'
     +'<div class="amodal-ft"><button class="btn ghost" onclick="admModalClose()">Hủy</button><button class="btn blue" id="am_save" onclick="admModalSave('+(isEdit?'\''+user.id+'\'':'null')+')">'+(isEdit?'Lưu':'Tạo tài khoản')+'</button></div>'

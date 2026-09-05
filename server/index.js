@@ -48,7 +48,12 @@ const REGISTRY = {
   uploadImage: store.uploadImage,
   deleteDbProduct: store.deleteDbProduct,
   getDbProduct: store.getDbProduct,
-  updateDbProductTracked: store.updateDbProductTracked,
+  updateDbProductTracked: auth.updateProductGated,   // cửa ngõ: chỉ 'sp_edit' -> tạo phiếu chờ duyệt
+  submitSpEdit: auth.submitSpEdit,
+  listSpEdits: auth.listSpEdits,
+  countSpEdits: auth.countSpEdits,
+  resolveSpEdit: auth.resolveSpEdit,
+  spMyPerms: auth.spMyPerms,
   getProductHistory: store.getProductHistory,
   getCover: store.getCover,
   saveCover: store.saveCover,
@@ -100,7 +105,8 @@ const ACTOR_FNS = new Set(['me', 'logout', 'changePassword',
   'requestDeleteProducts', 'listDeleteRequests', 'resolveDeleteRequest',
   'sendPurchaseRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest',
   'listCongTy', 'createCongTy', 'updateCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'checkExpiry',
-  'updateDbProductTracked']);
+  'updateDbProductTracked', 'submitSpEdit', 'listSpEdits', 'countSpEdits', 'resolveSpEdit', 'spMyPerms',
+  'deleteDbProduct', 'importCommit']);
 // Hàm chỉ Admin được gọi
 const SUPER_FNS = new Set(['listCongTy', 'createCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'checkExpiry']);
 const ADMIN_FNS = new Set(['adminListUsers', 'adminCreateUser', 'adminUpdateUser',

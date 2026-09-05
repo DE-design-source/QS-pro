@@ -371,7 +371,7 @@ async function resolveDeleteRequest(actor, id, approve) {
   const now = new Date().toISOString();
   if (approve) {
     var deleted = 0;
-    for (var i = 0; i < items.length; i++) { try { await store.deleteDbProduct(items[i].maSP); deleted++; } catch (e) { } }
+    for (var i = 0; i < items.length; i++) { try { await store.deleteDbProduct(actor, items[i].maSP); deleted++; } catch (e) { } }
     await supa.update('delete_requests', supa.eq('id', id), { status: 'approved', resolver_name: resolver, resolved_at: now });
     await notify_(r.requester_id, 'delete_approved', 'Yêu cầu xóa đã được duyệt', 'Đã xóa ' + deleted + '/' + items.length + ' sản phẩm bạn yêu cầu', r.id);
     await audit(actor, 'approve_delete', 'Duyệt xóa ' + deleted + ' SP (yêu cầu #' + id + ' của ' + r.requester_name + ')');
@@ -382,6 +382,126 @@ async function resolveDeleteRequest(actor, id, approve) {
     await audit(actor, 'reject_delete', 'Từ chối yêu cầu xóa #' + id);
     return { ok: true };
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DUYỆT THAY ĐỔI SẢN PHẨM
+   - Tài khoản chỉ có quyền 'sp_edit'  -> mọi thay đổi thành PHIẾU CHỜ DUYỆT
+   - Tài khoản có quyền 'sp_duyet' (và admin/super) -> ghi thẳng + duyệt phiếu
+   Cửa ngõ duy nhất là updateProductGated: mọi đường sửa của client (sửa nhanh
+   trên bảng, sửa hàng loạt, modal Sửa) đều đi qua đây nên không lách được.
+   ═══════════════════════════════════════════════════════════════ */
+async function spPerms_(actor) {
+  if (!actor) return { edit: false, duyet: false };
+  if (actor.r === 'admin' || actor.r === 'super') return { edit: true, duyet: true, admin: true };
+  const u = await getUserById(actor.uid);
+  const ps = permsArr_(u && u.perms);
+  // Chưa cấu hình gì -> giữ như cũ: được sửa thẳng (tránh khoá hết tài khoản đang dùng)
+  if (ps.indexOf('sp_edit') < 0 && ps.indexOf('sp_duyet') < 0) return { edit: true, duyet: true };
+  return { edit: ps.indexOf('sp_edit') >= 0 || ps.indexOf('sp_duyet') >= 0, duyet: ps.indexOf('sp_duyet') >= 0 };
+}
+async function spMyPerms(actor) { return spPerms_(actor); }
+function spcdOut_(r) {
+  let tc = []; try { tc = JSON.parse(r.thay_doi || '[]') || []; } catch (e) { tc = []; }
+  return { id: r.id, spId: r.sp_id, ma: r.ma_sp || '', ten: r.ten_sp || '', changes: tc,
+    status: r.trang_thai, nguoiGui: r.nguoi_gui || '', nguoiDuyet: r.nguoi_duyet || '',
+    lyDo: r.ly_do || '', at: r.ngay_gui, resolvedAt: r.ngay_duyet };
+}
+// CỬA NGÕ: mọi lệnh sửa sản phẩm từ client đều vào đây
+async function updateProductGated(actor, key, data) {
+  const p = await spPerms_(actor);
+  if (!p.edit) throw new Error('Tài khoản không có quyền sửa sản phẩm');
+  if (p.duyet) return store.updateDbProductTracked(actor, key, data);      // được duyệt -> ghi thẳng
+  return submitSpEdit(actor, key, data);                                    // chỉ được sửa -> phiếu chờ duyệt
+}
+// Tạo phiếu chờ duyệt (người có quyền duyệt vẫn dùng được khi muốn để người khác xác nhận)
+async function submitSpEdit(actor, key, data) {
+  const p = await spPerms_(actor);
+  if (!p.edit) throw new Error('Tài khoản không có quyền sửa sản phẩm');
+  const d = await store.diffDbProduct(key, data);
+  if (!d.changes.length) return { updated: false, changes: 0 };
+  const me = await getUserById(actor.uid);
+  const who = me ? (me.ho_ten || me.username) : (actor.u || '');
+  let row;
+  try {
+    row = (await supa.insert('sp_cho_duyet', {
+      sp_id: d.cur.id, ma_sp: d.cur.ma_sp || '', ten_sp: d.cur.ten_sp || '',
+      thay_doi: JSON.stringify(d.changes), du_lieu: JSON.stringify(data || {}),
+      trang_thai: 'cho_duyet', nguoi_gui_id: actor.uid, nguoi_gui: who
+    }))[0];
+  } catch (e) {
+    if (/sp_cho_duyet/.test(e.message || ''))
+      throw new Error('Chưa bật được duyệt sản phẩm: thiếu bảng sp_cho_duyet. Vào Supabase → SQL Editor chạy db/sp_approval.sql rồi thử lại.');
+    throw e;
+  }
+  // báo cho người duyệt
+  try {
+    const appr = await spApprovers_(actor);
+    for (const a of appr) await notify_(a.id, 'sp_edit_request', 'Yêu cầu sửa sản phẩm',
+      who + ' đề nghị sửa ' + d.changes.length + ' trường của ' + (d.cur.ma_sp || d.cur.ten_sp), String(row.id));
+  } catch (e) { /* thông báo hỏng không chặn nghiệp vụ */ }
+  await audit(actor, 'gui_duyet_sp', who + ' gửi duyệt sửa ' + (d.cur.ma_sp || '') + ': ' +
+    d.changes.map(function (c) { return c.field; }).join(', '));
+  return { pending: true, id: row.id, changes: d.changes.length, ma: d.cur.ma_sp, ten: d.cur.ten_sp };
+}
+// Ai được duyệt trong công ty (admin + tài khoản có quyền sp_duyet)
+async function spApprovers_(actor) {
+  const rows = await supa.select('users', { limit: 500 });
+  return rows.filter(function (u) {
+    if (u.active === false) return false;
+    if (u.role === 'admin' || u.role === 'super') return true;
+    return permsArr_(u.perms).indexOf('sp_duyet') >= 0;
+  });
+}
+async function listSpEdits(actor, status, limit) {
+  const p = await spPerms_(actor);
+  let filter = '';
+  if (status) filter = supa.eq('trang_thai', status);
+  // người chỉ được sửa: chỉ xem phiếu của chính mình
+  if (!p.duyet) filter = (filter ? filter + '&' : '') + supa.eq('nguoi_gui_id', actor.uid);
+  let rows;
+  try {
+    rows = await supa.select('sp_cho_duyet', {
+      filter: filter, order: 'ngay_gui.desc', limit: Math.min(Number(limit) || 200, 500) });
+  } catch (e) {
+    if (/sp_cho_duyet/.test(e.message || ''))
+      throw new Error('Chưa bật được duyệt sản phẩm: thiếu bảng sp_cho_duyet. Vào Supabase → SQL Editor chạy db/sp_approval.sql rồi thử lại.');
+    throw e;
+  }
+  return rows.map(spcdOut_);
+}
+async function countSpEdits(actor) {
+  const p = await spPerms_(actor);
+  try {
+    const rows = await listSpEdits(actor, 'cho_duyet', 500);
+    return { pending: rows.length, canApprove: p.duyet };
+  } catch (e) { return { pending: 0, canApprove: p.duyet, ready: false }; }  // chưa chạy SQL -> đừng chặn UI
+}
+async function resolveSpEdit(actor, id, approve, lyDo) {
+  const p = await spPerms_(actor);
+  if (!p.duyet) throw new Error('Tài khoản không có quyền duyệt sản phẩm');
+  const r = (await supa.select('sp_cho_duyet', { filter: supa.eq('id', id), limit: 1 }))[0];
+  if (!r) throw new Error('Không tìm thấy phiếu');
+  if (r.trang_thai !== 'cho_duyet') throw new Error('Phiếu đã được xử lý');
+  const me = await getUserById(actor.uid);
+  const who = me ? (me.ho_ten || me.username) : actor.u;
+  const now = new Date().toISOString();
+  let applied = 0;
+  if (approve) {
+    let data = {}; try { data = JSON.parse(r.du_lieu || '{}') || {}; } catch (e) { data = {}; }
+    const res = await store.updateDbProductTracked(actor, String(r.sp_id || r.ma_sp), data,
+      { auditAction: 'duyet_sua_sp', auditPrefix: 'Duyệt sửa SP ' });
+    applied = (res && res.changes) || 0;
+  }
+  await supa.update('sp_cho_duyet', supa.eq('id', id), {
+    trang_thai: approve ? 'da_duyet' : 'tu_choi', nguoi_duyet_id: actor.uid, nguoi_duyet: who,
+    ly_do: String(lyDo || ''), ngay_duyet: now });
+  await notify_(r.nguoi_gui_id, approve ? 'sp_edit_approved' : 'sp_edit_rejected',
+    approve ? 'Thay đổi sản phẩm đã được duyệt' : 'Thay đổi sản phẩm bị từ chối',
+    (r.ma_sp || r.ten_sp || '') + (lyDo ? ' — ' + lyDo : ''), String(id));
+  await audit(actor, approve ? 'duyet_sp' : 'tu_choi_sp',
+    (approve ? 'Duyệt' : 'Từ chối') + ' phiếu sửa #' + id + ' (' + (r.ma_sp || '') + ') của ' + (r.nguoi_gui || ''));
+  return { ok: true, applied: applied };
 }
 
 /* ---------- Yêu cầu mua hàng (thông báo + duyệt) ---------- */
@@ -438,6 +558,7 @@ async function resolvePurchaseRequest(actor, maDon, approve) {
 }
 
 module.exports = {
+  updateProductGated, submitSpEdit, listSpEdits, countSpEdits, resolveSpEdit, spMyPerms,
   listCongTyUsers, createCongTyUser,
   listCongTy, createCongTy, updateCongTy, deleteCongTy, getCongTy,
   getPurchaseOrder,

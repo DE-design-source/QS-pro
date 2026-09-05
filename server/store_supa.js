@@ -390,12 +390,32 @@ async function saveDbProduct(data) {
   _cache = null;
   return { created: true, ma: ma, ten: ten };
 }
-async function deleteDbProduct(key) {
+async function deleteDbProduct(actor, key) {
+  // Tương thích ngược: có nơi gọi deleteDbProduct(key) không kèm actor
+  if (key === undefined && (typeof actor === 'string' || typeof actor === 'number')) { key = actor; actor = null; }
   await guardSpChung_(key);
   key = s(key).trim(); if (!key) throw new Error('Thiếu mã/ID sản phẩm.');
+  const cur = await getDbProduct(key);
   const filter = /^\d+$/.test(key) ? supa.eq('id', key) : supa.eq('ma_sp', key);
   await supa.remove('db_san_pham', filter); _cache = null;
-  return { ok: true };
+  if (cur) {
+    try {
+      await supa.insert('db_san_pham_history', { ma_sp: s(cur.ma_sp), field: 'XOÁ SẢN PHẨM',
+        old_value: s(cur.ten_sp), new_value: '', changed_by: (actor && actor.uid) || null,
+        changed_by_name: (actor && actor.u) || 'ẩn danh' });
+    } catch (e) { console.warn('[product history] xoá:', e && e.message); }
+    await logAudit_(actor, 'xoa_sp', 'Xoá SP ' + s(cur.ma_sp) + ' (' + s(cur.ten_sp) + ')');
+  }
+  return { ok: true, ma: cur ? s(cur.ma_sp) : '', ten: cur ? s(cur.ten_sp) : '' };
+}
+// Ghi nhật ký hoạt động (bảng audit_log) — nuốt lỗi, không được làm hỏng nghiệp vụ
+async function logAudit_(actor, action, detail) {
+  try {
+    await supa.insert('audit_log', {
+      user_id: (actor && actor.uid) || null, username: (actor && (actor.u || actor.username)) || '',
+      action: s(action), detail: s(detail)
+    });
+  } catch (e) { /* nhật ký hỏng không được chặn nghiệp vụ */ }
 }
 // ===== Cập nhật SP + LƯU LỊCH SỬ (ai, lúc nào, đổi gì) =====
 const COL2LABEL = {}; Object.keys(DB_LABEL2COL).forEach(function (lb) { COL2LABEL[DB_LABEL2COL[lb]] = lb; });
@@ -406,14 +426,10 @@ async function getDbProduct(key) {
   const rows = await supa.select('db_san_pham', { select: '*', filter: filter, limit: 1 });
   return rows[0] || null;
 }
-async function updateDbProductTracked(actor, key, data) {
-  key = s(key).trim(); if (!key) throw new Error('Thiếu mã/ID sản phẩm.');
-  await guardSpChung_(key);
-  const cur = await getDbProduct(key); if (!cur) throw new Error('Không tìm thấy sản phẩm.');
-  const ma = s(cur.ma_sp);
-  data = data || {};
+// Chuyển {nhãn: giá trị} -> {cột DB: giá trị đã ép kiểu}
+function dataToRow_(data) {
   const row = {};
-  Object.keys(data).forEach(function (label) {
+  Object.keys(data || {}).forEach(function (label) {
     const col = DB_LABEL2COL[label]; if (!col) return;
     let v = data[label];
     if (label === 'LẮP NGUỒN RỜI') v = /^(có|yes|true|1|x)$/i.test(String(v));
@@ -421,13 +437,29 @@ async function updateDbProductTracked(actor, key, data) {
     else v = (v == null) ? '' : String(v);
     row[col] = v;
   });
-  // so sánh cũ/mới -> danh sách thay đổi
+  return row;
+}
+// So sánh dữ liệu gửi lên với sản phẩm đang có -> danh sách trường thật sự đổi.
+// Dùng chung cho LƯU THẲNG và GỬI CHỜ DUYỆT nên 2 luồng luôn hiểu giống nhau.
+async function diffDbProduct(key, data) {
+  const cur = await getDbProduct(key);
+  if (!cur) throw new Error('Không tìm thấy sản phẩm.');
+  const row = dataToRow_(data);
   const changes = [];
   Object.keys(row).forEach(function (col) {
     const oldS = (cur[col] == null ? '' : String(cur[col]));
     const newS = (row[col] == null ? '' : String(row[col]));
     if (oldS !== newS) changes.push({ field: COL2LABEL[col] || col, old: oldS, new: newS });
   });
+  return { cur: cur, row: row, changes: changes };
+}
+async function updateDbProductTracked(actor, key, data, opts) {
+  opts = opts || {};
+  key = s(key).trim(); if (!key) throw new Error('Thiếu mã/ID sản phẩm.');
+  await guardSpChung_(key);
+  const d = await diffDbProduct(key, data);
+  const cur = d.cur, row = d.row, changes = d.changes;
+  const ma = s(cur.ma_sp);
   if (!changes.length) return { updated: false, changes: 0 };
   row.ngay_cap_nhat = new Date().toISOString();
   // CHỈ cập nhật ĐÚNG dòng đang sửa (trước đây eq('ma_sp') -> ghi đè MỌI biến thể cùng mã -> lỗi trùng khoá)
@@ -439,7 +471,10 @@ async function updateDbProductTracked(actor, key, data) {
       return { ma_sp: ma, field: c.field, old_value: c.old, new_value: c.new, changed_by: (actor && actor.uid) || null, changed_by_name: who };
     }));
   } catch (e) { console.warn('[product history] insert lỗi:', e && e.message); }
-  return { updated: true, changes: changes.length, ten: s(cur.ten_sp) };
+  if (!opts.noAudit) await logAudit_(actor, opts.auditAction || 'sua_sp',
+    (opts.auditPrefix || 'Sửa SP ') + ma + ' (' + s(cur.ten_sp) + '): ' +
+    changes.map(function (c) { return c.field; }).join(', '));
+  return { updated: true, changes: changes.length, ten: s(cur.ten_sp), ma: ma, id: cur.id };
 }
 async function getProductHistory(ma) {
   ma = s(ma).trim(); if (!ma) return [];
@@ -494,7 +529,8 @@ function getCatalogSheetsFrom_(products) {
 
 /*** ===== IMPORT (tái dùng parse của store.js) ===== ***/
 function importParse(base64, ext) { return larkStore.importParse(base64, ext); }
-async function importCommit(products) {
+async function importCommit(actor, products) {
+  if (products === undefined && Array.isArray(actor)) { products = actor; actor = null; }
   // Dùng lại saveDbProduct cho từng SP (đúng path đã hoạt động: tự check + INSERT/UPDATE,
   // map đủ cột qua DB_LABEL2COL, xử lý số/boolean). Tránh upsert merge-duplicates bị RLS chặn.
   const list = products || [];
@@ -514,6 +550,8 @@ async function importCommit(products) {
     catch (e) { errors.push({ ten: s(data['TÊN SẢN PHẨM']), error: e && e.message }); }
   }
   _cache = null;
+  await logAudit_(actor, 'nhap_sp', 'Nhập hàng loạt: thêm ' + inserted + ', cập nhật ' + updated +
+    ' sản phẩm' + (errors.length ? ' (' + errors.length + ' lỗi)' : ''));
   const out = { inserted: inserted, updated: updated };
   if (errors.length) out.errors = errors;
   return out;
@@ -568,7 +606,7 @@ async function getPurchaseOrders(maDA) {
 module.exports = {
   bootstrap, buildCatalog, getProducts, getCatalogSheets, getProjects, getProject, createProject, updateProject, deleteProject, duplicateProject,
   getLines, addLine, addBlankLine, updateLine, deleteLine, saveLineAsProduct, saveDbProduct, deleteDbProduct, uploadImage,
-  getDbProduct, updateDbProductTracked, getProductHistory,
+  getDbProduct, updateDbProductTracked, getProductHistory, diffDbProduct, dataToRow_, logAudit_,
   getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, getDashboard, getQuote, importParse, importCommit,
   savePurchaseOrder, getPurchaseOrders
 };
