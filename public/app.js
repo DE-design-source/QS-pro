@@ -951,12 +951,12 @@ function showDetail(i){
   el.style.display='block';
   el.innerHTML='<div class="pd-head"><h3>Thông tin sản phẩm</h3><button class="pd-x" title="Đóng" onclick="hideDetail()">✕</button></div>'
     +pdContent_(p)
-    +'<div id="pdCombo"></div>'
+    +'<div id="pdComboPanel"></div>'
     +'<div class="pd-actions">'
       +'<button class="btn ghost sm" onclick="hideDetail()">Đóng</button>'
       +'<button class="btn blue sm" onclick="addProduct('+i+')">'+icon('plus',14)+' Thêm vào bóc tách</button></div>';
   document.addEventListener('keydown',pdPanelKey_);
-  pdLoadCombo_(p, i, 'bóc tách');
+  pdLoadCombo_(p, i, 'bóc tách', 'pdComboPanel');
 }
 // ←/→ lật ảnh trong panel chi tiết bên Bóc tách
 function pdPanelKey_(e){
@@ -1888,7 +1888,7 @@ function spModal(i){
       +'<div class="pdm-left">'+pdMedia_(p)+pdPriceFoot_(p)+'</div>'
       +'<div class="pdm-right">'+pdSpecs_(p)+'</div>'
     +'</div>'
-    +'<div id="pdCombo"></div>'
+    +'<div id="pdComboModal"></div>'
     +'<div class="pd-actions">'
       +'<button class="btn ghost sm" onclick="spClose()">Đóng</button>'
       +((spCanEdit_()&&!p.spChung)?'<button class="btn ghost sm" onclick="spClose();spEditModal('+i+')">'+icon('edit',14)+' Cập nhật</button>':'')
@@ -1896,11 +1896,11 @@ function spModal(i){
     +'</div></div>';
   document.body.appendChild(ov);
   document.addEventListener('keydown',spModalKey_);
-  pdLoadCombo_(p, i, 'dự án');
+  pdLoadCombo_(p, i, 'dự án', 'pdComboModal');
 }
 /* Nạp & hiện danh sách sản phẩm đi kèm trong modal chi tiết */
-async function pdLoadCombo_(p, idx, dich){
-  var box=document.getElementById('pdCombo'); if(!box) return;
+async function pdLoadCombo_(p, idx, dich, boxId){
+  var box=document.getElementById(boxId||'pdCombo'); if(!box) return;
   var list=[];
   try{ list=await api('getCombo', String(p.recordId||p.ma))||[]; }catch(e){ list=[]; }
   S._pdCombo=list;
