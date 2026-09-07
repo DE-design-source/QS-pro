@@ -4635,7 +4635,7 @@ async function tdSave(btn){
 /* Thư viện công tác PHẦN THÔ — sinh từ file báo giá Excel (Book1.xlsx), 15 nhóm / 156 công tác.
    Cột "Đơn giá cost" của file dùng cho CẢ đơn giá lẫn giá nhà thầu (file chưa có cột đề xuất). */
 var PT_TEMPLATE=[
-  {r:"I",t:"CÔNG TÁC CHUẨN BỊ",mode:'item',items:[
+  {r:"I",t:"CÔNG TÁC CHUẨN BỊ",loai:'kt_chitiet',mode:'item',items:[
     ["Xin phép xây dựng","gói",1,0,"Phụ thuộc vào quy mô, vị trí xây dựng",0],
     ["Định vị ranh đất","điểm",1,1200000,"Dịch vụ",1200000],
     ["Xin cấp đồng hồ điện","gói",1,10000000,"Dịch vụ",10000000],
@@ -4647,7 +4647,7 @@ var PT_TEMPLATE=[
     ["Tủ điện tạm","cái",1,1500000,"Tủ điện, MCB chống giật, ổ cắm",1500000],
     ["Khoan khảo sát địa chất","m",1,350000,"Đất cấp I-II-III, độ sâu hố khoan 30-40m, bao gồm thí nghiệm xuyên tiêu chuẩn SPT Không bao gồm thí nghiệm 9 chỉ tiêu cơ lý đất và thí nghiệm nén 3 trục",350000]
   ]},
-  {r:"II",t:"Ép cọc",mode:'item',items:[
+  {r:"II",t:"Ép cọc",loai:'kt_chitiet',mode:'item',items:[
     ["Ép cọc BTCT 250x250, m300, tải 70T","m",1,260000,"",260000],
     ["Nhân công ép cọc BTCT tải 70T","m",1,70000,"Đơn giá cho trên 20m/tim cọc (tùy địa chất khu vực)",70000],
     ["Nhân công ép cọc BTCT","tim",1,1200000,"Đơn giá cho dưới 20m/tim cọc (tùy địa chất khu vực)",1200000],
@@ -4656,13 +4656,13 @@ var PT_TEMPLATE=[
     ["Nhân công ép cọc ly tâm","m",1,80000,"Đơn giá cho trên 20m/tim cọc (tùy địa chất khu vực)",80000],
     ["Nhân công ép cọc ly tâm","tim",1,1300000,"Đơn giá cho dưới 20m/tim cọc (tùy địa chất khu vực)",1300000]
   ]},
-  {r:"III",t:"Biện pháp thi công hầm",mode:'item',items:[
+  {r:"III",t:"Biện pháp thi công hầm",loai:'kt_chitiet',mode:'item',items:[
     ["Ép cừ C200, cừ dài 4,5m (1 hệ shoring)","m",1,2800000,"Khối lượng tính theo chu vi hầm",2800000],
     ["Đào đất hầm","m3",1,0,"Nằm trong đơn giá thi công thô, không tính riêng",0],
     ["Cọc vây biện pháp D300 (cọc khoan nhồi)","m",1,480000,"Thi công trong trường hợp không ép cừ C, khoan cọc theo chu vi hầm",480000],
     ["Vận chuyển bùn đất đi đổ","m3",1,180000,"Bùn đất trong quá trình khoan cọc nhồi",180000]
   ]},
-  {r:"IV",t:"Đơn giá xây dựng thô",mode:'item',items:[
+  {r:"IV",t:"Đơn giá xây dựng thô",loai:'kt_chitiet',mode:'item',items:[
     ["Xây dựng thô","m2",1,3050000,"Nhà phố chiều ngang 4m - 6m, hoàn thiện 2 mặt trước sau, đường trên 3m",3050000],
     ["Xây dựng thô","m2",1,3150000,"Nhà phố chiều ngang 6m - 8m, hoàn thiện 2 mặt trước sau, đường trên 3m",3150000],
     ["Xây dựng thô","m2",1,3200000,"Nhà phố chiều ngang 4m - 6m, hoàn thiện 3 - 4 mặt, đường trên 3m",3200000],
@@ -4670,11 +4670,11 @@ var PT_TEMPLATE=[
     ["Xây dựng trong hẻm nhỏ","m2",1,450.0002,"Hẻm nhỏ 2m - 2,5m, vận chuyển bằng xe ba gác hoặc hẻm cấm tải",450.0002],
     ["Nhân công hoàn thiện","m2",1,450.0002,"",450.0002]
   ]},
-  {r:"V",t:"Đơn giá MEP âm",mode:'item',items:[
+  {r:"V",t:"Đơn giá MEP âm",loai:'kt_chitiet',mode:'item',items:[
     ["Thi công MEP phần âm","m2",1,450000,"Không bao gồm hệ thống camera, điện lạnh, mạng Lan văn phòng, chống sét, đấu nối hệ thống thoát nước ra cống chung",450000],
     ["Nhân công hoàn thiện MEP","m2",1,200.0002,"Nhân công lắp đặt thiết bị điện, đèn chiếu sáng, thiết bị nước, thiết bị vệ sinh",200.0002]
   ]},
-  {r:"VI",t:"Hệ số tính diện tích",mode:'area',up:3050000,items:[
+  {r:"VI",t:"Hệ số tính diện tích",loai:'kt_chitiet',mode:'area',up:3050000,items:[
     ["Móng đơn + đà kiềng","m2",0,0.3,""],
     ["Móng cọc + giằng móng","m2",0,0.5,""],
     ["Móng băng 1 phương","m2",0,0.5,""],
@@ -4698,7 +4698,7 @@ var PT_TEMPLATE=[
     ["Mái ngói kèo sắt (hệ xà gồ, ngói lợp)","m2",0,0.7,"Tính theo diện tích mặt nghiêng"],
     ["Mái BTCT dán ngói","m2",0,1,"Tính theo diện tích mặt nghiêng"]
   ]},
-  {r:"VII",t:"Xây tường, trát tường",mode:'item',items:[
+  {r:"VII",t:"Xây tường, trát tường",loai:'kt_chitiet',mode:'item',items:[
     ["Tường xây 100mm, tường gạch ống, vữa xây M75","m2",1,310000,"",310000],
     ["Tường xây 200mm, tường gạch ống 5 lớp câu gạch đinh, vữa xây M75","m2",1,590000,"",590000],
     ["Đà lanh tô cửa đi 1 cánh (tường 100)","cái",1,300000,"Đà lanh tô đúc sẵn 1100mm",300000],
@@ -4709,11 +4709,11 @@ var PT_TEMPLATE=[
     ["Trát cạnh tường / má cửa, bề rộng tường 100, vữa xi măng M75","m",1,76000,"",76000],
     ["Trát cạnh tường / má cửa, bề rộng tường 200, vữa xi măng M75","m",1,120000,"",120000]
   ]},
-  {r:"VIII",t:"Chống thấm, cán nền",mode:'item',items:[
+  {r:"VIII",t:"Chống thấm, cán nền",loai:'kt_chitiet',mode:'item',items:[
     ["Cán nền 3-5cm, vữa xi măng M75","m2",1,135000,"",135000],
     ["Chống thấm sàn, tường","m2",1,225000,"Chống thấm SIKA topseal 109 / Kova CT11A quét 2 lớp",225000]
   ]},
-  {r:"IX",t:"Ốp lát gạch",mode:'item',items:[
+  {r:"IX",t:"Ốp lát gạch",loai:'kt_chitiet',mode:'item',items:[
     ["Nhân công lát gạch","m2",1,150000,"Gạch 300x600, 600x600",150000],
     ["Nhân công lát gạch","m2",1,180000,"Gạch 600x1200, 800x800, 900x900",180000],
     ["Nhân công ốp gạch","m2",1,160000,"Gạch 300x600, 600x600",160000],
@@ -4723,7 +4723,7 @@ var PT_TEMPLATE=[
     ["Chà ron gạch khổ lớn","m2",1,120000,"Keo ron epoxy 2 thành phần Cetex / Saveto",120000],
     ["Chà ron gạch khổ nhỏ","m2",1,230000,"Keo ron epoxy 2 thành phần Cetex / Saveto",230000]
   ]},
-  {r:"X",t:"Thạch cao",mode:'item',items:[
+  {r:"X",t:"Thạch cao",loai:'kt_chitiet',mode:'item',items:[
     ["Trần thạch cao khung chìm","m2",1,165000,"Khung xương Vĩnh Tường M29 ,tấm thạch cao Gyproc 9mm",165000],
     ["Trần thạch cao khung chìm chống ẩm","m2",1,175000,"Khung xương Vĩnh Tường M29 ,tấm thạch cao Gyproc 9mm chống ẩm",175000],
     ["Trần thạch cao khung chìm","m2",1,190000,"Khung xương Vĩnh Tường Tika ,tấm thạch cao Gyproc 9mm",190000],
@@ -4739,7 +4739,7 @@ var PT_TEMPLATE=[
     ["Nắp thăm trần 450x450","cái",1,350000,"Vĩnh Tường",350000],
     ["Nắp thăm trần 600x600","cái",1,450000,"Vĩnh Tường",450000]
   ]},
-  {r:"XI",t:"Sơn nước",mode:'item',items:[
+  {r:"XI",t:"Sơn nước",loai:'kt_chitiet',mode:'item',items:[
     ["Bả matit ngoại thất, bả 2 lớp","m2",1,50000,"Dulux / Jotun ngoại thất",50000],
     ["Bả matit nội thất, bả 2 lớp","m2",1,40000,"Dulux / Jotun nội thất",40000],
     ["Sơn ngoại thất, 1 lớp lót 2 lớp phủ","m2",1,90000,"Dulux weathershield / Jotun Jotashield",90000],
@@ -4747,7 +4747,7 @@ var PT_TEMPLATE=[
     ["Sơn hiệu ứng","m2",1,350000,"Pukaco / Conpa",350000],
     ["Sơn giả đá","m2",1,500000,"Kova / Hòa Bình",500000]
   ]},
-  {r:"XII",t:"Đá",mode:'item',items:[
+  {r:"XII",t:"Đá",loai:'kt_chitiet',mode:'item',items:[
     ["Đá nung kết 12mm","m2",1,4000000,"Vasta khổ lớn chuẩn Châu Âu",4000000],
     ["Đá nung kết 9mm","m2",1,1600000,"Vasta",1600000],
     ["Đá granite 16mm -20mm","m2",1,1700000,"Đen kim sa / đen Ấn Độ",1700000],
@@ -4765,7 +4765,7 @@ var PT_TEMPLATE=[
     ["Đá ngạch cửa rộng 100","m2",1,350000,"Đen kim sa / đen Ấn Độ",350000],
     ["Đá ngạch cửa rộng 200","m2",1,500000,"Đen kim sa / đen Ấn Độ",500000]
   ]},
-  {r:"XIII",t:"Sàn gỗ",mode:'item',items:[
+  {r:"XIII",t:"Sàn gỗ",loai:'kt_chitiet',mode:'item',items:[
     ["Sàn gỗ công nghiệp 8mm","m2",1,395000,"An Cường, cốt gỗ HDF, lớp foam 3mm",395000],
     ["Sàn gỗ công nghiệp 12mm lát thẳng","m2",1,475000,"An Cường, cốt gỗ HDF, lớp foam 3mm",475000],
     ["Sàn gỗ công nghiệp 12mm xương cá","m2",1,505000,"An Cường, cốt gỗ HDF, lớp foam 3mm",505000],
@@ -4778,7 +4778,7 @@ var PT_TEMPLATE=[
     ["Len nhựa","m",1,75000,"",75000],
     ["Nẹp nhôm kết thúc","m",1,80000,"",80000]
   ]},
-  {r:"XIV",t:"Nhôm, kính, sắt",mode:'item',items:[
+  {r:"XIV",t:"Nhôm, kính, sắt",loai:'kt_chitiet',mode:'item',items:[
     ["Xingfa Việt Nam","",1,0,"",0],
     ["Cửa đi / cửa sổ mở quay","m2",1,2100000,"Nhôm Xingfa Việt Nam hệ 55 dày1.4ly, kính trắng 08mm cường lực, phụ kiện Kinlong loại 1",2100000],
     ["Cửa đi / cửa sổ lùa","m2",1,1900000,"Nhôm Xingfa Việt Nam hệ 55 dày 1.4ly, kính trắng 08mm cường lực, phụ kiện Kinlong loại 1",1900000],
@@ -4812,7 +4812,7 @@ var PT_TEMPLATE=[
     ["Tay vịn gỗ sơn Pu","m",1,550000,"Gỗ thông / gỗ sồi",550000],
     ["Tay vịn nhôm vuông 20x20","m",1,380000,"",380000]
   ]},
-  {r:"XV",t:"Cửa cuốn",mode:'item',items:[
+  {r:"XV",t:"Cửa cuốn",loai:'kt_chitiet',mode:'item',items:[
     ["Cửa cuốn trượt trần overhead","m2",1,4300000,"Austdoor",4300000],
     ["Cửa cuốn khe thoáng","m2",1,2550000,"Austdoor S7",2550000],
     ["Cửa cuốn khe thoáng","m2",1,1980000,"Mitadoor X50R",1980000],
@@ -4828,24 +4828,63 @@ function ptR0(x){ return Math.round(x||0); }
 function ptR2(x){ return Math.round((x||0)*100)/100; }
 function ptQty(x){ x=Number(x)||0; return x.toLocaleString('vi-VN',{maximumFractionDigits:2}); }
 // Thư viện nội dung công việc (Phần thô) — hiện ở panel trái, bấm + để thêm vào bảng ước tính
+/* ═══ PHÂN LOẠI BÁO GIÁ PHẦN THÔ (theo sơ đồ nghiệp vụ) ═══
+   DỰ TOÁN   ├─ Nhân công  -> ra báo giá theo m2/md/cái
+             └─ Vật tư     -> ra báo giá vật tư
+   KHÁI TOÁN ├─ Chi tiết   -> chọn nhà thầu -> ra báo giá theo m2/md/cái
+             └─ Sơ bộ      -> chọn nhà thầu -> chọn dự án mẫu -> ra đơn giá trọn gói
+   Thư viện hiện có 156 công tác thuộc KHÁI TOÁN CHI TIẾT.                    */
+var PT_LOAI=[
+  ['kt_chitiet','Khái toán chi tiết','Khái toán','Chọn nhà thầu → ra báo giá theo m2 / md / cái'],
+  ['kt_sobo',   'Khái toán sơ bộ',   'Khái toán','Chọn nhà thầu → chọn dự án mẫu → ra đơn giá trọn gói'],
+  ['dt_nhancong','Dự toán · Nhân công','Dự toán','Ra báo giá nhân công theo m2 / md / cái'],
+  ['dt_vattu',   'Dự toán · Vật tư',  'Dự toán','Ra báo giá vật tư']
+];
+function ptLoai_(){
+  if(S._ptLoai===undefined){ try{ S._ptLoai=localStorage.getItem('qs_ptLoai')||'kt_chitiet'; }catch(e){ S._ptLoai='kt_chitiet'; } }
+  return S._ptLoai||'kt_chitiet';
+}
+function ptSetLoai(v){ S._ptLoai=v; try{ localStorage.setItem('qs_ptLoai',v); }catch(e){} renderPTLibrary(); }
+function ptSecsOfLoai_(v){ return PT_TEMPLATE.filter(function(s){ return (s.loai||'kt_chitiet')===v; }); }
+function ptLoaiCount_(v){ return ptSecsOfLoai_(v).reduce(function(a,s){ return a+s.items.length; },0); }
+
 var PT_CONTRACTORS=['H77','Decox','TTP','Unicons'];
 function ptLibDg_(sec,a){ if(sec.mode==='item') return Number(a[3])||0; if(sec.mode==='area'||sec.mode==='area0') return Number(sec.up)||0; return 0; }
 function renderPTLibrary(){
   var el=document.getElementById('catList'); if(!el) return;
-  var cc=document.getElementById('catCount'); if(cc) cc.textContent=PT_TEMPLATE.reduce(function(s,se){return s+se.items.length;},0)+' công việc';
+  var loai=ptLoai_(), secs=ptSecsOfLoai_(loai);
+  var cc=document.getElementById('catCount');
+  if(cc) cc.textContent=secs.reduce(function(s,se){return s+se.items.length;},0)+' công việc';
   var cur=S._ptContractor||'';
-  // dropdown Nhà thầu + Báo giá mẫu (theo Figma)
+  var meta=PT_LOAI.filter(function(x){ return x[0]===loai; })[0]||PT_LOAI[0];
+  // Bộ lọc PHÂN LOẠI + Nhà thầu + Báo giá mẫu (theo sơ đồ nghiệp vụ)
   var top='<div class="ptlib-top">'
+    +'<div class="ptlib-fld"><label>Loại báo giá</label><div class="ptlib-selwrap">'
+      +'<select class="ptlib-sel" onchange="ptSetLoai(this.value)">'
+      +PT_LOAI.map(function(x){
+        var n=ptLoaiCount_(x[0]);
+        return '<option value="'+x[0]+'"'+(loai===x[0]?' selected':'')+'>'+esc(x[1])+(n?(' ('+n+')'):' (chưa có)')+'</option>';
+      }).join('')+'</select></div>'
+      +'<p class="ptlib-hint">'+esc(meta[3])+'</p></div>'
     +'<div class="ptlib-fld"><label>Nhà thầu</label><div class="ptlib-selwrap"><select class="ptlib-sel" onchange="ptSetContractor(this.value)">'
       +'<option value="">Đơn giá theo nhà thầu</option>'
       +PT_CONTRACTORS.map(function(c){ return '<option'+(cur===c?' selected':'')+'>'+esc(c)+'</option>'; }).join('')+'</select></div></div>'
-    +'<div class="ptlib-fld"><label>Báo giá mẫu dự án</label><div class="ptlib-selwrap"><select class="ptlib-sel"><option>Tạo dự án mới hoặc xem báo giá mẫu dự án cũ</option></select></div></div>'
+    +(loai==='kt_sobo'
+      ? '<div class="ptlib-fld"><label>Báo giá mẫu dự án</label><div class="ptlib-selwrap"><select class="ptlib-sel"><option>Tạo dự án mới hoặc xem báo giá mẫu dự án cũ</option></select></div></div>'
+      : '')
     +'</div>';
-  el.innerHTML=top+'<div class="ptlib">'+PT_TEMPLATE.map(function(sec,si){
+  if(!secs.length){
+    el.innerHTML=top+'<div class="ptlib-empty">'+icon('layers',22)
+      +'<b>Chưa có bảng giá cho "'+esc(meta[1])+'"</b>'
+      +'<span>Gửi file Excel bảng giá của mục này để nạp vào thư viện, hoặc chọn loại khác ở ô trên.</span></div>';
+    return;
+  }
+  el.innerHTML=top+'<div class="ptlib">'+secs.map(function(sec){
+    var si=PT_TEMPLATE.indexOf(sec);                    // giữ chỉ số THẬT để thêm đúng nhóm
     var col=S._ptLibCol&&S._ptLibCol[si];
     return '<div class="ptlib-sec"><div class="ptlib-h" onclick="ptLibToggle('+si+')">'
         +'<span class="ptlib-caret">'+(col?'▸':'▾')+'</span><span class="ptlib-htt">'+esc(sec.r)+'. '+esc(String(sec.t).split('\n')[0])+'</span>'
-        +'<button class="ptlib-secadd" title="Thêm dòng trống vào bảng" onclick="event.stopPropagation();ptAddToSec_('+si+')">+</button></div>'
+        +'<button class="ptlib-secadd" title="Thêm cả nhóm vào bảng" onclick="event.stopPropagation();ptAddToSec_('+si+')">+</button></div>'
       +(col?'':'<div class="ptlib-items">'+sec.items.map(function(a,ii){
         var dg=ptLibDg_(sec,a);
         return '<div class="ptlib-item"><div class="ptlib-nm" title="'+esc(String(a[0]).replace(/\n/g,' '))+'">'+esc(String(a[0]).split('\n')[0])+'</div>'
