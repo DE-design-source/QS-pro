@@ -1057,13 +1057,13 @@ var COL2PROP={ thuong_hieu:'thuongHieu', nha_cung_cap:'ncc', hang_muc:'hangMuc',
   class_rating:'capBaoVeDien', lap_nguon_roi:'lapNguonRoi', ten_bo_nguon:'tenBoNguon', ma_bo_nguon:'maBoNguon',
   hang_bo_nguon:'hangBoNguon', vi_tri_lap_nguon:'viTriNguon', dieu_khien:'tuongThich', dong_ra_max_ma:'dongRa',
   bao_hanh_nam:'baoHanh', dvt:'dvt', link_datasheet:'linkDatasheet' };
-var SP_NUMCOL={gia_ban_le:1, ck_dai_ly_pct:1, quang_thong_lm:1, hieu_suat_lm_w:1, dong_ra_max_ma:1,
+var SP_NUMCOL={gia_ban_le:1, ck_dai_ly_pct:1, gia_ban_bo_nguon:1, quang_thong_lm:1, hieu_suat_lm_w:1, dong_ra_max_ma:1,
   bao_hanh_nam:1, chieu_cao_mm:1, duong_kinh_mm:1};
 var SP_CTCOL={cong_suat_w:1, nhiet_do_mau_k:1, goc_chieu_deg:1, goc_nghieng_deg:1, cri:1, chi_so_ip:1,
   ugr:1, sdcm:1, coi:1, dvt:1, loai_chip_led:1, lap_nguon_roi:1, class_rating:1};
-var SP_SFX={gia_ban_le:'đ', ck_dai_ly_pct:'%'};      // đơn vị chỉ hiện cạnh ô, KHÔNG nằm trong giá trị
+var SP_SFX={gia_ban_le:'đ', ck_dai_ly_pct:'%', gia_ban_bo_nguon:'đ'};      // đơn vị chỉ hiện cạnh ô, KHÔNG nằm trong giá trị
 var SP_ALWAYS={gia_ban_le:1, ck_dai_ly_pct:1};       // 2 cột này sửa được cả khi CHƯA bật Edit
-var SP_MONEY={gia_ban_le:1};                         // ô tiền: hiện có dấu chấm 930.000, lưu số thuần
+var SP_MONEY={gia_ban_le:1, gia_ban_bo_nguon:1};                         // ô tiền: hiện có dấu chấm 930.000, lưu số thuần
 var SP_SKIP={'TÊN SẢN PHẨM':1,'MÃ SẢN PHẨM':1,'GIÁ ĐẠI LÝ':1,'ẢNH SẢN PHẨM':1};   // đã có cột đặc biệt lo
 // Nhãn hiển thị RIÊNG trong bảng (form Nhập / modal Sửa vẫn giữ nhãn gốc)
 var SP_COLLBL={trang_thai:'Trạng thái KD'};   // tránh trùng tên với cột "Trạng thái" (duyệt)
@@ -1117,6 +1117,7 @@ function spAllCols_(){
     gen.push([col, SP_COLLBL[col]||f[1], cls, function(p,i){
       if(SP_ALWAYS[col]) return spInp_(i,e,spEditRaw_(p,col),p);          // giá bán lẻ / chiết khấu: luôn sửa được
       var v=spColVal_(p,col);
+      if(SP_MONEY[col]) return v===''?'<span class="muted">—</span>':(money(v)+'<span class="unit">đ</span>');
       if(col==='link_datasheet') return v?'<a href="'+esc(v)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">Datasheet</a>':'<span class="muted">—</span>';
       return spDash_(v);
     }, e]);
@@ -1389,7 +1390,7 @@ function spPager_(total,cur,pages,per){
     +'<span class="sppg-nav">'+nav+'</span>'+sel+'</div>';
 }
 /* ═══ THỨ TỰ + ĐỘ RỘNG CỘT (kéo giãn, kéo đổi chỗ — giống bảng Bóc tách) ═══ */
-var SP_DEFW={thumb:56,ten:215,duyet:124,sku:78,giaDaiLy:122,nguoiTao:126,ngayTao:104,nguoiSua:130,
+var SP_DEFW={thumb:56,ten:215,duyet:124,sku:78,giaDaiLy:122,nguoiTao:126,ngayTao:104,nguoiSua:130,gia_ban_bo_nguon:130,
   thuong_hieu:126,nha_cung_cap:170,hang_muc:130,dong_sp:130,nhom_sp:130,
   gia_ban_le:118,ck_dai_ly_pct:106,cong_suat_w:96,nhiet_do_mau_k:112,goc_chieu_deg:96,
   goc_nghieng_deg:106,mau_sac:106,chat_lieu:126,chieu_cao_mm:98,duong_kinh_mm:104,
@@ -1790,7 +1791,7 @@ var DB_LABEL2COL_={
   'CHẤT LIỆU':'chat_lieu','CHIỀU CAO (mm)':'chieu_cao_mm','ĐƯỜNG KÍNH (mm)':'duong_kinh_mm','LỖ KHOÉT TRẦN (mm)':'cutout_mm',
   'CHỈ SỐ IP':'chi_so_ip','CRI':'cri','HIỆU SUẤT PHÁT QUANG (lm/W)':'hieu_suat_lm_w','UGR':'ugr','SDCM':'sdcm','COI':'coi',
   'TUỔI THỌ':'tuoi_tho','TÊN CHIP LED':'ten_chip_led','LOẠI CHIP LED':'loai_chip_led','CẤP BẢO VỆ ĐIỆN':'class_rating','LẮP NGUỒN RỜI':'lap_nguon_roi',
-  'TÊN BỘ NGUỒN':'ten_bo_nguon','MÃ BỘ NGUỒN':'ma_bo_nguon','HÃNG BỘ NGUỒN':'hang_bo_nguon','VỊ TRÍ LẮP NGUỒN':'vi_tri_lap_nguon',
+  'TÊN BỘ NGUỒN':'ten_bo_nguon','MÃ BỘ NGUỒN':'ma_bo_nguon','HÃNG BỘ NGUỒN':'hang_bo_nguon','GIÁ BÁN BỘ NGUỒN':'gia_ban_bo_nguon','VỊ TRÍ LẮP NGUỒN':'vi_tri_lap_nguon',
   'TƯƠNG THÍCH ĐIỀU KHIỂN':'dieu_khien','DÒNG RA TỐI ĐA (mA)':'dong_ra_max_ma','BẢO HÀNH (năm)':'bao_hanh_nam','ĐƠN VỊ TÍNH':'dvt',
   'GIÁ BÁN LẺ':'gia_ban_le','CHIẾT KHẤU ĐẠI LÝ (%)':'ck_dai_ly_pct','ẢNH SẢN PHẨM':'anh_sp','LINK DATASHEET':'link_datasheet',
   'TRẠNG THÁI':'trang_thai','GHI CHÚ':'ghi_chu',
@@ -3901,7 +3902,8 @@ var DB_GROUPS=[
     ['LOẠI CHIP LED','Loại chip LED','sel',0,['COB','SMD','SMD 2835','SMD 3030','SMD 5730','Modul']] ]},
   {g:'Driver (Nguồn LED / Chấn lưu)', f:[
     ['LẮP NGUỒN RỜI','Lắp nguồn rời','sel',0,['Có','Không']],['TÊN BỘ NGUỒN','Tên bộ nguồn','text',0],['MÃ BỘ NGUỒN','Mã bộ nguồn','text',0],
-    ['HÃNG BỘ NGUỒN','Hãng bộ nguồn','text',0],['VỊ TRÍ LẮP NGUỒN','Vị trí lắp nguồn','sel',0,['Lắp rời','Tích hợp trong thân đèn']],
+    ['HÃNG BỘ NGUỒN','Hãng bộ nguồn','text',0],['GIÁ BÁN BỘ NGUỒN','Giá bán bộ nguồn','num',0,null,'VNĐ — giá bán rời của bộ nguồn'],
+    ['VỊ TRÍ LẮP NGUỒN','Vị trí lắp nguồn','sel',0,['Lắp rời','Tích hợp trong thân đèn']],
     ['TƯƠNG THÍCH ĐIỀU KHIỂN','Tương thích điều khiển','sel',0,['DALI','0-10V','Triac','On-Off']],['DÒNG RA TỐI ĐA (mA)','Dòng ra tối đa (mA)','num',0] ]},
   {g:'Installation Specifications (Thông số lắp đặt)', f:[
     ['LỖ KHOÉT TRẦN (mm)','Lỗ khoét trần (Cutout)','text',1,null,'VD: Ø75  ·  Ø40×78  ·  60×60'],

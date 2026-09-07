@@ -21,7 +21,7 @@ const COLS = [
   ['HIỆU SUẤT PHÁT QUANG (lm/W)', 0, '90'], ['UGR', 0, '<19'], ['TUỔI THỌ', 0, '30000h'],
   ['TÊN CHIP LED', 0, 'Bridgelux'], ['LOẠI CHIP LED', 0, 'COB'], ['SDCM', 0, '3'], ['COI', 0, ''], ['BẢO HÀNH (năm)', 0, '2'],
   // Bộ nguồn
-  ['TÊN BỘ NGUỒN', 0, ''], ['MÃ BỘ NGUỒN', 0, ''], ['HÃNG BỘ NGUỒN', 0, ''],
+  ['TÊN BỘ NGUỒN', 0, ''], ['MÃ BỘ NGUỒN', 0, ''], ['HÃNG BỘ NGUỒN', 0, ''], ['GIÁ BÁN BỘ NGUỒN', 0, '85000'],
   ['VỊ TRÍ LẮP NGUỒN', 0, 'Lắp rời'], ['TƯƠNG THÍCH ĐIỀU KHIỂN', 0, 'Triac'], ['DÒNG RA TỐI ĐA (mA)', 0, ''],
   // Installation
   ['LẮP NGUỒN RỜI', 0, 'Có'], ['LỖ KHOÉT TRẦN (mm)', 0, '90'], ['CẤP BẢO VỆ ĐIỆN', 0, 'Class II'],

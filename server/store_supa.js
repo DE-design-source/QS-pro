@@ -338,7 +338,7 @@ async function saveCover(maDA, rows) {
 // (cho nhập "3000, 4000", "2×5W", "24°/38°"); ép n() sẽ biến các giá trị đó thành 0 -> MẤT DỮ LIỆU.
 const DB_NUM = ['QUANG THÔNG (lm)',
   'CHIỀU CAO (mm)', 'ĐƯỜNG KÍNH (mm)', 'HIỆU SUẤT PHÁT QUANG (lm/W)', 'DÒNG RA TỐI ĐA (mA)',
-  'BẢO HÀNH (năm)', 'GIÁ BÁN LẺ', 'CHIẾT KHẤU ĐẠI LÝ (%)'];
+  'BẢO HÀNH (năm)', 'GIÁ BÁN LẺ', 'CHIẾT KHẤU ĐẠI LÝ (%)', 'GIÁ BÁN BỘ NGUỒN'];
 const DB_LABEL2COL = {
   'MÃ SẢN PHẨM': 'ma_sp', 'TÊN SẢN PHẨM': 'ten_sp', 'DÒNG SẢN PHẨM': 'dong_sp', 'HẠNG MỤC': 'hang_muc', 'NHÓM SẢN PHẨM': 'nhom_sp',
   'THƯƠNG HIỆU': 'thuong_hieu', 'NHÀ CUNG CẤP': 'nha_cung_cap', 'CÔNG SUẤT (W)': 'cong_suat_w', 'NHIỆT ĐỘ MÀU (K)': 'nhiet_do_mau_k',
@@ -346,13 +346,13 @@ const DB_LABEL2COL = {
   'CHẤT LIỆU': 'chat_lieu', 'CHIỀU CAO (mm)': 'chieu_cao_mm', 'ĐƯỜNG KÍNH (mm)': 'duong_kinh_mm', 'LỖ KHOÉT TRẦN (mm)': 'cutout_mm',
   'CHỈ SỐ IP': 'chi_so_ip', 'CRI': 'cri', 'HIỆU SUẤT PHÁT QUANG (lm/W)': 'hieu_suat_lm_w', 'UGR': 'ugr', 'SDCM': 'sdcm', 'COI': 'coi',
   'TUỔI THỌ': 'tuoi_tho', 'TÊN CHIP LED': 'ten_chip_led', 'LOẠI CHIP LED': 'loai_chip_led', 'CẤP BẢO VỆ ĐIỆN': 'class_rating', 'LẮP NGUỒN RỜI': 'lap_nguon_roi',
-  'TÊN BỘ NGUỒN': 'ten_bo_nguon', 'MÃ BỘ NGUỒN': 'ma_bo_nguon', 'HÃNG BỘ NGUỒN': 'hang_bo_nguon', 'VỊ TRÍ LẮP NGUỒN': 'vi_tri_lap_nguon',
+  'TÊN BỘ NGUỒN': 'ten_bo_nguon', 'MÃ BỘ NGUỒN': 'ma_bo_nguon', 'HÃNG BỘ NGUỒN': 'hang_bo_nguon', 'GIÁ BÁN BỘ NGUỒN': 'gia_ban_bo_nguon', 'VỊ TRÍ LẮP NGUỒN': 'vi_tri_lap_nguon',
   'TƯƠNG THÍCH ĐIỀU KHIỂN': 'dieu_khien', 'DÒNG RA TỐI ĐA (mA)': 'dong_ra_max_ma', 'BẢO HÀNH (năm)': 'bao_hanh_nam', 'ĐƠN VỊ TÍNH': 'dvt',
   'GIÁ BÁN LẺ': 'gia_ban_le', 'CHIẾT KHẤU ĐẠI LÝ (%)': 'ck_dai_ly_pct', 'ẢNH SẢN PHẨM': 'anh_sp', 'LINK DATASHEET': 'link_datasheet',
   'TRẠNG THÁI': 'trang_thai', 'GHI CHÚ': 'ghi_chu'
 };
 // Migration chạy tay -> nếu DB chưa có cột thì đổi lỗi kỹ thuật thành hướng dẫn cụ thể
-const COL_SQL = { ten_chip_led: 'db/chip_name.sql', da_duyet: 'db/sp_duyet_status.sql',
+const COL_SQL = { ten_chip_led: 'db/chip_name.sql', gia_ban_bo_nguon: 'db/gia_bo_nguon.sql', da_duyet: 'db/sp_duyet_status.sql',
   nguoi_duyet: 'db/sp_duyet_status.sql', ngay_duyet: 'db/sp_duyet_status.sql' };
 function colErr_(e) {
   const m = (e && e.message) || '';
