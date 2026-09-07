@@ -4846,7 +4846,9 @@ function ptLoai_(){
   if(S._ptLoai===undefined){ try{ S._ptLoai=localStorage.getItem('qs_ptLoai')||'kt_chitiet'; }catch(e){ S._ptLoai='kt_chitiet'; } }
   return S._ptLoai||'kt_chitiet';
 }
-function ptSetLoai(v){ S._ptLoai=v; try{ localStorage.setItem('qs_ptLoai',v); }catch(e){} renderPTLibrary(); }
+function ptSetLoai(v){ S._ptLoai=v; try{ localStorage.setItem('qs_ptLoai',v); }catch(e){} renderPTLibrary();
+  // bảng trống: lời nhắc trong bảng khác nhau giữa Khái toán và Dự toán -> vẽ lại cho khớp
+  if(Array.isArray(S.phanTho)&&!S.phanTho.length) renderPhanTho(); }
 function ptSecsOfLoai_(v){ return PT_TEMPLATE.filter(function(s){ return (s.loai||'kt_chitiet')===v; }); }
 function ptLoaiCount_(v){ return ptSecsOfLoai_(v).reduce(function(a,s){ return a+s.items.length; },0); }
 
@@ -4967,13 +4969,51 @@ function dtApplyToTable_(){
   if(n) ptPersist();
 }
 // bảng "Số liệu đầu vào + Khối lượng tính toán" — hiện ngay dưới bộ lọc khi chọn loại Dự toán
+// các nhóm (nhân công / vật tư) do 1 bộ dự toán sinh ra
+function dtSecs_(bo){ return PT_TEMPLATE.filter(function(s){ return s.dtId===bo.id; }); }
+// đã đưa bộ này vào bảng ước tính chưa
+function dtApplied_(bo){
+  if(!Array.isArray(S.phanTho)) return false;
+  return dtSecs_(bo).every(function(t){ return S.phanTho.some(function(s){ return s.t===t.t; }); });
+}
+// tiền của bộ: [nhân công & máy, vật tư, tổng trực tiếp]
+function dtTien_(bo){
+  var nc=0, vt=0;
+  dtSecs_(bo).forEach(function(t){
+    var s=t.items.reduce(function(a,x){ return a+ptR0(ptN(x[2])*ptN(x[3])); },0);
+    if(t.loai==='dt_vattu') vt+=s; else nc+=s;
+  });
+  return {nc:nc, vt:vt, tong:nc+vt};
+}
+// MỘT NÚT = đưa CẢ bộ dự toán (nhân công & máy + vật tư) vào bảng — dự toán là 1 khối, không lượm từng dòng
+function dtApply(id){
+  var bo=DT_BO.filter(function(b){ return b.id===id; })[0]; if(!bo) return;
+  ptEnsure();
+  dtSecs_(bo).forEach(function(t){ ptAddToSec_(PT_TEMPLATE.indexOf(t), true); });
+  ptPersist(); renderPhanTho(); renderPTLibrary();
+  toast('Đã đưa bộ dự toán vào bảng — sửa số liệu đầu vào là bảng tự cập nhật');
+}
+function dtRemove(id){
+  var bo=DT_BO.filter(function(b){ return b.id===id; })[0]; if(!bo) return;
+  var ten={}; dtSecs_(bo).forEach(function(t){ ten[t.t]=1; });
+  S.phanTho=(S.phanTho||[]).filter(function(s){ return !ten[s.t]; });
+  ptPersist(); renderPhanTho(); renderPTLibrary();
+  toast('Đã gỡ bộ dự toán khỏi bảng');
+}
 function dtPanel_(loai){
   return DT_BO.map(function(bo){
-    var c=dtCalc_(bo), v=c.v;
-    return '<div class="dt-panel">'
-      +'<div class="dt-hd"><span class="dt-tag">Bộ dự toán</span><b>'+esc(bo.ten)+'</b>'
+    var c=dtCalc_(bo), v=c.v, on=dtApplied_(bo), t=dtTien_(bo);
+    return '<div class="dt-panel'+(on?' on':'')+'">'
+      +'<div class="dt-hd"><span class="dt-tag">Bộ dự toán</span>'
+        +(on?'<span class="dt-on">✓ đang dùng</span>':'')
+        +'<b>'+esc(bo.ten)+'</b>'
         +'<span class="dt-src">'+esc(bo.nguon)+'</span>'
-        +'<button class="dt-rs" onclick="dtResetIn(\''+bo.id+'\')" title="Trả về số liệu mặc định">Mặc định</button></div>'
+        +'<button class="dt-rs" onclick="dtResetIn(\''+bo.id+'\')" title="Trả số liệu đầu vào về mặc định">Mặc định</button></div>'
+      +'<div class="dt-act">'
+        +(on
+          ? '<button class="dt-btn off" onclick="dtRemove(\''+bo.id+'\')">Gỡ khỏi bảng</button>'
+          : '<button class="dt-btn" onclick="dtApply(\''+bo.id+'\')">'+icon('plus',14)+' Dùng bộ dự toán này</button>')
+        +'<span class="dt-actn">Đưa cả nhân công · máy · vật tư vào bảng trong 1 lần</span></div>'
       +'<div class="dt-sec">I. Số liệu đầu vào</div>'
       +'<div class="dt-ins">'+bo.inputs.map(function(a){
           var val=v[a[0]];
@@ -4989,6 +5029,12 @@ function dtPanel_(loai){
           return '<tr><td><span class="dt-knm">'+esc(k.t)+'</span><span class="dt-ct">'+esc(k.ct)+'</span></td>'
             +'<td class="n b">'+(isMoney?money(ptR0(k.r)):ptQty(k.r))+'</td><td class="dt-dvt">'+esc(k.dvt)+'</td></tr>';
         }).join('')+'</tbody></table>'
+      +'<div class="dt-sec">III. Chi phí trực tiếp</div>'
+      +'<div class="dt-sum">'
+        +'<div class="dt-srow"><span>Nhân công &amp; máy thi công</span><b>'+money(t.nc)+'</b></div>'
+        +'<div class="dt-srow"><span>Vật tư</span><b>'+money(t.vt)+'</b></div>'
+        +'<div class="dt-srow tot"><span>Tổng chi phí trực tiếp</span><b>'+money(t.tong)+'</b></div>'
+      +'</div>'
       +'<p class="dt-note">'+esc(bo.ghiChu)+'</p>'
     +'</div>';
   }).join('');
@@ -5030,7 +5076,10 @@ function renderPTLibrary(){
       +'<span>Gửi file Excel bảng giá của mục này để nạp vào thư viện, hoặc chọn loại khác ở ô trên.</span></div>';
     return;
   }
-  el.innerHTML='<div class="ptlib">'+secs.map(function(sec){
+  // Dự toán: danh sách dưới đây chỉ để thêm LẺ khi thiếu — đường đi chính là nút "Dùng bộ dự toán này" ở trên
+  var dtHint=(loai.indexOf('dt_')===0)
+    ? '<p class="ptlib-dthint">Danh sách dưới đây là các công tác <b>trong bộ dự toán</b> — chỉ dùng khi cần thêm lẻ một dòng bị xoá.</p>' : '';
+  el.innerHTML=dtHint+'<div class="ptlib">'+secs.map(function(sec){
     var si=PT_TEMPLATE.indexOf(sec);                    // giữ chỉ số THẬT để thêm đúng nhóm
     var col=S._ptLibCol&&S._ptLibCol[si];
     return '<div class="ptlib-sec"><div class="ptlib-h" onclick="ptLibToggle('+si+')">'
@@ -5048,7 +5097,7 @@ function renderPTLibrary(){
 function ptSetContractor(v){ S._ptContractor=v||''; toast(v?('Đơn giá theo nhà thầu: '+v):'Bỏ chọn nhà thầu'); }
 function ptLibToggle(si){ S._ptLibCol=S._ptLibCol||{}; S._ptLibCol[si]=!S._ptLibCol[si]; renderPTLibrary(); }
 // nút + ĐỎ ở section = CHỌN TẤT CẢ: thêm toàn bộ công tác của nhóm vào bảng ước tính
-function ptAddToSec_(si){
+function ptAddToSec_(si,quiet){
   var tsec=PT_TEMPLATE[si]; if(!tsec) return; ptEnsure();
   var sec=(S.phanTho||[]).filter(function(s){ return s.t===tsec.t; })[0];
   if(!sec){ sec={t:tsec.t,mode:tsec.mode,note:tsec.note||'',up:tsec.up||0,items:[]}; S.phanTho.push(sec); }
@@ -5062,6 +5111,7 @@ function ptAddToSec_(si){
     else item={n:a[0],dvt:a[1],gc:a[2]||''};
     sec.items.push(item); added++;
   });
+  if(quiet) return;                                  // gọi từ dtApply: gộp 1 lần vẽ + 1 toast cho cả bộ
   ptPersist(); renderPhanTho();
   toast(added?('Đã thêm '+added+' công tác của "'+String(tsec.t).split('\n')[0]+'"'):'Nhóm này đã có đủ trong bảng');
 }
@@ -5280,10 +5330,13 @@ function renderPhanTho(){
   function ptPct(v){ v=Number(v)||0; return v?(v.toFixed(1)+'%'):''; }
   var body='';
   if(!S.phanTho.length){
+    var isDT=ptLoai_().indexOf('dt_')===0;
     body+='<tr class="pt-empty"><td colspan="'+(ptVis.length+1)+'">'
       +'<div class="pt-empty-b">'+icon('layers',30)
       +'<h4>Bảng đang trống</h4>'
-      +'<p>Chọn hạng mục từ danh sách bên trái — bấm <b class="pe-b">＋</b> để thêm từng công tác, hoặc <b class="pe-r">＋</b> ở tên nhóm để thêm cả nhóm.<br>Mọi lựa chọn được <b>lưu tự động</b>.</p>'
+      +(isDT
+        ? '<p>Dự toán chạy theo <b>bộ</b>: nhập số liệu đầu vào ở panel bên trái, rồi bấm <b class="pe-t">Dùng bộ dự toán này</b> — hệ thống đưa cả nhân công · máy · vật tư vào bảng.<br>Sửa số liệu đầu vào lúc nào, bảng <b>tự tính lại</b> lúc đó.</p>'
+        : '<p>Chọn hạng mục từ danh sách bên trái — bấm <b class="pe-b">＋</b> để thêm từng công tác, hoặc <b class="pe-r">＋</b> ở tên nhóm để thêm cả nhóm.<br>Mọi lựa chọn được <b>lưu tự động</b>.</p>')
       +'</div></td></tr>';
   }
   S.phanTho.forEach(function(sec,si){
