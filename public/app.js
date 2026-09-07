@@ -989,6 +989,7 @@ function renderSanpham(){
           +'<div class="spviewtabs" id="spViewTabs"></div>'
           +'<div class="spbar" id="spBar"></div>'
           +'<div class="colchips sp-colchips" id="spColBar"></div>'
+          +'<div class="tk-hbar sp-hbar" id="spHBar" style="display:none"><div class="tk-hthumb" id="spHThumb"></div></div>'
           +'<div class="tbl-wrap"><table class="sp-table"><colgroup id="spColg"></colgroup><thead id="spHead"></thead>'
             +'<tbody id="spBody"></tbody></table></div>'
           +'<div id="spPager"></div>'
@@ -1788,6 +1789,7 @@ function spFilter(){
   var all=document.getElementById('spCkAll'); if(all) all.checked = list.length>0 && list.every(function(p){return S._spSel[String(p.recordId||p.ma||'')];});
   spPager_(S._spFull.length, cur, pages, per);
   spFreeze_(); spBulkBar_();
+  spHBarInit_(); spHBarSync_();      // thanh kéo ngang: gắn 1 lần, đồng bộ mỗi lần vẽ lại
 }
 function spSelToggle(k,on){ S._spSel=S._spSel||{}; if(on) S._spSel[k]=1; else delete S._spSel[k]; spFilter(); }
 function spSelAll(on){ S._spSel={}; if(on)(S._spList||[]).forEach(function(p){ var k=String(p.recordId||p.ma||''); if(k) S._spSel[k]=1; }); spFilter(); }
@@ -2712,12 +2714,15 @@ function bindActGutterHover_(){
   });
   norm.addEventListener('mouseleave',clear);
 }
-/* ===== Thanh kéo ngang tự dựng cho bảng Bóc tách ===== */
-function tkHBarSync_(){
-  var wrap=document.querySelector('#tkNormal .tbl-wrap'), bar=document.getElementById('tkHBar'), th=document.getElementById('tkHThumb');
+/* ═══ THANH KÉO NGANG TỰ DỰNG (dùng chung cho bảng Bóc tách và Danh sách SP) ═══
+   Toàn bộ scrollbar gốc bị ẩn theo thiết kế, nên bảng nào kéo ngang được cũng
+   phải có thanh riêng — nếu không người dùng không biết là còn cột bên phải.
+   Thanh mảnh, bo tròn, tự ẩn khi bảng không tràn.                              */
+function hbarSync_(sel, barId, thId){
+  var wrap=document.querySelector(sel), bar=document.getElementById(barId), th=document.getElementById(thId);
   if(!wrap||!bar||!th) return;
   var sw=wrap.scrollWidth, cw=wrap.clientWidth;
-  if(sw<=cw+1){ bar.style.display='none'; return; }
+  if(sw<=cw+1){ bar.style.display='none'; return; }      // vừa khít -> không cần thanh
   bar.style.display='';
   var bw=bar.clientWidth;
   var tw=Math.max(48, Math.round(bw*cw/sw));
@@ -2725,32 +2730,36 @@ function tkHBarSync_(){
   th.style.width=tw+'px';
   th.style.left=Math.round(maxScroll?(wrap.scrollLeft/maxScroll)*maxLeft:0)+'px';
 }
-function tkHBarInit_(){
-  if(S._hbarBound) return;
-  var wrap=document.querySelector('#tkNormal .tbl-wrap'), bar=document.getElementById('tkHBar'), th=document.getElementById('tkHThumb');
-  if(!wrap||!bar||!th) return; S._hbarBound=1;
-  wrap.addEventListener('scroll',tkHBarSync_,{passive:true});
-  window.addEventListener('resize',tkHBarSync_);
-  // kéo thumb
-  th.addEventListener('mousedown',function(e){
+function hbarBind_(sel, barId, thId, flag){
+  if(S[flag]) return;
+  var wrap=document.querySelector(sel), bar=document.getElementById(barId), th=document.getElementById(thId);
+  if(!wrap||!bar||!th) return; S[flag]=1;
+  var sync=function(){ hbarSync_(sel,barId,thId); };
+  wrap.addEventListener('scroll',sync,{passive:true});
+  window.addEventListener('resize',sync);
+  th.addEventListener('mousedown',function(e){                 // kéo thumb
     e.preventDefault(); e.stopPropagation();
     var sx=e.clientX, sl=wrap.scrollLeft;
     var bw=bar.clientWidth, tw=th.offsetWidth, maxLeft=bw-tw, maxScroll=wrap.scrollWidth-wrap.clientWidth;
     th.classList.add('dragging'); document.body.style.cursor='grabbing';
-    function mv(ev){ var d=ev.clientX-sx; wrap.scrollLeft = sl + (maxLeft? d*maxScroll/maxLeft : 0); tkHBarSync_(); }
+    function mv(ev){ var d=ev.clientX-sx; wrap.scrollLeft = sl + (maxLeft? d*maxScroll/maxLeft : 0); sync(); }
     function up(){ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up);
       th.classList.remove('dragging'); document.body.style.cursor=''; }
     document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
   });
-  // bấm vào rãnh -> nhảy tới vị trí đó
-  bar.addEventListener('mousedown',function(e){
+  bar.addEventListener('mousedown',function(e){                // bấm vào rãnh -> nhảy tới
     if(e.target===th) return;
     var r=bar.getBoundingClientRect(), tw=th.offsetWidth;
     var pos=Math.min(Math.max(0,e.clientX-r.left-tw/2), r.width-tw);
     var maxScroll=wrap.scrollWidth-wrap.clientWidth, maxLeft=r.width-tw;
-    wrap.scrollLeft = maxLeft? pos*maxScroll/maxLeft : 0; tkHBarSync_();
+    wrap.scrollLeft = maxLeft? pos*maxScroll/maxLeft : 0; sync();
   });
+  sync();
 }
+function tkHBarSync_(){ hbarSync_('#tkNormal .tbl-wrap','tkHBar','tkHThumb'); }
+function tkHBarInit_(){ hbarBind_('#tkNormal .tbl-wrap','tkHBar','tkHThumb','_hbarBound'); }
+function spHBarSync_(){ hbarSync_('.sp-card .tbl-wrap','spHBar','spHThumb'); }
+function spHBarInit_(){ hbarBind_('.sp-card .tbl-wrap','spHBar','spHThumb','_spHbarBound'); }
 function syncActGutter(){
   tkHBarSync_();   // đồng bộ luôn thanh kéo ngang (hàm này đã chạy mỗi khi cuộn bảng)
   var norm=document.getElementById('tkNormal'), g=document.getElementById('actGutter'); if(!norm||!g) return;

@@ -1942,6 +1942,38 @@ table.pt tr.pt-empty td{border:none;background:#fcfdfe;padding:0}
 .cat-hd .filt-btn{font-size:12px}
 /* khi Phần thô ẩn nút yêu thích thì nút bộ lọc không bị kéo dài hết chiều ngang */
 .cat-hd .favf-btn[style*="none"]~.filt-btn{flex:0 1 auto}
+
+/* ═══ KHỐI "SẢN PHẨM ĐI KÈM" — thẻ nền nhạt, khung mềm, nút hành động nổi vừa phải ═══
+   Trước đây chỉ có 1 gạch ngang + nút ghost trắng nên trôi tuột, không ai để ý. */
+.pd .pd-combo{margin-top:16px;padding:12px 12px 13px;border:1px solid #dfe4f7;border-top:1px solid #dfe4f7;
+  border-radius:12px;background:linear-gradient(180deg,#f6f8ff 0%,#fcfdff 62%);
+  box-shadow:0 1px 2px rgba(40,55,120,.05)}
+.pd .pd-combo .pd-sec{display:flex;align-items:center;gap:6px;margin:0 0 9px;padding:0;border-bottom:none;
+  font-size:11.5px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:#4338ca}
+.pd .pd-combo .pd-sec .ico{stroke-width:2.2}
+.pd .pd-combo .cb-n{background:#e0e7ff;color:#3730a3;border-radius:20px;padding:1px 7px;
+  font-size:10.5px;font-weight:800;line-height:1.5}
+.pd-combo-list{gap:7px;margin-top:0}
+.pd .pd-cb{border-color:#e4e9f6;border-radius:10px;padding:7px 9px;box-shadow:0 1px 2px rgba(40,55,120,.04)}
+.pd .pd-cb:hover{border-color:#c7d2fe;background:#fcfdff}
+.pd .pd-cb-sl{background:#eef2ff;color:#4338ca;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:800}
+/* chân khối: tổng tiền 1 dòng, nút chiếm trọn bề ngang cho dễ bấm ở panel hẹp */
+.pd .pd-combo-ft{flex-direction:column;align-items:stretch;gap:9px;margin-top:11px;padding-top:10px;
+  border-top:1px dashed #d9e0f4}
+.pd .pd-combo-ft>span{display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+  font-size:11.5px;color:var(--ink-3)}
+.pd .pd-combo-ft>span b{font-size:13.5px;font-weight:800;color:#3730a3;font-variant-numeric:tabular-nums}
+.pd .pd-combo-ft .btn{width:100%;justify-content:center;gap:6px;padding:9px 12px;border-radius:10px;
+  background:#eef2ff;border:1px solid #c7d2fe;color:#4338ca;font-size:12.5px;font-weight:700;
+  box-shadow:none;transition:background .13s,border-color .13s,color .13s,box-shadow .13s,transform .08s}
+.pd .pd-combo-ft .btn:hover{background:#4338ca;border-color:#4338ca;color:#fff;
+  box-shadow:0 4px 12px rgba(67,56,202,.26)}
+.pd .pd-combo-ft .btn:active{transform:translateY(1px)}
+/* popup Danh sách SP rộng hơn panel Bóc tách -> xếp 1 hàng: tổng bên trái, nút bên phải */
+.sp-modal .pd-combo-ft{flex-direction:row;align-items:center;justify-content:space-between;gap:14px}
+.sp-modal .pd-combo-ft>span{flex:1;min-width:0}
+.sp-modal .pd-combo-ft .btn{width:auto;flex:0 0 auto}
+
 /* nhãn "combo N" — nhìn là biết SP nào có sản phẩm đi kèm, khỏi mở từng cái */
 .sp-cbn{display:inline-flex;align-items:center;gap:3px;margin-left:6px;background:#eef2ff;color:#4338ca;
   border:1px solid #dbe0fb;border-radius:20px;padding:0 6px;font-size:9.5px;font-weight:700;
@@ -2959,6 +2991,16 @@ table.pt .pt-in,table.pt .pt-tx{font-size:12.5px;padding:5px 6px;border-radius:6
 table.pt .pt-in:focus,table.pt .pt-tx:focus{border-color:var(--blue);background:#fff;
   box-shadow:0 0 0 2.5px rgba(37,99,235,.10);outline:none}
 table.pt td.dvt-cell,table.pt td.dvt-cell .pt-in{font-style:italic;color:#5b6b7b;text-align:center}
+
+/* ═══ THANH KÉO NGANG bảng Danh sách SP ═══
+   Đặt SAU .tk-hbar vì thẻ mang cả 2 class — để sau mới ghi đè được chiều cao,
+   màu và nhất là margin-right:34px (cái đó chỉ đúng cho bảng Bóc tách có cột nút). */
+.tk-hbar.sp-hbar{height:7px;margin:2px 0 9px;background:#eef1f5}
+.tk-hbar.sp-hbar .tk-hthumb{background:#c2ccd8}
+.tk-hbar.sp-hbar:hover{background:#e7ebf1}
+.tk-hbar.sp-hbar:hover .tk-hthumb{background:#9fadbd}
+.tk-hbar.sp-hbar .tk-hthumb:hover{background:var(--blue)}
+.tk-hbar.sp-hbar .tk-hthumb.dragging{background:var(--blue-d)}
 </style>
 
 <!-- ===== TOP NAV ===== -->
