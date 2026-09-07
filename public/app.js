@@ -989,9 +989,10 @@ function renderSanpham(){
           +'<div class="spviewtabs" id="spViewTabs"></div>'
           +'<div class="spbar" id="spBar"></div>'
           +'<div class="colchips sp-colchips" id="spColBar"></div>'
-          +'<div class="tk-hbar sp-hbar" id="spHBar" style="display:none"><div class="tk-hthumb" id="spHThumb"></div></div>'
           +'<div class="tbl-wrap"><table class="sp-table"><colgroup id="spColg"></colgroup><thead id="spHead"></thead>'
             +'<tbody id="spBody"></tbody></table></div>'
+          // thanh kéo ngang nằm NGAY DƯỚI bảng, trên phân trang — đúng chỗ người dùng quen tìm
+          +'<div class="tk-hbar sp-hbar" id="spHBar" style="display:none"><div class="tk-hthumb" id="spHThumb"></div></div>'
           +'<div id="spPager"></div>'
         +'</div><div id="spBulkWrap"></div>'
       +'</div>'
