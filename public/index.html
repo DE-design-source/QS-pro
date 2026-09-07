@@ -343,8 +343,11 @@ tr.pt-grand>td{background:var(--navy);color:#fff;font-weight:800;font-size:13.5p
 .citem .pr{font-weight:800;font-size:13px;color:var(--navy);white-space:nowrap}
 .citem .sz{color:var(--muted);font-size:11.5px;line-height:1.25}
 .citem .sz.brand{background:#eef2f7;color:#51606f;font-weight:600;padding:1px 7px;border-radius:5px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.citem .cspecs{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
-.citem .cspecs .spec{font-size:10.5px;font-weight:600;color:#4a5866;background:#f1f4f8;border-radius:var(--r-xs);padding:2px 6px;line-height:1.35;white-space:nowrap}
+.citem .cspecs{display:flex;flex-wrap:nowrap;gap:2px;margin-top:4px;overflow-x:auto;
+  scrollbar-width:none;-ms-overflow-style:none}
+.citem .cspecs::-webkit-scrollbar{width:0;height:0}
+.citem .cspecs .spec{flex:none;font-size:9.5px;font-weight:600;color:#4a5866;background:#f1f4f8;
+  border-radius:var(--r-xs);padding:2px 4px;line-height:1.35;white-space:nowrap;letter-spacing:-.01em}
 .citem .cspecs .spec.k{background:#fff5e6;color:#b7791f}
 .citem .ibtn{width:24px;height:24px;border-radius:50%;background:#eef1f4;color:#5a6774;border:none;font-size:13px;line-height:1;flex:none}
 .citem .ibtn:hover{background:#dbe4ee;color:var(--navy)}
@@ -1669,8 +1672,8 @@ table.mh-tbl2 td{border-bottom:1px solid var(--hair)}
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .citem .meta{gap:5px;margin-top:4px}
 .citem .pr{font-size:13px;font-weight:600;color:var(--navy);letter-spacing:-.028em;font-variant-numeric:tabular-nums}
-.citem .sz.brand{background:transparent;border:1px solid var(--hair-2);color:var(--ink-3);
-  font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;letter-spacing:.02em}
+.citem .sz.brand{background:#eaf1fe;border:1px solid #cfe0fd;color:#1d4ed8;
+  font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:.02em}
 /* nút + : mặc định TRẮNG viền xanh — hover/bấm mới thành XANH đặc */
 .citem .add{width:26px;height:26px;border-radius:50%;background:#fff;border:1.5px solid var(--blue);color:var(--blue);
   font-size:15px;font-weight:400;line-height:1;display:flex;align-items:center;justify-content:center;flex:none;
@@ -1819,7 +1822,7 @@ html,body,.catpanel,.catpanel-top,.cat-list,#pdPanel,.fltpop,.tree-pop,.spe-hist
 .citem .thumb{width:42px;height:42px}
 .citem .nm{font-size:12px;line-height:1.3}
 .citem .pr{font-size:12.5px}
-.citem .sz.brand{font-size:9.5px;padding:2px 7px}
+.citem .sz.brand{font-size:10px;padding:2px 8px}
 .citem .add{width:24px;height:24px;font-size:14px}
 /* panel Thông tin sản phẩm: gọn tương ứng */
 #pdPanel{padding:0 13px 14px}
