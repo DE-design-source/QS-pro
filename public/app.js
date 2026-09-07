@@ -785,6 +785,7 @@ function renderCatalog(){
   var isPT=(S.node==='3.1');
   applyFiltDrop();   // ẩn/hiện khối bộ lọc theo trạng thái gập/mở (và ẩn hẳn khi Phần thô)
   var hd=document.querySelector('#leftCat .cat-hd h3'); if(hd) hd.textContent=isPT?'Nội dung công việc':'Hạng mục';
+  var fw0=document.getElementById('ptFilters'); if(fw0&&!isPT) fw0.innerHTML='';   // rời Phần thô -> dọn bộ lọc riêng
   if(isPT){ renderPTLibrary(); return; }   // Phần thô: hiện thư viện nội dung công việc
   var list=filteredProducts();
   var el=document.getElementById('catList');
@@ -4873,13 +4874,14 @@ function renderPTLibrary(){
       ? '<div class="ptlib-fld"><label>Báo giá mẫu dự án</label><div class="ptlib-selwrap"><select class="ptlib-sel"><option>Tạo dự án mới hoặc xem báo giá mẫu dự án cũ</option></select></div></div>'
       : '')
     +'</div>';
+  var fw=document.getElementById('ptFilters'); if(fw) fw.innerHTML=top;   // khối lọc nằm ngay dưới ô Đề mục
   if(!secs.length){
-    el.innerHTML=top+'<div class="ptlib-empty">'+icon('layers',22)
+    el.innerHTML='<div class="ptlib-empty">'+icon('layers',22)
       +'<b>Chưa có bảng giá cho "'+esc(meta[1])+'"</b>'
       +'<span>Gửi file Excel bảng giá của mục này để nạp vào thư viện, hoặc chọn loại khác ở ô trên.</span></div>';
     return;
   }
-  el.innerHTML=top+'<div class="ptlib">'+secs.map(function(sec){
+  el.innerHTML='<div class="ptlib">'+secs.map(function(sec){
     var si=PT_TEMPLATE.indexOf(sec);                    // giữ chỉ số THẬT để thêm đúng nhóm
     var col=S._ptLibCol&&S._ptLibCol[si];
     return '<div class="ptlib-sec"><div class="ptlib-h" onclick="ptLibToggle('+si+')">'
@@ -4976,11 +4978,35 @@ function ptComputeAll(){
 /* ô nhập */
 function ptInp(si,ii,f,v,cls){ return '<input class="pt-in '+(cls||'')+'" type="number" step="any" value="'+(v===''||v==null?'':v)+'" onchange="ptEdit('+si+','+ii+',\''+f+'\',this.value)">'; }
 function ptTxt(si,ii,f,v){ return '<textarea class="pt-in pt-area" rows="1" oninput="autoGrow(this)" onchange="ptEdit('+si+','+ii+',\''+f+'\',this.value)">'+esc(v||'')+'</textarea>'; }
+/* ═══ CÔNG THỨC GIÁ — lấy đúng theo file báo giá (sheet "mai coi công thức ở đây") ═══
+   Khối lượng     I = G × H                  (diện tích × hệ số)
+   TT nhà thầu    K = I × J                  (khối lượng × đơn giá nhà thầu)
+   Đơn giá bán    O = MROUND(J/(1−M), 1000)  (M = %LN trên GIÁ BÁN, làm tròn nghìn)
+   TT bán         P = I × O
+   Lợi nhuận      L = P − K
+   %LN/giá bán    M = L/P      ·   %LN/giá vốn  N = L/K
+   Trong app: gõ %LN -> tự ra đơn giá bán; gõ đơn giá bán -> tự ra %LN (2 chiều). */
+function ptMround_(v,b){ b=b||1000; return Math.round((Number(v)||0)/b)*b; }
+function ptDgTuLn_(dgnt,lnPct){
+  dgnt=ptN(dgnt); var m=ptN(lnPct)/100;
+  if(!dgnt) return 0;
+  if(m>=1) m=0.99;                       // chặn chia cho 0
+  return ptMround_(dgnt/(1-m),1000);
+}
+function ptLnTuDg_(dgnt,dg){ dg=ptN(dg); return dg?((dg-ptN(dgnt))/dg*100):0; }
 function ptEdit(si,ii,f,val){
   var sec=S.phanTho[si]; if(!sec) return;
-  var numF={dt:1,hs:1,kl:1,dg:1,dgnt:1,up:1};
+  var numF={dt:1,hs:1,kl:1,dg:1,dgnt:1,up:1,lnPct:1};
   var v = numF[f]?ptN(val):val;
-  if(ii<0){ sec[f]=v; } else { var it=sec.items[ii]; if(!it) return; it[f]=v; }
+  if(ii<0){ sec[f]=v; }
+  else {
+    var it=sec.items[ii]; if(!it) return;
+    it[f]=v;
+    // giữ 3 đại lượng luôn khớp nhau: giá vốn ↔ %LN ↔ giá bán
+    if(f==='lnPct')      it.dg=ptDgTuLn_(it.dgnt,v);
+    else if(f==='dg')    it.lnPct=ptR2(ptLnTuDg_(it.dgnt,v));
+    else if(f==='dgnt'){ if(ptN(it.lnPct)) it.dg=ptDgTuLn_(v,it.lnPct); else it.lnPct=ptR2(ptLnTuDg_(v,it.dg)); }
+  }
   ptPersist(); renderPhanTho();
 }
 function ptSetVat(val){ S.ptVat=ptN(val); ptPersist(); renderPhanTho(); }
@@ -5107,10 +5133,22 @@ function renderPhanTho(){
     var klCell = st.sumKL ? ptQty(st.sumKL) : '';
     var upCell = isSecArea ? ptInp(si,-1,'up',sec.up,'pt-money') : (sumDG?money(sumDG):'');
     // ---- dòng tiêu đề hạng mục (đơn giá + thành tiền ở 2 cột cuối) ----
+    var secLn=st.tt-st.ttnt;                       // lợi nhuận cả nhóm  (L = P − K)
+    var secMargin=st.tt?(secLn/st.tt*100):0;       // M = L/P
+    var secMarkup=st.ttnt?(secLn/st.ttnt*100):0;   // N = L/K
+    // đơn giá nhà thầu của nhóm: chỉ hiện khi cả nhóm dùng CHUNG 1 đơn giá (như sheet)
+    var dgntSet={}; sec.items.forEach(function(it){ dgntSet[ptN(it.dgnt)]=1; });
+    var dgntKeys=Object.keys(dgntSet);
+    var secDgnt=(dgntKeys.length===1&&ptN(dgntKeys[0]))?ptN(dgntKeys[0]):0;
     var secCells={
       stt:'<td class="c">'+PT_ROMAN[si]+'</td>',
       noidung:'<td class="pt-secname"><div class="pt-secttl">'+esc(sec.t).replace(/\n/g,'<br>')+'</div>'+(sec.note?'<span class="pt-note">'+esc(sec.note)+'</span>':'')+'<span class="pt-secdel" title="Xoá hạng mục" onclick="ptDelSection('+si+')">'+icon('trash',13)+'</span></td>',
       khoiluong:'<td class="n">'+klCell+'</td>',
+      dgnt:'<td class="n b">'+(secDgnt?money(secDgnt):'')+'</td>',
+      ttnt:'<td class="n b">'+(st.ttnt?money(st.ttnt):'')+'</td>',
+      lnvnd:'<td class="n b">'+(secLn?money(secLn):'')+'</td>',
+      margin:'<td class="n b pt-pctc">'+(secMargin?ptPct(secMargin):'')+'</td>',
+      markup:'<td class="n b pt-pctc">'+(secMarkup?ptPct(secMarkup):'')+'</td>',
       dg:'<td class="n pt-upcell b">'+upCell+'</td>',
       tt:'<td class="n b">'+(st.tt?money(st.tt):'-')+'</td>'
     };
@@ -5134,7 +5172,7 @@ function renderPhanTho(){
         dgnt:'<td class="n">'+(isItem?ptInp(si,ii,'dgnt',it.dgnt,'pt-money'):'')+'</td>',
         ttnt:'<td class="n">'+(isItem?'<span class="pt-ro">'+money(ttnt)+'</span>':'')+'</td>',
         lnvnd:'<td class="n">'+(isItem?'<span class="pt-ro">'+money(lnVnd)+'</span>':'')+'</td>',
-        margin:'<td class="n">'+(isItem?'<span class="pt-ro pt-pctc">'+ptPct(margin)+'</span>':'')+'</td>',
+        margin:'<td class="n">'+(isItem?ptInp(si,ii,'lnPct',(it.lnPct!=null&&it.lnPct!=='')?it.lnPct:ptR2(margin),'pt-pct-in'):'')+'</td>',
         markup:'<td class="n">'+(isItem?'<span class="pt-ro pt-pctc">'+ptPct(markup)+'</span>':'')+'</td>',
         dg:'<td class="n">'+(isItem?ptInp(si,ii,'dg',it.dg,'pt-money'):'')+'</td>',
         tt:'<td class="n">'+(isItem?'<span class="pt-ro b">'+money(tt)+'</span>':'<span class="pt-dash">-</span>')+'</td>',

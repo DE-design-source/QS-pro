@@ -1617,6 +1617,11 @@ table.tk.cpflat tr.cp-foot td{background:#f4f6f8;border-top:1px solid var(--navy
 .pd .pd-actions{display:flex;justify-content:flex-end;gap:9px;border-top:1px solid var(--hair);padding-top:13px}
 .pd-head .spduyet{margin-left:auto;margin-right:10px}
 
+/* ô nhập % lợi nhuận trong bảng Phần thô */
+.pt-in.pt-pct-in{text-align:right;font-weight:600;color:#a16207}
+.pt-in.pt-pct-in:focus{color:var(--ink)}
+.pt .pt-sec td.b{font-weight:700}
+
 /* ═══ Thư viện PHẦN THÔ: bộ lọc phân loại báo giá ═══ */
 .ptlib-hint{margin:5px 0 0;font-size:11px;color:var(--ink-3);line-height:1.4}
 .ptlib-empty{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;
@@ -2905,6 +2910,8 @@ table.tk tr.tk-spacer td{height:12px}
           <!-- 3 bộ chọn (theo Figma) -->
           <div class="mlbl">Đề mục</div>
           <div class="msel" id="fDemuc" onclick="openDemucSel(event)"><span class="mlabel" id="fDemucLabel">Tất cả đề mục</span><span class="mplus" id="fDemucClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
+          <!-- Bộ lọc riêng của PHẦN THÔ (Loại báo giá / Nhà thầu / Báo giá mẫu) — nằm ngay dưới Đề mục -->
+          <div id="ptFilters"></div>
           <div id="selExtra">
           <div class="mlbl">Hạng mục sản phẩm</div>
           <div class="msel" id="fNhom" onclick="openNhomMsel(event)"><span class="mlabel">Tất cả hạng mục</span><span class="mplus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
