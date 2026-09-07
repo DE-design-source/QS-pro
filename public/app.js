@@ -4834,12 +4834,13 @@ function ptQty(x){ x=Number(x)||0; return x.toLocaleString('vi-VN',{maximumFract
              └─ Vật tư     -> ra báo giá vật tư
    KHÁI TOÁN ├─ Chi tiết   -> chọn nhà thầu -> ra báo giá theo m2/md/cái
              └─ Sơ bộ      -> chọn nhà thầu -> chọn dự án mẫu -> ra đơn giá trọn gói
-   Thư viện hiện có 156 công tác thuộc KHÁI TOÁN CHI TIẾT.                    */
+   Khái toán: thư viện 156 công tác (bảng giá cố định).
+   Dự toán : nhập SỐ LIỆU ĐẦU VÀO -> tự tính khối lượng -> áp ĐỊNH MỨC hao phí (xem DT_BO). */
 var PT_LOAI=[
   ['kt_chitiet','Khái toán chi tiết','Khái toán','Chọn nhà thầu → ra báo giá theo m2 / md / cái'],
   ['kt_sobo',   'Khái toán sơ bộ',   'Khái toán','Chọn nhà thầu → chọn dự án mẫu → ra đơn giá trọn gói'],
-  ['dt_nhancong','Dự toán · Nhân công','Dự toán','Ra báo giá nhân công theo m2 / md / cái'],
-  ['dt_vattu',   'Dự toán · Vật tư',  'Dự toán','Ra báo giá vật tư']
+  ['dt_nhancong','Dự toán · Nhân công','Dự toán','Nhập số liệu đầu vào → tính khối lượng → nhân công và ca máy theo định mức'],
+  ['dt_vattu',   'Dự toán · Vật tư',  'Dự toán','Nhập số liệu đầu vào → khối lượng vật tư × đơn giá nhà cung cấp']
 ];
 function ptLoai_(){
   if(S._ptLoai===undefined){ try{ S._ptLoai=localStorage.getItem('qs_ptLoai')||'kt_chitiet'; }catch(e){ S._ptLoai='kt_chitiet'; } }
@@ -4848,6 +4849,153 @@ function ptLoai_(){
 function ptSetLoai(v){ S._ptLoai=v; try{ localStorage.setItem('qs_ptLoai',v); }catch(e){} renderPTLibrary(); }
 function ptSecsOfLoai_(v){ return PT_TEMPLATE.filter(function(s){ return (s.loai||'kt_chitiet')===v; }); }
 function ptLoaiCount_(v){ return ptSecsOfLoai_(v).reduce(function(a,s){ return a+s.items.length; },0); }
+
+/* ═══════════════ DỰ TOÁN THEO ĐỊNH MỨC ═══════════════
+   Khác Khái toán: người dùng nhập SỐ LIỆU ĐẦU VÀO (ô vàng trong file Excel)
+   -> hệ thống tự tính KHỐI LƯỢNG -> nhân với ĐỊNH MỨC HAO PHÍ (nhân công / ca máy)
+   -> ra bảng công tác + thành tiền.  (nguồn: file du_toan_ep_coc_D300)
+   Mỗi "bộ dự toán" sinh ra 2 nhóm trong thư viện: Nhân công & máy  +  Vật tư.       */
+var DT_BO=[{
+  id:'ep_coc_d300',
+  ten:'Ép cọc ly tâm PHC/PC D300 — máy ép robot 860T',
+  nguon:'Định mức 12/2021/TT-BXD · mã AC.26300 / AC.29400 / AC.21500',
+  dinhMuc:'100m',
+  ghiChu:'Định mức đóng/ép tính cho đoạn cọc ngập đất; đoạn không ngập đất × 0,75 · ép cọc xiên × 1,22. '
+        +'Chưa gồm: đào phá đầu cọc, thí nghiệm nén tĩnh/PDA, vận chuyển cọc ngoài phạm vi.',
+  inputs:[
+    ['dk',   'Đường kính cọc',            'mm',    300,     0],
+    ['sl',   'Số lượng cọc',              'cây',   56,      0],
+    ['dai',  'Chiều dài mỗi cọc',         'm',     18,      0],
+    ['doan', 'Số đoạn cọc / 1 cọc',       'đoạn',  2,       0],
+    ['dgcoc','Đơn giá cọc (nguyên cây)',  'đ/cọc', 4050000, 1],
+    ['khoan','Chiều dài khoan dẫn',       'm',     0,       0]
+  ],
+  // [nhãn, công thức (chữ), hàm tính, đvt]
+  kl:[
+    ['Tổng chiều dài cọc ép',        'Số cọc × Chiều dài mỗi cọc',    function(v){ return v.sl*v.dai; },        'm'],
+    ['Tổng số đoạn cọc',             'Số cọc × Số đoạn/cọc',          function(v){ return v.sl*v.doan; },       'đoạn'],
+    ['Số mối nối cọc (hàn)',         'Số cọc × (Số đoạn/cọc − 1)',    function(v){ return v.sl*(v.doan-1); },   'mối nối'],
+    ['Khối lượng ép cọc theo định mức','Tổng chiều dài ÷ 100',        function(v){ return v.sl*v.dai/100; },    '100m'],
+    ['Chi phí vật liệu cọc',         'Số cọc × Đơn giá cọc',          function(v){ return v.sl*v.dgcoc; },      'đồng']
+  ],
+  // NHÂN CÔNG & MÁY: hao phí cho 1 đơn vị định mức (100m) × khối lượng định mức
+  hp:[
+    ['AC.26300','Nhân công ép cọc (bậc 3,5/7)',                'công', 5.5,  350000,  'Hao phí 5,5 công/100m'],
+    ['AC.26300','Máy ép cọc robot thủy lực tự hành 860T',      'ca',   0.97, 9000000, 'Hao phí 0,97 ca/100m'],
+    ['AC.26300','Cần cẩu 50T (phục vụ cẩu, dựng cọc)',         'ca',   0.24, 4500000, 'Hao phí 0,24 ca/100m']
+  ],
+  // CÔNG TÁC khác tính theo khối lượng riêng (đơn giá tự nhập theo hợp đồng)
+  ct:[
+    ['AC.29400','Nối cọc ống BTCT (hàn nối các đoạn cọc)','mối nối', function(v){ return v.sl*(v.doan-1); }, 0, 'Chỉ tính khi cọc > 1 đoạn — đơn giá theo báo giá nhà thầu'],
+    ['AC.21500','Khoan dẫn phục vụ ép cọc (máy khoan xoay)','m',     function(v){ return v.khoan; },         0, 'Chỉ khi thiết kế/biện pháp thi công yêu cầu khoan dẫn']
+  ],
+  // VẬT TƯ: đơn giá quy về đơn vị đo
+  vt:[
+    ['Cọc bê tông ly tâm PHC/PC D300 (thân cọc, chưa gồm mũ + đệm đầu cọc)','m',
+      function(v){ return v.sl*v.dai; },
+      function(v){ return v.dai?(v.dgcoc/v.dai):0; },
+      'Giá cọc theo báo giá nhà cung cấp thực tế']
+  ]
+}];
+function dtKey_(id){ return 'qs_dt_'+id; }
+function dtVals_(bo){
+  S._dtIn=S._dtIn||{};
+  if(!S._dtIn[bo.id]){
+    var saved=null; try{ saved=JSON.parse(localStorage.getItem(dtKey_(bo.id))||'null'); }catch(e){}
+    var v={}; bo.inputs.forEach(function(a){ v[a[0]]=a[3]; });
+    if(saved&&typeof saved==='object') Object.keys(saved).forEach(function(k){ if(v[k]!==undefined) v[k]=ptN(saved[k]); });
+    S._dtIn[bo.id]=v;
+  }
+  return S._dtIn[bo.id];
+}
+function dtSetIn(id,k,val){
+  var bo=DT_BO.filter(function(b){ return b.id===id; })[0]; if(!bo) return;
+  var def=bo.inputs.filter(function(a){ return a[0]===k; })[0];
+  var v=dtVals_(bo);
+  v[k]=def&&def[4]?ptMoneyN_(val):ptN(val);
+  try{ localStorage.setItem(dtKey_(id),JSON.stringify(v)); }catch(e){}
+  dtSync_(); dtApplyToTable_(); renderPTLibrary(); if(S.phanTho) renderPhanTho();
+}
+function dtResetIn(id){
+  var bo=DT_BO.filter(function(b){ return b.id===id; })[0]; if(!bo) return;
+  var v={}; bo.inputs.forEach(function(a){ v[a[0]]=a[3]; });
+  S._dtIn=S._dtIn||{}; S._dtIn[bo.id]=v;
+  try{ localStorage.removeItem(dtKey_(id)); }catch(e){}
+  dtSync_(); dtApplyToTable_(); renderPTLibrary(); if(S.phanTho) renderPhanTho();
+  toast('Đã trả số liệu đầu vào về mặc định');
+}
+// tính toàn bộ khối lượng của 1 bộ dự toán
+function dtCalc_(bo){
+  var v=dtVals_(bo);
+  var dm=v.dai?(v.sl*v.dai/100):0;                       // khối lượng theo đơn vị định mức (100m)
+  return {v:v, dm:dm, kl:bo.kl.map(function(a){ return {t:a[0],ct:a[1],r:a[2](v),dvt:a[3]}; })};
+}
+// sinh 2 nhóm (Nhân công & máy / Vật tư) cho mỗi bộ — GIỮ NGUYÊN object để index thư viện không đổi
+function dtSync_(){
+  DT_BO.forEach(function(bo,bi){
+    var c=dtCalc_(bo), v=c.v;
+    var nc=[], vt=[];
+    bo.hp.forEach(function(a){
+      var kl=ptR4_(a[3]*c.dm);
+      nc.push([a[1]+'\n('+a[0]+' · '+ptQty(a[3])+' '+a[2]+'/'+bo.dinhMuc+')', a[2], kl, a[4], a[5], a[4]]);
+    });
+    bo.ct.forEach(function(a){
+      nc.push([a[1]+'\n('+a[0]+')', a[2], ptR4_(a[3](v)), a[4], a[5], a[4]]);
+    });
+    bo.vt.forEach(function(a){
+      vt.push([a[0], a[1], ptR4_(a[2](v)), ptR0(a[3](v)), a[4], ptR0(a[3](v))]);
+    });
+    dtPut_(bo,'dt_nhancong','NHÂN CÔNG & MÁY THI CÔNG — '+bo.ten.toUpperCase(), bi+1, nc);
+    dtPut_(bo,'dt_vattu',   'VẬT TƯ — '+bo.ten.toUpperCase(),                   bi+1, vt);
+  });
+}
+function ptR4_(x){ return Math.round((x||0)*10000)/10000; }
+function dtPut_(bo,loai,ten,r,items){
+  var sec=PT_TEMPLATE.filter(function(s){ return s.dtId===bo.id && s.loai===loai; })[0];
+  if(!sec){ sec={r:String(r),t:ten,loai:loai,mode:'item',note:bo.nguon,up:0,dtId:bo.id,items:[]}; PT_TEMPLATE.push(sec); }
+  sec.t=ten; sec.note=bo.nguon; sec.items=items;
+}
+// số liệu đầu vào đổi -> cập nhật luôn KHỐI LƯỢNG các dòng đã thêm vào bảng ước tính
+function dtApplyToTable_(){
+  if(!Array.isArray(S.phanTho)) return; var n=0;
+  PT_TEMPLATE.filter(function(s){ return s.dtId; }).forEach(function(tsec){
+    var sec=S.phanTho.filter(function(s){ return s.t===tsec.t; })[0]; if(!sec) return;
+    tsec.items.forEach(function(a){
+      sec.items.forEach(function(it){ if(String(it.n||'')===String(a[0])){ it.kl=a[2]; n++; } });
+    });
+  });
+  if(n) ptPersist();
+}
+// bảng "Số liệu đầu vào + Khối lượng tính toán" — hiện ngay dưới bộ lọc khi chọn loại Dự toán
+function dtPanel_(loai){
+  return DT_BO.map(function(bo){
+    var c=dtCalc_(bo), v=c.v;
+    return '<div class="dt-panel">'
+      +'<div class="dt-hd"><span class="dt-tag">Bộ dự toán</span><b>'+esc(bo.ten)+'</b>'
+        +'<span class="dt-src">'+esc(bo.nguon)+'</span>'
+        +'<button class="dt-rs" onclick="dtResetIn(\''+bo.id+'\')" title="Trả về số liệu mặc định">Mặc định</button></div>'
+      +'<div class="dt-sec">I. Số liệu đầu vào</div>'
+      +'<div class="dt-ins">'+bo.inputs.map(function(a){
+          var val=v[a[0]];
+          var inp=a[4]
+            ? '<input class="dt-in" type="text" inputmode="numeric" value="'+esc(val?money(val):'')+'" onchange="dtSetIn(\''+bo.id+'\',\''+a[0]+'\',this.value)">'
+            : '<input class="dt-in" type="number" step="any" value="'+(val===''||val==null?'':val)+'" onchange="dtSetIn(\''+bo.id+'\',\''+a[0]+'\',this.value)">';
+          return '<label class="dt-fld"><span class="dt-lb">'+esc(a[1])+'</span>'+inp+'<span class="dt-dv">'+esc(a[2])+'</span></label>';
+        }).join('')+'</div>'
+      +'<div class="dt-sec">II. Khối lượng tính toán</div>'
+      +'<table class="dt-kl"><thead><tr><th>Nội dung · công thức</th><th class="n">Kết quả</th><th>ĐVT</th></tr></thead><tbody>'
+        +c.kl.map(function(k){
+          var isMoney=k.dvt==='đồng';
+          return '<tr><td><span class="dt-knm">'+esc(k.t)+'</span><span class="dt-ct">'+esc(k.ct)+'</span></td>'
+            +'<td class="n b">'+(isMoney?money(ptR0(k.r)):ptQty(k.r))+'</td><td class="dt-dvt">'+esc(k.dvt)+'</td></tr>';
+        }).join('')+'</tbody></table>'
+      +'<p class="dt-note">'+esc(bo.ghiChu)+'</p>'
+    +'</div>';
+  }).join('');
+}
+
+dtSync_();   // nạp sẵn các bộ dự toán vào thư viện
+
 
 var PT_CONTRACTORS=['H77','Decox','TTP','Unicons'];
 function ptLibDg_(sec,a){ if(sec.mode==='item') return Number(a[3])||0; if(sec.mode==='area'||sec.mode==='area0') return Number(sec.up)||0; return 0; }
@@ -4874,6 +5022,7 @@ function renderPTLibrary(){
       ? '<div class="ptlib-fld"><label>Báo giá mẫu dự án</label><div class="ptlib-selwrap"><select class="ptlib-sel"><option>Tạo dự án mới hoặc xem báo giá mẫu dự án cũ</option></select></div></div>'
       : '')
     +'</div>';
+  if(loai.indexOf('dt_')===0) top+=dtPanel_(loai);           // Dự toán: thêm bảng số liệu đầu vào + khối lượng
   var fw=document.getElementById('ptFilters'); if(fw) fw.innerHTML=top;   // khối lọc nằm ngay dưới ô Đề mục
   if(!secs.length){
     el.innerHTML='<div class="ptlib-empty">'+icon('layers',22)
@@ -5141,8 +5290,11 @@ function renderPhanTho(){
     var st=comp.sections[si];
     var isSecArea = sec.mode==='area';
     var sumDG = sec.items.reduce(function(s,it){ return s+ptN(it.dg); },0);
-    var klCell = st.sumKL ? ptQty(st.sumKL) : '';
-    var upCell = isSecArea ? ptInp(si,-1,'up',sec.up,'pt-money') : (sumDG?money(sumDG):'');
+    // cộng khối lượng chỉ có nghĩa khi cả nhóm dùng CHUNG 1 đơn vị tính (dự toán trộn công/ca/m thì bỏ trống)
+    var dvtSet={}; sec.items.forEach(function(it){ dvtSet[String(it.dvt||'').trim()]=1; });
+    var klCell = (st.sumKL && Object.keys(dvtSet).length<=1) ? ptQty(st.sumKL) : '';
+    var oneDvt = Object.keys(dvtSet).length<=1;                 // cộng đơn giá cũng chỉ có nghĩa khi chung 1 ĐVT
+    var upCell = isSecArea ? ptInp(si,-1,'up',sec.up,'pt-money') : ((sumDG&&oneDvt)?money(sumDG):'');
     // ---- dòng tiêu đề hạng mục (đơn giá + thành tiền ở 2 cột cuối) ----
     var secLn=st.tt-st.ttnt;                       // lợi nhuận cả nhóm  (L = P − K)
     var secMargin=st.tt?(secLn/st.tt*100):0;       // M = L/P

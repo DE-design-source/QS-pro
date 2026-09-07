@@ -1638,6 +1638,38 @@ table.pt td.pt-gc,table.pt td.pt-gc .pt-area{white-space:pre-wrap;word-break:bre
 .ptlib-empty b{font-size:13px;color:var(--ink);font-weight:650}
 .ptlib-empty span{font-size:11.5px;line-height:1.5;max-width:260px}
 
+/* ═══ DỰ TOÁN theo định mức: bảng số liệu đầu vào + khối lượng tính toán ═══ */
+.dt-panel{margin-top:12px;border:1px solid #e3e9f2;border-radius:12px;background:#fbfcfe;overflow:hidden}
+.dt-hd{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:9px 11px;
+  background:linear-gradient(180deg,#f3f7ff,#eaf1fd);border-bottom:1px solid #e3e9f2}
+.dt-hd b{font-size:12px;font-weight:700;color:var(--navy);line-height:1.35;flex:1 1 100%}
+.dt-tag{font-size:9.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+  background:var(--blue);color:#fff;border-radius:20px;padding:2px 8px}
+.dt-src{font-size:10.5px;color:var(--ink-3);flex:1}
+.dt-rs{border:1px solid #d5deed;background:#fff;color:var(--ink-2);border-radius:7px;
+  font-size:10.5px;font-weight:600;padding:3px 9px;cursor:pointer}
+.dt-rs:hover{border-color:var(--blue);color:var(--blue)}
+.dt-sec{font-size:10.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--blue);
+  padding:9px 11px 5px}
+.dt-ins{display:grid;grid-template-columns:1fr 1fr;gap:7px 9px;padding:0 11px 10px}
+.dt-fld{display:flex;flex-direction:column;gap:3px;position:relative}
+.dt-lb{font-size:10.5px;color:var(--ink-2);font-weight:600;line-height:1.3}
+.dt-in{width:100%;border:1px solid #d9e1ee;border-radius:8px;background:#fffbe8;
+  padding:6px 40px 6px 9px;font:600 12px/1 inherit;color:var(--ink);outline:none}
+.dt-in:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.dt-dv{position:absolute;right:9px;bottom:8px;font-size:10px;color:var(--ink-3);pointer-events:none}
+.dt-kl{width:100%;border-collapse:collapse;font-size:11px;margin:0 0 2px}
+.dt-kl th{background:#f1f4f9;color:var(--ink-2);font-weight:700;font-size:10px;text-transform:uppercase;
+  letter-spacing:.3px;padding:5px 8px;text-align:left;border-top:1px solid #e6eaf1;border-bottom:1px solid #e6eaf1}
+.dt-kl td{padding:5px 8px;border-bottom:1px solid #f0f2f6;color:var(--ink);line-height:1.35;vertical-align:top}
+.dt-kl .n{text-align:right;white-space:nowrap}
+.dt-kl .b{font-weight:700;color:var(--navy)}
+.dt-kl .dt-knm{display:block;font-weight:600}
+.dt-kl .dt-ct{display:block;margin-top:1px;color:var(--ink-3);font-size:10px;font-style:italic;line-height:1.3}
+.dt-kl .dt-dvt{color:var(--ink-3);white-space:nowrap}
+.dt-note{margin:0;padding:8px 11px 11px;font-size:10.5px;line-height:1.5;color:var(--ink-3)}
+@media(max-width:900px){.dt-ins{grid-template-columns:1fr}}
+
 /* ═══ COMBO — sản phẩm đi kèm ═══ */
 .cb-box{margin-top:16px;border:1px solid var(--hair);border-radius:var(--r-lg);padding:13px 14px;background:#fbfcfe}
 .cb-h{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:650;color:var(--navy)}
