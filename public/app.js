@@ -550,7 +550,7 @@ function toggleFsec(key){
   applyFsec();
 }
 function applyFsec(){
-  ['watt','kelvin','angle','ip','cri','volt'].forEach(function(k){
+  ['watt','kelvin','angle','ip','cri','volt','combo'].forEach(function(k){
     var s=document.getElementById('sec_'+k); if(s) s.classList.toggle('open', S.fsecOpen[k]!==false);
   });
 }
@@ -576,7 +576,7 @@ function renderFilters(){
   chipGroup('angle','fAngle','nAngle','gocChieu',S.fAngle,'data-a',{});
   chipGroup('ip','fIP','nIP','capBaoVe',S.fIP,'data-v',{});
   chipGroup('cri','fCRI','nCRI','cri',S.fCRI,'data-v',{});
-  chipGroup('volt','fVolt','nVolt','dienAp',S.fVolt,'data-v',{});
+  comboChips_();
   applyFsec();
   updateInProj_();
   document.getElementById('fMin').oninput=renderCatalog;
@@ -588,6 +588,19 @@ function renderFilters(){
    Trước đây chúng nằm rải rác trong danh sách (VD FL76001 ở dòng 14 rồi lại 21-24) rất khó đối chiếu.
    Cách gom: GIỮ NGUYÊN thứ tự xuất hiện của từng mã (không đảo lộn cả danh sách),
    chỉ kéo các biến thể sau về ngay dưới biến thể đầu tiên, rồi xếp trong nhóm theo W -> K -> góc. */
+/* Chip lọc Combo — SP có sản phẩm đi kèm hay đứng riêng (đếm cả 2 chiều liên kết) */
+function comboChips_(){
+  var box=document.getElementById('fComboChips'); if(!box) return;
+  var co=0, khong=0;
+  (S.products||[]).forEach(function(p){ if(p.comboN>0) co++; else khong++; });
+  var cur=S.fCombo||'';
+  box.innerHTML=[['co','Có combo',co],['khong','Không có combo',khong]].map(function(x){
+    return '<span class="chip'+(cur===x[0]?' on':'')+'" onclick="setComboFilter(\''+x[0]+'\')">'
+      +esc(x[1])+'<i class="chip-n">'+x[2]+'</i></span>';
+  }).join('');
+  var n=document.getElementById('nCombo'); if(n) n.textContent=cur?'1':'';
+}
+function setComboFilter(v){ S.fCombo=(S.fCombo===v)?'':v; renderFilters(); renderCatalog(); }
 function spVarKey_(p){ return spNorm_(p.ma||'')||spNorm_(p.ten||''); }
 function spNum1_(v){ var m=String(v==null?'':v).match(/-?\d+(?:[.,]\d+)?/); return m?parseFloat(m[0].replace(',','.')):-1; }
 function spGroupVariants_(list){
@@ -622,6 +635,8 @@ function filteredProducts(){
   else if(S.onlyProject){ usedKeys={}; (S.lines||[]).forEach(function(l){ var k=String(l.maSP||l.ten||'').toLowerCase().trim(); if(k) usedKeys[k]=1; }); }
   return spGroupVariants_(S.products.filter(function(p){
     if(S.fFav && !p.yeuThich) return false;                    // chỉ hiện SP đã lưu yêu thích
+    if(S.fCombo==='co'    && !(p.comboN>0)) return false;      // chỉ SP có sản phẩm đi kèm
+    if(S.fCombo==='khong' &&  (p.comboN>0)) return false;      // chỉ SP đứng riêng
     if(hmucSel.length && hmucSel.indexOf(prodHmuc_(p))<0) return false;
     if(usedKeys){ var uk=String(p.ma||p.ten||'').toLowerCase().trim(); if(!usedKeys[uk]) return false; }
     if(S.fBrand && p.thuongHieu!==S.fBrand) return false;
@@ -754,7 +769,7 @@ function updateCatUI(){
   var c=document.getElementById('advClear'); if(c) c.style.display=n?'inline-block':'none';
 }
 function clearAllFilters(){
-  S.fWatt={}; S.fKelvin={}; S.fAngle={}; S.fIP={}; S.fCRI={}; S.fVolt={}; S.fBrand='';
+  S.fWatt={}; S.fKelvin={}; S.fAngle={}; S.fIP={}; S.fCRI={}; S.fVolt={}; S.fBrand=''; S.fCombo='';
   var mn=document.getElementById('fMin'); if(mn) mn.value='';
   var mx=document.getElementById('fMax'); if(mx) mx.value='';
   renderFilters(); renderCatalog();
@@ -764,6 +779,7 @@ function activeFiltCount_(){
   var n=0;
   ['fWatt','fKelvin','fAngle','fIP','fCRI','fVolt'].forEach(function(k){ if(Object.keys(S[k]||{}).some(function(x){return S[k][x];})) n++; });
   if(S.fBrand) n++;
+  if(S.fCombo) n++;
   var mn=document.getElementById('fMin'), mx=document.getElementById('fMax');
   if((mn&&mn.value)||(mx&&mx.value)) n++;
   if(Object.keys(S.fNhomSet||{}).some(function(k){return S.fNhomSet[k];})) n++;

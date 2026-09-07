@@ -3007,6 +3007,10 @@ table.pt td.dvt-cell,table.pt td.dvt-cell .pt-in{font-style:italic;color:#5b6b7b
    luôn bị xén cụt sát nút "+" (271/296 dòng bị cắt) mà không có cách nào xem tiếp. */
 .citem .cspecs{flex-wrap:wrap;overflow:visible;row-gap:3px;column-gap:3px}
 .citem .cspecs .spec{white-space:nowrap}
+
+/* số đếm nhỏ trong chip lọc Combo */
+.chips .chip .chip-n{font-style:normal;margin-left:5px;font-size:9.5px;font-weight:700;opacity:.6}
+.chips .chip.on .chip-n{opacity:.85}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -3130,6 +3134,7 @@ table.pt td.dvt-cell,table.pt td.dvt-cell .pt-in{font-style:italic;color:#5b6b7b
           <div class="filt-pop-hd"><b>Bộ lọc liên quan</b><span class="filt-pop-x" onclick="toggleFiltDrop()">✕</span></div>
           <div class="fsec open" id="sec_angle"><div class="fsec-h" onclick="toggleFsec('angle')"><span class="fsec-t">Góc chiếu sáng</span><span class="fsec-n" id="nAngle"></span><span class="fsec-c">▾</span></div><div class="chips" id="fAngle"></div></div>
           <input id="fSearch" type="hidden" value="">
+          <div class="fsec open" id="sec_combo"><div class="fsec-h" onclick="toggleFsec('combo')"><span class="fsec-t">Combo</span><span class="fsec-n" id="nCombo"></span><span class="fsec-c">▾</span></div><div class="chips" id="fComboChips"></div></div>
           <div class="lbl">Thương hiệu</div>
           <div class="selrow"><select id="fBrand"></select></div>
           <div class="lbl">Tìm theo khoảng giá</div>
