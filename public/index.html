@@ -3219,19 +3219,29 @@ table.pt td.dvt-cell,table.pt td.dvt-cell .pt-in{font-style:italic;color:#5b6b7b
 
 /* ═══ SẢN PHẨM ĐI KÈM ═══
    Dùng LẠI đúng thành phần sẵn có của panel: tiêu đề .pd-sec, dòng tổng .pd-price,
-   nút .pd-fbtn (giống nút "Tài liệu kỹ thuật"). Ở đây chỉ định nghĩa thêm dòng
-   sản phẩm vì panel chưa có kiểu "ảnh + tên + giá".                              */
-.pd .pd-cb{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--hair)}
-.pd .pd-cb:last-of-type{border-bottom:none}
-.pd .pd-cb img,.pd .pd-cb .cb-img{width:40px;height:40px;flex:none;border-radius:var(--r-md);
-  border:1px solid var(--hair);background:#fafbfc;object-fit:contain}
-.pd .pd-cb-i{flex:1;min-width:0}
-.pd .pd-cb-i b{display:block;font-size:12.5px;font-weight:600;color:var(--ink);line-height:1.35}
-.pd .pd-cb-i i{display:block;margin-top:2px;font-style:normal;font-size:11.5px;color:var(--ink-3);
-  line-height:1.35;letter-spacing:.01em}
-.pd .pd-cb-gia{flex:none;font-size:13px;font-weight:650;color:var(--navy);letter-spacing:-.02em;
-  font-variant-numeric:tabular-nums;white-space:nowrap}
-.pd .pd-combo .pd-fbtn{font-weight:600}
+   nút .pd-fbtn (giống nút "Tài liệu kỹ thuật"). Bọc thêm khung nền xanh rất nhạt
+   để tách khỏi phần thông số phía trên. Màu viền lấy TỪ --blue (đổ trong suốt),
+   không đặt thêm mã màu mới.                                                      */
+.pd .pd-combo{margin-top:16px;padding:12px 13px 13px;background:#f6faff;
+  border:1px solid rgba(37,99,235,.22);border-radius:var(--r-xl)}
+.pd .pd-combo .pd-sec{margin-top:0;border-bottom-color:rgba(37,99,235,.18)}
+/* dòng sản phẩm: thẻ trắng trên nền xanh nhạt */
+.pd .pd-combo .pd-cb{display:flex;align-items:center;gap:10px;margin-top:8px;padding:8px 10px;
+  background:#fff;border:1px solid rgba(37,99,235,.16);border-radius:var(--r-md)}
+.pd .pd-combo .pd-cb img,.pd .pd-combo .pd-cb .cb-img{width:40px;height:40px;flex:none;
+  border-radius:var(--r-sm);border:1px solid var(--hair);background:#fff;object-fit:contain}
+.pd .pd-combo .pd-cb-i{flex:1;min-width:0;display:block}
+.pd .pd-combo .pd-cb-i b{display:block;font-size:12.5px;font-weight:600;color:var(--ink);line-height:1.35;
+  white-space:normal;overflow:visible;text-overflow:clip}          /* tên xuống dòng, KHÔNG cắt cụt */
+.pd .pd-combo .pd-cb-i i{display:block;margin-top:2px;font-style:normal;font-size:11.5px;
+  color:var(--ink-3);line-height:1.35}
+.pd .pd-combo .pd-cb-gia{flex:none;font-size:13px;font-weight:650;color:var(--navy);
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+/* tổng + nút: vẫn là .pd-price / .pd-fbtn, chỉ chỉnh đường kẻ và nền cho hợp khung */
+.pd .pd-combo .pd-price{margin-top:11px;padding-top:10px;border-top-color:rgba(37,99,235,.18)}
+.pd .pd-combo .pd-foot2{margin-top:10px}
+.pd .pd-combo .pd-fbtn{background:#fff;border-color:rgba(37,99,235,.28);color:var(--blue);font-weight:600}
+.pd .pd-combo .pd-fbtn:hover{border-color:var(--blue);background:var(--blue);color:#fff}
 </style>
 
 <!-- ===== TOP NAV ===== -->
