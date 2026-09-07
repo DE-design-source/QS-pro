@@ -1848,6 +1848,9 @@ table.pt{border-collapse:collapse}
 table.pt th{background:var(--navy);color:#fff;font-size:11.5px;font-weight:600;letter-spacing:.045em;
   padding:11px 10px;text-transform:uppercase;border-right:1px solid rgba(255,255,255,.13);line-height:1.25;vertical-align:middle}
 table.pt th:last-child{border-right:none}
+/* header dính khi cuộn — dùng #ptWrap để thắng rule .thk{position:relative} phía trên (giống #tkNormal của .tk) */
+#ptWrap table.pt thead th{position:sticky;top:0;z-index:5}
+/* KHÔNG dính dòng hạng mục như .tk: tên hạng mục Phần thô xuống nhiều dòng, dính vào sẽ chồng lên nhau */
 /* header tương tác: sắp xếp · kéo đổi vị trí · kéo mép chỉnh rộng (giống bảng Bóc tách) */
 table.pt th.thk{position:relative;cursor:grab;overflow:hidden;vertical-align:middle}
 table.pt th.thk:active{cursor:grabbing}
@@ -2845,6 +2848,51 @@ table.tk tr.tk-spacer td{height:12px}
 .empty,.dh-empty2{font-size:12.5px;color:var(--ink-3)}
 .dash-empty{border-color:var(--hair-2);border-radius:var(--r-xl)}
 .toast{border-radius:var(--r-md);font-size:12.5px;box-shadow:var(--sh-3)}
+
+/* ═══════════ 17. ĐỒNG BỘ BẢNG PHẦN THÔ (.pt) VỚI BẢNG BÓC TÁCH (.tk) ═══════════
+   Hai bảng trước đây khác nhau về màu header, cỡ chữ, đường kẻ và dòng nhóm.
+   Khối này để CUỐI cùng nên thắng mọi rule phía trên — sửa style bảng thì sửa ở đây. */
+/* khung cuộn: chính .pt-scroll cuộn dọc (không phải #ptWrap) — có vậy thead sticky mới dính,
+   y như #tkNormal .tbl-wrap của bảng Bóc tách */
+.tk-panel #ptWrap{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.pt-scroll{flex:1;min-height:140px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+@media(max-width:1120px){ .tk-panel #ptWrap{overflow:visible} .pt-scroll{max-height:70vh} }
+.pt-scroll::-webkit-scrollbar{width:0;height:9px}
+.pt-scroll::-webkit-scrollbar-track{background:transparent}
+.pt-scroll::-webkit-scrollbar-thumb{background:#c2cddb;border-radius:6px;border:none}
+.pt-scroll::-webkit-scrollbar-thumb:hover{background:#a6b6c8}
+table.pt{font-size:12.5px}
+/* --- header: canh trái, IN HOA, đậm — y hệt .tk --- */
+table.pt thead th,table.pt th.thk{background:var(--navy);color:#fff;text-align:left;
+  padding:9px 11px;font-size:12px;font-weight:700;letter-spacing:.2px;line-height:1.2;
+  text-transform:uppercase;vertical-align:middle;border-right:1px solid #ffffff26;border-bottom:none}
+table.pt thead th.n,table.pt th.thk.n{text-align:right}
+table.pt thead th.c,table.pt th.thk.c{text-align:center}
+table.pt th:last-child{border-right:none}
+table.pt th.thk .thl{max-width:calc(100% - 12px)}
+table.pt th.thk.sortOn{background:#1a4066}
+table.pt th.thk.sortOn .thl{color:#fff;font-weight:800}
+/* --- ô dữ liệu: chỉ kẻ dọc, KHÔNG kẻ ngang (kiểu PDF) như .tk --- */
+table.pt td{padding:11px 12px;font-size:12.5px;border-right:1px solid #cbd2da;border-bottom:none;border-left:none}
+table.pt td:last-child{border-right:none}
+table.pt tr.pt-row td{background:#fff}
+table.pt tr.pt-row:hover td{background:#f5f8fc}
+/* --- dòng tiêu đề hạng mục: xám đậm, chữ to như tr.grp của .tk --- */
+table.pt tr.pt-sec td{background:#e9ecef;color:#1f2b38;font-weight:700;letter-spacing:.2px;
+  padding:12px 14px;border-top:1px solid #d3d9df;border-bottom:1px solid #d3d9df}
+table.pt tr.pt-sec .pt-secttl{font-size:14px;font-weight:800;letter-spacing:.3px;color:#16202b}
+table.pt tr.pt-sec td.b{font-weight:800;color:var(--navy)}
+table.pt tr.pt-spacer td{height:24px;padding:0;background:#fff;border:none}
+/* --- dòng tổng + dòng "thêm dòng" --- */
+table.pt tr.pt-total td{background:#e9ecef;color:#1f2b38;font-weight:700;font-size:12.5px;
+  padding:12px 14px;border-top:1px solid #d3d9df;border-bottom:1px solid #d3d9df}
+table.pt tr.pt-total td.b{font-weight:800;color:var(--navy)}
+table.pt tr.pt-add td{background:#fbfcfe;padding:12px;border-top:1px solid #eef2f5}
+/* --- ô nhập trong bảng: giống .tk .qty/.price --- */
+table.pt .pt-in,table.pt .pt-tx{font-size:12.5px;padding:5px 6px;border-radius:6px}
+table.pt .pt-in:focus,table.pt .pt-tx:focus{border-color:var(--blue);background:#fff;
+  box-shadow:0 0 0 2.5px rgba(37,99,235,.10);outline:none}
+table.pt td.dvt-cell,table.pt td.dvt-cell .pt-in{font-style:italic;color:#5b6b7b;text-align:center}
 </style>
 
 <!-- ===== TOP NAV ===== -->
