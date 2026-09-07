@@ -1149,7 +1149,7 @@ tr.mhf-tot td.n:last-child{font-size:17px;color:var(--blue)}
 .admck input{width:16px;height:16px;accent-color:var(--blue)}
 .admperm-quick{margin-top:8px;font-size:12px;color:#8a96a5} .admperm-quick a{color:var(--blue);cursor:pointer} .admperm-quick a:hover{text-decoration:underline}
 .amodal-ft{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid #eef1f5;background:#fbfcfe}
-.permcol{white-space:normal;max-width:280px} .permchip{display:inline-block;font-size:10.5px;background:#eef2ff;color:#4f46e5;border-radius:6px;padding:2px 7px;margin:1px 0}
+.permcol{white-space:normal;max-width:280px} .permchip{display:inline-block;font-size:10.5px;background:#eef5ff;color:#4f46e5;border-radius:6px;padding:2px 7px;margin:1px 0}
 /* ===== Chip user ===== */
 .userchip{display:inline-flex;align-items:center;gap:8px;cursor:pointer;padding:5px 10px 5px 5px;border:1px solid #e2e8f0;border-radius:22px;background:#fff;position:relative;margin-left:6px}
 .userchip:hover{border-color:#c3ccd8}
@@ -1167,7 +1167,7 @@ table.admtbl td{padding:9px 11px;border-bottom:1px solid #eef1f5;vertical-align:
 table.admtbl tr.locked{opacity:.55}
 table.admtbl .muted{color:#94a3b8;font-size:12px}
 .rolebadge{font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px}
-.rolebadge.adm{background:#eef2ff;color:#4f46e5} .rolebadge.stf{background:#eef5f0;color:#2f855a}
+.rolebadge.adm{background:#eef5ff;color:#4f46e5} .rolebadge.stf{background:#eef5f0;color:#2f855a}
 .st-ok{color:#2f855a;font-size:12px;font-weight:600} .st-lk{color:#c0392b;font-size:12px;font-weight:600}
 .admact{white-space:nowrap;display:flex;gap:5px}
 .btn.xs{padding:3px 9px;font-size:12px;border-radius:7px}
@@ -1180,7 +1180,7 @@ table.admtbl .muted{color:#94a3b8;font-size:12px}
 .btn:not(.xs):not(.iconbtn):hover{box-shadow:0 3px 10px rgba(20,40,80,.13)}
 .btn:active{transform:translateY(1px)}
 .btn:disabled{opacity:.6;cursor:default;box-shadow:none;transform:none}
-.btn.ghost:hover{background:#f6f8fb;border-color:#c3ccd8;box-shadow:none}
+.btn.ghost:hover{background:var(--stripe);border-color:#c3ccd8;box-shadow:none}
 .rbtn:hover{border-color:#c3ccd8;background:#f7f9fc}
 .rbtn.primary:hover{filter:brightness(1.05)}
 
@@ -1633,7 +1633,7 @@ table.pt td.pt-gc,table.pt td.pt-gc .pt-area{white-space:pre-wrap;word-break:bre
 
 /* ═══ Thư viện PHẦN THÔ: bộ lọc phân loại báo giá ═══ */
 .ptlib-hint{margin:5px 0 0;font-size:11px;color:var(--ink-3);line-height:1.4}
-.ptlib-dthint{margin:0 0 8px;padding:7px 9px;background:#f6f8fb;border:1px solid #e6ebf2;border-radius:8px;font-size:10.5px;line-height:1.45;color:var(--ink-3)}
+.ptlib-dthint{margin:0 0 8px;padding:7px 9px;background:var(--stripe);border:1px solid var(--hair-2);border-radius:8px;font-size:10.5px;line-height:1.45;color:var(--ink-3)}
 .ptlib-dthint b{color:var(--ink-2)}
 .ptlib-empty{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;
   padding:26px 16px;color:var(--ink-3)}
@@ -1641,14 +1641,14 @@ table.pt td.pt-gc,table.pt td.pt-gc .pt-area{white-space:pre-wrap;word-break:bre
 .ptlib-empty span{font-size:11.5px;line-height:1.5;max-width:260px}
 
 /* ═══ DỰ TOÁN theo định mức: bảng số liệu đầu vào + khối lượng tính toán ═══ */
-.dt-panel{margin-top:12px;border:1px solid #e3e9f2;border-radius:12px;background:#fbfcfe;overflow:hidden}
+.dt-panel{margin-top:12px;border:1px solid var(--hair-2);border-radius:12px;background:#fbfcfe;overflow:hidden}
 .dt-hd{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:9px 11px;
-  background:linear-gradient(180deg,#f3f7ff,#eaf1fd);border-bottom:1px solid #e3e9f2}
+  background:#eef5ff;border-bottom:1px solid var(--hair-2)}
 .dt-hd b{font-size:12px;font-weight:700;color:var(--navy);line-height:1.35;flex:1 1 100%}
 .dt-tag{font-size:9.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
   background:var(--blue);color:#fff;border-radius:20px;padding:2px 8px}
 .dt-src{font-size:10.5px;color:var(--ink-3);flex:1}
-.dt-rs{border:1px solid #d5deed;background:#fff;color:var(--ink-2);border-radius:7px;
+.dt-rs{border:1px solid var(--hair-2);background:#fff;color:var(--ink-2);border-radius:7px;
   font-size:10.5px;font-weight:600;padding:3px 9px;cursor:pointer}
 .dt-rs:hover{border-color:var(--blue);color:var(--blue)}
 .dt-sec{font-size:10.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--blue);
@@ -1656,14 +1656,14 @@ table.pt td.pt-gc,table.pt td.pt-gc .pt-area{white-space:pre-wrap;word-break:bre
 .dt-ins{display:grid;grid-template-columns:1fr 1fr;gap:7px 9px;padding:0 11px 10px}
 .dt-fld{display:flex;flex-direction:column;gap:3px;position:relative}
 .dt-lb{font-size:10.5px;color:var(--ink-2);font-weight:600;line-height:1.3}
-.dt-in{width:100%;border:1px solid #d9e1ee;border-radius:8px;background:#fffbe8;
+.dt-in{width:100%;border:1px solid var(--hair-2);border-radius:8px;background:#fff5e6;
   padding:6px 40px 6px 9px;font:600 12px/1 inherit;color:var(--ink);outline:none}
 .dt-in:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
 .dt-dv{position:absolute;right:9px;bottom:8px;font-size:10px;color:var(--ink-3);pointer-events:none}
 .dt-kl{width:100%;border-collapse:collapse;font-size:11px;margin:0 0 2px}
-.dt-kl th{background:#f1f4f9;color:var(--ink-2);font-weight:700;font-size:10px;text-transform:uppercase;
-  letter-spacing:.3px;padding:5px 8px;text-align:left;border-top:1px solid #e6eaf1;border-bottom:1px solid #e6eaf1}
-.dt-kl td{padding:5px 8px;border-bottom:1px solid #f0f2f6;color:var(--ink);line-height:1.35;vertical-align:top}
+.dt-kl th{background:var(--chip);color:var(--ink-2);font-weight:700;font-size:10px;text-transform:uppercase;
+  letter-spacing:.3px;padding:5px 8px;text-align:left;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+.dt-kl td{padding:5px 8px;border-bottom:1px solid var(--hair);color:var(--ink);line-height:1.35;vertical-align:top}
 .dt-kl .n{text-align:right;white-space:nowrap}
 .dt-kl .b{font-weight:700;color:var(--navy)}
 .dt-kl .dt-knm{display:block;font-weight:600}
@@ -1671,20 +1671,20 @@ table.pt td.pt-gc,table.pt td.pt-gc .pt-area{white-space:pre-wrap;word-break:bre
 .dt-kl .dt-dvt{color:var(--ink-3);white-space:nowrap}
 .dt-panel.on{border-color:#bcd3f5;box-shadow:0 0 0 2px rgba(37,99,235,.09)}
 .dt-on{font-size:9.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;
-  background:#e7f6ec;color:#1a7f42;border:1px solid #bfe6cd;border-radius:20px;padding:1px 8px}
+  background:#dcfce7;color:#15803d;border:1px solid var(--hair-2);border-radius:20px;padding:1px 8px}
 /* MỘT nút áp dụng cả bộ — dự toán là 1 khối tính, không lượm từng dòng như khái toán */
 .dt-act{display:flex;flex-direction:column;gap:4px;padding:10px 11px;border-bottom:1px solid #eef1f5}
 .dt-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;width:100%;
   background:var(--blue);color:#fff;border:none;border-radius:9px;padding:9px 12px;
   font:700 12px/1 inherit;cursor:pointer;transition:filter .12s,box-shadow .12s}
 .dt-btn:hover{filter:brightness(1.06);box-shadow:0 3px 10px rgba(37,99,235,.25)}
-.dt-btn.off{background:#fff;color:#b4232a;border:1px solid #eccdcf}
-.dt-btn.off:hover{background:#fff5f5;box-shadow:none}
+.dt-btn.off{background:#fff;color:#dc2626;border:1px solid #fecaca}
+.dt-btn.off:hover{background:#fef2f2;box-shadow:none}
 .dt-actn{font-size:10px;color:var(--ink-3);text-align:center;line-height:1.35}
 /* III. chi phí trực tiếp — số tổng của cả bộ, khớp phần cuối file Excel */
 .dt-sum{padding:0 11px 4px}
 .dt-srow{display:flex;align-items:baseline;justify-content:space-between;gap:8px;
-  font-size:11px;color:var(--ink-2);padding:5px 0;border-bottom:1px solid #f0f2f6}
+  font-size:11px;color:var(--ink-2);padding:5px 0;border-bottom:1px solid var(--hair)}
 .dt-srow b{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
 .dt-srow.tot{border-bottom:none;color:var(--navy);font-weight:700}
 .dt-srow.tot b{font-size:12.5px;color:var(--navy)}
@@ -1910,27 +1910,27 @@ table.pt tr.pt-empty td{border:none;background:#fcfdfe;padding:0}
 
 /* ═══ SẢN PHẨM YÊU THÍCH — kho SP hay dùng, lấy lại cho các dự án sau ═══ */
 .sp-act.fav{color:#c3ccd8}
-.sp-act.fav:hover{color:#e8a83a}
-.sp-act.fav.on{color:#e8a83a}
+.sp-act.fav:hover{color:var(--amber)}
+.sp-act.fav.on{color:var(--amber)}
 .sp-act.fav.on .ico{fill:currentColor}
-.spvt.fav.on{background:#fff8e8;border-color:#e8c98a;color:#9a6b12}
-.spvt.fav.on .spvt-n{background:#f2c14e;color:#4a3405}
-.spb-b.fav{background:#fff8e8;border-color:#e8c98a;color:#9a6b12}
-.spb-b.fav:hover{background:#fdf0d0}
+.spvt.fav.on{background:#fff5e6;border-color:var(--hair-2);color:#b7791f}
+.spvt.fav.on .spvt-n{background:var(--amber);color:#b7791f}
+.spb-b.fav{background:#fff5e6;border-color:var(--hair-2);color:#b7791f}
+.spb-b.fav:hover{background:#fff5e6}
 /* dấu sao trên thẻ SP ở thư viện Bóc tách */
 .citem{position:relative}
 .citem .cfav{position:absolute;top:6px;right:34px;border:none;background:transparent;padding:2px;
-  line-height:0;color:#ccd4de;cursor:pointer;opacity:0;transition:opacity .12s,color .12s}
+  line-height:0;color:#c3ccd8;cursor:pointer;opacity:0;transition:opacity .12s,color .12s}
 .citem:hover .cfav,.citem .cfav.on{opacity:1}
-.citem .cfav:hover{color:#e8a83a}
-.citem .cfav.on{color:#e8a83a}
+.citem .cfav:hover{color:var(--amber)}
+.citem .cfav.on{color:var(--amber)}
 .citem .cfav.on svg{fill:currentColor}
 /* nút lọc "yêu thích" ở đầu panel thư viện */
 .favf-btn{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);background:#fff;
   color:var(--ink-3);border-radius:20px;padding:3px 9px;font-size:10.5px;font-weight:600;cursor:pointer;
   white-space:nowrap;transition:all .12s}
-.favf-btn:hover{border-color:#e8c98a;color:#9a6b12}
-.favf-btn.on{background:#fff8e8;border-color:#e8c98a;color:#9a6b12}
+.favf-btn:hover{border-color:var(--hair-2);color:#b7791f}
+.favf-btn.on{background:#fff5e6;border-color:var(--hair-2);color:#b7791f}
 .favf-btn.on svg{fill:currentColor}
 /* Panel trái quá hẹp cho "Hạng mục + 529 SP + 2 nút" trên cùng 1 dòng -> nút "bộ lọc"
    bị bẻ chữ xuống hàng. Cho tiêu đề đứng riêng 1 dòng, 2 nút xuống dòng dưới chia đôi. */
@@ -1949,24 +1949,24 @@ table.pt tr.pt-empty td{border:none;background:#fcfdfe;padding:0}
   border-radius:12px;background:linear-gradient(180deg,#f6f8ff 0%,#fcfdff 62%);
   box-shadow:0 1px 2px rgba(40,55,120,.05)}
 .pd .pd-combo .pd-sec{display:flex;align-items:center;gap:6px;margin:0 0 9px;padding:0;border-bottom:none;
-  font-size:11.5px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:#4338ca}
+  font-size:11.5px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:var(--blue)}
 .pd .pd-combo .pd-sec .ico{stroke-width:2.2}
-.pd .pd-combo .cb-n{background:#e0e7ff;color:#3730a3;border-radius:20px;padding:1px 7px;
+.pd .pd-combo .cb-n{background:#e0e7ff;color:var(--navy);border-radius:20px;padding:1px 7px;
   font-size:10.5px;font-weight:800;line-height:1.5}
 .pd-combo-list{gap:7px;margin-top:0}
 .pd .pd-cb{border-color:#e4e9f6;border-radius:10px;padding:7px 9px;box-shadow:0 1px 2px rgba(40,55,120,.04)}
-.pd .pd-cb:hover{border-color:#c7d2fe;background:#fcfdff}
-.pd .pd-cb-sl{background:#eef2ff;color:#4338ca;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:800}
+.pd .pd-cb:hover{border-color:var(--hair-2);background:#fcfdff}
+.pd .pd-cb-sl{background:#eef5ff;color:var(--blue);border-radius:6px;padding:1px 6px;font-size:11px;font-weight:800}
 /* chân khối: tổng tiền 1 dòng, nút chiếm trọn bề ngang cho dễ bấm ở panel hẹp */
 .pd .pd-combo-ft{flex-direction:column;align-items:stretch;gap:9px;margin-top:11px;padding-top:10px;
   border-top:1px dashed #d9e0f4}
 .pd .pd-combo-ft>span{display:flex;align-items:baseline;justify-content:space-between;gap:8px;
   font-size:11.5px;color:var(--ink-3)}
-.pd .pd-combo-ft>span b{font-size:13.5px;font-weight:800;color:#3730a3;font-variant-numeric:tabular-nums}
+.pd .pd-combo-ft>span b{font-size:13.5px;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums}
 .pd .pd-combo-ft .btn{width:100%;justify-content:center;gap:6px;padding:9px 12px;border-radius:10px;
-  background:#eef2ff;border:1px solid #c7d2fe;color:#4338ca;font-size:12.5px;font-weight:700;
+  background:#eef5ff;border:1px solid var(--hair-2);color:var(--blue);font-size:12.5px;font-weight:700;
   box-shadow:none;transition:background .13s,border-color .13s,color .13s,box-shadow .13s,transform .08s}
-.pd .pd-combo-ft .btn:hover{background:#4338ca;border-color:#4338ca;color:#fff;
+.pd .pd-combo-ft .btn:hover{background:var(--blue);border-color:var(--blue);color:#fff;
   box-shadow:0 4px 12px rgba(67,56,202,.26)}
 .pd .pd-combo-ft .btn:active{transform:translateY(1px)}
 /* popup Danh sách SP rộng hơn panel Bóc tách -> xếp 1 hàng: tổng bên trái, nút bên phải */
@@ -1975,18 +1975,18 @@ table.pt tr.pt-empty td{border:none;background:#fcfdfe;padding:0}
 .sp-modal .pd-combo-ft .btn{width:auto;flex:0 0 auto}
 
 /* nhãn "combo N" — nhìn là biết SP nào có sản phẩm đi kèm, khỏi mở từng cái */
-.sp-cbn{display:inline-flex;align-items:center;gap:3px;margin-left:6px;background:#eef4ff;color:var(--blue);
+.sp-cbn{display:inline-flex;align-items:center;gap:3px;margin-left:6px;background:#eef5ff;color:var(--blue);
   border:none;border-radius:20px;padding:1px 7px;font-size:9.5px;font-weight:700;
   letter-spacing:.2px;white-space:nowrap;vertical-align:middle}
 .sp-cbn .ico{stroke-width:2.4}
 /* Nhãn combo trên thẻ SP: .cmid chỉ rộng ~125px, để chữ "combo N" thì chip thương hiệu
    bị cắt còn "A...". Rút về biểu tượng + số (có tooltip) cho vừa cùng 1 hàng. */
-.citem .meta .sz.cbn{display:inline-flex;align-items:center;gap:2px;background:#eef4ff;color:var(--blue);
+.citem .meta .sz.cbn{display:inline-flex;align-items:center;gap:2px;background:#eef5ff;color:var(--blue);
   border:none;font-weight:700;padding:1px 6px;border-radius:5px;font-size:10.5px;line-height:1.5;cursor:help}
 .citem .meta .sz.cbn .ico{stroke-width:2.6}
 .citem .meta .metarow .sz.brand{font-size:11px}
 /* combo hai chiều: dấu cho biết liên kết được đặt từ phía sản phẩm kia */
-.cb-rev{display:inline-block;margin-left:6px;background:#eef2ff;color:#4338ca;border:1px solid #dbe0fb;
+.cb-rev{display:inline-block;margin-left:6px;background:#eef5ff;color:var(--blue);border:1px solid var(--hair-2);
   border-radius:20px;padding:0 6px;font-size:9.5px;font-weight:700;white-space:nowrap;vertical-align:middle;cursor:help}
 .pt-empty-b .pe-b{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;
   border-radius:50%;border:1.5px solid var(--blue);color:var(--blue);font-size:12px;vertical-align:-4px}
@@ -3001,17 +3001,20 @@ table.pt td.dvt-cell,table.pt td.dvt-cell .pt-in{font-style:italic;color:#5b6b7b
    Đặt SAU .tk-hbar vì thẻ mang cả 2 class — để sau mới ghi đè được chiều cao,
    màu và nhất là margin-right:34px (cái đó chỉ đúng cho bảng Bóc tách có cột nút). */
 .tk-hbar.sp-hbar{height:7px;margin:9px 0 2px;background:#eef1f5}
-.tk-hbar.sp-hbar .tk-hthumb{background:#c2ccd8}
-.tk-hbar.sp-hbar:hover{background:#e7ebf1}
-.tk-hbar.sp-hbar:hover .tk-hthumb{background:#9fadbd}
+.tk-hbar.sp-hbar .tk-hthumb{background:#c3ccd8}
+.tk-hbar.sp-hbar:hover{background:var(--hair-2)}
+.tk-hbar.sp-hbar:hover .tk-hthumb{background:#a9b4c1}
 .tk-hbar.sp-hbar .tk-hthumb:hover{background:var(--blue)}
 .tk-hbar.sp-hbar .tk-hthumb.dragging{background:var(--blue-d)}
 
 /* ═══ CHIP THÔNG SỐ trên thẻ SP (thư viện Bóc tách) — XUỐNG HÀNG, KHÔNG CẮT ═══
    Trước để nowrap + overflow-x:auto mà thanh cuộn lại bị ẩn toàn cục, nên chip cuối
    luôn bị xén cụt sát nút "+" (271/296 dòng bị cắt) mà không có cách nào xem tiếp. */
-.citem .cspecs{flex-wrap:wrap;overflow:visible;row-gap:3px;column-gap:3px}
-.citem .cspecs .spec{white-space:nowrap}
+/* Hàng chip thông số: tách khỏi cột giữa, chiếm TRỌN bề ngang thẻ nên đủ chỗ 1 hàng.
+   (Cột giữa chỉ ~125px, để trong đó thì hoặc bị cắt hoặc phải rớt xuống 2 dòng.) */
+.citem{flex-wrap:wrap;row-gap:0}
+.citem .cspecs{flex:0 0 100%;flex-wrap:nowrap;overflow:visible;column-gap:3px;margin:5px 0 0;cursor:pointer}
+.citem .cspecs .spec{white-space:nowrap;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
 
 /* số đếm nhỏ trong chip lọc Combo */
 .chips .chip .chip-n{font-style:normal;margin-left:5px;font-size:9.5px;font-weight:700;opacity:.6}
@@ -3031,7 +3034,7 @@ table.pt td.dvt-cell,table.pt td.dvt-cell .pt-in{font-style:italic;color:#5b6b7b
 .pd .pd-combo{margin-top:4px}
 .pd .pd-combo-sec{display:flex;align-items:baseline;gap:7px}
 .pd .pd-combo-sec em{font-style:normal;font-size:11px;font-weight:700;color:var(--blue);
-  background:#eef4ff;border-radius:20px;padding:1px 7px;line-height:1.5}
+  background:#eef5ff;border-radius:20px;padding:1px 7px;line-height:1.5}
 /* --- dòng sản phẩm: ảnh · tên/mã · (×SL, thành tiền) --- */
 .pd .pd-combo-list{display:block;margin:0}
 .pd .pd-cb{display:flex;align-items:flex-start;gap:11px;padding:11px 0;

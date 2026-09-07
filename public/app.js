@@ -852,10 +852,12 @@ function renderCatalog(){
             +(brand?'<span class="sz brand">'+brand+'</span>':'')
             +(p.comboN?'<span class="sz cbn" title="Combo: đi kèm '+p.comboN+' sản phẩm khác">'+icon('layers',9)+p.comboN+'</span>':'')
           +'</span>'):'')+'</div>'
-        +(specs?'<div class="cspecs">'+specs+'</div>':'')
       +'</div>'
       +'<button class="cfav'+(p.yeuThich?' on':'')+'" title="'+(p.yeuThich?'Bỏ khỏi sản phẩm yêu thích':'Thêm vào sản phẩm yêu thích')+'" onclick="event.stopPropagation();catFav('+i+','+(p.yeuThich?0:1)+')">'+icon('star',14)+'</button>'
-      +'<button class="add" title="Thêm vào bóc tách" onclick="addProduct('+i+')">+</button></div>';
+      +'<button class="add" title="Thêm vào bóc tách" onclick="addProduct('+i+')">+</button>'
+      // hàng chip thông số nằm RIÊNG 1 hàng, rộng hết thẻ -> đủ chỗ, không cắt, không rớt dòng
+      +(specs?'<div class="cspecs" onclick="showDetail('+i+')">'+specs+'</div>':'')
+    +'</div>';
   }).join('');
   S._filtered=list;
 }
