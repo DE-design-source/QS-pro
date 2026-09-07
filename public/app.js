@@ -850,7 +850,7 @@ function renderCatalog(){
         +'<div class="meta"><span class="pr">'+money(p.donGiaBan)+' đ</span>'
           +((brand||p.comboN)?('<span class="metarow">'                      // thương hiệu + combo chung 1 hàng
             +(brand?'<span class="sz brand">'+brand+'</span>':'')
-            +(p.comboN?'<span class="sz cbn" title="Có '+p.comboN+' sản phẩm đi kèm">combo '+p.comboN+'</span>':'')
+            +(p.comboN?'<span class="sz cbn" title="Combo: đi kèm '+p.comboN+' sản phẩm khác">'+icon('layers',9)+p.comboN+'</span>':'')
           +'</span>'):'')+'</div>'
         +(specs?'<div class="cspecs">'+specs+'</div>':'')
       +'</div>'
@@ -1941,18 +1941,17 @@ async function pdLoadCombo_(p, idx, dich, boxId){
       +'<div class="pd-cb-i"><b>'+esc(x.ten||'')
         +(x.comboNguoc?'<span class="cb-rev" title="Liên kết đặt từ phía sản phẩm này">↔</span>':'')+'</b>'
         +'<i>'+esc(x.ma||'')+'</i></div>'
-      +'<div class="pd-cb-r"><span class="pd-cb-sl">×'+sl+'</span>'
-        +'<span class="pd-cb-gia">'+money(tt)+'<em>đ</em></span></div>'
+      +'<div class="pd-cb-r"><span class="pd-cb-sl">×&thinsp;'+sl+'</span>'
+        +'<span class="pd-cb-gia">'+money(tt)+'</span></div>'
     +'</div>';
   }).join('');
   box.innerHTML='<div class="pd-combo">'
-    +'<div class="pd-combo-h"><span class="pd-combo-ic">'+icon('layers',13)+'</span>'
-      +'<span class="pd-combo-t">Sản phẩm đi kèm</span><span class="cb-n">'+list.length+'</span></div>'
+    +'<div class="pd-sec pd-combo-sec">Sản phẩm đi kèm <em>'+list.length+'</em></div>'
     +'<div class="pd-combo-list">'+rows+'</div>'
     +'<div class="pd-combo-ft">'
       +'<span class="pd-combo-tot"><i>Tổng combo kèm theo</i><b>'+money(tong)+' đ</b></span>'
-      +'<button class="pd-combo-add" onclick="pdAddCombo_('+idx+')">'+icon('plus',14)
-        +'<span>Thêm cả combo vào '+esc(dich)+'</span></button>'
+      +'<button class="pd-combo-add" title="Thêm sản phẩm chính và toàn bộ sản phẩm đi kèm vào '+esc(dich)+'"'
+        +' onclick="pdAddCombo_('+idx+')">'+icon('plus',14)+'<span>Thêm cả combo</span></button>'
     +'</div></div>';
 }
 // Thêm sản phẩm chính + toàn bộ sản phẩm đi kèm vào dự án / bóc tách

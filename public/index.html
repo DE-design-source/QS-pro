@@ -1975,11 +1975,16 @@ table.pt tr.pt-empty td{border:none;background:#fcfdfe;padding:0}
 .sp-modal .pd-combo-ft .btn{width:auto;flex:0 0 auto}
 
 /* nhãn "combo N" — nhìn là biết SP nào có sản phẩm đi kèm, khỏi mở từng cái */
-.sp-cbn{display:inline-flex;align-items:center;gap:3px;margin-left:6px;background:#eef2ff;color:#4338ca;
-  border:1px solid #dbe0fb;border-radius:20px;padding:0 6px;font-size:9.5px;font-weight:700;
+.sp-cbn{display:inline-flex;align-items:center;gap:3px;margin-left:6px;background:#eef4ff;color:var(--blue);
+  border:none;border-radius:20px;padding:1px 7px;font-size:9.5px;font-weight:700;
   letter-spacing:.2px;white-space:nowrap;vertical-align:middle}
 .sp-cbn .ico{stroke-width:2.4}
-.citem .meta .sz.cbn{background:#eef2ff;color:#4338ca;border-color:#dbe0fb;font-weight:700}
+/* Nhãn combo trên thẻ SP: .cmid chỉ rộng ~125px, để chữ "combo N" thì chip thương hiệu
+   bị cắt còn "A...". Rút về biểu tượng + số (có tooltip) cho vừa cùng 1 hàng. */
+.citem .meta .sz.cbn{display:inline-flex;align-items:center;gap:2px;background:#eef4ff;color:var(--blue);
+  border:none;font-weight:700;padding:1px 6px;border-radius:5px;font-size:10.5px;line-height:1.5;cursor:help}
+.citem .meta .sz.cbn .ico{stroke-width:2.6}
+.citem .meta .metarow .sz.brand{font-size:11px}
 /* combo hai chiều: dấu cho biết liên kết được đặt từ phía sản phẩm kia */
 .cb-rev{display:inline-block;margin-left:6px;background:#eef2ff;color:#4338ca;border:1px solid #dbe0fb;
   border-radius:20px;padding:0 6px;font-size:9.5px;font-weight:700;white-space:nowrap;vertical-align:middle;cursor:help}
@@ -3012,61 +3017,55 @@ table.pt td.dvt-cell,table.pt td.dvt-cell .pt-in{font-style:italic;color:#5b6b7b
 .chips .chip .chip-n{font-style:normal;margin-left:5px;font-size:9.5px;font-weight:700;opacity:.6}
 .chips .chip.on .chip-n{opacity:.85}
 
-/* ═══════════ KHỐI "SẢN PHẨM ĐI KÈM" — bản thiết kế lại ═══════════
-   Thẻ trắng viền mềm + dải tiêu đề có màu, các dòng ngăn bằng kẻ mảnh
-   (không lồng thẻ trong thẻ như bản trước), tiền canh phải theo cột.   */
-.pd .pd-combo{margin-top:16px;padding:0;border:1px solid #e2e7f4;border-radius:14px;
-  background:#fff;box-shadow:0 1px 3px rgba(35,50,110,.06);overflow:hidden}
-.pd .pd-combo-h{display:flex;align-items:center;gap:8px;padding:10px 12px;
-  background:linear-gradient(180deg,#f2f5ff,#eaf0fe);border-bottom:1px solid #e2e7f4}
-.pd .pd-combo-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
-  border-radius:7px;background:#4338ca;color:#fff;flex:none}
-.pd .pd-combo-ic .ico{stroke-width:2.2}
-.pd .pd-combo-t{flex:1;min-width:0;font-size:11.5px;font-weight:700;letter-spacing:.05em;
-  text-transform:uppercase;color:#312e81}
-.pd .pd-combo .cb-n{flex:none;background:#4338ca;color:#fff;border-radius:20px;padding:1px 8px;
-  font-size:10.5px;font-weight:800;line-height:1.6}
-/* --- các dòng sản phẩm --- */
-.pd .pd-combo-list{display:block;margin:0;gap:0}
-.pd .pd-cb{display:flex;align-items:center;gap:10px;padding:9px 12px;border:none;border-radius:0;
-  background:#fff;box-shadow:none;border-top:1px solid #f0f2f8}
-.pd .pd-cb:first-child{border-top:none}
-.pd .pd-cb:hover{background:#fafbff}
-.pd .pd-cb img,.pd .pd-cb .cb-img{width:38px;height:38px;flex:none;border-radius:9px;
-  border:1px solid #eceff6;background:#fafbfc;object-fit:contain}
-.pd .pd-cb-i{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
-.pd .pd-cb-i b{font-size:12.5px;font-weight:600;color:var(--ink);line-height:1.3;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pd .pd-cb-i i{font-style:normal;font-size:10.5px;color:var(--ink-3);letter-spacing:.02em}
-.pd .pd-cb-r{flex:none;display:flex;align-items:center;gap:9px}
-.pd .pd-cb-sl{background:#eef2ff;color:#4338ca;border-radius:6px;padding:2px 7px;
-  font-size:11px;font-weight:800;line-height:1.4}
-.pd .pd-cb-gia{font-size:12.5px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;white-space:nowrap}
-.pd .pd-cb-gia em{font-style:normal;font-weight:600;color:var(--ink-3);margin-left:1px}
-/* --- chân khối: tổng + nút --- */
-.pd .pd-combo-ft{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin:0;
-  padding:11px 12px 12px;background:#fbfcff;border-top:1px solid #e9edf7}
-.pd .pd-combo-tot{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
-.pd .pd-combo-tot i{font-style:normal;font-size:11.5px;color:var(--ink-3)}
-.pd .pd-combo-tot b{font-size:15px;font-weight:800;color:#312e81;font-variant-numeric:tabular-nums}
-.pd .pd-combo-add{display:inline-flex;align-items:center;justify-content:center;gap:7px;width:100%;
-  padding:9px 14px;border-radius:10px;border:1px solid #c7d2fe;background:#eef2ff;color:#4338ca;
-  font:700 12.5px/1 inherit;cursor:pointer;
-  transition:background .14s,border-color .14s,color .14s,box-shadow .14s,transform .08s}
-.pd .pd-combo-add .ico{stroke-width:2.4}
-.pd .pd-combo-add:hover{background:#4338ca;border-color:#4338ca;color:#fff;box-shadow:0 4px 14px rgba(67,56,202,.28)}
-.pd .pd-combo-add:active{transform:translateY(1px)}
-/* popup rộng hơn panel -> tổng bên trái, nút bên phải */
-.sp-modal .pd-combo-ft{flex-direction:row;align-items:center;justify-content:space-between;gap:16px}
-.sp-modal .pd-combo-tot{flex:1;min-width:0}
-.sp-modal .pd-combo-add{width:auto;flex:0 0 auto}
-
 /* thẻ SP ở thư viện: thương hiệu + nhãn combo chung 1 hàng */
 .citem .meta{align-self:stretch}
 /* ép CÙNG 1 HÀNG: panel hẹp nên tên thương hiệu tự cắt bớt, nhãn combo luôn giữ nguyên */
 .citem .meta .metarow{display:flex;align-items:center;flex-wrap:nowrap;gap:5px;min-width:0;max-width:100%}
 .citem .meta .metarow .sz.brand{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .citem .meta .metarow .sz.cbn{flex:none}
+
+/* ═══════════ SẢN PHẨM ĐI KÈM — theo đúng ngôn ngữ của panel chi tiết ═══════════
+   Panel này vốn rất tĩnh (tiêu đề mảnh + kẻ chân, số liệu canh phải). Bản trước
+   đóng khung tím nổi bần bật nên lạc lõng. Nay dùng lại đúng .pd-sec, chỉ khác ở
+   phần dòng sản phẩm và nút hành động.                                            */
+.pd .pd-combo{margin-top:4px}
+.pd .pd-combo-sec{display:flex;align-items:baseline;gap:7px}
+.pd .pd-combo-sec em{font-style:normal;font-size:11px;font-weight:700;color:var(--blue);
+  background:#eef4ff;border-radius:20px;padding:1px 7px;line-height:1.5}
+/* --- dòng sản phẩm: ảnh · tên/mã · (×SL, thành tiền) --- */
+.pd .pd-combo-list{display:block;margin:0}
+.pd .pd-cb{display:flex;align-items:flex-start;gap:11px;padding:11px 0;
+  border:none;border-radius:0;background:transparent;box-shadow:none;border-bottom:1px solid var(--hair)}
+.pd .pd-cb:hover{background:transparent}
+.pd .pd-cb img,.pd .pd-cb .cb-img{width:42px;height:42px;flex:none;border-radius:8px;
+  border:1px solid var(--hair);background:#fafbfc;object-fit:contain}
+.pd .pd-cb-i{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;padding-top:1px}
+.pd .pd-cb-i b{font-size:12.5px;font-weight:600;color:var(--ink);line-height:1.35;
+  white-space:normal;overflow:visible;text-overflow:clip}      /* tên hiện đủ, không cắt cụt */
+.pd .pd-cb-i i{font-style:normal;font-size:11px;color:var(--ink-3);letter-spacing:.01em}
+.pd .pd-cb-r{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:3px;padding-top:1px}
+.pd .pd-cb-sl{background:transparent;color:var(--ink-3);padding:0;font-size:11.5px;font-weight:600;line-height:1.3}
+.pd .pd-cb-gia{font-size:13px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;
+  white-space:nowrap;letter-spacing:-.01em}
+/* --- tổng + nút --- */
+.pd .pd-combo-ft{display:flex;flex-direction:column;align-items:stretch;gap:11px;margin:0;
+  padding:12px 0 2px;background:transparent;border:none}
+.pd .pd-combo-tot{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.pd .pd-combo-tot i{font-style:normal;font-size:12px;color:var(--ink-3)}
+.pd .pd-combo-tot b{font-size:15px;font-weight:750;color:var(--navy);font-variant-numeric:tabular-nums;
+  letter-spacing:-.015em;white-space:nowrap}
+.pd .pd-combo-add{display:inline-flex;align-items:center;justify-content:center;gap:7px;width:100%;
+  white-space:nowrap;padding:9px 14px;border-radius:9px;
+  border:1px solid var(--navy);background:#fff;color:var(--navy);
+  font:650 12.5px/1 inherit;letter-spacing:-.01em;cursor:pointer;
+  transition:background .14s,color .14s,box-shadow .14s,transform .08s}
+.pd .pd-combo-add .ico{stroke-width:2.3}
+.pd .pd-combo-add:hover{background:var(--navy);color:#fff;box-shadow:0 3px 10px rgba(18,50,76,.22)}
+.pd .pd-combo-add:active{transform:translateY(1px)}
+/* popup rộng: tổng bên trái, nút bên phải */
+.sp-modal .pd-combo-ft{flex-direction:row;align-items:center;justify-content:space-between;gap:18px}
+.sp-modal .pd-combo-tot{flex:1;min-width:0}
+.sp-modal .pd-combo-add{width:auto;flex:0 0 auto;padding:9px 18px}
 </style>
 
 <!-- ===== TOP NAV ===== -->
