@@ -1617,6 +1617,15 @@ table.tk.cpflat tr.cp-foot td{background:#f4f6f8;border-top:1px solid var(--navy
 .pd .pd-actions{display:flex;justify-content:flex-end;gap:9px;border-top:1px solid var(--hair);padding-top:13px}
 .pd-head .spduyet{margin-left:auto;margin-right:10px}
 
+/* ═══ Bảng Phần thô: hiện ĐỦ chữ, không cắt (giống bảng Bóc tách) ═══ */
+table.pt td{vertical-align:top}
+table.pt td.c,table.pt td.n{vertical-align:middle}
+.pt-in.pt-area{resize:none;overflow:hidden;white-space:pre-wrap;word-break:break-word;line-height:1.45;min-height:26px}
+table.pt td.pt-gc,table.pt td.pt-gc .pt-area{white-space:pre-wrap;word-break:break-word}
+.pt-in{text-overflow:clip}
+/* ô tiền: 1 dòng, canh phải, không cắt số */
+.pt-in.pt-money{white-space:nowrap;font-variant-numeric:tabular-nums}
+
 /* ô nhập % lợi nhuận trong bảng Phần thô */
 .pt-in.pt-pct-in{text-align:right;font-weight:600;color:#a16207}
 .pt-in.pt-pct-in:focus{color:var(--ink)}

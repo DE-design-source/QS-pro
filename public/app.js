@@ -4976,7 +4976,18 @@ function ptComputeAll(){
     vatPct:vatPct,vat:vat,afterTax:grand+vat,profitPct:grand?(profit/grand*100):0};
 }
 /* ô nhập */
-function ptInp(si,ii,f,v,cls){ return '<input class="pt-in '+(cls||'')+'" type="number" step="any" value="'+(v===''||v==null?'':v)+'" onchange="ptEdit('+si+','+ii+',\''+f+'\',this.value)">'; }
+// Ô tiền hiện có dấu chấm ("10.000.000") cho dễ đọc, gõ kiểu nào cũng nhận;
+// các ô số khác (diện tích, hệ số, %) giữ nguyên ô number để còn nhập thập phân.
+function ptMoneyN_(v){ if(typeof v==='number') return v; var x=parseInt(String(v==null?'':v).replace(/[^\d-]/g,''),10); return isNaN(x)?0:x; }
+function ptInp(si,ii,f,v,cls){
+  cls=cls||'';
+  var isMoney=cls.indexOf('pt-money')>=0;
+  if(isMoney){
+    var t=(v===''||v==null||!Number(v))?'':money(v);
+    return '<input class="pt-in '+cls+'" type="text" inputmode="numeric" value="'+esc(t)+'" onchange="ptEdit('+si+','+ii+',\''+f+'\',this.value)">';
+  }
+  return '<input class="pt-in '+cls+'" type="number" step="any" value="'+(v===''||v==null?'':v)+'" onchange="ptEdit('+si+','+ii+',\''+f+'\',this.value)">';
+}
 function ptTxt(si,ii,f,v){ return '<textarea class="pt-in pt-area" rows="1" oninput="autoGrow(this)" onchange="ptEdit('+si+','+ii+',\''+f+'\',this.value)">'+esc(v||'')+'</textarea>'; }
 /* ═══ CÔNG THỨC GIÁ — lấy đúng theo file báo giá (sheet "mai coi công thức ở đây") ═══
    Khối lượng     I = G × H                  (diện tích × hệ số)
@@ -4996,8 +5007,8 @@ function ptDgTuLn_(dgnt,lnPct){
 function ptLnTuDg_(dgnt,dg){ dg=ptN(dg); return dg?((dg-ptN(dgnt))/dg*100):0; }
 function ptEdit(si,ii,f,val){
   var sec=S.phanTho[si]; if(!sec) return;
-  var numF={dt:1,hs:1,kl:1,dg:1,dgnt:1,up:1,lnPct:1};
-  var v = numF[f]?ptN(val):val;
+  var numF={dt:1,hs:1,kl:1,dg:1,dgnt:1,up:1,lnPct:1}, moneyF={dg:1,dgnt:1,up:1};
+  var v = moneyF[f]?ptMoneyN_(val):(numF[f]?ptN(val):val);
   if(ii<0){ sec[f]=v; }
   else {
     var it=sec.items[ii]; if(!it) return;
@@ -5049,12 +5060,12 @@ function ptHeaderHtml(){
 function ptInfo(k,v){ return '<div class="pt-inf"><span class="k">'+esc(k)+'</span><span class="v">'+esc(v||'—')+'</span></div>'; }
 // Cột bảng Phần thô: [key, nhãn, canh, rộng]
 var PT_COLS=[
-  ['stt','STT','c',40],['noidung','NỘI DUNG CÔNG VIỆC','l',280],['dvt','ĐVT','c',52],
+  ['stt','STT','c',44],['noidung','NỘI DUNG CÔNG VIỆC','l',300],['dvt','ĐVT','c',74],
   ['dientich','DIỆN TÍCH','n',70],['heso','HỆ SỐ','n',54],['khoiluong','KHỐI LƯỢNG','n',92],
-  ['dgnt','ĐƠN GIÁ (NHÀ THẦU)','n',120],['ttnt','THÀNH TIỀN (NHÀ THẦU)','n',130],
+  ['dgnt','ĐƠN GIÁ (NHÀ THẦU)','n',134],['ttnt','THÀNH TIỀN (NHÀ THẦU)','n',140],
   ['lnvnd','LỢI NHUẬN (VND)','n',116],['margin','LỢI NHUẬN/GIÁ BÁN (%)','n',120],
-  ['markup','LỢI NHUẬN/GIÁ VỐN (%)','n',120],['dg','ĐƠN GIÁ','n',116],
-  ['tt','THÀNH TIỀN','n',130],['ghichu','GHI CHÚ','l',150]
+  ['markup','LỢI NHUẬN/GIÁ VỐN (%)','n',120],['dg','ĐƠN GIÁ','n',134],
+  ['tt','THÀNH TIỀN','n',140],['ghichu','GHI CHÚ','l',210]
 ];
 function ptColToggle(k){ S._ptCols=S._ptCols||{}; S._ptCols[k]=!S._ptCols[k]; renderPhanTho(); }
 // ===== Chức năng bảng (giống Bóc tách): rộng cột · đổi vị trí cột · sắp xếp =====
@@ -5226,6 +5237,8 @@ function renderPhanTho(){
     + '</div>'
     + ptChips
     + '<div class="pt-scroll"><table class="pt">'+colg+'<thead>'+thead+'</thead><tbody>'+body+'</tbody></table></div>';
+  // giãn sẵn các ô chữ để hiện ĐỦ nội dung, không bị cắt (giống bảng Bóc tách)
+  pw.querySelectorAll('textarea.pt-area').forEach(autoGrow);
 }
 
 /* ===================== AUTH & ADMIN ===================== */
