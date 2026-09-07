@@ -1077,8 +1077,8 @@ function spBulkToProject(){
   if(!S.cur){ toast('Chưa chọn dự án — chọn ở ô "Sản phẩm trong dự án" bên trái'); return; }
   spAddManyToProject_(list); S._spSel={}; spFilter();
 }
-function spAddToProject(i){ var p=(S._spList||[])[i]; if(!p) return; if(!S.cur){ toast('Chưa chọn dự án'); return; }
-  addProdObj(p); renderSpProjPanel_(); setTimeout(renderSpProjPanel_,700); }
+async function spAddToProject(i){ var p=(S._spList||[])[i]; if(!p) return; if(!S.cur){ toast('Chưa chọn dự án'); return; }
+  await addProdObj(p); renderSpProjPanel_(); setTimeout(renderSpProjPanel_,700); }
 async function spRemoveFromProject(id){ await delLine(id); renderSpProjPanel_(); }
 // ==== Cột bảng SP có thể ẩn/hiện (giữa cột chọn và cột thao tác) ====
 /* ═══ CỘT BẢNG DANH SÁCH SP = ĐÚNG BỘ TRƯỜNG CỦA FORM NHẬP ═══
@@ -1827,7 +1827,7 @@ function spModal(i){
     +'</div></div>';
   document.body.appendChild(ov);
   document.addEventListener('keydown',spModalKey_);
-  pdLoadCombo_(p, i, 'du an');
+  pdLoadCombo_(p, i, 'dự án');
 }
 /* Nạp & hiện danh sách sản phẩm đi kèm trong modal chi tiết */
 async function pdLoadCombo_(p, idx, dich){
@@ -1855,8 +1855,8 @@ async function pdAddCombo_(idx){
   if(okTab){ if(chinh) await spAddToProject(idx); }
   else { await addProduct(idx); }
   for(var k=0;k<list.length;k++){
-    var x=list[k], sl=Number(x.comboSL)||1;
-    for(var q=0;q<sl;q++){ await addProdObj(x, S.selFloor||''); }
+    var x=list[k];
+    await addProdObj(x, S.selFloor||'', Number(x.comboSL)||1);   // 1 dòng, đúng số lượng đi kèm
   }
   toast('Đã thêm sản phẩm chính + '+list.length+' sản phẩm đi kèm');
 }
@@ -2069,8 +2069,9 @@ function hideDetail(){ S._detailIdx=null; document.getElementById('pdPanel').sty
 /* ===== ADD to takeoff ===== */
 async function addProduct(i){ var p=(S._filtered||[])[i]; if(p) await addProdObj(p); }
 async function addProductObj(i){ var p=(S._filtered||[])[i]; if(p) await addProdObj(p); }
-async function addProdObj(p,floor){
+async function addProdObj(p,floor,sl){
   if(!S.cur){ toast('Chưa chọn dự án — bấm Tạo dự án +'); return; }
+  sl=Math.max(1, Math.round(Number(sl)||1));      // thêm nhiều đơn vị 1 lần (dùng cho combo)
   if(floor==null) floor=S.selFloor||'';
   if(floor==='CHƯA PHÂN TẦNG') floor='';
   // cộng dồn SL nếu đã có cùng SP trong cùng hạng mục + tầng
@@ -2084,18 +2085,18 @@ async function addProdObj(p,floor){
       && String(l.moTa||'').trim()===String(p.moTa||'').trim()
       && !String(l.khuVuc||'').trim();
   })[0];
-  if(same){ editLine(same.lineId,{soLuong:(Number(same.soLuong)||0)+1}); toast('+1 số lượng: '+p.ten); return; }
+  if(same){ editLine(same.lineId,{soLuong:(Number(same.soLuong)||0)+sl}); toast('+'+sl+' số lượng: '+p.ten); return; }
   var prod=Object.assign({},p,{ nhom:S.node, hangMuc:nodeName(S.node), loai:nodeName(S.node), tang:floor, extra:{nganh:p.nhom||''} });
   // ---- Optimistic: hiện dòng NGAY, đồng bộ server chạy nền ----
   var dgVon=Number(p.donGiaVon)||0, dgBan=Number(p.donGiaBan)||0;
   var temp={ lineId:'tmp_'+(S._tmpN=(S._tmpN||0)+1), _pending:true,
     khuVuc:'', maBanVe:'', maSP:p.ma||'', ten:p.ten||'', thuongHieu:p.thuongHieu||'', ncc:p.ncc||'',
     moTa:p.moTa||'', kichThuoc:p.kichThuoc||p.size||'', dvt:p.dvt||'Cái', hinhAnh:p.hinhAnh||'',
-    soLuong:1, donGiaVon:dgVon, donGiaBan:dgBan, thanhTienVon:dgVon, thanhTienBan:dgBan, lnPct:0,
+    soLuong:sl, donGiaVon:dgVon, donGiaBan:dgBan, thanhTienVon:dgVon*sl, thanhTienBan:dgBan*sl, lnPct:0,
     nhom:S.node, hangMuc:nodeName(S.node), tang:floor };
   S.lines.push(temp); renderTree(); renderFloors(); renderTable(); renderCard();
-  toast('Đã thêm: '+p.ten);
-  api('addLine', S.cur.maDA, prod, 1).then(function(l){
+  toast('Đã thêm: '+p.ten+(sl>1?(' ×'+sl):''));
+  return api('addLine', S.cur.maDA, prod, sl).then(function(l){
     var i=S.lines.indexOf(temp); if(i>=0) S.lines[i]=l; else S.lines.push(l);
     renderTree(); renderTable(); renderCard();
     if(document.getElementById('v-dash').classList.contains('on')) renderDash();

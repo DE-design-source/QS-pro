@@ -567,6 +567,7 @@ async function getCombo(key) {
   let rows = [];
   try { rows = await supa.select('sp_combo', { filter: supa.eq('sp_id', cur.id), order: 'sort_no.asc', limit: 100 }); }
   catch (e) { if (/sp_combo/.test((e && e.message) || '')) return []; throw e; }   // bảng chưa sẵn sàng -> coi như chưa có combo
+  rows = rows.filter(function (r) { return String(r.sp_kem_id) !== String(cur.id); });   // bỏ dòng tự trỏ vào chính nó
   if (!rows.length) return [];
   const ids = rows.map(function (r) { return r.sp_kem_id; });
   const sps = await supa.select('db_san_pham', { select: '*', filter: 'id=in.(' + ids.join(',') + ')', limit: 100, noScope: true });
