@@ -2117,40 +2117,79 @@ html,body,.catpanel,.catpanel-top,.cat-list,#pdPanel,.fltpop,.tree-pop,.spe-hist
   color:var(--ink-2);background:#fff;cursor:pointer}
 @media(max-width:900px){ .sppg{gap:7px} .sppg-nav{margin-left:0;width:100%;justify-content:center} }
 
-/* ═══ Khung nhìn Danh mục · Chờ duyệt · Đã duyệt ═══ */
+/* ═══ Khung nhìn Tất cả · Chưa duyệt · Đã duyệt ═══ */
 .spviewtabs{display:flex;align-items:center;gap:6px;padding:10px 16px 0}
 .spvt{border:1px solid var(--hair-2);background:#fff;color:var(--ink-2);border-radius:var(--r-md);
   padding:6px 12px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;
   align-items:center;gap:6px;transition:all .13s}
 .spvt:hover{border-color:var(--blue);color:var(--blue)}
 .spvt.on{background:var(--navy);border-color:var(--navy);color:#fff}
-.spvt-n{background:#e11d48;color:#fff;border-radius:9px;min-width:17px;height:17px;padding:0 5px;
+.spvt-n{background:#eef1f5;color:var(--ink-2);border-radius:9px;min-width:17px;height:17px;padding:0 5px;
   font-size:10.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
-.spvt.on .spvt-n{background:#fff;color:var(--navy)}
+.spvt.warn .spvt-n{background:#fef3c7;color:#a16207}
+.spvt.on .spvt-n{background:rgba(255,255,255,.22);color:#fff}
 .spvt-note{font-size:11.5px;color:var(--ink-3);margin-left:6px}
-/* bảng duyệt */
-.sp-diffs{max-width:520px}
-.spd{display:flex;align-items:center;gap:7px;font-size:12px;padding:2px 0;flex-wrap:wrap}
-.spd-f{font-weight:650;color:var(--ink-2);min-width:120px}
-.spd-o{color:#b91c1c;text-decoration:line-through;opacity:.75}
-.spd-a{color:var(--ink-3)}
-.spd-n{color:#15803d;font-weight:600}
-.spd-act{white-space:nowrap}
-.spd-act .btn{margin-left:5px}
-.spd-by{font-size:11px;color:var(--ink-3);margin-top:3px}
-.spst{display:inline-block;padding:3px 9px;border-radius:var(--r-sm);font-size:11px;font-weight:650}
-.spst-da_duyet{background:#dcfce7;color:#15803d}
-.spst-tu_choi{background:#fee2e2;color:#b91c1c}
-.spst-cho_duyet{background:#fef3c7;color:#a16207}
-.sp-card.review-mode .tbl-wrap{max-height:none}
-/* ô vừa gửi duyệt (chưa áp dụng) */
-.spin.pend{border-color:#f0b429;background:#fffbf0}
-/* quyền con trong modal tài khoản */
-.admsub{margin-top:9px;border:1px solid var(--hair);border-radius:var(--r-md);padding:9px 11px;background:#fbfcfe}
-.admsub-h{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
-.admsub .admck{display:flex;align-items:center;gap:7px;font-size:12.5px;padding:3px 0}
-.admsub .admck i{font-style:normal;color:var(--ink-3);font-size:11.5px}
-.admsub-note{font-size:11px;color:var(--ink-3);margin-top:5px}
+/* nhãn trạng thái duyệt trên từng dòng */
+.spduyet{display:inline-block;padding:3px 9px;border-radius:var(--r-sm);font-size:11px;font-weight:650;
+  background:#fef3c7;color:#a16207;white-space:nowrap}
+.spduyet.on{background:#dcfce7;color:#15803d}
+/* nút duyệt trên dòng + hàng loạt */
+.sp-act.ok:hover{color:#15803d;border-color:#bbf7d0;background:#f0fdf4}
+.sp-act.undo{color:#15803d}
+.sp-act.undo:hover{color:#a16207;border-color:#fde68a;background:#fffbeb}
+.spb-b.duyet{background:rgba(255,255,255,.14);color:#fff}
+.spb-b.duyet:hover{background:rgba(255,255,255,.24)}
+/* ═══ MODAL TÀI KHOẢN — thiết kế lại ═══ */
+.amodal-user{width:min(620px,94vw);max-height:92vh;display:flex;flex-direction:column}
+.amodal-user .amodal-hd{display:flex;align-items:flex-start;gap:12px;padding:18px 22px 14px;border-bottom:1px solid var(--hair)}
+.amodal-user .amodal-hd h3{margin:0;font-size:16px;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
+.amodal-user .amodal-hd p{margin:3px 0 0;font-size:12px;color:var(--ink-3)}
+.amodal-user .amodal-x{margin-left:auto;cursor:pointer;color:var(--ink-3);font-size:15px;line-height:1;padding:4px}
+.amodal-user .amodal-x:hover{color:var(--ink)}
+.amodal-user .amodal-bd{padding:16px 22px;overflow:auto;display:flex;flex-direction:column;gap:18px}
+.amodal-user .amodal-ft{padding:13px 22px;border-top:1px solid var(--hair);background:#fcfdfe;
+  display:flex;justify-content:flex-end;gap:9px}
+.asec-h{display:flex;align-items:center;gap:8px;font-size:10.5px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:9px}
+.asec-n{background:#eef1f5;color:var(--ink-2);border-radius:var(--r-sm);padding:1px 7px;font-size:10.5px;letter-spacing:0}
+.asec-quick{margin-left:auto;display:flex;gap:10px;text-transform:none;letter-spacing:0;font-weight:600;font-size:11.5px}
+.asec-quick a{color:var(--blue);cursor:pointer}
+.asec-quick a:hover{text-decoration:underline}
+.agrid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.amodal-user .afield label{display:block;font-size:11.5px;font-weight:600;color:var(--ink-2);margin-bottom:5px}
+.amodal-user .afield label em{color:#e11d48;font-style:normal}
+.amodal-user .afield input{width:100%;border:1px solid var(--hair-2);border-radius:var(--r-md);padding:9px 11px;
+  font:inherit;font-size:13px;color:var(--ink);background:#fff;transition:border-color .13s,box-shadow .13s}
+.amodal-user .afield input:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.amodal-user .afield input:disabled{background:#f4f6f9;color:var(--ink-3)}
+/* vai trò: 2 thẻ chọn */
+.aseg{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.aseg-i{display:flex;align-items:flex-start;gap:9px;border:1px solid var(--hair-2);border-radius:var(--r-lg);
+  padding:11px 12px;cursor:pointer;transition:all .13s;background:#fff}
+.aseg-i:hover{border-color:var(--blue)}
+.aseg-i.on{border-color:var(--blue);background:#f7faff;box-shadow:0 0 0 2.5px rgba(37,99,235,.09)}
+.aseg-i input{margin-top:2px;flex:none;accent-color:var(--blue)}
+.aseg-i b{display:block;font-size:13px;font-weight:650;color:var(--ink)}
+.aseg-i i{display:block;font-style:normal;font-size:11.5px;color:var(--ink-3);margin-top:2px;line-height:1.35}
+/* các tab được cấp */
+.admperms{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.admck{display:flex;align-items:center;gap:8px;border:1px solid var(--hair);border-radius:var(--r-md);
+  padding:8px 11px;font-size:12.5px;color:var(--ink-2);cursor:pointer;background:#fff;transition:all .13s}
+.admck:hover{border-color:var(--hair-2);background:#fcfdfe}
+.admck.on{border-color:var(--blue);background:#f7faff;color:var(--ink)}
+.admck input{flex:none;accent-color:var(--blue)}
+/* mức quyền trong tab Danh sách SP */
+.admsub{margin-top:11px;border:1px solid var(--hair);border-left:3px solid var(--blue);
+  border-radius:var(--r-md);padding:11px 13px;background:#fbfcfe}
+.admsub-h{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px}
+.admrd{display:flex;align-items:flex-start;gap:9px;padding:7px 9px;border:1px solid transparent;
+  border-radius:var(--r-md);cursor:pointer;transition:all .12s}
+.admrd:hover{background:#f4f7fc}
+.admrd.on{border-color:var(--blue);background:#fff}
+.admrd input{margin-top:2px;flex:none;accent-color:var(--blue)}
+.admrd b{display:block;font-size:12.5px;font-weight:650;color:var(--ink)}
+.admrd i{display:block;font-style:normal;font-size:11.5px;color:var(--ink-3);margin-top:1px;line-height:1.35}
+@media(max-width:640px){ .agrid2,.aseg,.admperms{grid-template-columns:1fr} }
 /* thanh hàng loạt */
 /* ═══ Thanh SỬA HÀNG LOẠT — nổi cố định, chia 3 vùng rõ ràng ═══ */
 .spbulk{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:60;

@@ -69,6 +69,7 @@ function prodToObj(r) {
     donGiaVon: n(r.gia_dai_ly), donGiaBan: n(r.gia_dai_ly), lnPct: 0, recordId: r.id, ngayCapNhat: s(r.ngay_cap_nhat),
     // Giá trị GỐC của TẤT CẢ trường trong form Nhập — để bảng Danh sách SP hiển thị/sửa
     // được đúng bộ cột như form (hiển thị là '12W'/'4000K' nhưng DB lưu '12'/'4000').
+    daDuyet: r.da_duyet === true, nguoiDuyet: s(r.nguoi_duyet), ngayDuyet: s(r.ngay_duyet),
     raw: rawCols_(r)
   };
 }
@@ -350,7 +351,8 @@ const DB_LABEL2COL = {
   'TRẠNG THÁI': 'trang_thai', 'GHI CHÚ': 'ghi_chu'
 };
 // Migration chạy tay -> nếu DB chưa có cột thì đổi lỗi kỹ thuật thành hướng dẫn cụ thể
-const COL_SQL = { ten_chip_led: 'db/chip_name.sql' };
+const COL_SQL = { ten_chip_led: 'db/chip_name.sql', da_duyet: 'db/sp_duyet_status.sql',
+  nguoi_duyet: 'db/sp_duyet_status.sql', ngay_duyet: 'db/sp_duyet_status.sql' };
 function colErr_(e) {
   const m = (e && e.message) || '';
   for (const col in COL_SQL) {
@@ -462,6 +464,11 @@ async function updateDbProductTracked(actor, key, data, opts) {
   const ma = s(cur.ma_sp);
   if (!changes.length) return { updated: false, changes: 0 };
   row.ngay_cap_nhat = new Date().toISOString();
+  // Nội dung đổi -> phải duyệt lại. Ghi luôn 1 dòng lịch sử cho dễ truy vết.
+  if (!opts.giuDuyet && cur.da_duyet === true) {
+    row.da_duyet = false; row.nguoi_duyet = null; row.ngay_duyet = null;
+    changes.push({ field: 'TRẠNG THÁI DUYỆT', old: 'Đã duyệt', new: 'Chưa duyệt (do sửa lại)' });
+  }
   // CHỈ cập nhật ĐÚNG dòng đang sửa (trước đây eq('ma_sp') -> ghi đè MỌI biến thể cùng mã -> lỗi trùng khoá)
   try { await supa.update('db_san_pham', supa.eq('id', cur.id), row); } catch (e) { throw colErr_(e); }
   _cache = null;
@@ -475,6 +482,46 @@ async function updateDbProductTracked(actor, key, data, opts) {
     (opts.auditPrefix || 'Sửa SP ') + ma + ' (' + s(cur.ten_sp) + '): ' +
     changes.map(function (c) { return c.field; }).join(', '));
   return { updated: true, changes: changes.length, ten: s(cur.ten_sp), ma: ma, id: cur.id };
+}
+// Đánh dấu ĐÃ DUYỆT / BỎ DUYỆT cho 1 hoặc nhiều sản phẩm (chỉ tài khoản có quyền duyệt).
+// Không đụng tới nội dung SP, chỉ đổi trạng thái + ghi lịch sử.
+async function setSpDuyet(actor, keys, approve) {
+  keys = Array.isArray(keys) ? keys : [keys];
+  const who = (actor && actor.u) || 'ẩn danh';
+  const now = new Date().toISOString();
+  let ok = 0; const errs = []; const hist = [];
+  for (const k of keys) {
+    try {
+      const cur = await getDbProduct(k);
+      if (!cur) { errs.push({ key: k, error: 'Không tìm thấy sản phẩm' }); continue; }
+      if ((cur.da_duyet === true) === !!approve) continue;              // đã đúng trạng thái rồi
+      await guardSpChung_(k);
+      try {
+        await supa.update('db_san_pham', supa.eq('id', cur.id), approve
+          ? { da_duyet: true, nguoi_duyet: who, ngay_duyet: now }
+          : { da_duyet: false, nguoi_duyet: null, ngay_duyet: null });
+      } catch (e) { throw colErr_(e); }
+      hist.push({ ma_sp: s(cur.ma_sp), field: 'TRẠNG THÁI DUYỆT',
+        old: approve ? 'Chưa duyệt' : 'Đã duyệt', new: approve ? 'Đã duyệt' : 'Chưa duyệt',
+        ten: s(cur.ten_sp) });
+      ok++;
+    } catch (e) { if (errs.length < 5) errs.push({ key: k, error: e.message }); }
+  }
+  if (hist.length) {
+    try {
+      await supa.insert('db_san_pham_history', hist.map(function (h) {
+        return { ma_sp: h.ma_sp, field: h.field, old_value: h.old, new_value: h.new,
+          changed_by: (actor && actor.uid) || null, changed_by_name: who };
+      }));
+    } catch (e) { console.warn('[product history] duyệt:', e && e.message); }
+    await logAudit_(actor, approve ? 'duyet_sp' : 'bo_duyet_sp',
+      (approve ? 'Duyệt ' : 'Bỏ duyệt ') + ok + ' sản phẩm: ' +
+      hist.slice(0, 8).map(function (h) { return h.ma_sp || h.ten; }).join(', ') + (hist.length > 8 ? '…' : ''));
+  }
+  _cache = null;
+  const out = { ok: ok };
+  if (errs.length) out.errors = errs;
+  return out;
 }
 async function getProductHistory(ma) {
   ma = s(ma).trim(); if (!ma) return [];
@@ -606,7 +653,7 @@ async function getPurchaseOrders(maDA) {
 module.exports = {
   bootstrap, buildCatalog, getProducts, getCatalogSheets, getProjects, getProject, createProject, updateProject, deleteProject, duplicateProject,
   getLines, addLine, addBlankLine, updateLine, deleteLine, saveLineAsProduct, saveDbProduct, deleteDbProduct, uploadImage,
-  getDbProduct, updateDbProductTracked, getProductHistory, diffDbProduct, dataToRow_, logAudit_,
+  getDbProduct, updateDbProductTracked, getProductHistory, diffDbProduct, dataToRow_, logAudit_, setSpDuyet,
   getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, getDashboard, getQuote, importParse, importCommit,
   savePurchaseOrder, getPurchaseOrders
 };
