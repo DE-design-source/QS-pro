@@ -566,7 +566,7 @@ async function getCombo(key) {
   const cur = await getDbProduct(key); if (!cur) return [];
   let rows = [];
   try { rows = await supa.select('sp_combo', { filter: supa.eq('sp_id', cur.id), order: 'sort_no.asc', limit: 100 }); }
-  catch (e) { if (comboMissing_(e)) return []; throw e; }        // chưa chạy SQL -> coi như chưa có combo
+  catch (e) { if (/sp_combo/.test((e && e.message) || '')) return []; throw e; }   // bảng chưa sẵn sàng -> coi như chưa có combo
   if (!rows.length) return [];
   const ids = rows.map(function (r) { return r.sp_kem_id; });
   const sps = await supa.select('db_san_pham', { select: '*', filter: 'id=in.(' + ids.join(',') + ')', limit: 100, noScope: true });
@@ -578,6 +578,18 @@ async function getCombo(key) {
   });
 }
 function comboMissing_(e) { const m = (e && e.message) || ''; return /sp_combo/.test(m) && /(does not exist|schema cache|PGRST205|404)/i.test(m); }
+// Dịch lỗi Supabase của 1 bảng thành hướng dẫn ĐÚNG nguyên nhân
+function tblErr_(e, table, file) {
+  const m = (e && e.message) || '';
+  if (!new RegExp(table).test(m)) return e;
+  if (/42501|row-level security/i.test(m))
+    return new Error('Bảng ' + table + ' đang BẬT RLS nên không ghi được. Vào Supabase → SQL Editor chạy: ' +
+      'alter table public.' + table + ' disable row level security; ' +
+      'grant all on public.' + table + ' to anon, authenticated, service_role;');
+  if (/does not exist|schema cache|PGRST205|404/i.test(m))
+    return new Error('Chưa có bảng ' + table + '. Vào Supabase → SQL Editor chạy file ' + file + ' rồi thử lại.');
+  return e;
+}
 // Ghi đè toàn bộ danh sách SP đi kèm của 1 sản phẩm
 async function setCombo(actor, key, items) {
   const cur = await getDbProduct(key); if (!cur) throw new Error('Không tìm thấy sản phẩm.');
@@ -591,10 +603,7 @@ async function setCombo(actor, key, items) {
         .map(function (x, i) { return { sp_id: cur.id, sp_kem_id: Number(x.id), so_luong: n(x.soLuong) || 1, ghi_chu: s(x.ghiChu), sort_no: i }; });
       await supa.insert('sp_combo', rows);
     }
-  } catch (e) {
-    if (comboMissing_(e)) throw new Error('Chưa có bảng sp_combo. Vào Supabase → SQL Editor chạy file db/sp_combo.sql rồi thử lại.');
-    throw e;
-  }
+  } catch (e) { throw tblErr_(e, 'sp_combo', 'db/sp_combo.sql'); }
   await spHistory_(actor, s(cur.ma_sp), [{ field: 'SẢN PHẨM ĐI KÈM', old: '', new: items.length ? (items.length + ' sản phẩm') : 'Bỏ hết' }]);
   await logAudit_(actor, 'sua_combo', 'Đặt ' + items.length + ' sản phẩm đi kèm cho ' + s(cur.ma_sp) + ' (' + s(cur.ten_sp) + ')');
   _cache = null;
