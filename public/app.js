@@ -897,14 +897,20 @@ function pdMedia_(p){
     +(p.ten?'<div class="pd-name">'+esc(p.ten)+'</div>':'')
     +keyHtml;
 }
+/* pdMedia_ dùng CHUNG cho panel Bóc tách và popup Danh sách SP -> id bên trong bị TRÙNG.
+   Phải tra phần tử trong đúng khung đang mở, nếu không bấm ‹ › ở popup lại lật ảnh của panel. */
+function pdBox_(){
+  return document.querySelector('#spModalOv .sp-modal') || document.getElementById('pdPanel') || document;
+}
+function pdEl_(id){ var b=pdBox_(); return (b&&b.querySelector)?b.querySelector('#'+id):document.getElementById(id); }
 // Chọn ảnh thứ i trong gallery
 function pdSetImg_(i){
   var imgs=S._pdImgs||[]; if(!imgs.length) return;
   i=((i%imgs.length)+imgs.length)%imgs.length; S._pdIdx=i;
-  var im=document.getElementById('pdMainImg');
+  var im=pdEl_('pdMainImg');
   if(im){ im.src=imgs[i]; im.style.visibility='visible'; }
-  var c=document.getElementById('pdCount'); if(c) c.textContent=(i+1)+'/'+imgs.length;
-  var tw=document.getElementById('pdThumbs');
+  var c=pdEl_('pdCount'); if(c) c.textContent=(i+1)+'/'+imgs.length;
+  var tw=pdEl_('pdThumbs');
   if(tw){ [].slice.call(tw.children).forEach(function(b,k){ b.classList.toggle('on',k===i); });
     var on=tw.children[i]; if(on&&on.scrollIntoView) on.scrollIntoView({block:'nearest',inline:'nearest'}); }
 }
@@ -2731,36 +2737,47 @@ function hbarSync_(sel, barId, thId){
   th.style.width=tw+'px';
   th.style.left=Math.round(maxScroll?(wrap.scrollLeft/maxScroll)*maxLeft:0)+'px';
 }
-function hbarBind_(sel, barId, thId, flag){
-  if(S[flag]) return;
+function hbarBind_(sel, barId, thId){
   var wrap=document.querySelector(sel), bar=document.getElementById(barId), th=document.getElementById(thId);
-  if(!wrap||!bar||!th) return; S[flag]=1;
+  if(!wrap||!bar||!th) return;
   var sync=function(){ hbarSync_(sel,barId,thId); };
-  wrap.addEventListener('scroll',sync,{passive:true});
-  window.addEventListener('resize',sync);
-  th.addEventListener('mousedown',function(e){                 // kéo thumb
-    e.preventDefault(); e.stopPropagation();
-    var sx=e.clientX, sl=wrap.scrollLeft;
-    var bw=bar.clientWidth, tw=th.offsetWidth, maxLeft=bw-tw, maxScroll=wrap.scrollWidth-wrap.clientWidth;
-    th.classList.add('dragging'); document.body.style.cursor='grabbing';
-    function mv(ev){ var d=ev.clientX-sx; wrap.scrollLeft = sl + (maxLeft? d*maxScroll/maxLeft : 0); sync(); }
-    function up(){ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up);
-      th.classList.remove('dragging'); document.body.style.cursor=''; }
-    document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
-  });
-  bar.addEventListener('mousedown',function(e){                // bấm vào rãnh -> nhảy tới
-    if(e.target===th) return;
-    var r=bar.getBoundingClientRect(), tw=th.offsetWidth;
-    var pos=Math.min(Math.max(0,e.clientX-r.left-tw/2), r.width-tw);
-    var maxScroll=wrap.scrollWidth-wrap.clientWidth, maxLeft=r.width-tw;
-    wrap.scrollLeft = maxLeft? pos*maxScroll/maxLeft : 0; sync();
-  });
+  // Gắn theo TỪNG PHẦN TỬ, không dùng cờ toàn cục: bảng Danh sách SP dựng lại
+  // innerHTML mỗi lần vào tab -> cờ toàn cục làm listener kẹt ở phần tử cũ đã bị gỡ.
+  if(wrap.dataset.hb!=='1'){ wrap.dataset.hb='1'; wrap.addEventListener('scroll',sync,{passive:true}); }
+  if(!S._hbarResize){ S._hbarResize={}; }
+  if(!S._hbarResize[barId]){                       // 1 listener resize cho mỗi thanh, tra phần tử lúc chạy
+    S._hbarResize[barId]=1;
+    window.addEventListener('resize',function(){ hbarSync_(sel,barId,thId); });
+  }
+  if(th.dataset.hb!=='1'){
+    th.dataset.hb='1';
+    th.addEventListener('mousedown',function(e){                 // kéo thumb
+      e.preventDefault(); e.stopPropagation();
+      var sx=e.clientX, sl=wrap.scrollLeft;
+      var bw=bar.clientWidth, tw=th.offsetWidth, maxLeft=bw-tw, maxScroll=wrap.scrollWidth-wrap.clientWidth;
+      th.classList.add('dragging'); document.body.style.cursor='grabbing';
+      function mv(ev){ var d=ev.clientX-sx; wrap.scrollLeft = sl + (maxLeft? d*maxScroll/maxLeft : 0); sync(); }
+      function up(){ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up);
+        th.classList.remove('dragging'); document.body.style.cursor=''; }
+      document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+    });
+  }
+  if(bar.dataset.hb!=='1'){
+    bar.dataset.hb='1';
+    bar.addEventListener('mousedown',function(e){                // bấm vào rãnh -> nhảy tới
+      if(e.target===th) return;
+      var r=bar.getBoundingClientRect(), tw=th.offsetWidth;
+      var pos=Math.min(Math.max(0,e.clientX-r.left-tw/2), r.width-tw);
+      var maxScroll=wrap.scrollWidth-wrap.clientWidth, maxLeft=r.width-tw;
+      wrap.scrollLeft = maxLeft? pos*maxScroll/maxLeft : 0; sync();
+    });
+  }
   sync();
 }
 function tkHBarSync_(){ hbarSync_('#tkNormal .tbl-wrap','tkHBar','tkHThumb'); }
-function tkHBarInit_(){ hbarBind_('#tkNormal .tbl-wrap','tkHBar','tkHThumb','_hbarBound'); }
+function tkHBarInit_(){ hbarBind_('#tkNormal .tbl-wrap','tkHBar','tkHThumb'); }
 function spHBarSync_(){ hbarSync_('.sp-card .tbl-wrap','spHBar','spHThumb'); }
-function spHBarInit_(){ hbarBind_('.sp-card .tbl-wrap','spHBar','spHThumb','_spHbarBound'); }
+function spHBarInit_(){ hbarBind_('.sp-card .tbl-wrap','spHBar','spHThumb'); }
 function syncActGutter(){
   tkHBarSync_();   // đồng bộ luôn thanh kéo ngang (hàm này đã chạy mỗi khi cuộn bảng)
   var norm=document.getElementById('tkNormal'), g=document.getElementById('actGutter'); if(!norm||!g) return;
@@ -4225,7 +4242,7 @@ function imgPopGo_(d){
   var imgs=(S._pdImgs&&S._pdImgs.length)?S._pdImgs:[]; if(imgs.length<2) return;
   S._popIdx=(((S._popIdx||0)+d)%imgs.length+imgs.length)%imgs.length;
   imgPopShow_();
-  if(document.getElementById('pdMainImg')) pdSetImg_(S._popIdx);   // đồng bộ với gallery bên dưới
+  if(pdEl_('pdMainImg')) pdSetImg_(S._popIdx);   // đồng bộ với gallery bên dưới
 }
 function imgPopClose_(){
   var o=document.getElementById('imgPop'); if(o) o.style.display='none';

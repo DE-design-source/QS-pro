@@ -3001,6 +3001,12 @@ table.pt td.dvt-cell,table.pt td.dvt-cell .pt-in{font-style:italic;color:#5b6b7b
 .tk-hbar.sp-hbar:hover .tk-hthumb{background:#9fadbd}
 .tk-hbar.sp-hbar .tk-hthumb:hover{background:var(--blue)}
 .tk-hbar.sp-hbar .tk-hthumb.dragging{background:var(--blue-d)}
+
+/* ═══ CHIP THÔNG SỐ trên thẻ SP (thư viện Bóc tách) — XUỐNG HÀNG, KHÔNG CẮT ═══
+   Trước để nowrap + overflow-x:auto mà thanh cuộn lại bị ẩn toàn cục, nên chip cuối
+   luôn bị xén cụt sát nút "+" (271/296 dòng bị cắt) mà không có cách nào xem tiếp. */
+.citem .cspecs{flex-wrap:wrap;overflow:visible;row-gap:3px;column-gap:3px}
+.citem .cspecs .spec{white-space:nowrap}
 </style>
 
 <!-- ===== TOP NAV ===== -->

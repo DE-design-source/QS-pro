@@ -613,6 +613,12 @@ async function setYeuThich(actor, keys, on) {
       if (!cur) { errs.push({ key: k, error: 'Không tìm thấy sản phẩm' }); continue; }
       if (on) {
         try {
+          // chặn trùng ở tầng app luôn: chỉ mục duy nhất coi NULL là khác nhau nên
+          // tài khoản super (không có công ty) vẫn có thể tạo ra nhiều dòng giống hệt.
+          const daCo = await supa.select('sp_yeu_thich', { select: 'id',
+            filter: supa.eq('sp_id', cur.id) + '&' + (ct ? supa.eq('cong_ty_id', ct) : 'cong_ty_id=is.null'),
+            limit: 1, noScope: true });
+          if (daCo.length) { ok++; continue; }
           await supa.insert('sp_yeu_thich',
             [{ cong_ty_id: ct, sp_id: cur.id, ma_sp: s(cur.ma_sp), nguoi_tao: who }]);
         } catch (e) {
@@ -620,7 +626,10 @@ async function setYeuThich(actor, keys, on) {
           throw tblErr_(e, 'sp_yeu_thich', 'db/sp_yeu_thich.sql');
         }
       } else {
-        try { await supa.remove('sp_yeu_thich', supa.eq('sp_id', cur.id)); }
+        // LUÔN kèm điều kiện công ty: tài khoản super không có ngữ cảnh công ty nên
+        // bộ lọc tự động không áp -> nếu chỉ lọc sp_id sẽ xoá luôn dấu yêu thích của MỌI công ty.
+        const loc = supa.eq('sp_id', cur.id) + '&' + (ct ? supa.eq('cong_ty_id', ct) : 'cong_ty_id=is.null');
+        try { await supa.remove('sp_yeu_thich', loc, { noScope: true }); }
         catch (e) { throw tblErr_(e, 'sp_yeu_thich', 'db/sp_yeu_thich.sql'); }
       }
       ok++;
