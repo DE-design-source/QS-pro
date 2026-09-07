@@ -3011,6 +3011,62 @@ table.pt td.dvt-cell,table.pt td.dvt-cell .pt-in{font-style:italic;color:#5b6b7b
 /* số đếm nhỏ trong chip lọc Combo */
 .chips .chip .chip-n{font-style:normal;margin-left:5px;font-size:9.5px;font-weight:700;opacity:.6}
 .chips .chip.on .chip-n{opacity:.85}
+
+/* ═══════════ KHỐI "SẢN PHẨM ĐI KÈM" — bản thiết kế lại ═══════════
+   Thẻ trắng viền mềm + dải tiêu đề có màu, các dòng ngăn bằng kẻ mảnh
+   (không lồng thẻ trong thẻ như bản trước), tiền canh phải theo cột.   */
+.pd .pd-combo{margin-top:16px;padding:0;border:1px solid #e2e7f4;border-radius:14px;
+  background:#fff;box-shadow:0 1px 3px rgba(35,50,110,.06);overflow:hidden}
+.pd .pd-combo-h{display:flex;align-items:center;gap:8px;padding:10px 12px;
+  background:linear-gradient(180deg,#f2f5ff,#eaf0fe);border-bottom:1px solid #e2e7f4}
+.pd .pd-combo-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;background:#4338ca;color:#fff;flex:none}
+.pd .pd-combo-ic .ico{stroke-width:2.2}
+.pd .pd-combo-t{flex:1;min-width:0;font-size:11.5px;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;color:#312e81}
+.pd .pd-combo .cb-n{flex:none;background:#4338ca;color:#fff;border-radius:20px;padding:1px 8px;
+  font-size:10.5px;font-weight:800;line-height:1.6}
+/* --- các dòng sản phẩm --- */
+.pd .pd-combo-list{display:block;margin:0;gap:0}
+.pd .pd-cb{display:flex;align-items:center;gap:10px;padding:9px 12px;border:none;border-radius:0;
+  background:#fff;box-shadow:none;border-top:1px solid #f0f2f8}
+.pd .pd-cb:first-child{border-top:none}
+.pd .pd-cb:hover{background:#fafbff}
+.pd .pd-cb img,.pd .pd-cb .cb-img{width:38px;height:38px;flex:none;border-radius:9px;
+  border:1px solid #eceff6;background:#fafbfc;object-fit:contain}
+.pd .pd-cb-i{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.pd .pd-cb-i b{font-size:12.5px;font-weight:600;color:var(--ink);line-height:1.3;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pd .pd-cb-i i{font-style:normal;font-size:10.5px;color:var(--ink-3);letter-spacing:.02em}
+.pd .pd-cb-r{flex:none;display:flex;align-items:center;gap:9px}
+.pd .pd-cb-sl{background:#eef2ff;color:#4338ca;border-radius:6px;padding:2px 7px;
+  font-size:11px;font-weight:800;line-height:1.4}
+.pd .pd-cb-gia{font-size:12.5px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pd .pd-cb-gia em{font-style:normal;font-weight:600;color:var(--ink-3);margin-left:1px}
+/* --- chân khối: tổng + nút --- */
+.pd .pd-combo-ft{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin:0;
+  padding:11px 12px 12px;background:#fbfcff;border-top:1px solid #e9edf7}
+.pd .pd-combo-tot{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.pd .pd-combo-tot i{font-style:normal;font-size:11.5px;color:var(--ink-3)}
+.pd .pd-combo-tot b{font-size:15px;font-weight:800;color:#312e81;font-variant-numeric:tabular-nums}
+.pd .pd-combo-add{display:inline-flex;align-items:center;justify-content:center;gap:7px;width:100%;
+  padding:9px 14px;border-radius:10px;border:1px solid #c7d2fe;background:#eef2ff;color:#4338ca;
+  font:700 12.5px/1 inherit;cursor:pointer;
+  transition:background .14s,border-color .14s,color .14s,box-shadow .14s,transform .08s}
+.pd .pd-combo-add .ico{stroke-width:2.4}
+.pd .pd-combo-add:hover{background:#4338ca;border-color:#4338ca;color:#fff;box-shadow:0 4px 14px rgba(67,56,202,.28)}
+.pd .pd-combo-add:active{transform:translateY(1px)}
+/* popup rộng hơn panel -> tổng bên trái, nút bên phải */
+.sp-modal .pd-combo-ft{flex-direction:row;align-items:center;justify-content:space-between;gap:16px}
+.sp-modal .pd-combo-tot{flex:1;min-width:0}
+.sp-modal .pd-combo-add{width:auto;flex:0 0 auto}
+
+/* thẻ SP ở thư viện: thương hiệu + nhãn combo chung 1 hàng */
+.citem .meta{align-self:stretch}
+/* ép CÙNG 1 HÀNG: panel hẹp nên tên thương hiệu tự cắt bớt, nhãn combo luôn giữ nguyên */
+.citem .meta .metarow{display:flex;align-items:center;flex-wrap:nowrap;gap:5px;min-width:0;max-width:100%}
+.citem .meta .metarow .sz.brand{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.citem .meta .metarow .sz.cbn{flex:none}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -3112,7 +3168,7 @@ table.pt td.dvt-cell,table.pt td.dvt-cell .pt-in{font-style:italic;color:#5b6b7b
       <!-- LEFT: filter + catalog -->
       <div class="panel catpanel" id="leftCat">
         <div class="catpanel-top">
-          <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><span class="sp" style="flex:1"></span><button class="favf-btn" id="favfBtn" onclick="catFavToggle()" title="Chỉ hiện sản phẩm yêu thích"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg> yêu thích</button><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg> bộ lọc<span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button></div>
+          <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><span class="sp" style="flex:1"></span><button class="favf-btn" id="favfBtn" onclick="catFavToggle()" title="Chỉ hiện sản phẩm yêu thích"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg> Yêu thích</button><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg> Bộ lọc<span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button></div>
 
           <!-- 3 bộ chọn (theo Figma) -->
           <div class="mlbl">Đề mục</div>

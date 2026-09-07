@@ -594,7 +594,7 @@ function comboChips_(){
   var co=0, khong=0;
   (S.products||[]).forEach(function(p){ if(p.comboN>0) co++; else khong++; });
   var cur=S.fCombo||'';
-  box.innerHTML=[['co','Có combo',co],['khong','Không có combo',khong]].map(function(x){
+  box.innerHTML=[['co','Có',co],['khong','Không có',khong]].map(function(x){
     return '<span class="chip'+(cur===x[0]?' on':'')+'" onclick="setComboFilter(\''+x[0]+'\')">'
       +esc(x[1])+'<i class="chip-n">'+x[2]+'</i></span>';
   }).join('');
@@ -847,8 +847,11 @@ function renderCatalog(){
       +'<div class="no">'+(i+1)+'</div>'+im2
       +'<div class="cmid" onclick="showDetail('+i+')" title="Xem chi tiết sản phẩm">'
         +'<div class="nm">'+esc(p.ten)+'</div>'
-        +'<div class="meta"><span class="pr">'+money(p.donGiaBan)+' đ</span>'+(brand?'<span class="sz brand">'+brand+'</span>':'')
-          +(p.comboN?'<span class="sz cbn" title="Có '+p.comboN+' sản phẩm đi kèm">combo '+p.comboN+'</span>':'')+'</div>'
+        +'<div class="meta"><span class="pr">'+money(p.donGiaBan)+' đ</span>'
+          +((brand||p.comboN)?('<span class="metarow">'                      // thương hiệu + combo chung 1 hàng
+            +(brand?'<span class="sz brand">'+brand+'</span>':'')
+            +(p.comboN?'<span class="sz cbn" title="Có '+p.comboN+' sản phẩm đi kèm">combo '+p.comboN+'</span>':'')
+          +'</span>'):'')+'</div>'
         +(specs?'<div class="cspecs">'+specs+'</div>':'')
       +'</div>'
       +'<button class="cfav'+(p.yeuThich?' on':'')+'" title="'+(p.yeuThich?'Bỏ khỏi sản phẩm yêu thích':'Thêm vào sản phẩm yêu thích')+'" onclick="event.stopPropagation();catFav('+i+','+(p.yeuThich?0:1)+')">'+icon('star',14)+'</button>'
@@ -1931,15 +1934,26 @@ async function pdLoadCombo_(p, idx, dich, boxId){
   S._pdCombo=list;
   if(!list.length){ box.innerHTML=''; return; }
   var tong=list.reduce(function(a,x){ return a+(Number(x.donGiaBan)||0)*(Number(x.comboSL)||1); },0);
-  box.innerHTML='<div class="pd-combo"><div class="pd-sec">'+icon('layers',14)+' Sản phẩm đi kèm <span class="cb-n">'+list.length+'</span></div>'
-    +'<div class="pd-combo-list">'+list.map(function(x){
-      return '<div class="pd-cb">'
-        +(x.hinhAnh?'<img src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="cb-img"></span>')
-        +'<div class="pd-cb-i"><b>'+esc(x.ten||'')+(x.comboNguoc?'<span class="cb-rev" title="Liên kết đặt từ phía sản phẩm này">↔</span>':'')+'</b><i>'+esc(x.ma||'')+'</i></div>'
-        +'<span class="pd-cb-sl">×'+(Number(x.comboSL)||1)+'</span>'
-        +'<span class="pd-cb-gia">'+money(x.donGiaBan)+'đ</span></div>'; }).join('')+'</div>'
-    +'<div class="pd-combo-ft"><span>Tổng combo kèm theo <b>'+money(tong)+'đ</b></span>'
-      +'<button class="btn ghost sm" onclick="pdAddCombo_('+idx+')">'+icon('plus',13)+' Thêm cả combo vào '+esc(dich)+'</button></div></div>';
+  var rows=list.map(function(x){
+    var sl=Number(x.comboSL)||1, tt=(Number(x.donGiaBan)||0)*sl;
+    return '<div class="pd-cb">'
+      +(x.hinhAnh?'<img src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="cb-img"></span>')
+      +'<div class="pd-cb-i"><b>'+esc(x.ten||'')
+        +(x.comboNguoc?'<span class="cb-rev" title="Liên kết đặt từ phía sản phẩm này">↔</span>':'')+'</b>'
+        +'<i>'+esc(x.ma||'')+'</i></div>'
+      +'<div class="pd-cb-r"><span class="pd-cb-sl">×'+sl+'</span>'
+        +'<span class="pd-cb-gia">'+money(tt)+'<em>đ</em></span></div>'
+    +'</div>';
+  }).join('');
+  box.innerHTML='<div class="pd-combo">'
+    +'<div class="pd-combo-h"><span class="pd-combo-ic">'+icon('layers',13)+'</span>'
+      +'<span class="pd-combo-t">Sản phẩm đi kèm</span><span class="cb-n">'+list.length+'</span></div>'
+    +'<div class="pd-combo-list">'+rows+'</div>'
+    +'<div class="pd-combo-ft">'
+      +'<span class="pd-combo-tot"><i>Tổng combo kèm theo</i><b>'+money(tong)+' đ</b></span>'
+      +'<button class="pd-combo-add" onclick="pdAddCombo_('+idx+')">'+icon('plus',14)
+        +'<span>Thêm cả combo vào '+esc(dich)+'</span></button>'
+    +'</div></div>';
 }
 // Thêm sản phẩm chính + toàn bộ sản phẩm đi kèm vào dự án / bóc tách
 async function pdAddCombo_(idx){
