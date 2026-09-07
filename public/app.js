@@ -4632,84 +4632,194 @@ async function tdSave(btn){
  *       'area0' -> KL = DT × HS nhưng "Chưa bao gồm" (TT = 0)
  *       'none'  -> gói, "Chưa bao gồm" (TT = 0)
  * =================================================================== */
+/* Thư viện công tác PHẦN THÔ — sinh từ file báo giá Excel (Book1.xlsx), 15 nhóm / 156 công tác.
+   Cột "Đơn giá cost" của file dùng cho CẢ đơn giá lẫn giá nhà thầu (file chưa có cột đề xuất). */
 var PT_TEMPLATE=[
-  {r:'I',t:'CÔNG TÁC CHUẨN BỊ',mode:'none',items:[
-    ['Xin phép xây dựng','gói','Chưa bao gồm'],
-    ['Đập phá, tháo dỡ nhà hiện trạng','gói','Chưa bao gồm'],
-    ['Khoan khảo sát địa chất','gói','Chưa bao gồm'],
-    ['Cắm mốc định vị ranh xây dựng','gói','Chưa bao gồm'],
-    ['Xin cấp đồng hồ điện, nước','gói','Chưa bao gồm']
+  {r:"I",t:"CÔNG TÁC CHUẨN BỊ",mode:'item',items:[
+    ["Xin phép xây dựng","gói",1,0,"Phụ thuộc vào quy mô, vị trí xây dựng",0],
+    ["Định vị ranh đất","điểm",1,1200000,"Dịch vụ",1200000],
+    ["Xin cấp đồng hồ điện","gói",1,10000000,"Dịch vụ",10000000],
+    ["Xin cấp đồng hồ nước","gói",1,5000000,"Dịch vụ",5000000],
+    ["Tháo dỡ, múc móng nhà cũ, hút hầm phân","gói",1,0,"",0],
+    ["Hàng rào tạm","m",1,80000,"Hàng rào tole phẳng",80000],
+    ["Cổng công trình","cái",1,3000000,"Cửa cổng sắt ốp tole, xếp trượt",3000000],
+    ["Nhà vệ sinh tạm","cái",1,18000000,"Nhà vệ sinh di động + bồn cầu + vòi nước",18000000],
+    ["Tủ điện tạm","cái",1,1500000,"Tủ điện, MCB chống giật, ổ cắm",1500000],
+    ["Khoan khảo sát địa chất","m",1,350000,"Đất cấp I-II-III, độ sâu hố khoan 30-40m, bao gồm thí nghiệm xuyên tiêu chuẩn SPT Không bao gồm thí nghiệm 9 chỉ tiêu cơ lý đất và thí nghiệm nén 3 trục",350000]
   ]},
-  {r:'II',t:'CÔNG TÁC ÉP CỌC',mode:'item',items:[
-    ['Giàn tải, máy ép cọc Pmax 90T','Gói',1,28000000,'',0],
-    ['Nhân công ép cọc PHC D300 lực ép P(max) - 90 tấn (số tim cọc tạm tính)','tim',56,2250000,'',1500000],
-    ['Cọc ly tâm D300 PHC lực ép P(max) 90 tấn\n56 tim x 20m / tim (số tim, số m tạm tính)','md',1120,414000,'',355000]
+  {r:"II",t:"Ép cọc",mode:'item',items:[
+    ["Ép cọc BTCT 250x250, m300, tải 70T","m",1,260000,"",260000],
+    ["Nhân công ép cọc BTCT tải 70T","m",1,70000,"Đơn giá cho trên 20m/tim cọc (tùy địa chất khu vực)",70000],
+    ["Nhân công ép cọc BTCT","tim",1,1200000,"Đơn giá cho dưới 20m/tim cọc (tùy địa chất khu vực)",1200000],
+    ["Vận chuyển cọc trong hẻm nhỏ, hoặc hẻm cấm tải","m",1,40000,"Tăng bo, đẩy tay vào công trình (tùy thuộc vào chiều dài tuyến đường)",40000],
+    ["Ép cọc ly tâm A300, PHC, tải 100T","m",1,360000,"",360000],
+    ["Nhân công ép cọc ly tâm","m",1,80000,"Đơn giá cho trên 20m/tim cọc (tùy địa chất khu vực)",80000],
+    ["Nhân công ép cọc ly tâm","tim",1,1300000,"Đơn giá cho dưới 20m/tim cọc (tùy địa chất khu vực)",1300000]
   ]},
-  {r:'III',t:'BIỆN PHÁP THI CÔNG HẦM',mode:'item',items:[
-    ['Ép cừ C200 chu vi hầm, cừ C dài 4,5m','md',62,4436000,'',2800000],
-    ['Hệ Shoring','hệ',1,30000000,'',0],
-    ['Đào đất, vận chuyển đi đổ','m3',388.65,185000,'',0]
+  {r:"III",t:"Biện pháp thi công hầm",mode:'item',items:[
+    ["Ép cừ C200, cừ dài 4,5m (1 hệ shoring)","m",1,2800000,"Khối lượng tính theo chu vi hầm",2800000],
+    ["Đào đất hầm","m3",1,0,"Nằm trong đơn giá thi công thô, không tính riêng",0],
+    ["Cọc vây biện pháp D300 (cọc khoan nhồi)","m",1,480000,"Thi công trong trường hợp không ép cừ C, khoan cọc theo chu vi hầm",480000],
+    ["Vận chuyển bùn đất đi đổ","m3",1,180000,"Bùn đất trong quá trình khoan cọc nhồi",180000]
   ]},
-  {r:'IV',t:'THI CÔNG XÂY THÔ\n( Không bao gồm nhân công hoàn thiện, MEP âm tường, bể PCCC)',mode:'area',up:4200000,items:[
-    ['Móng (diện tích bao ngoài toàn bộ móng, dầm móng)','m2',278.00,0.50,''],
-    ['Hầm + ram dốc','m2',178.56,1.70,''],
-    ['Tầng 1','m2',156.00,1.00,''],
-    ['Sân vườn ngoài trời','m2',104.39,0.50,''],
-    ['Tầng 2 (bao gồm ban công)','m2',60.00,1.00,''],
-    ['Tầng 3 (bao gồm ban công)','m2',60.00,1.00,''],
-    ['Tầng 4 (bao gồm ban công)','m2',60.00,1.00,''],
-    ['Tầng 5 (bao gồm ban công)','m2',185.92,1.00,''],
-    ['Tầng thượng có mái che','m2',50.63,1.00,''],
-    ['Tầng thượng không mái che','m2',82.37,0.50,''],
-    ['Mái bê tông cốt thép','m2',50.63,0.50,''],
-    ['Tum thang máy','m2',5.17,0.50,'']
+  {r:"IV",t:"Đơn giá xây dựng thô",mode:'item',items:[
+    ["Xây dựng thô","m2",1,3050000,"Nhà phố chiều ngang 4m - 6m, hoàn thiện 2 mặt trước sau, đường trên 3m",3050000],
+    ["Xây dựng thô","m2",1,3150000,"Nhà phố chiều ngang 6m - 8m, hoàn thiện 2 mặt trước sau, đường trên 3m",3150000],
+    ["Xây dựng thô","m2",1,3200000,"Nhà phố chiều ngang 4m - 6m, hoàn thiện 3 - 4 mặt, đường trên 3m",3200000],
+    ["Xây dựng thô","m2",1,3350000,"Nhà phố chiều ngang 6m - 8m, hoàn thiện 3- 4 mặt, đường trên 3m",3350000],
+    ["Xây dựng trong hẻm nhỏ","m2",1,450.0002,"Hẻm nhỏ 2m - 2,5m, vận chuyển bằng xe ba gác hoặc hẻm cấm tải",450.0002],
+    ["Nhân công hoàn thiện","m2",1,450.0002,"",450.0002]
   ]},
-  {r:'V',t:'HỆ THỐNG MEP\n(Điện - cấp thoát nước - data)\n(Không bao gồm nhân công lắp đặt + thiết bị đầu cuối)',mode:'area',up:750000,items:[
-    ['Hầm','m2',178.56,1.00,''],
-    ['Tầng 1 (bao gồm diện tích sân vườn)','m2',260.39,1.00,''],
-    ['Tầng 2','m2',60.00,1.00,''],
-    ['Tầng 3','m2',60.00,1.00,''],
-    ['Tầng 4','m2',60.00,1.00,''],
-    ['Tầng 5','m2',185.92,1.00,''],
-    ['Sân thượng','m2',133.00,1.00,''],
-    ['Mái','m2',50.63,0.50,'']
+  {r:"V",t:"Đơn giá MEP âm",mode:'item',items:[
+    ["Thi công MEP phần âm","m2",1,450000,"Không bao gồm hệ thống camera, điện lạnh, mạng Lan văn phòng, chống sét, đấu nối hệ thống thoát nước ra cống chung",450000],
+    ["Nhân công hoàn thiện MEP","m2",1,200.0002,"Nhân công lắp đặt thiết bị điện, đèn chiếu sáng, thiết bị nước, thiết bị vệ sinh",200.0002]
   ]},
-  {r:'VI',t:'CHỐNG THẤM',mode:'area0',note:'Chưa bao gồm',items:[
-    ['Hầm (sàn + vách hầm + hố pit)','m2',250.01,1.00,''],
-    ['Nhà vệ sinh','m2',83.97,1.00,''],
-    ['Ban công tầng 2','m2',39.00,1.00,''],
-    ['Ban công tầng 3','m2',39.00,1.00,''],
-    ['Ban công tầng 4','m2',39.00,1.00,''],
-    ['Ban công tầng 5','m2',39.00,1.00,''],
-    ['Sân thượng ngoài trời','m2',121.85,1.00,''],
-    ['Mái','m2',70.75,1.00,'']
+  {r:"VI",t:"Hệ số tính diện tích",mode:'area',up:3050000,items:[
+    ["Móng đơn + đà kiềng","m2",0,0.3,""],
+    ["Móng cọc + giằng móng","m2",0,0.5,""],
+    ["Móng băng 1 phương","m2",0,0.5,""],
+    ["Móng băng 2 phương","m2",0,0.7,""],
+    ["Móng bè","m2",0,1,""],
+    ["Hố pit thang máy","m2",0,1,""],
+    ["Hầm sâu 1 - 1,3m tính từ vỉa hè","m2",0,1.5,""],
+    ["Hầm sâu 1.3m - 1,7m tính từ vỉa hè","m2",0,1.7,""],
+    ["Hầm sâu 1.7m - 2m tính từ vỉa hè","m2",0,2,""],
+    ["Hầm sâu 2m - 2,5m tính từ vỉa hè","m2",0,2.5,""],
+    ["Tầng 1","m2",0,1,""],
+    ["Sân trước, sân sau","m2",0,0.5,""],
+    ["Sân vườn","m2",0,0.5,""],
+    ["Tầng lửng","m2",0,1,"Diện tích không tính ô thông tầng lửng"],
+    ["Ô thông tầng lửng","m2",0,0.5,"Tính 0,5 do xung quanh ô thông tầng vẫn phải đổ dầm, xây tường, trát tường"],
+    ["Tầng 2 ... (bao gồm ban công)","m2",0,1,""],
+    ["Sân thượng có mái che","m2",0,1,""],
+    ["Sân thượng không mái che","m2",0,0.5,""],
+    ["Mái Tole","m2",0,0.3,"Tính theo diện tích mặt nghiêng"],
+    ["Mái BTCT","m2",0,0.5,""],
+    ["Mái ngói kèo sắt (hệ xà gồ, ngói lợp)","m2",0,0.7,"Tính theo diện tích mặt nghiêng"],
+    ["Mái BTCT dán ngói","m2",0,1,"Tính theo diện tích mặt nghiêng"]
   ]},
-  {r:'VII',t:'HỆ THỐNG PCCC',mode:'none',note:'Chưa bao gồm',items:[
-    ['Bể chứa nước PCCC theo quy định','gói','Chưa bao gồm'],
-    ['Hệ thống báo cháy','gói','Chưa bao gồm'],
-    ['Hệ thống chữa cháy','gói','Chưa bao gồm'],
-    ['Hệ thống thoát hiểm và hỗ trợ','gói','Chưa bao gồm']
+  {r:"VII",t:"Xây tường, trát tường",mode:'item',items:[
+    ["Tường xây 100mm, tường gạch ống, vữa xây M75","m2",1,310000,"",310000],
+    ["Tường xây 200mm, tường gạch ống 5 lớp câu gạch đinh, vữa xây M75","m2",1,590000,"",590000],
+    ["Đà lanh tô cửa đi 1 cánh (tường 100)","cái",1,300000,"Đà lanh tô đúc sẵn 1100mm",300000],
+    ["Nẹp V góc tường, cạnh tường","md",1,30000,"Nẹp nhựa",30000],
+    ["Đóng lưới thép đường điện, giáp mí bê tông - gạch","m",1,22000,"Lưới mắt cáo",22000],
+    ["Trát tường ngoài vữa xi măng M75","m2",1,160000,"",160000],
+    ["Trát tường trong vữa xi măng M75","m2",1,150000,"",150000],
+    ["Trát cạnh tường / má cửa, bề rộng tường 100, vữa xi măng M75","m",1,76000,"",76000],
+    ["Trát cạnh tường / má cửa, bề rộng tường 200, vữa xi măng M75","m",1,120000,"",120000]
   ]},
-  {r:'VIII',t:'CHI PHÍ KHÁC',mode:'item',items:[
-    ['Dọn dẹp mặt bằng','gói',1,30000000,'Phát quang cây cỏ, thu gom xà bần, rác thải hiện trạng, san đất tạo mặt bằng',20000000],
-    ['Phun thuốc chống mối','gói',1,63690000,'Cho tầng hầm và tầng 1',35116000],
-    ['Bao che công trình (giàn giáo, lưới, bạt,…)','gói',1,140000000,'',120000000],
-    ['Hàng rào bao quanh công trình, cổng công trình','gói',1,75000000,'',60000000],
-    ['Camera quan sát công trình','cái',3,1200000,'',1000000],
-    ['Mạng internet trong quá trình thi công','tháng',6,350000,'',300000],
-    ['Nhà vệ sinh di động','cái',1,20000000,'',18000000],
-    ['Thùng rác','cái',1,900000,'',700000],
-    ['Thiết bị PCCC (bình chữa cháy 4kg)','cái',8,600000,'',500000],
-    ['Vệ sinh công trình hằng ngày (xây dựng thô)','gói',1,45000000,'',27000000],
-    ['Vận chuyển xà bần, rác thải trong quá trình thi công','tháng',6,7500000,'',6000000],
-    ['Văn phòng tạm tại công trình trong quá trình thi công','tháng',6,8000000,'',6500000],
-    ['Công tác an toàn lao động (nội quy, biển báo, đồ bảo hộ, lan can chắn, lưới hứng các khu vực mép sàn)','gói',1,28000000,'',21000000],
-    ['Chi phí thẩm tra biện pháp thi công hầm (theo quy định)','gói',1,20000000,'',15000000],
-    ['Chi phí thanh tra xây dựng kiểm tra trong quá trình thi công phần thô','gói',5,5000000,'',4000000],
-    ['Chi phí trắc đạc','tầng',8,7000000,'',6000000],
-    ['Chi phí điện nước thi công 6 tháng (phần thô)','gói',6,3500000,'',3000000],
-    ['Chi phí thang vận','gói',1,0,'Chưa bao gồm',0],
-    ['Đấu nối hệ thống thoát nước thải vào cống chung','gói',1,0,'Chưa bao gồm',0]
+  {r:"VIII",t:"Chống thấm, cán nền",mode:'item',items:[
+    ["Cán nền 3-5cm, vữa xi măng M75","m2",1,135000,"",135000],
+    ["Chống thấm sàn, tường","m2",1,225000,"Chống thấm SIKA topseal 109 / Kova CT11A quét 2 lớp",225000]
+  ]},
+  {r:"IX",t:"Ốp lát gạch",mode:'item',items:[
+    ["Nhân công lát gạch","m2",1,150000,"Gạch 300x600, 600x600",150000],
+    ["Nhân công lát gạch","m2",1,180000,"Gạch 600x1200, 800x800, 900x900",180000],
+    ["Nhân công ốp gạch","m2",1,160000,"Gạch 300x600, 600x600",160000],
+    ["Nhân công ốp gạch","m2",1,190000,"Gạch 600x1200, 800x800, 900x900",190000],
+    ["Keo dán gạch ngoại thất","m2",1,100000,"Webertai gres / Đơn giá vật tư",100000],
+    ["Keo dán gạch nội thất","m2",1,70000,"Webertai vis, Webertai fix / Đơn giá vật tư",70000],
+    ["Chà ron gạch khổ lớn","m2",1,120000,"Keo ron epoxy 2 thành phần Cetex / Saveto",120000],
+    ["Chà ron gạch khổ nhỏ","m2",1,230000,"Keo ron epoxy 2 thành phần Cetex / Saveto",230000]
+  ]},
+  {r:"X",t:"Thạch cao",mode:'item',items:[
+    ["Trần thạch cao khung chìm","m2",1,165000,"Khung xương Vĩnh Tường M29 ,tấm thạch cao Gyproc 9mm",165000],
+    ["Trần thạch cao khung chìm chống ẩm","m2",1,175000,"Khung xương Vĩnh Tường M29 ,tấm thạch cao Gyproc 9mm chống ẩm",175000],
+    ["Trần thạch cao khung chìm","m2",1,190000,"Khung xương Vĩnh Tường Tika ,tấm thạch cao Gyproc 9mm",190000],
+    ["Trần thạch cao khung chìm chống ẩm","m2",1,200000,"Khung xương Vĩnh Tường Tika ,tấm thạch cao Gyproc 9mm chống ẩm",200000],
+    ["Trần thạch cao khung chìm","m2",1,230000,"Khung xương Vĩnh Tường Alpha ,tấm thạch cao Gyproc 9mm",230000],
+    ["Trần thạch cao khung chìm chống ẩm","m2",1,240000,"Khung xương Vĩnh Tường Alpha ,tấm thạch cao Gyproc 9mm chống ẩm",240000],
+    ["Trần thạch cao khung chìm","m2",1,315000,"Khung xương Vĩnh Tường Basi ,tấm thạch cao Gyproc 9mm",315000],
+    ["Trần thạch cao khung chìm chống ẩm","m2",1,325000,"Khung xương Vĩnh Tường Basi ,tấm thạch cao Gyproc 9mm chống ẩm",325000],
+    ["Thanh shadowline","md",1,75000,"",75000],
+    ["Vách thạch cao 1 mặt","m2",1,220000,"Xương U Vĩnh Tường ,tấm thạch cao Gyproc 9mm ốp 1 mặt",220000],
+    ["Vách thạch cao 2 mặt","m2",1,320000,"Xương U Vĩnh Tường ,tấm thạch cao Gyproc 9mm ốp 2 mặt",320000],
+    ["Vách thạch cao 2 mặt cách âm","m2",1,410000,"Xương U Vĩnh Tường ,tấm thạch cao Gyproc 9mm ốp 2 mặt, bông thủy tinh cách âm, cách nhiệt",410000],
+    ["Nắp thăm trần 450x450","cái",1,350000,"Vĩnh Tường",350000],
+    ["Nắp thăm trần 600x600","cái",1,450000,"Vĩnh Tường",450000]
+  ]},
+  {r:"XI",t:"Sơn nước",mode:'item',items:[
+    ["Bả matit ngoại thất, bả 2 lớp","m2",1,50000,"Dulux / Jotun ngoại thất",50000],
+    ["Bả matit nội thất, bả 2 lớp","m2",1,40000,"Dulux / Jotun nội thất",40000],
+    ["Sơn ngoại thất, 1 lớp lót 2 lớp phủ","m2",1,90000,"Dulux weathershield / Jotun Jotashield",90000],
+    ["Sơn nội thất, 1 lớp lót 2 lớp phủ","m2",1,80000,"Dulux easyclean / Jotun essence",80000],
+    ["Sơn hiệu ứng","m2",1,350000,"Pukaco / Conpa",350000],
+    ["Sơn giả đá","m2",1,500000,"Kova / Hòa Bình",500000]
+  ]},
+  {r:"XII",t:"Đá",mode:'item',items:[
+    ["Đá nung kết 12mm","m2",1,4000000,"Vasta khổ lớn chuẩn Châu Âu",4000000],
+    ["Đá nung kết 9mm","m2",1,1600000,"Vasta",1600000],
+    ["Đá granite 16mm -20mm","m2",1,1700000,"Đen kim sa / đen Ấn Độ",1700000],
+    ["Đá marble trắng Ý","m2",1,0,"",0],
+    ["Đá marble đen tia chớp","m2",1,0,"",0],
+    ["Đá marble Cream Marfil","m2",1,0,"",0],
+    ["Đá marble Emperador","m2",1,0,"",0],
+    ["Đá xuyên sáng Onyx","m2",1,0,"Bán theo tấm - tùy nhà cung cấp",0],
+    ["Đá Vicostone 20mm","m2",1,3250000,"Vicostone nhóm P",3250000],
+    ["Đá Vicostone 20mm","m2",1,4800000,"Vicostone nhóm A",4800000],
+    ["Đá Vicostone 20mm","m2",1,6000000,"Vicostone nhóm B",6000000],
+    ["Đá Vicostone 20mm","m2",1,7700000,"Vicostone nhóm C",7700000],
+    ["Đá Vicostone 20mm","m2",1,9400000,"Vicostone nhóm D",9400000],
+    ["Đá Vicostone 20mm","m2",1,11100000,"Vicostone nhóm E",11100000],
+    ["Đá ngạch cửa rộng 100","m2",1,350000,"Đen kim sa / đen Ấn Độ",350000],
+    ["Đá ngạch cửa rộng 200","m2",1,500000,"Đen kim sa / đen Ấn Độ",500000]
+  ]},
+  {r:"XIII",t:"Sàn gỗ",mode:'item',items:[
+    ["Sàn gỗ công nghiệp 8mm","m2",1,395000,"An Cường, cốt gỗ HDF, lớp foam 3mm",395000],
+    ["Sàn gỗ công nghiệp 12mm lát thẳng","m2",1,475000,"An Cường, cốt gỗ HDF, lớp foam 3mm",475000],
+    ["Sàn gỗ công nghiệp 12mm xương cá","m2",1,505000,"An Cường, cốt gỗ HDF, lớp foam 3mm",505000],
+    ["Sàn gỗ kỹ thuật 15mm","m2",1,1100000,"Bề mặt gỗ tự nhiên, lớp lõi Plywood/HDF",1100000],
+    ["Sàn gỗ tự nhiên 15mm","m2",1,1255000,"Gỗ sồi",1255000],
+    ["Sàn gỗ tự nhiên 15mm","m2",1,1505000,"Walnut",1505000],
+    ["Sàn gỗ biến tính 26mm","m2",1,2430000,"Themor thông, bao gồm khung xương sắt",2430000],
+    ["Sàn gỗ biến tính 20mm","m2",1,3230000,"Themor tần bì, bao gồm khung xương sắt",3230000],
+    ["Len gỗ tự nhiên","m",1,250000,"",250000],
+    ["Len nhựa","m",1,75000,"",75000],
+    ["Nẹp nhôm kết thúc","m",1,80000,"",80000]
+  ]},
+  {r:"XIV",t:"Nhôm, kính, sắt",mode:'item',items:[
+    ["Xingfa Việt Nam","",1,0,"",0],
+    ["Cửa đi / cửa sổ mở quay","m2",1,2100000,"Nhôm Xingfa Việt Nam hệ 55 dày1.4ly, kính trắng 08mm cường lực, phụ kiện Kinlong loại 1",2100000],
+    ["Cửa đi / cửa sổ lùa","m2",1,1900000,"Nhôm Xingfa Việt Nam hệ 55 dày 1.4ly, kính trắng 08mm cường lực, phụ kiện Kinlong loại 1",1900000],
+    ["Cửa sổ bật","m2",1,1950000,"Nhôm Xingfa Việt Nam hệ 55 dày 1.4ly, kính trắng 08mm cường lực, phụ kiện Kinlong loại 1",1950000],
+    ["Vách kính cố định","m2",1,1200000,"Nhôm Xingfa Việt Nam hệ 55 dày 1.4ly, kính trắng 08mm cường lực",1200000],
+    ["Xingfa Quảng Đông hệ 55","",1,0,"",0],
+    ["Cửa đi / cửa sổ mở quay","m2",1,2600000,"Nhôm Xingfa Việt Nam Quảng Đông hệ 55 dày 2,0ly, kính trắng 10mm cường lực, phụ kiện Kinlong chính hãng",2600000],
+    ["Cửa đi / cửa sổ lùa","m2",1,2400000,"Nhôm Xingfa Việt Nam Quảng Đông hệ 55 dày 2.0ly, kính trắng 10mm cường lực, phụ kiện Kinlong chính hãng",2400000],
+    ["Cửa sổ bật","m2",1,2500000,"Nhôm Xingfa Việt Nam Quảng Đông hệ 55 dày 2,0ly, kính trắng 10mm cường lực, phụ kiện Kinlong chính hãng",2500000],
+    ["Vách kính cố định","m2",1,1500000,"Nhôm Xingfa Việt Nam Quảng Đông hệ 55 dày 1.4ly, kính trắng 10mm cường lực",1500000],
+    ["Xingfa Quảng Đông hệ 93","",1,0,"",0],
+    ["Cửa đi / cửa sổ mở quay","m2",1,2800000,"Nhôm Xingfa Việt Nam Quảng Đông hệ 55 dày 2,0ly, kính trắng 10mm cường lực, phụ kiện Kinlong chính hãng",2800000],
+    ["Cửa đi / cửa sổ lùa","m2",1,2600000,"Nhôm Xingfa Việt Nam Quảng Đông hệ 55 dày 2.0ly, kính trắng 10mm cường lực, phụ kiện Kinlong chính hãng",2600000],
+    ["Cửa sổ bật","m2",1,2700000,"Nhôm Xingfa Việt Nam Quảng Đông hệ 55 dày 2,0ly, kính trắng 10mm cường lực, phụ kiện Kinlong chính hãng",2700000],
+    ["Vách kính cố định","m2",1,1700000,"Nhôm Xingfa Việt Nam Quảng Đông hệ 55 dày 2,0ly, kính trắng 10mm cường lực",1700000],
+    ["Vách kính tắm","",1,0,"",0],
+    ["Vách kính WC","m2",1,800000,"Kính trắng 10mm cường lực, vách kính thẳng",800000],
+    ["Vách kính WC","m2",1,1200000,"Kính màu 10mm cường lực, vách kính thẳng",1200000],
+    ["Vách kính WC","m2",1,1800000,"Kính sọc 10mm cường lực, vách kính thẳng",1800000],
+    ["Bộ phụ kiện vách kính tắm (bản lề, tay nắm, kẹp kính)","bộ",1,2400000,"VVP chính hãng",2400000],
+    ["Bộ phụ kiện vách kính tắm (bản lề, tay nắm, kẹp kính)","bộ",1,3800000,"Hafele chính hãng",3800000],
+    ["Bộ phụ kiện cửa kính (bản lề sàn 150kg, kẹp kính, khóa sàn)","bộ",1,3900000,"VVP chính hãng",3900000],
+    ["Bộ phụ kiện cửa kính (bản lề sàn 150kg, kẹp kính, khóa sàn)","bộ",1,5500000,"Hafele chính hãng",5500000],
+    ["Lan can cầu thang / ban công","",1,0,"",0],
+    ["Lan can kính bắt hông (cầu thang)","m",1,850000,"Kính trắng 10mm cường lực, vách kính thẳng, không tay vịn",850000],
+    ["Lan can kính bắt hông (cầu thang)","m",1,1300000,"Kính dán an toàn 2 lớp 10,38mm, vách kính thẳng, không tay vịn",1300000],
+    ["Lan can kính âm (chôn ray U)","m",1,1200000,"Kính màu 10mm cường lực, vách kính thẳng, không tay vịn",1200000],
+    ["Lan can kính âm (chôn ray U)","m",1,1750000,"Kính dán an toàn 2 lớp 10,38mm, vách kính thẳng, không tay vịn",1750000],
+    ["Lan can sắt đơn giản","m",1,1200000,"Cây đứng sắt hộp / sắt la, tay vịn sắt sắt hộp / sắt la, sơn 2 thành phần",1200000],
+    ["Lan can sắt cổ điển","m",1,0,"Tùy theo thiết kế",0],
+    ["Tay vịn gỗ sơn Pu","m",1,550000,"Gỗ thông / gỗ sồi",550000],
+    ["Tay vịn nhôm vuông 20x20","m",1,380000,"",380000]
+  ]},
+  {r:"XV",t:"Cửa cuốn",mode:'item',items:[
+    ["Cửa cuốn trượt trần overhead","m2",1,4300000,"Austdoor",4300000],
+    ["Cửa cuốn khe thoáng","m2",1,2550000,"Austdoor S7",2550000],
+    ["Cửa cuốn khe thoáng","m2",1,1980000,"Mitadoor X50R",1980000],
+    ["Motor cửa cuốn 300kg","cái",1,9200000,"Austdoor AH300A",9200000],
+    ["Motor cửa cuốn 300kg","cái",1,5500000,"YH Đài Loan",5500000],
+    ["Bình lưu điện","cái",1,4375000,"Austdoor E1000",4375000],
+    ["Bình lưu điện","cái",1,4000000,"YH Power Y1000",4000000]
   ]}
 ];
 var PT_ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI'];
