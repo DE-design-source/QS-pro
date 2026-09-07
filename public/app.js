@@ -831,7 +831,8 @@ function renderCatalog(){
       +'<div class="no">'+(i+1)+'</div>'+im2
       +'<div class="cmid" onclick="showDetail('+i+')" title="Xem chi tiết sản phẩm">'
         +'<div class="nm">'+esc(p.ten)+'</div>'
-        +'<div class="meta"><span class="pr">'+money(p.donGiaBan)+' đ</span>'+(brand?'<span class="sz brand">'+brand+'</span>':'')+'</div>'
+        +'<div class="meta"><span class="pr">'+money(p.donGiaBan)+' đ</span>'+(brand?'<span class="sz brand">'+brand+'</span>':'')
+          +(p.comboN?'<span class="sz cbn" title="Có '+p.comboN+' sản phẩm đi kèm">combo '+p.comboN+'</span>':'')+'</div>'
         +(specs?'<div class="cspecs">'+specs+'</div>':'')
       +'</div>'
       +'<button class="cfav'+(p.yeuThich?' on':'')+'" title="'+(p.yeuThich?'Bỏ khỏi sản phẩm yêu thích':'Thêm vào sản phẩm yêu thích')+'" onclick="event.stopPropagation();catFav('+i+','+(p.yeuThich?0:1)+')">'+icon('star',14)+'</button>'
@@ -1161,7 +1162,8 @@ function spAllCols_(){
   var head=[
     ['thumb','Ảnh','thumbcol',function(p){ return p.hinhAnh?'<img class="sp-th" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="sp-th"></span>'; }],
     ['ten','Sản phẩm','sp-name',function(p){ return '<b>'+esc(p.ten||'')+'</b><span class="sp-code">'+esc(p.ma||'')
-        +(p.spChung?'<span class="sp-chung" title="Sản phẩm thuộc kho chung của Dezon — chỉ xem">Kho Dezon</span>':'')+'</span>'; },
+        +(p.spChung?'<span class="sp-chung" title="Sản phẩm thuộc kho chung của Dezon — chỉ xem">Kho Dezon</span>':'')
+        +(p.comboN?'<span class="sp-cbn" title="Có '+p.comboN+' sản phẩm đi kèm — mở chi tiết để xem">'+icon('layers',10)+' combo '+p.comboN+'</span>':'')+'</span>'; },
       {lark:'TÊN SẢN PHẨM', col:'ten_sp', sfx:''}],
     ['duyet','Trạng thái','ct',function(p){
       var on=!!p.daDuyet;
@@ -1908,7 +1910,7 @@ async function pdLoadCombo_(p, idx, dich){
     +'<div class="pd-combo-list">'+list.map(function(x){
       return '<div class="pd-cb">'
         +(x.hinhAnh?'<img src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="cb-img"></span>')
-        +'<div class="pd-cb-i"><b>'+esc(x.ten||'')+'</b><i>'+esc(x.ma||'')+'</i></div>'
+        +'<div class="pd-cb-i"><b>'+esc(x.ten||'')+(x.comboNguoc?'<span class="cb-rev" title="Liên kết đặt từ phía sản phẩm này">↔</span>':'')+'</b><i>'+esc(x.ma||'')+'</i></div>'
         +'<span class="pd-cb-sl">×'+(Number(x.comboSL)||1)+'</span>'
         +'<span class="pd-cb-gia">'+money(x.donGiaBan)+'đ</span></div>'; }).join('')+'</div>'
     +'<div class="pd-combo-ft"><span>Tổng combo kèm theo <b>'+money(tong)+'đ</b></span>'
@@ -1982,7 +1984,8 @@ function fmtDateTime_(v){
 function cbRow_(x,i){
   return '<div class="cb-item">'
     +(x.hinhAnh?'<img class="cb-img" src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="cb-img"></span>')
-    +'<div class="cb-info"><div class="cb-nm" title="'+esc(x.ten||'')+'">'+esc(x.ten||'')+'</div>'
+    +'<div class="cb-info"><div class="cb-nm" title="'+esc(x.ten||'')+'">'+esc(x.ten||'')
+        +(x.comboNguoc?'<span class="cb-rev" title="Liên kết được đặt từ phía sản phẩm này (bộ gồm 1 '+esc(x.ma||'')+' + '+(Number(x.comboBoSL)||1)+' sản phẩm đang mở). Bỏ ở đây thì bên kia cũng mất.">↔ hai chiều</span>':'')+'</div>'
       +'<div class="cb-sub">'+esc(x.ma||'')+(x.donGiaBan?' · '+money(x.donGiaBan)+'đ':'')+'</div></div>'
     +'<label class="cb-sl" title="Số lượng đi kèm cho mỗi sản phẩm chính">×'
       +'<input type="number" min="0" step="1" value="'+(Number(x.comboSL)||1)+'" oninput="cbSetSL_('+i+',this.value)"></label>'
@@ -2046,7 +2049,8 @@ async function spEditModal(i){
   S._spEditRecId=p.recordId; S._combo=[];
   try{ raw=await api('getDbProduct', editKey); hist=await api('getProductHistory', p.ma)||[]; }catch(e){}
   try{ S._combo=(await api('getCombo', editKey)||[]).map(function(x){
-        return {recordId:x.recordId, ma:x.ma, ten:x.ten, hinhAnh:x.hinhAnh, donGiaBan:x.donGiaBan, comboSL:x.comboSL||1}; }); }catch(e){ S._combo=[]; }
+        return {recordId:x.recordId, ma:x.ma, ten:x.ten, hinhAnh:x.hinhAnh, donGiaBan:x.donGiaBan, comboSL:x.comboSL||1,
+                comboNguoc:!!x.comboNguoc, comboBoSL:x.comboBoSL}; }); }catch(e){ S._combo=[]; }
   if(!raw){ ov.querySelector('.spe-body').innerHTML='<div class="empty" style="padding:24px">Không tải được dữ liệu sản phẩm.</div>';
     ov.querySelector('#speSide').innerHTML=''; return; }
   S._spEditMa=editKey;
