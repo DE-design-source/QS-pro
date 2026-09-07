@@ -391,6 +391,18 @@ async function resolveDeleteRequest(actor, id, approve) {
    Cửa ngõ duy nhất là updateProductGated: mọi đường sửa của client (sửa nhanh
    trên bảng, sửa hàng loạt, modal Sửa) đều đi qua đây nên không lách được.
    ═══════════════════════════════════════════════════════════════ */
+// Migration chạy tay -> dịch lỗi Supabase thành hướng dẫn ĐÚNG nguyên nhân
+function spcdErr_(e) {
+  const m = (e && e.message) || '';
+  if (!/sp_cho_duyet/.test(m)) return e;
+  if (/42501|row-level security/i.test(m))
+    return new Error('Bảng sp_cho_duyet đang BẬT RLS nên không ghi được. Vào Supabase → SQL Editor chạy: ' +
+      'alter table public.sp_cho_duyet disable row level security; ' +
+      'grant all on public.sp_cho_duyet to anon, authenticated, service_role;');
+  if (/PGRST205|does not exist|schema cache|404/i.test(m))
+    return new Error('Chưa có bảng sp_cho_duyet. Vào Supabase → SQL Editor chạy file db/sp_approval.sql rồi thử lại.');
+  return e;
+}
 async function spPerms_(actor) {
   if (!actor) return { edit: false, duyet: false };
   if (actor.r === 'admin' || actor.r === 'super') return { edit: true, duyet: true, admin: true };
@@ -429,11 +441,7 @@ async function submitSpEdit(actor, key, data) {
       thay_doi: JSON.stringify(d.changes), du_lieu: JSON.stringify(data || {}),
       trang_thai: 'cho_duyet', nguoi_gui_id: actor.uid, nguoi_gui: who
     }))[0];
-  } catch (e) {
-    if (/sp_cho_duyet/.test(e.message || ''))
-      throw new Error('Chưa bật được duyệt sản phẩm: thiếu bảng sp_cho_duyet. Vào Supabase → SQL Editor chạy db/sp_approval.sql rồi thử lại.');
-    throw e;
-  }
+  } catch (e) { throw spcdErr_(e); }
   // báo cho người duyệt
   try {
     const appr = await spApprovers_(actor);
@@ -463,11 +471,7 @@ async function listSpEdits(actor, status, limit) {
   try {
     rows = await supa.select('sp_cho_duyet', {
       filter: filter, order: 'ngay_gui.desc', limit: Math.min(Number(limit) || 200, 500) });
-  } catch (e) {
-    if (/sp_cho_duyet/.test(e.message || ''))
-      throw new Error('Chưa bật được duyệt sản phẩm: thiếu bảng sp_cho_duyet. Vào Supabase → SQL Editor chạy db/sp_approval.sql rồi thử lại.');
-    throw e;
-  }
+  } catch (e) { throw spcdErr_(e); }
   return rows.map(spcdOut_);
 }
 async function countSpEdits(actor) {
