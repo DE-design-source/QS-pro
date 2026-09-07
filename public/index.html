@@ -64,7 +64,7 @@ a{color:inherit}
 .sp-modal-ov{position:fixed;inset:0;background:#0e1a2b66;backdrop-filter:blur(2px);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
 .sp-modal{background:#fff;border-radius:14px;width:420px;max-width:100%;padding:18px 20px;box-shadow:0 20px 60px #0005}
 /* modal Cập nhật sản phẩm + lịch sử */
-.sp-modal.sp-edit{width:760px}
+.sp-modal.sp-edit{width:min(1240px,96vw)}
 /* Popup Đổi tên bản nháp */
 .sp-modal.rn-modal{width:380px}
 .rn-in{width:100%;box-sizing:border-box;border:1px solid #d7dde4;border-radius:9px;padding:10px 12px;font:inherit;font-size:14px;margin-top:6px}
@@ -99,7 +99,21 @@ a{color:inherit}
 .spe-f input[readonly]{background:#f4f6f8;color:#8a96a5}
 .spe-f textarea{min-height:52px;resize:vertical}
 .spe-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid #eef1f5}
-.spe-hist{margin-top:16px;border-top:1px solid #eef1f5;padding-top:12px}
+.spe-hist{margin-top:0;border-top:0;padding-top:0}
+/* 2 cột: trái = form, phải = trạng thái + lịch sử (luôn nhìn thấy, không phải cuộn xuống cuối) */
+.spe-2col{display:grid;grid-template-columns:minmax(0,1fr) 350px;grid-template-rows:minmax(0,1fr);
+  gap:0;align-items:stretch;height:calc(92vh - 62px);overflow:hidden}
+.spe-2col>*{min-height:0}
+.spe-2col>.spe-body{overflow-y:auto;overflow-x:hidden;padding-right:16px}
+.spe-side{border-left:1px solid var(--hair);background:#fbfcfe;padding:14px 16px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:12px}
+.spe-side .spe-who{flex-direction:column;gap:7px;margin:0;background:#fff}
+.spe-side .spe-hist-list{max-height:none;flex:1}
+@media(max-width:1080px){
+  .spe-2col{grid-template-columns:1fr;grid-template-rows:auto;height:auto;max-height:none;overflow:visible}
+  .spe-2col>.spe-body{padding-right:0;overflow:visible}
+  .spe-side{border-left:0;border-top:1px solid var(--hair);background:transparent;padding:14px 0 0}
+}
 .spe-hist-h{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:800;color:var(--navy);margin-bottom:10px}
 .spe-hist-n{background:#eef2f7;color:#5b6b7b;font-size:11px;font-weight:700;border-radius:9px;padding:1px 7px}
 .spe-hist-list{display:flex;flex-direction:column;gap:8px;max-height:220px;overflow:auto}

@@ -1816,19 +1816,25 @@ function speField_(f, raw){
   }
   return '<div class="spe-f'+(type==='area'?' wide':'')+'"><label>'+esc(label)+star+'</label>'+inner+'</div>';
 }
-function fmtDateTime_(v){ if(!v) return ''; var d=new Date(v); if(isNaN(d)) return String(v);
-  function z(n){return (n<10?'0':'')+n;} return z(d.getDate())+'/'+z(d.getMonth()+1)+'/'+d.getFullYear()+' '+z(d.getHours())+':'+z(d.getMinutes()); }
+function fmtDateTime_(v){
+  if(v==null||v==='') return '—';
+  var d=new Date(v); if(isNaN(d.getTime())) return String(v);
+  var z=function(n){ return (n<10?'0':'')+n; };
+  return z(d.getDate())+'/'+z(d.getMonth()+1)+'/'+d.getFullYear()+' '+z(d.getHours())+':'+z(d.getMinutes());
+}
 async function spEditModal(i){
   var p=(S._spList||[])[i]; if(!p) return;
   if(!p.ma){ toast('Sản phẩm chưa có mã — không cập nhật được'); return; }
   var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='spEditOv';
   ov.onclick=function(e){ if(e.target===ov) spEditClose(); };
-  ov.innerHTML='<div class="sp-modal sp-edit pd"><div class="pd-head"><h3>'+icon('edit',16)+' Cập nhật sản phẩm</h3><button class="pd-x" onclick="spEditClose()">✕</button></div><div class="spe-body"><div class="empty" style="padding:24px">Đang tải…</div></div></div>';
+  ov.innerHTML='<div class="sp-modal sp-edit pd"><div class="pd-head"><h3>'+icon('edit',16)+' Cập nhật sản phẩm</h3><button class="pd-x" onclick="spEditClose()">✕</button></div>'
+    +'<div class="spe-2col"><div class="spe-body"><div class="empty" style="padding:24px">Đang tải…</div></div><aside class="spe-side" id="speSide"></aside></div></div>';
   document.body.appendChild(ov);
   var raw=null, hist=[];
   var editKey = (p.recordId!=null && p.recordId!=='') ? String(p.recordId) : p.ma;   // id dòng = đúng biến thể
   try{ raw=await api('getDbProduct', editKey); hist=await api('getProductHistory', p.ma)||[]; }catch(e){}
-  if(!raw){ ov.querySelector('.spe-body').innerHTML='<div class="empty" style="padding:24px">Không tải được dữ liệu sản phẩm.</div>'; return; }
+  if(!raw){ ov.querySelector('.spe-body').innerHTML='<div class="empty" style="padding:24px">Không tải được dữ liệu sản phẩm.</div>';
+    ov.querySelector('#speSide').innerHTML=''; return; }
   S._spEditMa=editKey;
   // tách anh_sp: ảnh đầu = đại diện, còn lại = ảnh chi tiết/mô tả (dùng chung bộ upload với trang Nhập dữ liệu)
   var imgsRaw=String(raw.anh_sp||'').split('\n').map(function(s){return s.trim();}).filter(Boolean);
@@ -1843,19 +1849,21 @@ async function spEditModal(i){
     return '<div class="spe-h"><div class="spe-h-top"><b>'+esc(h.field)+'</b><span class="spe-h-by">'+icon('clock',11)+' '+esc(h.by||'?')+' · '+fmtDateTime_(h.at)+'</span></div>'
       +'<div class="spe-h-diff"><span class="old">'+esc(h.old||'—')+'</span><span class="arr">→</span><span class="new">'+esc(h.new||'—')+'</span></div></div>';
   }).join(''):'<div class="empty" style="padding:14px;font-size:12.5px">Chưa có lịch sử cập nhật.</div>';
+  ov.querySelector('#speSide').innerHTML=
+    '<div class="spe-who">'
+      +'<span>'+icon('plus',13)+' Tạo bởi <b>'+esc(p.nguoiTao||'—')+'</b>'+(p.ngayTao?' · '+esc(fmtDate(p.ngayTao)):'')+'</span>'
+      +'<span>'+icon('edit',13)+' Sửa cuối bởi <b>'+esc(p.nguoiSua||'—')+'</b>'+(p.ngayCapNhat?' · '+esc(fmtDateTime_(p.ngayCapNhat)):'')+'</span>'
+      +(p.daDuyet?'<span class="ok">'+icon('check',13)+' Duyệt bởi <b>'+esc(p.nguoiDuyet||'—')+'</b>'+(p.ngayDuyet?' · '+esc(fmtDateTime_(p.ngayDuyet)):'')+'</span>'
+                : '<span class="warn">'+icon('clock',13)+' Chưa duyệt</span>')
+    +'</div>'
+    +'<div class="spe-hist"><div class="spe-hist-h">'+icon('clock',15)+' Lịch sử cập nhật <span class="spe-hist-n">'+hist.length+'</span></div>'
+    +'<div class="spe-hist-list">'+histHtml+'</div></div>';
   ov.querySelector('.spe-body').innerHTML=spEditImgSection_()
     +fields
     +'<div class="spe-actions">'
       +'<button class="btn ghost sm" onclick="spEditClose()">Huỷ</button>'
       +(spCanDuyet_()?'<button class="btn ghost sm" id="speDuyetBtn" onclick="spEditSave(1)" title="Lưu thay đổi rồi đánh dấu Đã duyệt">'+icon('check',14)+' Lưu &amp; duyệt</button>':'')
-      +'<button class="btn blue" id="speSaveBtn" onclick="spEditSave()">'+icon('check',15)+' Lưu cập nhật</button></div>'
-    +'<div class="spe-hist">'
-      +'<div class="spe-who">'
-        +'<span>'+icon('plus',13)+' Tạo bởi <b>'+esc(p.nguoiTao||'—')+'</b>'+(p.ngayTao?' · '+esc(fmtDate(p.ngayTao)):'')+'</span>'
-        +'<span>'+icon('edit',13)+' Sửa cuối bởi <b>'+esc(p.nguoiSua||'—')+'</b>'+(p.ngayCapNhat?' · '+esc(fmtDateTime_(p.ngayCapNhat)):'')+'</span>'
-        +(p.daDuyet?'<span class="ok">'+icon('check',13)+' Duyệt bởi <b>'+esc(p.nguoiDuyet||'—')+'</b>'+(p.ngayDuyet?' · '+esc(fmtDateTime_(p.ngayDuyet)):'')+'</span>':'<span class="warn">Chưa duyệt</span>')
-      +'</div>'
-      +'<div class="spe-hist-h">'+icon('clock',15)+' Lịch sử cập nhật <span class="spe-hist-n">'+hist.length+'</span></div><div class="spe-hist-list">'+histHtml+'</div></div>';
+      +'<button class="btn blue" id="speSaveBtn" onclick="spEditSave()">'+icon('check',15)+' Lưu cập nhật</button></div>';
 }
 // 2 vùng ảnh (đại diện + chi tiết) — DÙNG ĐÚNG layout .imgup của trang Nhập dữ liệu (2 cột đều, đồng nhất)
 function spEditImgSection_(){ return imgUpBlock_('spe-imgup'); }
@@ -4948,7 +4956,6 @@ async function openChangePw(){ var m=document.getElementById('ucMenu'); if(m)m.s
   if(String(r.np).length<4){ toast('Mật khẩu mới phải từ 4 ký tự'); return; }
   api('changePassword',r.old,r.np).then(function(){ toast('Đã đổi mật khẩu'); }).catch(function(e){ toast('Lỗi: '+e.message); });
 }
-function fmtDateTime_(s){ if(!s)return'—'; try{ return new Date(s).toLocaleString('vi-VN'); }catch(e){ return String(s); } }
 function admActionLabel_(a){ var m={login:'Đăng nhập',logout:'Đăng xuất',login_fail:'ĐN lỗi',create_user:'Tạo TK',update_user:'Sửa TK',delete_user:'Xóa TK',reset_password:'Đặt lại MK',change_password:'Đổi MK',lock_user:'Khóa TK',unlock_user:'Mở khóa'}; return m[a]||a; }
 async function renderAdmin(){
   var box=document.getElementById('v-admin'); if(!box) return;
