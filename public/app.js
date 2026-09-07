@@ -1289,6 +1289,10 @@ async function spInlineSave(el){
       lark+' của "'+(p.ten||p.ma||'')+'"');
     el.setAttribute('data-old', shown); if(isMoney) el.value=shown;
     spPatchLocal_(p, lark, col, v);
+    if(res && res.daDuyet===false && p.daDuyet){    // sửa nội dung -> phải duyệt lại
+      p.daDuyet=false; p.nguoiDuyet=''; p.ngayDuyet='';
+      spViewTabs_();
+    }
     spSyncRow_(el, p);
     setTimeout(function(){ el.classList.remove('ok'); }, 1300);
   }catch(e){
@@ -1315,7 +1319,7 @@ function spSyncRow_(el,p){
   var tr=el.closest('tr'); if(!tr) return;
   var i=+el.getAttribute('data-i');
   spVisCols_().forEach(function(c,k){
-    if(c[0]!=='giaDaiLy' && c[0]!=='specs') return;   // chỉ 2 cột này phụ thuộc ô vừa sửa
+    if(c[0]!=='giaDaiLy' && c[0]!=='specs' && c[0]!=='duyet') return;   // 3 cột này phụ thuộc ô vừa sửa
     var td=tr.children[k+1]; if(td) td.innerHTML=c[3](p,i);   // +1: bỏ qua cột chọn
   });
 }
@@ -1771,7 +1775,7 @@ async function spEditSave(luuVaDuyet){
 
     if(r&&r.updated){
       if(luuVaDuyet){ try{ await api('setSpDuyet',[String(S._spEditMa)],true); }catch(e){ toast('Lưu xong nhưng duyệt lỗi: '+e.message.slice(0,80)); } }
-      toast('Đã cập nhật '+r.changes+' trường'+(luuVaDuyet?' và duyệt':''));
+      toast('Đã cập nhật '+r.changes+' trường'+(luuVaDuyet?' và duyệt':(r.daDuyet===false?' — sản phẩm chuyển về Chưa duyệt':'')));
       S.products=await api('getProducts')||S.products; spViewTabs_(); spFilter(); if(typeof renderCatalog==='function') renderCatalog(); spEditClose(); }
     else { toast('Không có thay đổi nào để lưu'); lai(); }
   }catch(e){ toast('Lỗi lưu: '+e.message); lai(); }

@@ -481,7 +481,8 @@ async function updateDbProductTracked(actor, key, data, opts) {
   if (!opts.noAudit) await logAudit_(actor, opts.auditAction || 'sua_sp',
     (opts.auditPrefix || 'Sửa SP ') + ma + ' (' + s(cur.ten_sp) + '): ' +
     changes.map(function (c) { return c.field; }).join(', '));
-  return { updated: true, changes: changes.length, ten: s(cur.ten_sp), ma: ma, id: cur.id };
+  return { updated: true, changes: changes.length, ten: s(cur.ten_sp), ma: ma, id: cur.id,
+    daDuyet: row.da_duyet === false ? false : (cur.da_duyet === true) };
 }
 // Đánh dấu ĐÃ DUYỆT / BỎ DUYỆT cho 1 hoặc nhiều sản phẩm (chỉ tài khoản có quyền duyệt).
 // Không đụng tới nội dung SP, chỉ đổi trạng thái + ghi lịch sử.
