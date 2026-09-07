@@ -1940,13 +1940,17 @@ async function pdLoadCombo_(p, idx, dich, boxId){
   //   .pd-sec (tiêu đề mục) · .pd-price (dòng tổng) · .pd-fbtn (nút phụ, giống "Tài liệu kỹ thuật")
   var rows=list.map(function(x){
     var sl=Number(x.comboSL)||1, tt=(Number(x.donGiaBan)||0)*sl;
+    // Cột panel chỉ ~230px: mã + số lượng + tiền dồn xuống MỘT dòng phụ (mã trái · tiền phải)
+    // thay vì để tiền thành cột riêng — như vậy tên có trọn bề ngang, không rớt 3 dòng.
     var phu=[esc(x.ma||'')];
     if(sl>1) phu.push('SL '+sl);
-    if(x.comboNguoc) phu.push('đi kèm 2 chiều');
-    return '<div class="pd-cb">'
+    var tip=x.comboNguoc?' title="Liên kết đặt từ phía sản phẩm này (đi kèm 2 chiều)"':'';
+    return '<div class="pd-cb"'+tip+'>'
       +(x.hinhAnh?'<img src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="cb-img"></span>')
-      +'<div class="pd-cb-i"><b>'+esc(x.ten||'')+'</b><i>'+phu.filter(Boolean).join(' · ')+'</i></div>'
-      +'<span class="pd-cb-gia">'+money(tt)+' đ</span>'
+      +'<div class="pd-cb-i"><b>'+esc(x.ten||'')+'</b>'
+        +'<span class="pd-cb-m"><i>'+phu.filter(Boolean).join(' · ')
+          +(x.comboNguoc?' <span class="cb-rev">↔</span>':'')+'</i>'
+          +'<span class="pd-cb-gia">'+money(tt)+' đ</span></span></div>'
     +'</div>';
   }).join('');
   box.innerHTML='<div class="pd-block pd-combo">'

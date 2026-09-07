@@ -3225,18 +3225,23 @@ table.pt td.dvt-cell,table.pt td.dvt-cell .pt-in{font-style:italic;color:#5b6b7b
 .pd .pd-combo{margin-top:16px;padding:12px 13px 13px;background:#f6faff;
   border:1px solid rgba(37,99,235,.22);border-radius:var(--r-xl)}
 .pd .pd-combo .pd-sec{margin-top:0;border-bottom-color:rgba(37,99,235,.18)}
-/* dòng sản phẩm: thẻ trắng trên nền xanh nhạt */
-.pd .pd-combo .pd-cb{display:flex;align-items:center;gap:10px;margin-top:8px;padding:8px 10px;
+/* dòng sản phẩm: thẻ trắng trên nền xanh nhạt.
+   Bố cục 2 dòng — [ảnh] [tên] / [mã · SL ....... thành tiền] — để tên có trọn bề
+   ngang cột (panel chỉ ~230px), ảnh canh theo dòng đầu chứ không trôi ra giữa. */
+.pd .pd-combo .pd-cb{display:flex;align-items:flex-start;gap:9px;margin-top:7px;padding:8px 9px;
   background:#fff;border:1px solid rgba(37,99,235,.16);border-radius:var(--r-md)}
-.pd .pd-combo .pd-cb img,.pd .pd-combo .pd-cb .cb-img{width:40px;height:40px;flex:none;
+.pd .pd-combo .pd-cb img,.pd .pd-combo .pd-cb .cb-img{width:34px;height:34px;flex:none;
   border-radius:var(--r-sm);border:1px solid var(--hair);background:#fff;object-fit:contain}
 .pd .pd-combo .pd-cb-i{flex:1;min-width:0;display:block}
-.pd .pd-combo .pd-cb-i b{display:block;font-size:12.5px;font-weight:600;color:var(--ink);line-height:1.35;
+.pd .pd-combo .pd-cb-i b{display:block;font-size:12px;font-weight:600;color:var(--ink);line-height:1.3;
   white-space:normal;overflow:visible;text-overflow:clip}          /* tên xuống dòng, KHÔNG cắt cụt */
-.pd .pd-combo .pd-cb-i i{display:block;margin-top:2px;font-style:normal;font-size:11.5px;
-  color:var(--ink-3);line-height:1.35}
-.pd .pd-combo .pd-cb-gia{flex:none;font-size:13px;font-weight:650;color:var(--navy);
+.pd .pd-combo .pd-cb-m{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:3px}
+.pd .pd-combo .pd-cb-i i{flex:1;min-width:0;display:block;font-style:normal;font-size:10.5px;
+  color:var(--ink-3);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pd .pd-combo .pd-cb-gia{flex:none;font-size:12.5px;font-weight:650;color:var(--navy);
   letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pd .pd-combo .cb-rev{margin:0 0 0 2px;padding:0;background:none;border:none;color:var(--blue);
+  font-size:10.5px;font-weight:700}
 /* tổng + nút: vẫn là .pd-price / .pd-fbtn, chỉ chỉnh đường kẻ và nền cho hợp khung */
 .pd .pd-combo .pd-price{margin-top:11px;padding-top:10px;border-top-color:rgba(37,99,235,.18)}
 .pd .pd-combo .pd-foot2{margin-top:10px}
