@@ -64,7 +64,7 @@ function prodToObj(r) {
     viTriNguon: s(r.vi_tri_lap_nguon), tuongThich: s(r.dieu_khien), dongRa: r.dong_ra_max_ma ? (r.dong_ra_max_ma + 'mA') : '',
     lapNguonRoi: r.lap_nguon_roi ? 'Có' : '', capBaoVeDien: s(r.class_rating), linkDatasheet: s(r.link_datasheet),
     kichThuoc: thongSoTK, size: size,
-    dvt: s(r.dvt) || 'Cái', hinhAnh: firstImg(r.anh_sp), moTa: moTa,
+    dvt: s(r.dvt) || 'Cái', hinhAnh: firstImg(r.anh_sp), anhTatCa: s(r.anh_sp), moTa: moTa,
     giaBanLe: n(r.gia_ban_le), ckDaiLy: n(r.ck_dai_ly_pct),   // để sửa TRỰC TIẾP trong bảng Danh sách SP
     donGiaVon: n(r.gia_dai_ly), donGiaBan: n(r.gia_dai_ly), lnPct: 0, recordId: r.id, ngayCapNhat: s(r.ngay_cap_nhat),
     // Giá trị GỐC của TẤT CẢ trường trong form Nhập — để bảng Danh sách SP hiển thị/sửa

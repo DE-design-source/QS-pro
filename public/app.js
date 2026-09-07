@@ -839,21 +839,46 @@ function pdMedia_(p){
     keyHtml='<div class="pd-block"><div class="pd-sec">Key Product Info <i>(Thông tin chính)</i></div>'
       +'<div class="pd-keys">'+keyItems.map(function(x){ return '<div class="pd-key"><span class="ic">'+icon(x[0],15)+'</span><span>'+esc(x[1])+'</span></div>'; }).join('')+'</div></div>';
   }
-  // gallery: ảnh chính + thumbnail chọn ảnh
-  var imgs=String(p.hinhAnh||'').split('\n').map(function(s){return s.trim();}).filter(Boolean);
-  var main=imgs[0]?'<img id="pdMainImg" src="'+esc(imgUrlOf(imgs[0]))+'" onclick="imgPop_(this.src)" title="Bấm xem ảnh lớn" onerror="this.style.visibility=\'hidden\'">':'<span class="pd-noimg">Không có ảnh</span>';
-  var dl=imgs[0]?'<a class="pd-imgdl" href="'+esc(imgUrlOf(imgs[0]))+'" target="_blank" rel="noopener" title="Mở ảnh gốc">'+icon('download',14)+'</a>':'';
-  var thumbs=imgs.length>1?'<div class="pd-thumbs">'+imgs.map(function(v,i){
-      return '<button class="pd-thumb'+(i===0?' on':'')+'" onclick="pdPickImg_(this,\''+esc(imgUrlOf(v))+'\')"><img src="'+esc(imgUrlOf(v))+'" onerror="this.style.visibility=\'hidden\'"></button>';
-    }).join('')+'</div>':'';
-  return '<div class="pd-gal"><div class="imgbox">'+main+dl+'</div>'+thumbs+'</div>'
+  /* ═══ GALLERY: xem được TẤT CẢ ảnh của sản phẩm ═══
+     - Ảnh lớn có nút ‹ › lật ảnh + số đếm 2/5, bấm vào mở xem cỡ lớn
+     - Dải ảnh nhỏ bên dưới, bấm chọn nhanh; cuộn ngang nếu nhiều ảnh    */
+  var imgs=String(p.anhTatCa||p.hinhAnh||'').split('\n').map(function(s){return s.trim();}).filter(Boolean)
+             .map(function(v){ return imgUrlOf(v); });
+  S._pdImgs=imgs; S._pdIdx=0;
+  var nav = imgs.length>1
+    ? '<button class="pd-nav prev" title="Ảnh trước (←)" onclick="event.stopPropagation();pdGoImg_(-1)">'+icon('left',18)+'</button>'
+      +'<button class="pd-nav next" title="Ảnh sau (→)" onclick="event.stopPropagation();pdGoImg_(1)">'
+      +'<svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>'
+      +'<span class="pd-count" id="pdCount">1/'+imgs.length+'</span>'
+    : '';
+  var main = imgs[0]
+    ? '<img id="pdMainImg" src="'+esc(imgs[0])+'" onclick="imgPop_(this.src)" title="Bấm để xem ảnh lớn" onerror="this.style.visibility=\'hidden\'">'
+    : '<span class="pd-noimg">'+icon('image',26)+'<i>Chưa có ảnh</i></span>';
+  var dl = imgs[0] ? '<a class="pd-imgdl" href="'+esc(imgs[0])+'" target="_blank" rel="noopener" title="Mở ảnh gốc">'+icon('download',14)+'</a>' : '';
+  var thumbs = imgs.length>1
+    ? '<div class="pd-thumbs" id="pdThumbs">'+imgs.map(function(v,i){
+        return '<button class="pd-thumb'+(i===0?' on':'')+'" title="Ảnh '+(i+1)+'" onclick="pdSetImg_('+i+')">'
+          +'<img src="'+esc(v)+'" onerror="this.style.visibility=\'hidden\'"></button>'; }).join('')+'</div>'
+    : '';
+  return '<div class="pd-gal"><div class="imgbox">'+main+nav+dl+'</div>'+thumbs+'</div>'
     +'<div class="pcode">'+esc(p.ma||p.ten)+'</div>'
     +(p.ten?'<div class="pd-name">'+esc(p.ten)+'</div>':'')
     +keyHtml;
 }
-function pdPickImg_(btn,src){
-  var im=document.getElementById('pdMainImg'); if(im){ im.src=src; im.style.visibility='visible'; }
-  var wrap=btn.parentNode; [].slice.call(wrap.children).forEach(function(b){ b.classList.remove('on'); }); btn.classList.add('on');
+// Chọn ảnh thứ i trong gallery
+function pdSetImg_(i){
+  var imgs=S._pdImgs||[]; if(!imgs.length) return;
+  i=((i%imgs.length)+imgs.length)%imgs.length; S._pdIdx=i;
+  var im=document.getElementById('pdMainImg');
+  if(im){ im.src=imgs[i]; im.style.visibility='visible'; }
+  var c=document.getElementById('pdCount'); if(c) c.textContent=(i+1)+'/'+imgs.length;
+  var tw=document.getElementById('pdThumbs');
+  if(tw){ [].slice.call(tw.children).forEach(function(b,k){ b.classList.toggle('on',k===i); });
+    var on=tw.children[i]; if(on&&on.scrollIntoView) on.scrollIntoView({block:'nearest',inline:'nearest'}); }
+}
+function pdGoImg_(d){ pdSetImg_((S._pdIdx||0)+d); }
+function pdPickImg_(btn,src){   // giữ để tương thích chỗ gọi cũ
+  var i=[].slice.call(btn.parentNode.children).indexOf(btn); pdSetImg_(i<0?0:i);
 }
 // Các nhóm thông số — tiêu đề song ngữ + thứ tự theo Figma
 function pdSpecs_(p){
@@ -894,7 +919,18 @@ function showDetail(i){
   el.style.display='block';
   el.innerHTML='<div class="pd-head"><h3>Thông tin sản phẩm</h3><button class="pd-x" title="Đóng" onclick="hideDetail()">✕</button></div>'
     +pdContent_(p)
-    +'<div class="pd-actions"><button class="btn blue sm" onclick="addProduct('+i+')">'+icon('plus',14)+' Thêm vào bóc tách</button></div>';
+    +'<div class="pd-actions">'
+      +'<button class="btn ghost sm" onclick="hideDetail()">Đóng</button>'
+      +'<button class="btn blue sm" onclick="addProduct('+i+')">'+icon('plus',14)+' Thêm vào bóc tách</button></div>';
+  document.addEventListener('keydown',pdPanelKey_);
+}
+// ←/→ lật ảnh trong panel chi tiết bên Bóc tách
+function pdPanelKey_(e){
+  var el=document.getElementById('pdPanel'); if(!el||el.style.display==='none') return;
+  if(document.getElementById('imgPop') && document.getElementById('imgPop').style.display==='flex') return;
+  var a=document.activeElement, tg=a?a.tagName:''; if(tg==='INPUT'||tg==='TEXTAREA') return;
+  if(e.key==='ArrowLeft'){ e.preventDefault(); pdGoImg_(-1); }
+  else if(e.key==='ArrowRight'){ e.preventDefault(); pdGoImg_(1); }
 }
 /* ===== DANH SÁCH SẢN PHẨM ===== */
 function renderSanpham(){
@@ -1774,14 +1810,30 @@ function spModal(i){
   var p=(S._spList||[])[i]; if(!p) return;
   var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='spModalOv';
   ov.onclick=function(e){ if(e.target===ov) spClose(); };
-  ov.innerHTML='<div class="sp-modal sp-modal-wide pd"><div class="pd-head"><h3>Thông tin sản phẩm</h3><button class="pd-x" onclick="spClose()">✕</button></div>'
+  var duyet=p.daDuyet?'<span class="spduyet on">Đã duyệt</span>':'<span class="spduyet">Chưa duyệt</span>';
+  ov.innerHTML='<div class="sp-modal sp-modal-wide pd"><div class="pd-head"><h3>Thông tin sản phẩm</h3>'
+      +duyet+'<button class="pd-x" onclick="spClose()">✕</button></div>'
     +'<div class="pdm-grid">'
       +'<div class="pdm-left">'+pdMedia_(p)+pdPriceFoot_(p)+'</div>'
       +'<div class="pdm-right">'+pdSpecs_(p)+'</div>'
+    +'</div>'
+    +'<div class="pd-actions">'
+      +'<button class="btn ghost sm" onclick="spClose()">Đóng</button>'
+      +((spCanEdit_()&&!p.spChung)?'<button class="btn ghost sm" onclick="spClose();spEditModal('+i+')">'+icon('edit',14)+' Cập nhật</button>':'')
+      +'<button class="btn blue" onclick="spAddToProject('+i+')">'+icon('plus',15)+' Thêm vào dự án</button>'
     +'</div></div>';
   document.body.appendChild(ov);
+  document.addEventListener('keydown',spModalKey_);
 }
-function spClose(){ var o=document.getElementById('spModalOv'); if(o)o.remove(); }
+// ←/→ lật ảnh ngay trong modal chi tiết, Esc để đóng
+function spModalKey_(e){
+  if(!document.getElementById('spModalOv')) return;
+  if(document.getElementById('imgPop') && document.getElementById('imgPop').style.display==='flex') return;
+  if(e.key==='Escape'){ spClose(); }
+  else if(e.key==='ArrowLeft'){ e.preventDefault(); pdGoImg_(-1); }
+  else if(e.key==='ArrowRight'){ e.preventDefault(); pdGoImg_(1); }
+}
+function spClose(){ var o=document.getElementById('spModalOv'); if(o)o.remove(); document.removeEventListener('keydown',spModalKey_); }
 // ===== Cập nhật sản phẩm + lịch sử =====
 // Nhãn (Lark) -> cột DB. Modal SỬA dùng CHUNG DB_GROUPS với form NHẬP -> 2 bên luôn giống nhau.
 var DB_LABEL2COL_={
@@ -1907,7 +1959,7 @@ async function spDelete(i){
     toast('Đã xoá: '+p.ten); spFilter(); renderFilters&&renderFilters(); renderCatalog&&renderCatalog(); }
   catch(e){ toast('Lỗi xoá: '+e.message); }
 }
-function hideDetail(){ S._detailIdx=null; document.getElementById('pdPanel').style.display='none'; document.getElementById('bocGrid').classList.remove('detail'); }
+function hideDetail(){ S._detailIdx=null; document.getElementById('pdPanel').style.display='none'; document.getElementById('bocGrid').classList.remove('detail'); document.removeEventListener('keydown',pdPanelKey_); }
 
 /* ===== ADD to takeoff ===== */
 async function addProduct(i){ var p=(S._filtered||[])[i]; if(p) await addProdObj(p); }
@@ -3948,7 +4000,56 @@ function imgUrlOf(v){
   if(v.indexOf('http')===0) return v;
   return '/media?token='+encodeURIComponent(v);
 }
-function imgPop_(src){ if(!src)return; var o=document.getElementById('imgPop'); if(!o){ o=document.createElement('div'); o.id='imgPop'; o.className='imgpop'; o.onclick=function(){ o.style.display='none'; }; o.innerHTML='<img><span class="imgpop-x">✕</span>'; document.body.appendChild(o); } o.querySelector('img').src=src; o.style.display='flex'; }
+/* Xem ảnh cỡ lớn: lật ‹ › bằng chuột hoặc phím ←/→, Esc để đóng, có số đếm */
+function imgPop_(src){
+  if(!src) return;
+  var imgs=(S._pdImgs&&S._pdImgs.length)?S._pdImgs:[src];
+  var i=imgs.indexOf(src); if(i<0) i=(S._pdIdx||0);
+  S._popIdx=i;
+  var o=document.getElementById('imgPop');
+  if(!o){
+    o=document.createElement('div'); o.id='imgPop'; o.className='imgpop';
+    o.innerHTML='<button class="imgpop-nav prev" title="Ảnh trước (←)">‹</button>'
+      +'<img alt="">'
+      +'<button class="imgpop-nav next" title="Ảnh sau (→)">›</button>'
+      +'<span class="imgpop-n"></span><span class="imgpop-x" title="Đóng (Esc)">✕</span>';
+    o.addEventListener('click',function(e){
+      var b=e.target.closest('.imgpop-nav');
+      if(b){ e.stopPropagation(); imgPopGo_(b.classList.contains('prev')?-1:1); return; }
+      if(e.target.tagName!=='IMG') imgPopClose_();          // bấm ra ngoài ảnh = đóng
+    });
+    document.body.appendChild(o);
+  }
+  imgPopShow_();
+  o.style.display='flex';
+  document.addEventListener('keydown',imgPopKey_);
+}
+function imgPopShow_(){
+  var o=document.getElementById('imgPop'); if(!o) return;
+  var imgs=(S._pdImgs&&S._pdImgs.length)?S._pdImgs:[];
+  var i=S._popIdx||0;
+  if(imgs[i]) o.querySelector('img').src=imgs[i];
+  var many=imgs.length>1;
+  o.querySelectorAll('.imgpop-nav').forEach(function(b){ b.style.display=many?'':'none'; });
+  var n=o.querySelector('.imgpop-n');
+  n.textContent=many?((i+1)+' / '+imgs.length):''; n.style.display=many?'':'none';
+}
+function imgPopGo_(d){
+  var imgs=(S._pdImgs&&S._pdImgs.length)?S._pdImgs:[]; if(imgs.length<2) return;
+  S._popIdx=(((S._popIdx||0)+d)%imgs.length+imgs.length)%imgs.length;
+  imgPopShow_();
+  if(document.getElementById('pdMainImg')) pdSetImg_(S._popIdx);   // đồng bộ với gallery bên dưới
+}
+function imgPopClose_(){
+  var o=document.getElementById('imgPop'); if(o) o.style.display='none';
+  document.removeEventListener('keydown',imgPopKey_);
+}
+function imgPopKey_(e){
+  var o=document.getElementById('imgPop'); if(!o||o.style.display==='none') return;
+  if(e.key==='Escape'){ imgPopClose_(); }
+  else if(e.key==='ArrowLeft'){ e.preventDefault(); imgPopGo_(-1); }
+  else if(e.key==='ArrowRight'){ e.preventDefault(); imgPopGo_(1); }
+}
 // Ảnh đầu tiên (nhiều ảnh nối bằng xuống dòng) -> URL hợp lệ cho <img src>
 function imgSrc1_(v){ return imgUrlOf(String(v||'').split('\n')[0].trim()); }
 // Ảnh lỗi: giữ nguyên thẻ img, chỉ báo nhẹ trên khung + cho bấm thử lại (không phá huỷ như trước)
