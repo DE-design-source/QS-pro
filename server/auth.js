@@ -427,6 +427,12 @@ async function saveLineAsProductGated(actor, line) {
   if (!p.edit) throw new Error('Tài khoản không có quyền thêm sản phẩm vào danh mục');
   return store.saveLineAsProduct(actor, line);
 }
+// Đặt danh sách sản phẩm đi kèm (combo) — cần quyền sửa
+async function setComboGated(actor, key, items) {
+  const p = await spPerms_(actor);
+  if (!p.edit) throw new Error('Tài khoản không có quyền sửa sản phẩm');
+  return store.setCombo(actor, key, items);
+}
 // Duyệt / bỏ duyệt sản phẩm — chỉ tài khoản có quyền duyệt
 async function setSpDuyet(actor, keys, approve) {
   const p = await spPerms_(actor);
@@ -488,7 +494,7 @@ async function resolvePurchaseRequest(actor, maDon, approve) {
 }
 
 module.exports = {
-  updateProductGated, createProductGated, importGated, saveLineAsProductGated, setSpDuyet, spMyPerms,
+  updateProductGated, createProductGated, importGated, saveLineAsProductGated, setSpDuyet, setComboGated, spMyPerms,
   listCongTyUsers, createCongTyUser,
   listCongTy, createCongTy, updateCongTy, deleteCongTy, getCongTy,
   getPurchaseOrder,

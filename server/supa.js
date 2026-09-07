@@ -19,7 +19,7 @@ const tenant = require('./tenant');
 const TENANT_TABLES = {
   du_an: 1, db_bao_gia: 1, khai_toan: 1, db_san_pham: 1, db_san_pham_history: 1,
   don_mua_hang: 1, chi_tiet_mua_hang: 1, notifications: 1, delete_requests: 1,
-  audit_log: 1, users: 1
+  audit_log: 1, users: 1, sp_combo: 1
 };
 function tenantFilter_(table, opt) {
   if ((opt && opt.noScope) || !TENANT_TABLES[table]) return '';

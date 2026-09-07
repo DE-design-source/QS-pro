@@ -560,6 +560,46 @@ async function setSpDuyet(actor, keys, approve) {
   if (errs.length) out.errors = errs;
   return out;
 }
+/*** ===== COMBO: sản phẩm đi kèm ===== ***/
+// Trả danh sách SP đi kèm của 1 sản phẩm, kèm thông tin để hiển thị/thêm vào dự án
+async function getCombo(key) {
+  const cur = await getDbProduct(key); if (!cur) return [];
+  let rows = [];
+  try { rows = await supa.select('sp_combo', { filter: supa.eq('sp_id', cur.id), order: 'sort_no.asc', limit: 100 }); }
+  catch (e) { if (comboMissing_(e)) return []; throw e; }        // chưa chạy SQL -> coi như chưa có combo
+  if (!rows.length) return [];
+  const ids = rows.map(function (r) { return r.sp_kem_id; });
+  const sps = await supa.select('db_san_pham', { select: '*', filter: 'id=in.(' + ids.join(',') + ')', limit: 100, noScope: true });
+  const by = {}; sps.forEach(function (r) { by[r.id] = r; });
+  return rows.filter(function (r) { return by[r.sp_kem_id]; }).map(function (r) {
+    const o = prodToObj(by[r.sp_kem_id]);
+    o.comboSL = n(r.so_luong) || 1; o.comboGhiChu = s(r.ghi_chu); o.comboId = r.id;
+    return o;
+  });
+}
+function comboMissing_(e) { const m = (e && e.message) || ''; return /sp_combo/.test(m) && /(does not exist|schema cache|PGRST205|404)/i.test(m); }
+// Ghi đè toàn bộ danh sách SP đi kèm của 1 sản phẩm
+async function setCombo(actor, key, items) {
+  const cur = await getDbProduct(key); if (!cur) throw new Error('Không tìm thấy sản phẩm.');
+  await guardSpChung_(key);
+  items = (Array.isArray(items) ? items : []).filter(function (x) { return x && x.id && String(x.id) !== String(cur.id); });
+  try {
+    await supa.remove('sp_combo', supa.eq('sp_id', cur.id));
+    if (items.length) {
+      const seen = {};
+      const rows = items.filter(function (x) { const k = String(x.id); if (seen[k]) return false; seen[k] = 1; return true; })
+        .map(function (x, i) { return { sp_id: cur.id, sp_kem_id: Number(x.id), so_luong: n(x.soLuong) || 1, ghi_chu: s(x.ghiChu), sort_no: i }; });
+      await supa.insert('sp_combo', rows);
+    }
+  } catch (e) {
+    if (comboMissing_(e)) throw new Error('Chưa có bảng sp_combo. Vào Supabase → SQL Editor chạy file db/sp_combo.sql rồi thử lại.');
+    throw e;
+  }
+  await spHistory_(actor, s(cur.ma_sp), [{ field: 'SẢN PHẨM ĐI KÈM', old: '', new: items.length ? (items.length + ' sản phẩm') : 'Bỏ hết' }]);
+  await logAudit_(actor, 'sua_combo', 'Đặt ' + items.length + ' sản phẩm đi kèm cho ' + s(cur.ma_sp) + ' (' + s(cur.ten_sp) + ')');
+  _cache = null;
+  return { ok: true, count: items.length };
+}
 async function getProductHistory(ma) {
   ma = s(ma).trim(); if (!ma) return [];
   const rows = await supa.select('db_san_pham_history', { filter: supa.eq('ma_sp', ma), order: 'changed_at.desc', limit: 200 });
@@ -692,6 +732,7 @@ module.exports = {
   bootstrap, buildCatalog, getProducts, getCatalogSheets, getProjects, getProject, createProject, updateProject, deleteProject, duplicateProject,
   getLines, addLine, addBlankLine, updateLine, deleteLine, saveLineAsProduct, saveDbProduct, deleteDbProduct, uploadImage,
   getDbProduct, updateDbProductTracked, getProductHistory, diffDbProduct, dataToRow_, logAudit_, setSpDuyet,
+  getCombo, setCombo,
   getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, getDashboard, getQuote, importParse, importCommit,
   savePurchaseOrder, getPurchaseOrders
 };
