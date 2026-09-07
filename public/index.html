@@ -2151,9 +2151,49 @@ body.col-resizing{cursor:col-resize;user-select:none}
 /* bảng cố định -> ô phải tự cắt cho gọn */
 .sp-table td,.sp-table th{overflow:hidden;text-overflow:ellipsis}
 .sp-table thead th{white-space:nowrap}
+
+/* ═══ HÀNG TIÊU ĐỀ BẢNG SP — làm nổi, rõ vai trò và thao tác được ═══ */
+.sp-table thead th{
+  background:linear-gradient(180deg,#fdfefe 0%,#f2f6fa 100%);
+  color:#556272;
+  font-weight:700;font-size:10.5px;letter-spacing:.08em;
+  border-bottom:1px solid #dbe3ec;
+  transition:background .13s,color .13s;
+}
+.sp-table thead th.frz{background:linear-gradient(180deg,#fdfefe 0%,#f2f6fa 100%)}
+.sp-card .sp-table thead th{font-weight:700;color:#556272}
+/* ô tiêu đề kéo được -> hover phải "mời gọi" */
+.sp-table thead th.spth:hover{background:linear-gradient(180deg,#eef4fb 0%,#e4edf7 100%);color:var(--navy)}
+.sp-table thead th.spth::after{                  /* chấm nhỏ báo hiệu kéo được */
+  content:'';position:absolute;left:50%;top:5px;transform:translateX(-50%);
+  width:14px;height:2px;border-radius:2px;background:#c3ceda;opacity:0;transition:opacity .13s}
+.sp-table thead th.spth:hover::after{opacity:1}
+/* tay nắm kéo giãn: mờ, hover mới rõ */
+.sp-table th.spth .spthrsz::before{
+  content:'';position:absolute;right:3px;top:22%;height:56%;width:2px;border-radius:2px;
+  background:#cfd8e2;opacity:0;transition:opacity .13s}
+.sp-table th.spth:hover .spthrsz::before{opacity:1}
+.sp-table th.spth .spthrsz:hover::before{background:var(--blue);opacity:1;width:2.5px}
+/* tiêu đề nổi hẳn lên khi bảng đã cuộn dọc */
+.sp-card .tbl-wrap.yscroll thead th{box-shadow:0 6px 14px -8px rgba(18,50,76,.45)}
+.sp-card .tbl-wrap.yscroll thead th.frz{box-shadow:1px 0 0 var(--hair-2),0 6px 14px -8px rgba(18,50,76,.45)}
+/* ô chọn tất cả ở góc trái tiêu đề */
+.sp-table thead th.selcol{background:linear-gradient(180deg,#fdfefe 0%,#f2f6fa 100%)}
+/* dòng dữ liệu: gạch ngăn nhạt hơn, hover rõ hơn để dò theo hàng */
+.sp-table tbody tr:hover{background:#f5f9ff}
+.sp-table tbody tr.selrow{background:#eef5ff}
 .sp-table td.sp-name{white-space:normal}
 .cp-collbl .cp-reset{margin-left:8px;color:var(--blue);cursor:pointer;font-weight:600;text-transform:none;letter-spacing:0}
 .cp-collbl .cp-reset:hover{text-decoration:underline}
+/* người tạo / người sửa */
+.sp-who{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:12px;color:var(--ink-2)}
+.spe-who{display:flex;flex-wrap:wrap;gap:8px 18px;padding:10px 13px;margin-bottom:10px;
+  border:1px solid var(--hair);border-radius:var(--r-md);background:#fbfcfe;font-size:12px;color:var(--ink-3)}
+.spe-who b{color:var(--ink);font-weight:650}
+.spe-who span{display:inline-flex;align-items:center;gap:5px}
+.spe-who .ok{color:#15803d}
+.spe-who .warn{color:#a16207;font-weight:650}
 /* nhãn trạng thái duyệt trên từng dòng */
 .spduyet{display:inline-block;padding:3px 9px;border-radius:var(--r-sm);font-size:11px;font-weight:650;
   background:#fef3c7;color:#a16207;white-space:nowrap}

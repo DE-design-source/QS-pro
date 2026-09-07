@@ -43,8 +43,8 @@ const REGISTRY = {
   addBlankLine: store.addBlankLine,
   updateLine: store.updateLine,
   deleteLine: store.deleteLine,
-  saveLineAsProduct: store.saveLineAsProduct,
-  saveDbProduct: store.saveDbProduct,
+  saveLineAsProduct: auth.saveLineAsProductGated,
+  saveDbProduct: auth.createProductGated,   // cửa ngõ: cần quyền sửa + đóng dấu người tạo
   uploadImage: store.uploadImage,
   deleteDbProduct: store.deleteDbProduct,
   getDbProduct: store.getDbProduct,
@@ -59,7 +59,7 @@ const REGISTRY = {
   getDashboard: store.getDashboard,
   getQuote: store.getQuote,
   importParse: store.importParse,
-  importCommit: store.importCommit,
+  importCommit: auth.importGated,
   exportBaoGia: exportBaoGia,
   sendPurchaseRequest: sendPurchaseRequest,
   getPurchaseOrders: store.getPurchaseOrders,
@@ -103,7 +103,7 @@ const ACTOR_FNS = new Set(['me', 'logout', 'changePassword',
   'sendPurchaseRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest',
   'listCongTy', 'createCongTy', 'updateCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'checkExpiry',
   'updateDbProductTracked', 'setSpDuyet', 'spMyPerms',
-  'deleteDbProduct', 'importCommit']);
+  'deleteDbProduct', 'importCommit', 'saveDbProduct', 'saveLineAsProduct']);
 // Hàm chỉ Admin được gọi
 const SUPER_FNS = new Set(['listCongTy', 'createCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'checkExpiry']);
 const ADMIN_FNS = new Set(['adminListUsers', 'adminCreateUser', 'adminUpdateUser',

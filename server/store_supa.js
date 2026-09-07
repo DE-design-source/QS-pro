@@ -70,6 +70,7 @@ function prodToObj(r) {
     // Giá trị GỐC của TẤT CẢ trường trong form Nhập — để bảng Danh sách SP hiển thị/sửa
     // được đúng bộ cột như form (hiển thị là '12W'/'4000K' nhưng DB lưu '12'/'4000').
     daDuyet: r.da_duyet === true, nguoiDuyet: s(r.nguoi_duyet), ngayDuyet: s(r.ngay_duyet),
+    nguoiTao: s(r.nguoi_tao), ngayTao: s(r.ngay_tao), nguoiSua: s(r.nguoi_sua),
     raw: rawCols_(r)
   };
 }
@@ -361,8 +362,28 @@ function colErr_(e) {
   }
   return e;
 }
-async function saveDbProduct(data) {
+// Chưa chạy db/sp_nguoi_tao.sql thì bỏ qua 3 cột này, KHÔNG chặn việc lưu sản phẩm
+let _hasWhoCol = null;
+function whoColMissing_(e) {
+  const m = (e && e.message) || '';
+  return /(nguoi_tao|ngay_tao|nguoi_sua)/.test(m) && /(column|schema cache|PGRST204)/i.test(m);
+}
+// Ghi 1 hoặc nhiều dòng lịch sử cho sản phẩm (nuốt lỗi — nhật ký không được chặn nghiệp vụ)
+async function spHistory_(actor, ma, changes) {
+  if (!changes || !changes.length) return;
+  try {
+    await supa.insert('db_san_pham_history', changes.map(function (c) {
+      return { ma_sp: s(ma), field: c.field, old_value: s(c.old), new_value: s(c.new),
+        changed_by: (actor && actor.uid) || null, changed_by_name: (actor && (actor.u || actor.username)) || 'ẩn danh' };
+    }));
+  } catch (e) { console.warn('[product history]', e && e.message); }
+}
+async function saveDbProduct(actor, data, opts) {
+  opts = opts || {};
+  // Tương thích ngược: vài chỗ trong server vẫn gọi saveDbProduct(data)
+  if (data === undefined && actor && typeof actor === 'object' && !actor.uid && !actor.u) { data = actor; actor = null; }
   data = data || {};
+  const who = (actor && (actor.u || actor.username)) || '';
   const ten = s(data['TÊN SẢN PHẨM']).trim();
   if (!ten) throw new Error('Chưa có Tên sản phẩm.');
   const row = {};
@@ -384,13 +405,26 @@ async function saveDbProduct(data) {
     });
     const ex = await supa.select('db_san_pham', { select: 'id', filter: filter, limit: 1 });
     if (ex.length) {
-      try { await supa.update('db_san_pham', supa.eq('id', ex[0].id), row); } catch (e) { throw colErr_(e); }
-      _cache = null; return { updated: true, ma: ma, ten: ten };
+      if (who && _hasWhoCol !== false) { row.nguoi_sua = who; row.ngay_cap_nhat = new Date().toISOString(); }
+      try { await supa.update('db_san_pham', supa.eq('id', ex[0].id), row); }
+      catch (e) { if (whoColMissing_(e)) { delete row.nguoi_sua; await supa.update('db_san_pham', supa.eq('id', ex[0].id), row); } else throw colErr_(e); }
+      _cache = null;
+      await spHistory_(actor, ma, [{ field: 'CẬP NHẬT (nhập liệu)', old: '', new: ten }]);
+      if (!opts.noAudit) await logAudit_(actor, 'cap_nhat_sp', 'Cập nhật SP ' + ma + ' (' + ten + ') qua form Nhập dữ liệu');
+      return { updated: true, ma: ma, ten: ten, id: ex[0].id };
     }
   }
-  try { await supa.insert('db_san_pham', row); } catch (e) { throw colErr_(e); }
+  if (who && _hasWhoCol !== false) { row.nguoi_tao = who; row.ngay_tao = new Date().toISOString(); }
+  let res;
+  try { res = await supa.insert('db_san_pham', row); }
+  catch (e) {
+    if (whoColMissing_(e)) { delete row.nguoi_tao; delete row.ngay_tao; _hasWhoCol = false; res = await supa.insert('db_san_pham', row); }
+    else throw colErr_(e);
+  }
   _cache = null;
-  return { created: true, ma: ma, ten: ten };
+  await spHistory_(actor, ma || ten, [{ field: 'TẠO SẢN PHẨM', old: '', new: ten + (who ? ' (bởi ' + who + ')' : '') }]);
+  if (!opts.noAudit) await logAudit_(actor, 'them_sp', 'Thêm SP mới ' + (ma || '') + ' (' + ten + ')');
+  return { created: true, ma: ma, ten: ten, id: res && res[0] && res[0].id };
 }
 async function deleteDbProduct(actor, key) {
   // Tương thích ngược: có nơi gọi deleteDbProduct(key) không kèm actor
@@ -464,13 +498,15 @@ async function updateDbProductTracked(actor, key, data, opts) {
   const ma = s(cur.ma_sp);
   if (!changes.length) return { updated: false, changes: 0 };
   row.ngay_cap_nhat = new Date().toISOString();
+  if (_hasWhoCol !== false && actor && (actor.u || actor.username)) row.nguoi_sua = (actor.u || actor.username);
   // Nội dung đổi -> phải duyệt lại. Ghi luôn 1 dòng lịch sử cho dễ truy vết.
   if (!opts.giuDuyet && cur.da_duyet === true) {
     row.da_duyet = false; row.nguoi_duyet = null; row.ngay_duyet = null;
     changes.push({ field: 'TRẠNG THÁI DUYỆT', old: 'Đã duyệt', new: 'Chưa duyệt (do sửa lại)' });
   }
   // CHỈ cập nhật ĐÚNG dòng đang sửa (trước đây eq('ma_sp') -> ghi đè MỌI biến thể cùng mã -> lỗi trùng khoá)
-  try { await supa.update('db_san_pham', supa.eq('id', cur.id), row); } catch (e) { throw colErr_(e); }
+  try { await supa.update('db_san_pham', supa.eq('id', cur.id), row); }
+  catch (e) { if (whoColMissing_(e)) { _hasWhoCol = false; delete row.nguoi_sua; await supa.update('db_san_pham', supa.eq('id', cur.id), row); } else throw colErr_(e); }
   _cache = null;
   const who = (actor && actor.u) || 'ẩn danh';
   try {
@@ -529,12 +565,13 @@ async function getProductHistory(ma) {
   const rows = await supa.select('db_san_pham_history', { filter: supa.eq('ma_sp', ma), order: 'changed_at.desc', limit: 200 });
   return rows.map(function (r) { return { field: s(r.field), old: s(r.old_value), new: s(r.new_value), by: s(r.changed_by_name), at: s(r.changed_at) }; });
 }
-async function saveLineAsProduct(p) {
+async function saveLineAsProduct(actor, p) {
+  if (p === undefined) { p = actor; actor = null; }
   p = p || {};
   const data = { 'TÊN SẢN PHẨM': p.ten, 'MÃ SẢN PHẨM': p.ma, 'DÒNG SẢN PHẨM': p.nhom, 'HẠNG MỤC': p.hangMuc,
     'THƯƠNG HIỆU': p.thuongHieu, 'NHÀ CUNG CẤP': p.ncc, 'ĐƠN VỊ TÍNH': p.dvt, 'GIÁ BÁN LẺ': p.gia != null ? p.gia : p.donGiaBan,
     'GHI CHÚ': p.moTa, 'ẢNH SẢN PHẨM': p.hinhAnh };
-  const r = await saveDbProduct(data);
+  const r = await saveDbProduct(actor, data);
   return Object.assign({ ten: p.ten, ma: s(p.ma), thuongHieu: s(p.thuongHieu), ncc: s(p.ncc), nhom: s(p.nhom),
     hangMuc: s(p.hangMuc), dvt: s(p.dvt) || 'Cái', donGiaVon: n(p.gia), donGiaBan: n(p.gia), hinhAnh: s(p.hinhAnh) }, r);
 }
@@ -594,7 +631,7 @@ async function importCommit(actor, products) {
     if (!s(data['ĐƠN VỊ TÍNH']).trim()) data['ĐƠN VỊ TÍNH'] = p.dvt || 'Cái';
     if (!s(data['TRẠNG THÁI']).trim()) data['TRẠNG THÁI'] = 'Đang kinh doanh';
     if (!s(data['TÊN SẢN PHẨM']).trim()) continue;
-    try { const r = await saveDbProduct(data); if (r && r.updated) updated++; else inserted++; }
+    try { const r = await saveDbProduct(actor, data, { noAudit: true }); if (r && r.updated) updated++; else inserted++; }
     catch (e) { errors.push({ ten: s(data['TÊN SẢN PHẨM']), error: e && e.message }); }
   }
   _cache = null;

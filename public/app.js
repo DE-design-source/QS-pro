@@ -1102,7 +1102,11 @@ function spAllCols_(){
       return '<span class="sku-badge'+(n>1?' multi':'')+'" title="'+(n>1?n+' biến thể cùng mã '+esc(p.ma||''):'Chỉ 1 biến thể')+'">'+n+'</span>'; }]
   ];
   var tail=[
-    ['giaDaiLy','Giá đại lý','num sp-price',function(p){ return money(p.donGiaBan)+'<span class="unit">đ</span>'; }]
+    ['giaDaiLy','Giá đại lý','num sp-price',function(p){ return money(p.donGiaBan)+'<span class="unit">đ</span>'; }],
+    ['nguoiTao','Người tạo','',function(p){ return p.nguoiTao?'<span class="sp-who">'+esc(p.nguoiTao)+'</span>':'<span class="muted">—</span>'; }],
+    ['ngayTao','Ngày tạo','ct',function(p){ return p.ngayTao?fmtDate(p.ngayTao):'<span class="muted">—</span>'; }],
+    ['nguoiSua','Người sửa cuối','',function(p){
+      return p.nguoiSua?'<span class="sp-who" title="Lúc '+esc(fmtDateTime_(p.ngayCapNhat))+'">'+esc(p.nguoiSua)+'</span>':'<span class="muted">—</span>'; }]
   ];
   var gen=[];
   (typeof DB_FLAT!=='undefined'?DB_FLAT:[]).forEach(function(f){
@@ -1342,7 +1346,10 @@ function spFreeze_(){
   var wrap=body.closest('.tbl-wrap');
   if(wrap && !wrap._frzBound){                            // đổ bóng khi đã cuộn ngang
     wrap._frzBound=1;
-    wrap.addEventListener('scroll',function(){ wrap.classList.toggle('xscroll', wrap.scrollLeft>0); });
+    wrap.addEventListener('scroll',function(){
+      wrap.classList.toggle('xscroll', wrap.scrollLeft>0);      // đã cuộn ngang -> đổ bóng cột đóng băng
+      wrap.classList.toggle('yscroll', wrap.scrollTop>0);       // đã cuộn dọc  -> đổ bóng dưới tiêu đề
+    },{passive:true});
     window.addEventListener('resize',function(){ clearTimeout(wrap._frzT); wrap._frzT=setTimeout(spFreeze_,120); });
   }
 }
@@ -1382,7 +1389,7 @@ function spPager_(total,cur,pages,per){
     +'<span class="sppg-nav">'+nav+'</span>'+sel+'</div>';
 }
 /* ═══ THỨ TỰ + ĐỘ RỘNG CỘT (kéo giãn, kéo đổi chỗ — giống bảng Bóc tách) ═══ */
-var SP_DEFW={thumb:56,ten:215,duyet:124,sku:78,giaDaiLy:122,
+var SP_DEFW={thumb:56,ten:215,duyet:124,sku:78,giaDaiLy:122,nguoiTao:126,ngayTao:104,nguoiSua:130,
   thuong_hieu:126,nha_cung_cap:170,hang_muc:130,dong_sp:130,nhom_sp:130,
   gia_ban_le:118,ck_dai_ly_pct:106,cong_suat_w:96,nhiet_do_mau_k:112,goc_chieu_deg:96,
   goc_nghieng_deg:106,mau_sac:106,chat_lieu:126,chieu_cao_mm:98,duong_kinh_mm:104,
@@ -1841,7 +1848,13 @@ async function spEditModal(i){
       +'<button class="btn ghost sm" onclick="spEditClose()">Huỷ</button>'
       +(spCanDuyet_()?'<button class="btn ghost sm" id="speDuyetBtn" onclick="spEditSave(1)" title="Lưu thay đổi rồi đánh dấu Đã duyệt">'+icon('check',14)+' Lưu &amp; duyệt</button>':'')
       +'<button class="btn blue" id="speSaveBtn" onclick="spEditSave()">'+icon('check',15)+' Lưu cập nhật</button></div>'
-    +'<div class="spe-hist"><div class="spe-hist-h">'+icon('clock',15)+' Lịch sử cập nhật <span class="spe-hist-n">'+hist.length+'</span></div><div class="spe-hist-list">'+histHtml+'</div></div>';
+    +'<div class="spe-hist">'
+      +'<div class="spe-who">'
+        +'<span>'+icon('plus',13)+' Tạo bởi <b>'+esc(p.nguoiTao||'—')+'</b>'+(p.ngayTao?' · '+esc(fmtDate(p.ngayTao)):'')+'</span>'
+        +'<span>'+icon('edit',13)+' Sửa cuối bởi <b>'+esc(p.nguoiSua||'—')+'</b>'+(p.ngayCapNhat?' · '+esc(fmtDateTime_(p.ngayCapNhat)):'')+'</span>'
+        +(p.daDuyet?'<span class="ok">'+icon('check',13)+' Duyệt bởi <b>'+esc(p.nguoiDuyet||'—')+'</b>'+(p.ngayDuyet?' · '+esc(fmtDateTime_(p.ngayDuyet)):'')+'</span>':'<span class="warn">Chưa duyệt</span>')
+      +'</div>'
+      +'<div class="spe-hist-h">'+icon('clock',15)+' Lịch sử cập nhật <span class="spe-hist-n">'+hist.length+'</span></div><div class="spe-hist-list">'+histHtml+'</div></div>';
 }
 // 2 vùng ảnh (đại diện + chi tiết) — DÙNG ĐÚNG layout .imgup của trang Nhập dữ liệu (2 cột đều, đồng nhất)
 function spEditImgSection_(){ return imgUpBlock_('spe-imgup'); }

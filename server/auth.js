@@ -409,6 +409,24 @@ async function updateProductGated(actor, key, data) {
   if (!p.edit) throw new Error('Tài khoản không có quyền sửa sản phẩm');
   return store.updateDbProductTracked(actor, key, data);
 }
+// THÊM sản phẩm (form Nhập dữ liệu, lưu dòng bóc tách thành SP) — cần quyền sửa
+async function createProductGated(actor, data) {
+  const p = await spPerms_(actor);
+  if (!p.edit) throw new Error('Tài khoản không có quyền thêm/sửa sản phẩm');
+  return store.saveDbProduct(actor, data);
+}
+// NHẬP HÀNG LOẠT từ file — cần quyền sửa
+async function importGated(actor, products) {
+  const p = await spPerms_(actor);
+  if (!p.edit) throw new Error('Tài khoản không có quyền nhập sản phẩm');
+  return store.importCommit(actor, products);
+}
+// Lưu 1 dòng bóc tách thành sản phẩm trong danh mục — cần quyền sửa
+async function saveLineAsProductGated(actor, line) {
+  const p = await spPerms_(actor);
+  if (!p.edit) throw new Error('Tài khoản không có quyền thêm sản phẩm vào danh mục');
+  return store.saveLineAsProduct(actor, line);
+}
 // Duyệt / bỏ duyệt sản phẩm — chỉ tài khoản có quyền duyệt
 async function setSpDuyet(actor, keys, approve) {
   const p = await spPerms_(actor);
@@ -470,7 +488,7 @@ async function resolvePurchaseRequest(actor, maDon, approve) {
 }
 
 module.exports = {
-  updateProductGated, setSpDuyet, spMyPerms,
+  updateProductGated, createProductGated, importGated, saveLineAsProductGated, setSpDuyet, spMyPerms,
   listCongTyUsers, createCongTyUser,
   listCongTy, createCongTy, updateCongTy, deleteCongTy, getCongTy,
   getPurchaseOrder,
