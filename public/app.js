@@ -1065,6 +1065,8 @@ var SP_SFX={gia_ban_le:'đ', ck_dai_ly_pct:'%'};      // đơn vị chỉ hiện
 var SP_ALWAYS={gia_ban_le:1, ck_dai_ly_pct:1};       // 2 cột này sửa được cả khi CHƯA bật Edit
 var SP_MONEY={gia_ban_le:1};                         // ô tiền: hiện có dấu chấm 930.000, lưu số thuần
 var SP_SKIP={'TÊN SẢN PHẨM':1,'MÃ SẢN PHẨM':1,'GIÁ ĐẠI LÝ':1,'ẢNH SẢN PHẨM':1};   // đã có cột đặc biệt lo
+// Nhãn hiển thị RIÊNG trong bảng (form Nhập / modal Sửa vẫn giữ nhãn gốc)
+var SP_COLLBL={trang_thai:'Trạng thái KD'};   // tránh trùng tên với cột "Trạng thái" (duyệt)
 
 // giá trị HIỂN THỊ của 1 cột: ưu tiên bản đã format, không có thì lấy giá trị gốc
 function spColVal_(p,col){
@@ -1092,7 +1094,7 @@ function spAllCols_(){
     ['ten','Sản phẩm','sp-name',function(p){ return '<b>'+esc(p.ten||'')+'</b><span class="sp-code">'+esc(p.ma||'')
         +(p.spChung?'<span class="sp-chung" title="Sản phẩm thuộc kho chung của Dezon — chỉ xem">Kho Dezon</span>':'')+'</span>'; },
       {lark:'TÊN SẢN PHẨM', col:'ten_sp', sfx:''}],
-    ['duyet','Duyệt','ct',function(p){
+    ['duyet','Trạng thái','ct',function(p){
       var on=!!p.daDuyet;
       return '<span class="spduyet'+(on?' on':'')+'" title="'+(on?'Duyệt bởi '+esc(p.nguoiDuyet||'?')+(p.ngayDuyet?' · '+fmtDateTime_(p.ngayDuyet):''):'Chưa được duyệt')+'">'
         +(on?'Đã duyệt':'Chưa duyệt')+'</span>'; }],
@@ -1108,7 +1110,7 @@ function spAllCols_(){
     var col=DB_LABEL2COL_[lark]; if(!col) return;
     var e={lark:lark, col:col, sfx:SP_SFX[col]||'', num:!!SP_NUMCOL[col], money:!!SP_MONEY[col]};
     var cls=SP_NUMCOL[col]?'num':(SP_CTCOL[col]?'ct':'');
-    gen.push([col, f[1], cls, function(p,i){
+    gen.push([col, SP_COLLBL[col]||f[1], cls, function(p,i){
       if(SP_ALWAYS[col]) return spInp_(i,e,spEditRaw_(p,col),p);          // giá bán lẻ / chiết khấu: luôn sửa được
       var v=spColVal_(p,col);
       if(col==='link_datasheet') return v?'<a href="'+esc(v)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">Datasheet</a>':'<span class="muted">—</span>';
@@ -1380,7 +1382,7 @@ function spPager_(total,cur,pages,per){
     +'<span class="sppg-nav">'+nav+'</span>'+sel+'</div>';
 }
 /* ═══ THỨ TỰ + ĐỘ RỘNG CỘT (kéo giãn, kéo đổi chỗ — giống bảng Bóc tách) ═══ */
-var SP_DEFW={thumb:56,ten:215,duyet:116,sku:78,giaDaiLy:122,
+var SP_DEFW={thumb:56,ten:215,duyet:124,sku:78,giaDaiLy:122,
   thuong_hieu:126,nha_cung_cap:170,hang_muc:130,dong_sp:130,nhom_sp:130,
   gia_ban_le:118,ck_dai_ly_pct:106,cong_suat_w:96,nhiet_do_mau_k:112,goc_chieu_deg:96,
   goc_nghieng_deg:106,mau_sac:106,chat_lieu:126,chieu_cao_mm:98,duong_kinh_mm:104,
