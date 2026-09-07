@@ -3010,11 +3010,20 @@ table.pt td.dvt-cell,table.pt td.dvt-cell .pt-in{font-style:italic;color:#5b6b7b
 /* ═══ CHIP THÔNG SỐ trên thẻ SP (thư viện Bóc tách) — XUỐNG HÀNG, KHÔNG CẮT ═══
    Trước để nowrap + overflow-x:auto mà thanh cuộn lại bị ẩn toàn cục, nên chip cuối
    luôn bị xén cụt sát nút "+" (271/296 dòng bị cắt) mà không có cách nào xem tiếp. */
-/* Hàng chip thông số: tách khỏi cột giữa, chiếm TRỌN bề ngang thẻ nên đủ chỗ 1 hàng.
-   (Cột giữa chỉ ~125px, để trong đó thì hoặc bị cắt hoặc phải rớt xuống 2 dòng.) */
-.citem{flex-wrap:wrap;row-gap:0}
-.citem .cspecs{flex:0 0 100%;flex-wrap:nowrap;overflow:visible;column-gap:3px;margin:5px 0 0;cursor:pointer}
-.citem .cspecs .spec{white-space:nowrap;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+/* ═══ THẺ SẢN PHẨM (thư viện Bóc tách) — bố cục LƯỚI ═══
+   Cột giữa chỉ ~125px nên hàng chip thông số phải xuống hàng riêng mới đủ chỗ.
+   Dùng grid để hàng chip TỰ THẲNG CỘT với tên/giá (không lấn ra sát mép trái như
+   khi dùng flex-wrap), và không phải canh bằng số cứng vì số/ảnh đổi kích thước
+   theo từng breakpoint.
+      hàng 1:  số · ảnh · [tên/giá/thương hiệu] · nút +
+      hàng 2:              [chip thông số ................] */
+.citem{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center;row-gap:0}
+.citem>.no{grid-column:1}
+.citem>.thumb{grid-column:2}
+.citem>.cmid{grid-column:3}
+.citem>.add{grid-column:4}
+.citem>.cspecs{grid-column:3 / -1;flex-wrap:nowrap;overflow:visible;column-gap:3px;margin:5px 0 0;cursor:pointer}
+.citem>.cspecs .spec{white-space:nowrap;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
 
 /* số đếm nhỏ trong chip lọc Combo */
 .chips .chip .chip-n{font-style:normal;margin-left:5px;font-size:9.5px;font-weight:700;opacity:.6}
