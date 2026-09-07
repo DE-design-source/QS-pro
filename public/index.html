@@ -1907,6 +1907,31 @@ table.pt tr.pt-empty td{border:none;background:#fcfdfe;padding:0}
 .pt-empty-b h4{margin:0 0 6px;font-size:14px;font-weight:600;color:var(--ink);letter-spacing:-.02em}
 .pt-empty-b p{margin:0;font-size:12.5px;color:var(--ink-3);line-height:1.7}
 .pt-empty-b .pe-t{background:var(--blue);color:#fff;border-radius:7px;padding:2px 8px;font-weight:700;font-size:12px;white-space:nowrap}
+
+/* ═══ SẢN PHẨM YÊU THÍCH — kho SP hay dùng, lấy lại cho các dự án sau ═══ */
+.sp-act.fav{color:#c3ccd8}
+.sp-act.fav:hover{color:#e8a83a}
+.sp-act.fav.on{color:#e8a83a}
+.sp-act.fav.on .ico{fill:currentColor}
+.spvt.fav.on{background:#fff8e8;border-color:#e8c98a;color:#9a6b12}
+.spvt.fav.on .spvt-n{background:#f2c14e;color:#4a3405}
+.spb-b.fav{background:#fff8e8;border-color:#e8c98a;color:#9a6b12}
+.spb-b.fav:hover{background:#fdf0d0}
+/* dấu sao trên thẻ SP ở thư viện Bóc tách */
+.citem{position:relative}
+.citem .cfav{position:absolute;top:6px;right:34px;border:none;background:transparent;padding:2px;
+  line-height:0;color:#ccd4de;cursor:pointer;opacity:0;transition:opacity .12s,color .12s}
+.citem:hover .cfav,.citem .cfav.on{opacity:1}
+.citem .cfav:hover{color:#e8a83a}
+.citem .cfav.on{color:#e8a83a}
+.citem .cfav.on svg{fill:currentColor}
+/* nút lọc "yêu thích" ở đầu panel thư viện */
+.favf-btn{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);background:#fff;
+  color:var(--ink-3);border-radius:20px;padding:3px 9px;font-size:10.5px;font-weight:600;cursor:pointer;
+  white-space:nowrap;transition:all .12s}
+.favf-btn:hover{border-color:#e8c98a;color:#9a6b12}
+.favf-btn.on{background:#fff8e8;border-color:#e8c98a;color:#9a6b12}
+.favf-btn.on svg{fill:currentColor}
 .pt-empty-b .pe-b{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;
   border-radius:50%;border:1.5px solid var(--blue);color:var(--blue);font-size:12px;vertical-align:-4px}
 .pt-empty-b .pe-r{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;
@@ -3016,7 +3041,7 @@ table.pt td.dvt-cell,table.pt td.dvt-cell .pt-in{font-style:italic;color:#5b6b7b
       <!-- LEFT: filter + catalog -->
       <div class="panel catpanel" id="leftCat">
         <div class="catpanel-top">
-          <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><span class="sp" style="flex:1"></span><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg> bộ lọc<span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button></div>
+          <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><span class="sp" style="flex:1"></span><button class="favf-btn" id="favfBtn" onclick="catFavToggle()" title="Chỉ hiện sản phẩm yêu thích"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg> yêu thích</button><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg> bộ lọc<span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button></div>
 
           <!-- 3 bộ chọn (theo Figma) -->
           <div class="mlbl">Đề mục</div>

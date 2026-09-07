@@ -440,6 +440,12 @@ async function setSpDuyet(actor, keys, approve) {
   return store.setSpDuyet(actor, keys, approve !== false);
 }
 
+/* Yêu thích: chỉ là dấu trang của công ty, không đụng vào dữ liệu sản phẩm
+   -> mọi tài khoản đăng nhập đều được bật/tắt, không cần quyền sp_edit. */
+async function setYeuThich(actor, keys, on) {
+  return store.setYeuThich(actor, keys, on !== false);
+}
+
 /* ---------- Yêu cầu mua hàng (thông báo + duyệt) ---------- */
 async function notifyPurchaseAdmins(actor, orders) {
   orders = orders || [];
@@ -495,6 +501,7 @@ async function resolvePurchaseRequest(actor, maDon, approve) {
 
 module.exports = {
   updateProductGated, createProductGated, importGated, saveLineAsProductGated, setSpDuyet, setComboGated, spMyPerms,
+  setYeuThich,
   listCongTyUsers, createCongTyUser,
   listCongTy, createCongTy, updateCongTy, deleteCongTy, getCongTy,
   getPurchaseOrder,

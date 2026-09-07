@@ -50,6 +50,7 @@ const REGISTRY = {
   getDbProduct: store.getDbProduct,
   updateDbProductTracked: auth.updateProductGated,   // cửa ngõ: chỉ 'sp_edit' -> tạo phiếu chờ duyệt
   setSpDuyet: auth.setSpDuyet,
+  setYeuThich: auth.setYeuThich,
   getCombo: store.getCombo,
   setCombo: auth.setComboGated,
   spMyPerms: auth.spMyPerms,
@@ -104,7 +105,7 @@ const ACTOR_FNS = new Set(['me', 'logout', 'changePassword',
   'requestDeleteProducts', 'listDeleteRequests', 'resolveDeleteRequest',
   'sendPurchaseRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest',
   'listCongTy', 'createCongTy', 'updateCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'checkExpiry',
-  'updateDbProductTracked', 'setSpDuyet', 'setCombo', 'spMyPerms',
+  'updateDbProductTracked', 'setSpDuyet', 'setYeuThich', 'setCombo', 'spMyPerms',
   'deleteDbProduct', 'importCommit', 'saveDbProduct', 'saveLineAsProduct']);
 // Hàm chỉ Admin được gọi
 const SUPER_FNS = new Set(['listCongTy', 'createCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'checkExpiry']);

@@ -583,6 +583,29 @@ function renderFilters(){
   document.getElementById('fMax').oninput=renderCatalog;
   document.getElementById('fSearch').oninput=renderCatalog;
 }
+/* ═══ GOM BIẾN THỂ VỀ CẠNH NHAU ═══
+   Cùng 1 mã SP nhưng khác công suất / nhiệt độ màu / góc chiếu = các BIẾN THỂ của 1 sản phẩm.
+   Trước đây chúng nằm rải rác trong danh sách (VD FL76001 ở dòng 14 rồi lại 21-24) rất khó đối chiếu.
+   Cách gom: GIỮ NGUYÊN thứ tự xuất hiện của từng mã (không đảo lộn cả danh sách),
+   chỉ kéo các biến thể sau về ngay dưới biến thể đầu tiên, rồi xếp trong nhóm theo W -> K -> góc. */
+function spVarKey_(p){ return spNorm_(p.ma||'')||spNorm_(p.ten||''); }
+function spNum1_(v){ var m=String(v==null?'':v).match(/-?\d+(?:[.,]\d+)?/); return m?parseFloat(m[0].replace(',','.')):-1; }
+function spGroupVariants_(list){
+  var order=[], bag={};
+  list.forEach(function(p){ var k=spVarKey_(p); if(!bag[k]){ bag[k]=[]; order.push(k); } bag[k].push(p); });
+  var out=[];
+  order.forEach(function(k){
+    var g=bag[k];
+    if(g.length>1) g.sort(function(x,y){
+      return (spNum1_(x.congSuat)-spNum1_(y.congSuat))
+          || (spNum1_(x.nhietDo)-spNum1_(y.nhietDo))
+          || (spNum1_(x.gocChieu)-spNum1_(y.gocChieu))
+          || String(x.mauSac||'').localeCompare(String(y.mauSac||''),'vi');
+    });
+    out=out.concat(g);
+  });
+  return out;
+}
 function filteredProducts(){
   var q=(document.getElementById('fSearch').value||'').toLowerCase();
   var mn=Number(document.getElementById('fMin').value)||0, mx=Number(document.getElementById('fMax').value)||0;
@@ -597,7 +620,8 @@ function filteredProducts(){
   var usedKeys=null;
   if(S._inProjKeys){ usedKeys=S._inProjKeys; }                 // đã chọn 1 dự án cụ thể ở "Đèn trong dự án"
   else if(S.onlyProject){ usedKeys={}; (S.lines||[]).forEach(function(l){ var k=String(l.maSP||l.ten||'').toLowerCase().trim(); if(k) usedKeys[k]=1; }); }
-  return S.products.filter(function(p){
+  return spGroupVariants_(S.products.filter(function(p){
+    if(S.fFav && !p.yeuThich) return false;                    // chỉ hiện SP đã lưu yêu thích
     if(hmucSel.length && hmucSel.indexOf(prodHmuc_(p))<0) return false;
     if(usedKeys){ var uk=String(p.ma||p.ten||'').toLowerCase().trim(); if(!usedKeys[uk]) return false; }
     if(S.fBrand && p.thuongHieu!==S.fBrand) return false;
@@ -611,7 +635,7 @@ function filteredProducts(){
     if(cris.length){ var pc=splitVals(p.cri); if(!pc.some(function(x){return cris.indexOf(x)>=0;})) return false; }
     if(volts.length){ var pvv=splitVals(p.dienAp); if(!pvv.some(function(x){return volts.indexOf(x)>=0;})) return false; }
     return true;
-  });
+  })); 
 }
 /* multi-select Nhóm */
 function openNhomMsel(e){
@@ -724,6 +748,7 @@ function activeFilterCount(){
   return n;
 }
 function updateCatUI(){
+  var fb=document.getElementById('favfBtn'); if(fb) fb.classList.toggle('on',!!S.fFav);
   var n=activeFilterCount();
   var b=document.getElementById('advBadge'); if(b){ b.textContent=n||''; b.style.display=n?'inline-flex':'none'; }
   var c=document.getElementById('advClear'); if(c) c.style.display=n?'inline-block':'none';
@@ -785,13 +810,17 @@ function renderCatalog(){
   var isPT=(S.node==='3.1');
   applyFiltDrop();   // ẩn/hiện khối bộ lọc theo trạng thái gập/mở (và ẩn hẳn khi Phần thô)
   var hd=document.querySelector('#leftCat .cat-hd h3'); if(hd) hd.textContent=isPT?'Nội dung công việc':'Hạng mục';
+  var fb0=document.getElementById('favfBtn'); if(fb0) fb0.style.display=isPT?'none':'';   // Phần thô không có SP để yêu thích
   var fw0=document.getElementById('ptFilters'); if(fw0&&!isPT) fw0.innerHTML='';   // rời Phần thô -> dọn bộ lọc riêng
   if(isPT){ renderPTLibrary(); return; }   // Phần thô: hiện thư viện nội dung công việc
   var list=filteredProducts();
   var el=document.getElementById('catList');
   var cc=document.getElementById('catCount'); if(cc) cc.textContent=list.length+' SP';
   updateCatUI();
-  if(!list.length){ el.innerHTML='<div class="empty">Không có sản phẩm khớp lọc.</div>'; S._filtered=list; return; }
+  if(!list.length){ el.innerHTML=S.fFav
+      ? '<div class="ptlib-empty">'+icon('star',22)+'<b>Chưa có sản phẩm yêu thích</b><span>Bấm ngôi sao ở một sản phẩm (tại đây hoặc trong Danh sách sản phẩm) để lưu lại, lần sau mở dự án mới là lấy ra dùng ngay.</span></div>'
+      : '<div class="empty">Không có sản phẩm khớp lọc.</div>';
+    S._filtered=list; return; }
   el.innerHTML=list.slice(0,300).map(function(p,i){
     var img=p.hinhAnh?'<img class="thumb" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>';
     var im2=p.hinhAnh?'<img class="thumb" src="'+esc(imgSrc1_(p.hinhAnh))+'" onclick="showDetail('+i+')" style="cursor:pointer" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb" onclick="showDetail('+i+')" style="cursor:pointer"></div>';
@@ -805,6 +834,7 @@ function renderCatalog(){
         +'<div class="meta"><span class="pr">'+money(p.donGiaBan)+' đ</span>'+(brand?'<span class="sz brand">'+brand+'</span>':'')+'</div>'
         +(specs?'<div class="cspecs">'+specs+'</div>':'')
       +'</div>'
+      +'<button class="cfav'+(p.yeuThich?' on':'')+'" title="'+(p.yeuThich?'Bỏ khỏi sản phẩm yêu thích':'Thêm vào sản phẩm yêu thích')+'" onclick="event.stopPropagation();catFav('+i+','+(p.yeuThich?0:1)+')">'+icon('star',14)+'</button>'
       +'<button class="add" title="Thêm vào bóc tách" onclick="addProduct('+i+')">+</button></div>';
   }).join('');
   S._filtered=list;
@@ -1224,14 +1254,46 @@ function spViewTabs_(){
   var cur=S._spView||'all', all=S.products||[];
   var chua=all.filter(function(p){ return !p.daDuyet; }).length;
   var da=all.length-chua;
+  var fav=all.filter(function(p){ return p.yeuThich; }).length;
   var tabs=[['all','Tất cả', all.length?String(all.length):''],
             ['chua','Chưa duyệt', chua?String(chua):''],
-            ['da','Đã duyệt', da?String(da):'']];
+            ['da','Đã duyệt', da?String(da):''],
+            ['fav','★ Yêu thích', fav?String(fav):'']];
   el.innerHTML=tabs.map(function(t){
-    return '<button class="spvt'+(cur===t[0]?' on':'')+(t[0]==='chua'?' warn':'')+'" onclick="spSetView(\''+t[0]+'\')">'+esc(t[1])
+    return '<button class="spvt'+(cur===t[0]?' on':'')+(t[0]==='chua'?' warn':(t[0]==='fav'?' fav':''))+'" onclick="spSetView(\''+t[0]+'\')">'+esc(t[1])
       +(t[2]?'<span class="spvt-n">'+t[2]+'</span>':'')+'</button>';
   }).join('')
   +(spCanDuyet_()?'':'<span class="spvt-note">Bạn chỉ được sửa — sản phẩm sửa xong sẽ chờ người có quyền duyệt</span>');
+}
+/* ═══ SẢN PHẨM YÊU THÍCH ═══
+   Kho SP hay dùng, giữ lại để lấy nhanh cho các dự án sau (yêu cầu slide Update QS).
+   Dấu yêu thích thuộc về CÔNG TY, lưu ở bảng riêng sp_yeu_thich nên đánh dấu được
+   cả sản phẩm trong kho chung của Dezon (những SP đó không sửa được). */
+function spKey_(p){ return String((p&&(p.recordId||p.ma))||''); }
+// server trả {ok, errors} chứ không ném lỗi -> phải tự kiểm để còn hoàn tác dấu sao
+function spFavChk_(r){
+  if(r && r.ok===0 && r.errors && r.errors.length) throw new Error(r.errors[0].error);
+  return r;
+}
+function spFavSet_(keys,on){        // cập nhật ngay tại chỗ để bảng phản hồi tức thì
+  var m={}; keys.forEach(function(k){ m[k]=1; });
+  (S.products||[]).forEach(function(p){ if(m[spKey_(p)]) p.yeuThich=!!on; });
+}
+async function spFav(i,on){
+  var p=(S._spList||[])[i]; if(!p) return;
+  var k=spKey_(p); if(!k) return;
+  spFavSet_([k],on); spViewTabs_(); spFilter();          // lạc quan: đổi trước, có lỗi thì trả lại
+  try{ spFavChk_(await api('setYeuThich',[k],!!on)); }
+  catch(e){ spFavSet_([k],!on); spViewTabs_(); spFilter(); toast(e.message); return; }
+  toast(on?'Đã thêm vào sản phẩm yêu thích':'Đã bỏ khỏi sản phẩm yêu thích');
+}
+async function spFavBulk(on){
+  var prods=spSelProds_(); if(!prods.length) return;
+  var keys=prods.map(spKey_).filter(Boolean);
+  spFavSet_(keys,on); spViewTabs_(); spFilter();
+  try{ spFavChk_(await api('setYeuThich',keys,!!on)); }
+  catch(e){ spFavSet_(keys,!on); spViewTabs_(); spFilter(); toast(e.message); return; }
+  toast('Đã lưu '+keys.length+' sản phẩm vào Yêu thích');
 }
 function spSetView(v){ S._spView=v; S._spPage=1; spViewTabs_(); spFilter(); }
 // Duyệt / bỏ duyệt 1 sản phẩm
@@ -1685,6 +1747,7 @@ function spFilter(){
     if(q && (p.ten+' '+p.ma+' '+p.thuongHieu+' '+p.ncc).toLowerCase().indexOf(q)<0) return false;
     if(f.node){ var c=spNodeCodeOf_(p); if(!(c===f.node || c.indexOf(f.node+'.')===0)) return false; }
     if(f.dong && spNorm_(p.nhom)!==spNorm_(f.dong)) return false;
+    if(S._spView==='fav' && !p.yeuThich) return false;
     if(S._spView==='chua' && p.daDuyet) return false;
     if(S._spView==='da' && !p.daDuyet) return false;
     if(f.brand && p.thuongHieu!==f.brand) return false;
@@ -1696,6 +1759,7 @@ function spFilter(){
     if(cris.length){ var pc=splitVals(p.cri); if(!pc.some(function(x){return cris.indexOf(x)>=0;})) return false; }
     return true;
   });
+  list=spGroupVariants_(list);            // biến thể cùng mã SP nằm liền nhau (yêu cầu slide 3)
   S._spFull=list; S._spSel=S._spSel||{};
   var per=spPerGet_(), pages=per?Math.max(1,Math.ceil(list.length/per)):1;
   var cur=Math.min(Math.max(1, S._spPage||1), pages); S._spPage=cur;
@@ -1711,6 +1775,7 @@ function spFilter(){
       +'<td class="selcol" onclick="event.stopPropagation()"><input type="checkbox" class="spck" '+(sel?'checked':'')+' onclick="spSelToggle(\''+esc(selKey)+'\',this.checked)"></td>'
       +vis.map(function(c){ return '<td class="'+c[2]+(edit&&c[4]&&!p.spChung?' edt':'')+'">'+(edit?spEditCell_(c,p,i):c[3](p,i))+'</td>'; }).join('')
       +'<td class="act-sp" onclick="event.stopPropagation()">'
+        +'<button class="sp-act fav'+(p.yeuThich?' on':'')+'" title="'+(p.yeuThich?'Bỏ khỏi sản phẩm yêu thích':'Thêm vào sản phẩm yêu thích')+'" onclick="spFav('+i+','+(p.yeuThich?0:1)+')">'+icon('star',16)+'</button>'
         +'<button class="sp-act add" title="Ghi danh vào dự án" onclick="spAddToProject('+i+')">'+icon('pluscircle',18)+'</button>'
         +((spCanDuyet_()&&!p.spChung)?'<button class="sp-act '+(p.daDuyet?'undo':'ok')+'" title="'+(p.daDuyet?'Bỏ duyệt':'Duyệt sản phẩm này')+'" onclick="spDuyet('+i+','+(p.daDuyet?0:1)+')">'+icon('check',16)+'</button>':'')
         +(p.spChung?'':'<button class="sp-act edit" title="Cập nhật sản phẩm" onclick="spEditModal('+i+')">'+icon('edit',16)+'</button>')
@@ -1757,6 +1822,7 @@ function spBulkBar_(){
     +'</div>'
     // -- vùng 3: hành động --
     +'<div class="spb-z spb-act">'
+      +'<button class="spb-b fav" onclick="spFavBulk(1)" title="Lưu vào Sản phẩm yêu thích để dùng cho dự án sau">'+icon('star',14)+' Yêu thích</button>'
       +(spCanDuyet_()?'<button class="spb-b duyet" onclick="spDuyetBulk(1)" title="Đánh dấu Đã duyệt">'+icon('check',14)+' Duyệt</button>':'')
       +'<button class="spb-b primary" onclick="spBulkToProject()">'+icon('plus',14)+' Thêm vào dự án</button>'
       +(isAdmin?'<button class="spb-b danger" title="Xoá '+n+' sản phẩm khỏi danh mục" onclick="spBulkDelete()">'+icon('trash',14)+'</button>'
@@ -5093,6 +5159,16 @@ function renderPTLibrary(){
           +'<button class="ptlib-add" title="Thêm vào bảng ước tính" onclick="ptAddFromLib('+si+','+ii+')">'+icon('plus',14)+'</button></div>';
       }).join('')+'</div>')+'</div>';
   }).join('')+'</div>';
+}
+/* Lọc nhanh "★ Yêu thích" ở thư viện Bóc tách — chính là chỗ lấy lại SP hay dùng cho dự án mới */
+function catFavToggle(){ S.fFav=!S.fFav; renderCatalog(); updateCatUI&&updateCatUI(); }
+async function catFav(i,on){
+  var p=(S._filtered||[])[i]; if(!p) return;
+  var k=spKey_(p); if(!k) return;
+  spFavSet_([k],on); renderCatalog();
+  try{ spFavChk_(await api('setYeuThich',[k],!!on)); }
+  catch(e){ spFavSet_([k],!on); renderCatalog(); toast(e.message); return; }
+  toast(on?'Đã thêm vào sản phẩm yêu thích':'Đã bỏ khỏi sản phẩm yêu thích');
 }
 function ptSetContractor(v){ S._ptContractor=v||''; toast(v?('Đơn giá theo nhà thầu: '+v):'Bỏ chọn nhà thầu'); }
 function ptLibToggle(si){ S._ptLibCol=S._ptLibCol||{}; S._ptLibCol[si]=!S._ptLibCol[si]; renderPTLibrary(); }

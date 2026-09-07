@@ -116,6 +116,7 @@ async function getProducts() {
       out.sort(function (a, b) { return String(a.ten).localeCompare(String(b.ten), 'vi'); });
     }
   } catch (e) { /* chưa có cột dung_sp_dezon -> bỏ qua */ }
+  await stampYeuThich_(out);         // đánh dấu sản phẩm yêu thích của công ty
   _cache = out; _cacheAt = Date.now();
   return out;
 }
@@ -560,6 +561,59 @@ async function setSpDuyet(actor, keys, approve) {
   if (errs.length) out.errors = errs;
   return out;
 }
+/*** ===== SẢN PHẨM YÊU THÍCH =====
+ Kho lưu những SP hay dùng để lấy lại cho các dự án sau (yêu cầu trong slide Update QS).
+ Đánh dấu theo TỪNG CÔNG TY, bảng riêng — vì SP kho chung của Dezon thuộc tenant khác,
+ công ty khác không được ghi vào dòng sản phẩm đó.                                    ***/
+async function ytIds_() {
+  try {
+    const rows = await supa.select('sp_yeu_thich', { select: 'sp_id', limit: 5000 });
+    const set = {}; rows.forEach(function (r) { set[String(r.sp_id)] = 1; });
+    return set;
+  } catch (e) { return null; }          // bảng chưa tạo -> coi như chưa có SP yêu thích nào
+}
+async function stampYeuThich_(list) {
+  const set = await ytIds_(); if (!set) return list;
+  list.forEach(function (p) { p.yeuThich = !!set[String(p.recordId)]; });
+  return list;
+}
+// bật/tắt yêu thích cho 1 hoặc nhiều sản phẩm
+// tìm SP kể cả trong KHO CHUNG của Dezon — vẫn được đánh dấu yêu thích dù không sửa được
+async function findSpAny_(key) {
+  const k = s(key).trim(); if (!k) return null;
+  const filter = /^\d+$/.test(k) ? supa.eq('id', k) : supa.eq('ma_sp', k);
+  const rows = await supa.select('db_san_pham', { select: 'id,ma_sp,ten_sp', filter: filter, limit: 1, noScope: true });
+  return rows[0] || null;
+}
+async function setYeuThich(actor, keys, on) {
+  keys = Array.isArray(keys) ? keys : [keys];
+  const who = (actor && actor.u) || 'ẩn danh';
+  const ct = tenant.tenantId() || null;
+  let ok = 0; const errs = [];
+  for (const k of keys) {
+    try {
+      const cur = await findSpAny_(k);
+      if (!cur) { errs.push({ key: k, error: 'Không tìm thấy sản phẩm' }); continue; }
+      if (on) {
+        try {
+          await supa.insert('sp_yeu_thich',
+            [{ cong_ty_id: ct, sp_id: cur.id, ma_sp: s(cur.ma_sp), nguoi_tao: who }]);
+        } catch (e) {
+          if (/duplicate|unique/i.test((e && e.message) || '')) { ok++; continue; }   // đã yêu thích rồi
+          throw tblErr_(e, 'sp_yeu_thich', 'db/sp_yeu_thich.sql');
+        }
+      } else {
+        try { await supa.remove('sp_yeu_thich', supa.eq('sp_id', cur.id)); }
+        catch (e) { throw tblErr_(e, 'sp_yeu_thich', 'db/sp_yeu_thich.sql'); }
+      }
+      ok++;
+    } catch (e) { if (errs.length < 5) errs.push({ key: k, error: e.message }); }
+  }
+  _cache = null;
+  const out = { ok: ok };
+  if (errs.length) out.errors = errs;
+  return out;
+}
 /*** ===== COMBO: sản phẩm đi kèm ===== ***/
 // Trả danh sách SP đi kèm của 1 sản phẩm, kèm thông tin để hiển thị/thêm vào dự án
 async function getCombo(key) {
@@ -742,6 +796,7 @@ module.exports = {
   bootstrap, buildCatalog, getProducts, getCatalogSheets, getProjects, getProject, createProject, updateProject, deleteProject, duplicateProject,
   getLines, addLine, addBlankLine, updateLine, deleteLine, saveLineAsProduct, saveDbProduct, deleteDbProduct, uploadImage,
   getDbProduct, updateDbProductTracked, getProductHistory, diffDbProduct, dataToRow_, logAudit_, setSpDuyet,
+  setYeuThich,
   getCombo, setCombo,
   getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, getDashboard, getQuote, importParse, importCommit,
   savePurchaseOrder, getPurchaseOrders
