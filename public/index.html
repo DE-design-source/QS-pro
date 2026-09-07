@@ -2145,6 +2145,9 @@ html,body,.catpanel,.catpanel-top,.cat-list,#pdPanel,.fltpop,.tree-pop,.spe-hist
 .sp-table th.spth .spthrsz{position:absolute;top:0;right:-3px;width:7px;height:100%;cursor:col-resize;z-index:5}
 .sp-table th.spth .spthrsz:hover{background:linear-gradient(90deg,transparent 2px,var(--blue) 2px,var(--blue) 4px,transparent 4px)}
 body.col-resizing{cursor:col-resize;user-select:none}
+/* ô đang gõ nới rộng đè lên cột bên cạnh để xem hết nội dung */
+.sp-table .spin.spin-wide{position:relative;z-index:12;background:#fff;border-color:var(--blue);
+  box-shadow:0 8px 22px rgba(18,50,76,.18);text-overflow:clip}
 /* bảng cố định -> ô phải tự cắt cho gọn */
 .sp-table td,.sp-table th{overflow:hidden;text-overflow:ellipsis}
 .sp-table thead th{white-space:nowrap}

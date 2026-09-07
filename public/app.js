@@ -1133,16 +1133,16 @@ function spInp_(i,e,val,p){
     +'<span class="spin-ro">'+esc(val)+'</span>'+(e.sfx?'<i>'+e.sfx+'</i>':'')+'</span>';
   return '<span class="spin-wrap'+(e.num?'':' tx')+'" onclick="event.stopPropagation()">'
     +'<input class="spin'+(e.num?'':' spin-tx')+'" value="'+esc(val)+'"'
-    +' data-i="'+i+'" data-lark="'+esc(e.lark)+'" data-col="'+esc(e.col||'')+'" data-money="'+(e.money?1:0)+'" data-old="'+esc(val)+'"'
+    +' title="'+esc(val)+'" data-i="'+i+'" data-lark="'+esc(e.lark)+'" data-col="'+esc(e.col||'')+'" data-money="'+(e.money?1:0)+'" data-old="'+esc(val)+'"'
     +' onchange="spInlineSave(this)" onkeydown="if(event.key===\'Enter\')this.blur()">'
     +(e.sfx?'<i>'+e.sfx+'</i>':'')+'</span>';
 }
 // Cột "Sản phẩm" khi sửa = 2 ô: tên + mã
 function spNameEdit_(p,i){
   return '<span class="spin-name" onclick="event.stopPropagation()">'
-    +'<input class="spin spin-tx" value="'+esc(p.ten||'')+'" data-i="'+i+'" data-lark="TÊN SẢN PHẨM" data-col="ten_sp" data-old="'+esc(p.ten||'')+'"'
+    +'<input class="spin spin-tx" title="'+esc(p.ten||'')+'" value="'+esc(p.ten||'')+'" data-i="'+i+'" data-lark="TÊN SẢN PHẨM" data-col="ten_sp" data-old="'+esc(p.ten||'')+'"'
     +' onchange="spInlineSave(this)" onkeydown="if(event.key===\'Enter\')this.blur()" placeholder="Tên sản phẩm">'
-    +'<input class="spin spin-tx code" value="'+esc(p.ma||'')+'" data-i="'+i+'" data-lark="MÃ SẢN PHẨM" data-col="ma_sp" data-old="'+esc(p.ma||'')+'"'
+    +'<input class="spin spin-tx code" title="'+esc(p.ma||'')+'" value="'+esc(p.ma||'')+'" data-i="'+i+'" data-lark="MÃ SẢN PHẨM" data-col="ma_sp" data-old="'+esc(p.ma||'')+'"'
     +' onchange="spInlineSave(this)" onkeydown="if(event.key===\'Enter\')this.blur()" placeholder="Mã sản phẩm">'
     +'</span>';
 }
@@ -1407,6 +1407,23 @@ function spOrder_(){
 function spSaveCols_(){ try{ localStorage.setItem('qs_spcolcfg',JSON.stringify({order:S._spOrder,w:S._spW||{}})); }catch(e){} }
 function spResetCols_(){ S._spOrder=null; S._spW={}; try{ localStorage.removeItem('qs_spcolcfg'); }catch(e){}
   spOrder_(); spColChips_(); spRenderHead_(); spFilter(); toast('Đã đặt lại thứ tự và độ rộng cột'); }
+/* Nội dung dài hơn bề rộng cột -> khi bấm vào ô, ô tự nới rộng đè lên cột bên cạnh
+   để đọc và sửa trọn vẹn; rời ô là thu lại như cũ.                              */
+function spInpFocus_(e){
+  var el=e.target; if(!el.classList||!el.classList.contains('spin')) return;
+  if(el.scrollWidth<=el.clientWidth+2) return;              // nội dung đã vừa ô
+  var td=el.closest('td'); if(!td) return;
+  td._ovf=td.style.overflow; td._pos=td.style.position; td._z=td.style.zIndex;
+  td.style.overflow='visible'; td.style.position='relative'; td.style.zIndex='12';
+  el.classList.add('spin-wide');
+  el.style.width=Math.min(el.scrollWidth+28, 460)+'px';
+}
+function spInpBlur_(e){
+  var el=e.target; if(!el.classList||!el.classList.contains('spin')) return;
+  el.classList.remove('spin-wide'); el.style.width='';
+  var td=el.closest('td'); if(!td) return;
+  td.style.overflow=td._ovf||''; td.style.position=td._pos||''; td.style.zIndex=td._z||'';
+}
 function spMoveCol_(from,to,before){
   var o=spOrder_().slice(), fi=o.indexOf(from); if(fi<0) return;
   o.splice(fi,1); var ti=o.indexOf(to); if(ti<0) ti=o.length;
@@ -1416,6 +1433,7 @@ function spMoveCol_(from,to,before){
 // gắn 1 lần: kéo tiêu đề để đổi chỗ, kéo mép phải để giãn cột
 function spInitCols_(){
   var t=document.querySelector('.sp-card .sp-table'); if(!t||t._colInit) return; t._colInit=1;
+  t.addEventListener('focusin',spInpFocus_); t.addEventListener('focusout',spInpBlur_);
   var clr=function(){ t.querySelectorAll('.dropL,.dropR').forEach(function(x){ x.classList.remove('dropL','dropR'); }); };
   t.addEventListener('dragstart',function(e){
     var th=e.target.closest('th.spth'); if(!th) return;
