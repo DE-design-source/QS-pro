@@ -2135,6 +2135,22 @@ html,body,.catpanel,.catpanel-top,.cat-list,#pdPanel,.fltpop,.tree-pop,.spe-hist
 .spvt.warn .spvt-n{background:#fef3c7;color:#a16207}
 .spvt.on .spvt-n{background:rgba(255,255,255,.22);color:#fff}
 .spvt-note{font-size:11.5px;color:var(--ink-3);margin-left:6px}
+/* ═══ Kéo giãn / kéo đổi chỗ CỘT (bảng Danh sách SP) ═══ */
+.sp-table{table-layout:fixed}
+.sp-table th.spth{cursor:grab;user-select:none}
+.sp-table th.spth:active{cursor:grabbing}
+.sp-table th.spth.dragging{opacity:.45}
+.sp-table th.spth.dropL{box-shadow:inset 2px 0 0 var(--blue)}
+.sp-table th.spth.dropR{box-shadow:inset -2px 0 0 var(--blue)}
+.sp-table th.spth .spthrsz{position:absolute;top:0;right:-3px;width:7px;height:100%;cursor:col-resize;z-index:5}
+.sp-table th.spth .spthrsz:hover{background:linear-gradient(90deg,transparent 2px,var(--blue) 2px,var(--blue) 4px,transparent 4px)}
+body.col-resizing{cursor:col-resize;user-select:none}
+/* bảng cố định -> ô phải tự cắt cho gọn */
+.sp-table td,.sp-table th{overflow:hidden;text-overflow:ellipsis}
+.sp-table thead th{white-space:nowrap}
+.sp-table td.sp-name{white-space:normal}
+.cp-collbl .cp-reset{margin-left:8px;color:var(--blue);cursor:pointer;font-weight:600;text-transform:none;letter-spacing:0}
+.cp-collbl .cp-reset:hover{text-decoration:underline}
 /* nhãn trạng thái duyệt trên từng dòng */
 .spduyet{display:inline-block;padding:3px 9px;border-radius:var(--r-sm);font-size:11px;font-weight:650;
   background:#fef3c7;color:#a16207;white-space:nowrap}
