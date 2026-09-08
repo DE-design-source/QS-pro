@@ -372,25 +372,57 @@ function ddmm_(vnDate) {
   const p = function (n) { return String(n).padStart(2, '0'); };
   return p(vnDate.getUTCDate()) + '/' + p(vnDate.getUTCMonth() + 1);
 }
-function buildSpReportCard(nhom, tong, tuVN, denVN, khuyet) {
+function buildSpReportCard(bang, tk, tuVN, denVN, khuyet) {
   const el = [];
-  const md = function (t) { return { tag: 'markdown', content: t }; };
-  nhom.forEach(function (g, i) {
-    if (i) el.push({ tag: 'hr' });
-    el.push(md('**🏢 ' + g.congTy + '** · ' + g.tong + ' sản phẩm'));
-    g.nguoi.forEach(function (n) {
-      el.push({
-        tag: 'column_set', flex_mode: 'none', horizontal_spacing: 'small',
-        columns: [
-          { tag: 'column', width: 'weighted', weight: 3, vertical_align: 'top',
-            elements: [md('**👤 ' + n.ten + '**\n<font color=\'grey\'>' + n.mau + '</font>')] },
-          { tag: 'column', width: 'weighted', weight: 1, vertical_align: 'top',
-            elements: [md('**' + n.so + '** sản phẩm')] }
-        ]
-      });
+  const md = function (t, align) { const e = { tag: 'markdown', content: t }; if (align) e.text_align = align; return e; };
+  const col = function (t, w, align) {
+    return { tag: 'column', width: 'weighted', weight: w, vertical_align: 'top', elements: [md(t, align)] };
+  };
+  const rowset = function (cols, bg) {
+    const cs = { tag: 'column_set', flex_mode: 'none', horizontal_spacing: 'small', columns: cols };
+    if (bg) cs.background_style = bg;
+    return cs;
+  };
+  // ==== Tóm tắt ====
+  el.push(rowset([
+    col('<font color=\'grey\'>Tổng sản phẩm</font>\n**' + tk.tongSP + '**', 1),
+    col('<font color=\'grey\'>Nhà cung cấp</font>\n**' + tk.tongNCC + '**', 1),
+    col('<font color=\'grey\'>Người nhập</font>\n**' + tk.tongNguoi + '**', 1)
+  ], 'grey'));
+  // ==== Bảng chi tiết ====
+  el.push(rowset([
+    col('**NGƯỜI NHẬP**', 4),
+    col('**NGÀY**', 2, 'center'),
+    col('**SỐ SP**', 2, 'right'),
+    col('**NCC**', 2, 'right')
+  ], 'blue'));
+  bang.forEach(function (p) {
+    // dòng người: tên + phòng ban (+ công ty nếu nhiều công ty)
+    const phu = [p.phongBan || '—'];
+    if (tk.nhieuCongTy && p.congTy) phu.push(p.congTy);
+    el.push(rowset([
+      col('**' + p.ten + '**\n<font color=\'grey\'>' + phu.join(' · ') + '</font>', 4),
+      col('', 2),
+      col('**' + p.tongSP + '**', 2, 'right'),
+      col('**' + p.tongNCC + '**', 2, 'right')
+    ]));
+    p.ngay.forEach(function (d) {
+      el.push(rowset([
+        col('', 4),
+        col('<font color=\'grey\'>' + d.ngay + '</font>', 2, 'center'),
+        col(String(d.soSP), 2, 'right'),
+        col(String(d.soNCC), 2, 'right')
+      ]));
     });
   });
   el.push({ tag: 'hr' });
+  el.push(rowset([
+    col('**TỔNG CỘNG**', 4),
+    col('', 2),
+    col('**' + tk.tongSP + '**', 2, 'right'),
+    col('**' + tk.tongNCC + '**', 2, 'right')
+  ], 'grey'));
+  if (tk.dsNCC) el.push({ tag: 'note', elements: [{ tag: 'plain_text', content: '🏭 Nhà cung cấp: ' + tk.dsNCC }] });
   if (khuyet) el.push({ tag: 'note', elements: [{ tag: 'plain_text',
     content: '⚠️ Còn ' + khuyet + ' sản phẩm trong kỳ chưa ghi nhận người nhập (dữ liệu cũ) — không tính vào báo cáo.' }] });
   el.push({ tag: 'note', elements: [{ tag: 'plain_text',
@@ -402,13 +434,13 @@ function buildSpReportCard(nhom, tong, tuVN, denVN, khuyet) {
       header: {
         template: 'blue',
         title: { tag: 'plain_text', content: 'Sản phẩm nhập mới' },
-        subtitle: { tag: 'plain_text', content: tong + ' sản phẩm · ' + ddmm_(tuVN) + ' → ' + ddmm_(denVN) }
+        subtitle: { tag: 'plain_text', content: tk.tongSP + ' sản phẩm · ' + tk.tongNCC + ' nhà cung cấp · ' + ddmm_(tuVN) + ' → ' + ddmm_(denVN) }
       },
       elements: el
     }
   };
 }
-// Gom sản phẩm mới trong kỳ theo công ty -> người nhập, rồi gửi Lark
+// Gom sản phẩm mới trong kỳ theo NGƯỜI NHẬP → NGÀY, kèm số SP và số nhà cung cấp
 async function baoCaoNhapSP(actor, opts) {
   opts = opts || {};
   const vn = nowVN_();
@@ -416,9 +448,11 @@ async function baoCaoNhapSP(actor, opts) {
   const tuIso = vnToUtcIso_(tuVN);
   let rows = [];
   try {
-    rows = await supa.select('db_san_pham', { select: 'id,ma_sp,ten_sp,nguoi_tao,ngay_tao,cong_ty_id',
+    rows = await supa.select('db_san_pham', { select: 'id,ma_sp,ten_sp,nha_cung_cap,nguoi_tao,ngay_tao,cong_ty_id',
       filter: 'ngay_tao=gte.' + encodeURIComponent(tuIso), order: 'ngay_tao.desc', limit: 5000, noScope: true });
   } catch (e) { return { sent: false, count: 0, message: 'Không đọc được danh sách sản phẩm: ' + e.message }; }
+  if (!rows.length) return { sent: false, count: 0, message: 'Kỳ này chưa có sản phẩm mới' };
+
   // Chỉ tính SP CÓ ghi nhận người nhập — đó mới là thứ báo cáo này nói tới.
   // (SP cũ trước khi có tính năng ghi nhận bị migration gán ngay_tao = ngày chạy,
   //  đưa vào sẽ ra hàng trăm dòng rác mà không quy được cho ai.)
@@ -426,34 +460,61 @@ async function baoCaoNhapSP(actor, opts) {
   rows = rows.filter(function (r) { return String(r.nguoi_tao || '').trim(); });
   if (!rows.length) return { sent: false, count: 0, khuyet: khuyet, message: 'Kỳ này chưa có sản phẩm mới có ghi nhận người nhập' };
 
+  // tra họ tên + phòng ban theo tài khoản (cột phong_ban có thể chưa được thêm)
+  let users = [];
+  try { users = await supa.select('users', { select: '*', limit: 5000, noScope: true }); } catch (e) { users = []; }
+  const uInfo = {};
+  users.forEach(function (u) {
+    uInfo[String(u.username || '').toLowerCase()] = { ten: u.ho_ten || u.username, pb: u.phong_ban || '' };
+  });
   let cty = [];
   try { cty = await supa.select('cong_ty', { select: 'id,ten,ma', limit: 500, noScope: true }); } catch (e) { cty = []; }
   const tenCty = {}; cty.forEach(function (c) { tenCty[String(c.id)] = c.ten || c.ma; });
 
-  const byCty = {};
+  const ngayVN_ = function (iso) { return ddmm_(new Date(new Date(iso).getTime() + VN_OFFSET_MS)); };
+  const bag = {}, nccAll = {}, ctSet = {};
   rows.forEach(function (r) {
-    const ck = String(r.cong_ty_id || '');
-    const nk = (r.nguoi_tao || '').trim() || 'Không rõ';
-    byCty[ck] = byCty[ck] || {};
-    (byCty[ck][nk] = byCty[ck][nk] || []).push(r.ma_sp || r.ten_sp || '');
+    const key = String(r.nguoi_tao).trim();
+    const ncc = String(r.nha_cung_cap || '').trim();
+    const ngay = ngayVN_(r.ngay_tao);
+    if (ncc) nccAll[ncc] = 1;
+    if (r.cong_ty_id) ctSet[String(r.cong_ty_id)] = 1;
+    bag[key] = bag[key] || { ngay: {}, ncc: {}, ct: {} };
+    bag[key].ngay[ngay] = bag[key].ngay[ngay] || { soSP: 0, ncc: {} };
+    bag[key].ngay[ngay].soSP++;
+    if (ncc) { bag[key].ngay[ngay].ncc[ncc] = 1; bag[key].ncc[ncc] = 1; }
+    if (r.cong_ty_id) bag[key].ct[String(r.cong_ty_id)] = 1;
   });
-  const nhom = Object.keys(byCty).map(function (ck) {
-    const nguoi = Object.keys(byCty[ck]).map(function (nk) {
-      const ds = byCty[ck][nk];
-      const mau = ds.slice(0, 4).filter(Boolean).join(', ') + (ds.length > 4 ? ('… +' + (ds.length - 4)) : '');
-      return { ten: nk, so: ds.length, mau: mau || '—' };
-    }).sort(function (a, b) { return b.so - a.so; });
-    return { congTy: tenCty[ck] || 'Không rõ công ty',
-      tong: nguoi.reduce(function (s, x) { return s + x.so; }, 0), nguoi: nguoi };
-  }).sort(function (a, b) { return b.tong - a.tong; });
+  const bang = Object.keys(bag).map(function (k) {
+    const b = bag[k], info = uInfo[k.toLowerCase()] || {};
+    const ngay = Object.keys(b.ngay).map(function (d) {
+      return { ngay: d, soSP: b.ngay[d].soSP, soNCC: Object.keys(b.ngay[d].ncc).length };
+    }).sort(function (x, y) { return x.ngay < y.ngay ? 1 : -1; });
+    return {
+      ten: info.ten || k,
+      phongBan: info.pb || '',
+      congTy: Object.keys(b.ct).map(function (id) { return tenCty[id] || ''; }).filter(Boolean).join(', ') || 'Chưa gắn công ty',
+      tongSP: ngay.reduce(function (s, x) { return s + x.soSP; }, 0),
+      tongNCC: Object.keys(b.ncc).length,
+      ngay: ngay
+    };
+  }).sort(function (a, b) { return b.tongSP - a.tongSP; });
 
-  if (opts.dryRun) return { sent: false, count: rows.length, khuyet: khuyet, tu: tuIso, nhom: nhom };
+  const dsNCCArr = Object.keys(nccAll);
+  const tk = {
+    tongSP: rows.length,
+    tongNCC: dsNCCArr.length,
+    tongNguoi: bang.length,
+    nhieuCongTy: Object.keys(ctSet).length > 1,
+    dsNCC: dsNCCArr.slice(0, 8).join(', ') + (dsNCCArr.length > 8 ? ('… +' + (dsNCCArr.length - 8)) : '')
+  };
+  if (opts.dryRun) return { sent: false, count: rows.length, khuyet: khuyet, tu: tuIso, tongKet: tk, bang: bang };
 
   let larkOk = false;
   try {
     const r = await fetch(PURCHASE_WEBHOOK, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(buildSpReportCard(nhom, rows.length, tuVN, vn, khuyet))
+      body: JSON.stringify(buildSpReportCard(bang, tk, tuVN, vn, khuyet))
     });
     let d = null; try { d = await r.json(); } catch (e) { d = null; }
     larkOk = !!(d && (d.code === 0 || d.StatusCode === 0 || d.msg === 'success'));
@@ -466,8 +527,8 @@ async function baoCaoNhapSP(actor, opts) {
         detail: 'Báo cáo Lark: ' + rows.length + ' sản phẩm nhập mới từ ' + ddmm_(tuVN) + ' đến ' + ddmm_(vn) }], { noScope: true });
     } catch (e) { console.warn('[báo cáo nhập SP] không ghi được audit:', e && e.message); }
   }
-  return { sent: larkOk, count: rows.length, khuyet: khuyet,
-    congTy: nhom.map(function (g) { return g.congTy + ': ' + g.tong; }) };
+  return { sent: larkOk, count: rows.length, khuyet: khuyet, tongKet: tk,
+    nguoi: bang.map(function (p) { return p.ten + ' (' + (p.phongBan || 'chưa có phòng ban') + '): ' + p.tongSP + ' SP'; }) };
 }
 // Hôm nay đã gửi báo cáo chưa (chống gửi trùng khi server khởi động lại)
 async function daGuiBaoCaoHomNay_() {

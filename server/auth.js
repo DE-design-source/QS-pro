@@ -48,7 +48,7 @@ function permsArr_(v) { return String(v || '').split(',').map(function (x) { ret
 function userOut(r) {
   return { id: r.id, username: r.username, hoTen: r.ho_ten || '', role: r.role || 'staff',
     perms: permsArr_(r.perms), active: r.active !== false, createdAt: r.created_at, lastLogin: r.last_login,
-    congTyId: r.cong_ty_id || null, email: r.email || '' };
+    congTyId: r.cong_ty_id || null, email: r.email || '', phongBan: r.phong_ban || '' };
 }
 async function getUserByName(username) {
   // Cho đăng nhập bằng TÊN ĐĂNG NHẬP hoặc EMAIL. noScope: lúc này chưa biết công ty.
@@ -235,6 +235,11 @@ async function changePassword(actor, oldPw, newPw) {
 }
 
 /* ---------- Admin: quản lý tài khoản ---------- */
+// Chưa chạy db/user_phong_ban.sql -> bỏ qua cột phong_ban, không chặn thao tác tài khoản
+function phongBanColErr_(e) {
+  var m = (e && e.message) || '';
+  return /phong_ban/.test(m) && /(column|schema cache|PGRST204)/i.test(m);
+}
 function permsColErr_(e) {
   var m = (e && e.message) || '';
   if (/perms/.test(m) && /(column|schema cache)/i.test(m)) {
@@ -273,9 +278,13 @@ async function adminCreateUser(actor, data) {
   const perms = (role === 'admin' || role === 'super') ? '' : (Array.isArray(data.perms) ? data.perms.join(',') : '');
   const row = { username: username, ho_ten: String(data.hoTen || ''), email: String(data.email || ''),
     password_hash: bcrypt.hashSync(String(data.password), 10), role: role, perms: perms, active: true, cong_ty_id: ctId };
+  if (String(data.phongBan || '').trim()) row.phong_ban = String(data.phongBan).trim();
   let res;
   try { res = await supa.insert('users', row, { noScope: true }); }
-  catch (e) { throw permsColErr_(e); }
+  catch (e) {
+    if (phongBanColErr_(e)) { delete row.phong_ban; res = await supa.insert('users', row, { noScope: true }); }
+    else throw permsColErr_(e);
+  }
   await audit(actor, 'create_user', 'Tạo tài khoản ' + username + ' (' + role + ')');
   return userOut(res[0]);
 }
@@ -285,12 +294,16 @@ async function adminUpdateUser(actor, id, fields) {
   if (fields.hasOwnProperty('hoTen')) patch.ho_ten = String(fields.hoTen || '');
   if (fields.hasOwnProperty('role')) patch.role = fields.role === 'admin' ? 'admin' : 'staff';
   if (fields.hasOwnProperty('perms')) patch.perms = Array.isArray(fields.perms) ? fields.perms.join(',') : '';
+  if (fields.hasOwnProperty('phongBan')) patch.phong_ban = String(fields.phongBan || '').trim();
   // Admin thì bỏ giới hạn perms
   if (patch.role === 'admin') patch.perms = '';
   if (!Object.keys(patch).length) return { ok: true };
   let res;
   try { res = await supa.update('users', supa.eq('id', id), patch); }
-  catch (e) { throw permsColErr_(e); }
+  catch (e) {
+    if (phongBanColErr_(e)) { delete patch.phong_ban; res = await supa.update('users', supa.eq('id', id), patch); }
+    else throw permsColErr_(e);
+  }
   await audit(actor, 'update_user', 'Sửa tài khoản ' + (res[0] && res[0].username) + ' ' + JSON.stringify(patch));
   return res[0] ? userOut(res[0]) : { ok: true };
 }

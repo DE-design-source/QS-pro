@@ -5924,7 +5924,10 @@ function admUserModal(user){
             +'<input id="am_user" '+(isEdit?'disabled':'')+' value="'+esc(user.username||'')+'" placeholder="vd: nguyenvana" autocomplete="off"></div>'
           +'<div class="afield"><label>Họ tên</label><input id="am_ht" value="'+esc(user.hoTen||'')+'" placeholder="Nguyễn Văn A"></div>'
         +'</div>'
-        +(isEdit?'':'<div class="afield"><label>Mật khẩu <em>*</em></label><input id="am_pw" type="text" placeholder="Tối thiểu 4 ký tự" autocomplete="new-password"></div>')
+        +'<div class="agrid2">'
+          +'<div class="afield"><label>Phòng ban</label><input id="am_pb" value="'+esc(user.phongBan||'')+'" placeholder="vd: Kinh doanh, Thiết kế, Mua hàng"></div>'
+          +(isEdit?'<div class="afield"></div>':'<div class="afield"><label>Mật khẩu <em>*</em></label><input id="am_pw" type="text" placeholder="Tối thiểu 4 ký tự" autocomplete="new-password"></div>')
+        +'</div>'
       +'</div>'
       +'<div class="asec"><div class="asec-h">Vai trò</div>'
         +'<div class="aseg" id="am_seg">'
@@ -5977,12 +5980,13 @@ function admModalSave(id){
     if(lv && lv.value && perms.indexOf('sanpham')>=0) perms.push(lv.value);
   }
   var hoTen=document.getElementById('am_ht').value;
+  var phongBan=(document.getElementById('am_pb')||{}).value||'';   // dùng cho báo cáo nhập SP gửi Lark
   var btn=document.getElementById('am_save'); btn.disabled=true;
   var done=function(msg){ toast(msg); admModalClose(); renderAdmin(); };
   var fail=function(e){ toast('Lỗi: '+e.message); btn.disabled=false; };
-  if(id){ api('adminUpdateUser',id,{hoTen:hoTen,role:role,perms:perms}).then(function(){ done('Đã cập nhật'); }).catch(fail); }
+  if(id){ api('adminUpdateUser',id,{hoTen:hoTen,role:role,perms:perms,phongBan:phongBan}).then(function(){ done('Đã cập nhật'); }).catch(fail); }
   else { var username=document.getElementById('am_user').value; var pw=document.getElementById('am_pw').value;
-    api('adminCreateUser',{username:username,hoTen:hoTen,role:role,password:pw,perms:perms}).then(function(){ done('Đã tạo tài khoản'); }).catch(fail); }
+    api('adminCreateUser',{username:username,hoTen:hoTen,role:role,password:pw,perms:perms,phongBan:phongBan}).then(function(){ done('Đã tạo tài khoản'); }).catch(fail); }
 }
 async function admResetPw(id){
   var np=await askInput_({title:'Đặt lại mật khẩu', label:'Mật khẩu mới (≥4 ký tự)', type:'password', confirmText:'Đặt lại'});
