@@ -373,7 +373,9 @@ function ddmm_(vnDate) {
   const p = function (n) { return String(n).padStart(2, '0'); };
   return p(vnDate.getUTCDate()) + '/' + p(vnDate.getUTCMonth() + 1);
 }
-function buildSpReportCard(bang, tk, tuVN, denVN, khuyet) {
+/* Thẻ báo cáo cho MỘT công ty. Bám đúng ngôn ngữ thẻ Lark app đang dùng ở
+   yêu cầu mua hàng: khối div/fields cho số liệu, column_set cho bảng.        */
+function buildSpReportCard(tenCongTy, bang, tk, tuVN, denVN, khuyet) {
   const el = [];
   const md = function (t, align) { const e = { tag: 'markdown', content: t }; if (align) e.text_align = align; return e; };
   const col = function (t, w, align) {
@@ -384,52 +386,73 @@ function buildSpReportCard(bang, tk, tuVN, denVN, khuyet) {
     if (bg) cs.background_style = bg;
     return cs;
   };
-  bang.forEach(function (p, i) {
-    if (i) el.push({ tag: 'hr' });
-    // ---- người nhập + phòng ban ----
-    const phu = [p.phongBan || 'Chưa có phòng ban'];
-    if (tk.nhieuCongTy && p.congTy) phu.push(p.congTy);
-    el.push(rowset([
-      col('**' + p.ten + '**\n<font color=\'grey\'>' + phu.join(' · ') + '</font>', 5),
-      col('**' + p.tongSP + '** sản phẩm\n<font color=\'grey\'>' + p.tongNCC + ' nhà cung cấp</font>', 3, 'right')
-    ], 'grey'));
-    // ---- từng ngày nhập + tên sản phẩm ----
-    p.ngay.forEach(function (d) {
+  const fld = function (label, val) {
+    return { is_short: true, text: { tag: 'lark_md', content: '<font color=\'grey\'>' + label + '</font>\n**' + val + '**' } };
+  };
+  // ── Khối số liệu ──
+  el.push({ tag: 'div', fields: [
+    fld('Sản phẩm nhập mới', String(tk.tongSP)),
+    fld('Nhà cung cấp', String(tk.tongNCC)),
+    fld('Người nhập', String(tk.tongNguoi)),
+    fld('Kỳ báo cáo', ddmm_(tuVN) + ' → ' + ddmm_(denVN))
+  ] });
+  el.push({ tag: 'hr' });
+  // ── Bảng: người nhập · phòng ban · ngày · SP · NCC ──
+  el.push(rowset([
+    col('**NGƯỜI NHẬP**', 5),
+    col('**NGÀY**', 3, 'center'),
+    col('**SP**', 2, 'right'),
+    col('**NCC**', 2, 'right')
+  ], 'grey'));
+  bang.forEach(function (p) {
+    p.ngay.forEach(function (d, i) {
       el.push(rowset([
-        col('📅 **' + d.ngay + '**', 3),
-        col(d.soSP + ' sản phẩm · ' + d.soNCC + ' NCC', 5, 'right')
+        col(i === 0
+          ? ('**' + p.ten + '**\n<font color=\'grey\'>' + (p.phongBan || 'Chưa có phòng ban') + '</font>')
+          : '', 5),
+        col(d.ngay, 3, 'center'),
+        col('**' + d.soSP + '**', 2, 'right'),
+        col(String(d.soNCC), 2, 'right')
       ]));
-      el.push(md(d.ds.map(function (x) {
-        return '· ' + (x.ma ? ('**' + x.ma + '** — ') : '') + x.ten + (x.ncc ? (' <font color=\'grey\'>(' + x.ncc + ')</font>') : '');
-      }).join('\n') + (d.con ? ('\n<font color=\'grey\'>… và ' + d.con + ' sản phẩm khác</font>') : '')));
     });
   });
-  if (bang.length > 1) {
-    el.push({ tag: 'hr' });
+  if (bang.length > 1 || bang[0].ngay.length > 1) {
     el.push(rowset([
-      col('**TỔNG CỘNG**', 5),
-      col('**' + tk.tongSP + '** sản phẩm\n<font color=\'grey\'>' + tk.tongNCC + ' nhà cung cấp</font>', 3, 'right')
+      col('**Tổng cộng**', 5),
+      col('', 3),
+      col('**' + tk.tongSP + '**', 2, 'right'),
+      col('**' + tk.tongNCC + '**', 2, 'right')
     ], 'grey'));
+  }
+  // ── Danh sách sản phẩm (gọn, không dội thẻ khi nhập hàng loạt) ──
+  if (tk.dsSP.length) {
+    el.push({ tag: 'hr' });
+    el.push(md('<font color=\'grey\'>**Sản phẩm**</font>'));
+    el.push(md(tk.dsSP.map(function (x) {
+      return '**' + (x.ma || x.ten) + '**' + (x.ma && x.ten ? ('  ' + x.ten) : '')
+           + (x.ncc ? ('\n<font color=\'grey\'>' + x.ncc + '</font>') : '');
+    }).join('\n')));
+    if (tk.conSP) el.push(md('<font color=\'grey\'>… và ' + tk.conSP + ' sản phẩm khác</font>'));
   }
   if (khuyet) el.push({ tag: 'note', elements: [{ tag: 'plain_text',
     content: '⚠️ ' + khuyet + ' sản phẩm cũ trong kỳ chưa ghi nhận người nhập — không tính vào báo cáo.' }] });
   el.push({ tag: 'note', elements: [{ tag: 'plain_text',
-    content: 'Dezon Pro · Tự động thứ 4 & thứ 7, 8h00 · kỳ ' + ddmm_(tuVN) + ' → ' + ddmm_(denVN) }] });
+    content: 'Dezon Pro · Báo cáo tự động thứ 4 & thứ 7 lúc 8h00' }] });
   return {
     msg_type: 'interactive',
     card: {
       config: { wide_screen_mode: true },
       header: {
-        template: 'blue',
-        title: { tag: 'plain_text', content: '📦 Sản phẩm nhập mới' },
+        template: tk.chuaGanCT ? 'orange' : 'blue',
+        title: { tag: 'plain_text', content: '📦 Sản phẩm nhập mới · ' + tenCongTy },
         subtitle: { tag: 'plain_text',
-          content: tk.tongSP + ' sản phẩm · ' + tk.tongNCC + ' nhà cung cấp · ' + tk.tongNguoi + ' người nhập' }
+          content: tk.tongSP + ' sản phẩm · ' + tk.tongNCC + ' nhà cung cấp · ' + ddmm_(tuVN) + ' → ' + ddmm_(denVN) }
       },
       elements: el
     }
   };
 }
-// Gom sản phẩm mới trong kỳ theo NGƯỜI NHẬP → NGÀY, kèm số SP và số nhà cung cấp
+// Gom SP mới trong kỳ, TÁCH THEO CÔNG TY -> mỗi công ty một thẻ Lark riêng
 async function baoCaoNhapSP(actor, opts) {
   opts = opts || {};
   const vn = nowVN_();
@@ -445,85 +468,87 @@ async function baoCaoNhapSP(actor, opts) {
   if (!rows.length) return { sent: false, count: 0, message: 'Kỳ này chưa có sản phẩm mới' };
 
   // Chỉ tính SP CÓ ghi nhận người nhập — đó mới là thứ báo cáo này nói tới.
-  // (SP cũ trước khi có tính năng ghi nhận bị migration gán ngay_tao = ngày chạy,
-  //  đưa vào sẽ ra hàng trăm dòng rác mà không quy được cho ai.)
-  const khuyet = rows.filter(function (r) { return !String(r.nguoi_tao || '').trim(); }).length;
-  rows = rows.filter(function (r) { return String(r.nguoi_tao || '').trim(); });
-  if (!rows.length) return { sent: false, count: 0, khuyet: khuyet, message: 'Kỳ này chưa có sản phẩm mới có ghi nhận người nhập' };
+  const khuyetAll = rows.filter(function (r) { return !s_(r.nguoi_tao); });
+  rows = rows.filter(function (r) { return s_(r.nguoi_tao); });
+  if (!rows.length) return { sent: false, count: 0, khuyet: khuyetAll.length,
+    message: 'Kỳ này chưa có sản phẩm mới có ghi nhận người nhập' };
 
-  // tra họ tên + phòng ban theo tài khoản (cột phong_ban có thể chưa được thêm)
   let users = [];
   try { users = await supa.select('users', { select: '*', limit: 5000, noScope: true }); } catch (e) { users = []; }
   const uInfo = {};
   users.forEach(function (u) {
-    uInfo[String(u.username || '').toLowerCase()] = { ten: u.ho_ten || u.username, pb: u.phong_ban || '' };
+    uInfo[s_(u.username).toLowerCase()] = { ten: u.ho_ten || u.username, pb: u.phong_ban || '' };
   });
   let cty = [];
   try { cty = await supa.select('cong_ty', { select: 'id,ten,ma', limit: 500, noScope: true }); } catch (e) { cty = []; }
   const tenCty = {}; cty.forEach(function (c) { tenCty[String(c.id)] = c.ten || c.ma; });
-
   const ngayVN_ = function (iso) { return ddmm_(new Date(new Date(iso).getTime() + VN_OFFSET_MS)); };
-  const bag = {}, nccAll = {}, ctSet = {};
+
+  // ── tách theo công ty ──
+  const theoCT = {};
   rows.forEach(function (r) {
-    const key = String(r.nguoi_tao).trim();
-    const ncc = String(r.nha_cung_cap || '').trim();
-    const ngay = ngayVN_(r.ngay_tao);
-    if (ncc) nccAll[ncc] = 1;
-    ctSet[String(r.cong_ty_id || '(chưa gắn)')] = 1;
-    bag[key] = bag[key] || { ngay: {}, ncc: {}, ct: {} };
-    bag[key].ngay[ngay] = bag[key].ngay[ngay] || { soSP: 0, ncc: {}, ds: [] };
-    bag[key].ngay[ngay].soSP++;
-    bag[key].ngay[ngay].ds.push({ ma: s_(r.ma_sp), ten: s_(r.ten_sp) || s_(r.ma_sp) || '(chưa đặt tên)', ncc: ncc });
-    if (ncc) { bag[key].ngay[ngay].ncc[ncc] = 1; bag[key].ncc[ncc] = 1; }
-    bag[key].ct[String(r.cong_ty_id || '')] = 1;
+    const k = String(r.cong_ty_id || '');
+    (theoCT[k] = theoCT[k] || []).push(r);
   });
-  const bang = Object.keys(bag).map(function (k) {
-    const b = bag[k], info = uInfo[k.toLowerCase()] || {};
-    const MAX_DS = 6;                       // liệt kê tối đa 6 SP/ngày cho thẻ khỏi dài
-    const ngay = Object.keys(b.ngay).map(function (d) {
-      const t = b.ngay[d];
-      return { ngay: d, soSP: t.soSP, soNCC: Object.keys(t.ncc).length,
-        ds: t.ds.slice(0, MAX_DS), con: Math.max(0, t.ds.length - MAX_DS) };
-    }).sort(function (x, y) { return x.ngay < y.ngay ? 1 : -1; });
-    return {
-      ten: info.ten || k,
-      phongBan: info.pb || '',
-      congTy: Object.keys(b.ct).map(function (id) { return id ? (tenCty[id] || 'Công ty khác') : 'Chưa gắn công ty'; }).join(', '),
-      tongSP: ngay.reduce(function (s, x) { return s + x.soSP; }, 0),
-      tongNCC: Object.keys(b.ncc).length,
-      ngay: ngay
-    };
-  }).sort(function (a, b) { return b.tongSP - a.tongSP; });
-
-  const dsNCCArr = Object.keys(nccAll);
-  const tk = {
-    tongSP: rows.length,
-    tongNCC: dsNCCArr.length,
-    tongNguoi: bang.length,
-    nhieuCongTy: Object.keys(ctSet).length > 1,
-    dsNCC: dsNCCArr.slice(0, 8).join(', ') + (dsNCCArr.length > 8 ? ('… +' + (dsNCCArr.length - 8)) : '')
-  };
-  if (opts.dryRun) return { sent: false, count: rows.length, khuyet: khuyet, tu: tuIso, tongKet: tk, bang: bang };
-
-  let larkOk = false;
-  try {
-    const r = await fetch(PURCHASE_WEBHOOK, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(buildSpReportCard(bang, tk, tuVN, vn, khuyet))
+  const MAX_DS = 10;                                   // liệt kê tối đa 10 SP/thẻ
+  const ketQua = [];
+  for (const ctKey of Object.keys(theoCT)) {
+    const ds = theoCT[ctKey];
+    const ten = ctKey ? (tenCty[ctKey] || 'Công ty khác') : 'Chưa gắn công ty';
+    const bag = {}, nccAll = {};
+    ds.forEach(function (r) {
+      const key = s_(r.nguoi_tao), ncc = s_(r.nha_cung_cap), ngay = ngayVN_(r.ngay_tao);
+      if (ncc) nccAll[ncc] = 1;
+      bag[key] = bag[key] || { ngay: {}, ncc: {} };
+      bag[key].ngay[ngay] = bag[key].ngay[ngay] || { soSP: 0, ncc: {} };
+      bag[key].ngay[ngay].soSP++;
+      if (ncc) { bag[key].ngay[ngay].ncc[ncc] = 1; bag[key].ncc[ncc] = 1; }
     });
-    let d = null; try { d = await r.json(); } catch (e) { d = null; }
-    larkOk = !!(d && (d.code === 0 || d.StatusCode === 0 || d.msg === 'success'));
-    if (!larkOk) console.warn('[báo cáo nhập SP] webhook Lark lỗi:', (d && (d.msg || d.StatusMessage)) || ('HTTP ' + r.status));
-  } catch (e) { console.warn('[báo cáo nhập SP] webhook Lark lỗi:', e && e.message); }
+    const bang = Object.keys(bag).map(function (k) {
+      const b = bag[k], info = uInfo[k.toLowerCase()] || {};
+      const ngay = Object.keys(b.ngay).map(function (d) {
+        return { ngay: d, soSP: b.ngay[d].soSP, soNCC: Object.keys(b.ngay[d].ncc).length };
+      }).sort(function (x, y) { return x.ngay < y.ngay ? 1 : -1; });
+      return { ten: info.ten || k, phongBan: info.pb || '',
+        tongSP: ngay.reduce(function (s, x) { return s + x.soSP; }, 0),
+        tongNCC: Object.keys(b.ncc).length, ngay: ngay };
+    }).sort(function (a, b) { return b.tongSP - a.tongSP; });
+    const tk = {
+      tongSP: ds.length, tongNCC: Object.keys(nccAll).length, tongNguoi: bang.length,
+      chuaGanCT: !ctKey,
+      dsSP: ds.slice(0, MAX_DS).map(function (r) { return { ma: s_(r.ma_sp), ten: s_(r.ten_sp), ncc: s_(r.nha_cung_cap) }; }),
+      conSP: Math.max(0, ds.length - MAX_DS)
+    };
+    // SP cũ không rõ người nhập: chỉ cảnh báo trên thẻ của đúng công ty đó
+    const khuyet = khuyetAll.filter(function (r) { return String(r.cong_ty_id || '') === ctKey; }).length;
+    ketQua.push({ congTy: ten, ctKey: ctKey, bang: bang, tk: tk, khuyet: khuyet });
+  }
+  ketQua.sort(function (a, b) { return b.tk.tongSP - a.tk.tongSP; });
 
-  if (larkOk) {
+  if (opts.dryRun) return { sent: false, count: rows.length, soThe: ketQua.length, khuyet: khuyetAll.length, tu: tuIso, the: ketQua };
+
+  const daGui = [];
+  for (const q of ketQua) {
+    let ok = false;
+    try {
+      const r = await fetch(PURCHASE_WEBHOOK, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildSpReportCard(q.congTy, q.bang, q.tk, tuVN, vn, q.khuyet))
+      });
+      let d = null; try { d = await r.json(); } catch (e) { d = null; }
+      ok = !!(d && (d.code === 0 || d.StatusCode === 0 || d.msg === 'success'));
+      if (!ok) console.warn('[báo cáo nhập SP] webhook Lark lỗi (' + q.congTy + '):', (d && (d.msg || d.StatusMessage)) || ('HTTP ' + r.status));
+    } catch (e) { console.warn('[báo cáo nhập SP] webhook Lark lỗi (' + q.congTy + '):', e && e.message); }
+    daGui.push({ congTy: q.congTy, soSP: q.tk.tongSP, sent: ok });
+  }
+  const anyOk = daGui.some(function (x) { return x.sent; });
+  if (anyOk) {
     try {
       await supa.insert('audit_log', [{ username: 'hệ thống', action: BAO_CAO_ACTION,
-        detail: 'Báo cáo Lark: ' + rows.length + ' sản phẩm nhập mới từ ' + ddmm_(tuVN) + ' đến ' + ddmm_(vn) }], { noScope: true });
+        detail: 'Báo cáo Lark: ' + rows.length + ' sản phẩm nhập mới / ' + ketQua.length + ' công ty, kỳ ' + ddmm_(tuVN) + ' → ' + ddmm_(vn) }], { noScope: true });
     } catch (e) { console.warn('[báo cáo nhập SP] không ghi được audit:', e && e.message); }
   }
-  return { sent: larkOk, count: rows.length, khuyet: khuyet, tongKet: tk,
-    nguoi: bang.map(function (p) { return p.ten + ' (' + (p.phongBan || 'chưa có phòng ban') + '): ' + p.tongSP + ' SP'; }) };
+  return { sent: anyOk, count: rows.length, khuyet: khuyetAll.length, the: daGui };
 }
 // Hôm nay đã gửi báo cáo chưa (chống gửi trùng khi server khởi động lại)
 async function daGuiBaoCaoHomNay_() {
