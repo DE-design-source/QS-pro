@@ -469,13 +469,13 @@ async function baoCaoNhapSP(actor, opts) {
     const ncc = String(r.nha_cung_cap || '').trim();
     const ngay = ngayVN_(r.ngay_tao);
     if (ncc) nccAll[ncc] = 1;
-    if (r.cong_ty_id) ctSet[String(r.cong_ty_id)] = 1;
+    ctSet[String(r.cong_ty_id || '(chưa gắn)')] = 1;
     bag[key] = bag[key] || { ngay: {}, ncc: {}, ct: {} };
     bag[key].ngay[ngay] = bag[key].ngay[ngay] || { soSP: 0, ncc: {}, ds: [] };
     bag[key].ngay[ngay].soSP++;
     bag[key].ngay[ngay].ds.push({ ma: s_(r.ma_sp), ten: s_(r.ten_sp) || s_(r.ma_sp) || '(chưa đặt tên)', ncc: ncc });
     if (ncc) { bag[key].ngay[ngay].ncc[ncc] = 1; bag[key].ncc[ncc] = 1; }
-    if (r.cong_ty_id) bag[key].ct[String(r.cong_ty_id)] = 1;
+    bag[key].ct[String(r.cong_ty_id || '')] = 1;
   });
   const bang = Object.keys(bag).map(function (k) {
     const b = bag[k], info = uInfo[k.toLowerCase()] || {};
@@ -488,7 +488,7 @@ async function baoCaoNhapSP(actor, opts) {
     return {
       ten: info.ten || k,
       phongBan: info.pb || '',
-      congTy: Object.keys(b.ct).map(function (id) { return tenCty[id] || ''; }).filter(Boolean).join(', ') || 'Chưa gắn công ty',
+      congTy: Object.keys(b.ct).map(function (id) { return id ? (tenCty[id] || 'Công ty khác') : 'Chưa gắn công ty'; }).join(', '),
       tongSP: ngay.reduce(function (s, x) { return s + x.soSP; }, 0),
       tongNCC: Object.keys(b.ncc).length,
       ngay: ngay
