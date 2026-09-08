@@ -424,16 +424,6 @@ function buildSpReportCard(tenCongTy, bang, tk, tuVN, denVN, khuyet) {
       col('**' + tk.tongNCC + '**', 2, 'right')
     ], 'grey'));
   }
-  // ── Danh sách sản phẩm (gọn, không dội thẻ khi nhập hàng loạt) ──
-  if (tk.dsSP.length) {
-    el.push({ tag: 'hr' });
-    el.push(md('<font color=\'grey\'>**Sản phẩm**</font>'));
-    el.push(md(tk.dsSP.map(function (x) {
-      return '**' + (x.ma || x.ten) + '**' + (x.ma && x.ten ? ('  ' + x.ten) : '')
-           + (x.ncc ? ('\n<font color=\'grey\'>' + x.ncc + '</font>') : '');
-    }).join('\n')));
-    if (tk.conSP) el.push(md('<font color=\'grey\'>… và ' + tk.conSP + ' sản phẩm khác</font>'));
-  }
   if (khuyet) el.push({ tag: 'note', elements: [{ tag: 'plain_text',
     content: '⚠️ ' + khuyet + ' sản phẩm cũ trong kỳ chưa ghi nhận người nhập — không tính vào báo cáo.' }] });
   el.push({ tag: 'note', elements: [{ tag: 'plain_text',
@@ -490,7 +480,6 @@ async function baoCaoNhapSP(actor, opts) {
     const k = String(r.cong_ty_id || '');
     (theoCT[k] = theoCT[k] || []).push(r);
   });
-  const MAX_DS = 10;                                   // liệt kê tối đa 10 SP/thẻ
   const ketQua = [];
   for (const ctKey of Object.keys(theoCT)) {
     const ds = theoCT[ctKey];
@@ -515,9 +504,7 @@ async function baoCaoNhapSP(actor, opts) {
     }).sort(function (a, b) { return b.tongSP - a.tongSP; });
     const tk = {
       tongSP: ds.length, tongNCC: Object.keys(nccAll).length, tongNguoi: bang.length,
-      chuaGanCT: !ctKey,
-      dsSP: ds.slice(0, MAX_DS).map(function (r) { return { ma: s_(r.ma_sp), ten: s_(r.ten_sp), ncc: s_(r.nha_cung_cap) }; }),
-      conSP: Math.max(0, ds.length - MAX_DS)
+      chuaGanCT: !ctKey
     };
     // SP cũ không rõ người nhập: chỉ cảnh báo trên thẻ của đúng công ty đó
     const khuyet = khuyetAll.filter(function (r) { return String(r.cong_ty_id || '') === ctKey; }).length;
