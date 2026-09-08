@@ -357,6 +357,7 @@ setTimeout(function () {
 const BAO_CAO_GIO_VN = 8;                       // 8h sáng giờ VN
 const BAO_CAO_THU = [3, 6];                     // 3 = thứ 4, 6 = thứ 7
 const BAO_CAO_ACTION = 'bao_cao_nhap_sp';
+function s_(v) { return String(v == null ? '' : v).trim(); }
 
 // Mốc bắt đầu của kỳ này = 8h sáng của ngày gửi TRƯỚC đó trong lịch
 function moBaoCaoTruoc_(vnNow) {
@@ -376,65 +377,53 @@ function buildSpReportCard(bang, tk, tuVN, denVN, khuyet) {
   const el = [];
   const md = function (t, align) { const e = { tag: 'markdown', content: t }; if (align) e.text_align = align; return e; };
   const col = function (t, w, align) {
-    return { tag: 'column', width: 'weighted', weight: w, vertical_align: 'top', elements: [md(t, align)] };
+    return { tag: 'column', width: 'weighted', weight: w, vertical_align: 'center', elements: [md(t, align)] };
   };
   const rowset = function (cols, bg) {
     const cs = { tag: 'column_set', flex_mode: 'none', horizontal_spacing: 'small', columns: cols };
     if (bg) cs.background_style = bg;
     return cs;
   };
-  // ==== Tóm tắt ====
-  el.push(rowset([
-    col('<font color=\'grey\'>Tổng sản phẩm</font>\n**' + tk.tongSP + '**', 1),
-    col('<font color=\'grey\'>Nhà cung cấp</font>\n**' + tk.tongNCC + '**', 1),
-    col('<font color=\'grey\'>Người nhập</font>\n**' + tk.tongNguoi + '**', 1)
-  ], 'grey'));
-  // ==== Bảng chi tiết ====
-  el.push(rowset([
-    col('**NGƯỜI NHẬP**', 4),
-    col('**NGÀY**', 2, 'center'),
-    col('**SỐ SP**', 2, 'right'),
-    col('**NCC**', 2, 'right')
-  ], 'blue'));
-  bang.forEach(function (p) {
-    // dòng người: tên + phòng ban (+ công ty nếu nhiều công ty)
-    const phu = [p.phongBan || '—'];
+  bang.forEach(function (p, i) {
+    if (i) el.push({ tag: 'hr' });
+    // ---- người nhập + phòng ban ----
+    const phu = [p.phongBan || 'Chưa có phòng ban'];
     if (tk.nhieuCongTy && p.congTy) phu.push(p.congTy);
     el.push(rowset([
-      col('**' + p.ten + '**\n<font color=\'grey\'>' + phu.join(' · ') + '</font>', 4),
-      col('', 2),
-      col('**' + p.tongSP + '**', 2, 'right'),
-      col('**' + p.tongNCC + '**', 2, 'right')
-    ]));
+      col('**' + p.ten + '**\n<font color=\'grey\'>' + phu.join(' · ') + '</font>', 5),
+      col('**' + p.tongSP + '** sản phẩm\n<font color=\'grey\'>' + p.tongNCC + ' nhà cung cấp</font>', 3, 'right')
+    ], 'grey'));
+    // ---- từng ngày nhập + tên sản phẩm ----
     p.ngay.forEach(function (d) {
       el.push(rowset([
-        col('', 4),
-        col('<font color=\'grey\'>' + d.ngay + '</font>', 2, 'center'),
-        col(String(d.soSP), 2, 'right'),
-        col(String(d.soNCC), 2, 'right')
+        col('📅 **' + d.ngay + '**', 3),
+        col(d.soSP + ' sản phẩm · ' + d.soNCC + ' NCC', 5, 'right')
       ]));
+      el.push(md(d.ds.map(function (x) {
+        return '· ' + (x.ma ? ('**' + x.ma + '** — ') : '') + x.ten + (x.ncc ? (' <font color=\'grey\'>(' + x.ncc + ')</font>') : '');
+      }).join('\n') + (d.con ? ('\n<font color=\'grey\'>… và ' + d.con + ' sản phẩm khác</font>') : '')));
     });
   });
-  el.push({ tag: 'hr' });
-  el.push(rowset([
-    col('**TỔNG CỘNG**', 4),
-    col('', 2),
-    col('**' + tk.tongSP + '**', 2, 'right'),
-    col('**' + tk.tongNCC + '**', 2, 'right')
-  ], 'grey'));
-  if (tk.dsNCC) el.push({ tag: 'note', elements: [{ tag: 'plain_text', content: '🏭 Nhà cung cấp: ' + tk.dsNCC }] });
+  if (bang.length > 1) {
+    el.push({ tag: 'hr' });
+    el.push(rowset([
+      col('**TỔNG CỘNG**', 5),
+      col('**' + tk.tongSP + '** sản phẩm\n<font color=\'grey\'>' + tk.tongNCC + ' nhà cung cấp</font>', 3, 'right')
+    ], 'grey'));
+  }
   if (khuyet) el.push({ tag: 'note', elements: [{ tag: 'plain_text',
-    content: '⚠️ Còn ' + khuyet + ' sản phẩm trong kỳ chưa ghi nhận người nhập (dữ liệu cũ) — không tính vào báo cáo.' }] });
+    content: '⚠️ ' + khuyet + ' sản phẩm cũ trong kỳ chưa ghi nhận người nhập — không tính vào báo cáo.' }] });
   el.push({ tag: 'note', elements: [{ tag: 'plain_text',
-    content: 'Dezon Pro · Báo cáo tự động thứ 4 & thứ 7 lúc 8h00 · ' + ddmm_(tuVN) + ' → ' + ddmm_(denVN) }] });
+    content: 'Dezon Pro · Tự động thứ 4 & thứ 7, 8h00 · kỳ ' + ddmm_(tuVN) + ' → ' + ddmm_(denVN) }] });
   return {
     msg_type: 'interactive',
     card: {
       config: { wide_screen_mode: true },
       header: {
         template: 'blue',
-        title: { tag: 'plain_text', content: 'Sản phẩm nhập mới' },
-        subtitle: { tag: 'plain_text', content: tk.tongSP + ' sản phẩm · ' + tk.tongNCC + ' nhà cung cấp · ' + ddmm_(tuVN) + ' → ' + ddmm_(denVN) }
+        title: { tag: 'plain_text', content: '📦 Sản phẩm nhập mới' },
+        subtitle: { tag: 'plain_text',
+          content: tk.tongSP + ' sản phẩm · ' + tk.tongNCC + ' nhà cung cấp · ' + tk.tongNguoi + ' người nhập' }
       },
       elements: el
     }
@@ -444,7 +433,9 @@ function buildSpReportCard(bang, tk, tuVN, denVN, khuyet) {
 async function baoCaoNhapSP(actor, opts) {
   opts = opts || {};
   const vn = nowVN_();
-  const tuVN = opts.tuVN || moBaoCaoTruoc_(vn);
+  // opts.tuVN cho phép chạy tay 1 kỳ tuỳ ý (qua API thì tới dưới dạng chuỗi ISO)
+  const tuVN = opts.tuVN ? new Date(opts.tuVN) : moBaoCaoTruoc_(vn);
+  if (isNaN(tuVN)) return { sent: false, count: 0, message: 'Mốc thời gian không hợp lệ' };
   const tuIso = vnToUtcIso_(tuVN);
   let rows = [];
   try {
@@ -480,15 +471,19 @@ async function baoCaoNhapSP(actor, opts) {
     if (ncc) nccAll[ncc] = 1;
     if (r.cong_ty_id) ctSet[String(r.cong_ty_id)] = 1;
     bag[key] = bag[key] || { ngay: {}, ncc: {}, ct: {} };
-    bag[key].ngay[ngay] = bag[key].ngay[ngay] || { soSP: 0, ncc: {} };
+    bag[key].ngay[ngay] = bag[key].ngay[ngay] || { soSP: 0, ncc: {}, ds: [] };
     bag[key].ngay[ngay].soSP++;
+    bag[key].ngay[ngay].ds.push({ ma: s_(r.ma_sp), ten: s_(r.ten_sp) || s_(r.ma_sp) || '(chưa đặt tên)', ncc: ncc });
     if (ncc) { bag[key].ngay[ngay].ncc[ncc] = 1; bag[key].ncc[ncc] = 1; }
     if (r.cong_ty_id) bag[key].ct[String(r.cong_ty_id)] = 1;
   });
   const bang = Object.keys(bag).map(function (k) {
     const b = bag[k], info = uInfo[k.toLowerCase()] || {};
+    const MAX_DS = 6;                       // liệt kê tối đa 6 SP/ngày cho thẻ khỏi dài
     const ngay = Object.keys(b.ngay).map(function (d) {
-      return { ngay: d, soSP: b.ngay[d].soSP, soNCC: Object.keys(b.ngay[d].ncc).length };
+      const t = b.ngay[d];
+      return { ngay: d, soSP: t.soSP, soNCC: Object.keys(t.ncc).length,
+        ds: t.ds.slice(0, MAX_DS), con: Math.max(0, t.ds.length - MAX_DS) };
     }).sort(function (x, y) { return x.ngay < y.ngay ? 1 : -1; });
     return {
       ten: info.ten || k,
