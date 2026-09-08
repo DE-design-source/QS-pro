@@ -94,6 +94,7 @@ const REGISTRY = {
   listCongTyUsers: auth.listCongTyUsers,
   createCongTyUser: auth.createCongTyUser,
   checkExpiry: checkExpiry,
+  baoCaoNhapSP: baoCaoNhapSP,
   resolvePurchaseRequest: auth.resolvePurchaseRequest
 };
 // Hàm không cần đăng nhập
@@ -104,11 +105,11 @@ const ACTOR_FNS = new Set(['me', 'logout', 'changePassword',
   'notifCount', 'notifList', 'notifRead', 'notifReadAll',
   'requestDeleteProducts', 'listDeleteRequests', 'resolveDeleteRequest',
   'sendPurchaseRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest',
-  'listCongTy', 'createCongTy', 'updateCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'checkExpiry',
+  'listCongTy', 'createCongTy', 'updateCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'checkExpiry', 'baoCaoNhapSP',
   'updateDbProductTracked', 'setSpDuyet', 'setYeuThich', 'setCombo', 'spMyPerms',
   'deleteDbProduct', 'importCommit', 'saveDbProduct', 'saveLineAsProduct']);
 // Hàm chỉ Admin được gọi
-const SUPER_FNS = new Set(['listCongTy', 'createCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'checkExpiry']);
+const SUPER_FNS = new Set(['listCongTy', 'createCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'checkExpiry', 'baoCaoNhapSP']);
 const ADMIN_FNS = new Set(['adminListUsers', 'adminCreateUser', 'adminUpdateUser',
   'adminSetPassword', 'adminSetActive', 'adminDeleteUser', 'getAuditLog',
   'listDeleteRequests', 'resolveDeleteRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest',
@@ -345,6 +346,170 @@ setTimeout(function () {
   if (nowVN_().getUTCHours() >= NHAC_GIO_VN) autoExpiryScan_('gửi bù sau khi server thức');
   scheduleExpiry_();
 }, 60 * 1000);
+
+
+/* ═══════════════ BÁO CÁO SẢN PHẨM NHẬP MỚI → LARK ═══════════════
+   Gửi vào group Lark qua ĐÚNG webhook đang dùng cho yêu cầu mua hàng.
+   Lịch: THỨ 4 và THỨ 7, 8h00 sáng giờ VN.
+   Khoảng thống kê tính NGƯỢC tới lần gửi trước (T4 gộp 4 ngày từ T7 trước,
+   T7 gộp 3 ngày từ T4) nên server có ngủ dậy muộn cũng không sót sản phẩm nào.
+   Chống gửi trùng: mỗi lần gửi ghi 1 dòng audit_log, trong ngày đã có thì thôi. */
+const BAO_CAO_GIO_VN = 8;                       // 8h sáng giờ VN
+const BAO_CAO_THU = [3, 6];                     // 3 = thứ 4, 6 = thứ 7
+const BAO_CAO_ACTION = 'bao_cao_nhap_sp';
+
+// Mốc bắt đầu của kỳ này = 8h sáng của ngày gửi TRƯỚC đó trong lịch
+function moBaoCaoTruoc_(vnNow) {
+  const d = new Date(vnNow);
+  d.setUTCHours(BAO_CAO_GIO_VN, 0, 0, 0);
+  if (d > vnNow) d.setUTCDate(d.getUTCDate() - 1);          // chưa tới giờ hôm nay -> lùi 1 ngày
+  do { d.setUTCDate(d.getUTCDate() - 1); }                  // lùi tới ngày gửi gần nhất trước đó
+  while (BAO_CAO_THU.indexOf(d.getUTCDay()) < 0);
+  return d;
+}
+function vnToUtcIso_(vnDate) { return new Date(vnDate.getTime() - VN_OFFSET_MS).toISOString(); }
+function ddmm_(vnDate) {
+  const p = function (n) { return String(n).padStart(2, '0'); };
+  return p(vnDate.getUTCDate()) + '/' + p(vnDate.getUTCMonth() + 1);
+}
+function buildSpReportCard(nhom, tong, tuVN, denVN, khuyet) {
+  const el = [];
+  const md = function (t) { return { tag: 'markdown', content: t }; };
+  nhom.forEach(function (g, i) {
+    if (i) el.push({ tag: 'hr' });
+    el.push(md('**🏢 ' + g.congTy + '** · ' + g.tong + ' sản phẩm'));
+    g.nguoi.forEach(function (n) {
+      el.push({
+        tag: 'column_set', flex_mode: 'none', horizontal_spacing: 'small',
+        columns: [
+          { tag: 'column', width: 'weighted', weight: 3, vertical_align: 'top',
+            elements: [md('**👤 ' + n.ten + '**\n<font color=\'grey\'>' + n.mau + '</font>')] },
+          { tag: 'column', width: 'weighted', weight: 1, vertical_align: 'top',
+            elements: [md('**' + n.so + '** sản phẩm')] }
+        ]
+      });
+    });
+  });
+  el.push({ tag: 'hr' });
+  if (khuyet) el.push({ tag: 'note', elements: [{ tag: 'plain_text',
+    content: '⚠️ Còn ' + khuyet + ' sản phẩm trong kỳ chưa ghi nhận người nhập (dữ liệu cũ) — không tính vào báo cáo.' }] });
+  el.push({ tag: 'note', elements: [{ tag: 'plain_text',
+    content: 'Dezon Pro · Báo cáo tự động thứ 4 & thứ 7 lúc 8h00 · ' + ddmm_(tuVN) + ' → ' + ddmm_(denVN) }] });
+  return {
+    msg_type: 'interactive',
+    card: {
+      config: { wide_screen_mode: true },
+      header: {
+        template: 'blue',
+        title: { tag: 'plain_text', content: 'Sản phẩm nhập mới' },
+        subtitle: { tag: 'plain_text', content: tong + ' sản phẩm · ' + ddmm_(tuVN) + ' → ' + ddmm_(denVN) }
+      },
+      elements: el
+    }
+  };
+}
+// Gom sản phẩm mới trong kỳ theo công ty -> người nhập, rồi gửi Lark
+async function baoCaoNhapSP(actor, opts) {
+  opts = opts || {};
+  const vn = nowVN_();
+  const tuVN = opts.tuVN || moBaoCaoTruoc_(vn);
+  const tuIso = vnToUtcIso_(tuVN);
+  let rows = [];
+  try {
+    rows = await supa.select('db_san_pham', { select: 'id,ma_sp,ten_sp,nguoi_tao,ngay_tao,cong_ty_id',
+      filter: 'ngay_tao=gte.' + encodeURIComponent(tuIso), order: 'ngay_tao.desc', limit: 5000, noScope: true });
+  } catch (e) { return { sent: false, count: 0, message: 'Không đọc được danh sách sản phẩm: ' + e.message }; }
+  // Chỉ tính SP CÓ ghi nhận người nhập — đó mới là thứ báo cáo này nói tới.
+  // (SP cũ trước khi có tính năng ghi nhận bị migration gán ngay_tao = ngày chạy,
+  //  đưa vào sẽ ra hàng trăm dòng rác mà không quy được cho ai.)
+  const khuyet = rows.filter(function (r) { return !String(r.nguoi_tao || '').trim(); }).length;
+  rows = rows.filter(function (r) { return String(r.nguoi_tao || '').trim(); });
+  if (!rows.length) return { sent: false, count: 0, khuyet: khuyet, message: 'Kỳ này chưa có sản phẩm mới có ghi nhận người nhập' };
+
+  let cty = [];
+  try { cty = await supa.select('cong_ty', { select: 'id,ten,ma', limit: 500, noScope: true }); } catch (e) { cty = []; }
+  const tenCty = {}; cty.forEach(function (c) { tenCty[String(c.id)] = c.ten || c.ma; });
+
+  const byCty = {};
+  rows.forEach(function (r) {
+    const ck = String(r.cong_ty_id || '');
+    const nk = (r.nguoi_tao || '').trim() || 'Không rõ';
+    byCty[ck] = byCty[ck] || {};
+    (byCty[ck][nk] = byCty[ck][nk] || []).push(r.ma_sp || r.ten_sp || '');
+  });
+  const nhom = Object.keys(byCty).map(function (ck) {
+    const nguoi = Object.keys(byCty[ck]).map(function (nk) {
+      const ds = byCty[ck][nk];
+      const mau = ds.slice(0, 4).filter(Boolean).join(', ') + (ds.length > 4 ? ('… +' + (ds.length - 4)) : '');
+      return { ten: nk, so: ds.length, mau: mau || '—' };
+    }).sort(function (a, b) { return b.so - a.so; });
+    return { congTy: tenCty[ck] || 'Không rõ công ty',
+      tong: nguoi.reduce(function (s, x) { return s + x.so; }, 0), nguoi: nguoi };
+  }).sort(function (a, b) { return b.tong - a.tong; });
+
+  if (opts.dryRun) return { sent: false, count: rows.length, khuyet: khuyet, tu: tuIso, nhom: nhom };
+
+  let larkOk = false;
+  try {
+    const r = await fetch(PURCHASE_WEBHOOK, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildSpReportCard(nhom, rows.length, tuVN, vn, khuyet))
+    });
+    let d = null; try { d = await r.json(); } catch (e) { d = null; }
+    larkOk = !!(d && (d.code === 0 || d.StatusCode === 0 || d.msg === 'success'));
+    if (!larkOk) console.warn('[báo cáo nhập SP] webhook Lark lỗi:', (d && (d.msg || d.StatusMessage)) || ('HTTP ' + r.status));
+  } catch (e) { console.warn('[báo cáo nhập SP] webhook Lark lỗi:', e && e.message); }
+
+  if (larkOk) {
+    try {
+      await supa.insert('audit_log', [{ username: 'hệ thống', action: BAO_CAO_ACTION,
+        detail: 'Báo cáo Lark: ' + rows.length + ' sản phẩm nhập mới từ ' + ddmm_(tuVN) + ' đến ' + ddmm_(vn) }], { noScope: true });
+    } catch (e) { console.warn('[báo cáo nhập SP] không ghi được audit:', e && e.message); }
+  }
+  return { sent: larkOk, count: rows.length, khuyet: khuyet,
+    congTy: nhom.map(function (g) { return g.congTy + ': ' + g.tong; }) };
+}
+// Hôm nay đã gửi báo cáo chưa (chống gửi trùng khi server khởi động lại)
+async function daGuiBaoCaoHomNay_() {
+  const homNay = nowVN_().toISOString().slice(0, 10);
+  try {
+    const rows = await supa.select('audit_log', { select: 'id,created_at',
+      filter: supa.eq('action', BAO_CAO_ACTION), order: 'id.desc', limit: 5, noScope: true });
+    return rows.some(function (r) {
+      const vn = new Date(new Date(r.created_at).getTime() + VN_OFFSET_MS);
+      return vn.toISOString().slice(0, 10) === homNay;
+    });
+  } catch (e) { return false; }
+}
+function autoBaoCaoSP_(lyDo) {
+  const vn = nowVN_();
+  if (BAO_CAO_THU.indexOf(vn.getUTCDay()) < 0) return;              // không phải T4/T7
+  if (vn.getUTCHours() < BAO_CAO_GIO_VN) return;                    // chưa tới 8h
+  daGuiBaoCaoHomNay_().then(function (daGui) {
+    if (daGui) return;
+    return baoCaoNhapSP({ r: 'super' }, {}).then(function (r) {
+      if (r && r.sent) console.log('[báo cáo nhập SP][' + lyDo + '] đã gửi Lark:', r.count, 'sản phẩm');
+      else if (r) console.log('[báo cáo nhập SP][' + lyDo + ']', r.message || 'không gửi');
+    });
+  }).catch(function (e) { console.warn('[báo cáo nhập SP] lỗi:', e && e.message); });
+}
+function msToNextBaoCao_() {
+  const vn = nowVN_();
+  const next = new Date(vn); next.setUTCHours(BAO_CAO_GIO_VN, 0, 0, 0);
+  if (next <= vn) next.setUTCDate(next.getUTCDate() + 1);
+  while (BAO_CAO_THU.indexOf(next.getUTCDay()) < 0) next.setUTCDate(next.getUTCDate() + 1);
+  return next - vn;
+}
+function scheduleBaoCaoSP_() {
+  const wait = msToNextBaoCao_();
+  setTimeout(function () { autoBaoCaoSP_('đúng giờ'); scheduleBaoCaoSP_(); }, wait);
+  const h = Math.floor(wait / 3600000), m = Math.round((wait % 3600000) / 60000);
+  console.log('[báo cáo nhập SP] lần gửi kế tiếp sau ' + h + 'h' + m + 'p (thứ 4 & thứ 7, 8h00 giờ VN)');
+}
+setTimeout(function () {
+  autoBaoCaoSP_('gửi bù sau khi server thức');       // server ngủ dậy muộn vẫn gửi, có chống trùng
+  scheduleBaoCaoSP_();
+}, 70 * 1000);
 
 app.post('/api/:fn', async function (req, res) {
   const fn = req.params.fn;
