@@ -859,9 +859,9 @@ function renderCatalog(){
       +'<div class="cmid" onclick="showDetail('+i+')" title="Xem chi tiết sản phẩm">'
         +'<div class="nm">'+esc(p.ten)+'</div>'
         +'<div class="meta"><span class="pr">'+money(p.donGiaBan)+' đ</span>'
-          +((brand||p.comboN)?('<span class="metarow">'                      // thương hiệu + combo chung 1 hàng
-            +(brand?'<span class="sz brand">'+brand+'</span>':'')
-            +(p.comboN?'<span class="sz cbn" title="Combo: đi kèm '+p.comboN+' sản phẩm khác">'+icon('layers',9)+p.comboN+'</span>':'')
+          +(brand?('<span class="metarow">'
+            +'<span class="sz brand">'+brand+'</span>'
+
           +'</span>'):'')+'</div>'
       +'</div>'
       +'<button class="cfav'+(p.yeuThich?' on':'')+'" title="'+(p.yeuThich?'Bỏ khỏi sản phẩm yêu thích':'Thêm vào sản phẩm yêu thích')+'" onclick="event.stopPropagation();catFav('+i+','+(p.yeuThich?0:1)+')">'+icon('star',14)+'</button>'
