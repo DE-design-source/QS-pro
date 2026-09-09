@@ -3332,9 +3332,11 @@ tr.pt-row:hover .pt-del button{opacity:1}
 .cat-hd .favgo-btn{flex:none;margin-left:0;padding:3px 6px 3px 5px}
 
 
-/* ═══ Sao yêu thích: GÓC TRÊN PHẢI của thẻ ═══ */
+/* ═══ Sao yêu thích: GÓC TRÊN PHẢI của thẻ ═══
+   Sao ở góc, nút ⊕ dồn xuống đáy cùng cột -> thẻ ngắn hay dài đều không chồng nhau. */
 .citem{position:relative}
-.citem .cfav{position:absolute;top:9px;right:9px;z-index:2;border:none;background:transparent;padding:2px;
+.citem>.add{align-self:end;margin-bottom:2px}
+.citem .cfav{position:absolute;top:7px;right:7px;z-index:2;border:none;background:transparent;padding:2px;
   line-height:0;color:#c8d0d9;cursor:pointer;opacity:0;transition:opacity .12s,color .12s}
 .citem:hover .cfav,.citem .cfav.on{opacity:1}
 .citem .cfav:hover{color:var(--amber)}
