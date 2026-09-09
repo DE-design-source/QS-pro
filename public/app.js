@@ -2139,7 +2139,9 @@ function cbSection_(){
     +'<div class="cb-list" id="cbList"></div></div>';
 }
 async function spEditModal(i){
-  var p=(S._spList||[])[i]; if(!p) return;
+  // nhận cả chỉ số trong bảng lẫn object sản phẩm (dùng từ panel "SP vừa nhập")
+  var p=(i&&typeof i==='object') ? i : (S._spList||[])[i];
+  if(!p) return;
   if(!p.ma){ toast('Sản phẩm chưa có mã — không cập nhật được'); return; }
   var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='spEditOv';
   ov.onclick=function(e){ if(e.target===ov) spEditClose(); };
@@ -2226,7 +2228,8 @@ async function spEditSave(luuVaDuyet){
     if(r&&r.updated){
       if(luuVaDuyet){ try{ await api('setSpDuyet',[String(S._spEditMa)],true); }catch(e){ toast('Lưu xong nhưng duyệt lỗi: '+e.message.slice(0,80)); } }
       toast('Đã cập nhật '+r.changes+' trường'+(luuVaDuyet?' và duyệt':(r.daDuyet===false?' — sản phẩm chuyển về Chưa duyệt':'')));
-      S.products=await api('getProducts')||S.products; spViewTabs_(); spFilter(); if(typeof renderCatalog==='function') renderCatalog(); spEditClose(); }
+      S.products=await api('getProducts')||S.products; spViewTabs_(); spFilter(); if(typeof renderCatalog==='function') renderCatalog();
+      impSyncSession_(S._spEditMa); spEditClose(); }
     else { toast('Đã lưu sản phẩm đi kèm'); S.products=await api('getProducts')||S.products; spEditClose(); }
   }catch(e){ toast('Lỗi lưu: '+e.message); lai(); }
 }
@@ -4497,15 +4500,51 @@ function impRecentList(){
   var rows=ps.map(function(p,i){
     var im=String(p.hinhAnh||'').split('\n')[0];
     var img=im?'<img class="imp-rth" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="imp-rth"></span>';
-    return '<tr><td class="c">'+(i+1)+'</td><td class="imp-rname">'+esc(p.ten||'')+'</td><td class="c">'+img+'</td>'
-      +'<td>'+esc(p.thuongHieu||'—')+'</td><td class="imp-rdate">'+(impDateTime_(p.capNhat)||'—')+'</td></tr>';
-  }).join('') || '<tr><td colspan="5" class="empty" style="padding:24px 12px;font-size:12.5px;line-height:1.5">Chưa nhập sản phẩm nào trong phiên này.<br>Sản phẩm bạn <b>thêm / nhập file</b> ở phiên này sẽ hiện ở đây.</td></tr>';
-  return '<div class="imp-recent"><div class="imp-recent-h">Sản phẩm vừa nhập (phiên này) <span class="count">'+pad2(ps.length)+'</span></div>'
+    var sua = p.ma
+      ? '<button class="imp-redit" title="'+(p.nhieuBienThe?'Sửa biến thể đầu tiên của mã '+esc(p.ma):'Sửa lại sản phẩm này')+'" onclick="impEditSession_('+i+')">'+icon('edit',13)+'</button>'
+      : '<span class="imp-redit dis" title="Không rõ mã sản phẩm — mở Danh sách sản phẩm để sửa">'+icon('edit',13)+'</span>';
+    return '<tr><td class="c">'+(i+1)+'</td><td class="imp-rname">'+esc(p.ten||'')
+      +(p.ma?'<i class="imp-rma">'+esc(p.ma)+'</i>':'')+'</td><td class="c">'+img+'</td>'
+      +'<td>'+esc(p.thuongHieu||'—')+'</td><td class="imp-rdate">'+(impDateTime_(p.capNhat)||'—')+'</td>'
+      +'<td class="c imp-ract">'+sua+'</td></tr>';
+  }).join('') || '<tr><td colspan="6" class="empty" style="padding:24px 12px;font-size:12.5px;line-height:1.5">Chưa nhập sản phẩm nào trong phiên này.<br>Sản phẩm bạn <b>thêm / nhập file</b> ở phiên này sẽ hiện ở đây.</td></tr>';
+  return '<div class="imp-recent-h">Sản phẩm vừa nhập (phiên này) <span class="count">'+pad2(ps.length)+'</span></div>'
     +'<div class="imp-recent-note">Danh sách này chỉ ghi lại thao tác của <b>phiên đang mở</b> — tải lại trang sẽ trống. '
     +'Sản phẩm đã lưu <b>vẫn nằm trong Database</b>: <a onclick="showTab(\'sanpham\')">xem Danh sách sản phẩm →</a></div>'
-    +'<div class="imp-recent-b"><table class="imp-rtbl"><thead><tr><th class="c">STT</th><th>Tên sản phẩm</th><th class="c">Hình ảnh</th><th>Thương hiệu</th><th>Ngày cập nhật</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+    +'<div class="imp-recent-b"><table class="imp-rtbl"><thead><tr><th class="c">STT</th><th>Tên sản phẩm</th><th class="c">Hình ảnh</th><th>Thương hiệu</th><th>Ngày cập nhật</th><th class="c">Sửa</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
-function sessionAdd_(o){ S._sessionAdded=S._sessionAdded||[]; S._sessionAdded.unshift({ten:o.ten||'',thuongHieu:o.thuongHieu||'',ncc:o.ncc||'',hinhAnh:o.hinhAnh||'',capNhat:o.capNhat||nowIsoClient_()}); }
+/* ═══ SỬA LẠI SẢN PHẨM NGAY Ở PANEL "SP VỪA NHẬP" ═══
+   Mở đúng modal Cập nhật sản phẩm đang dùng ở Danh sách SP, nên mọi trường,
+   lịch sử sửa và sản phẩm đi kèm đều y hệt — không phải dựng form thứ hai. */
+async function impEditSession_(i){
+  var s=(S._sessionAdded||[])[i]; if(!s||!s.ma) return;
+  if(!(S.products||[]).length){ try{ S.products=await api('getProducts')||[]; }catch(e){} }
+  var ma=String(s.ma).trim().toLowerCase();
+  var p=(S.products||[]).filter(function(x){ return String(x.ma||'').trim().toLowerCase()===ma; })[0];
+  if(!p){ toast('Không tìm thấy "'+s.ma+'" trong danh mục — có thể đã bị xoá'); return; }
+  spEditModal(p);
+}
+/* Sau khi lưu ở modal: cập nhật lại dòng trong panel phiên cho khớp dữ liệu mới */
+function impSyncSession_(key){
+  var ds=S._sessionAdded||[]; if(!ds.length||!key) return;
+  var k=String(key).trim().toLowerCase();
+  var p=(S.products||[]).filter(function(x){
+    return String(x.ma||'').trim().toLowerCase()===k || String(x.recordId||'')===String(key); })[0];
+  if(!p) return;
+  var pm=String(p.ma||'').trim().toLowerCase();
+  ds.forEach(function(s){
+    if(String(s.ma||'').trim().toLowerCase()!==pm) return;
+    if(!s.nhieuBienThe) s.ten=p.ten||s.ten;         // dòng gộp biến thể giữ nguyên nhãn "(N biến thể)"
+    s.thuongHieu=p.thuongHieu||s.thuongHieu;
+    s.hinhAnh=p.hinhAnh||s.hinhAnh;
+    s.capNhat=nowIsoClient_();
+  });
+  var box=document.getElementById('impRecentBox');
+  if(box) box.innerHTML=impRecentList();
+}
+function sessionAdd_(o){ S._sessionAdded=S._sessionAdded||[];
+  S._sessionAdded.unshift({ten:o.ten||'',ma:o.ma||'',thuongHieu:o.thuongHieu||'',ncc:o.ncc||'',
+    hinhAnh:o.hinhAnh||'',capNhat:o.capNhat||nowIsoClient_(), nhieuBienThe:!!o.nhieuBienThe}); }
 function nowIsoClient_(){ try{ return new Date().toISOString(); }catch(e){ return ''; } }
 function renderImport(){
   S._imgMain=''; S._imgList=[];
@@ -4535,7 +4574,7 @@ function renderImport(){
       +'<span class="imp-file-sep"></span><input type="file" id="impFile" accept=".xlsx,.xls,.csv" onchange="impPick(this)" style="font:inherit"></div>'
       +'<div id="impPreview" style="margin-top:12px"></div>')
     +'</div>';
-  box.innerHTML=impStatBar()+'<div class="imp-layout">'+form+impRecentList()+'</div>';
+  box.innerHTML=impStatBar()+'<div class="imp-layout">'+form+'<div class="imp-recent" id="impRecentBox">'+impRecentList()+'</div></div>';
 }
 /* ==== Upload ảnh ==== */
 // Dán ảnh trực tiếp bằng Ctrl+V — vào ô đang focus, mặc định là "hình chi tiết"
@@ -4759,7 +4798,7 @@ async function impCommit(btn){
   btn.disabled=true; var o=btn.textContent; btn.textContent='Đang nhập…';
   try{ var items=S._impProducts.slice();
     var r=await api('importCommit', S._impProducts); S.products=await api('getProducts')||S.products;
-    items.forEach(function(p){ sessionAdd_({ten:p.ten, thuongHieu:p.thuongHieu, ncc:p.ncc, hinhAnh:p.hinhAnh}); });
+    items.forEach(function(p){ sessionAdd_({ten:p.ten, ma:p.ma, thuongHieu:p.thuongHieu, ncc:p.ncc, hinhAnh:p.hinhAnh}); });
     toast('Đã nhập '+r.inserted+' sản phẩm vào danh mục'); renderImport(); renderFilters(); renderCatalog(); }
   catch(e){ toast('Lỗi nhập: '+e.message); btn.disabled=false; btn.textContent=o; }
 }
@@ -4823,12 +4862,14 @@ async function tdSave(btn){
         catch(e2){ errN++; if(varErrs.length<3) varErrs.push([c.w?c.w+'W':'',c.k?c.k+'K':'',c.a?c.a+'°':'',c.c||''].filter(Boolean).join('/')+': '+e2.message.slice(0,70)); }
       }
       r={updated:false};
-      sessionAdd_({ten:ten+' ('+okN+' biến thể)', thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'', hinhAnh:data['ẢNH SẢN PHẨM']||''});
+      sessionAdd_({ten:ten+' ('+okN+' biến thể)', ma:data['MÃ SẢN PHẨM']||'', nhieuBienThe:true,
+        thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'', hinhAnh:data['ẢNH SẢN PHẨM']||''});
       if(errN){ toast('Lưu '+okN+'/'+(okN+errN)+' biến thể — '+errN+' LỖI: '+varErrs.join(' | ')); console.warn('[biến thể] lỗi:',varErrs); }
       else toast('Đã lưu đủ '+okN+' biến thể của "'+ten+'"');
     } else {
       r=await api('saveDbProduct',data);
-      sessionAdd_({ten:ten, thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'', hinhAnh:data['ẢNH SẢN PHẨM']||''});
+      sessionAdd_({ten:ten, ma:data['MÃ SẢN PHẨM']||'',
+        thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'', hinhAnh:data['ẢNH SẢN PHẨM']||''});
       toast((r.updated?'Đã cập nhật':'Đã thêm')+' "'+ten+'" vào DB_Sản phẩm');
     }
     // Ghi danh vào dự án (tuỳ chọn)
