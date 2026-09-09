@@ -550,7 +550,7 @@ function toggleFsec(key){
   applyFsec();
 }
 function applyFsec(){
-  ['watt','kelvin','angle','ip','cri','volt','combo'].forEach(function(k){
+  ['watt','kelvin','angle','ip','cri','volt','combo','yeuthich'].forEach(function(k){
     var s=document.getElementById('sec_'+k); if(s) s.classList.toggle('open', S.fsecOpen[k]!==false);
   });
 }
@@ -576,6 +576,7 @@ function renderFilters(){
   chipGroup('angle','fAngle','nAngle','gocChieu',S.fAngle,'data-a',{});
   chipGroup('ip','fIP','nIP','capBaoVe',S.fIP,'data-v',{});
   chipGroup('cri','fCRI','nCRI','cri',S.fCRI,'data-v',{});
+  favChips_();
   comboChips_();
   applyFsec();
   updateInProj_();
@@ -601,6 +602,14 @@ function comboChips_(){
   var n=document.getElementById('nCombo'); if(n) n.textContent=cur?'1':'';
 }
 function setComboFilter(v){ S.fCombo=(S.fCombo===v)?'':v; renderFilters(); renderCatalog(); }
+/* Chip lọc Yêu thích — nút riêng ngoài header đã bỏ, chuyển vào trong Bộ lọc */
+function favChips_(){
+  var box=document.getElementById('fFavChips'); if(!box) return;
+  var so=(S.products||[]).filter(function(p){ return p.yeuThich; }).length;
+  box.innerHTML='<span class="chip'+(S.fFav?' on':'')+'" onclick="catFavToggle()">'
+    +'★ Chỉ sản phẩm yêu thích<i class="chip-n">'+so+'</i></span>';
+  var n=document.getElementById('nYeuThich'); if(n) n.textContent=S.fFav?'1':'';
+}
 function spVarKey_(p){ return spNorm_(p.ma||'')||spNorm_(p.ten||''); }
 function spNum1_(v){ var m=String(v==null?'':v).match(/-?\d+(?:[.,]\d+)?/); return m?parseFloat(m[0].replace(',','.')):-1; }
 function spGroupVariants_(list){
@@ -763,14 +772,13 @@ function activeFilterCount(){
   return n;
 }
 function updateCatUI(){
-  var fb=document.getElementById('favfBtn'); if(fb) fb.classList.toggle('on',!!S.fFav);
   favGoSync_();
   var n=activeFilterCount();
   var b=document.getElementById('advBadge'); if(b){ b.textContent=n||''; b.style.display=n?'inline-flex':'none'; }
   var c=document.getElementById('advClear'); if(c) c.style.display=n?'inline-block':'none';
 }
 function clearAllFilters(){
-  S.fWatt={}; S.fKelvin={}; S.fAngle={}; S.fIP={}; S.fCRI={}; S.fVolt={}; S.fBrand=''; S.fCombo='';
+  S.fWatt={}; S.fKelvin={}; S.fAngle={}; S.fIP={}; S.fCRI={}; S.fVolt={}; S.fBrand=''; S.fCombo=''; S.fFav=false;
   var mn=document.getElementById('fMin'); if(mn) mn.value='';
   var mx=document.getElementById('fMax'); if(mx) mx.value='';
   renderFilters(); renderCatalog();
@@ -781,6 +789,7 @@ function activeFiltCount_(){
   ['fWatt','fKelvin','fAngle','fIP','fCRI','fVolt'].forEach(function(k){ if(Object.keys(S[k]||{}).some(function(x){return S[k][x];})) n++; });
   if(S.fBrand) n++;
   if(S.fCombo) n++;
+  if(S.fFav) n++;
   var mn=document.getElementById('fMin'), mx=document.getElementById('fMax');
   if((mn&&mn.value)||(mx&&mx.value)) n++;
   if(Object.keys(S.fNhomSet||{}).some(function(k){return S.fNhomSet[k];})) n++;
@@ -827,7 +836,7 @@ function renderCatalog(){
   var isPT=(S.node==='3.1');
   applyFiltDrop();   // ẩn/hiện khối bộ lọc theo trạng thái gập/mở (và ẩn hẳn khi Phần thô)
   var hd=document.querySelector('#leftCat .cat-hd h3'); if(hd) hd.textContent=isPT?'Nội dung công việc':'Hạng mục';
-  var fb0=document.getElementById('favfBtn'); if(fb0) fb0.style.display=isPT?'none':'';   // Phần thô không có SP để yêu thích
+  var fg0=document.getElementById('favGoBtn'); if(fg0) fg0.style.display=isPT?'none':'';   // Phần thô: không có SP yêu thích
   var fw0=document.getElementById('ptFilters'); if(fw0&&!isPT) fw0.innerHTML='';   // rời Phần thô -> dọn bộ lọc riêng
   if(isPT){ renderPTLibrary(); return; }   // Phần thô: hiện thư viện nội dung công việc
   var list=filteredProducts();
@@ -5370,7 +5379,7 @@ async function catComboToggle_(i){
     if(S._catCbOpen[k]){ var s2=document.getElementById('catList'), t2=s2?s2.scrollTop:0; renderCatalog(); if(s2) s2.scrollTop=t2; }
   }
 }
-function catFavToggle(){ S.fFav=!S.fFav; renderCatalog(); updateCatUI&&updateCatUI(); }
+function catFavToggle(){ S.fFav=!S.fFav; renderFilters(); renderCatalog(); updateCatUI&&updateCatUI(); }
 async function catFav(i,on){
   var p=(S._filtered||[])[i]; if(!p) return;
   var k=spKey_(p); if(!k) return;

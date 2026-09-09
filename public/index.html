@@ -1925,23 +1925,6 @@ table.pt tr.pt-empty td{border:none;background:#fcfdfe;padding:0}
 .citem .cfav:hover{color:var(--amber)}
 .citem .cfav.on{color:var(--amber)}
 .citem .cfav.on svg{fill:currentColor}
-/* nút lọc "yêu thích" ở đầu panel thư viện */
-.favf-btn{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);background:#fff;
-  color:var(--ink-3);border-radius:20px;padding:3px 9px;font-size:10.5px;font-weight:600;cursor:pointer;
-  white-space:nowrap;transition:all .12s}
-.favf-btn:hover{border-color:var(--hair-2);color:#b7791f}
-.favf-btn.on{background:#fff5e6;border-color:var(--hair-2);color:#b7791f}
-.favf-btn.on svg{fill:currentColor}
-/* Panel trái quá hẹp cho "Hạng mục + 529 SP + 2 nút" trên cùng 1 dòng -> nút "bộ lọc"
-   bị bẻ chữ xuống hàng. Cho tiêu đề đứng riêng 1 dòng, 2 nút xuống dòng dưới chia đôi. */
-.cat-hd{flex-wrap:wrap;row-gap:9px}
-.cat-hd>.sp{flex:1 0 100%!important;height:0;margin:0}
-.cat-hd .favf-btn,.cat-hd .filt-btn{flex:1 1 0;min-width:0;justify-content:center;white-space:nowrap;
-  padding:6px 10px;border-radius:9px}
-.cat-hd .favf-btn{font-size:11.5px}
-.cat-hd .filt-btn{font-size:12px}
-/* khi Phần thô ẩn nút yêu thích thì nút bộ lọc không bị kéo dài hết chiều ngang */
-.cat-hd .favf-btn[style*="none"]~.filt-btn{flex:0 1 auto}
 
 /* ═══ Thông báo: bấm vào là mở thẳng chi tiết ═══ */
 .nb-item{cursor:pointer;position:relative}
@@ -2131,22 +2114,6 @@ table.pt tr.pt-empty td{border:none;background:#fcfdfe;padding:0}
 .citem .cfav.on{color:var(--amber)}
 .citem .cfav.on svg{fill:currentColor}
 /* nút lọc "yêu thích" ở đầu panel thư viện */
-.favf-btn{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);background:#fff;
-  color:var(--ink-3);border-radius:20px;padding:3px 9px;font-size:10.5px;font-weight:600;cursor:pointer;
-  white-space:nowrap;transition:all .12s}
-.favf-btn:hover{border-color:var(--hair-2);color:#b7791f}
-.favf-btn.on{background:#fff5e6;border-color:var(--hair-2);color:#b7791f}
-.favf-btn.on svg{fill:currentColor}
-/* Panel trái quá hẹp cho "Hạng mục + 529 SP + 2 nút" trên cùng 1 dòng -> nút "bộ lọc"
-   bị bẻ chữ xuống hàng. Cho tiêu đề đứng riêng 1 dòng, 2 nút xuống dòng dưới chia đôi. */
-.cat-hd{flex-wrap:wrap;row-gap:9px}
-.cat-hd>.sp{flex:1 0 100%!important;height:0;margin:0}
-.cat-hd .favf-btn,.cat-hd .filt-btn{flex:1 1 0;min-width:0;justify-content:center;white-space:nowrap;
-  padding:6px 10px;border-radius:9px}
-.cat-hd .favf-btn{font-size:11.5px}
-.cat-hd .filt-btn{font-size:12px}
-/* khi Phần thô ẩn nút yêu thích thì nút bộ lọc không bị kéo dài hết chiều ngang */
-.cat-hd .favf-btn[style*="none"]~.filt-btn{flex:0 1 auto}
 
 /* nhãn "combo N" — nhìn là biết SP nào có sản phẩm đi kèm, khỏi mở từng cái */
 .sp-cbn{display:inline-flex;align-items:center;gap:3px;margin-left:6px;background:#eef5ff;color:var(--blue);
@@ -3351,6 +3318,18 @@ tr.pt-row:hover .pt-del button{opacity:1}
 .citem .sz.cbsl{background:#eef5ff;color:var(--blue);border:none;font-weight:700;
   padding:1px 7px;border-radius:5px;font-size:11px;line-height:1.35}
 .cc-note{padding:8px 0 8px 24px;font-size:10.5px;color:var(--ink-3)}
+
+/* ═══ Hàng đầu panel: Hạng mục · số lượng · Bộ lọc · ★ trên CÙNG 1 HÀNG ═══
+   Đặt ở CUỐI vì mấy rule .cat-hd phía trên đặt lại gap (7-9px) làm tràn hàng.
+   Panel chỉ 266px nên phải bóp đệm, sao nằm sát mép phải ngoài cùng. */
+.cat-hd{flex-wrap:nowrap;gap:4px}
+.cat-hd h3{flex:none;white-space:nowrap}
+.cat-hd .cat-count{flex:none;white-space:nowrap;padding:2px 5px;font-size:10px}
+.cat-hd>.sp{flex:1 1 auto;min-width:0}
+.cat-hd .filt-btn{flex:none;white-space:nowrap;padding:4px 6px;font-size:11.5px;border-radius:8px;gap:3px}
+.cat-hd .filt-btn svg{flex:none}
+.cat-hd .filt-car{margin-left:1px}
+.cat-hd .favgo-btn{flex:none;margin-left:0;padding:3px 6px 3px 5px}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -3452,7 +3431,7 @@ tr.pt-row:hover .pt-del button{opacity:1}
       <!-- LEFT: filter + catalog -->
       <div class="panel catpanel" id="leftCat">
         <div class="catpanel-top">
-          <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><button class="favgo-btn" id="favGoBtn" onclick="goFavList()" title="Mở Danh sách sản phẩm — tab Yêu thích"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg><span class="favgo-n" id="favGoN"></span></button><span class="sp" style="flex:1"></span><button class="favf-btn" id="favfBtn" onclick="catFavToggle()" title="Chỉ hiện sản phẩm yêu thích"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg> Yêu thích</button><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg> Bộ lọc<span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button></div>
+          <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><span class="sp" style="flex:1"></span><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg> Bộ lọc<span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button><button class="favgo-btn" id="favGoBtn" onclick="goFavList()" title="Mở Danh sách sản phẩm — tab Yêu thích"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg><span class="favgo-n" id="favGoN"></span></button></div>
 
           <!-- 3 bộ chọn (theo Figma) -->
           <div class="mlbl">Đề mục</div>
@@ -3474,6 +3453,7 @@ tr.pt-row:hover .pt-del button{opacity:1}
           <div class="filt-pop-hd"><b>Bộ lọc liên quan</b><span class="filt-pop-x" onclick="toggleFiltDrop()">✕</span></div>
           <div class="fsec open" id="sec_angle"><div class="fsec-h" onclick="toggleFsec('angle')"><span class="fsec-t">Góc chiếu sáng</span><span class="fsec-n" id="nAngle"></span><span class="fsec-c">▾</span></div><div class="chips" id="fAngle"></div></div>
           <input id="fSearch" type="hidden" value="">
+          <div class="fsec open" id="sec_yeuthich"><div class="fsec-h" onclick="toggleFsec('yeuthich')"><span class="fsec-t">Yêu thích</span><span class="fsec-n" id="nYeuThich"></span><span class="fsec-c">▾</span></div><div class="chips" id="fFavChips"></div></div>
           <div class="fsec open" id="sec_combo"><div class="fsec-h" onclick="toggleFsec('combo')"><span class="fsec-t">Combo</span><span class="fsec-n" id="nCombo"></span><span class="fsec-c">▾</span></div><div class="chips" id="fComboChips"></div></div>
           <div class="lbl">Thương hiệu</div>
           <div class="selrow"><select id="fBrand"></select></div>
