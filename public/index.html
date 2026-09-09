@@ -3331,17 +3331,27 @@ tr.pt-row:hover .pt-del button{opacity:1}
 .cat-hd .filt-car{margin-left:1px}
 .cat-hd .favgo-btn{flex:none;margin-left:0;padding:3px 6px 3px 5px}
 
-/* ═══ Sao yêu thích nằm NGAY CẠNH TÊN sản phẩm ═══
-   Trước định vị tuyệt đối top:6px/right:34px — hợp lúc thẻ còn thấp, nhưng từ khi
-   thẻ có tên 2 dòng + hàng chip thì nó trôi lên góc, rời hẳn khỏi nội dung. */
-.citem .cfav{position:static;display:inline-flex;vertical-align:middle;margin-left:5px;
-  border:none;background:transparent;padding:0;line-height:0;color:#c8d0d9;cursor:pointer;
-  opacity:0;transition:opacity .12s,color .12s}
+
+/* ═══ Sao yêu thích: GÓC TRÊN PHẢI của thẻ ═══ */
+.citem{position:relative}
+.citem .cfav{position:absolute;top:9px;right:9px;z-index:2;border:none;background:transparent;padding:2px;
+  line-height:0;color:#c8d0d9;cursor:pointer;opacity:0;transition:opacity .12s,color .12s}
 .citem:hover .cfav,.citem .cfav.on{opacity:1}
 .citem .cfav:hover{color:var(--amber)}
 .citem .cfav.on{color:var(--amber)}
 .citem .cfav.on svg{fill:currentColor}
-.citem .nm{display:inline}
+
+/* ═══ CỘT TRÁI: nút mở combo · số thứ tự · đường nối ═══
+   Trước mỗi thẻ con tự vẽ 1 đoạn line bằng ::before/::after nên nhìn đứt khúc,
+   lại thừa một vạch cụt. Nay dùng viền trái của chính thẻ con -> liền mạch tự nhiên. */
+.citem>.no{width:22px;gap:2px}
+.citem .cbtog{width:18px;height:18px;font-size:8px}
+.citem .no-n{font-size:10.5px;color:var(--ink-3)}
+.citem.cc-child{padding-left:12px;border-left:2px solid #dbe3ee;background:#fbfcfe}
+.citem.cc-child::before,.citem.cc-child::after{content:none}
+.citem.cc-child:hover{background:#f4f8ff;border-left-color:var(--blue)}
+.citem.cc-child .cc-no{font-size:10.5px;font-weight:700;color:var(--blue)}
+.citem.cc-child>.no{width:26px}
 </style>
 
 <!-- ===== TOP NAV ===== -->

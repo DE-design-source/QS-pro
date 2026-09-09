@@ -857,15 +857,14 @@ function renderCatalog(){
       +'<div class="no">'+(p.comboN?('<button class="cbtog'+(catCbMo_(p)?' on':'')+'" title="Xem '+p.comboN+' sản phẩm đi kèm" onclick="event.stopPropagation();catComboToggle_('+i+')">▸</button>'):'')
         +'<span class="no-n">'+(i+1)+'</span></div>'+im2
       +'<div class="cmid" onclick="showDetail('+i+')" title="Xem chi tiết sản phẩm">'
-        +'<div class="nm">'+esc(p.ten)
-          +'<button class="cfav'+(p.yeuThich?' on':'')+'" title="'+(p.yeuThich?'Bỏ khỏi sản phẩm yêu thích':'Thêm vào sản phẩm yêu thích')+'" onclick="event.stopPropagation();catFav('+i+','+(p.yeuThich?0:1)+')">'+icon('star',13)+'</button>'
-        +'</div>'
+        +'<div class="nm">'+esc(p.ten)+'</div>'
         +'<div class="meta"><span class="pr">'+money(p.donGiaBan)+' đ</span>'
           +((brand||p.comboN)?('<span class="metarow">'                      // thương hiệu + combo chung 1 hàng
             +(brand?'<span class="sz brand">'+brand+'</span>':'')
             +(p.comboN?'<span class="sz cbn" title="Combo: đi kèm '+p.comboN+' sản phẩm khác">'+icon('layers',9)+p.comboN+'</span>':'')
           +'</span>'):'')+'</div>'
       +'</div>'
+      +'<button class="cfav'+(p.yeuThich?' on':'')+'" title="'+(p.yeuThich?'Bỏ khỏi sản phẩm yêu thích':'Thêm vào sản phẩm yêu thích')+'" onclick="event.stopPropagation();catFav('+i+','+(p.yeuThich?0:1)+')">'+icon('star',14)+'</button>'
       +'<button class="add" title="Thêm vào bóc tách" onclick="addProduct('+i+')">+</button>'
       // hàng chip thông số nằm RIÊNG 1 hàng, rộng hết thẻ -> đủ chỗ, không cắt, không rớt dòng
       +(p.comboN?'<span class="cc-tag">Combo</span>':'')
