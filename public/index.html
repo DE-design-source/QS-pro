@@ -3330,6 +3330,18 @@ tr.pt-row:hover .pt-del button{opacity:1}
 .cat-hd .filt-btn svg{flex:none}
 .cat-hd .filt-car{margin-left:1px}
 .cat-hd .favgo-btn{flex:none;margin-left:0;padding:3px 6px 3px 5px}
+
+/* ═══ Sao yêu thích nằm NGAY CẠNH TÊN sản phẩm ═══
+   Trước định vị tuyệt đối top:6px/right:34px — hợp lúc thẻ còn thấp, nhưng từ khi
+   thẻ có tên 2 dòng + hàng chip thì nó trôi lên góc, rời hẳn khỏi nội dung. */
+.citem .cfav{position:static;display:inline-flex;vertical-align:middle;margin-left:5px;
+  border:none;background:transparent;padding:0;line-height:0;color:#c8d0d9;cursor:pointer;
+  opacity:0;transition:opacity .12s,color .12s}
+.citem:hover .cfav,.citem .cfav.on{opacity:1}
+.citem .cfav:hover{color:var(--amber)}
+.citem .cfav.on{color:var(--amber)}
+.citem .cfav.on svg{fill:currentColor}
+.citem .nm{display:inline}
 </style>
 
 <!-- ===== TOP NAV ===== -->
