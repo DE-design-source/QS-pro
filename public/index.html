@@ -3235,7 +3235,16 @@ table.pt td.dvt-cell,table.pt td.dvt-cell .pt-in{font-style:italic;color:#5b6b7b
 .pd .pd-combo .pd-cb-i{flex:1;min-width:0;display:block}
 .pd .pd-combo .pd-cb-i b{display:block;font-size:12px;font-weight:600;color:var(--ink);line-height:1.3;
   white-space:normal;overflow:visible;text-overflow:clip}          /* tên xuống dòng, KHÔNG cắt cụt */
-.pd .pd-combo .pd-cb-m{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:3px}
+/* 3 cột số: SỐ LƯỢNG · ĐƠN GIÁ · THÀNH TIỀN — cùng lưới với hàng tiêu đề */
+.pd .pd-combo .pd-cb-head{display:flex;gap:6px;padding:6px 10px 4px 53px;font-size:9.5px;font-weight:700;
+  letter-spacing:.4px;color:var(--ink-3);border-bottom:1px solid var(--hair)}
+.pd .pd-combo .pd-cb-n{display:flex;gap:6px;margin-top:4px;font-variant-numeric:tabular-nums}
+.pd .pd-combo .pd-cb-sl{flex:0 0 34px;text-align:right}
+.pd .pd-combo .pd-cb-dg{flex:1 1 0;min-width:0;text-align:right}
+.pd .pd-combo .pd-cb-tt{flex:1 1 0;min-width:0;text-align:right}
+.pd .pd-combo .pd-cb-n .pd-cb-sl{font-size:11.5px;font-weight:700;color:var(--blue)}
+.pd .pd-combo .pd-cb-n .pd-cb-dg{font-size:11.5px;color:var(--ink-3)}
+.pd .pd-combo .pd-cb-n .pd-cb-tt{font-size:12.5px;font-weight:650;color:var(--navy);letter-spacing:-.02em}
 .pd .pd-combo .pd-cb-i i{flex:1;min-width:0;display:block;font-style:normal;font-size:10.5px;
   color:var(--ink-3);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pd .pd-combo .pd-cb-gia{flex:none;font-size:12.5px;font-weight:650;color:var(--navy);

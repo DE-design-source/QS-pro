@@ -1936,25 +1936,28 @@ async function pdLoadCombo_(p, idx, dich, boxId){
   S._pdCombo=list;
   if(!list.length){ box.innerHTML=''; return; }
   var tong=list.reduce(function(a,x){ return a+(Number(x.donGiaBan)||0)*(Number(x.comboSL)||1); },0);
-  // Dựng bằng ĐÚNG các thành phần sẵn có của panel chi tiết:
-  //   .pd-sec (tiêu đề mục) · .pd-price (dòng tổng) · .pd-fbtn (nút phụ, giống "Tài liệu kỹ thuật")
+  // Mỗi dòng nêu rõ SỐ LƯỢNG · ĐƠN GIÁ · THÀNH TIỀN (yêu cầu slide: "4 nút, 4 thanh…"),
+  // tên + mã nằm dòng trên nên cột số không bị chen với chữ.
   var rows=list.map(function(x){
-    var sl=Number(x.comboSL)||1, tt=(Number(x.donGiaBan)||0)*sl;
-    // Cột panel chỉ ~230px: mã + số lượng + tiền dồn xuống MỘT dòng phụ (mã trái · tiền phải)
-    // thay vì để tiền thành cột riêng — như vậy tên có trọn bề ngang, không rớt 3 dòng.
-    var phu=[esc(x.ma||'')];
-    if(sl>1) phu.push('SL '+sl);
+    var sl=Number(x.comboSL)||1, dg=Number(x.donGiaBan)||0, tt=dg*sl;
     var tip=x.comboNguoc?' title="Liên kết đặt từ phía sản phẩm này (đi kèm 2 chiều)"':'';
     return '<div class="pd-cb"'+tip+'>'
       +(x.hinhAnh?'<img src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="cb-img"></span>')
-      +'<div class="pd-cb-i"><b>'+esc(x.ten||'')+'</b>'
-        +'<span class="pd-cb-m"><i>'+phu.filter(Boolean).join(' · ')
-          +(x.comboNguoc?' <span class="cb-rev">↔</span>':'')+'</i>'
-          +'<span class="pd-cb-gia">'+money(tt)+' đ</span></span></div>'
+      +'<div class="pd-cb-i">'
+        +'<b>'+esc(x.ten||'')+(x.comboNguoc?' <span class="cb-rev">↔</span>':'')+'</b>'
+        +'<i>'+esc(x.ma||'')+'</i>'
+        +'<span class="pd-cb-n">'
+          +'<span class="pd-cb-sl">'+ptQty(sl)+'</span>'
+          +'<span class="pd-cb-dg">'+money(dg)+'</span>'
+          +'<span class="pd-cb-tt">'+money(tt)+'</span>'
+        +'</span>'
+      +'</div>'
     +'</div>';
   }).join('');
   box.innerHTML='<div class="pd-block pd-combo">'
     +'<div class="pd-sec">Sản phẩm đi kèm <i>('+list.length+' sản phẩm)</i></div>'
+    +'<div class="pd-cb-head"><span class="pd-cb-sl">SL</span><span class="pd-cb-dg">ĐƠN GIÁ</span>'
+      +'<span class="pd-cb-tt">THÀNH TIỀN</span></div>'
     +rows
     +'<div class="pd-price"><span>Tổng combo kèm theo</span><b>'+money(tong)+' đ</b></div>'
     +'<div class="pd-foot2"><button class="pd-fbtn" title="Thêm sản phẩm chính và toàn bộ sản phẩm đi kèm vào '+esc(dich)+'"'
