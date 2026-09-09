@@ -1551,7 +1551,7 @@ function spSyncRow_(el,p){
 }
 /* Đóng băng kiểu Excel: cột chọn + 2 cột đầu bám trái, hàng tiêu đề bám trên.
    Bề rộng cột thay đổi theo dữ liệu nên phải ĐO rồi gán left sau mỗi lần vẽ.  */
-var SP_FRZ=2;                       // số CỘT DỮ LIỆU được cố định (chưa kể cột chọn)
+var SP_FRZ=3;                       // số CỘT DỮ LIỆU được cố định (chưa kể cột chọn) — STT · Ảnh · Sản phẩm
 function spFreeze_(){
   var head=document.getElementById('spHead'), body=document.getElementById('spBody');
   if(!head||!body) return;
