@@ -3409,6 +3409,20 @@ table.pt th.thk .thl{max-width:calc(100% - 26px)}
 .pt-hbar .tk-hthumb:hover{background:var(--blue)}
 .pt-hbar .tk-hthumb.dragging{background:var(--blue-d)}
 .pt-colchips .chip.fltchip.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* ── Bảng khái toán: sửa tên hạng mục + kéo dòng sang hạng mục khác ── */
+table.pt tr.pt-sec .pt-secttl-in{width:100%;box-sizing:border-box;display:block;border:1px solid transparent;background:transparent;
+  border-radius:5px;padding:2px 18px 2px 5px;margin:-2px 0;resize:none;overflow:hidden;cursor:text;
+  font-family:inherit;font-size:14px;font-weight:800;letter-spacing:.3px;line-height:1.35;color:#16202b;text-transform:uppercase}
+table.pt tr.pt-sec .pt-secttl-in::placeholder{color:#9aa7b4;font-weight:600}
+table.pt tr.pt-sec:hover .pt-secttl-in{border-color:#cfd8e3;background:#fff}
+table.pt tr.pt-sec .pt-secttl-in:focus{outline:none;border-color:var(--blue);background:#fff;box-shadow:0 0 0 2px rgba(37,99,235,.14)}
+table.pt tr.pt-row td.pt-grip{cursor:grab}
+table.pt tr.pt-row td.pt-grip:active{cursor:grabbing}
+table.pt tr.pt-row.dragging td{opacity:.42}
+table.pt tr.pt-row.dropTop td{box-shadow:inset 0 3px 0 var(--blue)}
+table.pt tr.pt-row.dropBot td{box-shadow:inset 0 -3px 0 var(--blue)}
+table.pt tr.pt-sec.dropInto td,table.pt tr.pt-add.dropInto td{outline:2px dashed var(--blue);outline-offset:-3px}
 </style>
 
 <!-- ===== TOP NAV ===== -->

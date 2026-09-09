@@ -5516,9 +5516,11 @@ function ptRowPass_(sec,it){
 /* ---- Chuột phải: menu kiểu Excel ---- */
 function ptCtx(e){
   var th=e.target.closest('th.thk'); var tr=e.target.closest('tr.pt-row');
+  var trs=tr?null:e.target.closest('tr.pt-sec,tr.pt-add');
   var key = th ? th.getAttribute('data-k') : '';
   e.preventDefault(); closePop();
   var si=tr?+tr.getAttribute('data-si'):-1, ii=tr?+tr.getAttribute('data-ii'):-1;
+  var ssi=trs?+trs.getAttribute('data-si'):-1;
   var pop=document.createElement('div'); pop.className='fltpop ctxmenu'; pop.id='qs_pop';
   function mi(ic,label,fn,hint,cls){
     return '<div class="cmi '+(cls||'')+'" onclick="'+fn+'">'+icon(ic,14)+'<span>'+label+'</span>'
@@ -5530,6 +5532,13 @@ function ptCtx(e){
       +mi('copy','Nhân bản dòng','closePop();ptDupItem('+si+','+ii+')')
       +mi('plus','Chèn dòng trống bên dưới','closePop();ptInsertItem('+si+','+ii+')')
       +mi('trash','Xoá dòng này','closePop();ptDelItem('+si+','+ii+')','','danger')
+      +'<div class="cmsep"></div>';
+  }
+  if(trs && ssi>=0){
+    html+=sec('Hạng mục: '+esc(String((S.phanTho[ssi]||{}).t||'').split('\n')[0]))
+      +mi('edit','Đổi tên hạng mục','closePop();ptRenameSec('+ssi+')')
+      +mi('plus','Thêm dòng vào hạng mục','closePop();ptAddItem('+ssi+')')
+      +mi('trash','Xoá cả hạng mục','closePop();ptDelSection('+ssi+')','','danger')
       +'<div class="cmsep"></div>';
   }
   if(key){
@@ -5849,7 +5858,7 @@ function renderPhanTho(){
     var secDgnt=(dgntKeys.length===1&&ptN(dgntKeys[0]))?ptN(dgntKeys[0]):0;
     var secCells={
       stt:'<td class="c">'+PT_ROMAN[si]+'</td>',
-      noidung:'<td class="pt-secname"><div class="pt-secttl">'+esc(sec.t).replace(/\n/g,'<br>')+'</div>'+(sec.note?'<span class="pt-note">'+esc(sec.note)+'</span>':'')+'<span class="pt-secdel" title="Xoá hạng mục" onclick="ptDelSection('+si+')">'+icon('trash',13)+'</span></td>',
+      noidung:'<td class="pt-secname"><textarea class="pt-secttl-in" rows="1" spellcheck="false" title="Bấm để sửa tên hạng mục" placeholder="Tên hạng mục" oninput="autoGrow(this)" onchange="ptEditSec_('+si+',\'t\',this.value)">'+esc(sec.t)+'</textarea>'+(sec.note?'<span class="pt-note">'+esc(sec.note)+'</span>':'')+'<span class="pt-secdel" title="Xoá hạng mục" onclick="ptDelSection('+si+')">'+icon('trash',13)+'</span></td>',
       khoiluong:'<td class="n">'+klCell+'</td>',
       dgnt:'<td class="n b">'+(secDgnt?money(secDgnt):'')+'</td>',
       ttnt:'<td class="n b">'+(st.ttnt?money(st.ttnt):'')+'</td>',
@@ -5859,7 +5868,7 @@ function renderPhanTho(){
       dg:'<td class="n pt-upcell b">'+upCell+'</td>',
       tt:'<td class="n b">'+(st.tt?money(st.tt):'-')+'</td>'
     };
-    body+='<tr class="pt-sec">'+ptCells_(ptVis,secCells)+'<td></td></tr>';
+    body+='<tr class="pt-sec" data-si="'+si+'">'+ptCells_(ptVis,secCells)+'<td></td></tr>';
     body+='<tr class="pt-spacer"><td colspan="'+(ptVis.length+1)+'"></td></tr>';
     // ---- các dòng chi tiết ----
     ptSortItems_(sec.items).filter(function(_r){ return ptRowPass_(sec,_r.it); }).forEach(function(_r,_pos){
@@ -5870,7 +5879,7 @@ function renderPhanTho(){
       var margin = (isItem&&tt)?(lnVnd/tt*100):0;   // lợi nhuận / giá bán
       var markup = (isItem&&ttnt)?(lnVnd/ttnt*100):0; // lợi nhuận / giá vốn
       var rowCells={
-        stt:'<td class="c">'+(_pos+1)+'</td>',
+        stt:'<td class="c pt-grip" title="Kéo để đổi chỗ dòng hoặc chuyển sang hạng mục khác">'+(_pos+1)+'</td>',
         noidung:'<td>'+ptTxt(si,ii,'n',it.n)+'</td>',
         dvt:'<td class="c dvt-cell">'+ptTxt(si,ii,'dvt',it.dvt)+'</td>',
         dientich:'<td class="n">'+(isArea?ptInp(si,ii,'dt',it.dt):'')+'</td>',
@@ -5885,14 +5894,14 @@ function renderPhanTho(){
         tt:'<td class="n">'+(isItem?'<span class="pt-ro b">'+money(tt)+'</span>':'<span class="pt-dash">-</span>')+'</td>',
         ghichu:'<td class="pt-gc">'+ptTxt(si,ii,'gc',it.gc)+'</td>'
       };
-      body+='<tr class="pt-row" data-si="'+si+'" data-ii="'+ii+'">'+ptCells_(ptVis,rowCells)
+      body+='<tr class="pt-row" draggable="true" data-si="'+si+'" data-ii="'+ii+'">'+ptCells_(ptVis,rowCells)
         +'<td class="pt-del">'
           +'<button title="Nhân bản dòng" onclick="ptDupItem('+si+','+ii+')">'+icon('copy',13)+'</button>'
           +'<button title="Chèn dòng trống bên dưới" onclick="ptInsertItem('+si+','+ii+')">'+icon('plus',13)+'</button>'
           +'<button class="x" title="Xoá dòng" onclick="ptDelItem('+si+','+ii+')">'+icon('trash',13)+'</button>'
         +'</td></tr>';
     });
-    body+='<tr class="pt-add"><td></td><td colspan="'+Math.max(1,ptVis.length-1)+'"><span onclick="ptAddItem('+si+')">＋ Thêm dòng</span></td><td></td></tr>';
+    body+='<tr class="pt-add" data-si="'+si+'"><td></td><td colspan="'+Math.max(1,ptVis.length-1)+'"><span onclick="ptAddItem('+si+')">＋ Thêm dòng</span></td><td></td></tr>';
     body+='<tr class="pt-spacer"><td colspan="'+(ptVis.length+1)+'"></td></tr>';
   });
   // ---- tổng cộng / VAT / sau thuế ----  (cột 8=TT nhà thầu, 9=lợi nhuận, 13=thành tiền)
@@ -5938,6 +5947,9 @@ function renderPhanTho(){
     +'<div class="tkt-seg grand"><span class="tkt-ic">'+icon('cart',17)+'</span><span class="tkt-c"><span class="tkt-l">Tổng thành tiền</span><span class="tkt-v">'+money(comp.afterTax)+' đ</span></span></div>'
     +'</div>'; }
   var tcP=document.getElementById('tkCount'); if(tcP){ var nItems=(S.phanTho||[]).reduce(function(s,se){return s+((se.items||[]).length);},0); tcP.textContent='['+pad2(nItems)+']'; }
+  // giữ nguyên vị trí đang cuộn (thêm/sửa dòng không được nhảy về đầu bảng)
+  var _sc=pw.querySelector('.pt-scroll'), _sT=_sc?_sc.scrollTop:0, _sL=_sc?_sc.scrollLeft:0;
+  var _winY=window.pageYOffset||document.documentElement.scrollTop||0;
   pw.innerHTML =
     '<div class="pt-toolbar">'
       + '<div class="pt-tt">Bảng ước tính chi phí — <b>Xây dựng thô</b></div>'
@@ -5950,7 +5962,86 @@ function renderPhanTho(){
     + '<div class="tk-hbar pt-hbar" id="ptHBar" style="display:none"><div class="tk-hthumb" id="ptHThumb"></div></div>';
   // giãn sẵn các ô chữ để hiện ĐỦ nội dung, không bị cắt (giống bảng Bóc tách)
   pw.querySelectorAll('textarea.pt-area').forEach(autoGrow);
+  pw.querySelectorAll('textarea.pt-secttl-in').forEach(autoGrow);
+  // trả lại đúng chỗ đang xem trước khi vẽ lại
+  var _sc2=pw.querySelector('.pt-scroll');
+  if(_sc2){ _sc2.scrollTop=_sT; _sc2.scrollLeft=_sL; }
+  if(_winY) window.scrollTo(0,_winY);
+  ptDragBind_(pw.querySelector('table.pt'));   // kéo dòng sang hạng mục khác
   ptHBarInit_(); ptHBarSync_();          // thanh kéo ngang giống bảng Bóc tách
+}
+
+/* ===== Sửa tên hạng mục + KÉO DÒNG giữa các hạng mục (giống bảng Bóc tách) ===== */
+function ptEditSec_(si,f,val){
+  var sec=S.phanTho[si]; if(!sec) return;
+  var v=String(val==null?'':val).replace(/\s+$/,'');
+  if(f==='t' && !v.trim()){ toast('Tên hạng mục không được để trống'); renderPhanTho(); return; }
+  if(sec[f]===v) return;
+  sec[f]=v; ptPersist(); renderPhanTho();
+}
+function ptRenameSec(si){
+  var sec=S.phanTho[si]; if(!sec) return;
+  renderPhanTho();
+  var ta=document.querySelector('#ptWrap tr.pt-sec[data-si="'+si+'"] .pt-secttl-in');
+  if(ta){ ta.focus(); ta.select(); ta.scrollIntoView({block:'center'}); }
+}
+// chuyển 1 dòng sang vị trí khác (cùng hạng mục hoặc sang hạng mục khác)
+function ptMoveItem_(fs,fi,ts,ti,before){
+  var A=S.phanTho[fs], B=S.phanTho[ts]; if(!A||!B) return;
+  var it=A.items[fi]; if(!it) return;
+  if(fs===ts && (ti===fi || (before?ti:ti+1)===fi)) return;      // không đổi gì
+  A.items.splice(fi,1);
+  if(fs===ts && ti>fi) ti--;
+  if(ti==null||ti<0||ti>B.items.length) ti=B.items.length;
+  // sang hạng mục khác kiểu -> bù các trường còn thiếu để không mất ô nhập
+  if(A.mode!==B.mode){ var d=ptBlankItem_(B); Object.keys(d).forEach(function(k){ if(it[k]==null||it[k]==='') it[k]=d[k]; }); }
+  ['_kl','_tt','_ttnt'].forEach(function(k){ delete it[k]; });
+  B.items.splice(before?ti:ti+1,0,it);
+  ptPersist(); renderPhanTho();
+  if(fs!==ts) toast('Đã chuyển sang "'+String(B.t||'').split('\n')[0]+'"');
+}
+function ptDragBind_(tb){
+  if(!tb || tb._ptdrag) return; tb._ptdrag=1;
+  function clr(){ tb.querySelectorAll('.dropTop,.dropBot,.dropInto').forEach(function(x){ x.classList.remove('dropTop','dropBot','dropInto'); }); }
+  // gõ trong ô nhập thì tắt kéo (để còn bôi đen chữ), bấm chỗ khác thì bật lại
+  tb.addEventListener('mousedown',function(e){
+    var tr=e.target.closest('tr.pt-row'); if(!tr) return;
+    tr.draggable = !e.target.closest('input,textarea,button,select');
+  });
+  tb.addEventListener('dragstart',function(e){
+    if(e.target.closest('th.thk')) return;                 // kéo cột: đã có ptColDragStart
+    var tr=e.target.closest('tr.pt-row'); if(!tr) return;
+    if(e.target.closest('input,textarea,button,select')){ e.preventDefault(); return; }
+    S._ptDrag={si:+tr.getAttribute('data-si'), ii:+tr.getAttribute('data-ii')};
+    tr.classList.add('dragging');
+    try{ e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain','pt-row'); }catch(x){}
+  });
+  tb.addEventListener('dragend',function(){ S._ptDrag=null; tb.querySelectorAll('tr.dragging').forEach(function(x){x.classList.remove('dragging');}); clr(); });
+  tb.addEventListener('dragover',function(e){
+    if(!S._ptDrag) return; e.preventDefault();
+    try{ e.dataTransfer.dropEffect='move'; }catch(x){}
+    clr();
+    var tr=e.target.closest('tr'); if(!tr) return;
+    if(tr.classList.contains('pt-row')){
+      var r=tr.getBoundingClientRect();
+      tr.classList.add(e.clientY<r.top+r.height/2?'dropTop':'dropBot');
+    } else if(tr.classList.contains('pt-sec')||tr.classList.contains('pt-add')) tr.classList.add('dropInto');
+  });
+  tb.addEventListener('drop',function(e){
+    if(!S._ptDrag) return; e.preventDefault();
+    var d=S._ptDrag; S._ptDrag=null; clr();
+    tb.querySelectorAll('tr.dragging').forEach(function(x){x.classList.remove('dragging');});
+    var tr=e.target.closest('tr'); if(!tr) return;
+    if(tr.classList.contains('pt-row')){
+      var ts=+tr.getAttribute('data-si'), ti=+tr.getAttribute('data-ii');
+      if(ts===d.si && S._ptSort){ toast('Đang sắp xếp theo cột — bỏ sắp xếp rồi mới đổi chỗ dòng'); return; }
+      var r=tr.getBoundingClientRect();
+      ptMoveItem_(d.si,d.ii,ts,ti,e.clientY<r.top+r.height/2);
+    } else if(tr.classList.contains('pt-sec')||tr.classList.contains('pt-add')){
+      var s2=+tr.getAttribute('data-si'); if(isNaN(s2)) return;
+      ptMoveItem_(d.si,d.ii,s2,null,true);
+    }
+  });
 }
 
 /* ===================== AUTH & ADMIN ===================== */
