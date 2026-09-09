@@ -3229,6 +3229,33 @@ function renameDraft(maDA){
   document.body.appendChild(ov);
   setTimeout(function(){ var el=document.getElementById('rnInput'); if(el){ el.focus(); el.select(); } },40);
 }
+/* Sửa tên bản nháp NGAY TRÊN CHỮ — người dùng bấm vào tên là muốn đổi tên,
+   không phải đi tìm nút bút chì lẫn trong dãy icon. Enter/rời ô = lưu, Esc = huỷ. */
+function draftNameEdit_(ev, maDA){
+  ev.stopPropagation();
+  var b=ev.currentTarget; if(b.dataset.dang==='1') return;
+  var cu=b.textContent, w=Math.max(120, b.getBoundingClientRect().width+24);
+  b.dataset.dang='1';
+  var inp=document.createElement('input');
+  inp.className='dh-draft-in'; inp.value=cu; inp.style.width=w+'px';
+  b.replaceWith(inp); inp.focus(); inp.select();
+  var xong=false;
+  function huy(){ if(xong) return; xong=true; renderDash(); }
+  async function luu(){
+    if(xong) return; xong=true;
+    var ten=inp.value.trim();
+    if(!ten || ten===cu){ renderDash(); return; }
+    try{ var np=await api('updateProject', maDA, {tenBanNhap:ten}); syncProj(np); toast('Đã đổi tên bản nháp'); }
+    catch(e){ toast('Lỗi: '+e.message); }
+    renderDash();
+    if(document.getElementById('projModalOv')) projModalRefresh_();
+  }
+  inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter'){ e.preventDefault(); luu(); }
+    else if(e.key==='Escape'){ e.preventDefault(); huy(); }
+  });
+  inp.addEventListener('blur', luu);
+}
 function rnClose_(){ var o=document.getElementById('rnOv'); if(o)o.remove(); }
 async function rnSave_(maDA){
   var el=document.getElementById('rnInput'); var name=el?el.value.trim():'';
@@ -3422,7 +3449,9 @@ function dashProjCard_(g){
   var gi=(S._projGroups||[]).indexOf(g);
   var drafts=g.drafts.map(function(p,i){ var on=S.cur&&S.cur.maDA===p.maDA;
     return '<div class="dh-draft'+(on?' on':'')+'">'
-      +'<div class="dh-draft-i" onclick="projInfoModal(\''+esc(p.maDA)+'\')" title="Xem / sửa thông tin"><b>'+esc(draftName_(p,i))+'</b><span>'+esc(p.maDA)+' · '+fmtDate(p.ngayTao)+'</span></div>'
+      +'<div class="dh-draft-i">'
+        +'<b class="dh-draft-n" title="Bấm để đổi tên bản nháp" onclick="draftNameEdit_(event,\''+esc(p.maDA)+'\')">'+esc(draftName_(p,i))+'</b>'
+        +'<span onclick="projInfoModal(\''+esc(p.maDA)+'\')" title="Xem / sửa thông tin">'+esc(p.maDA)+' · '+fmtDate(p.ngayTao)+'</span></div>'
       +'<div class="dh-draft-a">'
       +(on?'<span class="dh-badge">'+icon('check',12)+' Đang dùng</span>':'<button class="dh-use" title="Mở bóc tách bản này" onclick="pickProject(\''+esc(p.maDA)+'\')">Dùng</button>')
       +'<button class="dh-ic" title="Sửa tên bản nháp" onclick="renameDraft(\''+esc(p.maDA)+'\')">'+icon('edit',13)+'</button>'
