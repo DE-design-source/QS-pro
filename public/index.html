@@ -3346,14 +3346,26 @@ tr.pt-row:hover .pt-del button{opacity:1}
 /* ═══ CỘT TRÁI: nút mở combo · số thứ tự · đường nối ═══
    Trước mỗi thẻ con tự vẽ 1 đoạn line bằng ::before/::after nên nhìn đứt khúc,
    lại thừa một vạch cụt. Nay dùng viền trái của chính thẻ con -> liền mạch tự nhiên. */
-.citem>.no{width:22px;gap:2px}
+/* Nút ▾ nằm sát mép trên để đường nối bắt đầu từ đúng tâm nút, không phụ thuộc
+   thẻ cao hay thấp. Đo thực tế: tâm nút ở x=13, y=21 so với mép thẻ -> trục left:12px. */
+.citem>.no{width:22px;gap:2px;align-self:start;margin-top:2px}
 .citem .cbtog{width:18px;height:18px;font-size:8px}
 .citem .no-n{font-size:10.5px;color:var(--ink-3)}
-.citem.cc-child{padding-left:12px;border-left:2px solid #dbe3ee;background:#fbfcfe}
-.citem.cc-child::before,.citem.cc-child::after{content:none}
-.citem.cc-child:hover{background:#f4f8ff;border-left-color:var(--blue)}
+/* đoạn nối từ nút tròn của thẻ CHA chạy xuống hết thẻ */
+.citem.cb-open::after{content:'';position:absolute;left:12px;top:21px;bottom:0;width:2px;
+  background:#c9d5e4;border-radius:2px;pointer-events:none}
+/* thẻ CON: trục dọc + nhánh ngang tại đúng giữa thẻ */
+.citem.cc-child{padding-left:30px;background:#fbfcfe}
+.citem.cc-child:hover{background:#f4f8ff}
+.citem.cc-child::before{content:'';position:absolute;left:12px;top:0;bottom:-1px;width:2px;
+  background:#c9d5e4;pointer-events:none}
+.citem.cc-child.last::before{bottom:auto;height:50%;border-bottom-left-radius:2px}
+.citem.cc-child::after{content:'';position:absolute;left:12px;top:50%;width:12px;height:2px;
+  background:#c9d5e4;pointer-events:none}
+.citem.cc-child>.no{align-self:center;width:26px}
 .citem.cc-child .cc-no{font-size:10.5px;font-weight:700;color:var(--blue)}
-.citem.cc-child>.no{width:26px}
+/* rê vào thẻ con -> sáng cả nhánh cho dễ theo dõi */
+.citem.cc-child:hover::before,.citem.cc-child:hover::after{background:var(--blue)}
 </style>
 
 <!-- ===== TOP NAV ===== -->

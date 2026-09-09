@@ -853,7 +853,7 @@ function renderCatalog(){
     var brand=esc(p.thuongHieu||'');
     // Thông số nhanh (công suất · nhiệt độ màu · CRI · góc chiếu) — dùng chung cách hiện với bảng Danh sách SP
     var specs=spSpecs_(p); if(specs.indexOf('muted')>=0) specs='';
-    return '<div class="citem" draggable="true" ondragstart="prodDragStart(event,'+i+')" ondragend="prodDragEnd()">'
+    return '<div class="citem'+(catCbMo_(p)?' cb-open':'')+'" draggable="true" ondragstart="prodDragStart(event,'+i+')" ondragend="prodDragEnd()">'
       +'<div class="no">'+(p.comboN?('<button class="cbtog'+(catCbMo_(p)?' on':'')+'" title="Xem '+p.comboN+' sản phẩm đi kèm" onclick="event.stopPropagation();catComboToggle_('+i+')">▸</button>'):'')
         +'<span class="no-n">'+(i+1)+'</span></div>'+im2
       +'<div class="cmid" onclick="showDetail('+i+')" title="Xem chi tiết sản phẩm">'
