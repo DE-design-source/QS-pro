@@ -3240,6 +3240,8 @@ function askInput_(o){
 }
 function renameDraft(maDA){
   var p=(S.projects||[]).filter(function(x){return x.maDA===maDA;})[0]; if(!p) return;
+  // đang sửa tên tại chỗ mà bấm nút bút chì -> dọn ô sửa đi, tránh 2 giao diện đổi tên chồng nhau
+  if(document.querySelector('.dh-draft-in')) renderDash();
   var gr=projectGroups().filter(function(g){ return g.drafts.some(function(d){return d.maDA===maDA;}); })[0];
   var i=gr?gr.drafts.findIndex(function(d){return d.maDA===maDA;}):0;
   var cur=p.tenBanNhap||('Bản nháp '+(i+1));
@@ -5584,10 +5586,8 @@ function renderPhanTho(){
   // Thứ tự + tên cột ĐÚNG như hình mẫu Phần thô
   var COLS=PT_COLS.map(function(c){return c[1];});
   // thứ tự cột tuỳ biến (kéo th để đổi) + lọc theo chip đang bật
-  if(!S._ptOrder) S._ptOrder=PT_COLS.map(function(c){return c[0];});
-  PT_COLS.forEach(function(c){ if(S._ptOrder.indexOf(c[0])<0) S._ptOrder.push(c[0]); });
-  var byKey={}; PT_COLS.forEach(function(c){ byKey[c[0]]=c; });
-  var ptVis=S._ptOrder.map(function(k){ return byKey[k]; }).filter(function(c){ return c && S._ptCols[c[0]]; });
+  PT_COLS.forEach(function(c){ if(S._ptOrder && S._ptOrder.indexOf(c[0])<0) S._ptOrder.push(c[0]); });
+  var ptVis=ptVisCols_();          // dùng CHUNG với ptFreezeTo để chỉ số cột cố định không lệch
   function ptPct(v){ v=Number(v)||0; return v?(v.toFixed(1)+'%'):''; }
   var body='';
   if(!S.phanTho.length){
