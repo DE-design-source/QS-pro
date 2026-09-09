@@ -5457,6 +5457,24 @@ function ptAddItem(si){
   else sec.items.push({n:'',dvt:'gói',gc:''});
   ptPersist(); renderPhanTho();
 }
+function ptBlankItem_(sec){
+  if(sec.mode==='item') return {n:'',dvt:'',kl:1,dg:0,gc:'',dgnt:0};
+  if(sec.mode==='area'||sec.mode==='area0') return {n:'',dvt:'m2',dt:0,hs:1,gc:''};
+  return {n:'',dvt:'gói',gc:''};
+}
+// Nhân bản dòng (giữ nguyên mọi giá trị) — đặt ngay dưới dòng gốc
+function ptDupItem(si,ii){
+  var sec=S.phanTho[si]; if(!sec||!sec.items[ii]) return;
+  var ban=JSON.parse(JSON.stringify(sec.items[ii]));
+  ['_kl','_tt','_ttnt'].forEach(function(k){ delete ban[k]; });     // bỏ giá trị tính tạm
+  sec.items.splice(ii+1,0,ban); ptPersist(); renderPhanTho();
+  toast('Đã nhân bản dòng');
+}
+// Chèn 1 dòng trống ngay dưới dòng đang chọn
+function ptInsertItem(si,ii){
+  var sec=S.phanTho[si]; if(!sec) return;
+  sec.items.splice(ii+1,0,ptBlankItem_(sec)); ptPersist(); renderPhanTho();
+}
 function ptDelItem(si,ii){ var sec=S.phanTho[si]; if(!sec) return; sec.items.splice(ii,1); ptPersist(); renderPhanTho(); }
 function ptAddSection(){ S.phanTho.push({t:'HẠNG MỤC MỚI',mode:'item',note:'',up:0,items:[]}); ptPersist(); renderPhanTho(); }
 function ptDelSection(si){ if(!confirm('Xoá cả hạng mục "'+((S.phanTho[si]||{}).t||'')+'" ?')) return; S.phanTho.splice(si,1); ptPersist(); renderPhanTho(); }
@@ -5638,7 +5656,11 @@ function renderPhanTho(){
         ghichu:'<td class="pt-gc">'+ptTxt(si,ii,'gc',it.gc)+'</td>'
       };
       body+='<tr class="pt-row">'+ptCells_(ptVis,rowCells)
-        +'<td class="pt-del"><button title="Xoá dòng" onclick="ptDelItem('+si+','+ii+')">'+icon('trash',13)+'</button></td></tr>';
+        +'<td class="pt-del">'
+          +'<button title="Nhân bản dòng" onclick="ptDupItem('+si+','+ii+')">'+icon('copy',13)+'</button>'
+          +'<button title="Chèn dòng trống bên dưới" onclick="ptInsertItem('+si+','+ii+')">'+icon('plus',13)+'</button>'
+          +'<button class="x" title="Xoá dòng" onclick="ptDelItem('+si+','+ii+')">'+icon('trash',13)+'</button>'
+        +'</td></tr>';
     });
     body+='<tr class="pt-add"><td></td><td colspan="'+Math.max(1,ptVis.length-1)+'"><span onclick="ptAddItem('+si+')">＋ Thêm dòng</span></td><td></td></tr>';
     body+='<tr class="pt-spacer"><td colspan="'+(ptVis.length+1)+'"></td></tr>';
@@ -5657,7 +5679,7 @@ function renderPhanTho(){
   // cố định tối đa 2 cột đầu (giống bảng Bóc tách)
   var frz=Math.min(S._ptFreeze||0, 2, ptVis.length);
   var frzVar=frz?(' style="--frz1w:'+ptW_(ptVis[0])+'px"'):'';
-  var colg='<colgroup>'+ptVis.map(function(c){ return '<col style="width:'+ptW_(c)+'px">'; }).join('')+'<col style="width:34px"></colgroup>';
+  var colg='<colgroup>'+ptVis.map(function(c){ return '<col style="width:'+ptW_(c)+'px">'; }).join('')+'<col style="width:74px"></colgroup>';
   // header: bấm nhãn = sắp xếp · kéo th = đổi vị trí cột · kéo mép = chỉnh rộng (giống bảng Bóc tách)
   var thead='<tr>'+ptVis.map(function(c){
       var cls=c[2]==='n'?'n':(c[2]==='c'?'c':'');

@@ -3318,6 +3318,15 @@ table.pt.frz2 tbody tr.pt-row:hover td:nth-child(2){background:#f5f8fc}
 /* chip bật/tắt cố định cột */
 .pt-colchips .chip.ptfrz{border-color:var(--hair-2)}
 .pt-colchips .chip.ptfrz.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+/* ═══ 3 nút thao tác dòng ở bảng khái toán: nhân bản · chèn · xoá ═══
+   Ẩn nhạt lúc bình thường, rõ khi rê vào dòng — để bảng không bị rối. */
+.pt-del{white-space:nowrap;text-align:center;padding:0}
+.pt-del button{opacity:0;transition:opacity .12s,color .12s,background .12s;padding:4px;margin:0 1px}
+tr.pt-row:hover .pt-del button{opacity:1}
+.pt-del button:hover{background:var(--chip);color:var(--blue)}
+.pt-del button.x:hover{background:#fef2f2;color:#dc2626}
+.pt-del button:focus-visible{opacity:1;outline:2px solid var(--blue);outline-offset:1px}
 </style>
 
 <!-- ===== TOP NAV ===== -->
