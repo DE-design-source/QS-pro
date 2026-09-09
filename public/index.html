@@ -3423,6 +3423,22 @@ table.pt tr.pt-row.dragging td{opacity:.42}
 table.pt tr.pt-row.dropTop td{box-shadow:inset 0 3px 0 var(--blue)}
 table.pt tr.pt-row.dropBot td{box-shadow:inset 0 -3px 0 var(--blue)}
 table.pt tr.pt-sec.dropInto td,table.pt tr.pt-add.dropInto td{outline:2px dashed var(--blue);outline-offset:-3px}
+
+/* ── Panel "Thông tin công tác" cho Phần thô (dùng chung CSS panel SP đèn) ── */
+.ptlib-item{cursor:pointer}
+.ptlib-item.on{border-color:var(--blue);background:#eef5ff;box-shadow:0 0 0 1px var(--blue) inset}
+.ptlib-info{display:inline-flex;align-items:center;margin-left:5px;color:var(--blue);opacity:.75;vertical-align:-1px}
+.ptlib-info svg{width:11px;height:11px}
+.pd-block.ptinf-empty{display:flex;gap:9px;align-items:flex-start;color:#6b7785;font-size:12px;line-height:1.5;
+  background:#f7f9fc;border:1px dashed var(--hair);border-radius:var(--r-md);padding:11px 12px}
+.pd-block.ptinf-empty svg{flex:none;color:#9aa7b4;margin-top:1px}
+.ptinf-form{padding:2px 0 4px}
+.ptinf-f{margin:10px 0}
+.ptinf-f label{display:block;font-size:11.5px;font-weight:600;color:#5b6875;margin-bottom:4px}
+.ptinf-f textarea{width:100%;box-sizing:border-box;border:1px solid var(--hair);border-radius:var(--r-md);
+  padding:7px 9px;font-family:inherit;font-size:12.5px;line-height:1.45;color:var(--ink);background:#fff;resize:vertical}
+.ptinf-f textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(37,99,235,.14)}
+.ptinf-act{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 </style>
 
 <!-- ===== TOP NAV ===== -->

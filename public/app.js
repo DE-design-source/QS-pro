@@ -2479,6 +2479,9 @@ function renderTable(){
   // vẫn giữ nguyên khung chọn sản phẩm bên trái + bố cục 2 cột.
   if(tkN) tkN.style.display = isPT?'none':'';
   if(pw) pw.style.display = isPT?'':'none';
+  // panel chi tiết dùng chung: rời đề mục thì đóng panel của đề mục cũ
+  if(isPT && S._detailIdx!=null) hideDetail();
+  if(!isPT && S._ptDetail) ptHideDetail_();
   if(isPT){ renderPhanTho(); return; }
   var lines=S.lines.filter(function(l){ return l.nhom===code || String(l.nhom||'').indexOf(code+'.')===0; });
   document.getElementById('tkCount').textContent='['+pad2(lines.length)+']';
@@ -5389,10 +5392,14 @@ function renderPTLibrary(){
           : '')+'</div>'
       +(col?'':'<div class="ptlib-items">'+sec.items.map(function(a,ii){
         var dg=ptLibDg_(sec,a);
-        return '<div class="ptlib-item"><div class="ptlib-nm" title="'+esc(String(a[0]).replace(/\n/g,' '))+'">'+esc(String(a[0]).split('\n')[0])+'</div>'
+        var dt=S._ptDetail, on=(dt&&dt.si===si&&dt.ii===ii);
+        var inf=ptInfo_(String(a[0])), coTL=!!(inf.anh||inf.ts||inf.pv||inf.tl||inf.model);
+        return '<div class="ptlib-item'+(on?' on':'')+'" title="Bấm để xem thông tin công tác" onclick="ptShowDetail_('+si+','+ii+')">'
+          +'<div class="ptlib-nm" title="'+esc(String(a[0]).replace(/\n/g,' '))+'">'+esc(String(a[0]).split('\n')[0])
+            +(coTL?'<span class="ptlib-info" title="Đã có ảnh / thông số kỹ thuật">'+icon('doc',11)+'</span>':'')+'</div>'
           +'<span class="ptlib-dvt">'+esc(a[1]||'')+'</span>'
           +'<span class="ptlib-dg">'+(dg?money(dg):'—')+'</span>'
-          +'<button class="ptlib-add" title="Thêm vào bảng ước tính" onclick="ptAddFromLib('+si+','+ii+')">'+icon('plus',14)+'</button></div>';
+          +'<button class="ptlib-add" title="Thêm vào bảng ước tính" onclick="event.stopPropagation();ptAddFromLib('+si+','+ii+')">'+icon('plus',14)+'</button></div>';
       }).join('')+'</div>')+'</div>';
   }).join('')+'</div>';
 }
@@ -5598,6 +5605,139 @@ function ptAddFromLib(si,ii){
   sec.items.push(item);
   ptPersist(); renderPhanTho();
   toast('Đã thêm: '+String(a[0]).split('\n')[0]);
+}
+/* ═══ THÔNG TIN CÔNG TÁC (Phần thô) — panel chi tiết giống thiết bị đèn ═══
+   Bấm 1 công tác ở thư viện trái -> mở panel giữa: ảnh, thông tin chính, đơn giá,
+   thông số kỹ thuật, phạm vi ứng dụng, tài liệu — đúng bố cục panel SP đèn.
+   Nguồn dữ liệu:
+     PT_INFO   : thông tin dựng sẵn trong code (khoá = tên công tác, chữ thường)
+     localStorage 'qs_ptinfo' : phần người dùng tự nhập/sửa ngay trên panel (đè lên PT_INFO)
+   Mỗi mục: {anh:'url\nurl', model:'', ts:'Tên: giá trị\n…', pv:'dòng\ndòng', tl:'link tài liệu'} */
+var PT_INFO={};
+function ptInfoKey_(ten){ return String(ten||'').split('\n')[0].trim().toLowerCase(); }
+function ptInfoUser_(){
+  if(!S._ptInfoU){ try{ S._ptInfoU=JSON.parse(localStorage.getItem('qs_ptinfo')||'{}')||{}; }catch(e){ S._ptInfoU={}; } }
+  return S._ptInfoU;
+}
+function ptInfo_(ten){
+  var k=ptInfoKey_(ten), a=PT_INFO[k]||{}, b=ptInfoUser_()[k]||{}, o={};
+  ['anh','model','ts','pv','tl'].forEach(function(f){ o[f]=(b[f]!=null&&b[f]!=='')?b[f]:(a[f]||''); });
+  return o;
+}
+function ptInfoImgs_(inf){
+  return String(inf.anh||'').split(/[\n,]/).map(function(s){return s.trim();}).filter(Boolean).map(function(v){ return imgUrlOf(v); });
+}
+// gallery dùng đúng markup/id của panel SP đèn -> nút ‹ › và dải ảnh nhỏ chạy sẵn
+function ptMedia_(imgs){
+  S._pdImgs=imgs; S._pdIdx=0;
+  var nav = imgs.length>1
+    ? '<button class="pd-nav prev" title="Ảnh trước (←)" onclick="event.stopPropagation();pdGoImg_(-1)">'+icon('left',18)+'</button>'
+      +'<button class="pd-nav next" title="Ảnh sau (→)" onclick="event.stopPropagation();pdGoImg_(1)">'
+      +'<svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>'
+      +'<span class="pd-count" id="pdCount">1/'+imgs.length+'</span>'
+    : '';
+  var main = imgs[0]
+    ? '<img id="pdMainImg" src="'+esc(imgs[0])+'" onclick="imgPop_(this.src)" title="Bấm để xem ảnh lớn" onerror="this.style.visibility=\'hidden\'">'
+    : '<span class="pd-noimg">'+icon('image',26)+'<i>Chưa có ảnh</i></span>';
+  var dl = imgs[0] ? '<a class="pd-imgdl" href="'+esc(imgs[0])+'" target="_blank" rel="noopener" title="Mở ảnh gốc">'+icon('download',14)+'</a>' : '';
+  var thumbs = imgs.length>1
+    ? '<div class="pd-thumbs" id="pdThumbs">'+imgs.map(function(v,i){
+        return '<button class="pd-thumb'+(i===0?' on':'')+'" title="Ảnh '+(i+1)+'" onclick="pdSetImg_('+i+')"><img src="'+esc(v)+'" onerror="this.style.visibility=\'hidden\'"></button>';
+      }).join('')+'</div>' : '';
+  return '<div class="pd-gal"><div class="imgbox">'+main+nav+dl+'</div>'+thumbs+'</div>';
+}
+function ptDetailHtml_(si,ii){
+  var sec=PT_TEMPLATE[si], a=sec.items[ii];
+  var ten=String(a[0]), dvt=a[1]||'', gc='', dgBan=0, dgNT=0;
+  if(sec.mode==='item'){ gc=a[4]||''; dgBan=Number(a[3])||0; dgNT=Number(a[5])||0; }
+  else if(sec.mode==='area'||sec.mode==='area0'){ gc=a[4]||''; dgBan=Number(sec.up)||0; }
+  else gc=a[2]||'';
+  var inf=ptInfo_(ten), imgs=ptInfoImgs_(inf);
+  var loai=PT_LOAI.filter(function(x){ return x[0]===(sec.loai||'kt_chitiet'); })[0]||PT_LOAI[0];
+  var ln=dgBan-dgNT, lnPct=dgBan?(ln/dgBan*100):0;
+  var html=ptMedia_(imgs)
+    +'<div class="pcode">'+esc(sec.r)+'.'+(ii+1)+' · '+esc(String(sec.t).split('\n')[0])+'</div>'
+    +'<div class="pd-name">'+esc(ten)+'</div>'
+    +pdSection_('Thông tin chính',[
+        ['Tên / model', inf.model||''],
+        ['Hạng mục', String(sec.t).split('\n')[0]],
+        ['Đơn vị tính', dvt],
+        ['Loại báo giá', loai[1]],
+        ['Nhà thầu đang chọn', S._ptContractor||'']
+      ])
+    +(dgBan||dgNT
+      ? '<div class="pd-block"><div class="pd-sec">Đơn giá <i>(theo bảng giá thư viện)</i></div>'
+        +(dgNT?'<div class="spec"><span class="k">Đơn giá nhà thầu</span><span class="v">'+money(dgNT)+' đ/'+esc(dvt)+'</span></div>':'')
+        +(dgBan?'<div class="spec"><span class="k">Đơn giá bán</span><span class="v">'+money(dgBan)+' đ/'+esc(dvt)+'</span></div>':'')
+        +((dgBan&&dgNT)?'<div class="spec"><span class="k">Lợi nhuận</span><span class="v">'+money(ln)+' đ ('+lnPct.toFixed(1)+'%)</span></div>':'')
+        +'</div>'
+      : '')
+    +(inf.ts?'<div class="pd-block"><div class="pd-sec">Thông số kỹ thuật tham khảo</div>'+specRows_(inf.ts)+'</div>':'')
+    +(gc?'<div class="pd-block"><div class="pd-sec">Ghi chú · điều kiện áp dụng</div>'+specRows_(gc)+'</div>':'')
+    +(inf.pv?'<div class="pd-block"><div class="pd-sec">Phạm vi ứng dụng</div>'+specRows_(inf.pv)+'</div>':'')
+    +(!inf.ts&&!inf.pv&&!imgs.length
+      ? '<div class="pd-block ptinf-empty">'+icon('doc',18)+'<span>Công tác này chưa có ảnh và thông số kỹ thuật. Bấm <b>Sửa thông tin</b> để bổ sung — nội dung được lưu lại cho những lần sau.</span></div>'
+      : '')
+    +'<div class="pd-price"><span>Đơn giá</span><b>'+money(dgBan)+' đ</b></div>'
+    +'<div class="pd-foot2">'
+      +(inf.tl?'<a class="pd-fbtn" href="'+esc(inf.tl)+'" target="_blank" rel="noopener">'+icon('doc',14)+' Tài liệu kỹ thuật</a>'
+             :'<span class="pd-fbtn dis" title="Chưa có link tài liệu cho công tác này">'+icon('doc',14)+' Tài liệu kỹ thuật</span>')
+      +(inf.tl?'<a class="pd-fbtn" href="'+esc(inf.tl)+'" download target="_blank" rel="noopener">'+icon('download',14)+' Tải về</a>':'')
+    +'</div>';
+  return html;
+}
+function ptInfoForm_(si,ii){
+  var a=PT_TEMPLATE[si].items[ii], inf=ptInfo_(String(a[0]));
+  function fld(id,lbl,hint,val,rows){
+    return '<div class="ptinf-f"><label>'+esc(lbl)+'</label>'
+      +'<textarea id="'+id+'" rows="'+(rows||2)+'" placeholder="'+esc(hint)+'">'+esc(val||'')+'</textarea></div>';
+  }
+  return '<div class="ptinf-form">'
+    +'<div class="pd-sec">Sửa thông tin công tác</div>'
+    +fld('ptInfModel','Tên / model','VD: Giàn tải, máy ép cọc Pmax 90T',inf.model,1)
+    +fld('ptInfAnh','Ảnh (mỗi dòng 1 link)','https://… (dán link ảnh, mỗi dòng một ảnh)',inf.anh,2)
+    +fld('ptInfTs','Thông số kỹ thuật (mỗi dòng "Tên: giá trị")','Lực ép tối đa (Pmax): 90 tấn\nLoại cọc phù hợp: vuông 250×250, tròn ly tâm D300',inf.ts,5)
+    +fld('ptInfPv','Phạm vi ứng dụng (mỗi dòng 1 ý)','Nhà phố, biệt thự, công trình tải trung bình\nYêu cầu mặt bằng thi công',inf.pv,3)
+    +fld('ptInfTl','Link tài liệu kỹ thuật','https://…',inf.tl,1)
+    +'<div class="ptinf-act">'
+      +'<button class="btn ghost sm" onclick="ptInfoEdit_('+si+','+ii+',0)">Huỷ</button>'
+      +'<button class="btn blue sm" onclick="ptInfoSave_('+si+','+ii+')">'+icon('check',14)+' Lưu thông tin</button>'
+    +'</div></div>';
+}
+function ptInfoEdit_(si,ii,on){ S._ptInfoEdit=!!on; ptShowDetail_(si,ii); }
+function ptInfoSave_(si,ii){
+  var a=PT_TEMPLATE[si].items[ii], k=ptInfoKey_(String(a[0]));
+  function v(id){ var e=document.getElementById(id); return e?String(e.value||'').replace(/\s+$/,''):''; }
+  var o={model:v('ptInfModel'),anh:v('ptInfAnh'),ts:v('ptInfTs'),pv:v('ptInfPv'),tl:v('ptInfTl')};
+  var U=ptInfoUser_();
+  if(!o.model&&!o.anh&&!o.ts&&!o.pv&&!o.tl) delete U[k]; else U[k]=o;
+  try{ localStorage.setItem('qs_ptinfo',JSON.stringify(U)); }catch(e){ toast('Không lưu được (bộ nhớ trình duyệt đầy)'); }
+  S._ptInfoEdit=false; ptShowDetail_(si,ii); toast('Đã lưu thông tin công tác');
+}
+function ptHideDetail_(){
+  S._ptDetail=null; S._ptInfoEdit=false;
+  var el=document.getElementById('pdPanel'); if(el){ el.style.display='none'; el.innerHTML=''; }
+  var g=document.getElementById('bocGrid'); if(g) g.classList.remove('detail');
+  document.removeEventListener('keydown',pdPanelKey_);
+  if(S.node==='3.1') renderPTLibrary();
+}
+function ptShowDetail_(si,ii){
+  var sec=PT_TEMPLATE[si]; if(!sec||!sec.items[ii]) return;
+  var el=document.getElementById('pdPanel'); if(!el) return;
+  S._ptDetail={si:si,ii:ii};
+  var g=document.getElementById('bocGrid'); if(g) g.classList.add('detail');
+  el.style.display='block';
+  el.innerHTML='<div class="pd-head"><h3>Thông tin công tác</h3>'
+      +'<button class="pd-x" title="Đóng" onclick="ptHideDetail_()">✕</button></div>'
+    +(S._ptInfoEdit?ptInfoForm_(si,ii):ptDetailHtml_(si,ii))
+    +(S._ptInfoEdit?''
+      :'<div class="pd-actions">'
+        +'<button class="btn ghost sm" onclick="ptInfoEdit_('+si+','+ii+',1)">'+icon('edit',14)+' Sửa thông tin</button>'
+        +'<button class="btn blue sm" onclick="ptAddFromLib('+si+','+ii+')">'+icon('plus',14)+' Thêm vào bảng</button>'
+      +'</div>');
+  document.addEventListener('keydown',pdPanelKey_);
+  el.scrollTop=0;
+  if(S.node==='3.1') renderPTLibrary();
 }
 function ptCloneTemplate(){
   return PT_TEMPLATE.map(function(s){
