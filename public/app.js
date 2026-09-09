@@ -764,6 +764,7 @@ function activeFilterCount(){
 }
 function updateCatUI(){
   var fb=document.getElementById('favfBtn'); if(fb) fb.classList.toggle('on',!!S.fFav);
+  favGoSync_();
   var n=activeFilterCount();
   var b=document.getElementById('advBadge'); if(b){ b.textContent=n||''; b.style.display=n?'inline-flex':'none'; }
   var c=document.getElementById('advClear'); if(c) c.style.display=n?'inline-block':'none';
@@ -1342,6 +1343,24 @@ async function spComboToggle_(i){
     try{ S._catCb[k]=await api('getCombo',k)||[]; }catch(e){ S._catCb[k]=[]; }
     if(S._catCbOpen[k]) spFilter();
   }
+}
+/* Nút ★ ở đầu panel Bóc tách: mở thẳng Danh sách sản phẩm, chọn sẵn tab Yêu thích.
+   Chờ danh sách vẽ xong mới đặt tab, vì showTab dựng lại toàn bộ trang. */
+function goFavList(){
+  showTab('sanpham');
+  var thu=0;
+  (function doi(){
+    if(document.getElementById('spViewTabs')){ spSetView('fav'); return; }
+    if(++thu<40) setTimeout(doi,80);
+  })();
+}
+// cập nhật số SP yêu thích lên nút ★
+function favGoSync_(){
+  var b=document.getElementById('favGoBtn'), n=document.getElementById('favGoN'); if(!b) return;
+  var so=(S.products||[]).filter(function(p){ return p.yeuThich; }).length;
+  if(n) n.textContent=so||'';
+  b.classList.toggle('empty',!so);
+  b.title=so?('Mở Danh sách sản phẩm — '+so+' sản phẩm yêu thích'):'Chưa có sản phẩm yêu thích nào';
 }
 function spSetView(v){ S._spView=v; S._spPage=1; spViewTabs_(); spFilter(); }
 // Duyệt / bỏ duyệt 1 sản phẩm
