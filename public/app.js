@@ -1632,7 +1632,9 @@ function spOrder_(){
     if(!S._spOrder) S._spOrder=all.slice();
   }
   var co={}; S._spOrder.forEach(function(k){ co[k]=1; });
-  all.forEach(function(k){ if(!co[k]) S._spOrder.push(k); });          // cột mới thêm sau
+  // Cột mới nối vào cuối, RIÊNG stt phải nằm đầu bảng — người dùng đã lưu thứ tự cột
+  // từ trước (chưa có stt) nên nếu cứ nối đuôi thì số thứ tự rơi ra tận cột cuối.
+  all.forEach(function(k){ if(!co[k]){ if(k==='stt') S._spOrder.unshift(k); else S._spOrder.push(k); } });
   S._spOrder=S._spOrder.filter(function(k){ return all.indexOf(k)>=0; }); // bỏ cột đã xoá
   return S._spOrder;
 }
