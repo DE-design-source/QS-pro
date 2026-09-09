@@ -357,6 +357,11 @@ setTimeout(function () {
 const BAO_CAO_GIO_VN = 8;                       // 8h sáng giờ VN
 const BAO_CAO_THU = [3, 6];                     // 3 = thứ 4, 6 = thứ 7
 const BAO_CAO_ACTION = 'bao_cao_nhap_sp';
+/* Lark ghép TÊN BOT vào trước mỗi tin ("<tên bot>: <tiêu đề thẻ>"). Bot đang dùng tên là
+   "Yêu cầu mua hàng - QS pro" nên báo cáo nhập SP cũng bị dính chữ đó.
+   -> Tạo thêm 1 bot riêng trong group (vd tên "Báo cáo Dezon Pro"), lấy webhook của nó
+      đặt vào biến REPORT_WEBHOOK. Chưa đặt thì vẫn dùng chung webhook cũ như trước. */
+const REPORT_WEBHOOK = process.env.REPORT_WEBHOOK || PURCHASE_WEBHOOK;
 function s_(v) { return String(v == null ? '' : v).trim(); }
 
 // Mốc bắt đầu của kỳ này = 8h sáng của ngày gửi TRƯỚC đó trong lịch
@@ -518,7 +523,7 @@ async function baoCaoNhapSP(actor, opts) {
   for (const q of ketQua) {
     let ok = false;
     try {
-      const r = await fetch(PURCHASE_WEBHOOK, {
+      const r = await fetch(REPORT_WEBHOOK, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(buildSpReportCard(q.congTy, q.bang, q.tk, tuVN, vn, q.khuyet))
       });

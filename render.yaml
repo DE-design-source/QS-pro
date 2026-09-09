@@ -31,6 +31,10 @@ services:
         value: products
       - key: SUPABASE_KEY
         value: sb_publishable_Am7BKsK-MM3at1Gv34iY0g_bHJopSsV
+      # Webhook Lark riêng cho báo cáo nhập SP (để tin không bị dính tên bot
+      # "Yêu cầu mua hàng"). Bỏ trống -> dùng chung webhook yêu cầu mua hàng.
+      - key: REPORT_WEBHOOK
+        sync: false
       # Nhập 2 giá trị dưới trên Dashboard (Environment) — bí mật, không commit:
       - key: LARK_APP_ID
         sync: false
