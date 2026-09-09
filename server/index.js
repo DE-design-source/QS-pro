@@ -629,6 +629,66 @@ app.get('/media', async function (req, res) {
   }
 });
 
+
+// ═══ XUẤT EXCEL DANH SÁCH SẢN PHẨM ═══
+// Cột lấy đúng theo DB_LABEL2COL (cùng bộ nhãn với file mẫu nhập hàng loạt),
+// nhờ vậy file tải về có thể sửa rồi nạp ngược lại bằng chức năng Nhập dữ liệu.
+async function exportProductsXlsx(keys) {
+  const ExcelJS = require('exceljs');
+  const rows = await store.getProducts();
+  let ds = rows;
+  if (Array.isArray(keys) && keys.length) {
+    const set = {}; keys.forEach(function (k) { set[String(k)] = 1; });
+    ds = rows.filter(function (p) { return set[String(p.recordId)] || set[String(p.ma)]; });
+  }
+  const nhan = Object.keys(store.DB_LABEL2COL || {}).filter(function (l) { return l !== 'ẢNH SẢN PHẨM'; });
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'Dezon Pro'; wb.created = new Date();
+  const ws = wb.addWorksheet('Danh sách sản phẩm');
+  ws.columns = [{ header: 'STT', key: '_stt', width: 6 }]
+    .concat(nhan.map(function (l) { return { header: l, key: l, width: Math.min(34, Math.max(12, l.length + 4)) }; }))
+    .concat([{ header: 'ẢNH SẢN PHẨM', key: '_anh', width: 40 }]);
+  const h = ws.getRow(1);
+  h.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+  h.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF12324C' } };
+  h.alignment = { vertical: 'middle', wrapText: true };
+  h.height = 30;
+  ws.views = [{ state: 'frozen', ySplit: 1 }];
+  ds.forEach(function (p, i) {
+    const raw = p.raw || {};
+    const o = { _stt: i + 1, _anh: p.anhTatCa || p.hinhAnh || '' };
+    nhan.forEach(function (l) {
+      const col = store.DB_LABEL2COL[l];
+      let v = raw[col];
+      if (v == null || v === '') v = '';
+      o[l] = v;
+    });
+    ws.addRow(o);
+  });
+  ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: ws.columnCount } };
+  const buf = await wb.xlsx.writeBuffer();
+  return { name: 'danh-sach-san-pham-' + new Date().toISOString().slice(0, 10) + '.xlsx', count: ds.length, buf: buf };
+}
+// Tải file: POST vì danh sách mã có thể dài, và cần token trong body
+app.post('/export/san-pham', async function (req, res) {
+  const tok = (req.headers.authorization || '').replace(/^Bearer\s+/i, '') || (req.body && req.body.token) || '';
+  const actor = tok ? auth.verifyToken(tok) : null;
+  if (!actor) return res.status(401).json({ error: 'Chưa đăng nhập' });
+  const viewAs = actor.r === 'super' ? (req.headers['x-view-company'] || '') : '';
+  const tctx = { uid: actor.uid, role: actor.r, congTyId: actor.ct || null, viewAs: viewAs || null };
+  try {
+    const keys = (req.body && Array.isArray(req.body.keys)) ? req.body.keys : null;
+    const out = await tenant.run(tctx, function () { return exportProductsXlsx(keys); });
+    res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.set('Content-Disposition', 'attachment; filename="' + out.name + '"');
+    res.set('X-Row-Count', String(out.count));
+    res.send(Buffer.from(out.buf));
+  } catch (e) {
+    console.error('[export SP] lỗi:', e && e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.get('/healthz', function (req, res) { res.json({ ok: true }); });
 
 app.listen(config.port, function () {

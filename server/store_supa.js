@@ -862,6 +862,7 @@ module.exports = {
   getDbProduct, updateDbProductTracked, getProductHistory, diffDbProduct, dataToRow_, logAudit_, setSpDuyet,
   setYeuThich,
   getCombo, setCombo,
+  DB_LABEL2COL,
   getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, getDashboard, getQuote, importParse, importCommit,
   savePurchaseOrder, getPurchaseOrders
 };

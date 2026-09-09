@@ -1024,6 +1024,7 @@ function renderSanpham(){
               +'<svg class="ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-4"/></svg> Hoàn tác</button>'
             +'<button class="btn ghost sm sp-editbtn" id="spEditBtn" onclick="spEditToggle()" title="Sửa nhanh ngay trên bảng — hiện tất cả cột nhập liệu">'+icon('edit',14)+' Edit</button>'
             +'<button class="btn ghost sm" id="spBoLocBtn" onclick="spToggleBoLoc(event)">'+icon('sliders',14)+' Bộ lọc<span class="spflt-badge" id="spFltBadge"></span></button>'
+            +'<button class="btn ghost sm" id="spXlsBtn" onclick="spExportXlsx()" title="Tải danh sách sản phẩm ra file Excel">'+icon('download',14)+' <span id="spXlsLbl">Tải Excel</span></button>'
             +'<button class="btn blue sm" onclick="showTab(\'import\')">'+icon('plus',14)+' Thêm sản phẩm</button>'
           +'</div>'
           +'<div class="spviewtabs" id="spViewTabs"></div>'
@@ -1202,6 +1203,9 @@ var _spColCache=null;
 function spAllCols_(){
   if(_spColCache) return _spColCache;
   var head=[
+    ['stt','STT','ct',function(p,i){
+      var per=spPerGet_(), tr=Math.max(1,S._spPage||1);
+      return '<span class="sp-stt">'+((per?(tr-1)*per:0)+i+1)+'</span>'; }],
     ['thumb','Ảnh','thumbcol',function(p){ return p.hinhAnh?'<img class="sp-th" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="sp-th"></span>'; }],
     ['ten','Sản phẩm','sp-name',function(p,i){ return '<b>'+esc(p.ten||'')+'</b><span class="sp-code">'+esc(p.ma||'')
         +(p.spChung?'<span class="sp-chung" title="Sản phẩm thuộc kho chung của Dezon — chỉ xem">Kho Dezon</span>':'')
@@ -1381,6 +1385,38 @@ function favGoSync_(){
   b.classList.toggle('on',!!S.fFav);
   b.title=S.fFav ? 'Đang lọc sản phẩm yêu thích — bấm để bỏ lọc'
         : (so?('Chỉ hiện '+so+' sản phẩm yêu thích'):'Chưa có sản phẩm yêu thích nào');
+}
+/* ═══ TẢI DANH SÁCH SẢN PHẨM RA EXCEL ═══
+   Có tick dòng nào -> chỉ tải đúng những dòng đó; không tick -> tải toàn bộ
+   (theo bộ lọc đang áp dụng, không phải chỉ trang đang xem).                 */
+function spXlsSync_(){
+  var l=document.getElementById('spXlsLbl'); if(!l) return;
+  var n=Object.keys(S._spSel||{}).length;
+  l.textContent = n ? ('Tải Excel ('+n+')') : 'Tải Excel';
+  var b=document.getElementById('spXlsBtn');
+  if(b) b.title = n ? ('Tải '+n+' sản phẩm đã chọn ra Excel') : 'Tải toàn bộ danh sách đang lọc ra Excel';
+}
+async function spExportXlsx(){
+  var btn=document.getElementById('spXlsBtn'), lbl=document.getElementById('spXlsLbl');
+  var chon=Object.keys(S._spSel||{});
+  var keys = chon.length ? chon : (S._spFull||[]).map(function(p){ return String(p.recordId||p.ma||''); }).filter(Boolean);
+  if(!keys.length){ toast('Không có sản phẩm nào để tải'); return; }
+  var cu=lbl?lbl.textContent:'';
+  if(btn) btn.disabled=true; if(lbl) lbl.textContent='Đang tạo file…';
+  try{
+    var r=await fetch('/export/san-pham',{ method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken()},
+      body: JSON.stringify({ keys: keys }) });
+    if(!r.ok){ var e=await r.json().catch(function(){return{};}); throw new Error(e.error||('HTTP '+r.status)); }
+    var so=r.headers.get('X-Row-Count')||keys.length;
+    var blob=await r.blob();
+    var url=URL.createObjectURL(blob), a2=document.createElement('a');
+    a2.href=url; a2.download='danh-sach-san-pham-'+new Date().toISOString().slice(0,10)+'.xlsx';
+    document.body.appendChild(a2); a2.click(); a2.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); },4000);
+    toast('Đã tải '+so+' sản phẩm ra Excel');
+  }catch(err){ toast('Lỗi tải Excel: '+err.message); }
+  if(btn) btn.disabled=false; if(lbl) lbl.textContent=cu||'Tải Excel'; spXlsSync_();
 }
 function spSetView(v){ S._spView=v; S._spPage=1; spViewTabs_(); spFilter(); }
 // Duyệt / bỏ duyệt 1 sản phẩm
@@ -1578,7 +1614,7 @@ function spPager_(total,cur,pages,per){
     +'<span class="sppg-nav">'+nav+'</span>'+sel+'</div>';
 }
 /* ═══ THỨ TỰ + ĐỘ RỘNG CỘT (kéo giãn, kéo đổi chỗ — giống bảng Bóc tách) ═══ */
-var SP_DEFW={thumb:56,ten:215,duyet:124,sku:78,giaDaiLy:122,nguoiTao:126,ngayTao:104,nguoiSua:130,gia_ban_bo_nguon:130,
+var SP_DEFW={stt:52,thumb:56,ten:215,duyet:124,sku:78,giaDaiLy:122,nguoiTao:126,ngayTao:104,nguoiSua:130,gia_ban_bo_nguon:130,
   thuong_hieu:126,nha_cung_cap:170,hang_muc:130,dong_sp:130,nhom_sp:130,
   gia_ban_le:118,ck_dai_ly_pct:106,cong_suat_w:96,nhiet_do_mau_k:112,goc_chieu_deg:96,
   goc_nghieng_deg:106,mau_sac:106,chat_lieu:126,chieu_cao_mm:98,duong_kinh_mm:104,
@@ -1661,13 +1697,13 @@ function spInitCols_(){
     document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
   });
 }
-function spColOn_(k){ return k==='ten' ? true : !!(S._spCols&&S._spCols[k]); }
+function spColOn_(k){ return (k==='ten'||k==='stt') ? true : !!(S._spCols&&S._spCols[k]); }
 function spThCls_(c){ var cl=c[2]||''; if(cl.indexOf('num')>=0)return 'num'; if(cl.indexOf('ct')>=0)return 'ct'; if(cl.indexOf('thumbcol')>=0)return 'thumbcol'; return ''; }
 function spVisCols_(){
   var by={}; spAllCols_().forEach(function(c){ by[c[0]]=c; });
   return spOrder_().map(function(k){ return by[k]; }).filter(function(c){ return c && spColOn_(c[0]); });
 }
-function spColToggle(k){ if(k==='ten') return; S._spCols=S._spCols||{}; S._spCols[k]=!S._spCols[k]; spColChips_(); spRenderHead_(); spFilter(); }
+function spColToggle(k){ if(k==='ten'||k==='stt') return; S._spCols=S._spCols||{}; S._spCols[k]=!S._spCols[k]; spColChips_(); spRenderHead_(); spFilter(); }
 function spColChips_(){
   var bar=document.getElementById('spColBar'); if(!bar) return;
   var by={}; spAllCols_().forEach(function(c){ by[c[0]]=c; });
@@ -1675,7 +1711,7 @@ function spColChips_(){
   var on=cols.filter(function(c){ return spColOn_(c[0]); }).length;
   bar.innerHTML='<span class="cp-collbl">Cột hiển thị <b>'+on+'/'+cols.length+'</b>'
     +'<a class="cp-reset" onclick="spResetCols_()" title="Đặt lại thứ tự và độ rộng cột">Đặt lại</a></span>'+cols.map(function(c){
-    var lock=c[0]==='ten', act=spColOn_(c[0]);
+    var lock=c[0]==='ten'||c[0]==='stt', act=spColOn_(c[0]);
     return '<span class="chip'+(act?' on':'')+(lock?' lock':'')+'"'+(lock?'':' onclick="spColToggle(\''+c[0]+'\')"')+'>'+esc(c[1])+'</span>';
   }).join('');
 }
@@ -1875,7 +1911,7 @@ function spFilter(){
   var all=document.getElementById('spCkAll'); if(all) all.checked = list.length>0 && list.every(function(p){return S._spSel[String(p.recordId||p.ma||'')];});
   spPager_(S._spFull.length, cur, pages, per);
   spFreeze_(); spBulkBar_();
-  spHBarInit_(); spHBarSync_();      // thanh kéo ngang: gắn 1 lần, đồng bộ mỗi lần vẽ lại
+  spHBarInit_(); spHBarSync_(); spXlsSync_();      // thanh kéo ngang: gắn 1 lần, đồng bộ mỗi lần vẽ lại
 }
 function spSelToggle(k,on){ S._spSel=S._spSel||{}; if(on) S._spSel[k]=1; else delete S._spSel[k]; spFilter(); }
 function spSelAll(on){ S._spSel={}; if(on)(S._spList||[]).forEach(function(p){ var k=String(p.recordId||p.ma||''); if(k) S._spSel[k]=1; }); spFilter(); }
