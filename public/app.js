@@ -5268,7 +5268,9 @@ function renderPTLibrary(){
     var col=S._ptLibCol&&S._ptLibCol[si];
     return '<div class="ptlib-sec"><div class="ptlib-h" onclick="ptLibToggle('+si+')">'
         +'<span class="ptlib-caret">'+(col?'▸':'▾')+'</span><span class="ptlib-htt">'+esc(sec.r)+'. '+esc(String(sec.t).split('\n')[0])+'</span>'
-        +'<button class="ptlib-secadd" title="Thêm cả nhóm vào bảng" onclick="event.stopPropagation();ptAddToSec_('+si+')">+</button></div>'
+        +(loai==='kt_sobo'
+          ? '<button class="ptlib-secadd" title="Thêm cả nhóm vào bảng (combo)" onclick="event.stopPropagation();ptAddToSec_('+si+')">+</button>'
+          : '')+'</div>'
       +(col?'':'<div class="ptlib-items">'+sec.items.map(function(a,ii){
         var dg=ptLibDg_(sec,a);
         return '<div class="ptlib-item"><div class="ptlib-nm" title="'+esc(String(a[0]).replace(/\n/g,' '))+'">'+esc(String(a[0]).split('\n')[0])+'</div>'
@@ -5494,9 +5496,22 @@ var PT_COLS=[
   ['markup','LỢI NHUẬN/GIÁ VỐN (%)','n',120],['dg','ĐƠN GIÁ','n',134],
   ['tt','THÀNH TIỀN','n',140],['ghichu','GHI CHÚ','l',210]
 ];
+/* Cố định cột trái — bảng khái toán rất rộng (14 cột), cuộn ngang là mất cột
+   Nội dung công việc. Dùng lại đúng cách làm của bảng Bóc tách (class frz + biến CSS). */
+function ptFreezeTo(k){
+  var vis=ptVisCols_(); var i=vis.map(function(c){return c[0];}).indexOf(k);
+  S._ptFreeze = i>=0 ? i+1 : 0; renderPhanTho();
+}
+function ptUnfreeze(){ S._ptFreeze=0; renderPhanTho(); }
 function ptColToggle(k){ S._ptCols=S._ptCols||{}; S._ptCols[k]=!S._ptCols[k]; renderPhanTho(); }
 // ===== Chức năng bảng (giống Bóc tách): rộng cột · đổi vị trí cột · sắp xếp =====
 function ptW_(c){ return (S._ptColW&&S._ptColW[c[0]])||c[3]; }
+function ptVisCols_(){
+  if(!S._ptOrder) S._ptOrder=PT_COLS.map(function(c){return c[0];});
+  var by={}; PT_COLS.forEach(function(c){ by[c[0]]=c; });
+  return S._ptOrder.map(function(k){ return by[k]; })
+    .filter(function(c){ return c && (!S._ptCols || S._ptCols[c[0]]); });
+}
 function ptColDragStart(e,k){ if(e.target&&e.target.closest&&e.target.closest('.ptrsz')){ e.preventDefault(); return; }
   S._ptDragK=k; try{ e.dataTransfer.setData('text/plain',k); }catch(x){} }
 function ptColDrop(e,k){ e.preventDefault(); var from=S._ptDragK; S._ptDragK=null; if(!from||from===k) return;
@@ -5639,6 +5654,9 @@ function renderPhanTho(){
     })+'<td></td></tr>';
   // (VAT + Thành tiền sau thuế đã hiển thị ở thanh tổng phía trên -> bỏ khỏi bảng cho gọn)
 
+  // cố định tối đa 2 cột đầu (giống bảng Bóc tách)
+  var frz=Math.min(S._ptFreeze||0, 2, ptVis.length);
+  var frzVar=frz?(' style="--frz1w:'+ptW_(ptVis[0])+'px"'):'';
   var colg='<colgroup>'+ptVis.map(function(c){ return '<col style="width:'+ptW_(c)+'px">'; }).join('')+'<col style="width:34px"></colgroup>';
   // header: bấm nhãn = sắp xếp · kéo th = đổi vị trí cột · kéo mép = chỉnh rộng (giống bảng Bóc tách)
   var thead='<tr>'+ptVis.map(function(c){
@@ -5650,7 +5668,10 @@ function renderPhanTho(){
         +'<span class="ptrsz" data-k="'+c[0]+'"></span></th>';
     }).join('')+'<th></th></tr>';
   // hàng CHIP chọn cột (giống Bóc tách)
+  var frzLbl=frz?('Bỏ cố định ('+frz+' cột)'):'Cố định cột';
   var ptChips='<div class="colchips pt-colchips"><span class="cp-collbl">Cột hiển thị</span>'
+    +'<span class="chip ptfrz'+(frz?' on':'')+'" title="Cố định cột trái khi cuộn ngang, như bảng Bóc tách" onclick="'
+      +(frz?'ptUnfreeze()':'ptFreezeTo(\''+(ptVis[1]?ptVis[1][0]:ptVis[0][0])+'\')')+'">'+esc(frzLbl)+'</span>'
     +PT_COLS.map(function(c){ return '<span class="chip'+(S._ptCols[c[0]]?' on':'')+'" onclick="ptColToggle(\''+c[0]+'\')">'+esc(c[1])+'</span>'; }).join('')+'</div>';
 
   // Thanh tổng dùng chung (giống các hạng mục SP khác) — hiện cho cả Phần thô
@@ -5669,7 +5690,7 @@ function renderPhanTho(){
       + '<button class="btn blue sm" onclick="ptAddSection()">'+icon('plus',14)+' Thêm hạng mục</button>'
     + '</div>'
     + ptChips
-    + '<div class="pt-scroll"><table class="pt">'+colg+'<thead>'+thead+'</thead><tbody>'+body+'</tbody></table></div>';
+    + '<div class="pt-scroll"><table class="pt'+(frz?(' frz'+frz):'')+'"'+frzVar+'>'+colg+'<thead>'+thead+'</thead><tbody>'+body+'</tbody></table></div>';
   // giãn sẵn các ô chữ để hiện ĐỦ nội dung, không bị cắt (giống bảng Bóc tách)
   pw.querySelectorAll('textarea.pt-area').forEach(autoGrow);
 }

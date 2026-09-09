@@ -3299,6 +3299,25 @@ table.tk .pimg{width:82px;max-width:100%;height:auto;aspect-ratio:1/1;object-fit
 .sp-cbtog:hover{background:#dce9ff}
 .sp-table tr.sp-cbrow>td{background:var(--stripe);padding:8px 12px;border-top:none}
 .sp-table tr.sp-cbrow .ccombo{max-width:560px;padding:0;background:transparent;border:none}
+
+/* ═══ CỐ ĐỊNH CỘT bảng khái toán — cùng cách làm với bảng Bóc tách (.tk.frz1/.frz2) ═══ */
+table.pt.frz1 tbody td:first-child,table.pt.frz2 tbody td:first-child{position:sticky;left:0;z-index:3}
+table.pt.frz2 tbody td:nth-child(2){position:sticky;left:var(--frz1w);z-index:3}
+table.pt.frz1 thead th:first-child,table.pt.frz2 thead th:first-child{position:sticky;left:0;z-index:7}
+table.pt.frz2 thead th:nth-child(2){position:sticky;left:var(--frz1w);z-index:7}
+table.pt.frz1 tbody tr.pt-row td:first-child,table.pt.frz2 tbody tr.pt-row td:first-child,
+table.pt.frz2 tbody tr.pt-row td:nth-child(2){background:#fff}
+table.pt.frz1 tbody tr.pt-sec td:first-child,table.pt.frz2 tbody tr.pt-sec td:first-child,
+table.pt.frz2 tbody tr.pt-sec td:nth-child(2),
+table.pt.frz1 tbody tr.pt-total td:first-child,table.pt.frz2 tbody tr.pt-total td:first-child,
+table.pt.frz2 tbody tr.pt-total td:nth-child(2){background:#e9ecef}
+table.pt.frz1 tbody tr.pt-spacer td:first-child,table.pt.frz2 tbody tr.pt-spacer td:first-child,
+table.pt.frz2 tbody tr.pt-spacer td:nth-child(2){background:#fff}
+table.pt.frz1 tbody tr.pt-row:hover td:first-child,table.pt.frz2 tbody tr.pt-row:hover td:first-child,
+table.pt.frz2 tbody tr.pt-row:hover td:nth-child(2){background:#f5f8fc}
+/* chip bật/tắt cố định cột */
+.pt-colchips .chip.ptfrz{border-color:var(--hair-2)}
+.pt-colchips .chip.ptfrz.on{background:var(--navy);color:#fff;border-color:var(--navy)}
 </style>
 
 <!-- ===== TOP NAV ===== -->
