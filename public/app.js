@@ -1965,18 +1965,14 @@ async function pdLoadCombo_(p, idx, dich, boxId){
       +'<div class="pd-cb-i">'
         +'<b>'+esc(x.ten||'')+(x.comboNguoc?' <span class="cb-rev">↔</span>':'')+'</b>'
         +'<i>'+esc(x.ma||'')+'</i>'
-        +'<span class="pd-cb-n">'
-          +'<span class="pd-cb-sl">'+ptQty(sl)+'</span>'
-          +'<span class="pd-cb-dg">'+money(dg)+'</span>'
-          +'<span class="pd-cb-tt">'+money(tt)+'</span>'
-        +'</span>'
+        // Cột chỉ ~288px: xếp SL/đơn giá/thành tiền thành 3 cột ngang thì tên bị cắt cụt
+        // và hàng tiêu đề lại nằm trên tên -> ghi thẳng "SL × đơn giá … thành tiền".
+        +'<span class="pd-cb-n"><em>'+ptQty(sl)+' × '+money(dg)+'</em><b>'+money(tt)+'</b></span>'
       +'</div>'
     +'</div>';
   }).join('');
   box.innerHTML='<div class="pd-block pd-combo">'
     +'<div class="pd-sec">Sản phẩm đi kèm <i>('+list.length+' sản phẩm)</i></div>'
-    +'<div class="pd-cb-head"><span class="pd-cb-sl">SL</span><span class="pd-cb-dg">ĐƠN GIÁ</span>'
-      +'<span class="pd-cb-tt">THÀNH TIỀN</span></div>'
     +rows
     +'<div class="pd-price"><span>Tổng combo kèm theo</span><b>'+money(tong)+' đ</b></div>'
     +'<div class="pd-foot2"><button class="pd-fbtn" title="Thêm sản phẩm chính và toàn bộ sản phẩm đi kèm vào '+esc(dich)+'"'
@@ -5298,9 +5294,9 @@ function catComboHtml_(p){
       var sl=Number(x.comboSL)||1, tt=(Number(x.donGiaBan)||0)*sl;
       return '<div class="ccb-r">'
         +(x.hinhAnh?'<img src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="ccb-img"></span>')
-        +'<span class="ccb-n" title="'+esc(x.ten||'')+'">'+esc(x.ten||'')+'</span>'
-        +'<span class="ccb-sl">×'+ptQty(sl)+'</span>'
-        +'<span class="ccb-tt">'+money(tt)+'</span></div>';
+        +'<span class="ccb-i"><b>'+esc(x.ten||'')+'</b>'
+          +'<span class="ccb-m"><em>'+ptQty(sl)+' × '+money(x.donGiaBan)+'</em><b>'+money(tt)+'</b></span></span>'
+      +'</div>';
     }).join('')
     +'<div class="ccb-f"><span>Tổng combo</span><b>'+money(tong)+' đ</b></div></div>';
 }

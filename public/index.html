@@ -3235,16 +3235,11 @@ table.pt td.dvt-cell,table.pt td.dvt-cell .pt-in{font-style:italic;color:#5b6b7b
 .pd .pd-combo .pd-cb-i{flex:1;min-width:0;display:block}
 .pd .pd-combo .pd-cb-i b{display:block;font-size:12px;font-weight:600;color:var(--ink);line-height:1.3;
   white-space:normal;overflow:visible;text-overflow:clip}          /* tên xuống dòng, KHÔNG cắt cụt */
-/* 3 cột số: SỐ LƯỢNG · ĐƠN GIÁ · THÀNH TIỀN — cùng lưới với hàng tiêu đề */
-.pd .pd-combo .pd-cb-head{display:flex;gap:6px;padding:6px 10px 4px 53px;font-size:9.5px;font-weight:700;
-  letter-spacing:.4px;color:var(--ink-3);border-bottom:1px solid var(--hair)}
-.pd .pd-combo .pd-cb-n{display:flex;gap:6px;margin-top:4px;font-variant-numeric:tabular-nums}
-.pd .pd-combo .pd-cb-sl{flex:0 0 34px;text-align:right}
-.pd .pd-combo .pd-cb-dg{flex:1 1 0;min-width:0;text-align:right}
-.pd .pd-combo .pd-cb-tt{flex:1 1 0;min-width:0;text-align:right}
-.pd .pd-combo .pd-cb-n .pd-cb-sl{font-size:11.5px;font-weight:700;color:var(--blue)}
-.pd .pd-combo .pd-cb-n .pd-cb-dg{font-size:11.5px;color:var(--ink-3)}
-.pd .pd-combo .pd-cb-n .pd-cb-tt{font-size:12.5px;font-weight:650;color:var(--navy);letter-spacing:-.02em}
+/* SL · đơn giá · thành tiền ghi thẳng trên dòng: "1 × 196.000 …… 196.000" */
+.pd .pd-combo .pd-cb-n{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:4px;
+  font-variant-numeric:tabular-nums}
+.pd .pd-combo .pd-cb-n em{font-style:normal;font-size:11.5px;color:var(--ink-3);white-space:nowrap}
+.pd .pd-combo .pd-cb-n b{font-size:13px;font-weight:700;color:var(--navy);letter-spacing:-.02em;white-space:nowrap}
 .pd .pd-combo .pd-cb-i i{flex:1;min-width:0;display:block;font-style:normal;font-size:10.5px;
   color:var(--ink-3);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pd .pd-combo .pd-cb-gia{flex:none;font-size:12.5px;font-weight:650;color:var(--navy);
@@ -3278,18 +3273,21 @@ table.tk .pimg{width:82px;max-width:100%;height:auto;aspect-ratio:1/1;object-fit
   display:inline-flex;align-items:center;justify-content:center;transition:transform .14s,background .12s}
 .citem .cbtog:hover{background:#dce9ff}
 .citem .cbtog.on{transform:rotate(90deg)}
-.citem>.ccombo{grid-column:3 / -1;margin:6px 0 2px;padding:8px 9px;background:var(--stripe);
+.citem>.ccombo{grid-column:1 / -1;margin:7px 0 2px;padding:9px 10px;background:var(--stripe);
   border:1px solid var(--hair-2);border-radius:var(--r-md)}
 .ccombo .ccb-load{font-size:10.5px;color:var(--ink-3)}
-.ccombo .ccb-r{display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--hair)}
+.ccombo .ccb-r{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--hair)}
 .ccombo .ccb-r:last-of-type{border-bottom:none}
 .ccombo .ccb-r img,.ccombo .ccb-img{width:22px;height:22px;flex:none;border-radius:4px;border:1px solid var(--hair);
   background:#fff;object-fit:contain}
-.ccombo .ccb-n{flex:1;min-width:0;font-size:11px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ccombo .ccb-sl{flex:none;font-size:10.5px;font-weight:700;color:var(--blue)}
-.ccombo .ccb-tt{flex:none;font-size:11px;font-weight:650;color:var(--navy);font-variant-numeric:tabular-nums}
-.ccombo .ccb-f{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:6px;
-  padding-top:6px;border-top:1px dashed var(--hair-2);font-size:10.5px;color:var(--ink-3)}
+.ccombo .ccb-i{flex:1;min-width:0;display:block}
+.ccombo .ccb-i>b{display:block;font-size:11.5px;font-weight:600;color:var(--ink);line-height:1.3}
+.ccombo .ccb-m{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:2px;
+  font-variant-numeric:tabular-nums}
+.ccombo .ccb-m em{font-style:normal;font-size:10.5px;color:var(--ink-3);white-space:nowrap}
+.ccombo .ccb-m b{font-size:11.5px;font-weight:700;color:var(--navy);white-space:nowrap}
+.ccombo .ccb-f{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:7px;
+  padding-top:7px;border-top:1px dashed var(--hair-2);font-size:11px;color:var(--ink-3);white-space:nowrap}
 .ccombo .ccb-f b{font-size:12px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums}
 
 /* nút mở combo trên dòng bảng Danh sách SP */
