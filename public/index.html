@@ -3247,6 +3247,13 @@ table.pt td.dvt-cell,table.pt td.dvt-cell .pt-in{font-style:italic;color:#5b6b7b
 .pd .pd-combo .pd-foot2{margin-top:10px}
 .pd .pd-combo .pd-fbtn{background:#fff;border-color:rgba(37,99,235,.28);color:var(--blue);font-weight:600}
 .pd .pd-combo .pd-fbtn:hover{border-color:var(--blue);background:var(--blue);color:#fff}
+
+/* ═══ ẢNH TRONG BẢNG: co theo bề rộng cột, KHÔNG bị cắt ═══
+   Trước để width/height cố định 82px; kéo hẹp cột thì ô overflow:hidden xén mất
+   một bên ảnh -> trông như sai tỉ lệ. Nay ảnh nhỏ lại theo cột, luôn giữ ô vuông. */
+table.tk .pimg{width:82px;max-width:100%;height:auto;aspect-ratio:1/1;object-fit:contain}
+.sp-table .sp-th{width:44px;max-width:100%;height:auto;aspect-ratio:1/1;object-fit:contain}
+.citem .thumb{max-width:100%;aspect-ratio:1/1;object-fit:contain}
 </style>
 
 <!-- ===== TOP NAV ===== -->

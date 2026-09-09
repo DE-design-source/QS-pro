@@ -4,3 +4,6 @@ server/tables.local.json
 *.log
 .DS_Store
 
+
+# Bản xuất dữ liệu production — KHÔNG commit (chứa dữ liệu khách hàng)
+export/
