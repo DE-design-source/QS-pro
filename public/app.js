@@ -858,9 +858,10 @@ function renderCatalog(){
       +'<button class="cfav'+(p.yeuThich?' on':'')+'" title="'+(p.yeuThich?'Bỏ khỏi sản phẩm yêu thích':'Thêm vào sản phẩm yêu thích')+'" onclick="event.stopPropagation();catFav('+i+','+(p.yeuThich?0:1)+')">'+icon('star',14)+'</button>'
       +'<button class="add" title="Thêm vào bóc tách" onclick="addProduct('+i+')">+</button>'
       // hàng chip thông số nằm RIÊNG 1 hàng, rộng hết thẻ -> đủ chỗ, không cắt, không rớt dòng
+      +(p.comboN?'<span class="cc-tag">Combo</span>':'')
       +(specs?'<div class="cspecs" onclick="showDetail('+i+')">'+specs+'</div>':'')
-      +(catCbMo_(p)?catComboHtml_(p):'')
-    +'</div>';
+    +'</div>'
+    +(catCbMo_(p)?catComboHtml_(p,i):'');            // thành phần combo = thẻ SP thật, nằm ngang hàng
   }).join('');
   S._filtered=list;
 }
@@ -1331,7 +1332,24 @@ async function spFavBulk(on){
 }
 /* ═══ MỞ COMBO NGAY TRÊN DÒNG (bảng Danh sách SP) ═══ dùng chung kho dữ liệu với thư viện Bóc tách */
 function spCbMo_(p){ return !!(S._catCbOpen && S._catCbOpen[catCbKey_(p)]); }
-function spComboHtml_(p){ return catComboHtml_(p); }
+/* Bảng Danh sách SP: dòng bung ra nằm trong 1 ô <td>, không dùng thẻ SP như panel
+   -> render bản gọn: ảnh · tên/mã · "SL × đơn giá" · thành tiền. */
+function spComboHtml_(p){
+  var ds=(S._catCb||{})[catCbKey_(p)];
+  if(!ds) return '<div class="sp-cbnote">Đang tải sản phẩm đi kèm…</div>';
+  if(!ds.length) return '<div class="sp-cbnote">Không có sản phẩm đi kèm.</div>';
+  var tong=ds.reduce(function(s,x){ return s+(Number(x.donGiaBan)||0)*(Number(x.comboSL)||1); },0);
+  return '<div class="sp-cblist">'
+    +ds.map(function(x){
+      var sl=Number(x.comboSL)||1, tt=(Number(x.donGiaBan)||0)*sl;
+      return '<div class="sp-cbr">'
+        +(x.hinhAnh?'<img src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="sp-cbimg"></span>')
+        +'<span class="sp-cbi"><b>'+esc(x.ten||'')+'</b><i>'+esc(x.ma||'')+'</i></span>'
+        +'<span class="sp-cbq">'+ptQty(sl)+' × '+money(x.donGiaBan)+'</span>'
+        +'<span class="sp-cbt">'+money(tt)+'</span></div>';
+    }).join('')
+    +'<div class="sp-cbf"><span>Tổng combo</span><b>'+money(tong)+' đ</b></div></div>';
+}
 async function spComboToggle_(i){
   var p=(S._spList||[])[i]; if(!p) return;
   var k=catCbKey_(p); if(!k) return;
@@ -5303,21 +5321,41 @@ function renderPTLibrary(){
    Dữ liệu nạp 1 lần rồi giữ lại trong S._catCb để lần sau mở tức thì.            */
 function catCbKey_(p){ return String((p&&(p.recordId||p.ma))||''); }
 function catCbMo_(p){ return !!(S._catCbOpen && S._catCbOpen[catCbKey_(p)]); }
-function catComboHtml_(p){
+function catComboHtml_(p, idx){
   var ds=(S._catCb||{})[catCbKey_(p)];
-  if(!ds) return '<div class="ccombo"><span class="ccb-load">Đang tải sản phẩm đi kèm…</span></div>';
-  if(!ds.length) return '<div class="ccombo"><span class="ccb-load">Không có sản phẩm đi kèm.</span></div>';
-  var tong=ds.reduce(function(s,x){ return s+(Number(x.donGiaBan)||0)*(Number(x.comboSL)||1); },0);
-  return '<div class="ccombo">'
-    +ds.map(function(x){
-      var sl=Number(x.comboSL)||1, tt=(Number(x.donGiaBan)||0)*sl;
-      return '<div class="ccb-r">'
-        +(x.hinhAnh?'<img src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="ccb-img"></span>')
-        +'<span class="ccb-i"><b>'+esc(x.ten||'')+'</b>'
-          +'<span class="ccb-m"><em>'+ptQty(sl)+' × '+money(x.donGiaBan)+'</em><b>'+money(tt)+'</b></span></span>'
-      +'</div>';
-    }).join('')
-    +'<div class="ccb-f"><span>Tổng combo</span><b>'+money(tong)+' đ</b></div></div>';
+  if(!ds) return '<div class="cc-note">Đang tải sản phẩm đi kèm…</div>';
+  if(!ds.length) return '<div class="cc-note">Không có sản phẩm đi kèm.</div>';
+  S._catCbIdx=S._catCbIdx||{}; S._catCbIdx[catCbKey_(p)]=ds;
+  var pk=esc(catCbKey_(p));
+  return ds.map(function(x,k){
+    var sl=Number(x.comboSL)||1;
+    var brand=esc(x.thuongHieu||'');
+    var specs=spSpecs_(x); if(specs.indexOf('muted')>=0) specs='';
+    var img=x.hinhAnh
+      ? '<img class="thumb" src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">'
+      : '<div class="thumb"></div>';
+    return '<div class="citem cc-child'+(k===ds.length-1?' last':'')+'">'
+      +'<div class="no"><span class="cc-no">'+((idx+1)+'.'+(k+1))+'</span></div>'+img
+      +'<div class="cmid">'
+        +'<div class="nm">'+esc(x.ten||'')+'</div>'
+        +'<div class="meta"><span class="pr">'+money(x.donGiaBan)+' đ</span>'
+          +((brand||sl>1)?('<span class="metarow">'
+            +(brand?'<span class="sz brand">'+brand+'</span>':'')
+            +(sl>1?'<span class="sz cbsl" title="Số lượng đi kèm">×'+ptQty(sl)+'</span>':'')
+          +'</span>'):'')+'</div>'
+      +'</div>'
+      +'<button class="add" title="Thêm sản phẩm này vào bóc tách" onclick="catAddChild_(\''+pk+'\','+k+')">+</button>'
+      +'<span class="cc-tag on">Combo</span>'
+      +(specs?'<div class="cspecs">'+specs+'</div>':'')
+    +'</div>';
+  }).join('');
+}
+// Thêm 1 thành phần combo vào bóc tách, đúng số lượng đi kèm
+async function catAddChild_(pk, k){
+  var ds=(S._catCbIdx||{})[pk]||(S._catCb||{})[pk]||[];
+  var x=ds[k]; if(!x) return;
+  await addProdObj(x, S.selFloor||'', Number(x.comboSL)||1);
+  toast('Đã thêm: '+String(x.ten||'').split('\n')[0]);
 }
 async function catComboToggle_(i){
   var p=(S._filtered||[])[i]; if(!p) return;
