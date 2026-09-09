@@ -118,7 +118,7 @@ const ADMIN_FNS = new Set(['adminListUsers', 'adminCreateUser', 'adminUpdateUser
 
 // ===== Gửi yêu cầu mua hàng tới webhook Lark (bot incoming webhook) =====
 const PURCHASE_WEBHOOK = process.env.PURCHASE_WEBHOOK ||
-  'https://open.larksuite.com/open-apis/bot/v2/hook/42c47fe7-d95e-472b-bb0c-6473d456b91a';
+  'https://open.larksuite.com/open-apis/bot/v2/hook/865751f9-d3e8-4e8e-9b4e-e0fa53ef4698';
 function fmtVN(n) { return (Math.round(Number(n) || 0)).toLocaleString('vi-VN'); }
 function buildPurchaseCard(o) {
   o = o || {};
