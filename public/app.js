@@ -4539,15 +4539,15 @@ function impRecentList(){
     var sua = p.ma
       ? '<button class="imp-redit" title="'+(p.nhieuBienThe?'Sửa biến thể đầu tiên của mã '+esc(p.ma):'Sửa lại sản phẩm này')+'" onclick="impEditSession_('+i+')">'+icon('edit',13)+'</button>'
       : '<span class="imp-redit dis" title="Không rõ mã sản phẩm — mở Danh sách sản phẩm để sửa">'+icon('edit',13)+'</span>';
-    return '<tr><td class="c">'+(i+1)+'</td><td class="imp-rname">'+esc(p.ten||'')
+    return '<tr><td class="c imp-ract">'+sua+'</td><td class="c">'+(i+1)+'</td>'
+      +'<td class="imp-rname">'+esc(p.ten||'')
       +(p.ma?'<i class="imp-rma">'+esc(p.ma)+'</i>':'')+'</td><td class="c">'+img+'</td>'
-      +'<td>'+esc(p.thuongHieu||'—')+'</td><td class="imp-rdate">'+(impDateTime_(p.capNhat)||'—')+'</td>'
-      +'<td class="c imp-ract">'+sua+'</td></tr>';
+      +'<td>'+esc(p.thuongHieu||'—')+'</td><td class="imp-rdate">'+(impDateTime_(p.capNhat)||'—')+'</td></tr>';
   }).join('') || '<tr><td colspan="6" class="empty" style="padding:24px 12px;font-size:12.5px;line-height:1.5">Chưa nhập sản phẩm nào trong phiên này.<br>Sản phẩm bạn <b>thêm / nhập file</b> ở phiên này sẽ hiện ở đây.</td></tr>';
   return '<div class="imp-recent-h">Sản phẩm vừa nhập (phiên này) <span class="count">'+pad2(ps.length)+'</span></div>'
     +'<div class="imp-recent-note">Danh sách này chỉ ghi lại thao tác của <b>phiên đang mở</b> — tải lại trang sẽ trống. '
     +'Sản phẩm đã lưu <b>vẫn nằm trong Database</b>: <a onclick="showTab(\'sanpham\')">xem Danh sách sản phẩm →</a></div>'
-    +'<div class="imp-recent-b"><table class="imp-rtbl"><thead><tr><th class="c">STT</th><th>Tên sản phẩm</th><th class="c">Hình ảnh</th><th>Thương hiệu</th><th>Ngày cập nhật</th><th class="c">Sửa</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    +'<div class="imp-recent-b"><table class="imp-rtbl"><thead><tr><th class="c">Sửa</th><th class="c">STT</th><th>Tên sản phẩm</th><th class="c">Hình ảnh</th><th>Thương hiệu</th><th>Ngày cập nhật</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 /* ═══ SỬA LẠI SẢN PHẨM NGAY Ở PANEL "SP VỪA NHẬP" ═══
    Mở đúng modal Cập nhật sản phẩm đang dùng ở Danh sách SP, nên mọi trường,

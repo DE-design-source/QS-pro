@@ -3382,6 +3382,14 @@ tr.pt-row:hover .pt-del button{opacity:1}
 .imp-redit:hover{border-color:var(--blue);color:var(--blue);background:#f6faff}
 .imp-redit.dis{opacity:.35;cursor:not-allowed}
 .imp-rma{display:block;margin-top:1px;font-style:normal;font-size:10.5px;color:var(--ink-3);letter-spacing:.01em}
+
+/* ═══ Cột Ảnh: căn giữa ═══
+   Rule cũ đặt padding-left:16px + text-align mặc định nên ảnh lệch hẳn sang trái
+   (lề 16px bên trái, 28px bên phải). Cột này người dùng kéo rộng hẹp được nên
+   phải căn giữa động, không dùng padding cố định. */
+.sp-table th.thumbcol,.sp-table td.thumbcol{padding-left:0;padding-right:0;text-align:center}
+.sp-table td.thumbcol .sp-th{display:inline-block;vertical-align:middle}
+.sp-table th.thumbcol .thl{width:100%;text-align:center}
 </style>
 
 <!-- ===== TOP NAV ===== -->
