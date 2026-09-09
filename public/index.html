@@ -3368,6 +3368,11 @@ tr.pt-row:hover .pt-del button{opacity:1}
 .citem.cc-child .cc-no{font-size:10.5px;font-weight:700;color:var(--blue)}
 /* rê vào thẻ con -> sáng cả nhánh cho dễ theo dõi */
 .citem.cc-child:hover::before,.citem.cc-child:hover::after{background:var(--blue)}
+
+/* nút ★ đang bật lọc */
+.favgo-btn.on{background:var(--amber);border-color:var(--amber);color:#fff}
+.favgo-btn.on .favgo-n{color:#fff}
+.favgo-btn.on:hover{background:#c26a05;border-color:#c26a05}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -3469,7 +3474,7 @@ tr.pt-row:hover .pt-del button{opacity:1}
       <!-- LEFT: filter + catalog -->
       <div class="panel catpanel" id="leftCat">
         <div class="catpanel-top">
-          <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><span class="sp" style="flex:1"></span><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg> Bộ lọc<span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button><button class="favgo-btn" id="favGoBtn" onclick="goFavList()" title="Mở Danh sách sản phẩm — tab Yêu thích"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg><span class="favgo-n" id="favGoN"></span></button></div>
+          <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><span class="sp" style="flex:1"></span><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg> Bộ lọc<span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button><button class="favgo-btn" id="favGoBtn" onclick="catFavToggle()"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg><span class="favgo-n" id="favGoN"></span></button></div>
 
           <!-- 3 bộ chọn (theo Figma) -->
           <div class="mlbl">Đề mục</div>
