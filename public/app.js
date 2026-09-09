@@ -4764,7 +4764,7 @@ function impImgCell2_(p,i){
 function impCellVal_(p,h){ var v=(p._raw&&p._raw[h]); return v==null?'':String(v); }
 function impRow_(p,i){
   var heads=S._impHeaders||[];
-  return '<tr><td class="iiimgtd" id="impimg_'+i+'">'+impImgCell2_(p,i)+'</td>'
+  return '<tr><td class="iisttd">'+(i+1)+'</td><td class="iiimgtd" id="impimg_'+i+'">'+impImgCell2_(p,i)+'</td>'
     +heads.map(function(h){ return '<td class="iied" contenteditable="true" spellcheck="false" data-i="'+i+'" data-h="'+esc(h)+'" oninput="impEdit(this)">'+esc(impCellVal_(p,h))+'</td>'; }).join('')+'</tr>';
 }
 function impEdit(el){
@@ -4820,7 +4820,7 @@ function impShow(res){
   pv.innerHTML=
     '<div class="imp-pv-info"><div class="imp-pv-h">Đọc được <b>'+res.count+'</b> sản phẩm · <b>'+heads.length+'</b> cột từ file</div>'
     +'<div class="imp-pv-sub">'+icon('image',15)+' Tải <b>ảnh chính</b> và <b>ảnh chi tiết</b> cho từng SP ở cột đầu — <b id="impImgCount">0</b>/'+res.count+' đã có ảnh</div></div>'
-    +'<div class="imp-pv-wrap"><table class="imp-pvtbl"><thead><tr><th class="iiimgth">Ảnh (chính + chi tiết)</th>'
+    +'<div class="imp-pv-wrap"><table class="imp-pvtbl"><thead><tr><th class="iistth">STT</th><th class="iiimgth">Ảnh (chính + chi tiết)</th>'
       +heads.map(function(h){return '<th>'+esc(h)+'</th>';}).join('')+'</tr></thead><tbody id="impBody">'+rows+'</tbody></table></div>'
     +'<div class="imp-pv-foot"><button class="btn blue" onclick="impCommit(this)">'+icon('check',15)+' Nhập '+res.count+' sản phẩm vào danh mục</button>'
       +'<span class="imp-pv-note">Cột nhận diện & map DB: '+recog+'</span></div>';
