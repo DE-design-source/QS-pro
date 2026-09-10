@@ -670,6 +670,62 @@ async function exportProductsXlsx(keys) {
   return { name: 'danh-sach-san-pham-' + new Date().toISOString().slice(0, 10) + '.xlsx', count: ds.length, buf: buf };
 }
 // Tải file: POST vì danh sách mã có thể dài, và cần token trong body
+/* Xuất danh sách CÔNG TÁC xây dựng (Phần thô) ra Excel.
+   Thư viện công tác nằm ở client (PT_TEMPLATE + phần người dùng sửa), nên client gửi
+   thẳng các dòng đang xem — server chỉ dựng file cho đúng định dạng.                */
+const CT_COLS = [
+  ['stt', 'STT', 6], ['loai', 'LOẠI BÁO GIÁ', 20], ['hangMuc', 'HẠNG MỤC', 30],
+  ['noiDung', 'NỘI DUNG CÔNG VIỆC', 52], ['dvt', 'ĐVT', 9],
+  ['khoiLuong', 'KHỐI LƯỢNG', 13], ['dienTich', 'DIỆN TÍCH', 12], ['heSo', 'HỆ SỐ', 9],
+  ['dgnt', 'ĐƠN GIÁ (NHÀ THẦU)', 20], ['dg', 'ĐƠN GIÁ', 16], ['ghiChu', 'GHI CHÚ', 46]
+];
+async function exportCongTacXlsx(rows) {
+  const ExcelJS = require('exceljs');
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'Dezon Pro';
+  const ws = wb.addWorksheet('Cong tac xay dung', { views: [{ state: 'frozen', ySplit: 1 }] });
+  ws.columns = CT_COLS.map(c => ({ header: c[1], key: c[0], width: c[2] }));
+  const head = ws.getRow(1);
+  head.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+  head.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+  head.height = 30;
+  head.eachCell(c => { c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF14304F' } }; });
+  (rows || []).forEach(function (r) {
+    const row = ws.addRow({
+      stt: r.stt, loai: r.loai || '', hangMuc: r.hangMuc || '', noiDung: r.noiDung || '',
+      dvt: r.dvt || '', khoiLuong: r.khoiLuong === '' ? null : Number(r.khoiLuong) || null,
+      dienTich: r.dienTich === '' ? null : Number(r.dienTich) || null,
+      heSo: r.heSo === '' ? null : Number(r.heSo) || null,
+      dgnt: r.dgnt === '' ? null : Number(r.dgnt) || null,
+      dg: r.dg === '' ? null : Number(r.dg) || null, ghiChu: r.ghiChu || ''
+    });
+    row.alignment = { vertical: 'top', wrapText: true };
+    row.getCell('stt').alignment = { vertical: 'top', horizontal: 'center' };
+    row.getCell('dvt').alignment = { vertical: 'top', horizontal: 'center' };
+    ['dgnt', 'dg'].forEach(k => { row.getCell(k).numFmt = '#,##0'; });
+    ['khoiLuong', 'dienTich', 'heSo'].forEach(k => { row.getCell(k).numFmt = '#,##0.##'; });
+  });
+  ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: CT_COLS.length } };
+  const buf = await wb.xlsx.writeBuffer();
+  return { buf, count: (rows || []).length, name: 'cong-tac-xay-dung.xlsx' };
+}
+app.post('/export/cong-tac', async function (req, res) {
+  const tok = (req.headers.authorization || '').replace(/^Bearer\s+/i, '') || (req.body && req.body.token) || '';
+  const actor = tok ? auth.verifyToken(tok) : null;
+  if (!actor) return res.status(401).json({ error: 'Chưa đăng nhập' });
+  try {
+    const rows = (req.body && Array.isArray(req.body.rows)) ? req.body.rows.slice(0, 5000) : [];
+    if (!rows.length) return res.status(400).json({ error: 'Không có dòng nào để xuất' });
+    const out = await exportCongTacXlsx(rows);
+    res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.set('Content-Disposition', 'attachment; filename="' + out.name + '"');
+    res.set('X-Row-Count', String(out.count));
+    res.send(Buffer.from(out.buf));
+  } catch (e) {
+    console.error('[export cong tac] lỗi:', e && e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
 app.post('/export/san-pham', async function (req, res) {
   const tok = (req.headers.authorization || '').replace(/^Bearer\s+/i, '') || (req.body && req.body.token) || '';
   const actor = tok ? auth.verifyToken(tok) : null;
