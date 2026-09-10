@@ -3878,6 +3878,46 @@ input::placeholder,textarea::placeholder{color:var(--c4)}
 .spp-show:hover{border-color:var(--blue);background:#f7fbff}
 .spp-show:hover::after{color:var(--blue)}
 .spp-show-n{font-size:10px;font-weight:700;color:#fff;background:var(--navy);border-radius:var(--rp);padding:1px 6px}
+
+/* ── Tab Nhập dữ liệu: tiêu đề → chọn hạng mục → số liệu → nội dung ── */
+.imp-sechd{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
+.imp-sub{font-size:var(--t-sm);color:var(--c3)}
+.imp-sub b{color:#c0392b}
+.imp-statbar{margin:0 0 16px;padding:12px 16px;border:1px solid var(--ln);border-radius:var(--rk);
+  background:var(--bg2);box-shadow:none;gap:22px}
+.imp-stat-v{font-size:var(--t-lg);font-weight:600;color:var(--c1);letter-spacing:-.02em}
+.imp-stat-l{font-size:var(--t-xs);color:var(--c3)}
+.imp-nganh label{font-size:var(--t-xs);color:var(--c3);font-weight:600}
+/* vùng tải ảnh: thấp lại, không chiếm nửa màn hình */
+.upzone{min-height:132px;border-radius:var(--rk);border:1.5px dashed var(--ln2);background:var(--bg2)}
+.upzone:hover{border-color:var(--blue);background:#f7fbff}
+.dbcard-h .dbcard-ic{color:var(--c3)}
+/* panel bên phải */
+.imp-recent{border-radius:var(--rk);border:1px solid var(--ln);box-shadow:var(--e1)}
+.imp-rhd h3{font-size:var(--t-md);font-weight:600}
+.imp-rn{font-size:var(--t-xs);font-weight:600;color:var(--c3);background:var(--bg3);border-radius:var(--rp);padding:2px 8px}
+.imp-rempty{font-size:var(--t-sm);color:var(--c3);line-height:1.6}
+
+/* vùng tải ảnh thấp lại (trước 230px chiếm gần nửa màn hình đầu tiên) */
+.imgup .upzone{height:150px;min-height:0;border-radius:var(--rk)}
+.imgup .upzone .upic svg{width:20px;height:20px}
+.imgup .upzone b,.imgup .upzone strong{font-size:var(--t-sm)}
+.imgup .upzone small,.imgup .upzone .uphint{font-size:var(--t-xs)}
+
+/* ── Chốt lại: nút biểu tượng 28px, không còn cỡ chữ lẻ 10 / 10.5 / 12.5 / 13.33 ── */
+.sp-act,.dh-ic,.imp-redit,.spp-hide,.pd-x,.amodal-x,.colpop-x,.iix{
+  width:28px;height:28px;border-radius:var(--rc);display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid transparent;background:transparent;color:var(--c3);cursor:pointer;transition:.12s}
+.sp-act:hover,.dh-ic:hover,.imp-redit:hover,.spp-hide:hover,.pd-x:hover,.amodal-x:hover{
+  background:var(--bg3);color:var(--c1)}
+.sp-act.del:hover,.dh-ic.del:hover{background:#fdf1ef;color:#c0392b}
+.sp-act.fav.on{color:#f0b429}
+.sp-act.ok:hover{background:#eef9f1;color:#15803d}
+select,input,textarea,button{font-family:inherit}
+select:not([class]){font-size:var(--t-md);height:36px;border:1px solid var(--ln2);border-radius:var(--rc);padding:0 10px;background:#fff}
+.sp-code,.ct-ma,.macode,.draft-code,.spvt-n,.cnt,.count,.imp-rn,.colpop-i i,.fltag i,.dbnote small{font-size:var(--t-xs)}
+.sp-name .sp-code{font-size:10.5px;color:var(--c4)}
+.tbl-wrap table td .muted{color:var(--c4)}
 </style>
 
 <!-- ===== TOP NAV ===== -->

@@ -4114,6 +4114,59 @@ function dashProjCard_(g){
     +'<div class="dh-drafts">'+drafts+'</div>'
     +'<button class="dh-adddraft" onclick="addDraft('+gi+')">'+icon('plus',13)+' Thêm bản nháp</button></div>';
 }
+/* Chọn cột — dùng chung mẫu nút + bảng chọn cho tab Chi phí và tab Dự án */
+function colPopMake_(id,btnId,title,keys,isOn,onToggle,onAll){
+  var pop=document.getElementById(id);
+  function render(){
+    var p=document.getElementById(id); if(!p) return;
+    var on=keys.filter(isOn).length;
+    p.innerHTML='<div class="colpop-h"><b>'+esc(title)+'</b><span class="colpop-n">'+on+'/'+keys.length+'</span>'
+        +'<button class="colpop-x" onclick="colPopClose_(\''+id+'\')">✕</button></div>'
+      +'<div class="colpop-b">'+keys.map(function(k){
+          return '<label class="colpop-i"><input type="checkbox" '+(isOn(k)?'checked':'')
+            +' onchange="'+onToggle+'(\''+k+'\');colPopRefresh_(\''+id+'\')"><span>'+esc(cpLabel_(k))+'</span></label>';
+        }).join('')+'</div>'
+      +'<div class="colpop-f"><button class="btn ghost xs" onclick="'+onAll+'(1);colPopRefresh_(\''+id+'\')">Hiện tất cả</button>'
+        +'<button class="btn ghost xs" onclick="'+onAll+'(0);colPopRefresh_(\''+id+'\')">Chỉ cột cơ bản</button></div>';
+  }
+  S._colPopRender=S._colPopRender||{}; S._colPopRender[id]=render;
+  if(pop){ colPopClose_(id); return; }
+  pop=document.createElement('div'); pop.className='fltpop colpop'; pop.id=id;
+  document.body.appendChild(pop); render();
+  var btn=document.getElementById(btnId);
+  if(btn){ var r=btn.getBoundingClientRect(), w=pop.offsetWidth||300;
+    pop.style.top=(r.bottom+6)+'px'; pop.style.left=Math.max(8,Math.min(r.left, window.innerWidth-w-10))+'px'; }
+  S._colPopBtn=S._colPopBtn||{}; S._colPopBtn[id]=btnId;
+  setTimeout(function(){ document.addEventListener('mousedown',colPopOutside_); },0);
+}
+function colPopRefresh_(id){ var f=(S._colPopRender||{})[id]; if(f) f(); }
+function colPopClose_(id){ var p=document.getElementById(id); if(p) p.remove(); document.removeEventListener('mousedown',colPopOutside_); }
+function colPopOutside_(e){
+  ['cpColPop','daColPop'].forEach(function(id){
+    var p=document.getElementById(id); if(!p) return;
+    var btnId=(S._colPopBtn||{})[id];
+    if(e.target.closest('#'+id)||(btnId&&e.target.closest('#'+btnId))) return;
+    colPopClose_(id);
+  });
+}
+function cpColBar_(){
+  var on=CP_KEYS.filter(function(k){ return S.cpCols[k]; }).length;
+  return '<div class="colchips cp-colchips"><button class="btn ghost sm" id="cpColBtn" onclick="cpColPop_(event)" title="Chọn cột hiển thị">'
+    +icon('list',14)+' Cột <b class="tbn">'+on+'/'+CP_KEYS.length+'</b></button></div>';
+}
+function cpColPop_(e){ if(e&&e.stopPropagation) e.stopPropagation();
+  colPopMake_('cpColPop','cpColBtn','Cột hiển thị',CP_KEYS,function(k){ return !!S.cpCols[k]; },'cpToggle','cpColAll_'); }
+var CP_COL_CB=['ten','soLuong','giaDaiLy','donGia','thanhTien','lnVnd'];
+function cpColAll_(on){ CP_KEYS.forEach(function(k){ S.cpCols[k]= on?true:(CP_COL_CB.indexOf(k)>=0); }); renderChiphi(); }
+function daColBar_(){
+  var on=DA_KEYS.filter(function(k){ return S._daCols[k]; }).length;
+  return '<div class="colchips cp-colchips"><button class="btn ghost sm" id="daColBtn" onclick="daColPop_(event)" title="Chọn cột hiển thị">'
+    +icon('list',14)+' Cột <b class="tbn">'+on+'/'+DA_KEYS.length+'</b></button></div>';
+}
+function daColPop_(e){ if(e&&e.stopPropagation) e.stopPropagation();
+  colPopMake_('daColPop','daColBtn','Cột hiển thị',DA_KEYS,function(k){ return !!(S._daCols&&S._daCols[k]); },'daColToggle','daColAll_'); }
+var DA_COL_CB=['ten','soLuong','giaDaiLy','donGia','thanhTien','hinhAnh'];
+function daColAll_(on){ S._daCols=S._daCols||{}; DA_KEYS.forEach(function(k){ S._daCols[k]= on?true:(DA_COL_CB.indexOf(k)>=0); }); renderDuAn(); }
 function dashSearch_(v){ S._dashSearch=v; var grid=document.getElementById('dhProjGrid'); if(grid) grid.innerHTML=dashProjCards_(S._projGroups||projectGroups()); }
 
 /* ===== CHI PHÍ (bảng linh hoạt + chip chọn cột) ===== */
@@ -4145,8 +4198,7 @@ function renderChiphi(){
     +cpKpi_(icon('gauge',17),'Lợi nhuận',money(lnT)+' đ',lnCls)
     +cpKpi_(icon('gauge',17),'Biên lợi nhuận',bien.toFixed(1)+'%',lnCls)+'</div>';
   // hàng chip cột hiện sẵn (giống .colchips bên Bóc tách)
-  var colbar='<div class="colchips cp-colchips"><span class="cp-collbl">Cột hiển thị</span>'
-    +CP_KEYS.map(function(k){ return '<span class="chip'+(S.cpCols[k]?' on':'')+'" onclick="cpToggle(\''+k+'\')">'+esc(cpLabel_(k))+'</span>'; }).join('')+'</div>';
+  var colbar=cpColBar_();
   // ---- Bảng y hệt Bóc tách: colgroup + header navy + nhóm theo tầng + spacer + drow alt ----
   var ncol=keys.length+1;
   var totalW=64+keys.reduce(function(s,k){ return s+colW(k); },0);
@@ -4206,8 +4258,7 @@ function renderDuAn(){
     +cpKpi_(icon('money',17),'Tổng giá bán',money(ban)+' đ','blue')
     +cpKpi_(icon('gauge',17),'Tổng gồm VAT',money(ban+vat)+' đ','green')+'</div>';
   // chip chọn cột (hiện sẵn)
-  var colbar='<div class="colchips cp-colchips"><span class="cp-collbl">Cột hiển thị</span>'
-    +DA_KEYS.map(function(k){ return '<span class="chip'+(S._daCols[k]?' on':'')+'" onclick="daColToggle(\''+k+'\')">'+esc(cpLabel_(k))+'</span>'; }).join('')+'</div>';
+  var colbar=daColBar_();
   // bảng
   var ncol=keys.length+1;
   var totalW=64+keys.reduce(function(s,k){ return s+colW(k); },0);
@@ -5147,8 +5198,6 @@ function renderImport(){
   S._imgMain=''; S._imgList=[];
   var box=document.getElementById('v-import');
   var form='<div class="dbwrap">'
-    +'<div class="dbhead"><div><h2>Nhập dữ liệu</h2><p>Thêm sản phẩm vào danh mục <span style="color:#c33">* bắt buộc</span></p></div></div>'
-    +impLoaiTabs_()
     +imgSection()
     +DB_GROUPS.map(function(gr){
       return dbCard_(gr.g, DB_GICON[gr.g]||'doc', gr.note, '<div class="dbgrid">'+gr.f.map(dbInput).join('')+'</div>');
@@ -5172,7 +5221,10 @@ function renderImport(){
       +'<span class="imp-file-sep"></span><input type="file" id="impFile" accept=".xlsx,.xls,.csv" onchange="impPick(this)" style="font:inherit"></div>'
       +'<div id="impPreview" style="margin-top:12px"></div>')
     +'</div>';
-  box.innerHTML=impStatBar()+'<div class="imp-layout">'+form+'<div class="imp-recent" id="impRecentBox">'+impRecentList()+'</div></div>';
+  box.innerHTML='<div class="sechd imp-sechd"><h2>Nhập dữ liệu</h2>'
+      +'<span class="imp-sub">Thêm sản phẩm vào danh mục · <b>*</b> bắt buộc</span></div>'
+    +impLoaiTabs_()+impStatBar()
+    +'<div class="imp-layout">'+form+'<div class="imp-recent" id="impRecentBox">'+impRecentList()+'</div></div>';
 }
 /* Nhập dữ liệu — hạng mục PHẦN THÔ: thêm công tác xây dựng vào cơ sở dữ liệu */
 function renderImportPT_(){
@@ -5180,8 +5232,6 @@ function renderImportPT_(){
   var n=(S.congTac||[]).length;
   var chuaDuyet=(S.congTac||[]).filter(function(c){ return !c.daDuyet; }).length;
   var form='<div class="dbwrap">'
-    +'<div class="dbhead"><div><h2>Nhập dữ liệu</h2><p>Thêm công tác xây dựng vào thư viện Phần thô <span style="color:#c33">* bắt buộc</span></p></div></div>'
-    +impLoaiTabs_()
     +'<div class="dbcard ctcard"><div class="dbcard-b">'+ctFormHtml_({},'imp')+'</div></div>'
     +'<div class="savebar">'
       +'<label class="imp-ghck"><input type="checkbox" id="impCtGhi"'+(S._ctGhi?' checked':'')+' onchange="S._ctGhi=this.checked">'
@@ -5201,7 +5251,10 @@ function renderImportPT_(){
     +'</div>';
   var recent='<div class="imp-recent" id="impRecentBox">'+ctRecentList_()+'</div>';
   function stat(label,val){ return '<div class="imp-stat"><div class="imp-stat-v">'+val+'</div><div class="imp-stat-l">'+esc(label)+'</div></div>'; }
-  box.innerHTML='<div class="imp-statbar">'
+  box.innerHTML='<div class="sechd imp-sechd"><h2>Nhập dữ liệu</h2>'
+      +'<span class="imp-sub">Thêm công tác xây dựng vào thư viện Phần thô · <b>*</b> bắt buộc</span></div>'
+    +impLoaiTabs_()
+    +'<div class="imp-statbar">'
       +'<div class="imp-nganh"><label>Ngành hàng</label><div class="msel" style="min-width:190px"><span class="mlabel">Xây dựng · Phần thô</span><span class="mplus">▾</span></div></div>'
       +stat('Công tác trong CSDL',n)+stat('Chờ duyệt',chuaDuyet)+stat('Hạng mục',ctHangMucList_().length)
     +'</div>'
