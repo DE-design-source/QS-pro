@@ -5214,7 +5214,7 @@ function impStatBar(){
   var brands={}, nccs={}; ps.forEach(function(p){ if(p.thuongHieu)brands[p.thuongHieu]=1; if(p.ncc)nccs[p.ncc]=1; });
   function stat(label,val){ return '<div class="imp-stat"><div class="imp-stat-v">'+val+'</div><div class="imp-stat-l">'+esc(label)+'</div></div>'; }
   return '<div class="imp-statbar">'
-    +'<div class="imp-nganh"><label>Ngành hàng</label><div class="msel" style="min-width:190px"><span class="mlabel">Thiết bị đèn</span><span class="mplus">▾</span></div></div>'
+    +impNganhSel_()
     +stat('Số lượng SKU đã nhập',ps.length)
     +stat('Số lượng Brand',Object.keys(brands).length)
     +stat('Số lượng nhà cung cấp',Object.keys(nccs).length)
@@ -5280,13 +5280,16 @@ function nowIsoClient_(){ try{ return new Date().toISOString(); }catch(e){ retur
 // Tab Nhập dữ liệu có 2 hạng mục: Sản phẩm (đèn) và Phần thô (công tác xây dựng)
 function impLoai_(){ return S._impLoai||'sp'; }
 function impSetLoai(v){ S._impLoai=v; renderImport(); }
-function impLoaiTabs_(){
+// Chọn hạng mục để nhập — gộp thẳng vào ô "Ngành hàng" (trước đây là 1 hàng tab riêng)
+var IMP_LOAI=[['sp','Thiết bị đèn · sản phẩm'],['pt','Xây dựng · công tác phần thô']];
+function impNganhSel_(){
   var cur=impLoai_();
-  return '<div class="imp-loai">'
-    +'<button class="impl'+(cur==='sp'?' on':'')+'" onclick="impSetLoai(\'sp\')">'+icon('layers',15)+' Sản phẩm · thiết bị đèn</button>'
-    +'<button class="impl'+(cur==='pt'?' on':'')+'" onclick="impSetLoai(\'pt\')">'+icon('building',15)+' Phần thô · công tác xây dựng</button>'
-    +'</div>';
+  return '<div class="imp-nganh"><label>Ngành hàng</label>'
+    +'<select class="imp-nganh-sel" onchange="impSetLoai(this.value)">'
+      +IMP_LOAI.map(function(x){ return '<option value="'+x[0]+'"'+(cur===x[0]?' selected':'')+'>'+esc(x[1])+'</option>'; }).join('')
+    +'</select></div>';
 }
+function impLoaiTabs_(){ return ''; }
 function renderImport(){
   if(impLoai_()==='pt') return renderImportPT_();
   S._imgMain=''; S._imgList=[];
@@ -5332,16 +5335,6 @@ function renderImportPT_(){
         +' Thêm luôn vào bảng khái toán của dự án đang chọn'+(S.cur?(' — '+esc(S.cur.ten)):' (chưa chọn dự án)')+'</label>'
       +'<button class="btn blue block" onclick="ctImpSave(this)">'+icon('plus',15)+' Thêm công tác vào Database</button>'
       +'<button class="btn ghost sm" onclick="renderImport()" style="margin-top:8px">Xoá form</button></div>'
-    +dbCard_('Nhập hàng loạt từ file','download',
-        'Tải file mẫu → điền dữ liệu → chọn file lên. Hệ thống tự dò cột theo tiêu đề, xem trước rồi mới lưu.',
-        '<div class="imp-file-row"><a class="btn ghost sm" href="/mau-nhap-cong-tac.xlsx" download="Mau-nhap-cong-tac-DezonQS.xlsx">'+icon('download',14)+' Tải file mẫu</a>'
-        +'<span class="imp-file-sep"></span><input type="file" id="ctImpFile" accept=".xlsx,.xls,.csv" onchange="ctImpPick(this)" style="font:inherit"></div>'
-        +'<div id="ctImpPreview" style="margin-top:12px"></div>')
-    +dbCard_('Thư viện mẫu dựng sẵn','download',
-        'Ứng dụng có sẵn '+PT_TEMPLATE.filter(function(x){return !x.db;}).reduce(function(a,x){return a+x.items.length;},0)
-        +' công tác mẫu (khái toán chi tiết · sơ bộ · dự toán). Nạp vào cơ sở dữ liệu để chúng cũng có ảnh · duyệt · sửa.',
-        '<button class="btn ghost sm" onclick="ctSeedFromTemplate_()">'+icon('download',14)+' Nạp thư viện mẫu vào cơ sở dữ liệu</button>'
-        +'<div class="imp-note">Chỉ nạp được khi cơ sở dữ liệu chưa có công tác nào.</div>')
     +'</div>';
   var recent='<div class="imp-recent" id="impRecentBox">'+ctRecentList_()+'</div>';
   function stat(label,val){ return '<div class="imp-stat"><div class="imp-stat-v">'+val+'</div><div class="imp-stat-l">'+esc(label)+'</div></div>'; }
@@ -5349,7 +5342,7 @@ function renderImportPT_(){
       +'<span class="imp-sub">Thêm công tác xây dựng vào thư viện Phần thô · <b>*</b> bắt buộc</span></div>'
     +impLoaiTabs_()
     +'<div class="imp-statbar">'
-      +'<div class="imp-nganh"><label>Ngành hàng</label><div class="msel" style="min-width:190px"><span class="mlabel">Xây dựng · Phần thô</span><span class="mplus">▾</span></div></div>'
+      +impNganhSel_()
       +stat('Công tác trong CSDL',n)+stat('Chờ duyệt',chuaDuyet)+stat('Hạng mục',ctHangMucList_().length)
     +'</div>'
     +'<div class="imp-layout">'+form+recent+'</div>';
