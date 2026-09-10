@@ -323,7 +323,13 @@ async function boot(){
     ctLoad_(true).then(function(){ if(S.node==='3.1'||spPTMode_()) ctReload_(); });
   }catch(e){ toast('Lỗi tải: '+e.message); }
 }
-function renderAll(){ renderProjSel(); renderCard(); renderFilters(); renderCatalog(); renderTree(); renderColChips(); renderFloors(); renderTable(); }
+function renderAll(){
+  // Ô "Lọc theo đề mục" bên trái phải khớp với đề mục ĐANG BÓC ở bảng phải.
+  // Trước đây chỉ đồng bộ khi bấm chọn ở cây; mở lại trang là hai bên lệch nhau.
+  if(S.node && S.node!=='X' && S.demucCode!==S.node){ S.demucCode=S.node; S.demucKw=nodeName(S.node)||''; }
+  renderProjSel(); renderCard(); renderFilters(); renderCatalog(); renderTree(); renderColChips(); renderFloors(); renderTable();
+  updateDemucBox_&&updateDemucBox_();
+}
 
 /* ===== TẦNG (floors) ===== */
 function floorsList(){
@@ -2368,7 +2374,7 @@ function ptModal_(si,ii){
       +duyet+'<span class="pd-loai">'+esc(ptLoaiLabel_(sec.loai||'kt_chitiet'))+'</span>'
       +'<button class="pd-x" onclick="spClose()">✕</button></div>'
     +'<div class="pdm-grid">'
-      +'<div class="pdm-left">'+P.media+P.gia+P.foot+'</div>'
+      +'<div class="pdm-left">'+P.media+P.hero+P.foot+'</div>'
       +'<div class="pdm-right">'+P.chinh+P.thongSo+P.ghiChu+P.phamVi+P.thieu+'</div>'
     +'</div>'
     +'<div class="pd-actions">'
@@ -2927,7 +2933,11 @@ function renderTree(){
   document.getElementById('treeCnt').textContent='['+pad2(nodeCount(S.node))+']';
 }
 function toggleTree(){ var p=document.getElementById('treePop'); p.style.display=p.style.display==='none'?'block':'none'; }
-function pickNode(code){ S.node=code; document.getElementById('treePop').style.display='none'; renderTree(); renderTable(); setDemucFilter(code); }
+function pickNode(code){
+  S.node=code;
+  var tp=document.getElementById('treePop'); if(tp) tp.style.display='none';
+  renderTree(); renderTable(); setDemucFilter(code);      // ô lọc trái luôn khớp đề mục đang bóc
+}
 function pickNodeIdx(i){ var t=(S._tree||[])[i]; if(t) pickNode(t.code); }
 async function addCustomGroup(){
   if(!S.cur){ toast('Chưa chọn dự án'); return; }
@@ -7144,9 +7154,20 @@ function ptDetailParts_(si,ii){
   var loai=PT_LOAI.filter(function(x){ return x[0]===(sec.loai||'kt_chitiet'); })[0]||PT_LOAI[0];
   var ln=dgBan-dgNT, lnPct=dgBan?(ln/dgBan*100):0;
   var P={};
-  P.media = ptMedia_(imgs)
+  P.coAnh = imgs.length>0;
+  // Không có ảnh thì KHÔNG vẽ khung xám rỗng — chỉ hiện mã + tên
+  P.media = (imgs.length?ptMedia_(imgs):'')
     +'<div class="pcode">'+esc(sec.r)+'.'+(ii+1)+' · '+esc(String(sec.t).split('\n')[0])+'</div>'
     +'<div class="pd-name">'+esc(ten)+'</div>';
+  // Khối giá nổi bật: đơn giá bán là số to, giá vốn + lợi nhuận là 2 dòng nhỏ bên dưới
+  P.hero = '<div class="pt-hero">'
+      +'<div class="pt-hero-t">Đơn giá bán</div>'
+      +'<div class="pt-hero-v">'+money(dgBan)+'<i>đ'+(dvt?(' / '+esc(dvt)):'')+'</i></div>'
+      +((dgNT||ln)?('<div class="pt-hero-r">'
+        +(dgNT?'<span><em>Giá nhà thầu</em><b>'+money(dgNT)+' đ</b></span>':'')
+        +((dgBan&&dgNT)?'<span><em>Lợi nhuận</em><b class="'+(ln<0?'neg':'ok')+'">'+money(ln)+' đ · '+lnPct.toFixed(1)+'%</b></span>':'')
+      +'</div>'):'')
+    +'</div>';
   P.chinh = (function(){
       var rows=[['Tên / model', inf.model||''],['Hạng mục', String(sec.t).split('\n')[0]],
         ['Nhà thầu · nhà cung cấp', (ctr&&ctr.ncc)||''],
@@ -7168,15 +7189,14 @@ function ptDetailParts_(si,ii){
       var t=[]; if(!imgs.length) t.push('ảnh'); if(!inf.ts) t.push('thông số kỹ thuật');
       if(!gc) t.push('ghi chú'); if(!inf.pv) t.push('phạm vi ứng dụng');
       if(t.length<2) return '';
-      return '<div class="pd-block ptinf-empty">'+icon('doc',18)
-        +'<span>Công tác này chưa có <b>'+esc(t.join(', '))+'</b>. Bấm <b>Sửa</b> để bổ sung — nội dung được lưu lại cho những lần sau.</span></div>';
+      return '<div class="pt-thieu">Chưa có '+esc(t.join(' · '))+'</div>';
     })();
-  P.foot = '<div class="pd-price"><span>Đơn giá</span><b>'+money(dgBan)+' đ</b></div>'
-    +'<div class="pd-foot2">'
-      +(inf.tl?'<a class="pd-fbtn" href="'+esc(inf.tl)+'" target="_blank" rel="noopener">'+icon('doc',14)+' Tài liệu kỹ thuật</a>'
-             :'<span class="pd-fbtn dis" title="Chưa có link tài liệu cho công tác này">'+icon('doc',14)+' Tài liệu kỹ thuật</span>')
-      +(inf.tl?'<a class="pd-fbtn" href="'+esc(inf.tl)+'" download target="_blank" rel="noopener">'+icon('download',14)+' Tải về</a>':'')
-    +'</div>';
+  P.foot = inf.tl
+    ? ('<div class="pd-foot2">'
+        +'<a class="pd-fbtn" href="'+esc(inf.tl)+'" target="_blank" rel="noopener">'+icon('doc',14)+' Tài liệu kỹ thuật</a>'
+        +'<a class="pd-fbtn" href="'+esc(inf.tl)+'" download target="_blank" rel="noopener">'+icon('download',14)+' Tải về</a>'
+      +'</div>')
+    : '';
   P.ctr=ctr;
   return P;
 }
@@ -7272,9 +7292,14 @@ function ptShowDetail_(si,ii){
   S._ptDetail={si:si,ii:ii};
   var g=document.getElementById('bocGrid'); if(g) g.classList.add('detail');
   el.style.display='block'; el.classList.add('ptdetail');
+  var P=S._ptInfoEdit?null:ptDetailParts_(si,ii);
+  var ctr0=ctOf_(sec.items[ii]);
   el.innerHTML='<div class="pd-head"><h3>Thông tin công tác</h3>'
+      +(P?(ctr0?('<span class="spduyet'+(ctr0.daDuyet?' on':'')+'">'+(ctr0.daDuyet?'Đã duyệt':'Chưa duyệt')+'</span>')
+                :'<span class="spduyet mau">Thư viện mẫu</span>'):'')
       +'<button class="pd-x" title="Đóng" onclick="ptHideDetail_()">✕</button></div>'
-    +(S._ptInfoEdit?ptInfoForm_(si,ii):ptDetailHtml_(si,ii))
+    +(S._ptInfoEdit?ptInfoForm_(si,ii)
+       :(P.media+P.hero+P.chinh+P.thongSo+P.ghiChu+P.phamVi+P.thieu+P.foot))
     +(S._ptInfoEdit?''
       :'<div class="pd-actions">'
         +(ctOf_(sec.items[ii])

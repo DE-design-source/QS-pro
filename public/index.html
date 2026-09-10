@@ -4088,6 +4088,41 @@ table.tk td .ln-in:focus{background:#fff}
 .cbi-tot span{color:var(--c2)}
 .cbi-tot b{font-size:var(--t-lg);font-weight:650;color:var(--blue);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .cbi-add{width:100%;margin-top:12px;justify-content:center}
+
+/* Nút ★ ở đầu panel: số đếm bị cắt vì nút quá hẹp -> cho rộng theo nội dung */
+.cat-hd .favgo-btn{flex:none;margin-left:0;height:28px;padding:0 10px 0 8px;gap:5px;
+  border-radius:var(--rp);white-space:nowrap;overflow:visible;min-width:auto;width:auto}
+.cat-hd .favgo-btn svg{width:14px;height:14px;flex:none}
+.cat-hd .favgo-btn .favgo-n{font-size:11px;font-weight:700;line-height:1;min-width:8px;text-align:center}
+.cat-hd{flex-wrap:nowrap;gap:6px;overflow:visible}
+.cat-hd h3{flex:none}
+.cat-hd .cat-count{flex:none}
+.cat-hd .filt-btn{flex:none;height:28px;padding:0 10px;gap:5px;border-radius:var(--rc)}
+
+/* ═══ Panel / popup Thông tin công tác: khối giá nổi bật, bỏ khung ảnh rỗng ═══ */
+.pd.ptdetail .pcode{margin-top:0}
+.pt-hero{margin:14px 0 4px;padding:14px 16px;border-radius:var(--rk);
+  background:linear-gradient(150deg,#f5f9ff 0%,#eef4fd 100%);border:1px solid rgba(37,99,235,.14)}
+.pt-hero-t{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#7b93b8}
+.pt-hero-v{margin-top:4px;font-size:26px;font-weight:600;letter-spacing:-.035em;color:var(--navy);
+  line-height:1.05;font-variant-numeric:tabular-nums}
+.pt-hero-v i{font-style:normal;font-size:12px;font-weight:500;color:#8ba0bd;margin-left:5px;letter-spacing:0}
+.pt-hero-r{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:12px;padding-top:11px;border-top:1px solid rgba(37,99,235,.14)}
+.pt-hero-r span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pt-hero-r em{font-style:normal;font-size:10px;color:#8ba0bd;font-weight:500}
+.pt-hero-r b{font-size:var(--t-sm);font-weight:600;color:var(--c1);font-variant-numeric:tabular-nums}
+.pt-hero-r b.ok{color:#15803d}
+.pt-hero-r b.neg{color:#c0392b}
+.pt-thieu{margin:12px 0 2px;font-size:var(--t-xs);color:var(--c4);font-style:italic}
+/* hàng thông tin: nhãn trái mờ, giá trị phải đậm, kẻ chấm nối cho dễ dò mắt */
+.pd.ptdetail .spec{padding:8px 0;gap:10px;align-items:baseline}
+.pd.ptdetail .spec .k{color:var(--c3);font-size:var(--t-sm);font-weight:500}
+.pd.ptdetail .spec .v{color:var(--c1);font-size:var(--t-sm);font-weight:600}
+.pd.ptdetail .pd-sec{margin-top:18px}
+.pd.ptdetail .pd-notes{margin-top:9px}
+.pd.ptdetail .pd-note{background:#fff;border-color:var(--ln)}
+.pd.ptdetail .pd-actions{margin-top:18px;padding-top:14px;border-top:1px solid var(--ln)}
+.sp-modal.ptdetail .pt-hero{margin-top:12px}
 </style>
 
 <!-- ===== TOP NAV ===== -->
