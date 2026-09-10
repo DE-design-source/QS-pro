@@ -3439,6 +3439,23 @@ table.pt tr.pt-sec.dropInto td,table.pt tr.pt-add.dropInto td{outline:2px dashed
   padding:7px 9px;font-family:inherit;font-size:12.5px;line-height:1.45;color:var(--ink);background:#fff;resize:vertical}
 .ptinf-f textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(37,99,235,.14)}
 .ptinf-act{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+
+/* ── Panel Thông tin công tác: ghi chú + phạm vi đọc cho dễ (chỉ áp cho panel Phần thô) ── */
+.pd.ptdetail .pd-sec{display:flex;align-items:center;gap:7px}
+.pd.ptdetail .pd-sec::before{content:'';flex:none;width:3px;height:11px;border-radius:2px;background:var(--blue)}
+.pd.ptdetail .pd-notes{display:flex;flex-direction:column;gap:7px;margin-top:9px}
+.pd.ptdetail .pd-note{background:#f7f9fc;border:1px solid var(--hair);border-left:3px solid var(--blue);
+  border-radius:var(--r-md);padding:8px 10px;font-size:12px;line-height:1.55;color:#43505e}
+.pd.ptdetail .pd-goc{margin-top:7px;font-size:11px;line-height:1.45;color:#8a96a5;font-style:italic}
+.pd.ptdetail .pd-uls{list-style:none;margin:9px 0 0;padding:0;display:flex;flex-direction:column;gap:7px}
+.pd.ptdetail .pd-uls li{position:relative;padding-left:15px;font-size:12px;line-height:1.5;color:#43505e}
+.pd.ptdetail .pd-uls li::before{content:'';position:absolute;left:3px;top:6px;width:5px;height:5px;border-radius:50%;background:var(--blue);opacity:.55}
+.pd.ptdetail .spec.hi .v{color:var(--blue);font-weight:700}
+.ptinf-h{display:block;margin-top:4px;font-size:11px;line-height:1.4;color:#8a96a5;font-style:normal}
+
+.pd.ptdetail .spec.stack{display:block;padding:8px 0}
+.pd.ptdetail .spec.stack .k{display:block;font-size:11px;color:#8a96a5;margin-bottom:3px;line-height:1.35}
+.pd.ptdetail .spec.stack .v{display:block;max-width:100%;text-align:left;font-weight:600;line-height:1.45;white-space:normal}
 </style>
 
 <!-- ===== TOP NAV ===== -->

@@ -988,7 +988,7 @@ function showDetail(i){
   S._detailIdx=i;
   var el=document.getElementById('pdPanel');
   document.getElementById('bocGrid').classList.add('detail');
-  el.style.display='block';
+  el.style.display='block'; el.classList.remove('ptdetail');
   el.innerHTML='<div class="pd-head"><h3>Thông tin sản phẩm</h3><button class="pd-x" title="Đóng" onclick="hideDetail()">✕</button></div>'
     +pdContent_(p)
     +'<div id="pdComboPanel"></div>'
@@ -5621,7 +5621,7 @@ function ptInfoUser_(){
 }
 function ptInfo_(ten){
   var k=ptInfoKey_(ten), a=PT_INFO[k]||{}, b=ptInfoUser_()[k]||{}, o={};
-  ['anh','model','ts','pv','tl'].forEach(function(f){ o[f]=(b[f]!=null&&b[f]!=='')?b[f]:(a[f]||''); });
+  ['anh','model','ts','gc','pv','tl'].forEach(function(f){ o[f]=(b[f]!=null&&b[f]!=='')?b[f]:(a[f]||''); });
   return o;
 }
 function ptInfoImgs_(inf){
@@ -5646,6 +5646,35 @@ function ptMedia_(imgs){
       }).join('')+'</div>' : '';
   return '<div class="pd-gal"><div class="imgbox">'+main+nav+dl+'</div>'+thumbs+'</div>';
 }
+// Ghi chú viết thành từng khối chữ đọc được (không nhét vào dòng "tên: giá trị")
+function ptKV_(k,v){
+  if(v==null||v==='') return '';
+  var dai=String(v).length>20 || String(k).length>14;
+  return '<div class="spec'+(dai?' stack':'')+'"><span class="k">'+esc(k)+'</span><span class="v">'+esc(v)+'</span></div>';
+}
+function ptNotes_(text){
+  var ls=String(text||'').split(/\r?\n/).map(function(x){return x.trim();}).filter(Boolean);
+  if(!ls.length) return '';
+  return '<div class="pd-notes">'+ls.map(function(l){ return '<div class="pd-note">'+esc(l)+'</div>'; }).join('')+'</div>';
+}
+function ptBullets_(text){
+  var ls=String(text||'').split(/\r?\n/).map(function(x){return x.trim();}).filter(Boolean);
+  if(!ls.length) return '';
+  return '<ul class="pd-uls">'+ls.map(function(l){ return '<li>'+esc(l)+'</li>'; }).join('')+'</ul>';
+}
+// Thông số: dòng "Tên: giá trị" -> hàng 2 cột; dòng còn lại -> khối chữ
+function ptSpecRows_(text){
+  var ls=String(text||'').split(/\r?\n/).map(function(x){return x.trim();}).filter(Boolean);
+  var out='', buf=[];
+  function flush(){ if(buf.length){ out+=ptNotes_(buf.join('\n')); buf=[]; } }
+  ls.forEach(function(l){
+    var m=l.match(/^([^:：]{2,40})[:：]\s*(.+)$/);
+    if(m){ flush(); out+=ptKV_(m[1].trim(),m[2].trim()); }
+    else buf.push(l);
+  });
+  flush();
+  return out;
+}
 function ptDetailHtml_(si,ii){
   var sec=PT_TEMPLATE[si], a=sec.items[ii];
   var ten=String(a[0]), dvt=a[1]||'', gc='', dgBan=0, dgNT=0;
@@ -5653,31 +5682,36 @@ function ptDetailHtml_(si,ii){
   else if(sec.mode==='area'||sec.mode==='area0'){ gc=a[4]||''; dgBan=Number(sec.up)||0; }
   else gc=a[2]||'';
   var inf=ptInfo_(ten), imgs=ptInfoImgs_(inf);
+  var gcGoc=gc; if(inf.gc) gc=inf.gc;                       // ghi chú người dùng sửa đè lên ghi chú gốc
   var loai=PT_LOAI.filter(function(x){ return x[0]===(sec.loai||'kt_chitiet'); })[0]||PT_LOAI[0];
   var ln=dgBan-dgNT, lnPct=dgBan?(ln/dgBan*100):0;
   var html=ptMedia_(imgs)
     +'<div class="pcode">'+esc(sec.r)+'.'+(ii+1)+' · '+esc(String(sec.t).split('\n')[0])+'</div>'
     +'<div class="pd-name">'+esc(ten)+'</div>'
-    +pdSection_('Thông tin chính',[
-        ['Tên / model', inf.model||''],
-        ['Hạng mục', String(sec.t).split('\n')[0]],
-        ['Đơn vị tính', dvt],
-        ['Loại báo giá', loai[1]],
-        ['Nhà thầu đang chọn', S._ptContractor||'']
-      ])
+    +(function(){
+        var rows=[['Tên / model', inf.model||''],['Hạng mục', String(sec.t).split('\n')[0]],
+          ['Đơn vị tính', dvt],['Loại báo giá', loai[1]],['Nhà thầu đang chọn', S._ptContractor||'']]
+          .map(function(r){ return ptKV_(r[0],r[1]); }).join('');
+        return rows?'<div class="pd-block"><div class="pd-sec">Thông tin chính</div>'+rows+'</div>':'';
+      })()
     +(dgBan||dgNT
       ? '<div class="pd-block"><div class="pd-sec">Đơn giá <i>(theo bảng giá thư viện)</i></div>'
         +(dgNT?'<div class="spec"><span class="k">Đơn giá nhà thầu</span><span class="v">'+money(dgNT)+' đ/'+esc(dvt)+'</span></div>':'')
-        +(dgBan?'<div class="spec"><span class="k">Đơn giá bán</span><span class="v">'+money(dgBan)+' đ/'+esc(dvt)+'</span></div>':'')
+        +(dgBan?'<div class="spec hi"><span class="k">Đơn giá bán</span><span class="v">'+money(dgBan)+' đ/'+esc(dvt)+'</span></div>':'')
         +((dgBan&&dgNT)?'<div class="spec"><span class="k">Lợi nhuận</span><span class="v">'+money(ln)+' đ ('+lnPct.toFixed(1)+'%)</span></div>':'')
         +'</div>'
       : '')
-    +(inf.ts?'<div class="pd-block"><div class="pd-sec">Thông số kỹ thuật tham khảo</div>'+specRows_(inf.ts)+'</div>':'')
-    +(gc?'<div class="pd-block"><div class="pd-sec">Ghi chú · điều kiện áp dụng</div>'+specRows_(gc)+'</div>':'')
-    +(inf.pv?'<div class="pd-block"><div class="pd-sec">Phạm vi ứng dụng</div>'+specRows_(inf.pv)+'</div>':'')
-    +(!inf.ts&&!inf.pv&&!imgs.length
-      ? '<div class="pd-block ptinf-empty">'+icon('doc',18)+'<span>Công tác này chưa có ảnh và thông số kỹ thuật. Bấm <b>Sửa thông tin</b> để bổ sung — nội dung được lưu lại cho những lần sau.</span></div>'
-      : '')
+    +(inf.ts?'<div class="pd-block"><div class="pd-sec">Thông số kỹ thuật tham khảo</div>'+ptSpecRows_(inf.ts)+'</div>':'')
+    +(gc?'<div class="pd-block"><div class="pd-sec">Ghi chú · điều kiện áp dụng</div>'+ptNotes_(gc)
+        +(inf.gc&&gcGoc&&inf.gc!==gcGoc?'<div class="pd-goc">Ghi chú gốc trong bảng giá: '+esc(gcGoc)+'</div>':'')+'</div>':'')
+    +(inf.pv?'<div class="pd-block"><div class="pd-sec">Phạm vi ứng dụng</div>'+ptBullets_(inf.pv)+'</div>':'')
+    +(function(){
+        var thieu=[]; if(!imgs.length) thieu.push('ảnh'); if(!inf.ts) thieu.push('thông số kỹ thuật');
+        if(!gc) thieu.push('ghi chú'); if(!inf.pv) thieu.push('phạm vi ứng dụng');
+        if(thieu.length<2) return '';
+        return '<div class="pd-block ptinf-empty">'+icon('doc',18)
+          +'<span>Công tác này chưa có <b>'+esc(thieu.join(', '))+'</b>. Bấm <b>Sửa thông tin</b> để bổ sung — nội dung được lưu lại cho những lần sau.</span></div>';
+      })()
     +'<div class="pd-price"><span>Đơn giá</span><b>'+money(dgBan)+' đ</b></div>'
     +'<div class="pd-foot2">'
       +(inf.tl?'<a class="pd-fbtn" href="'+esc(inf.tl)+'" target="_blank" rel="noopener">'+icon('doc',14)+' Tài liệu kỹ thuật</a>'
@@ -5687,16 +5721,20 @@ function ptDetailHtml_(si,ii){
   return html;
 }
 function ptInfoForm_(si,ii){
-  var a=PT_TEMPLATE[si].items[ii], inf=ptInfo_(String(a[0]));
-  function fld(id,lbl,hint,val,rows){
+  var sec=PT_TEMPLATE[si], a=sec.items[ii], inf=ptInfo_(String(a[0]));
+  var gcGoc=(sec.mode==='none')?(a[2]||''):(a[4]||'');
+  function fld(id,lbl,hint,val,rows,note){
     return '<div class="ptinf-f"><label>'+esc(lbl)+'</label>'
-      +'<textarea id="'+id+'" rows="'+(rows||2)+'" placeholder="'+esc(hint)+'">'+esc(val||'')+'</textarea></div>';
+      +'<textarea id="'+id+'" rows="'+(rows||2)+'" placeholder="'+esc(hint)+'">'+esc(val||'')+'</textarea>'
+      +(note?'<i class="ptinf-h">'+esc(note)+'</i>':'')+'</div>';
   }
   return '<div class="ptinf-form">'
     +'<div class="pd-sec">Sửa thông tin công tác</div>'
     +fld('ptInfModel','Tên / model','VD: Giàn tải, máy ép cọc Pmax 90T',inf.model,1)
     +fld('ptInfAnh','Ảnh (mỗi dòng 1 link)','https://… (dán link ảnh, mỗi dòng một ảnh)',inf.anh,2)
     +fld('ptInfTs','Thông số kỹ thuật (mỗi dòng "Tên: giá trị")','Lực ép tối đa (Pmax): 90 tấn\nLoại cọc phù hợp: vuông 250×250, tròn ly tâm D300',inf.ts,5)
+    +fld('ptInfGc','Ghi chú · điều kiện áp dụng',gcGoc||'VD: Đơn giá cho trên 20m/tim cọc (tùy địa chất khu vực)',inf.gc,3,
+         gcGoc?'Để trống = dùng ghi chú gốc trong bảng giá thư viện.':'Công tác này chưa có ghi chú gốc — nhập ở đây để hiện trên panel.')
     +fld('ptInfPv','Phạm vi ứng dụng (mỗi dòng 1 ý)','Nhà phố, biệt thự, công trình tải trung bình\nYêu cầu mặt bằng thi công',inf.pv,3)
     +fld('ptInfTl','Link tài liệu kỹ thuật','https://…',inf.tl,1)
     +'<div class="ptinf-act">'
@@ -5708,15 +5746,15 @@ function ptInfoEdit_(si,ii,on){ S._ptInfoEdit=!!on; ptShowDetail_(si,ii); }
 function ptInfoSave_(si,ii){
   var a=PT_TEMPLATE[si].items[ii], k=ptInfoKey_(String(a[0]));
   function v(id){ var e=document.getElementById(id); return e?String(e.value||'').replace(/\s+$/,''):''; }
-  var o={model:v('ptInfModel'),anh:v('ptInfAnh'),ts:v('ptInfTs'),pv:v('ptInfPv'),tl:v('ptInfTl')};
+  var o={model:v('ptInfModel'),anh:v('ptInfAnh'),ts:v('ptInfTs'),gc:v('ptInfGc'),pv:v('ptInfPv'),tl:v('ptInfTl')};
   var U=ptInfoUser_();
-  if(!o.model&&!o.anh&&!o.ts&&!o.pv&&!o.tl) delete U[k]; else U[k]=o;
+  if(!o.model&&!o.anh&&!o.ts&&!o.gc&&!o.pv&&!o.tl) delete U[k]; else U[k]=o;
   try{ localStorage.setItem('qs_ptinfo',JSON.stringify(U)); }catch(e){ toast('Không lưu được (bộ nhớ trình duyệt đầy)'); }
   S._ptInfoEdit=false; ptShowDetail_(si,ii); toast('Đã lưu thông tin công tác');
 }
 function ptHideDetail_(){
   S._ptDetail=null; S._ptInfoEdit=false;
-  var el=document.getElementById('pdPanel'); if(el){ el.style.display='none'; el.innerHTML=''; }
+  var el=document.getElementById('pdPanel'); if(el){ el.style.display='none'; el.innerHTML=''; el.classList.remove('ptdetail'); }
   var g=document.getElementById('bocGrid'); if(g) g.classList.remove('detail');
   document.removeEventListener('keydown',pdPanelKey_);
   if(S.node==='3.1') renderPTLibrary();
@@ -5726,7 +5764,7 @@ function ptShowDetail_(si,ii){
   var el=document.getElementById('pdPanel'); if(!el) return;
   S._ptDetail={si:si,ii:ii};
   var g=document.getElementById('bocGrid'); if(g) g.classList.add('detail');
-  el.style.display='block';
+  el.style.display='block'; el.classList.add('ptdetail');
   el.innerHTML='<div class="pd-head"><h3>Thông tin công tác</h3>'
       +'<button class="pd-x" title="Đóng" onclick="ptHideDetail_()">✕</button></div>'
     +(S._ptInfoEdit?ptInfoForm_(si,ii):ptDetailHtml_(si,ii))
