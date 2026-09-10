@@ -33,6 +33,9 @@ create table if not exists public.cong_tac (
   thu_tu           int not null default 0
 );
 
+-- Cột bổ sung (chạy lại file này bao nhiêu lần cũng được)
+alter table public.cong_tac add column if not exists nha_cung_cap text;
+
 create index if not exists cong_tac_ct_idx   on public.cong_tac(cong_ty_id);
 create index if not exists cong_tac_loai_idx on public.cong_tac(loai);
 create index if not exists cong_tac_hm_idx   on public.cong_tac(hang_muc);

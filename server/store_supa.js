@@ -863,7 +863,7 @@ async function getPurchaseOrders(maDA) {
 function ctToObj(r) {
   return {
     id: r.id, loai: s(r.loai) || 'kt_chitiet', mode: s(r.che_do) || 'item',
-    maNhom: s(r.ma_nhom), hangMuc: s(r.hang_muc), ten: s(r.ten), dvt: s(r.dvt),
+    maNhom: s(r.ma_nhom), hangMuc: s(r.hang_muc), ten: s(r.ten), dvt: s(r.dvt), ncc: s(r.nha_cung_cap),
     kl: r.khoi_luong == null ? '' : n(r.khoi_luong),
     dt: r.dien_tich == null ? '' : n(r.dien_tich),
     hs: r.he_so == null ? '' : n(r.he_so),
@@ -880,7 +880,7 @@ function ctToRow_(d) {
   function num(v) { return (v === '' || v == null) ? null : n(v); }
   const r = {
     loai: s(d.loai) || 'kt_chitiet', che_do: s(d.mode) || 'item',
-    ma_nhom: s(d.maNhom), hang_muc: s(d.hangMuc), ten: s(d.ten), dvt: s(d.dvt),
+    ma_nhom: s(d.maNhom), hang_muc: s(d.hangMuc), ten: s(d.ten), dvt: s(d.dvt), nha_cung_cap: s(d.ncc),
     khoi_luong: num(d.kl), dien_tich: num(d.dt), he_so: num(d.hs),
     don_gia_nha_thau: num(d.dgnt), don_gia: num(d.dg),
     ghi_chu: s(d.gc), hinh_anh: s(d.hinhAnh), thong_so: s(d.thongSo),
@@ -888,6 +888,25 @@ function ctToRow_(d) {
   };
   if (d.thuTu != null && d.thuTu !== '') r.thu_tu = n(d.thuTu);
   return r;
+}
+// Cột mới thêm sau (vd nha_cung_cap): nếu Supabase chưa có thì bỏ cột đó ra và ghi lại,
+// để người chưa chạy lại db/cong_tac.sql vẫn nhập được dữ liệu.
+function ctMissingCol_(e) {
+  const m = (e && e.message) || '';
+  const g = m.match(/Could not find the '([a-z0-9_]+)' column/i);
+  return g ? g[1] : '';
+}
+async function ctTry_(fn, body) {
+  try { return await fn(body); }
+  catch (e) {
+    const col = ctMissingCol_(e);
+    if (col && Object.prototype.hasOwnProperty.call(Array.isArray(body) ? (body[0] || {}) : body, col)) {
+      console.warn('[cong_tac] thiếu cột ' + col + ' — chạy lại db/cong_tac.sql. Tạm bỏ cột này.');
+      const strip = function (o) { const c = Object.assign({}, o); delete c[col]; return c; };
+      return fn(Array.isArray(body) ? body.map(strip) : strip(body));
+    }
+    throw e;
+  }
 }
 function ctErr_(e) {
   const m = (e && e.message) || '';
@@ -915,7 +934,8 @@ async function ctSave(actor, data) {
   });
   if (!body.length) throw new Error('Chưa có công tác nào để lưu (thiếu tên công việc)');
   let out;
-  try { out = await supa.insert('cong_tac', body); } catch (e) { throw ctErr_(e); }
+  try { out = await ctTry_(function (b) { return supa.insert('cong_tac', b); }, body); }
+  catch (e) { throw ctErr_(e); }
   await logAudit_(actor, 'them_cong_tac', 'Thêm ' + body.length + ' công tác: ' +
     body.slice(0, 6).map(function (b) { return b.ten; }).join(', ') + (body.length > 6 ? '…' : ''));
   return { ok: (out || []).length, rows: (out || []).map(ctToObj) };
@@ -928,7 +948,8 @@ async function ctUpdate(actor, id, patch) {
     { nguoi_sua: who, ngay_cap_nhat: nowIso(), da_duyet: false, nguoi_duyet: null, ngay_duyet: null });
   Object.keys(row).forEach(function (k) { if (row[k] === undefined) delete row[k]; });
   let out;
-  try { out = await supa.update('cong_tac', supa.eq('id', id), row); } catch (e) { throw ctErr_(e); }
+  try { out = await ctTry_(function (b) { return supa.update('cong_tac', supa.eq('id', id), b); }, row); }
+  catch (e) { throw ctErr_(e); }
   if (!out || !out.length) throw new Error('Không tìm thấy công tác để sửa');
   await logAudit_(actor, 'sua_cong_tac', 'Sửa công tác: ' + s(row.ten));
   return ctToObj(out[0]);
