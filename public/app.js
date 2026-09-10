@@ -5070,9 +5070,8 @@ function renderImportPT_(){
   var form='<div class="dbwrap">'
     +'<div class="dbhead"><div><h2>Nhập dữ liệu</h2><p>Thêm công tác xây dựng vào thư viện Phần thô <span style="color:#c33">* bắt buộc</span></p></div></div>'
     +impLoaiTabs_()
-    +dbCard_('Thông tin công tác','building','Công tác lưu vào cơ sở dữ liệu — có ảnh, chờ duyệt và sửa lại được như sản phẩm đèn.',
-        ctFormHtml_({},'imp'))
-    +'<div class="savebar"><button class="btn blue block" onclick="ctImpSave(this)">Thêm công tác vào Database</button>'
+    +'<div class="dbcard ctcard"><div class="dbcard-b">'+ctFormHtml_({},'imp')+'</div></div>'
+    +'<div class="savebar"><button class="btn blue block" onclick="ctImpSave(this)">'+icon('plus',15)+' Thêm công tác vào Database</button>'
       +'<button class="btn ghost sm" onclick="renderImport()" style="margin-top:8px">Xoá form</button></div>'
     +dbCard_('Thư viện mẫu dựng sẵn','download',
         'Ứng dụng có sẵn '+PT_TEMPLATE.filter(function(x){return !x.db;}).reduce(function(a,x){return a+x.items.length;},0)

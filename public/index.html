@@ -3653,6 +3653,21 @@ table.pt tr.pt-empty .pt-empty-b{position:sticky;left:0;max-width:min(680px,100%
   .ctf-seg{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:680px){ .ctf-grid .f{grid-column:span 12!important} .ctf-seg{grid-template-columns:1fr} }
+
+/* Popup sửa công tác: form dài -> tiêu đề và nút Lưu dính, phần giữa cuộn */
+.sp-modal.ctmodal{display:flex;flex-direction:column;max-height:calc(100vh - 88px);overflow:hidden}
+.sp-modal.ctmodal .pd-head{position:sticky;top:0;background:#fff;z-index:3;margin:0 0 2px}
+.sp-modal.ctmodal .ctf{flex:1;min-height:0;overflow-y:auto;padding-right:6px;margin-right:-6px}
+.sp-modal.ctmodal .pd-actions{position:sticky;bottom:0;background:#fff;z-index:3;
+  border-top:1px solid var(--hair);margin:0 -22px -20px;padding:12px 22px}
+
+/* Danh sách "Công tác vừa nhập": tên và hạng mục xuống dòng riêng */
+#impRecentBox .imp-nm{display:flex;flex-direction:column;gap:2px;min-width:0}
+#impRecentBox .imp-nm b{font-size:12px;line-height:1.35;color:var(--ink);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+#impRecentBox .imp-nm span{font-size:10.5px;color:#8a96a5;line-height:1.3}
+#impRecentBox .imp-row{display:flex;align-items:center;gap:8px}
+#impRecentBox .imp-pr{flex:none;font-size:11.5px;font-weight:600;color:var(--navy);font-variant-numeric:tabular-nums}
+#impRecentBox .spduyet{flex:none}
 </style>
 
 <!-- ===== TOP NAV ===== -->
