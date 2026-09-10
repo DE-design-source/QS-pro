@@ -7459,6 +7459,7 @@ async function renderAdmin(){
   box.innerHTML='<div class="sechd"><h2>Quản trị — Tài khoản & phân quyền</h2></div><div id="admBody"><div class="empty">Đang tải…</div></div>';
   try{
     var users=await api('adminListUsers'); var reqs=await api('listDeleteRequests'); var purs=await api('listPurchaseRequests'); var logs=await api('getAuditLog',120); S._admUsers=users;
+    if(isSuper_()){ try{ S._admCt=await api('listCongTy')||[]; }catch(e){ S._admCt=[]; } }
     document.getElementById('admBody').innerHTML=admStats_(users,reqs,purs)+admUsersCard_(users)+admReqCard_(reqs)+admPurCard_(purs)+admLogCard_(logs);
   }catch(e){ document.getElementById('admBody').innerHTML='<div class="empty">Lỗi tải: '+esc(e.message)+'</div>'; }
 }
@@ -7479,6 +7480,8 @@ function rqItem_(opts){
       +(opts.actions?'<div class="rq-act">'+opts.actions+'</div>':'')
       +'<span class="rq-time">'+opts.time+'</span></div></div>';
 }
+function isSuper_(){ return !!(S.me && S.me.role==='super'); }
+function admCtTen_(id){ var c=(S._admCt||[]).filter(function(x){ return x.id===id; })[0]; return c?(c.ten||c.ma||id):'(công ty đã xoá)'; }
 function admUsersCard_(users){
   var lbl={}; PERM_TABS.forEach(function(t){ lbl[t[0]]=t[1]; });
   function permCell(u){ if(u.role==='admin'||u.role==='super') return '<span class="muted">Toàn quyền</span>';
@@ -7491,6 +7494,7 @@ function admUsersCard_(users){
       +'<td><span class="rolebadge '+(u.role==='super'?'sup':(u.role==='admin'?'adm':'stf'))+'">'
         +({super:'Quản trị hệ thống',admin:'Admin công ty',staff:'Nhân viên'}[u.role]||u.role)+'</span></td>'
       +'<td class="permcol">'+permCell(u)+'</td>'
+      +(isSuper_()?('<td>'+(u.congTyId?esc(admCtTen_(u.congTyId)):'<span class="st-lk" title="Tài khoản không thuộc công ty nào — không đăng nhập được. Bấm Sửa để gán công ty.">⚠ Chưa gán công ty</span>')+'</td>'):'')
       +'<td>'+(u.active?'<span class="st-ok">● Hoạt động</span>':'<span class="st-lk">● Đã khóa</span>')+'</td>'
       +'<td class="muted">'+(u.lastLogin?fmtDateTime_(u.lastLogin):'—')+'</td>'
       +'<td class="admact"><button class="btn ghost xs" onclick="admEdit(\''+u.id+'\')">Sửa</button>'
@@ -7499,7 +7503,11 @@ function admUsersCard_(users){
         +'<button class="btn ghost xs danger" onclick="admDelete(\''+u.id+'\')">Xóa</button></td></tr>';
   }).join('');
   var inner='<div style="margin-bottom:12px"><button class="btn blue sm" onclick="admCreate()">'+icon('plus',14)+' Thêm tài khoản</button></div>'
-    +'<div class="tbl-wrap"><table class="admtbl"><tr><th>Tên đăng nhập</th><th>Họ tên</th><th>Vai trò</th><th>Quyền truy cập</th><th>Trạng thái</th><th>Đăng nhập gần nhất</th><th></th></tr>'+rows+'</table></div>';
+    +(isSuper_()&&users.filter(function(u){return !u.congTyId;}).length
+      ? '<div class="adm-warn"><span class="adm-warn-ic">!</span><span>Có <b>'+users.filter(function(u){return !u.congTyId;}).length
+        +'</b> tài khoản chưa gán công ty. Tài khoản kiểu này không đăng nhập được và không hiện trong danh sách của công ty nào — bấm <b>Sửa</b> để gán công ty hoặc xoá đi.</span></div>' : '')
+    +'<div class="tbl-wrap"><table class="admtbl"><tr><th>Tên đăng nhập</th><th>Họ tên</th><th>Vai trò</th><th>Quyền truy cập</th>'
+      +(isSuper_()?'<th>Công ty</th>':'')+'<th>Trạng thái</th><th>Đăng nhập gần nhất</th><th></th></tr>'+rows+'</table></div>';
   return dbCard_('Tài khoản ('+users.length+')','lock','Admin toàn quyền · Nhân viên không mở được trang này.',inner);
 }
 /* ===== Chi tiết đơn mua hàng (Admin bấm vào 1 đơn) ===== */
@@ -7633,6 +7641,13 @@ function admUserModal(user){
           +'<div class="afield"><label>Phòng ban</label><input id="am_pb" value="'+esc(user.phongBan||'')+'" placeholder="vd: Kinh doanh, Thiết kế, Mua hàng"></div>'
           +(isEdit?'<div class="afield"></div>':'<div class="afield"><label>Mật khẩu <em>*</em></label><input id="am_pw" type="text" placeholder="Tối thiểu 4 ký tự" autocomplete="new-password"></div>')
         +'</div>'
+        +(isSuper_()?('<div class="agrid2"><div class="afield"><label>Công ty <em>*</em></label>'
+            +'<select id="am_ct">'
+              +'<option value="">— Chọn công ty —</option>'
+              +(S._admCt||[]).map(function(c){ return '<option value="'+esc(c.id)+'"'+(user.congTyId===c.id?' selected':'')+'>'+esc(c.ten||c.ma)+'</option>'; }).join('')
+            +'</select>'
+            +(isEdit&&!user.congTyId?'<i class="afield-warn">Tài khoản này chưa thuộc công ty nào nên không đăng nhập được — chọn công ty rồi Lưu.</i>':'')
+          +'</div><div class="afield"></div></div>'):'')
       +'</div>'
       +'<div class="asec"><div class="asec-h">Vai trò</div>'
         +'<div class="aseg" id="am_seg">'
@@ -7689,9 +7704,14 @@ function admModalSave(id){
   var btn=document.getElementById('am_save'); btn.disabled=true;
   var done=function(msg){ toast(msg); admModalClose(); renderAdmin(); };
   var fail=function(e){ toast('Lỗi: '+e.message); btn.disabled=false; };
-  if(id){ api('adminUpdateUser',id,{hoTen:hoTen,role:role,perms:perms,phongBan:phongBan}).then(function(){ done('Đã cập nhật'); }).catch(fail); }
+  var ctEl=document.getElementById('am_ct'), ctId=ctEl?ctEl.value:'';
+  if(isSuper_() && ctEl && !ctId){ toast('Chọn công ty cho tài khoản này'); btn.disabled=false; return; }
+  if(id){ var patch={hoTen:hoTen,role:role,perms:perms,phongBan:phongBan};
+    if(ctEl) patch.congTyId=ctId;
+    api('adminUpdateUser',id,patch).then(function(){ done('Đã cập nhật'); }).catch(fail); }
   else { var username=document.getElementById('am_user').value; var pw=document.getElementById('am_pw').value;
-    api('adminCreateUser',{username:username,hoTen:hoTen,role:role,password:pw,perms:perms,phongBan:phongBan}).then(function(){ done('Đã tạo tài khoản'); }).catch(fail); }
+    api('adminCreateUser',{username:username,hoTen:hoTen,role:role,password:pw,perms:perms,phongBan:phongBan,congTyId:ctId||undefined})
+      .then(function(){ done('Đã tạo tài khoản'); }).catch(fail); }
 }
 async function admResetPw(id){
   var np=await askInput_({title:'Đặt lại mật khẩu', label:'Mật khẩu mới (≥4 ký tự)', type:'password', confirmText:'Đặt lại'});

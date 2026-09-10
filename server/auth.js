@@ -50,19 +50,23 @@ function userOut(r) {
     perms: permsArr_(r.perms), active: r.active !== false, createdAt: r.created_at, lastLogin: r.last_login,
     congTyId: r.cong_ty_id || null, email: r.email || '', phongBan: r.phong_ban || '' };
 }
-async function getUserByName(username) {
+async function getUsersByName_(username) {
   // Cho đăng nhập bằng TÊN ĐĂNG NHẬP hoặc EMAIL. noScope: lúc này chưa biết công ty.
+  // Trả về TẤT CẢ dòng trùng tên: dữ liệu cũ có thể có 2 tài khoản cùng username
+  // (1 dòng lạc không thuộc công ty nào) — lấy limit 1 sẽ chọn nhầm dòng và báo sai mật khẩu.
   const key = String(username || '').trim();
-  if (!key) return null;
-  let rows = await supa.select('users', { filter: supa.eq('username', key.toLowerCase()), limit: 1, noScope: true });
-  if (rows[0]) return rows[0];
+  if (!key) return [];
+  let rows = await supa.select('users', { filter: supa.eq('username', key.toLowerCase()), limit: 20, noScope: true });
+  if (rows.length) return rows;
   if (key.indexOf('@') > 0) {
-    try {
-      rows = await supa.select('users', { filter: 'email=ilike.' + encodeURIComponent(key), limit: 1, noScope: true });
-      if (rows[0]) return rows[0];
-    } catch (e) { /* chưa có cột email */ }
+    try { rows = await supa.select('users', { filter: 'email=ilike.' + encodeURIComponent(key), limit: 20, noScope: true }); }
+    catch (e) { rows = []; }
   }
-  return null;
+  return rows || [];
+}
+async function getUserByName(username) {
+  const rows = await getUsersByName_(username);
+  return rows[0] || null;
 }
 /* ---------- CÔNG TY (multi-tenant) ---------- */
 let _shareCol = null;   // cột dung_sp_dezon có tồn tại chưa (chưa chạy db/share_catalog.sql thì chưa có)
@@ -189,13 +193,24 @@ async function getUserById(id) {
 }
 
 /* ---------- đăng nhập / phiên ---------- */
+function pwOk_(row, password) {
+  const stored = String((row && row.password_hash) || '');
+  const isBcrypt = /^\$2[aby]\$/.test(stored);
+  return { ok: isBcrypt ? bcrypt.compareSync(password, stored) : (password !== '' && password === stored), isBcrypt: isBcrypt };
+}
 async function login(username, password) {
   username = String(username || '').trim();
   password = String(password || '');
-  const u = await getUserByName(username);
-  const stored = u ? String(u.password_hash || '') : '';
-  const isBcrypt = /^\$2[aby]\$/.test(stored);
-  const ok = u && (isBcrypt ? bcrypt.compareSync(password, stored) : (password !== '' && password === stored));
+  const rows = await getUsersByName_(username);
+  // Ưu tiên tài khoản đang mở khoá và đã thuộc một công ty
+  rows.sort(function (a, b) {
+    const sa = (a.active === false ? 0 : 2) + (a.cong_ty_id ? 1 : 0);
+    const sb = (b.active === false ? 0 : 2) + (b.cong_ty_id ? 1 : 0);
+    return sb - sa;
+  });
+  let u = null, isBcrypt = false;
+  for (const r of rows) { const t = pwOk_(r, password); if (t.ok) { u = r; isBcrypt = t.isBcrypt; break; } }
+  const ok = !!u;
   if (!ok) {
     await audit({ u: username }, 'login_fail', 'Sai tài khoản hoặc mật khẩu');
     throw new Error('Sai tài khoản hoặc mật khẩu');
@@ -247,8 +262,12 @@ function permsColErr_(e) {
   }
   return e;
 }
-async function adminListUsers() {
-  const rows = await supa.select('users', { order: 'created_at.asc', limit: 500 });
+async function adminListUsers(actor) {
+  // Super xem toàn hệ thống (kể cả tài khoản chưa gán công ty để còn sửa/xoá);
+  // admin công ty chỉ xem tài khoản công ty mình.
+  const opt = { order: 'created_at.asc', limit: 500 };
+  if (actor && actor.r === 'super') opt.noScope = true;
+  const rows = await supa.select('users', opt);
   return rows.map(userOut);
 }
 async function adminCreateUser(actor, data) {
@@ -258,11 +277,13 @@ async function adminCreateUser(actor, data) {
   if (String(data.password || '').length < 4) throw new Error('Mật khẩu tối thiểu 4 ký tự');
   // Công ty của tài khoản mới: super có thể chỉ định, còn lại = công ty của người tạo
   const ctId = (actor.r === 'super' && data.congTyId) ? data.congTyId : (actor.ct || null);
-  // Trùng tên đăng nhập chỉ tính TRONG CÙNG công ty
-  const dupRows = await supa.select('users', {
-    filter: supa.eq('username', username) + (ctId ? ('&' + supa.eq('cong_ty_id', ctId)) : ''),
-    limit: 1, noScope: true });
-  if (dupRows.length) throw new Error('Tên đăng nhập đã tồn tại trong công ty này');
+  // Không cho tạo tài khoản "lạc" — không thuộc công ty nào thì không đăng nhập được
+  // và cũng không hiện trong danh sách tài khoản của công ty.
+  if (!ctId) throw new Error('Chọn công ty cho tài khoản này (tài khoản không thuộc công ty nào sẽ không đăng nhập được)');
+  // Tên đăng nhập phải DUY NHẤT TOÀN HỆ THỐNG: lúc đăng nhập chưa biết công ty nào,
+  // nên hai công ty trùng username sẽ khiến đăng nhập chọn nhầm tài khoản.
+  const dupRows = await supa.select('users', { filter: supa.eq('username', username), limit: 1, noScope: true });
+  if (dupRows.length) throw new Error('Tên đăng nhập "' + username + '" đã có người dùng — chọn tên khác');
   // Không vượt số user của gói dịch vụ
   if (ctId) {
     const ct = await getCongTy(ctId);
@@ -295,6 +316,8 @@ async function adminUpdateUser(actor, id, fields) {
   if (fields.hasOwnProperty('role')) patch.role = fields.role === 'admin' ? 'admin' : 'staff';
   if (fields.hasOwnProperty('perms')) patch.perms = Array.isArray(fields.perms) ? fields.perms.join(',') : '';
   if (fields.hasOwnProperty('phongBan')) patch.phong_ban = String(fields.phongBan || '').trim();
+  // Chỉ super được chuyển tài khoản sang công ty khác (dùng để sửa tài khoản chưa gán công ty)
+  if (fields.hasOwnProperty('congTyId') && actor.r === 'super') patch.cong_ty_id = fields.congTyId || null;
   // Admin thì bỏ giới hạn perms
   if (patch.role === 'admin') patch.perms = '';
   if (!Object.keys(patch).length) return { ok: true };

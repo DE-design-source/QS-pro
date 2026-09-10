@@ -107,7 +107,7 @@ const REGISTRY = {
 const PUBLIC_FNS = new Set(['login']);
 // Hàm cần đưa "actor" (người thao tác) làm tham số đầu
 const ACTOR_FNS = new Set(['me', 'logout', 'changePassword',
-  'adminCreateUser', 'adminUpdateUser', 'adminSetPassword', 'adminSetActive', 'adminDeleteUser',
+  'adminListUsers', 'adminCreateUser', 'adminUpdateUser', 'adminSetPassword', 'adminSetActive', 'adminDeleteUser',
   'notifCount', 'notifList', 'notifRead', 'notifReadAll',
   'requestDeleteProducts', 'listDeleteRequests', 'resolveDeleteRequest',
   'sendPurchaseRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest',
