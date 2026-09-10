@@ -2142,6 +2142,7 @@ function ptBulkAdd_(){
 function ptBulkBar_(){
   var wrap=document.getElementById('spBulkWrap'); if(!wrap) return;
   var n=Object.keys(S._spSel||{}).length; if(!n){ wrap.innerHTML=''; return; }
+  // cùng khung với bảng sản phẩm: [số đã chọn] · [sửa hàng loạt] · [hành động]
   wrap.innerHTML='<div class="spbulk">'
     +'<div class="spb-z spb-count"><span class="spb-n">'+n+'</span><span class="spb-ntxt">công tác<br>đã chọn</span>'
       +'<button class="spb-x" title="Bỏ chọn tất cả" onclick="spClearSel()">✕</button></div>'
@@ -2240,6 +2241,7 @@ function ptLoaiNgan_(v){ return PT_LOAI_NGAN[v]||ptLoaiLabel_(v); }
 function spPTAll_(){
   var out=[];
   PT_TEMPLATE.forEach(function(sec,si){
+    if(sec.an) return;                       // bản dựng sẵn đã được thay bằng dữ liệu CSDL
     (sec.items||[]).forEach(function(a,ii){
       out.push({si:si,ii:ii,sec:sec,a:a,loai:sec.loai||'kt_chitiet',r:sec.r||'',mode:sec.mode,
         nhom:String(sec.t).split('\n')[0],ten:String(a[0]),
@@ -2281,41 +2283,7 @@ function spPTHead_(){
   if(tb){ var total=ACT; SP_PTCOLS.forEach(function(c){ total+=c[2]; });
     tb.style.tableLayout='fixed'; tb.style.width=total+'px'; }
 }
-function spPTRender_(){
-  var card=document.querySelector('.sp-card'); if(card) card.classList.add('ptmode');
-  var se=document.getElementById('spSearch');
-  if(se) se.placeholder='Tìm công tác, hạng mục hoặc ghi chú…';
-  if(S.cur) ptEnsure();                       // nạp bảng của dự án để biết công tác nào đã thêm
-  var full=spPTList_();
-  var per=spPerGet_(), pages=per?Math.max(1,Math.ceil(full.length/per)):1;
-  var cur=Math.min(Math.max(1,S._spPage||1), pages); S._spPage=cur;
-  var list=per?full.slice((cur-1)*per, cur*per):full;
-  S._ptRows=list; S._spSel=S._spSel||{};
-  spColChips_(); spRenderHead_();
-  var cnt=document.getElementById('spCount'); if(cnt) cnt.textContent=full.length+' công việc';
-  var vis=spVisCols_(), ncol=vis.length+2, edit=!!S._spEdit;
-  var body=document.getElementById('spBody');
-  body.innerHTML=list.length?list.map(function(r,i){
-    var key=ptSelKey_(r), sel=!!S._spSel[key], da=ptDaCo_(r.sec,r.a), c=ctOf_(r.a);
-    return '<tr class="sp-row ptrow'+(da?' da':'')+(sel?' selrow':'')+(edit?' editrow':'')+'" onclick="ptModal_('+r.si+','+r.ii+')">'
-      +'<td class="selcol" onclick="event.stopPropagation()"><input type="checkbox" class="spck" '+(sel?'checked':'')+' onclick="spSelToggle(\''+key+'\',this.checked)"></td>'
-      +vis.map(function(c){ return '<td class="'+c[2]+(edit&&c[4]&&ptCanEditF_(r.sec,c[4].f)?' edt':'')+'">'
-          +(edit?ptEditCell_(c,r,i):c[3](r,i))+'</td>'; }).join('')
-      +'<td class="act-sp" onclick="event.stopPropagation()">'
-        +(c?'<button class="sp-act fav'+(c.yeuThich?' on':'')+'" title="'+(c.yeuThich?'Bỏ khỏi công tác yêu thích':'Thêm vào công tác yêu thích')+'" onclick="ctFav_(\''+c.id+'\','+(c.yeuThich?0:1)+')">'+icon('star',16)+'</button>':'')
-        +'<button class="sp-act add" title="'+(da?'Đã có trong bảng — bấm để thêm 1 dòng nữa':'Thêm vào bảng khái toán của dự án đang chọn')+'" onclick="ptAddFromLib('+r.si+','+r.ii+');spFilter()">'+icon('pluscircle',18)+'</button>'
-        +(c&&spCanDuyet_()?'<button class="sp-act '+(c.daDuyet?'undo':'ok')+'" title="'+(c.daDuyet?'Bỏ duyệt':'Duyệt công tác này')+'" onclick="ctDuyet_(\''+c.id+'\','+(c.daDuyet?0:1)+')">'+icon('check',16)+'</button>':'')
-        +(c?'<button class="sp-act edit" title="Cập nhật công tác" onclick="ctEditModal_(\''+c.id+'\')">'+icon('edit',16)+'</button>':'')
-        +'<button class="sp-act" title="Xem thông tin công tác" onclick="ptModal_('+r.si+','+r.ii+')">'+icon('eye',16)+'</button>'
-        +(c&&isAdminRole_()?'<button class="sp-act del" title="Xoá công tác" onclick="ctDelete_(\''+c.id+'\',\''+esc(String(r.ten).replace(/'/g,"\\'"))+'\')">'+icon('trash',16)+'</button>':'')
-      +'</td></tr>';
-  }).join(''):'<tr><td colspan="'+ncol+'"><div class="empty" style="margin:10px">Không có công tác nào khớp bộ lọc.</div></td></tr>';
-  var all=document.getElementById('spCkAll');
-  if(all) all.checked = list.length>0 && list.every(function(r){ return S._spSel[ptSelKey_(r)]; });
-  spPager_(full.length, cur, pages, per);
-  spFreeze_(); spBulkBar_(); spEditBtnSync_();
-  spHBarInit_(); spHBarSync_(); spXlsSync_();
-}
+function spPTRender_(){ return spFilter(); }
 function spPTSetView(v){ S._ptView=v; S._spPage=1; spViewTabs_(); spFilter(); }
 function spPTTabs_(){
   var el=document.getElementById('spViewTabs'); if(!el) return;
@@ -2405,14 +2373,44 @@ function ptInfoSaveModal_(si,ii){
   toast('Đã lưu thông tin công tác'); ptModal_(si,ii);
   if(spPTMode_()) spFilter();
 }
-function spFilter(){
-  if(spPTMode_()) return spPTRender_();               // hạng mục 3.1 Phần thô -> liệt kê công tác xây dựng
-  var card=document.querySelector('.sp-card');
-  if(card && card.classList.contains('ptmode')){       // vừa rời Phần thô -> dựng lại cột của bảng SP
-    card.classList.remove('ptmode'); spColChips_(); spRenderHead_();
-    var se0=document.getElementById('spSearch'); if(se0) se0.placeholder='Tìm theo tên, mã hoặc thương hiệu…';
+/* ═══════════ MỘT BỘ KHUNG BẢNG DÙNG CHUNG CHO MỌI HẠNG MỤC ═══════════
+   Bảng "Danh sách sản phẩm" vẽ bằng ĐÚNG một hàm cho cả Thiết bị đèn và Phần thô:
+   cùng ô tích chọn, cùng chế độ sửa nhanh, cùng hàng nút thao tác, cùng phân trang,
+   cùng thanh chọn nhiều. Chỉ 3 thứ đổi theo hạng mục: NGUỒN DỮ LIỆU · BỘ CỘT · BỘ LỌC. */
+function spKeyOf_(p){ return spPTMode_() ? ptSelKey_(p) : String(p.recordId||p.ma||''); }
+function spOpen_(i){
+  var p=(S._spList||[])[i]; if(!p) return;
+  if(spPTMode_()) ptModal_(p.si,p.ii); else spModal(i);
+}
+function spEditCellAny_(c,p,i){ return spPTMode_()?ptEditCell_(c,p,i):spEditCell_(c,p,i); }
+function spCellEditable_(c,p){
+  if(!c[4]) return false;
+  return spPTMode_() ? ptCanEditF_(p.sec,c[4].f) : !p.spChung;
+}
+/* Hàng nút thao tác — cùng thứ tự, cùng biểu tượng ở mọi hạng mục:
+   ★ yêu thích · ⊕ đưa vào dự án · ✓ duyệt · ✎ sửa · 👁 xem · 🗑 xoá            */
+function spRowActions_(p,i){
+  var isAdmin=isAdminRole_();
+  if(spPTMode_()){
+    var c=ctOf_(p.a), da=ptDaCo_(p.sec,p.a);
+    return (c?'<button class="sp-act fav'+(c.yeuThich?' on':'')+'" title="'+(c.yeuThich?'Bỏ khỏi công tác yêu thích':'Thêm vào công tác yêu thích')+'" onclick="ctFav_(\''+c.id+'\','+(c.yeuThich?0:1)+')">'+icon('star',16)+'</button>':'')
+      +'<button class="sp-act add" title="'+(da?'Đã có trong bảng — bấm để thêm 1 dòng nữa':'Thêm vào bảng khái toán của dự án đang chọn')+'" onclick="ptAddFromLib('+p.si+','+p.ii+');spFilter()">'+icon('pluscircle',18)+'</button>'
+      +((c&&spCanDuyet_())?'<button class="sp-act '+(c.daDuyet?'undo':'ok')+'" title="'+(c.daDuyet?'Bỏ duyệt':'Duyệt công tác này')+'" onclick="ctDuyet_(\''+c.id+'\','+(c.daDuyet?0:1)+')">'+icon('check',16)+'</button>':'')
+      +(c?'<button class="sp-act edit" title="Cập nhật công tác" onclick="ctEditModal_(\''+c.id+'\')">'+icon('edit',16)+'</button>':'')
+      +'<button class="sp-act" title="Xem chi tiết" onclick="spOpen_('+i+')">'+icon('eye',16)+'</button>'
+      +((c&&isAdmin)?'<button class="sp-act del" title="Xoá công tác" onclick="ctDelete_(\''+c.id+'\',\''+esc(String(p.ten).replace(/'/g,"\\'"))+'\')">'+icon('trash',16)+'</button>':'');
   }
-  _skuMap=null;                                   // danh mục có thể đã đổi -> đếm lại SKU
+  return '<button class="sp-act fav'+(p.yeuThich?' on':'')+'" title="'+(p.yeuThich?'Bỏ khỏi sản phẩm yêu thích':'Thêm vào sản phẩm yêu thích')+'" onclick="spFav('+i+','+(p.yeuThich?0:1)+')">'+icon('star',16)+'</button>'
+    +'<button class="sp-act add" title="Ghi danh vào dự án" onclick="spAddToProject('+i+')">'+icon('pluscircle',18)+'</button>'
+    +((spCanDuyet_()&&!p.spChung)?'<button class="sp-act '+(p.daDuyet?'undo':'ok')+'" title="'+(p.daDuyet?'Bỏ duyệt':'Duyệt sản phẩm này')+'" onclick="spDuyet('+i+','+(p.daDuyet?0:1)+')">'+icon('check',16)+'</button>':'')
+    +(p.spChung?'':'<button class="sp-act edit" title="Cập nhật sản phẩm" onclick="spEditModal('+i+')">'+icon('edit',16)+'</button>')
+    +'<button class="sp-act" title="Xem chi tiết" onclick="spOpen_('+i+')">'+icon('eye',16)+'</button>'
+    +((isAdmin&&!p.spChung)?'<button class="sp-act del" title="Xoá" onclick="spDelete('+i+')">'+icon('trash',16)+'</button>':'');
+}
+// Nguồn dữ liệu theo hạng mục (chỉ chỗ này khác nhau)
+function spDataList_(){
+  if(spPTMode_()){ if(S.cur) ptEnsure(); return spPTList_(); }
+  _skuMap=null;
   var el=document.getElementById('spSearch'); var q=(el&&el.value||'').toLowerCase().trim(); var f=S._spFilters||{};
   var watts=actKeys_(f.watt), kels=actKeys_(f.kelvin), angs=actKeys_(f.angle), cris=actKeys_(f.cri);
   var mn=Number(f.min)||0, mx=Number(f.max)||0;
@@ -2432,36 +2430,53 @@ function spFilter(){
     if(cris.length){ var pc=splitVals(p.cri); if(!pc.some(function(x){return cris.indexOf(x)>=0;})) return false; }
     return true;
   });
-  list=spGroupVariants_(list);            // biến thể cùng mã SP nằm liền nhau (yêu cầu slide 3)
-  S._spFull=list; S._spSel=S._spSel||{};
-  var per=spPerGet_(), pages=per?Math.max(1,Math.ceil(list.length/per)):1;
+  return spGroupVariants_(list);          // biến thể cùng mã SP nằm liền nhau
+}
+function spFilter(){
+  var PT=spPTMode_();
+  var card=document.querySelector('.sp-card');
+  if(card){
+    if(PT) card.classList.add('ptmode');
+    else if(card.classList.contains('ptmode')){ card.classList.remove('ptmode'); spColChips_(); spRenderHead_(); }
+  }
+  var se=document.getElementById('spSearch');
+  if(se) se.placeholder = PT ? 'Tìm công tác, hạng mục hoặc ghi chú…' : 'Tìm theo tên, mã hoặc thương hiệu…';
+
+  var full=spDataList_();
+  S._spFull=full; S._spSel=S._spSel||{};
+  var per=spPerGet_(), pages=per?Math.max(1,Math.ceil(full.length/per)):1;
   var cur=Math.min(Math.max(1, S._spPage||1), pages); S._spPage=cur;
-  if(per) list=list.slice((cur-1)*per, cur*per);        // chỉ vẽ SP của trang hiện tại
+  var list=per?full.slice((cur-1)*per, cur*per):full;
   S._spList=list;
-  var cnt=document.getElementById('spCount'); if(cnt) cnt.textContent=S._spFull.length+' SP';
-  var isAdmin=isAdminRole_();
+  if(PT) S._ptRows=list;
+
+  var cnt=document.getElementById('spCount');
+  if(cnt) cnt.textContent = full.length+(PT?' công việc':' SP');
+  spColChips_(); spRenderHead_();
+
   var vis=spVisCols_(), ncol=vis.length+2, edit=!!S._spEdit;
-  document.getElementById('spBody').innerHTML=list.length?list.map(function(p,i){
-    var selKey=String(p.recordId||p.ma||''); var sel=!!S._spSel[selKey];
-    return '<tr class="sp-row'+(sel?' selrow':'')+(edit?' editrow':'')+'"'
-      +(edit?'':' draggable="true" ondragstart="spRowDragStart(event,'+i+')" ondragend="spRowDragEnd()" onclick="spModal('+i+')"')+'>'
-      +'<td class="selcol" onclick="event.stopPropagation()"><input type="checkbox" class="spck" '+(sel?'checked':'')+' onclick="spSelToggle(\''+esc(selKey)+'\',this.checked)"></td>'
-      +vis.map(function(c){ return '<td class="'+c[2]+(edit&&c[4]&&!p.spChung?' edt':'')+'">'+(edit?spEditCell_(c,p,i):c[3](p,i))+'</td>'; }).join('')
-      +'<td class="act-sp" onclick="event.stopPropagation()">'
-        +'<button class="sp-act fav'+(p.yeuThich?' on':'')+'" title="'+(p.yeuThich?'Bỏ khỏi sản phẩm yêu thích':'Thêm vào sản phẩm yêu thích')+'" onclick="spFav('+i+','+(p.yeuThich?0:1)+')">'+icon('star',16)+'</button>'
-        +'<button class="sp-act add" title="Ghi danh vào dự án" onclick="spAddToProject('+i+')">'+icon('pluscircle',18)+'</button>'
-        +((spCanDuyet_()&&!p.spChung)?'<button class="sp-act '+(p.daDuyet?'undo':'ok')+'" title="'+(p.daDuyet?'Bỏ duyệt':'Duyệt sản phẩm này')+'" onclick="spDuyet('+i+','+(p.daDuyet?0:1)+')">'+icon('check',16)+'</button>':'')
-        +(p.spChung?'':'<button class="sp-act edit" title="Cập nhật sản phẩm" onclick="spEditModal('+i+')">'+icon('edit',16)+'</button>')
-        +'<button class="sp-act" title="Xem chi tiết" onclick="spModal('+i+')">'+icon('eye',16)+'</button>'
-        +((isAdmin&&!p.spChung)?'<button class="sp-act del" title="Xoá" onclick="spDelete('+i+')">'+icon('trash',16)+'</button>':'')+'</td>'
+  document.getElementById('spBody').innerHTML = list.length ? list.map(function(p,i){
+    var key=spKeyOf_(p), sel=!!S._spSel[key];
+    var daCo = PT && ptDaCo_(p.sec,p.a);
+    var drag = (!PT && !edit) ? ' draggable="true" ondragstart="spRowDragStart(event,'+i+')" ondragend="spRowDragEnd()"' : '';
+    return '<tr class="sp-row'+(PT?' ptrow':'')+(daCo?' da':'')+(sel?' selrow':'')+(edit?' editrow':'')+'"'+drag
+        +(edit?'':' onclick="spOpen_('+i+')"')+'>'
+      +'<td class="selcol" onclick="event.stopPropagation()"><input type="checkbox" class="spck" '+(sel?'checked':'')
+        +' onclick="spSelToggle(\''+esc(key)+'\',this.checked)"></td>'
+      +vis.map(function(c){
+          return '<td class="'+c[2]+((edit&&spCellEditable_(c,p))?' edt':'')+'">'
+            +(edit?spEditCellAny_(c,p,i):c[3](p,i))+'</td>'; }).join('')
+      +'<td class="act-sp" onclick="event.stopPropagation()">'+spRowActions_(p,i)+'</td>'
     +'</tr>'
-    // dòng bung ra liệt kê sản phẩm đi kèm (yêu cầu slide: nút mở combo ngay trên dòng)
-    +(spCbMo_(p)?('<tr class="sp-cbrow"><td colspan="'+ncol+'">'+spComboHtml_(p)+'</td></tr>'):'');
-  }).join(''):'<tr><td colspan="'+ncol+'"><div class="empty" style="margin:10px">Không có sản phẩm khớp bộ lọc.</div></td></tr>';
-  var all=document.getElementById('spCkAll'); if(all) all.checked = list.length>0 && list.every(function(p){return S._spSel[String(p.recordId||p.ma||'')];});
-  spPager_(S._spFull.length, cur, pages, per);
-  spFreeze_(); spBulkBar_();
-  spHBarInit_(); spHBarSync_(); spXlsSync_();      // thanh kéo ngang: gắn 1 lần, đồng bộ mỗi lần vẽ lại
+    +((!PT&&spCbMo_(p))?('<tr class="sp-cbrow"><td colspan="'+ncol+'">'+spComboHtml_(p)+'</td></tr>'):'');
+  }).join('') : ('<tr><td colspan="'+ncol+'"><div class="empty" style="margin:10px">'
+      +(PT?'Không có công tác nào khớp bộ lọc.':'Không có sản phẩm khớp bộ lọc.')+'</div></td></tr>');
+
+  var all=document.getElementById('spCkAll');
+  if(all) all.checked = list.length>0 && list.every(function(p){ return S._spSel[spKeyOf_(p)]; });
+  spPager_(full.length, cur, pages, per);
+  spFreeze_(); spBulkBar_(); spEditBtnSync_();
+  spHBarInit_(); spHBarSync_(); spXlsSync_();
 }
 function spSelToggle(k,on){ S._spSel=S._spSel||{}; if(on) S._spSel[k]=1; else delete S._spSel[k]; spFilter(); }
 function spSelAll(on){
@@ -6064,7 +6079,7 @@ function ptLoai_(){
 function ptSetLoai(v){ S._ptLoai=v; try{ localStorage.setItem('qs_ptLoai',v); }catch(e){} renderPTLibrary();
   // bảng trống: lời nhắc trong bảng khác nhau giữa Khái toán và Dự toán -> vẽ lại cho khớp
   if(Array.isArray(S.phanTho)&&!S.phanTho.length) renderPhanTho(); }
-function ptSecsOfLoai_(v){ return PT_TEMPLATE.filter(function(s){ return (s.loai||'kt_chitiet')===v; }); }
+function ptSecsOfLoai_(v){ return PT_TEMPLATE.filter(function(s){ return !s.an && (s.loai||'kt_chitiet')===v; }); }
 function ptLoaiCount_(v){ return ptSecsOfLoai_(v).reduce(function(a,s){ return a+s.items.length; },0); }
 
 /* ═══════════════ DỰ TOÁN THEO ĐỊNH MỨC ═══════════════
@@ -6274,7 +6289,10 @@ function ctItemArr_(c){
   else a=[c.ten, c.dvt, c.gc];
   a.ct=c; return a;
 }
-// Gom công tác CSDL thành các hạng mục, nối vào PT_TEMPLATE
+/* Gom công tác CSDL thành các hạng mục, nối vào PT_TEMPLATE.
+   Loại báo giá nào ĐÃ có dữ liệu trong CSDL thì bản dựng sẵn của loại đó bị ẩn đi —
+   để mỗi công tác chỉ xuất hiện MỘT lần và luôn là bản ghi thật (có ★ · duyệt · sửa · xoá),
+   đúng như sản phẩm đèn.                                                                */
 function ctSyncTemplate_(){
   PT_TEMPLATE=PT_TEMPLATE.filter(function(s){ return !s.db; });
   var list=S.congTac||[], secs={}, order=[];
@@ -6287,6 +6305,10 @@ function ctSyncTemplate_(){
     sec.items.push(ctItemArr_(c));
   });
   order.forEach(function(k){ PT_TEMPLATE.push(secs[k]); });
+  // loại nào đã có trong CSDL -> ẩn bản dựng sẵn của loại đó
+  var dbLoai={}; list.forEach(function(c){ dbLoai[c.loai||'kt_chitiet']=1; });
+  S._ptDbLoai=dbLoai;
+  PT_TEMPLATE.forEach(function(sc){ sc.an = !sc.db && !!dbLoai[ptSecLoai_(sc)]; });
   _ptColCache=null;                                            // nhãn cột không đổi nhưng cho chắc
   if(!PT_ROMAN_EXT_){ PT_ROMAN_EXT_=1; }
 }
@@ -6390,7 +6412,7 @@ async function ctDeleteBulk_(){
 /* ═══ FORM NHẬP / SỬA CÔNG TÁC (dùng chung cho popup Sửa và tab Nhập dữ liệu) ═══ */
 function ctHangMucList_(){
   var m={};
-  PT_TEMPLATE.forEach(function(s){ m[String(s.t).split('\n')[0]]=1; });
+  PT_TEMPLATE.forEach(function(s){ if(!s.an) m[String(s.t).split('\n')[0]]=1; });
   (S.congTac||[]).forEach(function(c){ if(c.hangMuc) m[c.hangMuc]=1; });
   return Object.keys(m).sort(function(a,b){ return a.localeCompare(b,'vi'); });
 }
