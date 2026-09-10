@@ -51,6 +51,12 @@ const REGISTRY = {
   updateDbProductTracked: auth.updateProductGated,   // cửa ngõ: chỉ 'sp_edit' -> tạo phiếu chờ duyệt
   setSpDuyet: auth.setSpDuyet,
   setYeuThich: auth.setYeuThich,
+  ctList: store.ctList,
+  ctSave: auth.ctSaveGated,
+  ctUpdate: auth.ctUpdateGated,
+  ctDelete: auth.ctDeleteGated,
+  ctDuyet: auth.ctDuyetGated,
+  ctSeed: auth.ctSeedGated,
   getCombo: store.getCombo,
   setCombo: auth.setComboGated,
   spMyPerms: auth.spMyPerms,
@@ -107,6 +113,7 @@ const ACTOR_FNS = new Set(['me', 'logout', 'changePassword',
   'sendPurchaseRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest',
   'listCongTy', 'createCongTy', 'updateCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'checkExpiry', 'baoCaoNhapSP',
   'updateDbProductTracked', 'setSpDuyet', 'setYeuThich', 'setCombo', 'spMyPerms',
+  'ctSave', 'ctUpdate', 'ctDelete', 'ctDuyet', 'ctSeed',
   'deleteDbProduct', 'importCommit', 'saveDbProduct', 'saveLineAsProduct']);
 // Hàm chỉ Admin được gọi
 const SUPER_FNS = new Set(['listCongTy', 'createCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'checkExpiry', 'baoCaoNhapSP']);

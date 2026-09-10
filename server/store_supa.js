@@ -856,11 +856,120 @@ async function getPurchaseOrders(maDA) {
   return out;
 }
 
+/*** ===== CÔNG TÁC XÂY DỰNG (Phần thô) =====
+ Trước đây thư viện công tác nằm cứng trong code nên không có ảnh / không duyệt / không sửa
+ được như sản phẩm đèn. Bảng cong_tac đưa công tác thành dữ liệu thật: mỗi dòng có ảnh,
+ trạng thái duyệt, người tạo / người sửa, và nhập được từ tab Nhập dữ liệu.            ***/
+function ctToObj(r) {
+  return {
+    id: r.id, loai: s(r.loai) || 'kt_chitiet', mode: s(r.che_do) || 'item',
+    maNhom: s(r.ma_nhom), hangMuc: s(r.hang_muc), ten: s(r.ten), dvt: s(r.dvt),
+    kl: r.khoi_luong == null ? '' : n(r.khoi_luong),
+    dt: r.dien_tich == null ? '' : n(r.dien_tich),
+    hs: r.he_so == null ? '' : n(r.he_so),
+    dgnt: n(r.don_gia_nha_thau), dg: n(r.don_gia),
+    gc: s(r.ghi_chu), hinhAnh: s(r.hinh_anh), thongSo: s(r.thong_so),
+    phamVi: s(r.pham_vi), linkTaiLieu: s(r.link_tai_lieu),
+    daDuyet: r.da_duyet === true, nguoiDuyet: s(r.nguoi_duyet), ngayDuyet: r.ngay_duyet || '',
+    nguoiTao: s(r.nguoi_tao), ngayTao: r.ngay_tao || '',
+    nguoiSua: s(r.nguoi_sua), ngayCapNhat: r.ngay_cap_nhat || '',
+    thuTu: n(r.thu_tu)
+  };
+}
+function ctToRow_(d) {
+  function num(v) { return (v === '' || v == null) ? null : n(v); }
+  const r = {
+    loai: s(d.loai) || 'kt_chitiet', che_do: s(d.mode) || 'item',
+    ma_nhom: s(d.maNhom), hang_muc: s(d.hangMuc), ten: s(d.ten), dvt: s(d.dvt),
+    khoi_luong: num(d.kl), dien_tich: num(d.dt), he_so: num(d.hs),
+    don_gia_nha_thau: num(d.dgnt), don_gia: num(d.dg),
+    ghi_chu: s(d.gc), hinh_anh: s(d.hinhAnh), thong_so: s(d.thongSo),
+    pham_vi: s(d.phamVi), link_tai_lieu: s(d.linkTaiLieu)
+  };
+  if (d.thuTu != null && d.thuTu !== '') r.thu_tu = n(d.thuTu);
+  return r;
+}
+function ctErr_(e) {
+  const m = (e && e.message) || '';
+  if (/relation .*cong_tac.* does not exist|PGRST205|Could not find the table/i.test(m))
+    return new Error('Chưa có bảng cong_tac trong Supabase — chạy file db/cong_tac.sql rồi thử lại.');
+  if (/42501|row-level security/i.test(m))
+    return new Error('Bảng cong_tac đang bật RLS nên không ghi được — chạy lại db/cong_tac.sql.');
+  return e;
+}
+async function ctList() {
+  try {
+    const rows = await supa.select('cong_tac', { order: 'loai.asc,thu_tu.asc,ngay_tao.asc', limit: 5000 });
+    return (rows || []).map(ctToObj);
+  } catch (e) {
+    const m = (e && e.message) || '';
+    if (/does not exist|PGRST205|Could not find the table/i.test(m)) return [];   // chưa chạy SQL -> coi như chưa có
+    throw e;
+  }
+}
+async function ctSave(actor, data) {
+  const who = (actor && actor.u) || 'ẩn danh';
+  const rows = Array.isArray(data) ? data : [data];
+  const body = rows.filter(function (d) { return s(d && d.ten).trim(); }).map(function (d) {
+    return Object.assign(ctToRow_(d), { nguoi_tao: who, ngay_tao: nowIso(), da_duyet: false });
+  });
+  if (!body.length) throw new Error('Chưa có công tác nào để lưu (thiếu tên công việc)');
+  let out;
+  try { out = await supa.insert('cong_tac', body); } catch (e) { throw ctErr_(e); }
+  await logAudit_(actor, 'them_cong_tac', 'Thêm ' + body.length + ' công tác: ' +
+    body.slice(0, 6).map(function (b) { return b.ten; }).join(', ') + (body.length > 6 ? '…' : ''));
+  return { ok: (out || []).length, rows: (out || []).map(ctToObj) };
+}
+async function ctUpdate(actor, id, patch) {
+  if (!id) throw new Error('Thiếu id công tác');
+  const who = (actor && actor.u) || 'ẩn danh';
+  const row = Object.assign(ctToRow_(patch), { nguoi_sua: who, ngay_cap_nhat: nowIso() });
+  Object.keys(row).forEach(function (k) { if (row[k] === undefined) delete row[k]; });
+  let out;
+  try { out = await supa.update('cong_tac', supa.eq('id', id), row); } catch (e) { throw ctErr_(e); }
+  if (!out || !out.length) throw new Error('Không tìm thấy công tác để sửa');
+  await logAudit_(actor, 'sua_cong_tac', 'Sửa công tác: ' + s(row.ten));
+  return ctToObj(out[0]);
+}
+async function ctDelete(actor, ids) {
+  ids = Array.isArray(ids) ? ids : [ids];
+  let ok = 0; const errs = [];
+  for (const id of ids) {
+    try { await supa.remove('cong_tac', supa.eq('id', id)); ok++; }
+    catch (e) { if (errs.length < 5) errs.push({ id: id, error: (ctErr_(e)).message }); }
+  }
+  if (ok) await logAudit_(actor, 'xoa_cong_tac', 'Xoá ' + ok + ' công tác');
+  const out = { ok: ok }; if (errs.length) out.errors = errs; return out;
+}
+async function ctDuyet(actor, ids, approve) {
+  ids = Array.isArray(ids) ? ids : [ids];
+  const who = (actor && actor.u) || 'ẩn danh';
+  const patch = approve
+    ? { da_duyet: true, nguoi_duyet: who, ngay_duyet: nowIso() }
+    : { da_duyet: false, nguoi_duyet: null, ngay_duyet: null };
+  let ok = 0; const errs = [];
+  for (const id of ids) {
+    try { const r = await supa.update('cong_tac', supa.eq('id', id), patch); if (r && r.length) ok++; }
+    catch (e) { if (errs.length < 5) errs.push({ id: id, error: (ctErr_(e)).message }); }
+  }
+  if (ok) await logAudit_(actor, approve ? 'duyet_cong_tac' : 'bo_duyet_cong_tac',
+    (approve ? 'Duyệt ' : 'Bỏ duyệt ') + ok + ' công tác');
+  const out = { ok: ok }; if (errs.length) out.errors = errs; return out;
+}
+// Nạp thư viện mẫu (PT_TEMPLATE ở client gửi lên) — chỉ chạy khi công ty CHƯA có công tác nào
+async function ctSeed(actor, rows) {
+  const cur = await ctList();
+  if (cur.length) return { ok: 0, daCo: cur.length };
+  const r = await ctSave(actor, rows || []);
+  return { ok: r.ok, daCo: 0 };
+}
+
 module.exports = {
   bootstrap, buildCatalog, getProducts, getCatalogSheets, getProjects, getProject, createProject, updateProject, deleteProject, duplicateProject,
   getLines, addLine, addBlankLine, updateLine, deleteLine, saveLineAsProduct, saveDbProduct, deleteDbProduct, uploadImage,
   getDbProduct, updateDbProductTracked, getProductHistory, diffDbProduct, dataToRow_, logAudit_, setSpDuyet,
   setYeuThich,
+  ctList, ctSave, ctUpdate, ctDelete, ctDuyet, ctSeed,
   getCombo, setCombo,
   DB_LABEL2COL,
   getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, getDashboard, getQuote, importParse, importCommit,
