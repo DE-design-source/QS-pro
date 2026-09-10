@@ -6699,12 +6699,12 @@ function renderPTLibrary(){
   // Bộ lọc PHÂN LOẠI + Nhà thầu + Báo giá mẫu (theo sơ đồ nghiệp vụ)
   var top='<div class="ptlib-top">'
     +'<div class="ptlib-fld"><label>Loại báo giá</label><div class="ptlib-selwrap">'
-      +'<select class="ptlib-sel" onchange="ptSetLoai(this.value)">'
+      +'<select class="ptlib-sel" title="'+esc(meta[3])+'" onchange="ptSetLoai(this.value)">'
       +PT_LOAI.map(function(x){
         var n=ptLoaiCount_(x[0]);
         return '<option value="'+x[0]+'"'+(loai===x[0]?' selected':'')+'>'+esc(x[1])+(n?(' ('+n+')'):' (chưa có)')+'</option>';
       }).join('')+'</select></div>'
-      +'<p class="ptlib-hint">'+esc(meta[3])+'</p></div>'
+      +'</div>'
     +'<div class="ptlib-fld"><label>Nhà thầu</label><div class="ptlib-selwrap"><select class="ptlib-sel" onchange="ptSetContractor(this.value)">'
       +'<option value="">Đơn giá theo nhà thầu</option>'
       +PT_CONTRACTORS.map(function(c){ return '<option'+(cur===c?' selected':'')+'>'+esc(c)+'</option>'; }).join('')+'</select></div></div>'
