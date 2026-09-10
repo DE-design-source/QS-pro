@@ -923,7 +923,9 @@ async function ctSave(actor, data) {
 async function ctUpdate(actor, id, patch) {
   if (!id) throw new Error('Thiếu id công tác');
   const who = (actor && actor.u) || 'ẩn danh';
-  const row = Object.assign(ctToRow_(patch), { nguoi_sua: who, ngay_cap_nhat: nowIso() });
+  // Sửa nội dung -> quay về "Chưa duyệt", đúng như sản phẩm đèn
+  const row = Object.assign(ctToRow_(patch),
+    { nguoi_sua: who, ngay_cap_nhat: nowIso(), da_duyet: false, nguoi_duyet: null, ngay_duyet: null });
   Object.keys(row).forEach(function (k) { if (row[k] === undefined) delete row[k]; });
   let out;
   try { out = await supa.update('cong_tac', supa.eq('id', id), row); } catch (e) { throw ctErr_(e); }
