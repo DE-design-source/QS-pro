@@ -1298,6 +1298,7 @@ async function spLoadPerm_(){
 }
 /* 3 khung nhìn = LỌC theo trạng thái duyệt của sản phẩm */
 function spViewTabs_(){
+  if(spPTMode_()) return spPTTabs_();
   var el=document.getElementById('spViewTabs'); if(!el) return;
   var cur=S._spView||'all', all=S.products||[];
   var chua=all.filter(function(p){ return !p.daDuyet; }).length;
@@ -1740,8 +1741,11 @@ function spNorm_(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,' 
 // map sản phẩm -> node cây đề mục qua "muc" (vd "Thiết bị đèn" -> 3.2.6.1)
 function spNodeCodeOf_(p){ var muc=(p&&p.muc)||''; for(var i=0;i<TREE.length;i++){ if(TREE[i][1]===muc) return TREE[i][0]; } return ''; }
 function spNodeCount_(code){ if(!code) return (S.products||[]).length;
+  if(code==='3.1') return spPTAll_().length;           // Phần thô đếm theo thư viện công tác
+
   return (S.products||[]).filter(function(p){ var c=spNodeCodeOf_(p); return c===code || c.indexOf(code+'.')===0; }).length; }
 function renderSpChips_(){
+  if(spPTMode_()) return spPTChips_();
   var bar=document.getElementById('spBar'); if(!bar) return; var f=S._spFilters||{};
   var total=(S.products||[]).length;
   var label = f.node ? (f.node+'.'+nodeName(f.node)) : 'Tất cả hạng mục';
@@ -1798,7 +1802,8 @@ function spCatPickNode(code){
   // đổi hạng mục -> reset bộ lọc nâng cao cho tương ứng phạm vi hạng mục mới
   S._spFilters={watt:{},kelvin:{},angle:{},cri:{}}; if(code) S._spFilters.node=code;
   var p=document.getElementById('spCatPop'); if(p)p.style.display='none'; document.removeEventListener('mousedown',spCatOutside);
-  renderSpChips_(); spFilter();
+  S._spPage=1; S._spSel={};
+  renderSpChips_(); spViewTabs_(); spFilter();          // Phần thô đổi cả tab lọc lẫn bảng
   if(document.getElementById('spFltPop')) spBoLocPop_();
 }
 function spSetFilter(key,val){ S._spFilters=S._spFilters||{}; if(!val) delete S._spFilters[key]; else if(S._spFilters[key]===val) delete S._spFilters[key]; else S._spFilters[key]=val; renderSpChips_(); spFilter(); }
@@ -1863,7 +1868,152 @@ function spSpecs_(p){ var out=[];
   if(p.cri) out.push('<span class="spec">CRI '+esc(p.cri)+'</span>');
   if(p.gocChieu) out.push('<span class="spec">'+esc(p.gocChieu)+'</span>');
   return out.join('')||'<span class="muted">—</span>'; }
+/* ═══ PHẦN THÔ TRONG TRANG DANH SÁCH SẢN PHẨM ═══
+   Chọn hạng mục "3.1 Phần thô" ở ô Danh sách sản phẩm -> bảng đổi sang liệt kê THƯ VIỆN
+   CÔNG TÁC xây dựng (khái toán chi tiết · khái toán sơ bộ · dự toán) thay cho sản phẩm đèn.
+   Vẫn dùng chung khung bảng, ô tìm kiếm, phân trang và thanh kéo ngang của trang SP.       */
+var SP_PTCOLS=[['stt','STT',46,'c'],['loai','LOẠI BÁO GIÁ',126,'l'],['nhom','HẠNG MỤC',196,'l'],
+  ['ten','NỘI DUNG CÔNG VIỆC',330,'l'],['dvt','ĐVT',62,'c'],['dg','ĐƠN GIÁ',124,'n'],['gc','GHI CHÚ',280,'l']];
+function spPTMode_(){ return String((S._spFilters||{}).node||'')==='3.1'; }
+function ptLoaiLabel_(v){ var m=PT_LOAI.filter(function(x){ return x[0]===v; })[0]; return m?m[1]:v; }
+var PT_LOAI_NGAN={kt_chitiet:'KT chi tiết',kt_sobo:'KT sơ bộ',dt_nhancong:'DT · Nhân công',dt_vattu:'DT · Vật tư'};
+function ptLoaiNgan_(v){ return PT_LOAI_NGAN[v]||ptLoaiLabel_(v); }
+function spPTAll_(){
+  var out=[];
+  PT_TEMPLATE.forEach(function(sec,si){
+    (sec.items||[]).forEach(function(a,ii){
+      var dg=0, gc='';
+      if(sec.mode==='item'){ dg=Number(a[3])||0; gc=a[4]||''; }
+      else if(sec.mode==='area'){ dg=Number(sec.up)||0; gc=a[4]||''; }
+      else if(sec.mode==='area0'){ gc=a[4]||''; }
+      else gc=a[2]||'';
+      out.push({si:si,ii:ii,loai:sec.loai||'kt_chitiet',r:sec.r||'',mode:sec.mode,
+        nhom:String(sec.t).split('\n')[0],ten:String(a[0]),dvt:a[1]||'',dg:dg,gc:gc});
+    });
+  });
+  return out;
+}
+function spPTList_(){
+  var f=S._spFilters||{}, el=document.getElementById('spSearch');
+  var q=spNorm_((el&&el.value)||''), view=S._ptView||'all';
+  return spPTAll_().filter(function(r){
+    if(view!=='all' && r.loai!==view) return false;
+    if(f.ptNhom && r.nhom!==f.ptNhom) return false;
+    if(q && spNorm_(r.ten+' '+r.nhom+' '+r.gc+' '+r.dvt).indexOf(q)<0) return false;
+    return true;
+  });
+}
+function spPTHead_(){
+  var head=document.getElementById('spHead'), cg=document.getElementById('spColg');
+  var ACT=96;
+  if(cg) cg.innerHTML=SP_PTCOLS.map(function(c){ return '<col style="width:'+c[2]+'px">'; }).join('')+'<col style="width:'+ACT+'px">';
+  if(head) head.innerHTML='<tr>'+SP_PTCOLS.map(function(c){
+      return '<th class="'+c[3]+'">'+esc(c[1])+'</th>'; }).join('')+'<th class="act-sp"></th></tr>';
+  var tb=head?head.closest('table'):null;
+  if(tb){ var total=ACT; SP_PTCOLS.forEach(function(c){ total+=c[2]; });
+    tb.style.tableLayout='fixed'; tb.style.width=total+'px'; }
+}
+function spPTRender_(){
+  var card=document.querySelector('.sp-card'); if(card) card.classList.add('ptmode');
+  var full=spPTList_();
+  var per=spPerGet_(), pages=per?Math.max(1,Math.ceil(full.length/per)):1;
+  var cur=Math.min(Math.max(1,S._spPage||1), pages); S._spPage=cur;
+  var list=per?full.slice((cur-1)*per, cur*per):full;
+  S._ptRows=list;
+  spPTHead_();
+  var cnt=document.getElementById('spCount'); if(cnt) cnt.textContent=full.length+' công việc';
+  var body=document.getElementById('spBody');
+  body.innerHTML=list.length?list.map(function(r,i){
+    return '<tr class="sp-row ptrow" onclick="ptModal_('+r.si+','+r.ii+')">'
+      +'<td class="c">'+((cur-1)*per+i+1)+'</td>'
+      +'<td class="l"><span class="ptl-tag '+esc(r.loai)+'" title="'+esc(ptLoaiLabel_(r.loai))+'">'+esc(ptLoaiNgan_(r.loai))+'</span></td>'
+      +'<td class="l"><span class="ptl-nhom">'+esc((r.r?r.r+'. ':'')+r.nhom)+'</span></td>'
+      +'<td class="l"><b class="ptl-ten">'+esc(r.ten)+'</b></td>'
+      +'<td class="c ptl-dvt">'+esc(r.dvt)+'</td>'
+      +'<td class="n ptl-dg">'+(r.dg?money(r.dg)+' đ':'<span class="ptl-none">—</span>')+'</td>'
+      +'<td class="l ptl-gc">'+esc(r.gc)+'</td>'
+      +'<td class="act-sp" onclick="event.stopPropagation()">'
+        +'<button class="sp-act" title="Xem thông tin công tác" onclick="ptModal_('+r.si+','+r.ii+')">'+icon('eye',16)+'</button>'
+        +'<button class="sp-act add" title="Thêm vào bảng khái toán của dự án đang chọn" onclick="ptAddFromLib('+r.si+','+r.ii+')">'+icon('pluscircle',18)+'</button>'
+      +'</td></tr>';
+  }).join(''):'<tr><td colspan="'+(SP_PTCOLS.length+1)+'"><div class="empty" style="margin:10px">Không có công tác nào khớp bộ lọc.</div></td></tr>';
+  spPager_(full.length, cur, pages, per);
+  var bw=document.getElementById('spBulkWrap'); if(bw) bw.innerHTML='';
+  spHBarInit_(); spHBarSync_();
+}
+function spPTSetView(v){ S._ptView=v; S._spPage=1; spViewTabs_(); spFilter(); }
+function spPTTabs_(){
+  var el=document.getElementById('spViewTabs'); if(!el) return;
+  var all=spPTAll_(), cur=S._ptView||'all';
+  var tabs=[['all','Tất cả',all.length]].concat(PT_LOAI.map(function(x){
+    return [x[0], x[1], all.filter(function(r){ return r.loai===x[0]; }).length]; }));
+  el.innerHTML=tabs.map(function(t){
+    return '<button class="spvt'+(cur===t[0]?' on':'')+'" onclick="spPTSetView(\''+t[0]+'\')">'+esc(t[1])
+      +(t[2]?'<span class="spvt-n">'+t[2]+'</span>':'')+'</button>'; }).join('')
+    +'<span class="spvt-note">Thư viện công tác xây dựng — bấm 1 dòng để xem thông tin, ⊕ để thêm vào bảng khái toán của dự án</span>';
+}
+function spPTChips_(){
+  var bar=document.getElementById('spBar'); if(!bar) return;
+  var f=S._spFilters||{}, all=spPTAll_();
+  var view=S._ptView||'all';
+  var nhomM={}; all.forEach(function(r){ if(view==='all'||r.loai===view) nhomM[r.nhom]=1; });
+  var nhom=Object.keys(nhomM);
+  var treeCol='<div class="sp-fcol"><label>Danh sách sản phẩm</label>'
+    +'<div class="sp-catwrap"><button class="tree-btn sp-catbtn" id="spCatBtn" onclick="spCatToggle(event)">'
+      +'<span class="sp-catlbl">3.1.Phần thô</span><span class="cnt">['+pad2(all.length)+']</span><span class="sp-caret">▾</span></button>'
+      +'<div class="tree-pop" id="spCatPop" style="display:none"></div></div></div>';
+  bar.innerHTML='<div class="sp-filtrow">'+treeCol
+    +'<div class="sp-fcol"><label>Hạng mục công tác</label><select class="sp-fsel" onchange="spSelFilter(\'ptNhom\',this.value)">'
+      +'<option value="">Tất cả hạng mục công tác</option>'
+      +nhom.map(function(v){ return '<option value="'+esc(v)+'"'+(f.ptNhom===v?' selected':'')+'>'+esc(v)+'</option>'; }).join('')
+    +'</select></div>'
+    +(f.ptNhom?'<div class="sp-fcol" style="justify-content:flex-end"><span class="spchip clr" onclick="spSelFilter(\'ptNhom\',\'\')">✕ Xóa lọc</span></div>':'')
+    +'</div>';
+  var badge=document.getElementById('spFltBadge'); if(badge){ badge.textContent=''; badge.style.display='none'; }
+}
+// Thông tin công tác dạng popup (trang Danh sách SP không có panel bên như tab Bóc tách)
+function ptModal_(si,ii){
+  var sec=PT_TEMPLATE[si]; if(!sec||!sec.items[ii]) return;
+  spClose();
+  var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='spModalOv';
+  ov.onclick=function(e){ if(e.target===ov) spClose(); };
+  ov.innerHTML='<div class="sp-modal pd ptdetail"><div class="pd-head"><h3>Thông tin công tác</h3>'
+      +'<span class="spduyet on">'+esc(ptLoaiLabel_(sec.loai||'kt_chitiet'))+'</span>'
+      +'<button class="pd-x" onclick="spClose()">✕</button></div>'
+    +ptDetailHtml_(si,ii)
+    +'<div class="pd-actions">'
+      +'<button class="btn ghost sm" onclick="spClose()">Đóng</button>'
+      +'<button class="btn ghost sm" onclick="ptInfoEditModal_('+si+','+ii+')">'+icon('edit',14)+' Sửa thông tin</button>'
+      +'<button class="btn blue" onclick="ptAddFromLib('+si+','+ii+');spClose()">'+icon('plus',15)+' Thêm vào bảng khái toán</button>'
+    +'</div></div>';
+  document.body.appendChild(ov);
+  document.addEventListener('keydown',spModalKey_);
+}
+function ptInfoEditModal_(si,ii){
+  var box=document.querySelector('#spModalOv .sp-modal'); if(!box) return;
+  box.innerHTML='<div class="pd-head"><h3>Sửa thông tin công tác</h3><button class="pd-x" onclick="spClose()">✕</button></div>'
+    +ptInfoForm_(si,ii);
+  var huy=box.querySelector('.ptinf-act .btn.ghost');
+  if(huy) huy.setAttribute('onclick','ptModal_('+si+','+ii+')');
+  var luu=box.querySelector('.ptinf-act .btn.blue');
+  if(luu) luu.setAttribute('onclick','ptInfoSaveModal_('+si+','+ii+')');
+}
+function ptInfoSaveModal_(si,ii){
+  var a=PT_TEMPLATE[si].items[ii], k=ptInfoKey_(String(a[0]));
+  function v(id){ var e=document.getElementById(id); return e?String(e.value||'').replace(/\s+$/,''):''; }
+  var o={model:v('ptInfModel'),anh:v('ptInfAnh'),ts:v('ptInfTs'),gc:v('ptInfGc'),pv:v('ptInfPv'),tl:v('ptInfTl')};
+  var U=ptInfoUser_();
+  if(!o.model&&!o.anh&&!o.ts&&!o.gc&&!o.pv&&!o.tl) delete U[k]; else U[k]=o;
+  try{ localStorage.setItem('qs_ptinfo',JSON.stringify(U)); }catch(e){ toast('Không lưu được (bộ nhớ trình duyệt đầy)'); }
+  toast('Đã lưu thông tin công tác'); ptModal_(si,ii);
+  if(spPTMode_()) spFilter();
+}
 function spFilter(){
+  if(spPTMode_()) return spPTRender_();               // hạng mục 3.1 Phần thô -> liệt kê công tác xây dựng
+  var card=document.querySelector('.sp-card');
+  if(card && card.classList.contains('ptmode')){       // vừa rời Phần thô -> dựng lại cột của bảng SP
+    card.classList.remove('ptmode'); spColChips_(); spRenderHead_();
+  }
   _skuMap=null;                                   // danh mục có thể đã đổi -> đếm lại SKU
   var el=document.getElementById('spSearch'); var q=(el&&el.value||'').toLowerCase().trim(); var f=S._spFilters||{};
   var watts=actKeys_(f.watt), kels=actKeys_(f.kelvin), angs=actKeys_(f.angle), cris=actKeys_(f.cri);
