@@ -894,8 +894,7 @@ function renderCatalog(){
     // Thông số nhanh (công suất · nhiệt độ màu · CRI · góc chiếu) — dùng chung cách hiện với bảng Danh sách SP
     var specs=spSpecs_(p); if(specs.indexOf('muted')>=0) specs='';
     return '<div class="citem'+(catCbMo_(p)?' cb-open':'')+'" draggable="true" ondragstart="prodDragStart(event,'+i+')" ondragend="prodDragEnd()">'
-      +'<div class="no">'+(p.comboN?('<button class="cbtog'+(catCbMo_(p)?' on':'')+'" title="Xem '+p.comboN+' sản phẩm đi kèm" onclick="event.stopPropagation();catComboToggle_('+i+')">▸</button>'):'')
-        +'<span class="no-n">'+(i+1)+'</span></div>'+im2
+      +'<div class="no"><span class="no-n">'+(i+1)+'</span></div>'+im2
       +'<div class="cmid" onclick="showDetail('+i+')" title="Xem chi tiết sản phẩm">'
         +'<div class="nm">'+esc(p.ten)+'</div>'
         +'<div class="meta"><span class="pr">'+money(p.donGiaBan)+' đ</span></div>'
@@ -905,7 +904,9 @@ function renderCatalog(){
       // hàng chip thông số nằm RIÊNG 1 hàng, rộng hết thẻ -> đủ chỗ, không cắt, không rớt dòng
       +((brand||p.comboN)?('<div class="cmeta metarow">'
           +(brand?'<span class="sz brand">'+brand+'</span>':'')
-          +(p.comboN?'<span class="cc-tag" title="Sản phẩm có '+p.comboN+' món đi kèm">Combo</span>':'')
+          +(p.comboN?('<button class="cc-tag'+(catCbMo_(p)?' on':'')+'" title="Xem '+p.comboN+' sản phẩm đi kèm"'
+              +' onclick="event.stopPropagation();catComboToggle_('+i+')">'
+              +'<i class="cc-car">'+(catCbMo_(p)?'▾':'▸')+'</i>Combo <b>'+p.comboN+'</b></button>'):'')
         +'</div>'):'')
       +(specs?'<div class="cspecs" onclick="showDetail('+i+')">'+specs+'</div>':'')
     +'</div>'
@@ -2360,10 +2361,16 @@ function ptModal_(si,ii){
   spClose();
   var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='spModalOv';
   ov.onclick=function(e){ if(e.target===ov) spClose(); };
-  ov.innerHTML='<div class="sp-modal pd ptdetail"><div class="pd-head"><h3>Thông tin công tác</h3>'
-      +'<span class="spduyet on">'+esc(ptLoaiLabel_(sec.loai||'kt_chitiet'))+'</span>'
+  var P=ptDetailParts_(si,ii);
+  var duyet = ctr ? ('<span class="spduyet'+(ctr.daDuyet?' on':'')+'">'+(ctr.daDuyet?'Đã duyệt':'Chưa duyệt')+'</span>')
+                  : '<span class="spduyet mau">Thư viện mẫu</span>';
+  ov.innerHTML='<div class="sp-modal sp-modal-wide pd ptdetail"><div class="pd-head"><h3>Thông tin công tác</h3>'
+      +duyet+'<span class="pd-loai">'+esc(ptLoaiLabel_(sec.loai||'kt_chitiet'))+'</span>'
       +'<button class="pd-x" onclick="spClose()">✕</button></div>'
-    +ptDetailHtml_(si,ii)
+    +'<div class="pdm-grid">'
+      +'<div class="pdm-left">'+P.media+P.gia+P.foot+'</div>'
+      +'<div class="pdm-right">'+P.chinh+P.thongSo+P.ghiChu+P.phamVi+P.thieu+'</div>'
+    +'</div>'
     +'<div class="pd-actions">'
       +'<button class="btn ghost sm" onclick="spClose()">Đóng</button>'
       +(ctr?'<button class="btn ghost sm" onclick="ctEditModal_(\''+ctr.id+'\')">'+icon('edit',14)+' Sửa công tác</button>'
@@ -2577,26 +2584,27 @@ async function pdLoadCombo_(p, idx, dich, boxId){
   var tong=list.reduce(function(a,x){ return a+(Number(x.donGiaBan)||0)*(Number(x.comboSL)||1); },0);
   // Mỗi dòng nêu rõ SỐ LƯỢNG · ĐƠN GIÁ · THÀNH TIỀN (yêu cầu slide: "4 nút, 4 thanh…"),
   // tên + mã nằm dòng trên nên cột số không bị chen với chữ.
-  var rows=list.map(function(x){
+  var rows=list.map(function(x,k){
     var sl=Number(x.comboSL)||1, dg=Number(x.donGiaBan)||0, tt=dg*sl;
-    var tip=x.comboNguoc?' title="Liên kết đặt từ phía sản phẩm này (đi kèm 2 chiều)"':'';
-    return '<div class="pd-cb"'+tip+'>'
-      +(x.hinhAnh?'<img src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="cb-img"></span>')
-      +'<div class="pd-cb-i">'
-        +'<b>'+esc(x.ten||'')+(x.comboNguoc?' <span class="cb-rev">↔</span>':'')+'</b>'
-        +'<i>'+esc(x.ma||'')+'</i>'
+    var tip=x.comboNguoc?' title="Liên kết đặt từ phía sản phẩm kia — đi kèm 2 chiều"':'';
+    return '<div class="cbi"'+tip+'>'
+      +'<span class="cbi-ix">'+(k+1)+'</span>'
+      +(x.hinhAnh?'<img class="cbi-th" src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="cbi-th"></span>')
+      +'<div class="cbi-m">'
+        +'<b>'+esc(x.ten||'')+(x.comboNguoc?' <span class="cbi-rev">↔</span>':'')+'</b>'
+        +'<span class="cbi-sub">'+esc(x.ma||'')+(sl>1?(' · ×'+ptQty(sl)):'')+'</span>'
         // Cột chỉ ~288px: xếp SL/đơn giá/thành tiền thành 3 cột ngang thì tên bị cắt cụt
         // và hàng tiêu đề lại nằm trên tên -> ghi thẳng "SL × đơn giá … thành tiền".
-        +'<span class="pd-cb-n"><em>'+ptQty(sl)+' × '+money(dg)+'</em><b>'+money(tt)+'</b></span>'
       +'</div>'
+      +'<span class="cbi-pr"><b>'+money(tt)+'</b><i>'+ptQty(sl)+' × '+money(dg)+'</i></span>'
     +'</div>';
   }).join('');
   box.innerHTML='<div class="pd-block pd-combo">'
-    +'<div class="pd-sec">Sản phẩm đi kèm <i>('+list.length+' sản phẩm)</i></div>'
-    +rows
-    +'<div class="pd-price"><span>Tổng combo kèm theo</span><b>'+money(tong)+' đ</b></div>'
-    +'<div class="pd-foot2"><button class="pd-fbtn" title="Thêm sản phẩm chính và toàn bộ sản phẩm đi kèm vào '+esc(dich)+'"'
-      +' onclick="pdAddCombo_('+idx+')">'+icon('plus',14)+' Thêm cả combo</button></div>'
+    +'<div class="pd-sec">Sản phẩm đi kèm <i>('+list.length+')</i></div>'
+    +'<div class="cbi-list">'+rows+'</div>'
+    +'<div class="cbi-tot"><span>Tổng combo kèm theo</span><b>'+money(tong)+' đ</b></div>'
+    +'<button class="btn blue sm cbi-add" title="Thêm sản phẩm chính và toàn bộ sản phẩm đi kèm vào '+esc(dich)+'"'
+      +' onclick="pdAddCombo_('+idx+')">'+icon('plus',14)+' Thêm cả combo</button>'
   +'</div>';
 }
 // Thêm sản phẩm chính + toàn bộ sản phẩm đi kèm vào dự án / bóc tách
@@ -6820,15 +6828,15 @@ function catComboHtml_(p, idx){
       ? '<img class="thumb" src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">'
       : '<div class="thumb"></div>';
     return '<div class="citem cc-child'+(k===ds.length-1?' last':'')+'">'
-      +'<div class="no"><span class="cc-no">'+((idx+1)+'.'+(k+1))+'</span></div>'+img
+      +img
       +'<div class="cmid">'
-        +'<div class="nm">'+esc(x.ten||'')+'</div>'
+        +'<div class="nm"><span class="cc-ix">'+((idx+1)+'.'+(k+1))+'</span>'+esc(x.ten||'')+'</div>'
         +'<div class="meta"><span class="pr">'+money(x.donGiaBan)+' đ</span></div>'
       +'</div>'
       +'<button class="add" title="Thêm sản phẩm này vào bóc tách" onclick="catAddChild_(\''+pk+'\','+k+')">+</button>'
       +'<div class="cmeta metarow">'
         +(brand?'<span class="sz brand">'+brand+'</span>':'')
-        +'<span class="cc-tag on" title="Món đi kèm của sản phẩm phía trên">Combo</span>'
+        +'<span class="cc-tag kem" title="Món đi kèm của sản phẩm phía trên">đi kèm</span>'
         +(sl>1?'<span class="sz cbsl" title="Số lượng đi kèm">×'+ptQty(sl)+'</span>':'')
       +'</div>'
       +(specs?'<div class="cspecs">'+specs+'</div>':'')
@@ -7121,6 +7129,56 @@ function ptSpecRows_(text){
   });
   flush();
   return out;
+}
+/* Các mảnh nội dung của 1 công tác — dùng chung:
+   panel bên (xếp dọc)  và  popup (2 cột giống popup Thông tin sản phẩm của đèn).  */
+function ptDetailParts_(si,ii){
+  var sec=PT_TEMPLATE[si], a=sec.items[ii];
+  var ten=String(a[0]), dvt=ptVal_(sec,a,'dvt'), gc=ptVal_(sec,a,'gc');
+  var dgBan=(sec.mode==='area')?(Number(sec.up)||0):ptVal_(sec,a,'dg'), dgNT=ptVal_(sec,a,'dgnt');
+  var ctr=ctOf_(a);
+  var inf= ctr ? {anh:ctr.hinhAnh||'', model:'', ts:ctr.thongSo||'', gc:'', pv:ctr.phamVi||'', tl:ctr.linkTaiLieu||''}
+               : ptInfo_(ten);
+  var imgs=ptInfoImgs_(inf);
+  var gcGoc=gc; if(inf.gc) gc=inf.gc;
+  var loai=PT_LOAI.filter(function(x){ return x[0]===(sec.loai||'kt_chitiet'); })[0]||PT_LOAI[0];
+  var ln=dgBan-dgNT, lnPct=dgBan?(ln/dgBan*100):0;
+  var P={};
+  P.media = ptMedia_(imgs)
+    +'<div class="pcode">'+esc(sec.r)+'.'+(ii+1)+' · '+esc(String(sec.t).split('\n')[0])+'</div>'
+    +'<div class="pd-name">'+esc(ten)+'</div>';
+  P.chinh = (function(){
+      var rows=[['Tên / model', inf.model||''],['Hạng mục', String(sec.t).split('\n')[0]],
+        ['Nhà thầu · nhà cung cấp', (ctr&&ctr.ncc)||''],
+        ['Đơn vị tính', dvt],['Loại báo giá', loai[1]],['Nhà thầu đang chọn', S._ptContractor||'']]
+        .map(function(r){ return ptKV_(r[0],r[1]); }).join('');
+      return rows?'<div class="pd-block"><div class="pd-sec">Thông tin chính</div>'+rows+'</div>':'';
+    })();
+  P.gia = (dgBan||dgNT)
+    ? '<div class="pd-block"><div class="pd-sec">Đơn giá <i>(theo bảng giá thư viện)</i></div>'
+      +(dgNT?'<div class="spec"><span class="k">Đơn giá nhà thầu</span><span class="v">'+money(dgNT)+' đ/'+esc(dvt)+'</span></div>':'')
+      +(dgBan?'<div class="spec hi"><span class="k">Đơn giá bán</span><span class="v">'+money(dgBan)+' đ/'+esc(dvt)+'</span></div>':'')
+      +((dgBan&&dgNT)?'<div class="spec"><span class="k">Lợi nhuận</span><span class="v">'+money(ln)+' đ ('+lnPct.toFixed(1)+'%)</span></div>':'')
+      +'</div>' : '';
+  P.thongSo = inf.ts?'<div class="pd-block"><div class="pd-sec">Thông số kỹ thuật tham khảo</div>'+ptSpecRows_(inf.ts)+'</div>':'';
+  P.ghiChu  = gc?'<div class="pd-block"><div class="pd-sec">Ghi chú · điều kiện áp dụng</div>'+ptNotes_(gc)
+      +(inf.gc&&gcGoc&&inf.gc!==gcGoc?'<div class="pd-goc">Ghi chú gốc trong bảng giá: '+esc(gcGoc)+'</div>':'')+'</div>':'';
+  P.phamVi  = inf.pv?'<div class="pd-block"><div class="pd-sec">Phạm vi ứng dụng</div>'+ptBullets_(inf.pv)+'</div>':'';
+  P.thieu   = (function(){
+      var t=[]; if(!imgs.length) t.push('ảnh'); if(!inf.ts) t.push('thông số kỹ thuật');
+      if(!gc) t.push('ghi chú'); if(!inf.pv) t.push('phạm vi ứng dụng');
+      if(t.length<2) return '';
+      return '<div class="pd-block ptinf-empty">'+icon('doc',18)
+        +'<span>Công tác này chưa có <b>'+esc(t.join(', '))+'</b>. Bấm <b>Sửa</b> để bổ sung — nội dung được lưu lại cho những lần sau.</span></div>';
+    })();
+  P.foot = '<div class="pd-price"><span>Đơn giá</span><b>'+money(dgBan)+' đ</b></div>'
+    +'<div class="pd-foot2">'
+      +(inf.tl?'<a class="pd-fbtn" href="'+esc(inf.tl)+'" target="_blank" rel="noopener">'+icon('doc',14)+' Tài liệu kỹ thuật</a>'
+             :'<span class="pd-fbtn dis" title="Chưa có link tài liệu cho công tác này">'+icon('doc',14)+' Tài liệu kỹ thuật</span>')
+      +(inf.tl?'<a class="pd-fbtn" href="'+esc(inf.tl)+'" download target="_blank" rel="noopener">'+icon('download',14)+' Tải về</a>':'')
+    +'</div>';
+  P.ctr=ctr;
+  return P;
 }
 function ptDetailHtml_(si,ii){
   var sec=PT_TEMPLATE[si], a=sec.items[ii];

@@ -4031,6 +4031,63 @@ table.tk td .ln-in:focus{background:#fff}
 #selExtra .fsec .chips::-webkit-scrollbar-thumb{background:#dfe5ec;border-radius:var(--rp)}
 #selExtra .fsec .chips::-webkit-scrollbar-thumb:hover{background:#c9d3df}
 #selExtra .fsec .chips::-webkit-scrollbar-track{background:transparent}
+
+/* Popup Thông tin công tác: 2 cột giống popup Thông tin sản phẩm của đèn */
+.sp-modal.ptdetail{max-width:1000px}
+.sp-modal.ptdetail .pdm-grid{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:26px;align-items:start}
+.sp-modal.ptdetail .pdm-right{columns:2;column-gap:26px}
+.sp-modal.ptdetail .pdm-right .pd-block{break-inside:avoid;-webkit-column-break-inside:avoid;margin-bottom:6px}
+.sp-modal.ptdetail .pd-loai{font-size:var(--t-xs);font-weight:600;color:var(--c3);background:var(--bg3);
+  border-radius:var(--rp);padding:3px 10px}
+.sp-modal.ptdetail .pd-gal .imgbox{height:280px}
+@media(max-width:1000px){
+  .sp-modal.ptdetail .pdm-grid{grid-template-columns:1fr}
+  .sp-modal.ptdetail .pdm-right{columns:1}
+}
+
+/* ═══ Combo trong thư viện: nhãn Combo là NÚT mở/đóng; thẻ con thụt lề, bỏ cột số rỗng ═══ */
+.citem>.no{width:20px}
+.citem .no-n{position:static;display:block;text-align:center;padding-top:2px;font-size:10.5px;color:var(--c4);font-weight:600}
+.citem.cb-open::after{display:none}
+.citem>.cmeta .cc-tag{gap:5px;cursor:pointer;transition:.12s}
+.citem>.cmeta .cc-tag:hover{background:#ffedd5;border-color:rgba(180,83,9,.45)}
+.citem>.cmeta .cc-tag.on{background:#b45309;border-color:#b45309;color:#fff}
+.citem>.cmeta .cc-tag b{font-weight:700}
+.citem>.cmeta .cc-tag .cc-car{font-style:normal;font-size:8px;opacity:.75}
+.citem>.cmeta .cc-tag.kem{background:#f2f5f9;border-color:var(--ln2);color:var(--c3);cursor:default}
+/* nhóm thẻ con: một đường viền trái liền mạch, thụt lề — bỏ trục + nhánh vẽ tay */
+.cc-kids{position:relative;margin:2px 0 4px 14px;padding-left:12px;border-left:2px solid #e4eaf2}
+.cc-kids::before{display:none}
+.citem.cc-child{background:#fff;border-bottom-color:#f2f5f9;padding-left:2px}
+.citem.cc-child::before,.citem.cc-child::after{display:none}
+.citem.cc-child>.no{display:none}
+.cc-ix{display:inline-block;margin-right:6px;font-size:10px;font-weight:700;color:var(--blue);
+  background:#eef5ff;border-radius:var(--rp);padding:1px 6px;vertical-align:1px}
+.cc-note{padding:8px 0 8px 26px;font-size:11px;color:var(--c3)}
+
+/* ═══ Khối "Sản phẩm đi kèm" trong panel/popup chi tiết ═══ */
+.pd-combo{background:#f8fbff;border:1px solid rgba(37,99,235,.16);border-radius:var(--rk);padding:14px}
+.pd-combo .pd-sec{margin-top:0;border-bottom-color:rgba(37,99,235,.16)}
+.cbi-list{display:flex;flex-direction:column;gap:2px;margin-top:10px}
+.cbi{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--rc);background:#fff;
+  border:1px solid var(--ln);transition:.12s}
+.cbi:hover{border-color:rgba(37,99,235,.3);box-shadow:var(--e1)}
+.cbi-ix{flex:none;width:18px;height:18px;border-radius:50%;background:#eef5ff;color:var(--blue);
+  font-size:9.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.cbi-th{flex:none;width:38px;height:38px;border-radius:var(--rc);object-fit:cover;background:var(--bg3);border:1px solid var(--ln)}
+.cbi-m{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cbi-m b{font-size:var(--t-sm);font-weight:600;color:var(--c1);line-height:1.35;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cbi-sub{font-size:10px;color:var(--c4)}
+.cbi-rev{color:var(--blue);font-size:10px}
+.cbi-pr{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.cbi-pr b{font-size:var(--t-sm);font-weight:650;color:var(--navy);font-variant-numeric:tabular-nums}
+.cbi-pr i{font-style:normal;font-size:9.5px;color:var(--c4);font-variant-numeric:tabular-nums}
+.cbi-tot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;
+  border-top:1px solid rgba(37,99,235,.16);font-size:var(--t-sm)}
+.cbi-tot span{color:var(--c2)}
+.cbi-tot b{font-size:var(--t-lg);font-weight:650;color:var(--blue);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.cbi-add{width:100%;margin-top:12px;justify-content:center}
 </style>
 
 <!-- ===== TOP NAV ===== -->
