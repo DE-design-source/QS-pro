@@ -858,16 +858,15 @@ function renderCatalog(){
         +'<span class="no-n">'+(i+1)+'</span></div>'+im2
       +'<div class="cmid" onclick="showDetail('+i+')" title="Xem chi tiết sản phẩm">'
         +'<div class="nm">'+esc(p.ten)+'</div>'
-        +'<div class="meta"><span class="pr">'+money(p.donGiaBan)+' đ</span>'
-          +(brand?('<span class="metarow">'
-            +'<span class="sz brand">'+brand+'</span>'
-
-          +'</span>'):'')+'</div>'
+        +'<div class="meta"><span class="pr">'+money(p.donGiaBan)+' đ</span></div>'
       +'</div>'
       +'<button class="cfav'+(p.yeuThich?' on':'')+'" title="'+(p.yeuThich?'Bỏ khỏi sản phẩm yêu thích':'Thêm vào sản phẩm yêu thích')+'" onclick="event.stopPropagation();catFav('+i+','+(p.yeuThich?0:1)+')">'+icon('star',14)+'</button>'
       +'<button class="add" title="Thêm vào bóc tách" onclick="addProduct('+i+')">+</button>'
       // hàng chip thông số nằm RIÊNG 1 hàng, rộng hết thẻ -> đủ chỗ, không cắt, không rớt dòng
-      +(p.comboN?'<span class="cc-tag">Combo</span>':'')
+      +((brand||p.comboN)?('<div class="cmeta metarow">'
+          +(brand?'<span class="sz brand">'+brand+'</span>':'')
+          +(p.comboN?'<span class="cc-tag" title="Sản phẩm có '+p.comboN+' món đi kèm">Combo</span>':'')
+        +'</div>'):'')
       +(specs?'<div class="cspecs" onclick="showDetail('+i+')">'+specs+'</div>':'')
     +'</div>'
     +(catCbMo_(p)?catComboHtml_(p,i):'');            // thành phần combo = thẻ SP thật, nằm ngang hàng
@@ -5964,14 +5963,14 @@ function catComboHtml_(p, idx){
       +'<div class="no"><span class="cc-no">'+((idx+1)+'.'+(k+1))+'</span></div>'+img
       +'<div class="cmid">'
         +'<div class="nm">'+esc(x.ten||'')+'</div>'
-        +'<div class="meta"><span class="pr">'+money(x.donGiaBan)+' đ</span>'
-          +((brand||sl>1)?('<span class="metarow">'
-            +(brand?'<span class="sz brand">'+brand+'</span>':'')
-            +(sl>1?'<span class="sz cbsl" title="Số lượng đi kèm">×'+ptQty(sl)+'</span>':'')
-          +'</span>'):'')+'</div>'
+        +'<div class="meta"><span class="pr">'+money(x.donGiaBan)+' đ</span></div>'
       +'</div>'
       +'<button class="add" title="Thêm sản phẩm này vào bóc tách" onclick="catAddChild_(\''+pk+'\','+k+')">+</button>'
-      +'<span class="cc-tag on">Combo</span>'
+      +'<div class="cmeta metarow">'
+        +(brand?'<span class="sz brand">'+brand+'</span>':'')
+        +'<span class="cc-tag on" title="Món đi kèm của sản phẩm phía trên">Combo</span>'
+        +(sl>1?'<span class="sz cbsl" title="Số lượng đi kèm">×'+ptQty(sl)+'</span>':'')
+      +'</div>'
       +(specs?'<div class="cspecs">'+specs+'</div>':'')
     +'</div>';
   }).join('');

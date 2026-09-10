@@ -3529,6 +3529,32 @@ table.pt tr.pt-empty .pt-empty-b{position:sticky;left:0;max-width:min(680px,100%
 .sp-card.ptmode .spchip.sua{display:inline-flex;align-items:center;white-space:nowrap;cursor:pointer;
   color:#b45309;background:#fff7ed;border:1px solid rgba(180,83,9,.28)}
 .sp-card.ptmode .spchip.sua:hover{background:#ffedd5}
+
+/* ═══ Thẻ SP có combo: thương hiệu + nhãn Combo nằm CÙNG 1 HÀNG, rộng hết thẻ ═══ */
+.citem>.cmeta{grid-column:3 / -1;display:flex;align-items:center;gap:5px;min-width:0;margin:5px 0 0}
+.citem>.cmeta .sz.brand{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.citem>.cmeta .cc-tag{position:static;grid-column:auto;justify-self:auto;align-self:auto;
+  flex:none;width:auto;max-width:none;margin:0;display:inline-flex;align-items:center;
+  height:18px;padding:0 6px;border-radius:999px;font-size:9.5px;font-weight:600;
+  background:#fff7ed;color:#b45309;border:1px solid rgba(180,83,9,.28);white-space:nowrap;text-align:center}
+.citem>.cmeta .cc-tag.on{background:#fff1e2}
+.citem>.cmeta .sz.cbsl{flex:none}
+
+/* ═══ Cột số + đường nối combo: một trục dọc, số thẻ con là "nút" nằm trên trục ═══ */
+.citem>.no{width:30px;align-self:stretch;position:relative;display:block}
+.citem .no-n{position:absolute;left:0;right:0;top:8px;text-align:center;font-size:10.5px;font-weight:600;color:#9aa7b4}
+.citem .cbtog{position:absolute;left:6px;top:26px;width:18px;height:18px;font-size:8px;z-index:2;background:#fff}
+.citem.cb-open::after{content:'';position:absolute;left:14px;top:45px;bottom:-1px;width:2px;
+  background:var(--hair-2);border-radius:2px}
+.citem.cc-child::before{content:'';position:absolute;left:14px;top:0;bottom:-1px;width:2px;background:var(--hair-2)}
+.citem.cc-child.last::before{bottom:auto;height:50%}
+.citem.cc-child::after{display:none}
+.citem.cc-child>.no{width:30px}
+.citem.cc-child .cc-no{position:absolute;left:0;top:50%;transform:translateY(-50%);width:30px;
+  text-align:center;font-size:9.5px;font-weight:700;color:var(--blue);
+  background:#fbfcfe;border-radius:999px;padding:2px 0;z-index:2}
+.citem.cc-child:hover .cc-no{background:#f4f8ff}
+.citem.cc-child:hover::before{background:var(--blue)}
 </style>
 
 <!-- ===== TOP NAV ===== -->
