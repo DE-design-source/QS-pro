@@ -1023,12 +1023,12 @@ function renderSanpham(){
             +'<button class="btn ghost sm sp-undobtn" id="spUndoBtn" onclick="spUndo_()" disabled title="Chưa có thao tác nào để hoàn tác">'
               +'<svg class="ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-4"/></svg> Hoàn tác</button>'
             +'<button class="btn ghost sm sp-editbtn" id="spEditBtn" onclick="spEditToggle()" title="Sửa nhanh ngay trên bảng — hiện tất cả cột nhập liệu">'+icon('edit',14)+' Edit</button>'
+            +'<button class="btn ghost sm" id="spColBtn" onclick="spColPop_(event)" title="Chọn cột hiển thị">'+icon('list',14)+' Cột <b class="tbn" id="spColN"></b></button>'
             +'<button class="btn ghost sm" id="spBoLocBtn" onclick="spToggleBoLoc(event)">'+icon('sliders',14)+' Bộ lọc<span class="spflt-badge" id="spFltBadge"></span></button>'
             +'<button class="btn ghost sm" id="spXlsBtn" onclick="spXlsClick_()" title="Tải danh sách ra file Excel">'+icon('download',14)+' <span id="spXlsLbl">Tải Excel</span></button>'
             +'<button class="btn blue sm" onclick="showTab(\'import\')">'+icon('plus',14)+' Thêm sản phẩm</button>'
           +'</div>'
-          +'<div class="spviewtabs" id="spViewTabs"></div>'
-          +'<div class="spbar" id="spBar"></div>'
+          +'<div class="sp-headrow"><div class="spviewtabs" id="spViewTabs"></div><div class="spbar" id="spBar"></div></div>'
           +'<div class="colchips sp-colchips" id="spColBar"></div>'
           +'<div class="tbl-wrap"><table class="sp-table"><colgroup id="spColg"></colgroup><thead id="spHead"></thead>'
             +'<tbody id="spBody"></tbody></table></div>'
@@ -1753,16 +1753,62 @@ function spColToggle(k){
   else { S._spCols=S._spCols||{}; S._spCols[k]=!S._spCols[k]; }
   spColChips_(); spRenderHead_(); spFilter();
 }
-function spColChips_(){
-  var bar=document.getElementById('spColBar'); if(!bar) return;
+/* Chọn cột: gom vào 1 nút + bảng chọn thả xuống (trước đây trải 3 hàng chip
+   chiếm gần hết phần đầu bảng và át cả dữ liệu).                            */
+function spColList_(){
   var by={}; spAllCols_().forEach(function(c){ by[c[0]]=c; });
-  var cols=spOrder_().map(function(k){ return by[k]; }).filter(Boolean);
-  var on=cols.filter(function(c){ return spColOn_(c[0]); }).length;
-  bar.innerHTML='<span class="cp-collbl">Cột hiển thị <b>'+on+'/'+cols.length+'</b>'
-    +'<a class="cp-reset" onclick="spResetCols_()" title="Đặt lại thứ tự và độ rộng cột">Đặt lại</a></span>'+cols.map(function(c){
-    var lock=c[0]==='ten'||c[0]==='stt', act=spColOn_(c[0]);
-    return '<span class="chip'+(act?' on':'')+(lock?' lock':'')+'"'+(lock?'':' onclick="spColToggle(\''+c[0]+'\')"')+'>'+esc(c[1])+'</span>';
-  }).join('');
+  return spOrder_().map(function(k){ return by[k]; }).filter(Boolean);
+}
+function spColChips_(){
+  var bar=document.getElementById('spColBar'); if(bar) bar.innerHTML='';
+  var cols=spColList_(), on=cols.filter(function(c){ return spColOn_(c[0]); }).length;
+  var n=document.getElementById('spColN'); if(n) n.textContent=on+'/'+cols.length;
+  if(document.getElementById('spColPop')) spColPopRender_();
+}
+function spColPop_(e){
+  if(e&&e.stopPropagation) e.stopPropagation();
+  var old=document.getElementById('spColPop');
+  if(old){ old.remove(); document.removeEventListener('mousedown',spColOutside_); return; }
+  var pop=document.createElement('div'); pop.className='fltpop colpop'; pop.id='spColPop';
+  document.body.appendChild(pop); spColPopRender_();
+  var btn=document.getElementById('spColBtn');
+  if(btn){ var r=btn.getBoundingClientRect(), w=pop.offsetWidth||300;
+    pop.style.top=(r.bottom+6)+'px';
+    pop.style.left=Math.max(8,Math.min(r.left, window.innerWidth-w-10))+'px'; }
+  setTimeout(function(){ document.addEventListener('mousedown',spColOutside_); },0);
+  var q=document.getElementById('spColQ'); if(q) q.focus();
+}
+function spColOutside_(e){
+  if(e.target.closest('#spColPop')||e.target.closest('#spColBtn')) return;
+  var p=document.getElementById('spColPop'); if(p) p.remove();
+  document.removeEventListener('mousedown',spColOutside_);
+}
+function spColPopRender_(){
+  var pop=document.getElementById('spColPop'); if(!pop) return;
+  var q=spNorm_((document.getElementById('spColQ')||{}).value||'');
+  var cols=spColList_(), on=cols.filter(function(c){ return spColOn_(c[0]); }).length;
+  var list=cols.filter(function(c){ return !q || spNorm_(c[1]).indexOf(q)>=0; });
+  pop.innerHTML='<div class="colpop-h"><b>Cột hiển thị</b><span class="colpop-n">'+on+'/'+cols.length+'</span>'
+      +'<button class="colpop-x" onclick="spColPop_()">✕</button></div>'
+    +'<div class="colpop-s"><input id="spColQ" placeholder="Tìm cột…" value="'+esc((document.getElementById('spColQ')||{}).value||'')+'" oninput="spColPopRender_()"></div>'
+    +'<div class="colpop-b">'+(list.length?list.map(function(c){
+        var lock=c[0]==='ten'||c[0]==='stt', act=spColOn_(c[0]);
+        return '<label class="colpop-i'+(lock?' lock':'')+'">'
+          +'<input type="checkbox" '+(act?'checked':'')+(lock?' disabled':'')+' onchange="spColToggle(\''+c[0]+'\')">'
+          +'<span>'+esc(c[1])+'</span>'+(lock?'<i>luôn hiện</i>':'')+'</label>';
+      }).join(''):'<div class="colpop-empty">Không có cột nào khớp</div>')+'</div>'
+    +'<div class="colpop-f"><button class="btn ghost xs" onclick="spResetCols_()">Đặt lại thứ tự & độ rộng</button>'
+      +'<button class="btn ghost xs" onclick="spColAll_(1)">Hiện tất cả</button>'
+      +'<button class="btn ghost xs" onclick="spColAll_(0)">Ẩn bớt</button></div>';
+  var i=document.getElementById('spColQ'); if(i&&document.activeElement!==i) i.value=(q?i.value:i.value);
+}
+function spColAll_(on){
+  spColList_().forEach(function(c){
+    if(c[0]==='ten'||c[0]==='stt') return;
+    if(spPTMode_()){ ptOrder2_(); S._ptColsOn[c[0]]=!!on; }
+    else { S._spCols=S._spCols||{}; S._spCols[c[0]]=!!on; }
+  });
+  spSaveCols_(); spColChips_(); spRenderHead_(); spFilter();
 }
 function spRenderHead_(){
   var head=document.getElementById('spHead'); if(!head) return;
@@ -1805,15 +1851,26 @@ function renderSpChips_(){
       +'<option value="">'+ph+'</option>'
       +opts.map(function(v){ return '<option value="'+esc(v)+'"'+(spNorm_(cur)===spNorm_(v)?' selected':'')+'>'+esc(v)+'</option>'; }).join('')+'</select></div>'; }
   // hàng lọc: cây Hạng mục + 3 dropdown (Thương hiệu / Hạng mục SP / Dòng SP)  — bám mockup
-  var treeCol='<div class="sp-fcol"><label>Danh sách sản phẩm</label>'
-    +'<div class="sp-catwrap"><button class="tree-btn sp-catbtn" id="spCatBtn" onclick="spCatToggle(event)"><span class="sp-catlbl">'+esc(label)+'</span><span class="cnt">['+pad2(cnt)+']</span><span class="sp-caret">▾</span></button>'
-      +'<div class="tree-pop" id="spCatPop" style="display:none"></div></div></div>';
+  // Hàng lọc chỉ giữ thứ quyết định phạm vi (đề mục) + các bộ lọc ĐANG bật.
+  // Ba dropdown thương hiệu / hạng mục SP / dòng SP nằm trong nút "Bộ lọc" cho gọn.
+  function fchip(key,lb,val){
+    return '<span class="fltag" title="'+esc(lb)+'"><i>'+esc(lb)+'</i>'+esc(val)
+      +'<b onclick="spSelFilter(\''+key+'\',\'\')" title="Bỏ lọc này">✕</b></span>';
+  }
+  var tags='';
+  if(f.brand)   tags+=fchip('brand','Thương hiệu',f.brand);
+  if(f.hangMuc) tags+=fchip('hangMuc','Hạng mục SP',f.hangMuc);
+  if(f.dong)    tags+=fchip('dong','Dòng SP',f.dong);
+  var treeCol='<div class="sp-scope"><button class="tree-btn sp-catbtn" id="spCatBtn" onclick="spCatToggle(event)">'
+      +'<span class="sp-catlbl">'+esc(label)+'</span><span class="cnt">'+cnt+'</span><span class="sp-caret">▾</span></button>'
+      +'<div class="tree-pop" id="spCatPop" style="display:none"></div></div>';
   bar.innerHTML='<div class="sp-filtrow">'+treeCol
-    +fsel('brand','Danh sách thương hiệu','thuongHieu','Tất cả thương hiệu')
-    +fsel('hangMuc','Hạng mục sản phẩm','hangMuc','Tất cả hạng mục SP')
-    +fsel('dong','Dòng sản phẩm','nhom','Tất cả dòng SP')
-    +(spAnyFilter_()?'<div class="sp-fcol" style="justify-content:flex-end"><span class="spchip clr" onclick="spClearFilters()">✕ Xóa lọc</span></div>':'')
+    +(tags?('<div class="fltags">'+tags+'</div>'):'')
+    +(spAnyFilter_()?'<button class="btn ghost xs sp-clrflt" onclick="spClearFilters()">Xoá lọc</button>':'')
     +'</div>';
+  S._spFselHtml=fsel('brand','Thương hiệu','thuongHieu','Tất cả thương hiệu')
+    +fsel('hangMuc','Hạng mục sản phẩm','hangMuc','Tất cả hạng mục SP')
+    +fsel('dong','Dòng sản phẩm','nhom','Tất cả dòng SP');
   var badge=document.getElementById('spFltBadge'); var n=spFltCount_();
   if(badge){ badge.textContent=n||''; badge.style.display=n?'inline-flex':'none'; }
   var btn=document.getElementById('spBoLocBtn'); if(btn) btn.classList.toggle('on', n>0);
@@ -1893,7 +1950,8 @@ function spBoLocPop_(){
         return '<span class="spchip sm'+(on?' on':'')+'" onclick="spFltSpec(\''+fkey+'\',\''+esq(k)+'\')">'+dot+esc(k)+'</span>'; }).join('')
       +'</div></div>'; }
   var pop=document.createElement('div'); pop.className='fltpop spfltpop'; pop.id='spFltPop';
-  pop.innerHTML='<div class="fhdr">Bộ lọc nâng cao</div>'
+  pop.innerHTML='<div class="fhdr">Bộ lọc</div>'
+    +'<div class="fgrp fgrp-sel">'+(S._spFselHtml||'')+'</div>'
     +multi('Công suất','congSuat','watt')
     +multi('Nhiệt độ màu','nhietDo','kelvin',{dot:ctColor})
     +multi('Góc chiếu','gocChieu','angle')
@@ -2844,11 +2902,52 @@ document.addEventListener('click',function(e){
   if(!e.target.closest('#treePop') && !e.target.closest('#treeBtn')){ var p=document.getElementById('treePop'); if(p) p.style.display='none'; }
 });
 
-/* ===== COLUMN CHIPS ===== */
+/* ===== CHỌN CỘT — 1 nút + bảng chọn thả xuống (dùng chung cho bảng Bóc tách và Khái toán) =====
+   Trước đây trải hết chip ra 2-3 hàng, chiếm gần hết phần đầu bảng.                     */
 function renderColChips(){
-  document.getElementById('colChips').innerHTML=COLS.map(function(c){
-    return '<span class="chip'+(S.cols[c[0]]?' on':'')+'" onclick="toggleCol(\''+c[0]+'\')">'+esc(c[1])+'</span>';
-  }).join('');
+  var el=document.getElementById('colChips'); if(!el) return;
+  var on=COLS.filter(function(c){ return S.cols[c[0]]; }).length;
+  el.innerHTML='<button class="btn ghost sm" id="tkColBtn" onclick="tkColPop_(event)" title="Chọn cột hiển thị">'
+      +icon('list',14)+' Cột <b class="tbn">'+on+'/'+COLS.length+'</b></button>'
+    +'<button class="btn ghost sm" onclick="tkColAll_(1)">Hiện tất cả</button>'
+    +(S._tkColBak?'<button class="btn ghost sm" onclick="tkColAll_(0)">Rút gọn</button>':'');
+  if(document.getElementById('tkColPop')) tkColPopRender_();
+}
+function tkColPop_(e){
+  if(e&&e.stopPropagation) e.stopPropagation();
+  var old=document.getElementById('tkColPop');
+  if(old){ old.remove(); document.removeEventListener('mousedown',tkColOutside_); return; }
+  var pop=document.createElement('div'); pop.className='fltpop colpop'; pop.id='tkColPop';
+  document.body.appendChild(pop); tkColPopRender_();
+  var btn=document.getElementById('tkColBtn');
+  if(btn){ var r=btn.getBoundingClientRect(), w=pop.offsetWidth||300;
+    pop.style.top=(r.bottom+6)+'px'; pop.style.left=Math.max(8,Math.min(r.left, window.innerWidth-w-10))+'px'; }
+  setTimeout(function(){ document.addEventListener('mousedown',tkColOutside_); },0);
+  var q=document.getElementById('tkColQ'); if(q) q.focus();
+}
+function tkColOutside_(e){
+  if(e.target.closest('#tkColPop')||e.target.closest('#tkColBtn')) return;
+  var p=document.getElementById('tkColPop'); if(p) p.remove();
+  document.removeEventListener('mousedown',tkColOutside_);
+}
+function tkColPopRender_(){
+  var pop=document.getElementById('tkColPop'); if(!pop) return;
+  var q=spNorm_((document.getElementById('tkColQ')||{}).value||'');
+  var on=COLS.filter(function(c){ return S.cols[c[0]]; }).length;
+  var list=COLS.filter(function(c){ return !q || spNorm_(c[1]).indexOf(q)>=0; });
+  pop.innerHTML='<div class="colpop-h"><b>Cột hiển thị</b><span class="colpop-n">'+on+'/'+COLS.length+'</span>'
+      +'<button class="colpop-x" onclick="tkColPop_()">✕</button></div>'
+    +'<div class="colpop-s"><input id="tkColQ" placeholder="Tìm cột…" value="'+esc((document.getElementById('tkColQ')||{}).value||'')+'" oninput="tkColPopRender_()"></div>'
+    +'<div class="colpop-b">'+(list.length?list.map(function(c){
+        return '<label class="colpop-i"><input type="checkbox" '+(S.cols[c[0]]?'checked':'')+' onchange="toggleCol(\''+c[0]+'\')"><span>'+esc(c[1])+'</span></label>';
+      }).join(''):'<div class="colpop-empty">Không có cột nào khớp</div>')+'</div>'
+    +'<div class="colpop-f"><button class="btn ghost xs" onclick="tkColAll_(1)">Hiện tất cả</button>'
+      +'<button class="btn ghost xs" onclick="tkColAll_(0)">Chỉ cột cơ bản</button></div>';
+}
+var TK_COL_CB=['stt','tang','ten','thuongHieu','soLuong','donGia','thanhTien','hinhAnh'];
+function tkColAll_(on){
+  COLS.forEach(function(c){ S.cols[c[0]] = on ? true : (TK_COL_CB.indexOf(c[0])>=0); });
+  saveCols&&saveCols(); renderColChips(); renderTable(); if(bgVis()) drawBaogia();
 }
 function bgVis(){ var e=document.getElementById('v-export'); return e && e.classList.contains('on'); }
 function toggleCol(k){ S.cols[k]=!S.cols[k]; renderColChips(); renderTable(); if(bgVis()) drawBaogia(); }
@@ -6737,6 +6836,35 @@ function ptCtx(e){
   pop.style.left=Math.max(8,L)+'px'; pop.style.top=Math.max(8,T)+'px';
   setTimeout(function(){ document.addEventListener('mousedown',popOutside); },0);
 }
+function ptColPop_(e){
+  if(e&&e.stopPropagation) e.stopPropagation();
+  var old=document.getElementById('ptColPop');
+  if(old){ old.remove(); document.removeEventListener('mousedown',ptColOutside_); return; }
+  var pop=document.createElement('div'); pop.className='fltpop colpop'; pop.id='ptColPop';
+  document.body.appendChild(pop); ptColPopRender_();
+  var btn=document.getElementById('ptColBtn');
+  if(btn){ var r=btn.getBoundingClientRect(), w=pop.offsetWidth||300;
+    pop.style.top=(r.bottom+6)+'px'; pop.style.left=Math.max(8,Math.min(r.left, window.innerWidth-w-10))+'px'; }
+  setTimeout(function(){ document.addEventListener('mousedown',ptColOutside_); },0);
+}
+function ptColOutside_(e){
+  if(e.target.closest('#ptColPop')||e.target.closest('#ptColBtn')) return;
+  var p=document.getElementById('ptColPop'); if(p) p.remove();
+  document.removeEventListener('mousedown',ptColOutside_);
+}
+function ptColPopRender_(){
+  var pop=document.getElementById('ptColPop'); if(!pop) return;
+  var on=PT_COLS.filter(function(c){ return S._ptCols[c[0]]; }).length;
+  pop.innerHTML='<div class="colpop-h"><b>Cột hiển thị</b><span class="colpop-n">'+on+'/'+PT_COLS.length+'</span>'
+      +'<button class="colpop-x" onclick="ptColPop_()">✕</button></div>'
+    +'<div class="colpop-b">'+PT_COLS.map(function(c){
+        var lock=c[0]==='noidung';
+        return '<label class="colpop-i'+(lock?' lock':'')+'"><input type="checkbox" '+(S._ptCols[c[0]]?'checked':'')
+          +(lock?' disabled':'')+' onchange="ptColToggle(\''+c[0]+'\')"><span>'+esc(c[1])+'</span>'
+          +(lock?'<i>luôn hiện</i>':'')+'</label>';
+      }).join('')+'</div>'
+    +'<div class="colpop-f"><button class="btn ghost xs" onclick="ptShowAllCols_()">Hiện tất cả</button></div>';
+}
 function ptSortSet_(k,dir){ S._ptSort=k||''; S._ptSortDir=dir||'asc'; renderPhanTho(); }
 function ptShowAllCols_(){ S._ptCols={}; PT_COLS.forEach(function(c){ S._ptCols[c[0]]=true; }); renderPhanTho(); }
 function ptHBarSync_(){ hbarSync_('#ptWrap .pt-scroll','ptHBar','ptHThumb'); }
@@ -7307,11 +7435,14 @@ function renderPhanTho(){
   // hàng CHIP chọn cột (giống Bóc tách)
   var frzLbl=frz?('Bỏ cố định ('+frz+' cột)'):'Cố định cột';
   var soLoc=Object.keys(S._ptFilter||{}).length;
-  var ptChips='<div class="colchips pt-colchips"><span class="cp-collbl">Cột hiển thị</span>'
-    +(soLoc?'<span class="chip fltchip on" title="Bỏ mọi bộ lọc cột" onclick="ptClearFilter()">Đang lọc '+soLoc+' cột ✕</span>':'')
-    +'<span class="chip ptfrz'+(frz?' on':'')+'" title="Cố định cột trái khi cuộn ngang, như bảng Bóc tách" onclick="'
-      +(frz?'ptUnfreeze()':'ptFreezeTo(\''+(ptVis[1]?ptVis[1][0]:ptVis[0][0])+'\')')+'">'+esc(frzLbl)+'</span>'
-    +PT_COLS.map(function(c){ return '<span class="chip'+(S._ptCols[c[0]]?' on':'')+'" onclick="ptColToggle(\''+c[0]+'\')">'+esc(c[1])+'</span>'; }).join('')+'</div>';
+  var ptOn=PT_COLS.filter(function(c){ return S._ptCols[c[0]]; }).length;
+  var ptChips='<div class="colchips pt-colchips">'
+    +'<button class="btn ghost sm" id="ptColBtn" onclick="ptColPop_(event)" title="Chọn cột hiển thị">'
+      +icon('list',14)+' Cột <b class="tbn">'+ptOn+'/'+PT_COLS.length+'</b></button>'
+    +'<button class="btn ghost sm'+(frz?' on':'')+'" title="Cố định cột trái khi cuộn ngang" onclick="'
+      +(frz?'ptUnfreeze()':'ptFreezeTo(\''+(ptVis[1]?ptVis[1][0]:ptVis[0][0])+'\')')+'">'+icon('lock',14)+' '+esc(frzLbl)+'</button>'
+    +(soLoc?'<button class="btn ghost sm on" title="Bỏ mọi bộ lọc cột" onclick="ptClearFilter()">Đang lọc '+soLoc+' cột ✕</button>':'')
+    +'</div>';
 
   // Thanh tổng dùng chung (giống các hạng mục SP khác) — hiện cho cả Phần thô
   var teP=document.getElementById('tkTotals');
