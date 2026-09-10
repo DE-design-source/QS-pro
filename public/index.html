@@ -4002,7 +4002,9 @@ table.tk td .ln-in:focus{background:#fff}
 /* ── Panel trái: bộ lọc GIỮ NGUYÊN chỗ cũ, nhưng gọn và có vùng cuộn riêng
    để danh sách sản phẩm luôn nhìn thấy được (trước đây bộ lọc đẩy danh sách xuống 507px) ── */
 .catpanel{display:flex;flex-direction:column;min-height:0}
-.catpanel-top{flex:none;overflow:visible}
+.catpanel-top{flex:none;overflow:hidden auto}   /* PHẢI cuộn trong khối: người dùng có thể đã kéo
+   thanh chia để đặt chiều cao riêng (lưu ở qs_catTopH) — để overflow:visible thì nội dung tràn ra
+   đè lên danh sách sản phẩm bên dưới */
 .catpanel-top::-webkit-scrollbar{width:8px}
 .catpanel-top::-webkit-scrollbar-thumb{background:#dfe5ec;border-radius:var(--rp);border:2px solid #fff}
 .cat-list{flex:1;min-height:0;overflow:auto;margin-top:8px;padding-top:8px;border-top:1px solid var(--ln)}
