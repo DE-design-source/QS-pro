@@ -3678,6 +3678,25 @@ table.pt tr.pt-empty .pt-empty-b{position:sticky;left:0;max-width:min(680px,100%
 .admtbl .st-lk[title]{cursor:help}
 
 .afield-hint{display:block;margin-top:5px;font-style:normal;font-size:11px;line-height:1.45;color:#8a96a5}
+
+/* ═══ Đồng bộ công tác với sản phẩm: sao yêu thích · kéo thả · nhập hàng loạt ═══ */
+.ptlib-item{position:relative}
+.ptlib-fav{position:absolute;right:6px;top:6px;width:20px;height:20px;border:none;background:transparent;
+  color:#d7dee7;cursor:pointer;padding:0;line-height:1;display:flex;align-items:center;justify-content:center;z-index:2}
+.ptlib-fav:hover{color:#f0b429}
+.ptlib-fav.on{color:#f0b429}
+.ptlib-fav svg{width:13px;height:13px;fill:currentColor}
+.ptlib-item .ptlib-nm{padding-right:20px}
+.ptlib-item.dragging{opacity:.45}
+#ptWrap tr.dropInto>td{box-shadow:inset 0 0 0 2px var(--blue)}
+table.pt tr.pt-empty.dropInto td{box-shadow:inset 0 0 0 2px var(--blue)}
+.ctimp-bar{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:12.5px;color:#5b6875}
+.ctimp-bar .sp{flex:1}
+.ctimp-wrap{max-height:420px;overflow:auto}
+.ctimp-tbl th{position:sticky;top:0;z-index:1}
+.ctimp-tbl td{font-size:11.5px;vertical-align:top}
+.ctimp-c{min-width:70px;outline:none}
+.ctimp-c:focus{background:#f5f9ff;box-shadow:inset 0 0 0 2px rgba(37,99,235,.25)}
 </style>
 
 <!-- ===== TOP NAV ===== -->

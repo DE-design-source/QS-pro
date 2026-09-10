@@ -505,6 +505,9 @@ async function ctDuyetGated(actor, ids, approve) {
   if (!p.duyet) throw new Error('Tài khoản không có quyền duyệt');
   return store.ctDuyet(actor, ids, approve !== false);
 }
+async function ctFavGated(actor, ids, on) {
+  return store.ctFav(actor, ids, on !== false);   // yêu thích = dấu trang của công ty, ai cũng bật/tắt được
+}
 async function ctSeedGated(actor, rows) {
   const p = await spPerms_(actor);
   if (!p.edit) throw new Error('Tài khoản không có quyền thêm dữ liệu');
@@ -573,7 +576,7 @@ async function resolvePurchaseRequest(actor, maDon, approve) {
 module.exports = {
   updateProductGated, createProductGated, importGated, saveLineAsProductGated, setSpDuyet, setComboGated, spMyPerms,
   setYeuThich,
-  ctSaveGated, ctUpdateGated, ctDeleteGated, ctDuyetGated, ctSeedGated,
+  ctSaveGated, ctUpdateGated, ctDeleteGated, ctDuyetGated, ctSeedGated, ctFavGated,
   listCongTyUsers, createCongTyUser,
   listCongTy, createCongTy, updateCongTy, deleteCongTy, getCongTy,
   getPurchaseOrder,

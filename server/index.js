@@ -57,6 +57,8 @@ const REGISTRY = {
   ctDelete: auth.ctDeleteGated,
   ctDuyet: auth.ctDuyetGated,
   ctSeed: auth.ctSeedGated,
+  ctFav: auth.ctFavGated,
+  ctImportParse: store.ctImportParse,
   getCombo: store.getCombo,
   setCombo: auth.setComboGated,
   spMyPerms: auth.spMyPerms,
@@ -113,7 +115,7 @@ const ACTOR_FNS = new Set(['me', 'logout', 'changePassword',
   'sendPurchaseRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest',
   'listCongTy', 'createCongTy', 'updateCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'checkExpiry', 'baoCaoNhapSP',
   'updateDbProductTracked', 'setSpDuyet', 'setYeuThich', 'setCombo', 'spMyPerms',
-  'ctSave', 'ctUpdate', 'ctDelete', 'ctDuyet', 'ctSeed',
+  'ctSave', 'ctUpdate', 'ctDelete', 'ctDuyet', 'ctSeed', 'ctFav',
   'deleteDbProduct', 'importCommit', 'saveDbProduct', 'saveLineAsProduct']);
 // Hàm chỉ Admin được gọi
 const SUPER_FNS = new Set(['listCongTy', 'createCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'checkExpiry', 'baoCaoNhapSP']);
