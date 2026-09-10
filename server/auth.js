@@ -8,6 +8,7 @@
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const supa = require('./supa');
+const tenant = require('./tenant');      // công ty đang làm việc (super có thể "xem như" 1 công ty)
 const store = require('./store_supa');   // để xóa sản phẩm khi admin duyệt yêu cầu
 
 const SECRET = process.env.AUTH_SECRET || 'qs-pro-dev-secret-change-me';
@@ -276,10 +277,15 @@ async function adminCreateUser(actor, data) {
   if (!/^[a-z0-9._-]{3,}$/.test(username)) throw new Error('Tên đăng nhập ≥3 ký tự (chữ thường, số, . _ -)');
   if (String(data.password || '').length < 4) throw new Error('Mật khẩu tối thiểu 4 ký tự');
   // Công ty của tài khoản mới: super có thể chỉ định, còn lại = công ty của người tạo
-  const ctId = (actor.r === 'super' && data.congTyId) ? data.congTyId : (actor.ct || null);
+  // Công ty của tài khoản mới, theo thứ tự:
+  //   1. super chọn tay trong form
+  //   2. công ty super ĐANG xem (viewAs) — đang làm việc trong công ty nào thì tạo cho công ty đó
+  //   3. công ty của chính người tạo
+  const ctId = (actor.r === 'super' && data.congTyId) ? data.congTyId
+             : (tenant.tenantId() || actor.ct || null);
   // Không cho tạo tài khoản "lạc" — không thuộc công ty nào thì không đăng nhập được
   // và cũng không hiện trong danh sách tài khoản của công ty.
-  if (!ctId) throw new Error('Chọn công ty cho tài khoản này (tài khoản không thuộc công ty nào sẽ không đăng nhập được)');
+  if (!ctId) throw new Error('Tài khoản của bạn chưa gắn với công ty nào nên chưa tạo được tài khoản mới — chọn một công ty ở tab Công ty rồi thử lại.');
   // Tên đăng nhập phải DUY NHẤT TOÀN HỆ THỐNG: lúc đăng nhập chưa biết công ty nào,
   // nên hai công ty trùng username sẽ khiến đăng nhập chọn nhầm tài khoản.
   const dupRows = await supa.select('users', { filter: supa.eq('username', username), limit: 1, noScope: true });

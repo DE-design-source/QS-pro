@@ -7641,13 +7641,19 @@ function admUserModal(user){
           +'<div class="afield"><label>Phòng ban</label><input id="am_pb" value="'+esc(user.phongBan||'')+'" placeholder="vd: Kinh doanh, Thiết kế, Mua hàng"></div>'
           +(isEdit?'<div class="afield"></div>':'<div class="afield"><label>Mật khẩu <em>*</em></label><input id="am_pw" type="text" placeholder="Tối thiểu 4 ký tự" autocomplete="new-password"></div>')
         +'</div>'
-        +(isSuper_()?('<div class="agrid2"><div class="afield"><label>Công ty <em>*</em></label>'
-            +'<select id="am_ct">'
-              +'<option value="">— Chọn công ty —</option>'
-              +(S._admCt||[]).map(function(c){ return '<option value="'+esc(c.id)+'"'+(user.congTyId===c.id?' selected':'')+'>'+esc(c.ten||c.ma)+'</option>'; }).join('')
-            +'</select>'
-            +(isEdit&&!user.congTyId?'<i class="afield-warn">Tài khoản này chưa thuộc công ty nào nên không đăng nhập được — chọn công ty rồi Lưu.</i>':'')
-          +'</div><div class="afield"></div></div>'):'')
+        +(isSuper_()?(function(){
+            // mặc định = công ty đang làm việc; super chỉ đổi khi muốn tạo cho công ty khác
+            var mac = user.congTyId || (S.congTy&&S.congTy.id) || (S.me&&S.me.congTyId) || '';
+            return '<div class="agrid2"><div class="afield"><label>Công ty</label>'
+              +'<select id="am_ct">'
+                +(S._admCt||[]).map(function(c){ return '<option value="'+esc(c.id)+'"'+(mac===c.id?' selected':'')+'>'+esc(c.ten||c.ma)+'</option>'; }).join('')
+                +(mac?'':'<option value="" selected>— Chọn công ty —</option>')
+              +'</select>'
+              +(isEdit&&!user.congTyId
+                 ?'<i class="afield-warn">Tài khoản này chưa thuộc công ty nào nên không đăng nhập được — chọn công ty rồi Lưu.</i>'
+                 :'<i class="afield-hint">Mặc định là công ty bạn đang làm việc. Đổi nếu muốn tạo cho công ty khác.</i>')
+            +'</div><div class="afield"></div></div>';
+          })():'')
       +'</div>'
       +'<div class="asec"><div class="asec-h">Vai trò</div>'
         +'<div class="aseg" id="am_seg">'
@@ -7705,7 +7711,6 @@ function admModalSave(id){
   var done=function(msg){ toast(msg); admModalClose(); renderAdmin(); };
   var fail=function(e){ toast('Lỗi: '+e.message); btn.disabled=false; };
   var ctEl=document.getElementById('am_ct'), ctId=ctEl?ctEl.value:'';
-  if(isSuper_() && ctEl && !ctId){ toast('Chọn công ty cho tài khoản này'); btn.disabled=false; return; }
   if(id){ var patch={hoTen:hoTen,role:role,perms:perms,phongBan:phongBan};
     if(ctEl) patch.congTyId=ctId;
     api('adminUpdateUser',id,patch).then(function(){ done('Đã cập nhật'); }).catch(fail); }
