@@ -545,14 +545,18 @@ function chipGroup(key, elId, badgeId, field, stateMap, dataAttr, opts){
 }
 // gập/mở 1 nhóm lọc (mặc định MỞ; nhớ trạng thái ở localStorage)
 function toggleFsec(key){
+  if(FSEC_ALWAYS[key]) return;            // Công suất / Nhiệt độ màu luôn mở
   var open=(S.fsecOpen[key]!==false);
   S.fsecOpen[key]=!open;
   try{ localStorage.setItem('qs_fsec', JSON.stringify(S.fsecOpen)); }catch(e){}
   applyFsec();
 }
+var FSEC_ALWAYS={watt:1,kelvin:1};      // 2 bộ lọc dùng nhiều nhất -> luôn mở, không gập
 function applyFsec(){
   ['watt','kelvin','angle','ip','cri','volt','combo','yeuthich'].forEach(function(k){
-    var s=document.getElementById('sec_'+k); if(s) s.classList.toggle('open', S.fsecOpen[k]!==false);
+    var s=document.getElementById('sec_'+k); if(!s) return;
+    s.classList.toggle('open', FSEC_ALWAYS[k] ? true : (S.fsecOpen[k]!==false));
+    if(FSEC_ALWAYS[k]) s.classList.add('nofold');
   });
 }
 // Nhóm của SP: dùng field Nhóm, nếu rỗng thì lấy "Danh mục: X" trong mô tả

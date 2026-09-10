@@ -4002,7 +4002,7 @@ table.tk td .ln-in:focus{background:#fff}
 /* ── Panel trái: bộ lọc GIỮ NGUYÊN chỗ cũ, nhưng gọn và có vùng cuộn riêng
    để danh sách sản phẩm luôn nhìn thấy được (trước đây bộ lọc đẩy danh sách xuống 507px) ── */
 .catpanel{display:flex;flex-direction:column;min-height:0}
-.catpanel-top{flex:none;max-height:38vh;overflow:auto;padding-right:4px;margin-right:-4px}
+.catpanel-top{flex:none;overflow:visible}
 .catpanel-top::-webkit-scrollbar{width:8px}
 .catpanel-top::-webkit-scrollbar-thumb{background:#dfe5ec;border-radius:var(--rp);border:2px solid #fff}
 .cat-list{flex:1;min-height:0;overflow:auto;margin-top:8px;padding-top:8px;border-top:1px solid var(--ln)}
@@ -4015,6 +4015,20 @@ table.tk td .ln-in:focus{background:#fff}
 #selExtra .chips{gap:5px}
 #selExtra .chips .chip{height:24px;padding:0 9px;font-size:10.5px}
 .cat-hd .filt-btn,.cat-hd .favgo-btn{height:28px}
+
+/* Công suất · Nhiệt độ màu: luôn mở, bỏ mũi tên gập cho khỏi tưởng bấm được */
+#selExtra .fsec.nofold .fsec-c{display:none}
+#selExtra .fsec.nofold .fsec-h{cursor:default}
+#selExtra .fsec .chips{max-height:none;overflow:visible}
+.cat-list{max-height:none}
+
+/* Công suất · Nhiệt độ màu: chỉ để 2 hàng chip, còn lại cuộn trong khối */
+#selExtra .fsec .chips{max-height:58px;overflow-y:auto;overflow-x:hidden;padding-right:4px;
+  scrollbar-width:thin;scrollbar-color:#dfe5ec transparent;align-content:flex-start}
+#selExtra .fsec .chips::-webkit-scrollbar{width:6px}
+#selExtra .fsec .chips::-webkit-scrollbar-thumb{background:#dfe5ec;border-radius:var(--rp)}
+#selExtra .fsec .chips::-webkit-scrollbar-thumb:hover{background:#c9d3df}
+#selExtra .fsec .chips::-webkit-scrollbar-track{background:transparent}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -4119,7 +4133,7 @@ table.tk td .ln-in:focus{background:#fff}
           <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><span class="sp" style="flex:1"></span><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg> Bộ lọc<span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button><button class="favgo-btn" id="favGoBtn" onclick="catFavToggle()"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg><span class="favgo-n" id="favGoN"></span></button></div>
 
           <!-- 3 bộ chọn (theo Figma) -->
-          <div class="mlbl">Đề mục</div>
+          <div class="mlbl" title="Lọc danh mục sản phẩm bên dưới. Khác với ô 'Hạng mục đã bóc' ở bảng bên phải — đó là đề mục đang bóc.">Lọc theo đề mục</div>
           <div class="msel" id="fDemuc" onclick="openDemucSel(event)"><span class="mlabel" id="fDemucLabel">Tất cả đề mục</span><span class="mplus" id="fDemucClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
           <!-- Bộ lọc riêng của PHẦN THÔ (Loại báo giá / Nhà thầu / Báo giá mẫu) — nằm ngay dưới Đề mục -->
           <div id="ptFilters"></div>
