@@ -1872,7 +1872,7 @@ function spSpecs_(p){ var out=[];
    Chọn hạng mục "3.1 Phần thô" ở ô Danh sách sản phẩm -> bảng đổi sang liệt kê THƯ VIỆN
    CÔNG TÁC xây dựng (khái toán chi tiết · khái toán sơ bộ · dự toán) thay cho sản phẩm đèn.
    Vẫn dùng chung khung bảng, ô tìm kiếm, phân trang và thanh kéo ngang của trang SP.       */
-var SP_PTCOLS=[['stt','STT',46,'c'],['loai','LOẠI BÁO GIÁ',126,'l'],['nhom','HẠNG MỤC',196,'l'],
+var SP_PTCOLS=[['stt','STT',58,'c'],['loai','LOẠI BÁO GIÁ',126,'l'],['nhom','HẠNG MỤC',196,'l'],
   ['ten','NỘI DUNG CÔNG VIỆC',330,'l'],['dvt','ĐVT',62,'c'],['dg','ĐƠN GIÁ',124,'n'],['gc','GHI CHÚ',280,'l']];
 function spPTMode_(){ return String((S._spFilters||{}).node||'')==='3.1'; }
 function ptLoaiLabel_(v){ var m=PT_LOAI.filter(function(x){ return x[0]===v; })[0]; return m?m[1]:v; }
@@ -1915,6 +1915,9 @@ function spPTHead_(){
 }
 function spPTRender_(){
   var card=document.querySelector('.sp-card'); if(card) card.classList.add('ptmode');
+  var se=document.getElementById('spSearch');
+  if(se) se.placeholder='Tìm công tác, hạng mục hoặc ghi chú…';
+  if(S.cur) ptEnsure();                       // nạp bảng của dự án để biết công tác nào đã thêm
   var full=spPTList_();
   var per=spPerGet_(), pages=per?Math.max(1,Math.ceil(full.length/per)):1;
   var cur=Math.min(Math.max(1,S._spPage||1), pages); S._spPage=cur;
@@ -1924,17 +1927,19 @@ function spPTRender_(){
   var cnt=document.getElementById('spCount'); if(cnt) cnt.textContent=full.length+' công việc';
   var body=document.getElementById('spBody');
   body.innerHTML=list.length?list.map(function(r,i){
-    return '<tr class="sp-row ptrow" onclick="ptModal_('+r.si+','+r.ii+')">'
+    var da=ptDaCo_(PT_TEMPLATE[r.si], PT_TEMPLATE[r.si].items[r.ii]);
+    return '<tr class="sp-row ptrow'+(da?' da':'')+'" onclick="ptModal_('+r.si+','+r.ii+')">'
       +'<td class="c">'+((cur-1)*per+i+1)+'</td>'
       +'<td class="l"><span class="ptl-tag '+esc(r.loai)+'" title="'+esc(ptLoaiLabel_(r.loai))+'">'+esc(ptLoaiNgan_(r.loai))+'</span></td>'
-      +'<td class="l"><span class="ptl-nhom">'+esc((r.r?r.r+'. ':'')+r.nhom)+'</span></td>'
-      +'<td class="l"><b class="ptl-ten">'+esc(r.ten)+'</b></td>'
+      +'<td class="l"><span class="ptl-nhom" title="Bấm để chỉ xem hạng mục này" onclick="event.stopPropagation();spSelFilter(\'ptNhom\',\''+esc(String(r.nhom).replace(/'/g,"\\'"))+'\')">'+esc((r.r?r.r+'. ':'')+r.nhom)+'</span></td>'
+      +'<td class="l"><b class="ptl-ten">'+esc(r.ten)+'</b>'
+        +(da?'<span class="ptl-da" title="Đã có trong bảng khái toán của dự án đang chọn">✓ đã thêm</span>':'')+'</td>'
       +'<td class="c ptl-dvt">'+esc(r.dvt)+'</td>'
       +'<td class="n ptl-dg">'+(r.dg?money(r.dg)+' đ':'<span class="ptl-none">—</span>')+'</td>'
       +'<td class="l ptl-gc">'+esc(r.gc)+'</td>'
       +'<td class="act-sp" onclick="event.stopPropagation()">'
         +'<button class="sp-act" title="Xem thông tin công tác" onclick="ptModal_('+r.si+','+r.ii+')">'+icon('eye',16)+'</button>'
-        +'<button class="sp-act add" title="Thêm vào bảng khái toán của dự án đang chọn" onclick="ptAddFromLib('+r.si+','+r.ii+')">'+icon('pluscircle',18)+'</button>'
+        +'<button class="sp-act add" title="'+(da?'Đã có trong bảng — bấm để thêm 1 dòng nữa':'Thêm vào bảng khái toán của dự án đang chọn')+'" onclick="ptAddFromLib('+r.si+','+r.ii+');spFilter()">'+icon('pluscircle',18)+'</button>'
       +'</td></tr>';
   }).join(''):'<tr><td colspan="'+(SP_PTCOLS.length+1)+'"><div class="empty" style="margin:10px">Không có công tác nào khớp bộ lọc.</div></td></tr>';
   spPager_(full.length, cur, pages, per);
@@ -1950,7 +1955,7 @@ function spPTTabs_(){
   el.innerHTML=tabs.map(function(t){
     return '<button class="spvt'+(cur===t[0]?' on':'')+'" onclick="spPTSetView(\''+t[0]+'\')">'+esc(t[1])
       +(t[2]?'<span class="spvt-n">'+t[2]+'</span>':'')+'</button>'; }).join('')
-    +'<span class="spvt-note">Thư viện công tác xây dựng — bấm 1 dòng để xem thông tin, ⊕ để thêm vào bảng khái toán của dự án</span>';
+    +'<span class="spvt-note ptnote">Bấm 1 dòng để xem thông tin công tác · ⊕ để thêm vào bảng khái toán của dự án đang chọn</span>';
 }
 function spPTChips_(){
   var bar=document.getElementById('spBar'); if(!bar) return;
@@ -1958,7 +1963,7 @@ function spPTChips_(){
   var view=S._ptView||'all';
   var nhomM={}; all.forEach(function(r){ if(view==='all'||r.loai===view) nhomM[r.nhom]=1; });
   var nhom=Object.keys(nhomM);
-  var treeCol='<div class="sp-fcol"><label>Danh sách sản phẩm</label>'
+  var treeCol='<div class="sp-fcol"><label>Đề mục</label>'
     +'<div class="sp-catwrap"><button class="tree-btn sp-catbtn" id="spCatBtn" onclick="spCatToggle(event)">'
       +'<span class="sp-catlbl">3.1.Phần thô</span><span class="cnt">['+pad2(all.length)+']</span><span class="sp-caret">▾</span></button>'
       +'<div class="tree-pop" id="spCatPop" style="display:none"></div></div></div>';
@@ -2013,6 +2018,7 @@ function spFilter(){
   var card=document.querySelector('.sp-card');
   if(card && card.classList.contains('ptmode')){       // vừa rời Phần thô -> dựng lại cột của bảng SP
     card.classList.remove('ptmode'); spColChips_(); spRenderHead_();
+    var se0=document.getElementById('spSearch'); if(se0) se0.placeholder='Tìm theo tên, mã hoặc thương hiệu…';
   }
   _skuMap=null;                                   // danh mục có thể đã đổi -> đếm lại SKU
   var el=document.getElementById('spSearch'); var q=(el&&el.value||'').toLowerCase().trim(); var f=S._spFilters||{};
@@ -5584,6 +5590,12 @@ dtSync_();   // nạp sẵn các bộ dự toán vào thư viện
 
 
 var PT_CONTRACTORS=['H77','Decox','TTP','Unicons'];
+// công tác đã có trong bảng của dự án đang mở chưa (so theo tên + đúng hạng mục/loại)
+function ptDaCo_(sec,a){
+  var ten=String(a[0]);
+  var s=(S.phanTho||[]).filter(function(x){ return x.t===sec.t && ptSecLoai_(x)===ptSecLoai_(sec); })[0];
+  return !!(s && (s.items||[]).some(function(it){ return String(it.n||'')===ten; }));
+}
 function ptLibDg_(sec,a){ if(sec.mode==='item') return Number(a[3])||0; if(sec.mode==='area'||sec.mode==='area0') return Number(sec.up)||0; return 0; }
 function renderPTLibrary(){
   var el=document.getElementById('catList'); if(!el) return;
@@ -5627,20 +5639,26 @@ function renderPTLibrary(){
   el.innerHTML=dtHint+'<div class="ptlib">'+secs.map(function(sec){
     var si=PT_TEMPLATE.indexOf(sec);                    // giữ chỉ số THẬT để thêm đúng nhóm
     var col=S._ptLibCol&&S._ptLibCol[si];
+    var nDaCo=sec.items.filter(function(a){ return ptDaCo_(sec,a); }).length;
     return '<div class="ptlib-sec"><div class="ptlib-h" onclick="ptLibToggle('+si+')">'
         +'<span class="ptlib-caret">'+(col?'▸':'▾')+'</span><span class="ptlib-htt">'+esc(sec.r)+'. '+esc(String(sec.t).split('\n')[0])+'</span>'
-        +(loai==='kt_sobo'
-          ? '<button class="ptlib-secadd" title="Thêm cả nhóm vào bảng (combo)" onclick="event.stopPropagation();ptAddToSec_('+si+')">+</button>'
-          : '')+'</div>'
+        +'<span class="ptlib-hn'+(nDaCo?' on':'')+'" title="'+(nDaCo?('Đã thêm '+nDaCo+'/'+sec.items.length+' công tác'):(sec.items.length+' công tác'))+'">'
+          +(nDaCo?(nDaCo+'/'+sec.items.length):sec.items.length)+'</span>'
+        +'<button class="ptlib-secadd" title="Thêm cả nhóm vào bảng" onclick="event.stopPropagation();ptAddToSec_('+si+')">+</button></div>'
       +(col?'':'<div class="ptlib-items">'+sec.items.map(function(a,ii){
         var dg=ptLibDg_(sec,a);
         var dt=S._ptDetail, on=(dt&&dt.si===si&&dt.ii===ii);
         var inf=ptInfo_(String(a[0])), coTL=!!(inf.anh||inf.ts||inf.pv||inf.tl||inf.model);
-        return '<div class="ptlib-item'+(on?' on':'')+'" title="Bấm để xem thông tin công tác" onclick="ptShowDetail_('+si+','+ii+')">'
-          +'<div class="ptlib-nm" title="'+esc(String(a[0]).replace(/\n/g,' '))+'">'+esc(String(a[0]).split('\n')[0])
+        var da=ptDaCo_(sec,a);
+        var gc=(sec.mode==='none')?(a[2]||''):(a[4]||'');
+        return '<div class="ptlib-item'+(on?' on':'')+(da?' da':'')+'" title="Bấm để xem thông tin công tác" onclick="ptShowDetail_('+si+','+ii+')">'
+          +'<div class="ptlib-nm" title="'+esc(String(a[0]).replace(/\n/g,' ')+(gc?(' — '+gc):''))+'">'+esc(String(a[0]).split('\n')[0])
             +(coTL?'<span class="ptlib-info" title="Đã có ảnh / thông số kỹ thuật">'+icon('doc',11)+'</span>':'')+'</div>'
-          +'<span class="ptlib-dvt">'+esc(a[1]||'')+'</span>'
-          +'<span class="ptlib-dg">'+(dg?money(dg):'—')+'</span>'
+          +'<div class="ptlib-meta">'
+            +'<span class="ptlib-dvt">'+esc(a[1]||'')+'</span>'
+            +'<span class="ptlib-dg">'+(dg?(money(dg)+' đ'):'—')+'</span>'
+            +(da?'<span class="ptlib-da" title="Công tác này đã có trong bảng">✓ đã thêm</span>':'')
+          +'</div>'
           +'<button class="ptlib-add" title="Thêm vào bảng ước tính" onclick="event.stopPropagation();ptAddFromLib('+si+','+ii+')">'+icon('plus',14)+'</button></div>';
       }).join('')+'</div>')+'</div>';
   }).join('')+'</div>';
@@ -5827,7 +5845,9 @@ function ptNewSec_(tsec){
   return {t:tsec.t,mode:tsec.mode,loai:ptSecLoai_(tsec),note:tsec.note||'',up:tsec.up||0,items:[]};
 }
 function ptAddToSec_(si,quiet){
-  var tsec=PT_TEMPLATE[si]; if(!tsec) return; ptEnsure();
+  var tsec=PT_TEMPLATE[si]; if(!tsec) return;
+  if(!S.cur){ toast('Chọn dự án trước khi thêm công tác vào bảng'); return; }
+  ptEnsure();
   var sec=ptFindSec_(tsec);
   if(!sec){ sec=ptNewSec_(tsec); S.phanTho.push(sec); }
   var added=0;
@@ -5858,6 +5878,7 @@ function ptApplyMau(id){
 }
 function ptAddFromLib(si,ii){
   var tsec=PT_TEMPLATE[si]; if(!tsec) return; var a=tsec.items[ii]; if(!a) return;
+  if(!S.cur){ toast('Chọn dự án trước khi thêm công tác vào bảng'); return; }
   ptEnsure();
   var mode=tsec.mode, item;
   if(mode==='item') item={n:a[0],dvt:a[1],kl:a[2],dg:a[3],gc:a[4]||'',dgnt:a[5]||0};
@@ -6060,9 +6081,11 @@ function ptEnsure(){
   // Bắt đầu TRỐNG — user tự chọn hạng mục từ thư viện bên trái (chọn xong tự lưu)
   S.phanTho = Array.isArray(saved) ? saved : [];
   var v=null; try{ v=localStorage.getItem(key+'_vat'); }catch(e){}
-  S.ptVat = (v!=null&&v!=='')?+v:8;
+  var nv=Number(v);
+  S.ptVat = (v!=null&&v!==''&&isFinite(nv))?nv:8;
 }
-function ptPersist(){ try{ var k=ptKey(); localStorage.setItem(k,JSON.stringify(S.phanTho)); localStorage.setItem(k+'_vat',String(S.ptVat)); }catch(e){} }
+function ptPersist(){ try{ var k=ptKey(); var v=Number(S.ptVat); if(!isFinite(v)) v=8; S.ptVat=v;
+  localStorage.setItem(k,JSON.stringify(S.phanTho)); localStorage.setItem(k+'_vat',String(v)); }catch(e){} }
 function ptSecTotals(sec){
   var sumKL=0, tt=0, ttnt=0;
   sec.items.forEach(function(it){
@@ -6131,7 +6154,7 @@ function ptEdit(si,ii,f,val){
   }
   ptPersist(); renderPhanTho();
 }
-function ptSetVat(val){ S.ptVat=ptN(val); ptPersist(); renderPhanTho(); }
+function ptSetVat(val){ var n=ptN(val); S.ptVat=isFinite(n)?n:0; ptPersist(); renderPhanTho(); }
 function ptAddItem(si){
   var sec=S.phanTho[si]; if(!sec) return;
   if(sec.mode==='item') sec.items.push({n:'',dvt:'',kl:1,dg:0,gc:'',dgnt:0});

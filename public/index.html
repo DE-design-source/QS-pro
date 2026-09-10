@@ -3479,6 +3479,49 @@ table.sp-table tr.ptrow td{vertical-align:middle}
 .ptl-none{color:#b9c2cc}
 .ptl-gc{font-size:11.5px;color:#6b7785;line-height:1.45}
 .sp-modal.ptdetail{max-width:560px}
+
+/* ═══ Dọn UI Phần thô (Bóc tách + Danh sách sản phẩm) ═══ */
+/* 1. Tiêu đề cột bảng khái toán: không bẻ chữ theo từng ký tự; phễu lọc neo góc phải */
+table.pt th.thk{padding-right:20px}
+table.pt th.thk .thl{max-width:100%;word-break:normal;overflow-wrap:normal;hyphens:none;line-height:1.25}
+table.pt th.thk .thflt{position:absolute;right:7px;top:50%;transform:translateY(-50%);margin:0;font-size:10px;opacity:.55;cursor:pointer;line-height:1}
+table.pt th.thk .thflt:hover{opacity:1}
+table.pt th.thk.fltOn .thflt{opacity:1;color:#8fd3ff}
+/* bảng trống: chữ hướng dẫn bám mép trái khung, không trôi theo bề ngang bảng */
+table.pt tr.pt-empty td{position:relative}
+table.pt tr.pt-empty .pt-empty-b{position:sticky;left:0;max-width:min(680px,100%);margin:0;text-align:center}
+
+/* 2. Thư viện công tác: tên công việc một hàng riêng, ĐVT · đơn giá hàng dưới */
+.ptlib-item{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;
+  gap:3px 8px;align-items:center;padding:8px 10px}
+.ptlib-item .ptlib-nm{grid-column:1;grid-row:1;-webkit-line-clamp:2;font-size:12px;line-height:1.35;color:var(--ink)}
+.ptlib-item .ptlib-meta{grid-column:1;grid-row:2;display:flex;align-items:center;gap:7px;min-width:0}
+.ptlib-item .ptlib-add{grid-column:2;grid-row:1/3;align-self:center}
+.ptlib-item .ptlib-dvt{flex:none;min-width:0;font-size:11px;font-style:italic;color:#8a96a5;text-align:left}
+.ptlib-item .ptlib-dg{flex:none;min-width:0;font-size:11.5px;font-weight:600;color:var(--navy);text-align:left}
+.ptlib-da{flex:none;font-size:10px;font-weight:600;color:#15803d;background:#f0fdf4;
+  border:1px solid rgba(21,128,61,.22);border-radius:999px;padding:1px 6px;white-space:nowrap}
+.ptlib-item.da{border-color:rgba(21,128,61,.28);background:#fbfffc}
+.ptlib-hn{flex:none;margin-left:auto;font-size:10.5px;font-weight:600;color:#8a96a5;background:#f1f4f8;
+  border-radius:999px;padding:1px 7px;white-space:nowrap}
+.ptlib-hn.on{color:#15803d;background:#f0fdf4}
+.ptlib-h{gap:6px}
+.ptlib-secadd{flex:none}
+
+/* 3. Danh sách sản phẩm ở chế độ Phần thô: tab 1 dòng, ghi chú xuống hàng riêng */
+.sp-card.ptmode #spViewTabs{flex-wrap:wrap;align-items:center}
+.sp-card.ptmode .spvt{white-space:nowrap}
+.spvt-note.ptnote{flex-basis:100%;width:100%;margin:6px 0 0;padding:0 2px;font-size:11.5px;color:#8a96a5}
+.sp-card.ptmode tr.ptrow.da td{background:#fbfffc}
+.ptl-da{display:inline-block;margin-left:8px;font-size:10px;font-weight:600;color:#15803d;background:#f0fdf4;
+  border:1px solid rgba(21,128,61,.22);border-radius:999px;padding:1px 6px;white-space:nowrap;vertical-align:1px}
+
+.ptl-ten{display:inline}
+.ptl-nhom{cursor:pointer}
+.ptl-nhom:hover{color:var(--blue);text-decoration:underline}
+
+.sp-card.ptmode .sp-filtrow .sp-fcol:last-child{flex:none}
+.sp-card.ptmode .spchip.clr{display:inline-flex;align-items:center;align-self:flex-end;width:auto;white-space:nowrap}
 </style>
 
 <!-- ===== TOP NAV ===== -->
