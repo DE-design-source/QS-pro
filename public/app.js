@@ -5126,6 +5126,93 @@ var PT_TEMPLATE=[
     ["Bình lưu điện","cái",1,4000000,"YH Power Y1000",4000000]
   ]}
 ];
+/* ═══ KHÁI TOÁN SƠ BỘ — bộ mẫu theo báo giá thật của Decox ═══
+   Nguồn: "20260805 Decox - BG Building — XD-THÔ" (Tòa nhà văn phòng, B123 The Galleria
+   Residence, Metropole Thủ Thiêm; 981m² sàn, 1 bán hầm + 5 tầng + sân thượng + mái).
+   Sơ bộ chạy theo NHÓM: bấm + ở tên nhóm để lấy cả nhóm, diện tích/hệ số/đơn giá sửa lại
+   theo từng dự án. Nhóm nào chủ đầu tư chưa chốt thì để "chưa bao gồm" (mode none/area0). */
+var PT_MAU=[{
+  id:'bg_building_2026',
+  ten:'Tòa nhà văn phòng 981m² — 1 bán hầm, 5 tầng, sân thượng, mái',
+  mo:'Metropole Thủ Thiêm · đất trống, xây mới · phong cách hiện đại',
+  tong:8881778400
+}];
+var PT_SOBO=[
+  {r:"I",t:"CÔNG TÁC CHUẨN BỊ",loai:'kt_sobo',mode:'none',note:'Nhóm này thường do chủ đầu tư tự làm — báo giá mẫu để "chưa bao gồm"',items:[
+    ["Xin phép xây dựng","gói","Chưa bao gồm"],
+    ["Đập phá, tháo dỡ nhà hiện trạng","gói","Chưa bao gồm"],
+    ["Khoan khảo sát địa chất","gói","Chưa bao gồm"],
+    ["Cắm mốc định vị ranh xây dựng","gói","Chưa bao gồm"],
+    ["Xin cấp đồng hồ điện, nước","gói","Chưa bao gồm"]
+  ]},
+  {r:"II",t:"CÔNG TÁC ÉP CỌC",loai:'kt_sobo',mode:'item',items:[
+    ["Giàn tải, máy ép cọc Pmax 90T","gói",1,28000000,"Huy động, dựng và tháo giàn ép",28000000],
+    ["Nhân công ép cọc PHC D300 lực ép P(max) 90 tấn","tim",56,2250000,"Số tim cọc tạm tính",2250000],
+    ["Cọc ly tâm D300 PHC lực ép P(max) 90 tấn","md",1120,414000,"56 tim × 20m/tim — số tim, số m tạm tính",414000]
+  ]},
+  {r:"III",t:"BIỆN PHÁP THI CÔNG HẦM",loai:'kt_sobo',mode:'item',items:[
+    ["Ép cừ C200 chu vi hầm, cừ C dài 4,5m","md",62,4436000,"Khối lượng theo chu vi hầm",4436000],
+    ["Hệ Shoring","hệ",1,30000000,"",30000000],
+    ["Đào đất, vận chuyển đi đổ","m3",388.65,185000,"",185000]
+  ]},
+  {r:"IV",t:"THI CÔNG XÂY THÔ",loai:'kt_sobo',mode:'area',up:4200000,
+   note:'Không bao gồm nhân công hoàn thiện, MEP âm tường, bể PCCC. Đơn giá tính trên khối lượng quy đổi (diện tích × hệ số)',items:[
+    ["Móng (diện tích bao ngoài toàn bộ móng, dầm móng)","m2",278.00,0.5,""],
+    ["Hầm + ram dốc","m2",178.56,1.7,""],
+    ["Tầng 1","m2",156.00,1.0,""],
+    ["Sân vườn ngoài trời","m2",104.39,0.5,""],
+    ["Tầng 2-4 (bao gồm ban công)","m2",178.78,3.0,"Hệ số 3 = 3 tầng giống nhau"],
+    ["Tầng 5 (bao gồm ban công)","m2",185.92,1.0,""],
+    ["Tầng thượng có mái che","m2",50.63,1.0,""],
+    ["Tầng thượng không mái che","m2",82.37,0.5,""],
+    ["Mái bê tông cốt thép","m2",50.63,0.5,""],
+    ["Tum thang máy","m2",5.17,0.5,""]
+  ]},
+  {r:"V",t:"HỆ THỐNG MEP (điện · cấp thoát nước · data)",loai:'kt_sobo',mode:'area',up:750000,
+   note:'Không bao gồm nhân công lắp đặt và thiết bị đầu cuối',items:[
+    ["Hầm","m2",178.56,1.0,""],
+    ["Tầng 1 (bao gồm diện tích sân vườn)","m2",260.39,1.0,""],
+    ["Tầng 2-4","m2",178.78,3.0,""],
+    ["Tầng 5","m2",185.92,1.0,""],
+    ["Sân thượng","m2",133.00,1.0,""],
+    ["Mái","m2",50.63,0.5,""]
+  ]},
+  {r:"VI",t:"CHỐNG THẤM",loai:'kt_sobo',mode:'area0',note:'Chưa bao gồm trong báo giá mẫu — có khối lượng để chốt đơn giá sau',items:[
+    ["Hầm (sàn + vách hầm + hố pit)","m2",250.01,1.0,"Chưa bao gồm"],
+    ["Nhà vệ sinh","m2",83.97,1.0,"Chưa bao gồm"],
+    ["Ban công tầng 2-5","m2",195.67,1.0,"Chưa bao gồm"],
+    ["Sân thượng ngoài trời","m2",121.85,1.0,"Chưa bao gồm"],
+    ["Mái","m2",70.75,1.0,"Chưa bao gồm"]
+  ]},
+  {r:"VII",t:"HỆ THỐNG PCCC",loai:'kt_sobo',mode:'none',note:'Chưa bao gồm — báo giá riêng theo hồ sơ thẩm duyệt PCCC',items:[
+    ["Bể chứa nước PCCC theo quy định","gói","Chưa bao gồm"],
+    ["Hệ thống báo cháy","gói","Chưa bao gồm"],
+    ["Hệ thống chữa cháy","gói","Chưa bao gồm"],
+    ["Hệ thống thoát hiểm và hỗ trợ","gói","Chưa bao gồm"]
+  ]},
+  {r:"VIII",t:"CHI PHÍ KHÁC",loai:'kt_sobo',mode:'item',items:[
+    ["Dọn dẹp mặt bằng","gói",1,30000000,"Phát quang cây cỏ, thu gom xà bần, rác thải hiện trạng, san đất tạo mặt bằng",30000000],
+    ["Phun thuốc chống mối","gói",1,63690000,"Cho tầng hầm và tầng 1",63690000],
+    ["Bao che công trình (giàn giáo, lưới, bạt…)","gói",1,140000000,"",140000000],
+    ["Hàng rào bao quanh công trình, cổng công trình","gói",1,75000000,"",75000000],
+    ["Camera quan sát công trình","cái",3,1200000,"",1200000],
+    ["Mạng internet trong quá trình thi công","tháng",6,350000,"",350000],
+    ["Nhà vệ sinh di động","cái",1,20000000,"",20000000],
+    ["Thùng rác","cái",1,900000,"",900000],
+    ["Thiết bị PCCC (bình chữa cháy 4kg)","cái",8,600000,"",600000],
+    ["Vệ sinh công trình hằng ngày (xây dựng thô)","gói",1,45000000,"",45000000],
+    ["Vận chuyển xà bần, rác thải trong quá trình thi công","tháng",6,7500000,"",7500000],
+    ["Văn phòng tạm tại công trình trong quá trình thi công","tháng",6,8000000,"",8000000],
+    ["Công tác an toàn lao động","gói",1,28000000,"Nội quy, biển báo, đồ bảo hộ, lan can chắn, lưới hứng các khu vực mép sàn",28000000],
+    ["Chi phí thẩm tra biện pháp thi công hầm","gói",1,20000000,"Theo quy định",20000000],
+    ["Chi phí thanh tra xây dựng kiểm tra trong quá trình thi công phần thô","gói",5,5000000,"",5000000],
+    ["Chi phí trắc đạc","tầng",8,7000000,"",7000000],
+    ["Chi phí điện nước thi công 6 tháng (phần thô)","gói",6,3500000,"",3500000],
+    ["Chi phí thang vận","gói",1,0,"Chưa bao gồm",0],
+    ["Đấu nối hệ thống thoát nước thải vào cống chung","gói",1,0,"Chưa bao gồm",0]
+  ]}
+];
+PT_TEMPLATE=PT_TEMPLATE.concat(PT_SOBO);
 var PT_ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI'];
 function ptN(v){ if(typeof v==='number') return v; var x=parseFloat(String(v==null?'':v).replace(/[^\d.\-]/g,'')); return isNaN(x)?0:x; }
 function ptR0(x){ return Math.round(x||0); }
@@ -5368,7 +5455,12 @@ function renderPTLibrary(){
       +'<option value="">Đơn giá theo nhà thầu</option>'
       +PT_CONTRACTORS.map(function(c){ return '<option'+(cur===c?' selected':'')+'>'+esc(c)+'</option>'; }).join('')+'</select></div></div>'
     +(loai==='kt_sobo'
-      ? '<div class="ptlib-fld"><label>Báo giá mẫu dự án</label><div class="ptlib-selwrap"><select class="ptlib-sel"><option>Tạo dự án mới hoặc xem báo giá mẫu dự án cũ</option></select></div></div>'
+      ? '<div class="ptlib-fld"><label>Báo giá mẫu dự án</label><div class="ptlib-selwrap">'
+        +'<select class="ptlib-sel" onchange="ptApplyMau(this.value);this.selectedIndex=0">'
+        +'<option value="">Tạo dự án mới hoặc lấy báo giá mẫu dự án cũ</option>'
+        +PT_MAU.map(function(m){ return '<option value="'+esc(m.id)+'">'+esc(m.ten)+'</option>'; }).join('')
+        +'</select></div>'
+        +'<p class="ptlib-hint">Chọn 1 mẫu để đưa cả bộ hạng mục vào bảng, rồi sửa diện tích · hệ số · đơn giá theo dự án đang làm.</p></div>'
       : '')
     +'</div>';
   if(loai.indexOf('dt_')===0) top+=dtPanel_(loai);           // Dự toán: thêm bảng số liệu đầu vào + khối lượng
@@ -5575,10 +5667,19 @@ function ptHBarInit_(){ hbarBind_('#ptWrap .pt-scroll','ptHBar','ptHThumb'); }
 function ptSetContractor(v){ S._ptContractor=v||''; toast(v?('Đơn giá theo nhà thầu: '+v):'Bỏ chọn nhà thầu'); }
 function ptLibToggle(si){ S._ptLibCol=S._ptLibCol||{}; S._ptLibCol[si]=!S._ptLibCol[si]; renderPTLibrary(); }
 // nút + ĐỎ ở section = CHỌN TẤT CẢ: thêm toàn bộ công tác của nhóm vào bảng ước tính
+// Hạng mục trong bảng được nhận diện theo TÊN + LOẠI báo giá: "CÔNG TÁC CHUẨN BỊ" của
+// khái toán chi tiết và của khái toán sơ bộ là 2 hạng mục khác nhau, không được gộp chung.
+function ptSecLoai_(x){ return (x&&x.loai)||'kt_chitiet'; }
+function ptFindSec_(tsec){
+  return (S.phanTho||[]).filter(function(s){ return s.t===tsec.t && ptSecLoai_(s)===ptSecLoai_(tsec); })[0];
+}
+function ptNewSec_(tsec){
+  return {t:tsec.t,mode:tsec.mode,loai:ptSecLoai_(tsec),note:tsec.note||'',up:tsec.up||0,items:[]};
+}
 function ptAddToSec_(si,quiet){
   var tsec=PT_TEMPLATE[si]; if(!tsec) return; ptEnsure();
-  var sec=(S.phanTho||[]).filter(function(s){ return s.t===tsec.t; })[0];
-  if(!sec){ sec={t:tsec.t,mode:tsec.mode,note:tsec.note||'',up:tsec.up||0,items:[]}; S.phanTho.push(sec); }
+  var sec=ptFindSec_(tsec);
+  if(!sec){ sec=ptNewSec_(tsec); S.phanTho.push(sec); }
   var added=0;
   tsec.items.forEach(function(a){
     var ten=String(a[0]);
@@ -5593,6 +5694,18 @@ function ptAddToSec_(si,quiet){
   ptPersist(); renderPhanTho();
   toast(added?('Đã thêm '+added+' công tác của "'+String(tsec.t).split('\n')[0]+'"'):'Nhóm này đã có đủ trong bảng');
 }
+// Lấy nguyên 1 bộ báo giá mẫu (khái toán sơ bộ) vào bảng
+function ptApplyMau(id){
+  if(!id) return;
+  var m=PT_MAU.filter(function(x){ return x.id===id; })[0]; if(!m) return;
+  var secs=PT_TEMPLATE.filter(function(s){ return (s.loai||'')==='kt_sobo'; });
+  if((S.phanTho||[]).length && !confirm('Đưa bộ "'+m.ten+'" vào bảng?\nCác hạng mục đang có vẫn giữ nguyên, hạng mục trùng tên sẽ được bổ sung dòng còn thiếu.')) return;
+  ptEnsure();
+  secs.forEach(function(sc){ ptAddToSec_(PT_TEMPLATE.indexOf(sc), true); });
+  ptPersist(); renderPhanTho(); renderPTLibrary();
+  var n=(S.phanTho||[]).reduce(function(a,x){ return a+((x.items||[]).length); },0);
+  toast('Đã lấy bộ báo giá mẫu — bảng đang có '+n+' dòng');
+}
 function ptAddFromLib(si,ii){
   var tsec=PT_TEMPLATE[si]; if(!tsec) return; var a=tsec.items[ii]; if(!a) return;
   ptEnsure();
@@ -5600,8 +5713,8 @@ function ptAddFromLib(si,ii){
   if(mode==='item') item={n:a[0],dvt:a[1],kl:a[2],dg:a[3],gc:a[4]||'',dgnt:a[5]||0};
   else if(mode==='area'||mode==='area0') item={n:a[0],dvt:a[1],dt:a[2],hs:a[3],gc:a[4]||''};
   else item={n:a[0],dvt:a[1],gc:a[2]||''};
-  var sec=(S.phanTho||[]).filter(function(s){ return s.t===tsec.t; })[0];
-  if(!sec){ sec={t:tsec.t,mode:mode,note:tsec.note||'',up:tsec.up||0,items:[]}; S.phanTho.push(sec); }
+  var sec=ptFindSec_(tsec);
+  if(!sec){ sec=ptNewSec_(tsec); S.phanTho.push(sec); }
   sec.items.push(item);
   ptPersist(); renderPhanTho();
   toast('Đã thêm: '+String(a[0]).split('\n')[0]);
@@ -5927,7 +6040,7 @@ function ptInfo(k,v){ return '<div class="pt-inf"><span class="k">'+esc(k)+'</sp
 // Cột bảng Phần thô: [key, nhãn, canh, rộng]
 var PT_COLS=[
   ['stt','STT','c',44],['noidung','NỘI DUNG CÔNG VIỆC','l',300],['dvt','ĐVT','c',74],
-  ['dientich','DIỆN TÍCH','n',70],['heso','HỆ SỐ','n',54],['khoiluong','KHỐI LƯỢNG','n',92],
+  ['dientich','DIỆN TÍCH','n',84],['heso','HỆ SỐ','n',64],['khoiluong','KHỐI LƯỢNG','n',96],
   ['dgnt','ĐƠN GIÁ (NHÀ THẦU)','n',134],['ttnt','THÀNH TIỀN (NHÀ THẦU)','n',140],
   ['lnvnd','LỢI NHUẬN (VND)','n',116],['margin','LỢI NHUẬN/GIÁ BÁN (%)','n',120],
   ['markup','LỢI NHUẬN/GIÁ VỐN (%)','n',120],['dg','ĐƠN GIÁ','n',134],

@@ -3456,6 +3456,11 @@ table.pt tr.pt-sec.dropInto td,table.pt tr.pt-add.dropInto td{outline:2px dashed
 .pd.ptdetail .spec.stack{display:block;padding:8px 0}
 .pd.ptdetail .spec.stack .k{display:block;font-size:11px;color:#8a96a5;margin-bottom:3px;line-height:1.35}
 .pd.ptdetail .spec.stack .v{display:block;max-width:100%;text-align:left;font-weight:600;line-height:1.45;white-space:normal}
+
+/* Ô số trong bảng khái toán: bỏ mũi tên tăng/giảm (ăn mất chỗ làm cụt số) và canh phải như cột số */
+table.pt input.pt-in[type=number]{-moz-appearance:textfield;text-align:right;font-variant-numeric:tabular-nums}
+table.pt input.pt-in[type=number]::-webkit-outer-spin-button,
+table.pt input.pt-in[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 </style>
 
 <!-- ===== TOP NAV ===== -->
