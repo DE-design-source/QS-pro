@@ -6041,72 +6041,94 @@ var CT_MODE_LBL={item:'Khối lượng × đơn giá',area:'Diện tích × hệ
 function ctFormHtml_(c, pre){
   c=c||{}; pre=pre||'ct';
   var mode=c.mode||'item';
-  function f(id,lbl,val,ph,type,req,cls){
-    return '<div class="field'+(cls?' '+cls:'')+'"><label>'+esc(lbl)+(req?' <b class="req">*</b>':'')+'</label>'
-      +'<input id="'+pre+id+'" type="'+(type||'text')+'" value="'+esc(val==null?'':val)+'" placeholder="'+esc(ph||'')+'"></div>';
+  function fld(span,id,lbl,val,ph,req,list,type){
+    return '<div class="f f-'+span+'"><label for="'+pre+id+'">'+esc(lbl)+(req?'<b class="req">*</b>':'')+'</label>'
+      +'<input id="'+pre+id+'" type="'+(type||'text')+'"'+(list?' list="'+list+'"':'')
+      +' value="'+esc(val==null?'':val)+'" placeholder="'+esc(ph||'')+'"></div>';
   }
-  function money(id,lbl,val,req,cls,oninput){
-    return '<div class="field'+(cls?' '+cls:'')+'"><label>'+esc(lbl)+(req?' <b class="req">*</b>':'')+'</label>'
-      +'<input id="'+pre+id+'" class="ct-money" inputmode="numeric" value="'+esc(val?fmtMoney_(val):'')+'"'
-      +' placeholder="0" oninput="'+oninput+'"></div>';
+  function num(span,id,lbl,val,ph,cls){
+    return '<div class="f f-'+span+(cls?' '+cls:'')+'"><label for="'+pre+id+'">'+esc(lbl)+'</label>'
+      +'<input id="'+pre+id+'" type="number" step="any" value="'+esc(val==null?'':val)+'" placeholder="'+esc(ph||'')+'"></div>';
   }
-  function ta(id,lbl,val,ph,rows){
-    return '<div class="field wide"><label>'+esc(lbl)+'</label>'
+  function ta(span,id,lbl,val,ph,rows){
+    return '<div class="f f-'+span+'"><label for="'+pre+id+'">'+esc(lbl)+'</label>'
       +'<textarea id="'+pre+id+'" rows="'+(rows||2)+'" placeholder="'+esc(ph||'')+'">'+esc(val==null?'':val)+'</textarea></div>';
   }
   var dg=Number(c.dg)||0, dgnt=Number(c.dgnt)||0;
   var ck=(dg&&dgnt)?ptR2((1-dgnt/dg)*100):'';
+  var MODES=[['item','Khối lượng × đơn giá','Đa số công tác: 1 tim cọc, 1 m3 đất…'],
+             ['area','Diện tích × hệ số','Sàn, tầng — đơn giá chung cho cả hạng mục'],
+             ['area0','Chỉ tính khối lượng','Có khối lượng, đơn giá chốt sau'],
+             ['none','Chỉ liệt kê','Hạng mục "chưa bao gồm"']];
   return '<div class="ctf" id="'+pre+'Form">'
-    /* ── 1. Thông tin cơ bản ── */
-    +'<div class="ct-sec"><div class="ct-sech">Thông tin cơ bản</div><div class="dbgrid">'
-      +'<div class="field"><label>Tên công việc <b class="req">*</b></label>'
-        +'<input id="'+pre+'Ten" value="'+esc(c.ten||'')+'" placeholder="VD: Giàn tải, máy ép cọc Pmax 90T"></div>'
-      +'<div class="field"><label>Nhà thầu · nhà cung cấp</label>'
-        +'<input id="'+pre+'Ncc" list="ctNccDL" value="'+esc(c.ncc||'')+'" placeholder="VD: H77">'
-        +'<datalist id="ctNccDL">'+PT_CONTRACTORS.map(function(v){ return '<option value="'+esc(v)+'">'; }).join('')+'</datalist></div>'
-      +'<div class="field"><label>Hạng mục <b class="req">*</b></label>'
-        +'<input id="'+pre+'HangMuc" list="ctHangMucDL" value="'+esc(c.hangMuc||'')+'" placeholder="VD: Công tác ép cọc">'
-        +'<datalist id="ctHangMucDL">'+ctHangMucList_().map(function(v){ return '<option value="'+esc(v)+'">'; }).join('')+'</datalist></div>'
-      +'<div class="field"><label>Loại báo giá <b class="req">*</b></label><select id="'+pre+'Loai">'
-        +PT_LOAI.map(function(x){ return '<option value="'+x[0]+'"'+((c.loai||'kt_chitiet')===x[0]?' selected':'')+'>'+esc(x[1])+'</option>'; }).join('')
-      +'</select></div>'
-      +f('MaNhom','Số hạng mục (I, II…)',c.maNhom,'VD: II')
-      +'<div class="field"><label>Cách tính khối lượng</label><select id="'+pre+'Mode" onchange="ctModeSync_(\''+pre+'\')">'
-        +Object.keys(CT_MODE_LBL).map(function(k){ return '<option value="'+k+'"'+(mode===k?' selected':'')+'>'+esc(CT_MODE_LBL[k])+'</option>'; }).join('')
-      +'</select></div>'
-    +'</div></div>'
-    /* ── 2. Thông tin giá bán ── */
-    +'<div class="ct-sec"><div class="ct-sech">Thông tin giá bán</div><div class="dbgrid">'
-      +money('Dg','Giá bán lẻ (đ)',dg,1,'ct-f-dg','ctGiaSync_(\''+pre+'\',\'dg\')')
-      +'<div class="field ct-f-ck"><label>%Chiết khấu</label>'
-        +'<input id="'+pre+'Ck" class="ct-pct" inputmode="decimal" value="'+esc(ck===''?'':ck)+'" placeholder="0" oninput="ctGiaSync_(\''+pre+'\',\'ck\')"></div>'
-      +money('Dgnt','Giá đại lý · đơn giá nhà thầu (đ)',dgnt,0,'ct-f-dgnt','ctGiaSync_(\''+pre+'\',\'dgnt\')')
-      +'<div class="field"><label>Đơn vị tính <b class="req">*</b></label>'
-        +'<input id="'+pre+'Dvt" list="ctDvtDL" value="'+esc(c.dvt||'')+'" placeholder="VD: m, m2, tim, gói">'
-        +'<datalist id="ctDvtDL">'+['m','m2','m3','md','tim','cái','bộ','gói','tấn','ngày','tháng','tầng','hệ','điểm','công','ca']
-            .map(function(v){ return '<option value="'+esc(v)+'">'; }).join('')+'</datalist></div>'
-      +'<div class="field ct-f-kl"><label>Khối lượng mẫu</label><input id="'+pre+'Kl" type="number" step="any" value="'+esc(c.kl==null?'':c.kl)+'" placeholder="1"></div>'
-      +'<div class="field ct-f-dt"><label>Diện tích mẫu</label><input id="'+pre+'Dt" type="number" step="any" value="'+esc(c.dt==null?'':c.dt)+'"></div>'
-      +'<div class="field ct-f-hs"><label>Hệ số</label><input id="'+pre+'Hs" type="number" step="any" value="'+esc(c.hs==null?'':c.hs)+'"></div>'
-      +'<div class="field wide ct-loi" id="'+pre+'Loi"></div>'
-    +'</div></div>'
-    /* ── 3. Đề mục lớn / đề mục nhỏ (thông số kỹ thuật) ── */
-    +'<div class="ct-sec"><div class="ct-sech">Thông số kỹ thuật'
-      +'<button type="button" class="ct-addbig" onclick="ctGrpAdd_(\''+pre+'\')">'+icon('plus',13)+' Thêm đề mục lớn</button></div>'
+
+    /* ── Bước 1 ── */
+    +'<section class="ctf-step"><header><span class="ctf-no">1</span>'
+      +'<div><h4>Công tác này là gì?</h4><p>Tên và chỗ đứng của nó trong bảng khái toán</p></div></header>'
+      +'<div class="ctf-grid">'
+        +fld(12,'Ten','Nội dung công việc',c.ten,'VD: Giàn tải, máy ép cọc Pmax 90T',1)
+        +fld(5,'HangMuc','Hạng mục',c.hangMuc,'VD: Công tác ép cọc',1,'ctHangMucDL')
+        +fld(2,'MaNhom','Số hạng mục',c.maNhom,'II')
+        +'<div class="f f-5"><label for="'+pre+'Loai">Loại báo giá<b class="req">*</b></label>'
+          +'<select id="'+pre+'Loai">'+PT_LOAI.map(function(x){
+              return '<option value="'+x[0]+'"'+((c.loai||'kt_chitiet')===x[0]?' selected':'')+'>'+esc(x[1])+'</option>'; }).join('')
+        +'</select></div>'
+        +fld(6,'Ncc','Nhà thầu · nhà cung cấp',c.ncc,'VD: H77',0,'ctNccDL')
+        +fld(6,'Dvt','Đơn vị tính',c.dvt,'VD: m · m2 · tim · gói',1,'ctDvtDL')
+      +'</div>'
+      +'<datalist id="ctHangMucDL">'+ctHangMucList_().map(function(v){ return '<option value="'+esc(v)+'">'; }).join('')+'</datalist>'
+      +'<datalist id="ctNccDL">'+PT_CONTRACTORS.map(function(v){ return '<option value="'+esc(v)+'">'; }).join('')+'</datalist>'
+      +'<datalist id="ctDvtDL">'+['m','m2','m3','md','tim','cái','bộ','gói','tấn','ngày','tháng','tầng','hệ','điểm','công','ca']
+          .map(function(v){ return '<option value="'+esc(v)+'">'; }).join('')+'</datalist>'
+    +'</section>'
+
+    /* ── Bước 2 ── */
+    +'<section class="ctf-step"><header><span class="ctf-no">2</span>'
+      +'<div><h4>Tính tiền thế nào?</h4><p>Chọn cách tính rồi nhập giá — hệ thống tự ra phần còn lại</p></div></header>'
+      +'<div class="ctf-seg" id="'+pre+'Seg">'+MODES.map(function(m){
+          return '<button type="button" class="segb'+(mode===m[0]?' on':'')+'" data-m="'+m[0]+'" onclick="ctModePick_(\''+pre+'\',\''+m[0]+'\')">'
+            +'<b>'+esc(m[1])+'</b><i>'+esc(m[2])+'</i></button>'; }).join('')
+      +'<input type="hidden" id="'+pre+'Mode" value="'+esc(mode)+'"></div>'
+      +'<div class="ctf-grid">'
+        +num(4,'Kl','Khối lượng mẫu',c.kl,'1','ct-f-kl')
+        +num(4,'Dt','Diện tích mẫu (m²)',c.dt,'0','ct-f-dt')
+        +num(4,'Hs','Hệ số',c.hs,'1','ct-f-hs')
+        +'<div class="f f-4 ct-f-dg"><label for="'+pre+'Dg">Giá bán lẻ (đ)<b class="req">*</b></label>'
+          +'<input id="'+pre+'Dg" class="ct-money" inputmode="numeric" value="'+esc(dg?money(dg):'')+'" placeholder="0" oninput="ctGiaSync_(\''+pre+'\',\'dg\')"></div>'
+        +'<div class="f f-4 ct-f-ck"><label for="'+pre+'Ck">%Chiết khấu</label>'
+          +'<input id="'+pre+'Ck" class="ct-pct" inputmode="decimal" value="'+esc(ck===''?'':ck)+'" placeholder="0" oninput="ctGiaSync_(\''+pre+'\',\'ck\')"></div>'
+        +'<div class="f f-4 ct-f-dgnt"><label for="'+pre+'Dgnt">Giá đại lý · giá vốn (đ)</label>'
+          +'<input id="'+pre+'Dgnt" class="ct-money" inputmode="numeric" value="'+esc(dgnt?money(dgnt):'')+'" placeholder="0" oninput="ctGiaSync_(\''+pre+'\',\'dgnt\')"></div>'
+        +'<div class="f f-12"><div class="ctf-prev" id="'+pre+'Prev"></div></div>'
+      +'</div>'
+    +'</section>'
+
+    /* ── Bước 3 ── */
+    +'<section class="ctf-step"><header><span class="ctf-no">3</span>'
+      +'<div><h4>Mô tả thêm <span class="opt">không bắt buộc</span></h4><p>Ghi chú, thông số, ảnh — hiện ở panel thông tin công tác</p></div></header>'
+      +'<div class="ctf-grid">'
+        +ta(6,'Gc','Ghi chú · điều kiện áp dụng',c.gc,'VD: Đơn giá cho trên 20m/tim cọc (tùy địa chất khu vực)',3)
+        +ta(6,'PhamVi','Phạm vi ứng dụng — mỗi dòng 1 ý',c.phamVi,'Nhà phố, biệt thự có tầng hầm\nMặt bằng đủ rộng cho xe cẩu',3)
+      +'</div>'
+      +'<div class="ctf-sub"><span>Thông số kỹ thuật</span>'
+        +'<button type="button" class="ct-addbig" onclick="ctGrpAdd_(\''+pre+'\')">'+icon('plus',13)+' Thêm đề mục lớn</button></div>'
       +'<div class="ct-grps" id="'+pre+'Grps"></div>'
-      +'<input type="hidden" id="'+pre+'ThongSo" value="'+esc(c.thongSo||'')+'"></div>'
-    /* ── 4. Ghi chú · phạm vi · tài liệu · ảnh ── */
-    +'<div class="ct-sec"><div class="ct-sech">Ghi chú · tài liệu · ảnh</div><div class="dbgrid">'
-      +ta('Gc','Ghi chú · điều kiện áp dụng',c.gc,'VD: Đơn giá cho trên 20m/tim cọc (tùy địa chất khu vực)',2)
-      +ta('PhamVi','Phạm vi ứng dụng (mỗi dòng 1 ý)',c.phamVi,'Nhà phố, biệt thự có tầng hầm',2)
-      +f('LinkTaiLieu','Link tài liệu kỹ thuật',c.linkTaiLieu,'https://…','text',0,'wide')
-    +'</div>'
-    +'<div class="ct-imgs"><label>Ảnh công tác</label>'
-      +'<div class="ct-imgrow" id="'+pre+'ImgRow"></div>'
-      +'<button type="button" class="btn ghost sm" onclick="ctPickImg_(\''+pre+'\')">'+icon('plus',14)+' Thêm ảnh</button>'
-      +'<input type="hidden" id="'+pre+'HinhAnh" value="'+esc(c.hinhAnh||'')+'"></div>'
-    +'</div>'
+      +'<input type="hidden" id="'+pre+'ThongSo" value="'+esc(c.thongSo||'')+'">'
+      +'<div class="ctf-grid" style="margin-top:14px">'
+        +'<div class="f f-6"><label>Ảnh công tác</label>'
+          +'<div class="ct-imgrow" id="'+pre+'ImgRow"></div>'
+          +'<button type="button" class="btn ghost sm" onclick="ctPickImg_(\''+pre+'\')">'+icon('plus',14)+' Thêm ảnh</button>'
+          +'<input type="hidden" id="'+pre+'HinhAnh" value="'+esc(c.hinhAnh||'')+'"></div>'
+        +fld(6,'LinkTaiLieu','Link tài liệu kỹ thuật',c.linkTaiLieu,'https://…')
+      +'</div>'
+    +'</section>'
   +'</div>';
+}
+function ctModePick_(pre,m){
+  var h=document.getElementById(pre+'Mode'); if(h) h.value=m;
+  var seg=document.getElementById(pre+'Seg');
+  if(seg) seg.querySelectorAll('.segb').forEach(function(b){ b.classList.toggle('on', b.dataset.m===m); });
+  ctModeSync_(pre);
 }
 function fmtMoney_(v){ var n=Number(v)||0; return n?money(n):''; }
 /* Giá bán lẻ ⟷ %Chiết khấu ⟷ Giá đại lý: gõ ô nào cũng tự tính 2 ô còn lại */
@@ -6123,13 +6145,7 @@ function ctGiaSync_(pre,src){
   if(src!=='dgnt') eNt.value=nt?money(nt):'';
   if(src!=='ck')   eCk.value=(ck||ck===0)?ck:'';
   if(src!=='dg')   eDg.value=dg?money(dg):'';
-  var box=document.getElementById(pre+'Loi');
-  if(box){
-    var ln=dg-nt, pct=dg?(ln/dg*100):0;
-    box.innerHTML = (dg&&nt)
-      ? '<span class="ct-loi-l">Lợi nhuận</span><b class="'+(ln<0?'neg':'')+'">'+money(ln)+' đ</b><i>('+pct.toFixed(1)+'% trên giá bán)</i>'
-      : '<span class="ct-loi-l">Lợi nhuận</span><i>nhập giá bán lẻ và %chiết khấu để tính</i>';
-  }
+  ctPrev_(pre);
 }
 /* ── Đề mục lớn / đề mục nhỏ ──
    Lưu vào 1 ô text: "## Tên đề mục lớn" rồi các dòng "Tên: giá trị" — dễ đọc, dễ sửa tay,
@@ -6215,7 +6231,24 @@ function ctModeSync_(pre){
   show('ct-f-dg', m==='item'||m==='area');
   ctGiaSync_(pre,'');
 }
-function ctFormInit_(pre){ ctImgRender_(pre); ctGrpRender_(pre); ctModeSync_(pre); ctGiaSync_(pre,''); }
+// Dòng xem trước: đúng như dòng sẽ nằm trong bảng khái toán
+function ctPrev_(pre){
+  var box=document.getElementById(pre+'Prev'); if(!box) return;
+  function v(id){ var e=document.getElementById(pre+id); return e?String(e.value||'').trim():''; }
+  var m=v('Mode')||'item', dvt=v('Dvt')||'—';
+  var dg=ptMoneyN_(v('Dg')), nt=ptMoneyN_(v('Dgnt'));
+  var kl = m==='item' ? (ptN(v('Kl'))||0) : (ptN(v('Dt'))*(ptN(v('Hs'))||0));
+  if(m==='none'){ box.innerHTML='<span class="pv-l">Dòng trong bảng</span><b>chỉ liệt kê, không tính tiền</b>'; return; }
+  var tt=Math.round(kl*dg), ln=Math.round(kl*(dg-nt)), pct=dg?((dg-nt)/dg*100):0;
+  box.innerHTML='<span class="pv-l">Dòng trong bảng</span>'
+    +'<b>'+ptQty(kl||0)+' '+esc(dvt)+' × '+money(dg)+' đ = '+money(tt)+' đ</b>'
+    +(nt?'<i class="'+(ln<0?'neg':'')+'">lợi nhuận '+money(ln)+' đ · '+pct.toFixed(1)+'%</i>':'<i>chưa nhập giá vốn</i>');
+}
+function ctFormInit_(pre){
+  ctImgRender_(pre); ctGrpRender_(pre); ctModeSync_(pre); ctGiaSync_(pre,'');
+  var f=document.getElementById(pre+'Form');
+  if(f) f.addEventListener('input',function(e){ if(/^(.*)(Kl|Dt|Hs|Dvt)$/.test(e.target.id)) ctPrev_(pre); });
+}
 function ctImgRender_(pre){
   var box=document.getElementById(pre+'ImgRow'); if(!box) return;
   var v=(document.getElementById(pre+'HinhAnh')||{}).value||'';
@@ -6428,7 +6461,7 @@ function catComboHtml_(p, idx){
   if(!ds.length) return '<div class="cc-note">Không có sản phẩm đi kèm.</div>';
   S._catCbIdx=S._catCbIdx||{}; S._catCbIdx[catCbKey_(p)]=ds;
   var pk=esc(catCbKey_(p));
-  return ds.map(function(x,k){
+  return '<div class="cc-kids">'+ds.map(function(x,k){
     var sl=Number(x.comboSL)||1;
     var brand=esc(x.thuongHieu||'');
     var specs=spSpecs_(x); if(specs.indexOf('muted')>=0) specs='';
@@ -6449,7 +6482,7 @@ function catComboHtml_(p, idx){
       +'</div>'
       +(specs?'<div class="cspecs">'+specs+'</div>':'')
     +'</div>';
-  }).join('');
+  }).join('')+'</div>';
 }
 // Thêm 1 thành phần combo vào bóc tách, đúng số lượng đi kèm
 async function catAddChild_(pk, k){
