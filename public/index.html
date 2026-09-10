@@ -3918,6 +3918,68 @@ select:not([class]){font-size:var(--t-md);height:36px;border:1px solid var(--ln2
 .sp-code,.ct-ma,.macode,.draft-code,.spvt-n,.cnt,.count,.imp-rn,.colpop-i i,.fltag i,.dbnote small{font-size:var(--t-xs)}
 .sp-name .sp-code{font-size:10.5px;color:var(--c4)}
 .tbl-wrap table td .muted{color:var(--c4)}
+
+/* ── Panel lọc trái (Bóc tách): gọn lại, danh sách SP lên gần đầu ── */
+.cat-active{margin:10px 0 2px}
+.cat-active .fltags{gap:6px}
+.cat-active .fltag{height:26px;font-size:10.5px}
+.catpanel-top{padding-bottom:10px}
+.cat-hd{gap:8px;padding:2px 0 10px}
+.cat-hd h3{font-size:var(--t-md);font-weight:600;color:var(--c1)}
+.cat-count{font-size:var(--t-xs);font-weight:600;color:var(--c3);background:var(--bg3);border-radius:var(--rp);padding:2px 8px}
+.mlbl{font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--c4);margin:12px 0 5px}
+.msel{height:36px;border-radius:var(--rc);border:1px solid var(--ln2);background:#fff;padding:0 10px}
+.msel:hover{border-color:#c9d3df}
+.msel .mlabel{font-size:var(--t-sm);color:var(--c1)}
+.filt-btn{height:30px;border-radius:var(--rc);border:1px solid var(--ln2);background:#fff;font-size:var(--t-sm);color:var(--c2);padding:0 10px;gap:6px}
+.filt-btn:hover{border-color:var(--blue);color:var(--blue)}
+.filt-btn.open{border-color:var(--blue);color:var(--blue);background:#f5f9ff}
+/* popover bộ lọc: gom hết khối lọc, cuộn được */
+#lightFilters.filt-pop{border-radius:var(--rk);box-shadow:var(--e3);border:1px solid var(--ln);padding:0;overflow:hidden}
+#lightFilters .filt-pop-hd{padding:12px 14px;border-bottom:1px solid var(--ln);margin:0;background:#fff}
+#lightFilters #selExtra,#lightFilters>.fsec,#lightFilters>.lbl,#lightFilters>.selrow,#lightFilters>.pricerow{padding:0 14px}
+#lightFilters>.fsec:first-of-type{padding-top:6px}
+#lightFilters .fsec{border:none;margin:10px 0 0}
+#lightFilters .fsec-t{font-size:var(--t-sm);font-weight:600;color:var(--c2)}
+#lightFilters .lbl{font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--c4);margin:14px 0 6px}
+#lightFilters .pricerow{padding-bottom:14px}
+
+/* ── Bảng điều khiển: KPI rõ hơn, thẻ dự án bớt ồn ── */
+.dh-hero{border-radius:var(--rk);padding:18px 22px;box-shadow:var(--e2);
+  background:linear-gradient(112deg,#0e2c4c 0%,#17456f 58%,#1d5a8f 100%)}
+.dh-hero-r .btn{height:32px;background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.22);color:#fff}
+.dh-hero-r .btn:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.4)}
+.dh-kpis{gap:12px;margin-bottom:16px}
+.dh-kpi{border:1px solid var(--ln);border-radius:var(--rk);padding:14px 16px;box-shadow:var(--e1);gap:12px}
+.dh-kpi-ic{width:36px;height:36px;border-radius:10px;background:var(--bg3);color:var(--c3)}
+.dh-kpi-v{font-size:var(--t-2xl);font-weight:600;letter-spacing:-.03em;color:var(--c1);line-height:1.1}
+.dh-kpi.green .dh-kpi-v{color:#15803d}.dh-kpi.red .dh-kpi-v{color:#c0392b}
+.dh-kpi-l{font-size:var(--t-xs);color:var(--c3);font-weight:500;margin-top:3px}
+.dh-kpi-sub{color:var(--c2);font-weight:600}
+/* thẻ dự án */
+.dh-proj{border:1px solid var(--ln);border-radius:var(--rk);box-shadow:var(--e1)}
+.dh-proj:hover{border-color:#cfd8e3;box-shadow:var(--e2)}
+.dh-proj-h{padding:14px;border-bottom:1px solid var(--ln)}
+.dh-proj-ic{width:32px;height:32px;border-radius:9px;background:#eef4fd;color:var(--blue)}
+.dh-proj-n{font-size:var(--t-md);font-weight:600;letter-spacing:-.01em;color:var(--c1)}
+.dh-proj-m{font-size:var(--t-xs);color:var(--c3)}
+.dh-proj-c{font-size:var(--t-xs);font-weight:600;color:var(--c3);background:var(--bg3);border-radius:var(--rp);padding:3px 9px}
+.dh-draft{padding:9px 12px;border-bottom:1px solid var(--ln)}
+.dh-draft:last-child{border-bottom:none}
+.dh-draft-n{font-size:var(--t-sm);font-weight:550;color:var(--c1)}
+.dh-draft-i span{font-size:10.5px;color:var(--c4)}
+/* nút thao tác chỉ hiện khi rê chuột -> thẻ đỡ rối */
+.dh-draft-a .dh-ic{opacity:0;transition:opacity .12s}
+.dh-draft:hover .dh-draft-a .dh-ic{opacity:1}
+.dh-badge{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:var(--rp);
+  background:#eefaf1;color:#15803d;border:1px solid rgba(21,128,61,.2);font-size:10.5px;font-weight:600}
+.dh-use{height:26px;padding:0 11px;border-radius:var(--rp);border:1px solid var(--ln2);background:#fff;
+  font-size:10.5px;font-weight:600;color:var(--c2);cursor:pointer}
+.dh-use:hover{border-color:var(--blue);color:var(--blue);background:#f6faff}
+.dh-adddraft{height:34px;font-size:var(--t-xs);color:var(--c3);border-top:1px solid var(--ln);background:var(--bg2)}
+.dh-adddraft:hover{color:var(--blue);background:#f6faff}
+.dh-card-h{font-size:var(--t-md);font-weight:600;color:var(--c1)}
+.dh-empty,.dash-empty{color:var(--c3);font-size:var(--t-sm)}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -4026,6 +4088,9 @@ select:not([class]){font-size:var(--t-md);height:36px;border:1px solid var(--ln2
           <div class="msel" id="fDemuc" onclick="openDemucSel(event)"><span class="mlabel" id="fDemucLabel">Tất cả đề mục</span><span class="mplus" id="fDemucClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
           <!-- Bộ lọc riêng của PHẦN THÔ (Loại báo giá / Nhà thầu / Báo giá mẫu) — nằm ngay dưới Đề mục -->
           <div id="ptFilters"></div>
+          <div id="catActive" class="cat-active"></div>
+          <div id="lightFilters" class="filt-pop" style="display:none">
+          <div class="filt-pop-hd"><b>Bộ lọc liên quan</b><span class="filt-pop-x" onclick="toggleFiltDrop()">✕</span></div>
           <div id="selExtra">
           <div class="mlbl">Hạng mục sản phẩm</div>
           <div class="msel" id="fNhom" onclick="openNhomMsel(event)"><span class="mlabel">Tất cả hạng mục</span><span class="mplus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
@@ -4037,8 +4102,6 @@ select:not([class]){font-size:var(--t-md);height:36px;border:1px solid var(--ln2
           </div>
 
           <!-- Tile bộ lọc (popover nổi, mở bằng nút "bộ lọc") — lọc phụ -->
-          <div id="lightFilters" class="filt-pop" style="display:none">
-          <div class="filt-pop-hd"><b>Bộ lọc liên quan</b><span class="filt-pop-x" onclick="toggleFiltDrop()">✕</span></div>
           <div class="fsec open" id="sec_angle"><div class="fsec-h" onclick="toggleFsec('angle')"><span class="fsec-t">Góc chiếu sáng</span><span class="fsec-n" id="nAngle"></span><span class="fsec-c">▾</span></div><div class="chips" id="fAngle"></div></div>
           <input id="fSearch" type="hidden" value="">
           <div class="fsec open" id="sec_yeuthich"><div class="fsec-h" onclick="toggleFsec('yeuthich')"><span class="fsec-t">Yêu thích</span><span class="fsec-n" id="nYeuThich"></span><span class="fsec-c">▾</span></div><div class="chips" id="fFavChips"></div></div>

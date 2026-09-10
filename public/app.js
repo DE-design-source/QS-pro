@@ -777,6 +777,41 @@ function updateCatUI(){
   var n=activeFilterCount();
   var b=document.getElementById('advBadge'); if(b){ b.textContent=n||''; b.style.display=n?'inline-flex':'none'; }
   var c=document.getElementById('advClear'); if(c) c.style.display=n?'inline-block':'none';
+  catActiveChips_();
+}
+/* Bộ lọc đang bật hiện thành thẻ ngay dưới ô Đề mục — các khối lọc đã dọn vào nút "Bộ lọc"
+   nên phải thấy ngay mình đang lọc theo gì, bấm ✕ là bỏ.                                   */
+function catActiveChips_(){
+  var box=document.getElementById('catActive'); if(!box) return;
+  if(S.node==='3.1'){ box.innerHTML=''; return; }          // Phần thô có bộ lọc riêng
+  var out=[];
+  function tag(lb,val,fn){ out.push('<span class="fltag" title="'+esc(lb)+'"><i>'+esc(lb)+'</i>'+esc(val)
+    +'<b onclick="'+fn+'" title="Bỏ lọc này">✕</b></span>'); }
+  function setVals(k){ return Object.keys(S[k]||{}).filter(function(x){ return S[k][x]; }); }
+  var nhom=Object.keys(S.fNhomSet||{}).filter(function(k){ return S.fNhomSet[k]; });
+  if(nhom.length) tag('Hạng mục', nhom.length>1?(nhom.length+' mục'):nhom[0], 'catClearF_(\'nhom\')');
+  if(S._inProjMa) tag('Trong dự án', S._inProjLabel||'đang lọc', 'catClearF_(\'inproj\')');
+  [['fWatt','Công suất'],['fKelvin','Nhiệt độ'],['fAngle','Góc chiếu'],['fCRI','CRI'],['fIP','IP'],['fVolt','Điện áp']]
+    .forEach(function(x){ var v=setVals(x[0]); if(v.length) tag(x[1], v.length>2?(v.length+' giá trị'):v.join(', '), 'catClearF_(\''+x[0]+'\')'); });
+  if(S.fBrand) tag('Thương hiệu', S.fBrand, 'catClearF_(\'brand\')');
+  if(S.fFav) tag('Lọc', 'Yêu thích', 'catClearF_(\'fav\')');
+  if(S.fCombo) tag('Lọc', 'Có combo', 'catClearF_(\'combo\')');
+  var mn=document.getElementById('fMin'), mx=document.getElementById('fMax');
+  if((mn&&mn.value)||(mx&&mx.value))
+    tag('Khoảng giá', ((mn&&mn.value)?money(mn.value):'0')+' – '+((mx&&mx.value)?money(mx.value):'∞'), 'catClearF_(\'gia\')');
+  box.innerHTML = out.length
+    ? ('<div class="fltags">'+out.join('')+'<button class="btn ghost xs" onclick="clearAllFilters();catClearF_(\'nhom\')">Xoá hết</button></div>')
+    : '';
+}
+function catClearF_(k){
+  if(k==='nhom'){ S.fNhomSet={}; }
+  else if(k==='inproj'){ S._inProjMa=''; S._inProjLabel=''; }
+  else if(k==='brand'){ S.fBrand=''; }
+  else if(k==='fav'){ S.fFav=false; }
+  else if(k==='combo'){ S.fCombo=''; }
+  else if(k==='gia'){ var a=document.getElementById('fMin'), b=document.getElementById('fMax'); if(a)a.value=''; if(b)b.value=''; }
+  else S[k]={};
+  renderFilters(); renderCatalog(); updateCatUI();
 }
 function clearAllFilters(){
   S.fWatt={}; S.fKelvin={}; S.fAngle={}; S.fIP={}; S.fCRI={}; S.fVolt={}; S.fBrand=''; S.fCombo=''; S.fFav=false;
@@ -4684,38 +4719,38 @@ var QS_DOC_CSS=''
 +'.qpg.on{background:#111827;color:#fff;border-color:#111827}'
 +'.qpg-ell{color:#94a3b8;padding:0 2px}'
 /* ===== Decox letterhead style ===== */
-+'.qx-page{padding:38px 42px 46px}'
++'.qx-page{padding:34px 38px 42px}'
 +'.qx-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:4px}'
-+'.qx-brand{font-size:30px;font-weight:900;letter-spacing:2px;color:#12233a}'
-+'.qx-org{font-size:10px;color:#4b5563;line-height:1.55;margin-top:5px}'
-+'.qx-titlebox{background:#12314f;color:#fff;text-align:center;padding:14px 24px;min-width:290px}'
-+'.qx-titlebox .t1{font-size:15px;font-weight:800;letter-spacing:.4px}'
-+'.qx-titlebox .t2{font-size:12.5px;font-weight:700;margin-top:4px}'
-+'.qx-info{width:100%;border-collapse:collapse;background:#eceff2;margin:16px 0 0;table-layout:fixed}'
-+'.qx-info td{padding:9px 14px;font-size:11px;vertical-align:top}'
-+'.qx-info td.k{font-weight:700;color:#1f2937;width:16%}'
-+'.qx-info td.v{color:#374151;width:34%}'
-+'.qx-secttl{font-size:13px;font-weight:800;color:#12233a;letter-spacing:.4px;margin:18px 0 8px}'
++'.qx-brand{font-size:26px;font-weight:700;letter-spacing:.16em;color:#0f2942;line-height:1}'
++'.qx-org{font-size:9.5px;color:#5b6b7b;line-height:1.65;margin-top:8px;letter-spacing:.01em}'
++'.qx-titlebox{background:#12314f;color:#fff;text-align:center;padding:13px 22px;min-width:280px}'
++'.qx-titlebox .t1{font-size:12.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase}'
++'.qx-titlebox .t2{font-size:11px;font-weight:500;margin-top:5px;letter-spacing:.04em;color:#c7d6e6}'
++'.qx-info{width:100%;border-collapse:collapse;margin:20px 0 0;table-layout:fixed;border-top:1px solid #dbe1e9;border-bottom:1px solid #dbe1e9}'
++'.qx-info td{padding:8px 12px;font-size:10.5px;vertical-align:top;border-bottom:1px solid #eef1f5}'+'.qx-info tr:last-child td{border-bottom:none}'
++'.qx-info td.k{font-weight:600;color:#8a96a5;width:16%;font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding-top:10px}'
++'.qx-info td.v{color:#1f2937;width:34%;font-weight:500}'
++'.qx-secttl{font-size:10.5px;font-weight:600;color:#12233a;letter-spacing:.12em;text-transform:uppercase;margin:22px 0 8px;padding-bottom:6px;border-bottom:1px solid #dbe1e9}'
 +'.qx-tbl{width:100%;border-collapse:collapse;font-size:10.5px}'
-+'.qx-tbl th{background:#12314f;color:#fff;font-weight:700;padding:10px 8px;text-align:left;font-size:10px;vertical-align:middle;border-right:1px solid #ffffff22;text-transform:uppercase;line-height:1.2}'
++'.qx-tbl th{background:#12314f;color:#fff;font-weight:600;padding:9px 8px;text-align:left;font-size:9px;vertical-align:middle;border-right:1px solid #ffffff1f;text-transform:uppercase;letter-spacing:.05em;line-height:1.25}'
 +'.qx-tbl th.num{text-align:right}.qx-tbl th.ct{text-align:center}'
 +'.qx-tbl th:last-child{border-right:none}'
-+'.qx-tbl td{padding:9px 8px;border-right:1px solid #d9dee5;border-bottom:none;vertical-align:top}'
++'.qx-tbl td{padding:8px;border-right:1px solid #e6eaef;border-bottom:1px solid #eef1f5;vertical-align:top;line-height:1.45}'
 +'.qx-tbl td:last-child{border-right:none}'
 +'.qx-tbl td.num{text-align:right;font-variant-numeric:tabular-nums}'
 +'.qx-tbl td.ct{text-align:center}'
 +'.qx-tbl td.it{font-style:italic;color:#4b5563}'
-+'.qx-tbl tr.sec td{background:#e6e9ee;font-weight:800;color:#12233a;border-top:1px solid #cfd5dd;border-bottom:1px solid #cfd5dd}'
++'.qx-tbl tr.sec td{background:#eef1f5;font-weight:600;color:#12233a;letter-spacing:.02em;border-top:1px solid #d5dce4;border-bottom:1px solid #d5dce4}'
 +'.qx-desc{color:#6b7280;font-size:9.5px;line-height:1.35;margin-top:2px}'
 +'.qx-totbox{margin-top:0}'
-+'.qx-totbox td{background:#12314f;color:#fff;padding:10px 12px;font-size:12px;font-weight:800;border-right:none;border-bottom:1px solid #ffffff1a}'
-+'.qx-totbox td.lbl{text-align:right;letter-spacing:.3px}'
-+'.qx-notes{background:#eceff2;padding:12px 16px;margin-top:16px;font-size:10.5px;color:#374151}'
-+'.qx-notes .h{font-weight:700;margin-bottom:4px}'
++'.qx-totbox td{background:#12314f;color:#fff;padding:9px 12px;font-size:11.5px;font-weight:600;border-right:none;border-bottom:1px solid #ffffff1a;font-variant-numeric:tabular-nums}'+'.qx-totbox tr:last-child td{background:#0e2740;font-size:12.5px;font-weight:700}'
++'.qx-totbox td.lbl{text-align:right;letter-spacing:.06em;text-transform:uppercase;font-size:10px;font-weight:500;color:#c7d6e6}'
++'.qx-notes{background:#f7f9fb;border:1px solid #e6eaef;padding:12px 16px;margin-top:18px;font-size:10px;color:#4b5563;line-height:1.6}'
++'.qx-notes .h{font-weight:600;margin-bottom:5px;color:#12233a;letter-spacing:.05em;text-transform:uppercase;font-size:9px}'
 +'.qx-notes ol{margin:0;padding-left:20px}.qx-notes li{margin:3px 0}'
-+'.qx-sign{display:flex;margin-top:16px;border:1px solid #d9dee5}'
++'.qx-sign{display:flex;margin-top:18px;border:1px solid #e6eaef}'
 +'.qx-sign .col{flex:1}.qx-sign .col:first-child{border-right:1px solid #d9dee5}'
-+'.qx-sign .hd{background:#eceff2;font-weight:700;font-size:11px;padding:9px;color:#1f2937;text-align:center}'
++'.qx-sign .hd{background:#f7f9fb;font-weight:600;font-size:10px;padding:9px;color:#12233a;text-align:center;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid #e6eaef}'
 +'.qx-sign .sp{height:110px}';
 function ensureDocCss_(){ if(document.getElementById('qsDocCss')) return; var s=document.createElement('style'); s.id='qsDocCss'; s.textContent=QS_DOC_CSS; document.head.appendChild(s); }
 function printDoc(){
