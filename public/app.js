@@ -59,9 +59,9 @@ var COLS=[
   ['maSP','Mã sản phẩm',0],['ten','Tên sản phẩm',1],['thuongHieu','Thương hiệu',1],['ncc','Nhà cung cấp',0],
   ['moTa','Thông tin chính',1],['kichThuoc','Thông số thiết kế',1],['hinhAnh','Hình ảnh',1],['dvt','Đơn vị tính',1],
   ['soLuong','Số lượng',1],['giaNCC','Giá bán lẻ',0],['chietKhau','Chiết khấu của đại lý (%)',0],
-  ['giaDaiLy','Giá đại lý',0],['lnPct','Lợi nhuận (%)',0],['donGia','Giá bán',1],
+  ['giaDaiLy','Giá đại lý',0],['lnPct','Lợi nhuận dự kiến (%)',0],['donGia','Giá bán',1],
   ['ckKhach','Chiết khấu cho khách hàng (%)',0],['donGiaCK','Đơn giá',1],
-  ['markup','Lợi nhuận/giá vốn — Markup (%)',0],['margin','Lợi nhuận/giá bán — Margin (%)',0],['lnVnd','Lợi nhuận (VND)',0],
+  ['markup','Markup (%) — LN/giá vốn',0],['margin','Margin (%) — LN/giá bán',0],['lnVnd','Lợi nhuận (VND)',0],
   ['thanhTien','Thành tiền',0],['trangThai','Trạng thái',0],['ghiChu','Ghi chú',0]
 ];
 COLS.forEach(function(c){ S.cols[c[0]]=!!c[2]; });
@@ -3047,7 +3047,18 @@ function cellInput(l,key){
     return '<td'+(key==='dvt'?' class="ct"':'')+'><input class="cin'+(key==='dvt'?' dvt-in':'')+'"'+(key==='khuVuc'?' placeholder="Phòng…" list="phongList"':'')+' value="'+esc(l[f]||'')+'" onchange="editLine(\''+l.lineId+'\',{'+f+':this.value})"></td>'; }
   if(NUM_COL[key]){ var f2=NUM_COL[key];
     return '<td class="num"><input class="cin num" type="number" value="'+(Number(l[f2])||0)+'" onchange="editLine(\''+l.lineId+'\',{'+f2+':this.value})"></td>'; }
-  var cls=(['giaDaiLy','donGiaCK','lnVnd','thanhTien'].indexOf(key)>=0)?'num':(['hinhAnh','nganh','markup','margin'].indexOf(key)>=0?'ct':'');
+  // Lợi nhuận: gõ vào là tính NGƯỢC ra giá bán (trước đây chỉ hiện số, không nhập được)
+  if(key==='markup'||key==='margin'||key==='lnVnd'){
+    var cur = key==='lnVnd' ? Math.round((donGiaCK_(l)-giaDaiLy_(l))*(Number(l.soLuong)||0))
+            : (key==='markup'?markup_(l):margin_(l));
+    var ttl = key==='markup' ? 'Lợi nhuận trên giá vốn — gõ % để tính ra giá bán'
+            : (key==='margin' ? 'Lợi nhuận trên giá bán — gõ % để tính ra giá bán'
+                              : 'Lợi nhuận cả dòng (VND) — gõ số để tính ra giá bán');
+    return '<td class="num"><input class="cin num ln-in" type="number" step="any" title="'+ttl+'"'
+      +' value="'+cur+'" onchange="editProfit_(\''+l.lineId+'\',\''+key+'\',this.value)">'
+      +(key==='lnVnd'?'':'<i class="ln-pc">%</i>')+'</td>';
+  }
+  var cls=(['giaDaiLy','donGiaCK','thanhTien'].indexOf(key)>=0)?'num':(['hinhAnh','nganh'].indexOf(key)>=0?'ct':'');
   return '<td class="'+cls+'">'+cellVal(l,key)+'</td>';
 }
 function renderTable(){
@@ -3140,6 +3151,32 @@ function setVat(v){
 }
 // textarea tự cao theo nội dung (xuống dòng hiện đủ, không cắt)
 function autoGrow(t){ if(!t) return; t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; t.style.overflowY='hidden'; }
+/* Gõ lợi nhuận -> ra giá bán.
+   giá đại lý (vốn thực) = giá bán lẻ NCC × (1 − CK đại lý)
+   đơn giá sau CK khách  = giá bán × (1 − CK khách)
+   Markup k : đơn giá = vốn × (1 + k/100)
+   Margin m : đơn giá = vốn / (1 − m/100)
+   Lợi nhuận L (cả dòng): đơn giá = vốn + L/số lượng                                     */
+function editProfit_(id, key, val){
+  var l=S.lines.filter(function(x){return x.lineId===id;})[0]; if(!l) return;
+  var von=giaDaiLy_(l), sl=Number(l.soLuong)||0, ckK=(Number(l.ckKhach)||0)/100;
+  var v=Number(String(val).replace(',','.'))||0;
+  if(!von){ toast('Nhập "Giá bán lẻ" (giá vốn nhà cung cấp) trước — chưa có giá vốn thì không tính ngược được lợi nhuận'); renderTable(); return; }
+  var dgCK;
+  if(key==='markup') dgCK = von*(1+v/100);
+  else if(key==='margin'){
+    if(v>=100){ toast('Margin phải nhỏ hơn 100%'); renderTable(); return; }
+    dgCK = von/(1-v/100);
+  }
+  else {                                    // lnVnd: lợi nhuận cả dòng
+    if(!sl){ toast('Nhập số lượng trước'); renderTable(); return; }
+    dgCK = von + v/sl;
+  }
+  if(ckK>=1){ toast('Chiết khấu khách hàng phải nhỏ hơn 100%'); renderTable(); return; }
+  var giaBan=Math.round(dgCK/(1-ckK));
+  if(giaBan<0){ toast('Lợi nhuận âm quá mức — giá bán ra số âm'); renderTable(); return; }
+  editLine(id,{donGiaBan:giaBan});
+}
 function editLine(id,fields){
   // ---- Optimistic: cập nhật + render NGAY, đồng bộ server chạy nền ----
   var l=S.lines.filter(function(x){return x.lineId===id;})[0];

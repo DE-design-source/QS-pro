@@ -3991,6 +3991,30 @@ select:not([class]){font-size:var(--t-md);height:36px;border:1px solid var(--ln2
 .ptlib-sec{margin-top:12px}
 .ptlib-h{padding:8px 10px;border-radius:var(--rc);background:var(--bg2)}
 .ptlib-htt{font-size:var(--t-sm);font-weight:600;color:var(--c1)}
+
+/* Ô lợi nhuận nhập được trong bảng Bóc tách */
+table.tk td .ln-in{width:100%;text-align:right;padding-right:16px}
+table.tk td{position:relative}
+table.tk td .ln-pc{position:absolute;right:9px;top:50%;transform:translateY(-50%);font-style:normal;
+  font-size:10px;color:var(--c4);pointer-events:none}
+table.tk td .ln-in:focus{background:#fff}
+
+/* ── Panel trái: bộ lọc GIỮ NGUYÊN chỗ cũ, nhưng gọn và có vùng cuộn riêng
+   để danh sách sản phẩm luôn nhìn thấy được (trước đây bộ lọc đẩy danh sách xuống 507px) ── */
+.catpanel{display:flex;flex-direction:column;min-height:0}
+.catpanel-top{flex:none;max-height:38vh;overflow:auto;padding-right:4px;margin-right:-4px}
+.catpanel-top::-webkit-scrollbar{width:8px}
+.catpanel-top::-webkit-scrollbar-thumb{background:#dfe5ec;border-radius:var(--rp);border:2px solid #fff}
+.cat-list{flex:1;min-height:0;overflow:auto;margin-top:8px;padding-top:8px;border-top:1px solid var(--ln)}
+/* khối lọc nhỏ gọn lại: nhãn nhỏ, chip thấp, bớt khoảng trắng */
+#selExtra .mlbl,.catpanel-top .mlbl{margin:10px 0 4px}
+#selExtra .fsec{margin-top:10px;border:none;padding:0}
+#selExtra .fsec-h{padding:0 0 5px}
+#selExtra .fsec-t{font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--c4)}
+#selExtra .fsec-n{font-size:10px;color:var(--c4)}
+#selExtra .chips{gap:5px}
+#selExtra .chips .chip{height:24px;padding:0 9px;font-size:10.5px}
+.cat-hd .filt-btn,.cat-hd .favgo-btn{height:28px}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -4099,9 +4123,6 @@ select:not([class]){font-size:var(--t-md);height:36px;border:1px solid var(--ln2
           <div class="msel" id="fDemuc" onclick="openDemucSel(event)"><span class="mlabel" id="fDemucLabel">Tất cả đề mục</span><span class="mplus" id="fDemucClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
           <!-- Bộ lọc riêng của PHẦN THÔ (Loại báo giá / Nhà thầu / Báo giá mẫu) — nằm ngay dưới Đề mục -->
           <div id="ptFilters"></div>
-          <div id="catActive" class="cat-active"></div>
-          <div id="lightFilters" class="filt-pop" style="display:none">
-          <div class="filt-pop-hd"><b>Bộ lọc liên quan</b><span class="filt-pop-x" onclick="toggleFiltDrop()">✕</span></div>
           <div id="selExtra">
           <div class="mlbl">Hạng mục sản phẩm</div>
           <div class="msel" id="fNhom" onclick="openNhomMsel(event)"><span class="mlabel">Tất cả hạng mục</span><span class="mplus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
@@ -4111,7 +4132,9 @@ select:not([class]){font-size:var(--t-md);height:36px;border:1px solid var(--ln2
           <div class="fsec open" id="sec_watt"><div class="fsec-h" onclick="toggleFsec('watt')"><span class="fsec-t">Công suất</span><span class="fsec-n" id="nWatt"></span><span class="fsec-c">▾</span></div><div class="chips" id="fWatt"></div></div>
           <div class="fsec open" id="sec_kelvin"><div class="fsec-h" onclick="toggleFsec('kelvin')"><span class="fsec-t">Nhiệt độ màu</span><span class="fsec-n" id="nKelvin"></span><span class="fsec-c">▾</span></div><div class="chips" id="fKelvin"></div></div>
           </div>
-
+          <div id="catActive" class="cat-active"></div>
+          <div id="lightFilters" class="filt-pop" style="display:none">
+          <div class="filt-pop-hd"><b>Bộ lọc liên quan</b><span class="filt-pop-x" onclick="toggleFiltDrop()">✕</span></div>
           <!-- Tile bộ lọc (popover nổi, mở bằng nút "bộ lọc") — lọc phụ -->
           <div class="fsec open" id="sec_angle"><div class="fsec-h" onclick="toggleFsec('angle')"><span class="fsec-t">Góc chiếu sáng</span><span class="fsec-n" id="nAngle"></span><span class="fsec-c">▾</span></div><div class="chips" id="fAngle"></div></div>
           <input id="fSearch" type="hidden" value="">
