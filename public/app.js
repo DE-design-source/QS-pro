@@ -3717,11 +3717,12 @@ function hbarBind_(sel, barId, thId){
   sync();
 }
 function tkHBarSync_(){ hbarSync_('#tkNormal .tbl-wrap','tkHBar','tkHThumb'); }
-function tkHBarInit_(){ hbarBind_('#tkNormal .tbl-wrap','tkHBar','tkHThumb'); }
+function tkHBarInit_(){ hbarBind_('#tkNormal .tbl-wrap','tkHBar','tkHThumb'); tkVBarInit_&&tkVBarInit_(); }
 function spHBarSync_(){ hbarSync_('.sp-card .tbl-wrap','spHBar','spHThumb'); }
 function spHBarInit_(){ hbarBind_('.sp-card .tbl-wrap','spHBar','spHThumb'); }
 function syncActGutter(){
   tkHBarSync_();   // đồng bộ luôn thanh kéo ngang (hàm này đã chạy mỗi khi cuộn bảng)
+  tkVBarSync_&&tkVBarSync_();
   var norm=document.getElementById('tkNormal'), g=document.getElementById('actGutter'); if(!norm||!g) return;
   var wrap=norm.querySelector('.tbl-wrap'), t=document.getElementById('tkTable'); if(!wrap||!t) return;
   var nb=norm.getBoundingClientRect(), wr=wrap.getBoundingClientRect();
@@ -9370,4 +9371,59 @@ function mhDxPanel_(){
   return '<div class="imp-recent mhdx">'
     +'<div class="imp-recent-h">'+icon('gauge',15)+' Phiếu đề xuất đã gửi <span class="count">'+pad2(n)+'</span></div>'
     +'<div class="imp-recent-b" id="mhDxBox">'+mhDxInner_()+'</div></div>';
+}
+
+/* ═══ Thanh kéo DỌC tự vẽ cho bảng Bóc tách ═══
+   Thanh cuộn gốc phải ẩn (nếu bật lại, Chrome mới bỏ qua ::-webkit-scrollbar và
+   đẻ thêm một thanh NGANG 17px nằm chồng lên thanh kéo ngang tự vẽ). */
+function tkVBarSync_(){
+  var norm=document.getElementById('tkNormal'), bar=document.getElementById('tkVBar'), th=document.getElementById('tkVThumb');
+  var wrap=norm&&norm.querySelector('.tbl-wrap');
+  if(!norm||!bar||!th||!wrap) return;
+  var sh=wrap.scrollHeight, ch=wrap.clientHeight;
+  if(sh<=ch+1){ bar.style.display='none'; return; }
+  var headH=(document.querySelector('#tkTable tr:first-child th')||{}).offsetHeight||46;
+  var nb=norm.getBoundingClientRect(), wr=wrap.getBoundingClientRect();
+  var hsb=wrap.offsetHeight-wrap.clientHeight;                    // chiều cao thanh cuộn ngang gốc (đang ẩn = 0)
+  bar.style.display='';
+  bar.style.top=(wr.top-nb.top+headH+2)+'px';
+  // đặt ĐÈ vào mép phải vùng bảng (không lấn ra lề phải — chỗ đó là dãy nút xoá dòng)
+  bar.style.left=(wr.left-nb.left+wrap.clientWidth-15)+'px';
+  var H=Math.max(40, wr.height-headH-hsb-4);
+  bar.style.height=H+'px';
+  var tw=Math.max(48, Math.round(H*ch/sh));
+  var maxTop=H-tw, maxScroll=sh-ch;
+  th.style.height=tw+'px';
+  th.style.top=Math.round(maxScroll?(wrap.scrollTop/maxScroll)*maxTop:0)+'px';
+}
+function tkVBarInit_(){
+  var norm=document.getElementById('tkNormal'), bar=document.getElementById('tkVBar'), th=document.getElementById('tkVThumb');
+  var wrap=norm&&norm.querySelector('.tbl-wrap');
+  if(!norm||!bar||!th||!wrap) return;
+  if(wrap.dataset.vb!=='1'){ wrap.dataset.vb='1'; wrap.addEventListener('scroll',tkVBarSync_,{passive:true}); }
+  if(!S._vbarResize){ S._vbarResize=1; window.addEventListener('resize',tkVBarSync_); }
+  if(th.dataset.vb!=='1'){
+    th.dataset.vb='1';
+    th.addEventListener('mousedown',function(e){
+      e.preventDefault(); e.stopPropagation();
+      var sy=e.clientY, st=wrap.scrollTop;
+      var H=bar.clientHeight, tw=th.offsetHeight, maxTop=H-tw, maxScroll=wrap.scrollHeight-wrap.clientHeight;
+      th.classList.add('dragging'); document.body.style.cursor='grabbing';
+      function mv(ev){ var d=ev.clientY-sy; wrap.scrollTop = st + (maxTop? d*maxScroll/maxTop : 0); tkVBarSync_(); }
+      function up(){ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up);
+        th.classList.remove('dragging'); document.body.style.cursor=''; }
+      document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+    });
+  }
+  if(bar.dataset.vb!=='1'){
+    bar.dataset.vb='1';
+    bar.addEventListener('mousedown',function(e){
+      if(e.target===th) return;
+      var r=bar.getBoundingClientRect(), tw=th.offsetHeight;
+      var pos=Math.min(Math.max(0,e.clientY-r.top-tw/2), r.height-tw);
+      var maxScroll=wrap.scrollHeight-wrap.clientHeight, maxTop=r.height-tw;
+      wrap.scrollTop = maxTop? pos*maxScroll/maxTop : 0; tkVBarSync_();
+    });
+  }
+  tkVBarSync_();
 }

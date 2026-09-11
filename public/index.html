@@ -4238,7 +4238,6 @@ td.rsel input,td.rsel textarea{background:transparent}
 .tk-hbar.sp-hbar,.pt-hbar{height:12px}
 .tk-hbar.sp-hbar .tk-hthumb,.pt-hbar .tk-hthumb{min-width:64px}
 /* thanh cuộn dọc của bảng bóc tách: hiện rõ + to hơn */
-#tkNormal .tbl-wrap{scrollbar-width:auto;scrollbar-color:#b7c2cf transparent}
 #tkNormal .tbl-wrap::-webkit-scrollbar{display:block;width:12px;height:0}
 #tkNormal .tbl-wrap::-webkit-scrollbar-track{background:transparent}
 #tkNormal .tbl-wrap::-webkit-scrollbar-thumb{background:#c3ccd8;border:3px solid transparent;background-clip:content-box;border-radius:99px}
@@ -4392,6 +4391,25 @@ td.rsel input,td.rsel textarea{background:transparent}
 .ctmodal .ct-2col>.spe-body{padding:0 16px 0 0}
 .ctmodal .ct-2col .pd-actions{position:sticky;bottom:0;background:#fff;padding-top:10px}
 @media(max-width:980px){ .ctmodal .ct-2col{height:auto;grid-template-columns:1fr} }
+
+/* ═══ Sửa 3 lỗi hiển thị ═══ */
+/* 1. Bóng kéo thả (.drag-ghost) bị rule position:relative phía trên kéo về giữa trang,
+      thành một khung trắng rỗng chắn ngang bảng mỗi khi kéo sản phẩm.
+      position:fixed vừa đưa nó ra ngoài màn hình, vừa đủ làm mốc cho .dg-badge. */
+.drag-ghost{position:fixed;top:-1000px;left:-1000px}
+/* 2. #tkNormal là flex column -> thanh kéo ngang bị co từ 12px xuống 8px. */
+.tk-hbar{flex:none}
+/* 3. Chỉ để MỘT thanh cuộn ngang: thanh tự vẽ. Thanh dọc giữ 12px cho dễ bắt. */
+#tkNormal .tbl-wrap{scrollbar-width:none}
+
+/* Thanh kéo DỌC tự vẽ (thanh cuộn gốc bị ẩn để không đẻ ra 2 thanh ngang).
+   To 12px cho dễ bắt, nằm sát mép phải vùng bảng, dưới dòng tiêu đề dính. */
+.tk-vbar{position:absolute;width:12px;border-radius:99px;background:#eef1f5;cursor:pointer;user-select:none;z-index:6}
+.tk-vthumb{position:absolute;left:0;top:0;width:100%;min-height:48px;border-radius:99px;background:#b7c2cf;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.5)}
+.tk-vbar:hover .tk-vthumb{background:#96a5b6}
+.tk-vthumb:hover{background:var(--blue)}
+.tk-vthumb.dragging{background:var(--blue-d);cursor:grabbing}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -4557,6 +4575,7 @@ td.rsel input,td.rsel textarea{background:transparent}
           <div class="tbl-wrap"><table class="tk" id="tkTable" oncontextmenu="tkCtx(event)"></table></div>
           <div class="actgutter" id="actGutter"><div id="actGutterInner"></div></div>
           <div class="tk-hbar" id="tkHBar" style="display:none"><div class="tk-hthumb" id="tkHThumb"></div></div>
+          <div class="tk-vbar" id="tkVBar" style="display:none"><div class="tk-vthumb" id="tkVThumb"></div></div>
         </div>
         <div id="ptWrap" style="display:none"></div>
       </div>
