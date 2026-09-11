@@ -5405,20 +5405,26 @@ function renderImportPT_(){
   S._ctGrp={}; ctFormInit_('imp');
 }
 function ctRecentList_(){
-  var list=(S.congTac||[]).slice().sort(function(a,b){ return String(b.ngayTao||'').localeCompare(String(a.ngayTao||'')); }).slice(0,20);
-  var head='<div class="imp-rhd"><h3>Công tác vừa nhập</h3><span class="imp-rn">'+list.length+'</span></div>';
-  if(!list.length) return head+'<div class="imp-rempty">Chưa có công tác nào trong cơ sở dữ liệu.<br>Nhập ở form bên trái hoặc nạp thư viện mẫu.</div>';
-  return head+'<div class="imp-rlist">'+list.map(function(c,i){
+  // ĐÚNG cơ chế như bên Thiết bị đèn: chỉ liệt kê công tác nhập trong PHIÊN ĐANG MỞ,
+  // không đổ cả cơ sở dữ liệu ra đây (trước đây lấy 20 bản ghi mới nhất nên 217 công tác
+  // vừa nạp cũng hiện thành "vừa nhập").
+  var ps=(S._ctSessionAdded||[]);
+  var rows=ps.map(function(c,i){
     var im=String(c.hinhAnh||'').split('\n')[0];
-    return '<div class="imp-row">'
-      +'<button class="imp-redit" title="Sửa công tác" onclick="ctEditModal_(\''+c.id+'\')">'+icon('edit',13)+'</button>'
-      +'<span class="iisttd">'+(i+1)+'</span>'
-      +(im?'<img class="imp-th" src="'+esc(imgUrlOf(im))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="imp-th"></span>')
-      +'<div class="imp-nm"><b>'+esc(c.ten)+'</b><span>'+esc(c.hangMuc)+' · '+esc(ptLoaiNgan_(c.loai))+'</span></div>'
-      +'<span class="imp-pr">'+(c.dg?money(c.dg)+' đ':'—')+'</span>'
-      +'<span class="spduyet'+(c.daDuyet?' on':'')+'">'+(c.daDuyet?'Đã duyệt':'Chưa duyệt')+'</span>'
-    +'</div>';
-  }).join('')+'</div>';
+    var img=im?'<img class="imp-rth" src="'+esc(imgUrlOf(im))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="imp-rth"></span>';
+    var sua=c.id
+      ? '<button class="imp-redit" title="Sửa lại công tác này" onclick="ctEditModal_(\''+c.id+'\')">'+icon('edit',13)+'</button>'
+      : '<span class="imp-redit dis" title="Không rõ bản ghi — mở Danh sách sản phẩm để sửa">'+icon('edit',13)+'</span>';
+    return '<tr><td class="c imp-ract">'+sua+'</td><td class="c">'+(i+1)+'</td>'
+      +'<td class="imp-rname">'+esc(c.ten||'')
+      +(c.hangMuc?'<i class="imp-rma">'+esc(c.hangMuc)+'</i>':'')+'</td><td class="c">'+img+'</td>'
+      +'<td>'+esc(ptLoaiNgan_(c.loai))+'</td>'
+      +'<td class="imp-rdate">'+(c.dg?money(c.dg)+' đ':'—')+'</td></tr>';
+  }).join('') || '<tr><td colspan="6" class="empty" style="padding:24px 12px;font-size:12.5px;line-height:1.5">Chưa nhập công tác nào trong phiên này.<br>Công tác bạn <b>thêm</b> ở phiên này sẽ hiện ở đây.</td></tr>';
+  return '<div class="imp-recent-h">Công tác vừa nhập (phiên này) <span class="count">'+pad2(ps.length)+'</span></div>'
+    +'<div class="imp-recent-note">Danh sách này chỉ ghi lại thao tác của <b>phiên đang mở</b> — tải lại trang sẽ trống. '
+    +'Công tác đã lưu <b>vẫn nằm trong Database</b>: <a onclick="showTab(\'sanpham\');setTimeout(function(){spCatPickNode(\'3.1\');},300)">xem Danh sách sản phẩm →</a></div>'
+    +'<div class="imp-recent-b"><table class="imp-rtbl"><thead><tr><th class="c">Sửa</th><th class="c">STT</th><th>Nội dung công việc</th><th class="c">Hình ảnh</th><th>Loại báo giá</th><th>Đơn giá</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 async function ctImpSave(btn){
   var d=ctFormRead_('imp');
@@ -5426,8 +5432,11 @@ async function ctImpSave(btn){
   if(!d.hangMuc){ toast('Nhập hạng mục'); return; }
   if(btn){ btn.disabled=true; btn.textContent='Đang lưu…'; }
   try{
-    await api('ctSave', d);
+    var kq=await api('ctSave', d);
     await ctLoad_(true);
+    // ghi vào danh sách "vừa nhập" của phiên này (giống S._sessionAdded bên sản phẩm)
+    S._ctSessionAdded=S._ctSessionAdded||[];
+    S._ctSessionAdded.unshift((kq&&kq.rows&&kq.rows[0])||d);
     var them='';
     if(S._ctGhi && S.cur){                       // ghi thẳng vào bảng khái toán của dự án đang mở
       var si=PT_TEMPLATE.findIndex(function(x){ return x.db && x.t===d.hangMuc && ptSecLoai_(x)===d.loai; });
@@ -5493,6 +5502,7 @@ async function ctImpCommit_(){
   try{
     var r=await api('ctSave', rows);
     S._ctImp=null; await ctLoad_(true);
+    S._ctSessionAdded=(S._ctSessionAdded||[]).concat((r&&r.rows)||rows);
     toast('Đã nhập '+((r&&r.ok)||rows.length)+' công tác');
     renderImportPT_();
   }catch(e){ toast('Lỗi nhập: '+e.message); if(btn){ btn.disabled=false; btn.textContent='Thử lại'; } }
