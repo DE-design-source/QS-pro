@@ -354,14 +354,25 @@ function renderFloors(){
 }
 function selectFloor(g){ S.selFloor = g||''; renderFloors(); renderTable(); }
 var FLOOR_PRESETS=['TẦNG HẦM','TẦNG LỬNG','TẦNG TRỆT','TẦNG 1','TẦNG 2','TẦNG 3','TẦNG 4','TẦNG 5','SÂN THƯỢNG','TẦNG MÁI','TUM THANG'];
+var ROOM_PRESETS=['PHÒNG KHÁCH','PHÒNG BẾP','PHÒNG ĂN','PHÒNG NGỦ MASTER','PHÒNG NGỦ 1','PHÒNG NGỦ 2','PHÒNG NGỦ 3',
+  'PHÒNG VỆ SINH','WC CHUNG','WC MASTER','PHÒNG LÀM VIỆC','PHÒNG THỜ','SẢNH','HÀNH LANG','CẦU THANG',
+  'BAN CÔNG','PHÒNG GIẶT','KHO','PHÒNG ĐỂ XE','SÂN VƯỜN'];
+function aflMode_(){ return S._aflMode==='phong'?'phong':'tang'; }
+function aflSetMode(m){ S._aflMode=m; refreshAddFloorPop_(); }
 function addFloorPopInner_(){
+  var mode=aflMode_(), phong=(mode==='phong');
   var existing=floorsList().filter(function(f){return f!=='CHƯA PHÂN TẦNG';});
-  var chips=FLOOR_PRESETS.map(function(nm){ var on=existing.indexOf(nm)>=0;
+  var presets=phong?ROOM_PRESETS:FLOOR_PRESETS;
+  var chips=presets.map(function(nm){ var on=existing.indexOf(nm)>=0;
     return '<span class="afl-chip'+(on?' on':'')+'" onclick="addFloorName(this.dataset.n)" data-n="'+esc(nm)+'">'+icon(on?'check':'plus',13)+esc(nm)+'</span>'; }).join('');
-  return '<div class="fhdr">Thêm tầng</div>'
-    +'<div class="afl-chips">'+chips+'</div>'
-    +'<div class="afl-cust"><input id="aflInput" placeholder="Tên tầng khác…" autocomplete="off" onkeydown="if(event.key===\'Enter\'){event.preventDefault();addFloorCustom();}"><button class="btn blue sm" onclick="addFloorCustom()">'+icon('plus',14)+'Thêm</button></div>'
-    +'<div class="afl-hint">Bấm chip để thêm nhanh · thêm được nhiều tầng liên tiếp</div>';
+  return '<div class="afl-seg">'
+      +'<button class="'+(phong?'':'on')+'" onclick="aflSetMode(\'tang\')">'+icon('layers',14)+' Thêm tầng</button>'
+      +'<button class="'+(phong?'on':'')+'" onclick="aflSetMode(\'phong\')">'+icon('building',14)+' Thêm phòng</button>'
+    +'</div>'
+    +'<div class="afl-chips'+(phong?' room':'')+'">'+chips+'</div>'
+    +'<div class="afl-cust"><input id="aflInput" placeholder="'+(phong?'Tên phòng khác…':'Tên tầng khác…')+'" autocomplete="off" onkeydown="if(event.key===\'Enter\'){event.preventDefault();addFloorCustom();}"><button class="btn blue sm" onclick="addFloorCustom()">'+icon('plus',14)+'Thêm</button></div>'
+    +'<div class="afl-hint">Bấm chip để thêm nhanh · thêm được nhiều '+(phong?'phòng':'tầng')+' liên tiếp. '
+      +(phong?'Phòng cũng là một khối trong bảng — kéo dòng vào như tầng.':'')+'</div>';
 }
 function openAddFloor(e){
   if(!S.cur){ toast('Chưa chọn dự án'); return; }
@@ -898,7 +909,8 @@ function renderCatalog(){
       ? '<div class="ptlib-empty">'+icon('star',22)+'<b>Chưa có sản phẩm yêu thích</b><span>Bấm ngôi sao ở một sản phẩm (tại đây hoặc trong Danh sách sản phẩm) để lưu lại, lần sau mở dự án mới là lấy ra dùng ngay.</span></div>'
       : '<div class="empty">Không có sản phẩm khớp lọc.</div>';
     S._filtered=list; return; }
-  el.innerHTML=list.slice(0,300).map(function(p,i){
+  var grp=catVarGroups_(list.slice(0,300));
+  el.innerHTML=grp.map(function(G){ var i=G.i, p=list[i];
     var img=p.hinhAnh?'<img class="thumb" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>';
     var im2=p.hinhAnh?'<img class="thumb" src="'+esc(imgSrc1_(p.hinhAnh))+'" onclick="showDetail('+i+')" style="cursor:pointer" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb" onclick="showDetail('+i+')" style="cursor:pointer"></div>';
     var brand=esc(p.thuongHieu||'');
@@ -913,15 +925,19 @@ function renderCatalog(){
       +'<button class="cfav'+(p.yeuThich?' on':'')+'" title="'+(p.yeuThich?'Bỏ khỏi sản phẩm yêu thích':'Thêm vào sản phẩm yêu thích')+'" onclick="event.stopPropagation();catFav('+i+','+(p.yeuThich?0:1)+')">'+icon('star',14)+'</button>'
       +'<button class="add" title="Thêm vào bóc tách" onclick="addProduct('+i+')">+</button>'
       // hàng chip thông số nằm RIÊNG 1 hàng, rộng hết thẻ -> đủ chỗ, không cắt, không rớt dòng
-      +((brand||p.comboN)?('<div class="cmeta metarow">'
+      +((brand||p.comboN||G.kids.length)?('<div class="cmeta metarow">'
           +(brand?'<span class="sz brand">'+brand+'</span>':'')
           +(p.comboN?('<button class="cc-tag'+(catCbMo_(p)?' on':'')+'" title="Xem '+p.comboN+' sản phẩm đi kèm"'
               +' onclick="event.stopPropagation();catComboToggle_('+i+')">'
               +'<i class="cc-car">'+(catCbMo_(p)?'▾':'▸')+'</i>Combo <b>'+p.comboN+'</b></button>'):'')
+          +(G.kids.length?('<button class="cc-tag bt-tag'+(catVarMo_(p)?' on':'')+'" title="Xem '+(G.kids.length+1)+' biến thể của sản phẩm này"'
+              +' onclick="event.stopPropagation();catVarToggle_('+i+')">'
+              +'<i class="cc-car">'+(catVarMo_(p)?'▾':'▸')+'</i>Biến thể <b>'+(G.kids.length+1)+'</b></button>'):'')
         +'</div>'):'')
       +(specs?'<div class="cspecs" onclick="showDetail('+i+')">'+specs+'</div>':'')
     +'</div>'
-    +(catCbMo_(p)?catComboHtml_(p,i):'');            // thành phần combo = thẻ SP thật, nằm ngang hàng
+    +(catCbMo_(p)?catComboHtml_(p,i):'')             // thành phần combo = thẻ SP thật, nằm ngang hàng
+    +(catVarMo_(p)?catVarHtml_(list,G):'');          // các biến thể còn lại của cùng 1 sản phẩm
   }).join('');
   S._filtered=list;
 }
@@ -3272,7 +3288,7 @@ function renderTable(){
   });
   var selF=(S.selFloor||'').trim();
   body+='<tr class="addrow"><td colspan="'+cols.length+'">'
-    +'<button class="addbtn floor" onclick="openAddFloor(event)">'+icon('plus',15)+'Thêm tầng</button>'
+    +'<button class="addbtn floor" onclick="openAddFloor(event)">'+icon('plus',15)+'Thêm tầng / phòng</button>'
     +'<button class="addbtn item" onclick="addBlankItem()" title="Thêm 1 hạng mục trống vào tầng đang chọn">'+icon('plus',15)+'Thêm hạng mục'
       +(selF?'<span class="addbtn-sub">vào '+esc(selF)+'</span>':'')+'</button>'
     +'</td></tr>';
@@ -8784,4 +8800,54 @@ function cpQuickLnAsk_(){
   var v=prompt('Nhập % lợi nhuận trên giá vốn:',''); if(v==null) return;
   v=Number(String(v).replace(',','.')); if(!isFinite(v)){ toast('% không hợp lệ'); return; }
   cpQuickLn_(v);
+}
+
+/* ===== Gom biến thể: cùng một sản phẩm, chỉ khác công suất / nhiệt độ / góc / màu =====
+   Thẻ đầu tiên đại diện cả nhóm; bấm chip "Biến thể n" để bung các biến thể còn lại
+   (thẻ con dùng đúng kiểu thẻ của combo cho quen mắt). */
+function catVarGroups_(list){
+  var out=[], seen={};
+  list.forEach(function(p,i){
+    var k=spVarKey_(p); if(!k){ out.push({i:i,key:'',kids:[]}); return; }
+    if(seen[k]!=null){ out[seen[k]].kids.push(i); return; }
+    seen[k]=out.length; out.push({i:i,key:k,kids:[]});
+  });
+  return out;
+}
+function catVarMo_(p){ return !!(S._catVarOpen && S._catVarOpen[catCbKey_(p)]); }
+function catVarToggle_(i){
+  var p=(S._filtered||[])[i]; if(!p) return;
+  var k=catCbKey_(p); if(!k) return;
+  S._catVarOpen=S._catVarOpen||{};
+  if(S._catVarOpen[k]) delete S._catVarOpen[k]; else S._catVarOpen[k]=1;
+  var sc=document.getElementById('catList'), top=sc?sc.scrollTop:0;
+  renderCatalog(); if(sc) sc.scrollTop=top;
+}
+// nhãn ngắn cho biến thể: lấy phần thông số khác nhau
+function catVarLbl_(x){
+  return [x.congSuat,x.nhietDo,x.gocChieu,x.mauSac].map(function(v){ return String(v==null?'':v).trim(); })
+    .filter(Boolean).join(' · ');
+}
+function catVarHtml_(list,G){
+  var head=G.i+1;
+  return '<div class="cc-kids bt-kids">'+G.kids.map(function(ix,k){
+    var x=list[ix]; var brand=esc(x.thuongHieu||'');
+    var specs=spSpecs_(x); if(specs.indexOf('muted')>=0) specs='';
+    var lbl=catVarLbl_(x);
+    var img=x.hinhAnh
+      ? '<img class="thumb" src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">'
+      : '<div class="thumb"></div>';
+    return '<div class="citem cc-child'+(k===G.kids.length-1?' last':'')+'" title="Xem chi tiết biến thể này"'
+        +' draggable="true" ondragstart="prodDragStart(event,'+ix+')" ondragend="prodDragEnd()"'
+        +' onclick="showDetail('+ix+')">'
+      +img
+      +'<div class="cmid">'
+        +'<div class="nm"><span class="cc-ix">'+head+'.'+(k+2)+'</span>'+esc(lbl||x.ten||'')+'</div>'
+        +'<div class="meta"><span class="pr">'+money(x.donGiaBan)+' đ</span></div>'
+      +'</div>'
+      +'<button class="add" title="Thêm biến thể này vào bóc tách" onclick="event.stopPropagation();addProduct('+ix+')">+</button>'
+      +(brand?'<div class="cmeta metarow"><span class="sz brand">'+brand+'</span></div>':'')
+      +(specs?'<div class="cspecs">'+specs+'</div>':'')
+    +'</div>';
+  }).join('')+'</div>';
 }
