@@ -6880,15 +6880,47 @@ function ctEditModal_(id){
   ov.innerHTML='<div class="sp-modal sp-modal-wide pd ctmodal"><div class="pd-head"><h3>Cập nhật công tác</h3>'
       +'<span class="spduyet'+(c.daDuyet?' on':'')+'">'+(c.daDuyet?'Đã duyệt':'Chưa duyệt')+'</span>'
       +'<button class="pd-x" onclick="spClose()">✕</button></div>'
-    +ctFormHtml_(c,'ctm')
-    +'<div class="pd-actions">'
-      +'<button class="btn ghost sm" onclick="spClose()">Đóng</button>'
-      +(spCanDuyet_()?'<button class="btn ghost sm" onclick="ctDuyet_(\''+c.id+'\','+(c.daDuyet?0:1)+');spClose()">'+icon('check',14)+' '+(c.daDuyet?'Bỏ duyệt':'Duyệt')+'</button>':'')
-      +'<button class="btn blue" onclick="ctSaveModal_(\''+c.id+'\')">'+icon('check',15)+' Lưu thay đổi</button>'
-    +'</div></div>';
+    +'<div class="spe-2col ct-2col"><div class="spe-body">'+ctFormHtml_(c,'ctm')
+      +'<div class="pd-actions">'
+        +'<button class="btn ghost sm" onclick="spClose()">Đóng</button>'
+        +(spCanDuyet_()?'<button class="btn ghost sm" onclick="ctDuyet_(\''+c.id+'\','+(c.daDuyet?0:1)+');spClose()">'+icon('check',14)+' '+(c.daDuyet?'Bỏ duyệt':'Duyệt')+'</button>':'')
+        +'<button class="btn blue" onclick="ctSaveModal_(\''+c.id+'\')">'+icon('check',15)+' Lưu thay đổi</button>'
+      +'</div></div>'
+      +'<aside class="spe-side" id="ctSide">'+ctSideHtml_(c,null)+'</aside></div>'
+    +'</div>';
   document.body.appendChild(ov);
   document.addEventListener('keydown',spModalKey_);
   S._ctGrp={}; ctFormInit_('ctm');
+  ctLoadHistory_(id);
+}
+/* Cột phải form công tác: người tạo · người sửa · trạng thái duyệt · lịch sử cập nhật
+   (dựng đúng khối của form sản phẩm đèn để 2 hạng mục giống nhau) */
+function ctSideHtml_(c,hist){
+  var histHtml;
+  if(hist==null) histHtml='<div class="empty" style="padding:14px;font-size:12.5px">Đang tải…</div>';
+  else if(!hist.length) histHtml='<div class="empty" style="padding:14px;font-size:12.5px">Chưa có lịch sử cập nhật.</div>';
+  else histHtml=hist.map(function(h){
+    return '<div class="spe-h"><div class="spe-h-top"><b>'+esc(h.field)+'</b>'
+        +'<span class="spe-h-by">'+icon('clock',11)+' '+esc(h.by||'?')+' · '+fmtDateTime_(h.at)+'</span></div>'
+      +'<div class="spe-h-diff"><span class="old">'+esc(h.old||'—')+'</span><span class="arr">→</span>'
+        +'<span class="new">'+esc(h.new||'—')+'</span></div></div>';
+  }).join('');
+  return '<div class="spe-who">'
+      +'<span>'+icon('plus',13)+' Tạo bởi <b>'+esc(c.nguoiTao||'—')+'</b>'+(c.ngayTao?' · '+esc(fmtDate(c.ngayTao)):'')+'</span>'
+      +'<span>'+icon('edit',13)+' Sửa cuối bởi <b>'+esc(c.nguoiSua||'—')+'</b>'+(c.ngayCapNhat?' · '+esc(fmtDateTime_(c.ngayCapNhat)):'')+'</span>'
+      +(c.daDuyet?'<span class="ok">'+icon('check',13)+' Duyệt bởi <b>'+esc(c.nguoiDuyet||'—')+'</b>'+(c.ngayDuyet?' · '+esc(fmtDateTime_(c.ngayDuyet)):'')+'</span>'
+                : '<span class="warn">'+icon('clock',13)+' Chưa duyệt</span>')
+    +'</div>'
+    +'<div class="spe-hist"><div class="spe-hist-h">'+icon('clock',15)+' Lịch sử cập nhật '
+      +'<span class="spe-hist-n">'+(hist?hist.length:'…')+'</span></div>'
+    +'<div class="spe-hist-list">'+histHtml+'</div></div>';
+}
+async function ctLoadHistory_(id){
+  var hist=[];
+  try{ hist=await api('ctHistory', id)||[]; }catch(e){ hist=[]; }
+  var c=(S.congTac||[]).filter(function(x){ return x.id===id; })[0];
+  var side=document.getElementById('ctSide');
+  if(side&&c) side.innerHTML=ctSideHtml_(c,hist);
 }
 async function ctSaveModal_(id){
   var d=ctFormRead_('ctm');

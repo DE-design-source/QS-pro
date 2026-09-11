@@ -4385,6 +4385,13 @@ td.rsel input,td.rsel textarea{background:transparent}
 .dx-kind{margin-left:8px;padding:2px 8px;border-radius:99px;background:#fff8ec;color:#a4650a;
   font-size:11.5px;font-weight:600}
 .dx-pct{color:#a4650a}
+
+/* Form công tác (Phần thô) dùng đúng bố cục 2 cột của form sản phẩm đèn:
+   nội dung bên trái · người tạo/người sửa/lịch sử cập nhật bên phải. */
+.ctmodal .ct-2col{height:calc(92vh - 62px)}
+.ctmodal .ct-2col>.spe-body{padding:0 16px 0 0}
+.ctmodal .ct-2col .pd-actions{position:sticky;bottom:0;background:#fff;padding-top:10px}
+@media(max-width:980px){ .ctmodal .ct-2col{height:auto;grid-template-columns:1fr} }
 </style>
 
 <!-- ===== TOP NAV ===== -->

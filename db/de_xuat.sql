@@ -26,8 +26,8 @@ create table if not exists public.de_xuat (
   ghi_chu       text,
   nguoi_duyet   text,
   ngay_duyet    timestamptz,
-  requester_id  bigint,
-  cong_ty_id    bigint,
+  requester_id  uuid,
+  cong_ty_id    uuid,
   ngay_gui      timestamptz    default now()
 );
 

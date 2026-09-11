@@ -1021,9 +1021,63 @@ async function ctSave(actor, data) {
   let out;
   try { out = await ctTry_(function (b) { return supa.insert('cong_tac', b); }, body); }
   catch (e) { throw ctErr_(e); }
+  // ghi nhật ký "tạo" theo LÔ (nhập 200+ dòng vẫn chỉ 1 lần gọi)
+  try {
+    const hs = (out || []).filter(function (r) { return r && r.id; }).map(function (r) {
+      return { cong_tac_id: r.id, field: 'TẠO CÔNG TÁC', old_value: '', new_value: s(r.ten),
+        changed_by: (actor && actor.uid) || null, changed_by_name: who };
+    });
+    if (hs.length) await supa.insert('cong_tac_history', hs);
+  } catch (e) { if (!ctHistThieu_(e)) console.warn('[cong tac history]', e && e.message); }
   await logAudit_(actor, 'them_cong_tac', 'Thêm ' + body.length + ' công tác: ' +
     body.slice(0, 6).map(function (b) { return b.ten; }).join(', ') + (body.length > 6 ? '…' : ''));
   return { ok: (out || []).length, rows: (out || []).map(ctToObj) };
+}
+/* ===== Lịch sử cập nhật CÔNG TÁC — y như sản phẩm đèn ===== */
+const CT_FIELD_LBL = {
+  loai: 'LOẠI BÁO GIÁ', che_do: 'CHẾ ĐỘ', ma_nhom: 'MÃ NHÓM', hang_muc: 'HẠNG MỤC', ten: 'TÊN CÔNG TÁC',
+  dvt: 'ĐƠN VỊ TÍNH', nha_cung_cap: 'NHÀ THẦU / NCC', khoi_luong: 'KHỐI LƯỢNG', dien_tich: 'DIỆN TÍCH',
+  he_so: 'HỆ SỐ', don_gia_nha_thau: 'ĐƠN GIÁ NHÀ THẦU', don_gia: 'ĐƠN GIÁ', ghi_chu: 'GHI CHÚ',
+  hinh_anh: 'HÌNH ẢNH', thong_so: 'THÔNG SỐ', pham_vi: 'PHẠM VI', link_tai_lieu: 'LINK TÀI LIỆU',
+  da_duyet: 'TRẠNG THÁI DUYỆT', yeu_thich: 'YÊU THÍCH', thu_tu: 'THỨ TỰ'
+};
+function ctHistThieu_(e) {
+  const m = String((e && e.message) || '');
+  return /cong_tac_history/.test(m) && /(does not exist|not find the table|42P01|PGRST205|404)/i.test(m);
+}
+// Ghi nhật ký (nuốt lỗi — lịch sử không được chặn nghiệp vụ)
+async function ctHistory_(actor, id, changes) {
+  if (!id || !changes || !changes.length) return;
+  try {
+    await supa.insert('cong_tac_history', changes.map(function (c) {
+      return { cong_tac_id: id, field: c.field, old_value: s(c.old), new_value: s(c.new),
+        changed_by: (actor && actor.uid) || null, changed_by_name: (actor && (actor.u || actor.username)) || 'ẩn danh' };
+    }));
+  } catch (e) { if (!ctHistThieu_(e)) console.warn('[cong tac history]', e && e.message); }
+}
+// So sánh bản ghi cũ với bản vá -> danh sách thay đổi có nhãn tiếng Việt
+function ctDiff_(cur, row) {
+  const out = [];
+  Object.keys(row).forEach(function (k) {
+    if (['nguoi_sua', 'ngay_cap_nhat', 'nguoi_duyet', 'ngay_duyet'].indexOf(k) >= 0) return;
+    const a = cur ? cur[k] : null, b = row[k];
+    const sa = a == null ? '' : String(a), sb = b == null ? '' : String(b);
+    if (sa === sb) return;
+    if (sa === '' && sb === '') return;
+    if (!isNaN(parseFloat(sa)) && !isNaN(parseFloat(sb)) && parseFloat(sa) === parseFloat(sb)) return;
+    out.push({ field: CT_FIELD_LBL[k] || k, old: sa, new: sb });
+  });
+  return out;
+}
+async function ctGetHistory(id) {
+  if (!id) return [];
+  let rows = [];
+  try {
+    rows = await supa.select('cong_tac_history', { filter: supa.eq('cong_tac_id', id), order: 'changed_at.desc', limit: 200 });
+  } catch (e) { if (ctHistThieu_(e)) return []; throw e; }
+  return rows.map(function (r) {
+    return { field: s(r.field), old: s(r.old_value), new: s(r.new_value), by: s(r.changed_by_name), at: s(r.changed_at) };
+  });
 }
 async function ctUpdate(actor, id, patch) {
   if (!id) throw new Error('Thiếu id công tác');
@@ -1032,10 +1086,12 @@ async function ctUpdate(actor, id, patch) {
   const row = Object.assign(ctToRow_(patch),
     { nguoi_sua: who, ngay_cap_nhat: nowIso(), da_duyet: false, nguoi_duyet: null, ngay_duyet: null });
   Object.keys(row).forEach(function (k) { if (row[k] === undefined) delete row[k]; });
+  const truoc = (await supa.select('cong_tac', { filter: supa.eq('id', id), limit: 1 }))[0] || null;
   let out;
   try { out = await ctTry_(function (b) { return supa.update('cong_tac', supa.eq('id', id), b); }, row); }
   catch (e) { throw ctErr_(e); }
   if (!out || !out.length) throw new Error('Không tìm thấy công tác để sửa');
+  await ctHistory_(actor, id, ctDiff_(truoc, row));
   await logAudit_(actor, 'sua_cong_tac', 'Sửa công tác: ' + s(row.ten));
   return ctToObj(out[0]);
 }
@@ -1043,7 +1099,11 @@ async function ctDelete(actor, ids) {
   ids = Array.isArray(ids) ? ids : [ids];
   let ok = 0; const errs = [];
   for (const id of ids) {
-    try { await supa.remove('cong_tac', supa.eq('id', id)); ok++; }
+    try {
+      const cu = (await supa.select('cong_tac', { filter: supa.eq('id', id), limit: 1 }))[0];
+      await supa.remove('cong_tac', supa.eq('id', id)); ok++;
+      await ctHistory_(actor, id, [{ field: 'XOÁ CÔNG TÁC', old: cu ? s(cu.ten) : '', new: 'đã xoá' }]);
+    }
     catch (e) { if (errs.length < 5) errs.push({ id: id, error: (ctErr_(e)).message }); }
   }
   if (ok) await logAudit_(actor, 'xoa_cong_tac', 'Xoá ' + ok + ' công tác');
@@ -1057,7 +1117,12 @@ async function ctDuyet(actor, ids, approve) {
     : { da_duyet: false, nguoi_duyet: null, ngay_duyet: null };
   let ok = 0; const errs = [];
   for (const id of ids) {
-    try { const r = await supa.update('cong_tac', supa.eq('id', id), patch); if (r && r.length) ok++; }
+    try {
+      const r = await supa.update('cong_tac', supa.eq('id', id), patch);
+      if (r && r.length) { ok++;
+        await ctHistory_(actor, id, [{ field: 'TRẠNG THÁI DUYỆT', old: approve ? 'Chưa duyệt' : 'Đã duyệt',
+          new: approve ? 'Đã duyệt' : 'Chưa duyệt' }]); }
+    }
     catch (e) { if (errs.length < 5) errs.push({ id: id, error: (ctErr_(e)).message }); }
   }
   if (ok) await logAudit_(actor, approve ? 'duyet_cong_tac' : 'bo_duyet_cong_tac',
@@ -1192,5 +1257,6 @@ module.exports = {
   DB_LABEL2COL,
   getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, getDashboard, getQuote, importParse, importCommit,
   savePurchaseOrder, getPurchaseOrders,
-  saveDeXuat, getDeXuatList, dxHead_, dxItem_
+  saveDeXuat, getDeXuatList, dxHead_, dxItem_,
+  ctGetHistory
 };

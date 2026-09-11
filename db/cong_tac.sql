@@ -53,3 +53,29 @@ notify pgrst, 'reload schema';
 select relrowsecurity as rls_dang_bat,
        (select count(*) from pg_policies where tablename = 'cong_tac') as so_policy
 from pg_class where relname = 'cong_tac';
+
+-- ============================================================================
+--  LỊCH SỬ CẬP NHẬT CÔNG TÁC  (đồng bộ với db_san_pham_history của sản phẩm đèn)
+--  Chạy lại file này là có ngay, không ảnh hưởng dữ liệu công tác đang có.
+-- ============================================================================
+create table if not exists public.cong_tac_history (
+  id              bigserial primary key,
+  cong_tac_id     uuid not null,
+  field           text,
+  old_value       text,
+  new_value       text,
+  changed_by      uuid,
+  changed_by_name text,
+  changed_at      timestamptz default now(),
+  cong_ty_id      uuid
+);
+create index if not exists ct_history_id_idx on public.cong_tac_history(cong_tac_id);
+create index if not exists ct_history_ct_idx on public.cong_tac_history(cong_ty_id);
+
+alter table public.cong_tac_history disable row level security;
+drop policy if exists cong_tac_history_all on public.cong_tac_history;
+create policy cong_tac_history_all on public.cong_tac_history for all using (true) with check (true);
+grant all on public.cong_tac_history to anon, authenticated;
+grant usage, select on sequence public.cong_tac_history_id_seq to anon, authenticated;
+
+notify pgrst, 'reload schema';

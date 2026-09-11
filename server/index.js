@@ -75,6 +75,7 @@ const REGISTRY = {
   sendPurchaseRequest: sendPurchaseRequest,
   getPurchaseOrders: store.getPurchaseOrders,
   getDeXuatList: store.getDeXuatList,
+  ctHistory: store.ctGetHistory,
   sendDeXuat: sendDeXuat,
   // ===== Auth & phân quyền =====
   login: auth.login,
