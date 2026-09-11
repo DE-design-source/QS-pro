@@ -4198,6 +4198,59 @@ table.tk td .ln-in:focus{background:#fff}
 .bb-menu-sep{height:1px;background:var(--ln);margin:5px 6px}
 @media(max-width:860px){ .bbar{left:10px;right:10px;transform:none;bottom:12px;flex-wrap:wrap;justify-content:center}
   @keyframes bbIn{from{opacity:0}to{opacity:1}} }
+
+/* ═══ Bảng kiểu Excel: chọn dòng · chọn vùng ô · cố định hàng · thu gọn · thanh kéo to ═══ */
+/* ô tích chọn dòng nằm trong cột STT */
+#tkTable td.dragH{position:relative;white-space:nowrap}
+#tkTable td.dragH .tkck{width:15px;height:15px;margin:0 4px 0 0;vertical-align:-2px;cursor:pointer;accent-color:var(--blue);
+  opacity:0;transition:opacity .12s}
+#tkTable tr.drow:hover td.dragH .tkck,#tkTable td.dragH .tkck:checked{opacity:1}
+#tkTable td.dragH .grip{opacity:.45;margin-right:3px}
+#tkTable td.dragH .sttn{font-variant-numeric:tabular-nums}
+#tkTable tr.rowsel>td{background:#eaf3ff!important}
+#tkTable tr.rowsel>td.dragH{box-shadow:inset 3px 0 0 var(--blue)}
+/* vùng ô đang chọn */
+td.rsel{background:#e8f1fe!important;box-shadow:inset 0 0 0 1px rgba(43,109,222,.28)}
+td.rsel-a{box-shadow:inset 0 0 0 2px var(--blue)}
+td.rsel input,td.rsel textarea{background:transparent}
+.rng-badge{position:fixed;right:18px;bottom:18px;z-index:88;display:flex;flex-direction:column;gap:2px;
+  padding:8px 13px;border-radius:11px;background:#12233a;color:#fff;box-shadow:0 12px 30px rgba(10,25,45,.3);
+  font-size:12.5px;pointer-events:none}
+.rng-badge b{font-size:14px}
+.rng-badge i{font-style:normal;color:#9ec6ff;font-size:12px}
+.rng-badge span{color:#8da3bd;font-size:11px}
+/* hàng đã cố định */
+#tkTable tr.frzrow>td{background:#f7fafd!important;box-shadow:inset 0 -1px 0 var(--ln2)}
+#tkTable tr.frzrow.rowsel>td{background:#eaf3ff!important}
+/* nút thu gọn khối đầu bảng */
+.tk-zen{width:28px;height:28px;border-radius:50%;border:1px solid var(--ln2);background:#fff;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;padding:0;transition:.14s}
+.tk-zen:hover{border-color:var(--blue);background:#f2f7ff}
+.tk-zen i{display:block;width:11px;height:11px;border-radius:50%;background:#cbd5e1;transition:.14s}
+.tk-zen:hover i{background:var(--blue)}
+.tk-zen.on i{background:var(--blue);box-shadow:0 0 0 3px rgba(43,109,222,.16)}
+.tk-panel.zen .tk-totals,.tk-panel.zen #tkNormal .colchips,.tk-panel.zen #tkNormal .floorhint,
+.tk-panel.zen .pt-colchips{display:none!important}
+/* thanh kéo ngang to hơn cho dễ bắt */
+.tk-hbar{height:12px;border-radius:99px;background:#eef1f5}
+.tk-hthumb{min-width:64px;border-radius:99px;background:#b7c2cf;box-shadow:inset 0 0 0 1px rgba(255,255,255,.5)}
+.tk-hbar:hover .tk-hthumb{background:#96a5b6}
+.tk-hbar.sp-hbar,.pt-hbar{height:12px}
+.tk-hbar.sp-hbar .tk-hthumb,.pt-hbar .tk-hthumb{min-width:64px}
+/* thanh cuộn dọc của bảng bóc tách: hiện rõ + to hơn */
+#tkNormal .tbl-wrap{scrollbar-width:auto;scrollbar-color:#b7c2cf transparent}
+#tkNormal .tbl-wrap::-webkit-scrollbar{display:block;width:12px;height:0}
+#tkNormal .tbl-wrap::-webkit-scrollbar-track{background:transparent}
+#tkNormal .tbl-wrap::-webkit-scrollbar-thumb{background:#c3ccd8;border:3px solid transparent;background-clip:content-box;border-radius:99px}
+#tkNormal .tbl-wrap::-webkit-scrollbar-thumb:hover{background:#96a5b6;background-clip:content-box}
+/* chip % lợi nhuận nhanh */
+.lnq{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+.lnq button{height:30px;min-width:46px;padding:0 10px;border:1px solid var(--ln2);border-radius:99px;background:#fff;
+  font:inherit;font-size:12.5px;font-weight:600;color:var(--c2);cursor:pointer;transition:.12s}
+.lnq button:hover{border-color:var(--blue);color:var(--blue);background:#f2f7ff}
+.cp-lnq{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.cp-lnq .lb{font-size:12px;font-weight:600;color:var(--c3)}
+.cp-lnq .lnq{margin:0}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -4353,6 +4406,7 @@ table.tk td .ln-in:focus{background:#fff}
             <div class="tree-pop" id="treePop" style="display:none"></div>
           </div>
           <div class="sp" style="flex:1"></div>
+          <button class="tk-zen" id="tkZenBtn" onclick="tkZenToggle()" title="Thu gọn khối đầu bảng cho màn hình rộng hơn" aria-label="Thu gọn khối đầu bảng"><i></i></button>
         </div>
         <div class="tk-totals" id="tkTotals"></div>
         <div id="tkNormal">

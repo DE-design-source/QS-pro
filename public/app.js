@@ -171,6 +171,8 @@ function tkCtx(e){
   }
   if(tr){ var lineId=tr.getAttribute('data-id');
     html+=sec('Dòng')
+      +mi('check','Chọn dòng này','closePop();tkSelClick_(null,\''+lineId+'\')')
+      +mi('list','Chọn tất cả dòng đang hiện','closePop();tkSelAllVisible_()')
       +mi('copy','Nhân bản dòng','ctxDupRow(\''+lineId+'\')')
       +mi('plus','Chèn dòng trống bên dưới','ctxInsertRow(\''+lineId+'\')')
       +mi('trash','Xoá dòng này','closePop();delLine(\''+lineId+'\')','','danger')
@@ -186,6 +188,8 @@ function tkCtx(e){
       +(isNum?mi('gauge','Tính tổng cột','ctxSumCol(\''+key+'\')'):'')
       +mi('lock','Cố định đến cột này','colFreezeTo(\''+key+'\')')
       +((S.freezeN||0)>0?mi('close','Bỏ cố định cột','colUnfreeze()'):'')
+      +(tr?mi('lock','Cố định đến hàng này','tkFreezeRowTo(\''+tr.getAttribute('data-id')+'\')'):'')
+      +((S.frzRows||0)>0?mi('close','Bỏ cố định hàng','tkUnfreezeRows()'):'')
       +mi('eye','Ẩn cột này','ctxHideCol(\''+key+'\')')
       +mi('list','Hiện lại tất cả cột','ctxShowAllCols()')
       +'<div class="cmsep"></div>';
@@ -319,10 +323,11 @@ async function boot(){
     if(!S.cur && S.projects.length) S.cur=S.projects[0];
     if(S.cur){ var f=S.projects.filter(function(p){return p.maDA===S.cur.maDA;})[0]; if(f) S.cur=f; }
     S.lines = S.cur ? (await api('getLines',S.cur.maDA)||[]) : [];
-    renderAll();
+    renderAll(); bocBoot_();
     ctLoad_(true).then(function(){ if(S.node==='3.1'||spPTMode_()) ctReload_(); });
   }catch(e){ toast('Lỗi tải: '+e.message); }
 }
+function bocBoot_(){ try{ rngInit_(); tkZenApply_(); }catch(e){} }
 function renderAll(){
   // Ô "Lọc theo đề mục" bên trái phải khớp với đề mục ĐANG BÓC ở bảng phải.
   // Trước đây chỉ đồng bộ khi bấm chọn ở cây; mở lại trang là hai bên lệch nhau.
@@ -3255,10 +3260,12 @@ function renderTable(){
     body+=tkSpacer;   // dòng khoảng trắng sau header tầng (như PDF)
     sortLines_(groups[g]||[]).forEach(function(l,ri){
       var hs=S.rowH[l.lineId]?' style="height:'+S.rowH[l.lineId]+'px"':'';
-      body+='<tr class="drow'+(ri%2===0?' alt':'')+cfClass_(l)+'" draggable="true" data-id="'+l.lineId+'" data-tang="'+esc(l.tang||'')+'"'+hs+'>'+cols.map(function(c){
+      body+='<tr class="drow'+(ri%2===0?' alt':'')+cfClass_(l)+(tkSelHas_(l.lineId)?' rowsel':'')+'" draggable="true" data-id="'+l.lineId+'" data-tang="'+esc(l.tang||'')+'"'+hs+'>'+cols.map(function(c){
         var k=c[0];
-        if(k==='stt') return '<td class="ct dragH" title="Kéo để di chuyển dòng · chuột phải để xoá"><span class="grip">⠿</span> '+(gi+1)+'.'+(ri+1)+'</td>';
-        return cellInput(l,k);
+        if(k==='stt') return '<td class="ct dragH" data-k="stt" title="Kéo để di chuyển dòng · chuột phải để xoá">'
+          +'<input type="checkbox" class="tkck" '+(tkSelHas_(l.lineId)?'checked':'')+' onclick="tkSelClick_(event,\''+l.lineId+'\')" title="Chọn dòng (giữ Shift để chọn cả vùng)">'
+          +'<span class="grip">⠿</span><span class="sttn">'+(gi+1)+'.'+(ri+1)+'</span></td>';
+        return tdK_(cellInput(l,k),k);
       }).join('')+'</tr>';
     });
     body+=tkSpacer;   // dòng khoảng trắng trước tầng kế (như PDF)
@@ -3276,6 +3283,9 @@ function renderTable(){
   t.innerHTML=colg+head+body;
   t.querySelectorAll('td.wrap textarea').forEach(autoGrow);   // ô "Thông tin chính" tự giãn hết dòng
   if(t.rows[0]) t.style.setProperty('--thH', t.rows[0].offsetHeight+'px');  // để dòng tầng dính ngay dưới header
+  tkSelPrune_();       // bỏ khỏi vùng chọn những dòng không còn trên bảng
+  tkFreezeRows_();     // cố định N hàng đầu (như Excel)
+  tkSelBar_();         // thanh thao tác hàng loạt (nổi ở đáy màn hình)
   renderActGutter();   // nút xoá đặt NGOÀI bảng (gutter phải), đồng bộ cuộn
   // ----- Tổng tiền (chưa VAT / VAT / tổng thành tiền) -----
   var sub=lines.reduce(function(s,l){ return s+(Number(l.thanhTienBan)||0); },0);
@@ -4397,8 +4407,8 @@ var CP_KEYS=['ten','dvt','soLuong','giaNCC','chietKhau','giaDaiLy','lnPct','donG
 function cpLabel_(k){ var c=COLS.filter(function(x){return x[0]===k;})[0]; return c?c[1]:k; }
 // Ô tab Chi phí: giống cellInput của Bóc tách, RIÊNG cột Tên bỏ nút ⌕ chọn/tạo SP
 function cpCell_(l,k){
-  if(k==='ten') return '<td class="td-ten"><input class="cin" value="'+esc(l.ten||'')+'" onchange="editLine(\''+l.lineId+'\',{ten:this.value})"></td>';
-  return cellInput(l,k);
+  if(k==='ten') return '<td class="td-ten" data-k="ten"><input class="cin" value="'+esc(l.ten||'')+'" onchange="editLine(\''+l.lineId+'\',{ten:this.value})"></td>';
+  return tdK_(cellInput(l,k),k);
 }
 function renderChiphi(){
   var box=document.getElementById('v-chiphi');
@@ -4416,7 +4426,7 @@ function renderChiphi(){
     +cpKpi_(icon('gauge',17),'Lợi nhuận',money(lnT)+' đ',lnCls)
     +cpKpi_(icon('gauge',17),'Biên lợi nhuận',bien.toFixed(1)+'%',lnCls)+'</div>';
   // hàng chip cột hiện sẵn (giống .colchips bên Bóc tách)
-  var colbar=cpColBar_();
+  var colbar=cpColBar_()+cpLnQuick_();
   // ---- Bảng y hệt Bóc tách: colgroup + header navy + nhóm theo tầng + spacer + drow alt ----
   var ncol=keys.length+1;
   var totalW=64+keys.reduce(function(s,k){ return s+colW(k); },0);
@@ -6864,12 +6874,12 @@ function ptVal_(sec,a,f){
 function ptCanEditF_(sec,f){
   if(ctSecOf_(sec)){
     if(f==='dvt'||f==='gc') return true;
-    if(sec.mode==='item') return ['kl','dg','dgnt'].indexOf(f)>=0;
+    if(sec.mode==='item') return ['kl','dt','hs','dg','dgnt'].indexOf(f)>=0;
     if(sec.mode==='area'||sec.mode==='area0') return ['dt','hs','dg'].indexOf(f)>=0;
     return false;
   }
   if(f==='dvt'||f==='gc') return true;
-  if(sec.mode==='item') return ['kl','dg','dgnt'].indexOf(f)>=0;
+  if(sec.mode==='item') return ['kl','dt','hs','dg','dgnt'].indexOf(f)>=0;
   if(sec.mode==='area'||sec.mode==='area0') return ['dt','hs'].indexOf(f)>=0;
   return false;
 }
@@ -7474,11 +7484,14 @@ function ptEnsure(){
 }
 function ptPersist(){ try{ var k=ptKey(); var v=Number(S.ptVat); if(!isFinite(v)) v=8; S.ptVat=v;
   localStorage.setItem(k,JSON.stringify(S.phanTho)); localStorage.setItem(k+'_vat',String(v)); }catch(e){} }
+// Dòng 'item' nhập được Diện tích + Hệ số: khi cả hai có số thì Khối lượng = DT × HS (khoá ô khối lượng)
+function ptAutoKL_(it){ return ptN(it&&it.dt)>0 && ptN(it&&it.hs)>0; }
 function ptSecTotals(sec){
   var sumKL=0, tt=0, ttnt=0;
   sec.items.forEach(function(it){
     var kl;
     if(sec.mode==='area'||sec.mode==='area0'){ kl=ptR2(ptN(it.dt)*ptN(it.hs)); }
+    else if(ptAutoKL_(it)){ kl=ptR2(ptN(it.dt)*ptN(it.hs)); }   // dòng item: có diện tích + hệ số -> khối lượng tự tính
     else { kl=ptN(it.kl); }
     it._kl=kl; sumKL+=kl;
     if(sec.mode==='item'){ it._tt=ptR0(kl*ptN(it.dg)); tt+=it._tt; it._ttnt=ptR0(kl*ptN(it.dgnt)); ttnt+=it._ttnt; }
@@ -7535,6 +7548,8 @@ function ptEdit(si,ii,f,val){
   else {
     var it=sec.items[ii]; if(!it) return;
     it[f]=v;
+    // dòng item có DT+HS -> khối lượng bám theo tích 2 ô (bỏ trống 1 ô là trả lại nhập tay)
+    if((f==='dt'||f==='hs') && sec.mode==='item'){ if(ptAutoKL_(it)) it.kl=ptR2(ptN(it.dt)*ptN(it.hs)); }
     // giữ 3 đại lượng luôn khớp nhau: giá vốn ↔ %LN ↔ giá bán
     if(f==='lnPct')      it.dg=ptDgTuLn_(it.dgnt,v);
     else if(f==='dg')    it.lnPct=ptR2(ptLnTuDg_(it.dgnt,v));
@@ -7734,9 +7749,10 @@ function renderPhanTho(){
         stt:'<td class="c pt-grip" title="Kéo để đổi chỗ dòng hoặc chuyển sang hạng mục khác">'+(_pos+1)+'</td>',
         noidung:'<td>'+ptTxt(si,ii,'n',it.n)+'</td>',
         dvt:'<td class="c dvt-cell">'+ptTxt(si,ii,'dvt',it.dvt)+'</td>',
-        dientich:'<td class="n">'+(isArea?ptInp(si,ii,'dt',it.dt):'')+'</td>',
-        heso:'<td class="n">'+(isArea?ptInp(si,ii,'hs',it.hs):'')+'</td>',
-        khoiluong:'<td class="n">'+(isArea?'<span class="pt-ro">'+ptQty(kl)+'</span>':(isItem?ptInp(si,ii,'kl',it.kl):''))+'</td>',
+        dientich:'<td class="n">'+((isArea||isItem)?ptInp(si,ii,'dt',it.dt):'')+'</td>',
+        heso:'<td class="n">'+((isArea||isItem)?ptInp(si,ii,'hs',it.hs):'')+'</td>',
+        khoiluong:'<td class="n">'+(isArea?'<span class="pt-ro">'+ptQty(kl)+'</span>'
+           :(isItem?(ptAutoKL_(it)?'<span class="pt-ro" title="Khối lượng = Diện tích × Hệ số">'+ptQty(kl)+'</span>':ptInp(si,ii,'kl',it.kl)):''))+'</td>',
         dgnt:'<td class="n">'+(isItem?ptInp(si,ii,'dgnt',it.dgnt,'pt-money'):'')+'</td>',
         ttnt:'<td class="n">'+(isItem?'<span class="pt-ro">'+money(ttnt)+'</span>':'')+'</td>',
         lnvnd:'<td class="n">'+(isItem?'<span class="pt-ro">'+money(lnVnd)+'</span>':'')+'</td>',
@@ -8360,3 +8376,412 @@ initCols();
 initTableInteractions();
 catSplitInit_();
 authStart_();
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BẢNG BÓC TÁCH / CHI PHÍ — thao tác kiểu Excel
+   · chọn nhiều dòng (ô tích ở cột STT, giữ Shift để chọn cả vùng)
+   · chọn vùng ô rồi Ctrl+C / Ctrl+V / Delete
+   · cố định hàng (ngoài cố định cột đã có)
+   · thu gọn khối đầu bảng để màn hình rộng hơn
+   ═════════════════════════════════════════════════════════════════════════ */
+function tdK_(html,k){ return html.replace('<td','<td data-k="'+k+'"'); }
+function lineOf_(id){ return (S.lines||[]).filter(function(x){ return x.lineId===id; })[0]; }
+
+/* ---------- chọn nhiều dòng ---------- */
+function tkSelHas_(id){ return !!(S._tkSel && S._tkSel[id]); }
+function tkSelIds_(){ return Object.keys(S._tkSel||{}); }
+function tkSelLines_(){ return tkSelIds_().map(lineOf_).filter(Boolean); }
+function tkRowIdsOnScreen_(){ return [].map.call(document.querySelectorAll('#tkTable tr.drow'),function(tr){ return tr.dataset.id; }); }
+function tkSelPrune_(){
+  if(!S._tkSel) return; var on={}; tkRowIdsOnScreen_().forEach(function(id){ on[id]=1; });
+  Object.keys(S._tkSel).forEach(function(id){ if(!on[id]) delete S._tkSel[id]; });
+}
+function tkSelClick_(e,id){
+  if(e&&e.stopPropagation) e.stopPropagation();
+  S._tkSel=S._tkSel||{};
+  var ids=tkRowIdsOnScreen_(), i=ids.indexOf(id);
+  if(e&&e.shiftKey && S._tkAnchor!=null){                 // Shift = chọn cả vùng từ dòng neo
+    var a=ids.indexOf(S._tkAnchor); if(a<0) a=i;
+    var lo=Math.min(a,i), hi=Math.max(a,i);
+    for(var x=lo;x<=hi;x++) S._tkSel[ids[x]]=1;
+  } else {
+    if(S._tkSel[id]) delete S._tkSel[id]; else S._tkSel[id]=1;
+    S._tkAnchor=id;
+  }
+  renderTable();
+}
+function tkClearSel(){ S._tkSel={}; S._tkAnchor=null; renderTable(); }
+function tkSelAllVisible_(){ S._tkSel=S._tkSel||{}; tkRowIdsOnScreen_().forEach(function(id){ S._tkSel[id]=1; }); renderTable(); }
+function tkSelFloor_(g){ S._tkSel=S._tkSel||{};
+  (S.lines||[]).forEach(function(l){ var t=(l.tang||'').trim()||'CHƯA PHÂN TẦNG';
+    if(t===g && (l.nhom===S.node||String(l.nhom||'').indexOf(S.node+'.')===0)) S._tkSel[l.lineId]=1; });
+  renderTable();
+}
+
+/* ---------- ghi giá trị vào 1 ô theo khoá cột ---------- */
+function tkNum_(v){ var t=String(v==null?'':v).replace(/[^\d,.\-]/g,'');
+  if(/,\d{1,2}$/.test(t)&&t.indexOf('.')>=0) t=t.replace(/\./g,'').replace(',','.');    // 1.234,5
+  else if((t.match(/\./g)||[]).length>1) t=t.replace(/\./g,'');                          // 1.234.000
+  else if(/\.\d{3}$/.test(t)) t=t.replace(/\./g,'');
+  t=t.replace(',','.');
+  var n=parseFloat(t); return isNaN(n)?0:n; }
+var TK_RO_COL={stt:1,hinhAnh:1,nganh:1,giaDaiLy:1,donGiaCK:1,thanhTien:1};
+// Trả về {fields} để cập nhật dòng l khi đặt giá trị raw vào cột k (null = cột chỉ đọc)
+function tkFieldsFor_(l,k,raw){
+  if(TK_RO_COL[k]) return null;
+  if(k==='moTa'||k==='kichThuoc') { var o={}; o[k]=String(raw==null?'':raw); return o; }
+  if(TXT_COL[k]){ var o2={}; o2[TXT_COL[k]]=String(raw==null?'':raw); return o2; }
+  if(NUM_COL[k]){ var o3={}; o3[NUM_COL[k]]=tkNum_(raw); return o3; }
+  if(k==='markup'||k==='margin'||k==='lnVnd'){
+    var von=giaDaiLy_(l), sl=Number(l.soLuong)||0, ckK=(Number(l.ckKhach)||0)/100, v=tkNum_(raw);
+    if(!von||ckK>=1) return null;
+    var dgCK;
+    if(k==='markup') dgCK=von*(1+v/100);
+    else if(k==='margin'){ if(v>=100) return null; dgCK=von/(1-v/100); }
+    else { if(!sl) return null; dgCK=von+v/sl; }
+    return {donGiaBan:Math.max(0,Math.round(dgCK/(1-ckK)))};
+  }
+  return null;
+}
+// Áp 1 loạt thay đổi: cập nhật tại chỗ + vẽ lại 1 lần, rồi đồng bộ server theo lô
+async function tkApplyEdits_(edits, nhan){
+  var byId={}; edits.forEach(function(e){ if(!e||!e.fields) return; byId[e.id]=Object.assign(byId[e.id]||{},e.fields); });
+  var ids=Object.keys(byId); if(!ids.length){ toast('Không có ô nào sửa được'); return 0; }
+  ids.forEach(function(id){ var l=lineOf_(id); if(!l) return;
+    Object.keys(byId[id]).forEach(function(k){ l[k]=byId[id][k]; }); recalcLine_(l,byId[id]); });
+  renderTable(); renderCard();
+  if(document.getElementById('v-chiphi').classList.contains('on')) renderChiphi();
+  if(document.getElementById('v-duan').classList.contains('on')) renderDuAn();
+  if(bgVis()) drawBaogia();
+  var loi=0;
+  for(var i=0;i<ids.length;i+=6){
+    await Promise.all(ids.slice(i,i+6).map(function(id){
+      return api('updateLine',id,byId[id]).catch(function(){ loi++; }); }));
+  }
+  toast((nhan||'Đã cập nhật')+' · '+ids.length+' dòng'+(loi?(' · '+loi+' dòng lỗi'):''));
+  return ids.length;
+}
+
+/* ---------- thanh thao tác hàng loạt của bảng bóc tách ---------- */
+function tkBulkWrap_(){ var w=document.getElementById('tkBulkWrap');
+  if(!w){ w=document.createElement('div'); w.id='tkBulkWrap'; document.body.appendChild(w); } return w; }
+function tkSelBar_(){
+  var w=tkBulkWrap_(), n=tkSelIds_().length;
+  if(!n || !bocVisible_()){ w.innerHTML=''; tkPopClose_(); return; }
+  var tien=tkSelLines_().reduce(function(s,l){ return s+(Number(l.thanhTienBan)||0); },0);
+  w.innerHTML='<div class="bbar" id="tkBulkBar">'
+    +'<div class="bb-count"><b>'+n+'</b><span>dòng đã chọn · '+money(tien)+' đ</span>'
+      +'<button class="bb-x" title="Bỏ chọn (Esc)" onclick="tkClearSel()">✕</button></div>'
+    +'<div class="bb-sep"></div>'
+    +'<button class="bb-b" id="tkbFloorBtn" onclick="tkBulkFloorPop_(event)" title="Chuyển các dòng đã chọn sang tầng khác">'
+      +icon('layers',15)+' Chuyển tầng <i class="bb-car">▾</i></button>'
+    +'<button class="bb-b" id="tkbLnBtn" onclick="tkBulkLnPop_(event)" title="Đặt nhanh % lợi nhuận">'
+      +icon('gauge',15)+' Lợi nhuận <i class="bb-car">▾</i></button>'
+    +'<button class="bb-b" id="tkbEditBtn" onclick="tkBulkEditPop_(event)" title="Đổi một cột cho mọi dòng đã chọn">'
+      +icon('edit',15)+' Sửa hàng loạt <i class="bb-car">▾</i></button>'
+    +'<div class="bb-sep"></div>'
+    +'<button class="bb-ic" id="tkbMoreBtn" onclick="tkBulkMorePop_(event)" title="Thao tác khác">⋯</button>'
+  +'</div>';
+}
+function tkPopClose_(){ ['tkbFloorPop','tkbLnPop','tkbEditPop','tkbMorePop'].forEach(function(id){
+    var e=document.getElementById(id); if(e) e.remove(); });
+  document.removeEventListener('mousedown',tkPopOutside_); }
+function tkPopOutside_(e){
+  if(e.target.closest('.bb-pop')||e.target.closest('#tkBulkBar')) return; tkPopClose_(); }
+function tkPopPlace_(pop,btnId){
+  var b=document.getElementById(btnId); if(!b) return;
+  var r=b.getBoundingClientRect(), w=pop.offsetWidth||280;
+  pop.style.left=Math.max(10,Math.min(r.left+r.width/2-w/2, window.innerWidth-w-10))+'px';
+  pop.style.top=Math.max(10,r.top-pop.offsetHeight-10)+'px';
+}
+function tkPopOpen_(id,btnId,html,cls){
+  if(document.getElementById(id)){ tkPopClose_(); return null; }
+  tkPopClose_();
+  var pop=document.createElement('div'); pop.className='bb-pop '+(cls||''); pop.id=id; pop.innerHTML=html;
+  document.body.appendChild(pop); tkPopPlace_(pop,btnId);
+  setTimeout(function(){ document.addEventListener('mousedown',tkPopOutside_); },0);
+  return pop;
+}
+function tkBulkFloorPop_(e){ if(e&&e.stopPropagation) e.stopPropagation();
+  var fl=floorsList().filter(function(f){ return f!=='CHƯA PHÂN TẦNG'; });
+  var html='<div class="bb-pop-h">Chuyển sang tầng <span>'+tkSelIds_().length+' dòng</span></div>'
+    +'<div class="bb-menu" style="max-height:260px;overflow:auto">'
+    +(fl.length?fl.map(function(f){ return '<button onclick="tkBulkFloor_(\''+esc(f).replace(/'/g,"\\'")+'\')">'+icon('layers',15)+esc(f)+'</button>'; }).join('')
+               :'<div style="padding:10px 12px;font-size:12px;color:var(--c3)">Chưa có tầng nào. Bấm “＋ Thêm tầng” ở cuối bảng.</div>')
+    +'<div class="bb-menu-sep"></div><button onclick="tkBulkFloor_(\'\')">'+icon('close',15)+'Bỏ tầng (chưa phân tầng)</button></div>';
+  tkPopOpen_('tkbFloorPop','tkbFloorBtn',html);
+}
+function tkBulkFloor_(tang){ tkPopClose_();
+  tkApplyEdits_(tkSelLines_().map(function(l){ return {id:l.lineId, fields:{tang:tang}}; }),
+    tang?('Đã chuyển sang '+tang):'Đã bỏ tầng'); }
+var TK_LN_QUICK=[5,10,15,20,30,35,40,45];
+function tkBulkLnPop_(e){ if(e&&e.stopPropagation) e.stopPropagation();
+  var html='<div class="bb-pop-h">Đặt nhanh lợi nhuận <span>'+tkSelIds_().length+' dòng</span></div>'
+    +'<div class="bb-pop-b"><label>% lợi nhuận trên giá vốn</label>'
+      +'<div class="lnq">'+TK_LN_QUICK.map(function(v){ return '<button onclick="tkBulkLn_('+v+')">'+v+'%</button>'; }).join('')+'</div>'
+      +'<label>Hoặc nhập % khác</label>'
+      +'<input id="tkbLnVal" type="number" step="any" placeholder="VD: 27" onkeydown="if(event.key===\'Enter\')tkBulkLn_(this.value)">'
+    +'</div>'
+    +'<div class="bb-pop-f"><button class="btn ghost sm" onclick="tkPopClose_()">Huỷ</button>'
+      +'<button class="btn blue sm" onclick="tkBulkLn_((document.getElementById(\'tkbLnVal\')||{}).value)">'+icon('check',14)+' Áp dụng</button></div>';
+  tkPopOpen_('tkbLnPop','tkbLnBtn',html);
+}
+function tkBulkLn_(v){ v=Number(String(v==null?'':v).replace(',','.'));
+  if(!isFinite(v)){ toast('Chưa nhập % lợi nhuận'); return; }
+  tkPopClose_();
+  tkApplyEdits_(tkSelLines_().map(function(l){ return {id:l.lineId, fields:{lnPct:v}}; }), 'Đã đặt lợi nhuận '+v+'%');
+}
+function tkBulkEditFields_(){
+  return COLS.filter(function(c){ return !TK_RO_COL[c[0]]; }).map(function(c){ return [c[0],c[1]]; })
+    .concat([['tang','Tầng / khu vực']]);
+}
+function tkBulkEditPop_(e){ if(e&&e.stopPropagation) e.stopPropagation();
+  var F=tkBulkEditFields_();
+  var html='<div class="bb-pop-h">Sửa hàng loạt <span>'+tkSelIds_().length+' dòng</span></div>'
+    +'<div class="bb-pop-b"><label>Cột cần đổi</label>'
+      +'<select id="tkbField">'+F.map(function(f){ return '<option value="'+esc(f[0])+'">'+esc(f[1])+'</option>'; }).join('')+'</select>'
+      +'<label>Giá trị mới</label>'
+      +'<input id="tkbValue" placeholder="Nhập giá trị…" onkeydown="if(event.key===\'Enter\')tkBulkEditRun_()">'
+    +'</div>'
+    +'<div class="bb-pop-f"><button class="btn ghost sm" onclick="tkPopClose_()">Huỷ</button>'
+      +'<button class="btn blue sm" onclick="tkBulkEditRun_()">'+icon('check',14)+' Áp dụng</button></div>';
+  var pop=tkPopOpen_('tkbEditPop','tkbEditBtn',html);
+  if(pop) setTimeout(function(){ var v=document.getElementById('tkbValue'); if(v) v.focus(); },0);
+}
+function tkBulkEditRun_(){
+  var f=document.getElementById('tkbField'), v=document.getElementById('tkbValue'); if(!f||!v) return;
+  var k=f.value, val=v.value, nhan=f.options[f.selectedIndex].text;
+  if(String(val).trim()===''&&k!=='ghiChu'&&k!=='tang'){ toast('Chưa nhập giá trị mới'); v.focus(); return; }
+  tkPopClose_();
+  var edits=tkSelLines_().map(function(l){
+    if(k==='tang') return {id:l.lineId, fields:{tang:String(val)}};
+    var fl=tkFieldsFor_(l,k,val); return fl?{id:l.lineId, fields:fl}:null; }).filter(Boolean);
+  tkApplyEdits_(edits,'Đã đặt “'+nhan+'”');
+}
+function tkBulkMorePop_(e){ if(e&&e.stopPropagation) e.stopPropagation();
+  var n=tkSelIds_().length;
+  var html='<button onclick="tkPopClose_();tkBulkCopy_()">'+icon('copy',15)+' Sao chép '+n+' dòng (dán được vào Excel)</button>'
+    +'<button onclick="tkPopClose_();tkBulkDup_()">'+icon('plus',15)+' Nhân bản '+n+' dòng</button>'
+    +'<button onclick="tkPopClose_();tkSelAllVisible_()">'+icon('list',15)+' Chọn tất cả dòng đang hiện</button>'
+    +'<div class="bb-menu-sep"></div>'
+    +'<button class="danger" onclick="tkPopClose_();tkBulkDel_()">'+icon('trash',15)+' Xoá '+n+' dòng</button>';
+  tkPopOpen_('tkbMorePop','tkbMoreBtn',html,'bb-menu');
+}
+function tkBulkCopy_(){
+  var cols=visCols();
+  var head=cols.map(function(c){ return c[1]; }).join('\t');
+  var rows=tkSelLines_().map(function(l){ return cols.map(function(c){
+    if(c[0]==='stt') return '';
+    return String(colPlain(l,c[0])==null?'':colPlain(l,c[0])); }).join('\t'); });
+  ctxCopy_([head].concat(rows).join('\n'));
+  toast('Đã sao chép '+rows.length+' dòng');
+}
+async function tkBulkDup_(){
+  var ls=tkSelLines_(); if(!ls.length||!S.cur) return;
+  if(!confirm('Nhân bản '+ls.length+' dòng đã chọn?')) return;
+  var loi=0;
+  for(var i=0;i<ls.length;i++){
+    var prod=Object.assign({},ls[i]); delete prod.lineId; delete prod.recordId;
+    try{ var nl=await api('addLine', S.cur.maDA, prod, Number(ls[i].soLuong)||1); S.lines.push(nl); }
+    catch(e){ loi++; }
+  }
+  tkClearSel(); renderTable(); renderCard();
+  toast('Đã nhân bản '+(ls.length-loi)+' dòng'+(loi?(' · '+loi+' lỗi'):''));
+}
+async function tkBulkDel_(){
+  var ids=tkSelIds_(); if(!ids.length) return;
+  if(!confirm('Xoá '+ids.length+' dòng đã chọn? Không hoàn tác được.')) return;
+  var loi=0;
+  for(var i=0;i<ids.length;i+=5){
+    await Promise.all(ids.slice(i,i+5).map(function(id){
+      return api('deleteLine',id).catch(function(){ loi++; }); }));
+  }
+  S.lines=S.lines.filter(function(l){ return ids.indexOf(l.lineId)<0; });
+  S._tkSel={}; renderTable(); renderCard(); renderActGutter&&renderActGutter();
+  toast('Đã xoá '+(ids.length-loi)+' dòng'+(loi?(' · '+loi+' lỗi'):''));
+}
+
+/* ---------- cố định hàng (như Excel) ---------- */
+function tkFreezeRowTo(lineId){
+  var ids=tkRowIdsOnScreen_(), i=ids.indexOf(lineId);
+  S.frzRows = i>=0 ? i+1 : 0; closePop(); renderTable();
+  toast(S.frzRows?('Đã cố định '+S.frzRows+' hàng đầu'):'Đã bỏ cố định hàng');
+}
+function tkUnfreezeRows(){ S.frzRows=0; closePop(); renderTable(); toast('Đã bỏ cố định hàng'); }
+function tkFreezeRows_(){
+  var t=document.getElementById('tkTable'); if(!t) return;
+  t.querySelectorAll('tr.frzrow').forEach(function(tr){ tr.classList.remove('frzrow');
+    tr.querySelectorAll('td').forEach(function(td){ td.style.position=''; td.style.top=''; td.style.zIndex=''; }); });
+  var n=Math.min(Number(S.frzRows)||0, 12); if(!n) return;
+  var headH=(t.rows[0]||{}).offsetHeight||46, off=headH;
+  var rows=t.querySelectorAll('tr.drow');
+  for(var i=0;i<n && i<rows.length;i++){
+    var tr=rows[i]; tr.classList.add('frzrow');
+    var top=off;
+    tr.querySelectorAll('td').forEach(function(td){
+      td.style.position='sticky'; td.style.top=top+'px'; td.style.zIndex='3'; });
+    off+=tr.offsetHeight;
+  }
+}
+
+/* ---------- thu gọn khối đầu bảng ---------- */
+function tkZenGet_(){ try{ return localStorage.getItem('qs_tkzen')==='1'; }catch(e){ return false; } }
+function tkZenToggle(){
+  var on=!tkZenGet_(); try{ localStorage.setItem('qs_tkzen', on?'1':'0'); }catch(e){}
+  tkZenApply_(); toast(on?'Đã thu gọn khối đầu bảng — màn hình rộng hơn':'Đã mở lại khối đầu bảng');
+}
+function tkZenApply_(){
+  var on=tkZenGet_(), p=document.querySelector('.tk-panel'); if(!p) return;
+  p.classList.toggle('zen',on);
+  var b=document.getElementById('tkZenBtn');
+  if(b){ b.classList.toggle('on',on); b.title=on?'Mở lại khối tổng tiền & chip cột':'Thu gọn khối đầu bảng cho màn hình rộng hơn'; }
+  setTimeout(function(){ tkHBarSync_&&tkHBarSync_(); syncActGutter&&syncActGutter(); },30);
+}
+
+/* ---------- chọn vùng ô + Ctrl+C / Ctrl+V / Delete ---------- */
+function rngTables_(){ return ['#tkTable','#v-chiphi table.cpflat','#v-duan table.cpflat']; }
+function rngTblOf_(el){ if(!el||!el.closest) return null;
+  return el.closest('#tkTable') || el.closest('#v-chiphi table.cpflat') || el.closest('#v-duan table.cpflat'); }
+function rngRows_(tbl){ return [].slice.call(tbl.querySelectorAll('tr.drow')); }
+function rngPos_(td){
+  var tbl=rngTblOf_(td); if(!tbl) return null;
+  var tr=td.parentNode; if(!tr||!tr.classList.contains('drow')) return null;
+  var r=rngRows_(tbl).indexOf(tr), c=[].indexOf.call(tr.children,td);
+  return (r<0||c<0)?null:{tbl:tbl,r:r,c:c};
+}
+function rngClear_(){
+  document.querySelectorAll('td.rsel').forEach(function(td){ td.classList.remove('rsel','rsel-a'); });
+  S._rng=null; rngBadge_();
+}
+function rngPaint_(){
+  document.querySelectorAll('td.rsel').forEach(function(td){ td.classList.remove('rsel','rsel-a'); });
+  var g=S._rng; if(!g||!g.tbl||!document.body.contains(g.tbl)){ rngBadge_(); return; }
+  var rows=rngRows_(g.tbl), r1=Math.min(g.r1,g.r2), r2=Math.max(g.r1,g.r2),
+      c1=Math.min(g.c1,g.c2), c2=Math.max(g.c1,g.c2);
+  for(var r=r1;r<=r2;r++){ var tr=rows[r]; if(!tr) continue;
+    for(var c=c1;c<=c2;c++){ var td=tr.children[c]; if(td){ td.classList.add('rsel');
+      if(r===g.r1&&c===g.c1) td.classList.add('rsel-a'); } } }
+  rngBadge_();
+}
+function rngCells_(){
+  var g=S._rng; if(!g||!g.tbl||!document.body.contains(g.tbl)) return [];
+  var rows=rngRows_(g.tbl), out=[];
+  var r1=Math.min(g.r1,g.r2), r2=Math.max(g.r1,g.r2), c1=Math.min(g.c1,g.c2), c2=Math.max(g.c1,g.c2);
+  for(var r=r1;r<=r2;r++){ var tr=rows[r]; if(!tr) continue; var line=[];
+    for(var c=c1;c<=c2;c++){ var td=tr.children[c];
+      line.push(td?{td:td, id:tr.dataset.id, k:td.getAttribute('data-k')||''}:null); }
+    out.push(line); }
+  return out;
+}
+function rngCount_(){ var g=S._rng; if(!g) return 0;
+  return (Math.abs(g.r2-g.r1)+1)*(Math.abs(g.c2-g.c1)+1); }
+function rngText_(td){
+  var i=td.querySelector('input,textarea');
+  if(i) return String(i.value==null?'':i.value);
+  return String(td.textContent||'').trim();
+}
+function rngBadge_(){
+  var b=document.getElementById('rngBadge'), n=rngCount_();
+  if(n<2){ if(b) b.remove(); return; }
+  if(!b){ b=document.createElement('div'); b.id='rngBadge'; b.className='rng-badge'; document.body.appendChild(b); }
+  var cells=rngCells_(), sum=0, so=0;
+  cells.forEach(function(row){ row.forEach(function(c){ if(!c) return; var v=tkNum_(rngText_(c.td));
+    if(v){ sum+=v; so++; } }); });
+  b.innerHTML='<b>'+n+'</b> ô đã chọn'+(so?('<i>Tổng '+money(sum)+' · TB '+money(sum/so)+'</i>'):'')
+    +'<span>Ctrl+C sao chép · Ctrl+V dán · Delete xoá</span>';
+}
+function rngInit_(){
+  if(S._rngInit) return; S._rngInit=1;
+  document.addEventListener('mousedown',function(e){
+    var td=e.target.closest?e.target.closest('td'):null;
+    var pos=td?rngPos_(td):null;
+    if(!pos){ if(!e.target.closest||!e.target.closest('.rng-badge')) rngClear_(); return; }
+    if(e.shiftKey && S._rng && S._rng.tbl===pos.tbl){
+      e.preventDefault();
+      S._rng.r2=pos.r; S._rng.c2=pos.c; rngPaint_();
+      var a=document.activeElement; if(a&&a.blur) a.blur();
+      return;
+    }
+    S._rng={tbl:pos.tbl, r1:pos.r, c1:pos.c, r2:pos.r, c2:pos.c}; rngPaint_();
+  });
+  document.addEventListener('copy',function(e){
+    if(rngCount_()<2) return;
+    var a=document.activeElement; if(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA')&&a.selectionStart!==a.selectionEnd) return;
+    var txt=rngCells_().map(function(row){ return row.map(function(c){ return c?rngText_(c.td):''; }).join('\t'); }).join('\n');
+    if(e.clipboardData){ e.clipboardData.setData('text/plain',txt); e.preventDefault(); toast('Đã sao chép '+rngCount_()+' ô'); }
+  });
+  document.addEventListener('paste',function(e){
+    if(!S._rng) return;
+    var a=document.activeElement;
+    if(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA')&&rngCount_()<2) return;   // 1 ô đang gõ -> để trình duyệt dán như thường
+    var txt=(e.clipboardData||window.clipboardData).getData('text'); if(!txt) return;
+    e.preventDefault(); rngPasteText_(txt);
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Delete'&&e.key!=='Backspace') return;
+    if(rngCount_()<2) return;
+    var a=document.activeElement; if(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA')) return;
+    e.preventDefault(); rngFill_('');
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){ if(rngCount_()>1) rngClear_();
+      else if(tkSelIds_().length && document.getElementById('tkBulkBar')){ tkPopClose_(); tkClearSel(); } }
+  });
+}
+function rngPasteText_(txt){
+  var grid=String(txt).replace(/\r/g,'').replace(/\n$/,'').split('\n').map(function(r){ return r.split('\t'); });
+  var cells=rngCells_(); if(!cells.length) return;
+  if(grid.length===1&&grid[0].length===1){ rngFill_(grid[0][0]); return; }
+  var g=S._rng, rows=rngRows_(g.tbl);
+  var r0=Math.min(g.r1,g.r2), c0=Math.min(g.c1,g.c2);
+  var edits=[];
+  grid.forEach(function(line,ri){ var tr=rows[r0+ri]; if(!tr) return; var l=lineOf_(tr.dataset.id); if(!l) return;
+    line.forEach(function(v,ci){ var td=tr.children[c0+ci]; if(!td) return;
+      var k=td.getAttribute('data-k'); if(!k) return;
+      var f=tkFieldsFor_(l,k,v); if(f) edits.push({id:l.lineId, fields:f}); }); });
+  if(!edits.length){ toast('Vùng dán không có ô nào sửa được'); return; }
+  tkApplyEdits_(edits,'Đã dán '+edits.length+' ô vào');
+}
+function rngFill_(val){
+  var cells=rngCells_(), edits=[];
+  cells.forEach(function(row){ row.forEach(function(c){ if(!c||!c.k) return;
+    var l=lineOf_(c.id); if(!l) return; var f=tkFieldsFor_(l,c.k,val); if(f) edits.push({id:l.lineId, fields:f}); }); });
+  if(!edits.length){ toast('Vùng chọn không có ô nào sửa được'); return; }
+  tkApplyEdits_(edits, val===''?'Đã xoá nội dung':'Đã điền “'+String(val).slice(0,24)+'”');
+}
+
+/* ===== Chi phí: chọn nhanh % lợi nhuận ===== */
+function cpLnQuick_(){
+  return '<div class="cp-lnq"><span class="lb">'+icon('gauge',13)+' Chọn nhanh lợi nhuận</span>'
+    +'<div class="lnq">'+TK_LN_QUICK.map(function(v){
+        return '<button onclick="cpQuickLn_('+v+')" title="Đặt lợi nhuận '+v+'% trên giá vốn">'+v+'%</button>'; }).join('')
+      +'<button onclick="cpQuickLnAsk_()" title="Nhập % khác">Khác…</button></div>'
+    +'<span class="lb" id="cpLnScope">'+esc(cpLnScopeLbl_())+'</span></div>';
+}
+// Phạm vi áp dụng: vùng ô đang chọn > dòng đang tick ở Bóc tách > toàn bộ bảng
+function cpLnRows_(){
+  var g=S._rng;
+  if(g&&g.tbl&&document.body.contains(g.tbl)&&g.tbl.closest('#v-chiphi')){
+    var rows=rngRows_(g.tbl), r1=Math.min(g.r1,g.r2), r2=Math.max(g.r1,g.r2), out=[];
+    for(var r=r1;r<=r2;r++){ var tr=rows[r]; if(tr){ var l=lineOf_(tr.dataset.id); if(l) out.push(l); } }
+    if(out.length) return out;
+  }
+  var sel=tkSelLines_(); if(sel.length) return sel;
+  return S.lines.slice();
+}
+function cpLnScopeLbl_(){
+  var g=S._rng, n;
+  if(g&&g.tbl&&document.body.contains(g.tbl)&&g.tbl.closest('#v-chiphi')) return 'áp cho '+(Math.abs(g.r2-g.r1)+1)+' dòng đang chọn';
+  n=tkSelLines_().length; if(n) return 'áp cho '+n+' dòng đã tick bên Bóc tách';
+  return 'áp cho tất cả '+S.lines.length+' dòng (chọn vùng ô để thu hẹp)';
+}
+function cpQuickLn_(v){
+  var rows=cpLnRows_(); if(!rows.length){ toast('Chưa có dòng nào'); return; }
+  if(rows.length>1 && !confirm('Đặt lợi nhuận '+v+'% cho '+rows.length+' dòng?')) return;
+  tkApplyEdits_(rows.map(function(l){ return {id:l.lineId, fields:{lnPct:Number(v)}}; }), 'Đã đặt lợi nhuận '+v+'%');
+}
+function cpQuickLnAsk_(){
+  var v=prompt('Nhập % lợi nhuận trên giá vốn:',''); if(v==null) return;
+  v=Number(String(v).replace(',','.')); if(!isFinite(v)){ toast('% không hợp lệ'); return; }
+  cpQuickLn_(v);
+}
