@@ -3247,13 +3247,13 @@ function renderTable(){
   // panel chi tiết dùng chung: rời đề mục thì đóng panel của đề mục cũ
   if(isPT && S._detailIdx!=null) hideDetail();
   if(!isPT && S._ptDetail) ptHideDetail_();
-  if(isPT){ renderPhanTho(); return; }
+  if(isPT){ tkSheetChips_(null); renderPhanTho(); return; }   // Phần thô không chia sheet -> dọn chip cũ
   var lines=S.lines.filter(function(l){ return l.nhom===code || String(l.nhom||'').indexOf(code+'.')===0; });
   tkSheetChips_(lines);                                   // chip Nhân công / Vật tư của hạng mục này
   if(S.sheet) lines=lines.filter(function(l){ return tkSheetOf_(l)===S.sheet; });
   document.getElementById('tkCount').textContent='['+pad2(lines.length)+']';
   var t=document.getElementById('tkTable');
-  if(!S.cur){ t.style.width=''; t.innerHTML='<tr><td class="empty">Chưa chọn dự án.</td></tr>'; return; }
+  if(!S.cur){ t.style.width=''; t.innerHTML='<tr><td class="empty">Chưa chọn dự án.</td></tr>'; tkSheetChips_(null); return; }
   var flt=S.colFilter||{};
   Object.keys(flt).forEach(function(k){ lines=lines.filter(function(l){ return colPlain(l,k)===flt[k]; }); });
   var cols=visCols();
@@ -5130,9 +5130,6 @@ function drawBaogia(){
   var secs=(S.cover||[]).filter(function(c){return coverDepth(c.stt)===1;}).sort(coverSortFn);
   var chips=secs.map(function(s){ return '<span class="bgchip'+(S.bgHide[s.stt]?' off':'')+'" onclick="bgToggle(\''+s.stt+'\')">'+esc(s.hangMuc||s.stt)+'</span>'; }).join('')||'<span class="hint" style="color:#889">Chưa có mục. Bấm ↻ Nạp lại mẫu.</span>';
   var covTable=S.coverMau==='m1'?coverTableM1(comp):coverTableM2(comp);
-  var deSeen={}, deOpts=[{c:'__all__',n:'Tất cả'}];
-  S.lines.forEach(function(l){ if(l.nhom && !deSeen[l.nhom]){ deSeen[l.nhom]=1; deOpts.push({c:l.nhom,n:nodeName(l.nhom)}); } });
-  function cnt(code){ return code==='__all__'?S.lines.length:S.lines.filter(function(l){return l.nhom===code||String(l.nhom||'').indexOf(code+'.')===0;}).length; }
   var colChips=COLS.map(function(c){return '<span class="chip'+(S.cols[c[0]]?' on':'')+'" onclick="toggleCol(\''+c[0]+'\')">'+esc(c[1])+'</span>';}).join('');
 
   // ---- Card 1: chọn mục hiện trên tờ bìa ----
@@ -8553,6 +8550,8 @@ function tkFieldsFor_(l,k,raw){
 async function tkApplyEdits_(edits, nhan){
   var byId={}; edits.forEach(function(e){ if(!e||!e.fields) return; byId[e.id]=Object.assign(byId[e.id]||{},e.fields); });
   var ids=Object.keys(byId); if(!ids.length){ toast('Không có ô nào sửa được'); return 0; }
+  // dán/điền vùng rất lớn: hỏi lại vì mỗi dòng là một lần ghi lên máy chủ
+  if(ids.length>60 && !confirm('Thao tác này sửa '+ids.length+' dòng. Tiếp tục?')) return 0;
   ids.forEach(function(id){ var l=lineOf_(id); if(!l) return;
     Object.keys(byId[id]).forEach(function(k){ l[k]=byId[id][k]; }); recalcLine_(l,byId[id]); });
   renderTable(); renderCard();
@@ -8958,6 +8957,7 @@ function setSheet(v){
 }
 function tkSheetChips_(lines){
   var box=document.getElementById('tkSheets'); if(!box) return;
+  if(!lines){ box.innerHTML=''; return; }
   var code=S.node||'', dem={nc:0,vt:0,'':0};
   (lines||[]).forEach(function(l){ dem[tkSheetOf_(l)]=(dem[tkSheetOf_(l)]||0)+1; });
   box.innerHTML=TK_SHEETS.map(function(t,i){

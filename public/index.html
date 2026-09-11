@@ -4410,6 +4410,12 @@ td.rsel input,td.rsel textarea{background:transparent}
 .tk-vbar:hover .tk-vthumb{background:#96a5b6}
 .tk-vthumb:hover{background:var(--blue)}
 .tk-vthumb.dragging{background:var(--blue-d);cursor:grabbing}
+
+/* Cột phải tab Mua hàng có 2 khối (Tổng hợp đơn + Phiếu đề xuất): cho CẢ CỘT dính,
+   nếu để từng khối dính riêng ở cùng top thì khối dưới trượt đè lên khối trên. */
+.mhside{position:sticky;top:74px;max-height:calc(100vh - 92px);overflow:auto}
+.mhside .imp-recent{position:static;max-height:none}
+@media(max-width:1180px){ .mhside{position:static;max-height:none;overflow:visible} }
 </style>
 
 <!-- ===== TOP NAV ===== -->
