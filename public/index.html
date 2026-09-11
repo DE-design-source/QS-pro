@@ -4280,6 +4280,37 @@ td.rsel input,td.rsel textarea{background:transparent}
 .shchip .shc-n{font-style:normal;font-size:11px;font-weight:600;opacity:.7}
 .shchip.clr{border-style:dashed;color:var(--c3);font-weight:500}
 @media(max-width:900px){ .sheets{width:100%;order:9} }
+
+/* ═══ Xuất báo giá: thanh điều khiển + cây chọn hạng mục ═══ */
+.bgctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 10px;padding:8px 10px;
+  background:#fff;border:1px solid var(--ln);border-radius:var(--rk)}
+.bgctl-n{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--c3)}
+.bgctl-n b{font-size:13px;color:var(--c1)}
+.btn.bg-nodebtn.on{border-color:var(--blue);color:var(--blue);background:#f2f7ff}
+.bgtree{width:360px;max-width:calc(100vw - 24px);padding:0;overflow:hidden}
+.bgt-h{display:flex;align-items:baseline;gap:8px;padding:12px 14px 10px;border-bottom:1px solid var(--ln)}
+.bgt-h b{font-size:var(--t-md);color:var(--c1)}
+.bgt-h span{font-size:var(--t-xs);color:var(--c3)}
+.bgt-h .colpop-x{margin-left:auto}
+.bgt-tools{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--ln);background:var(--bg2)}
+.bgt-only{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--c2);cursor:pointer}
+.bgt-b{max-height:340px;overflow:auto;padding:4px 0}
+.bgt-i{display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;font-size:13px;color:var(--c1)}
+.bgt-i:hover{background:var(--bg3)}
+.bgt-i.lvl2{padding-left:28px}
+.bgt-i.lvl3{padding-left:42px}
+.bgt-i.lvl4{padding-left:56px}
+.bgt-i .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bgt-i .cn{font-size:11.5px;color:var(--c3);font-variant-numeric:tabular-nums}
+.bgt-i.empty .nm,.bgt-i.empty .cn{color:var(--c4)}
+.bgt-i .rd{width:15px;height:15px;border-radius:50%;border:1.5px solid var(--ln2);flex:none;position:relative}
+.bgt-i:hover .rd{border-color:var(--blue)}
+.bgt-i .rd.on{border-color:var(--blue);background:var(--blue)}
+.bgt-i .rd.on:after{content:'';position:absolute;inset:3px;border-radius:50%;background:#fff}
+.bgt-i.on{background:#f2f7ff}
+.bgt-i.on .nm{font-weight:600;color:var(--blue)}
+.bgt-f{display:flex;align-items:center;gap:8px;padding:9px 12px;border-top:1px solid var(--ln);background:var(--bg2)}
+.bgt-f .hint{flex:1;font-size:11.5px;color:var(--c3)}
 </style>
 
 <!-- ===== TOP NAV ===== -->

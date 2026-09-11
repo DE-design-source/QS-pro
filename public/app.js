@@ -4394,7 +4394,7 @@ function colPopMake_(id,btnId,title,keys,isOn,onToggle,onAll){
 function colPopRefresh_(id){ var f=(S._colPopRender||{})[id]; if(f) f(); }
 function colPopClose_(id){ var p=document.getElementById(id); if(p) p.remove(); document.removeEventListener('mousedown',colPopOutside_); }
 function colPopOutside_(e){
-  ['cpColPop','daColPop'].forEach(function(id){
+  ['cpColPop','daColPop','bgColPop'].forEach(function(id){
     var p=document.getElementById(id); if(!p) return;
     var btnId=(S._colPopBtn||{})[id];
     if(e.target.closest('#'+id)||(btnId&&e.target.closest('#'+btnId))) return;
@@ -4801,7 +4801,7 @@ function bgBuildPages(){
   var p=S.cur||{}, comp=coverCosts(), total=comp.total, cost=comp.cost;
   var inners=[];
   // ===== Header thương hiệu (Decox) =====
-  var hangMuc = (S.bgDeMuc && S.bgDeMuc!=='__all__') ? (nodeName(S.bgDeMuc)||S.bgDeMuc) : 'TỔNG HỢP CHI PHÍ';
+  var hangMuc = bgNodeLabel_();
   var decoxHead='<div class="qx-head"><div class="qx-brandbox"><div class="qx-brand">'+esc(QUOTE_ORG.brand)+'</div>'
     +'<div class="qx-org">'+QUOTE_ORG.lines.map(esc).join('<br>')+'</div></div>'
     +'<div class="qx-titlebox"><div class="t1">BẢNG ƯỚC TÍNH CHI PHÍ DỰ ÁN</div><div class="t2">HẠNG MỤC: '+esc(String(hangMuc).toUpperCase())+'</div></div></div>';
@@ -4835,30 +4835,53 @@ function bgBuildPages(){
     +'<div class="qsum-card"><table class="qsum">'+(srows||'<tr><td class="nm" style="color:#94a3b8;padding:16px 0">Chưa có hạng mục.</td></tr>')
     +'<tr class="qsum-tot"><td class="nm">TỔNG CHI PHÍ DỰ KIẾN</td><td class="amt">'+moneyShort(sumTotal)+'</td><td class="pct">100%</td></tr></table></div>');
   // ===== Bảng chi tiết kiểu XÂY THÔ (STT/NỘI DUNG/ĐVT/DIỆN TÍCH/HỆ SỐ/KHỐI LƯỢNG/ĐƠN GIÁ/THÀNH TIỀN/GHI CHÚ) =====
-  var lines=(S.bgDeMuc && S.bgDeMuc!=='__all__') ? S.lines.filter(function(l){return l.nhom===S.bgDeMuc||String(l.nhom||'').indexOf(S.bgDeMuc+'.')===0;}) : S.lines.slice();
-  var groups={},order=[]; lines.forEach(function(l){ var g=(l.tang||'').trim()||'HẠNG MỤC'; if(!groups[g]){groups[g]=[];order.push(g);} groups[g].push(l); });
+  var lines=bgLines_();
   var xcolg='<colgroup><col style="width:32px"><col><col style="width:38px"><col style="width:52px"><col style="width:42px"><col style="width:66px"><col style="width:84px"><col style="width:96px"><col style="width:86px"></colgroup>';
   var xthead='<tr class="qx-h"><th class="ct">STT</th><th>NỘI DUNG CÔNG VIỆC</th><th class="ct">ĐVT</th><th class="num">DIỆN TÍCH</th><th class="ct">HỆ SỐ</th><th class="num">KHỐI LƯỢNG</th><th class="num">ĐƠN GIÁ</th><th class="num">THÀNH TIỀN</th><th>GHI CHÚ</th></tr>';
-  var flat=[];
-  order.forEach(function(g,gi){
-    var items=groups[g]||[], sec=items.reduce(function(s,l){return s+(Number(l.thanhTienBan)||0);},0);
-    flat.push('<tr class="sec"><td class="ct">'+(ROMAN_[gi]||(gi+1))+'</td><td colspan="6">'+esc(g)+'</td><td class="num">'+(sec?money(sec):'-')+'</td><td></td></tr>');
-    items.forEach(function(l,ri){
-      flat.push('<tr><td class="ct">'+(ri+1)+'</td>'
-        +'<td><b>'+esc(l.ten||'')+'</b>'+(l.thuongHieu?' — '+esc(l.thuongHieu):'')+(l.moTa?'<div class="qx-desc">'+esc(l.moTa)+'</div>':'')+'</td>'
-        +'<td class="ct it">'+esc(l.dvt||'')+'</td>'
-        +'<td class="num">'+(l.dienTich!=null&&l.dienTich!==''?esc(l.dienTich):'')+'</td>'
-        +'<td class="ct">'+(l.heSo!=null&&l.heSo!==''?esc(l.heSo):'')+'</td>'
-        +'<td class="num">'+(Number(l.soLuong)||0)+'</td>'
-        +'<td class="num">'+(l.donGiaBan?money(l.donGiaBan):'')+'</td>'
-        +'<td class="num">'+(l.thanhTienBan?money(l.thanhTienBan):'-')+'</td>'
-        +'<td class="it">'+esc(l.ghiChu||'')+'</td></tr>');
+  function bgRowHtml_(l,ri){
+    return '<tr><td class="ct">'+(ri+1)+'</td>'
+      +'<td><b>'+esc(l.ten||'')+'</b>'+(l.thuongHieu?' — '+esc(l.thuongHieu):'')+(l.moTa?'<div class="qx-desc">'+esc(l.moTa)+'</div>':'')+'</td>'
+      +'<td class="ct it">'+esc(l.dvt||'')+'</td>'
+      +'<td class="num">'+(l.dienTich!=null&&l.dienTich!==''?esc(l.dienTich):'')+'</td>'
+      +'<td class="ct">'+(l.heSo!=null&&l.heSo!==''?esc(l.heSo):'')+'</td>'
+      +'<td class="num">'+(Number(l.soLuong)||0)+'</td>'
+      +'<td class="num">'+(l.donGiaBan?money(l.donGiaBan):'')+'</td>'
+      +'<td class="num">'+(l.thanhTienBan?money(l.thanhTienBan):'-')+'</td>'
+      +'<td class="it">'+esc(l.ghiChu||'')+'</td></tr>';
+  }
+  var PER=22, dau=true;
+  // Mỗi hạng mục (phần) = một trang riêng; hạng mục dài thì tự tràn sang trang tiếp theo.
+  if(bgPerSec_()){
+    var byNode={}, ordN=[];
+    lines.forEach(function(l){ var c=(l.nhom||'').trim()||'__k'; if(!byNode[c]){ byNode[c]=[]; ordN.push(c); } byNode[c].push(l); });
+    ordN.forEach(function(code){
+      var its=byNode[code], ten=(code==='__k'?'KHÁC':(nodeName(code)||code));
+      var secTt=its.reduce(function(a,l){ return a+(Number(l.thanhTienBan)||0); },0);
+      var flatN=[];
+      var byF={}, ordF=[]; its.forEach(function(l){ var g=(l.tang||'').trim()||'HẠNG MỤC'; if(!byF[g]){byF[g]=[];ordF.push(g);} byF[g].push(l); });
+      ordF.forEach(function(g,gi){
+        var sub=byF[g].reduce(function(a,l){ return a+(Number(l.thanhTienBan)||0); },0);
+        flatN.push('<tr class="sec"><td class="ct">'+(ROMAN_[gi]||(gi+1))+'</td><td colspan="6">'+esc(g)+'</td><td class="num">'+(sub?money(sub):'-')+'</td><td></td></tr>');
+        byF[g].forEach(function(l,ri){ flatN.push(bgRowHtml_(l,ri)); });
+      });
+      flatN.push('<tr class="sec"><td></td><td colspan="6" style="text-align:right"><b>TỔNG '+esc(String(ten).toUpperCase())+'</b></td><td class="num"><b>'+money(secTt)+'</b></td><td></td></tr>');
+      for(var q0=0;q0<flatN.length;q0+=PER){
+        inners.push('<div class="qx-secttl">'+(q0===0?esc(String(ten).toUpperCase()):esc(String(ten).toUpperCase())+' (tiếp)')+'</div>'
+          +'<table class="qx-tbl">'+xcolg+xthead+flatN.slice(q0,q0+PER).join('')+'</table>');
+      }
     });
-  });
-  var PER=22;
-  if(flat.length){ for(var i=0;i<flat.length;i+=PER){
-    inners.push((i===0?'<div class="qx-secttl">BẢNG BÁO GIÁ CHI TIẾT</div>':'')+'<table class="qx-tbl">'+xcolg+xthead+flat.slice(i,i+PER).join('')+'</table>');
-  } }
+  } else {
+    var groups={},order=[]; lines.forEach(function(l){ var g=(l.tang||'').trim()||'HẠNG MỤC'; if(!groups[g]){groups[g]=[];order.push(g);} groups[g].push(l); });
+    var flat=[];
+    order.forEach(function(g,gi){
+      var items=groups[g]||[], sec=items.reduce(function(a,l){return a+(Number(l.thanhTienBan)||0);},0);
+      flat.push('<tr class="sec"><td class="ct">'+(ROMAN_[gi]||(gi+1))+'</td><td colspan="6">'+esc(g)+'</td><td class="num">'+(sec?money(sec):'-')+'</td><td></td></tr>');
+      items.forEach(function(l,ri){ flat.push(bgRowHtml_(l,ri)); });
+    });
+    if(flat.length){ for(var i=0;i<flat.length;i+=PER){
+      inners.push((i===0?'<div class="qx-secttl">BẢNG BÁO GIÁ CHI TIẾT</div>':'')+'<table class="qx-tbl">'+xcolg+xthead+flat.slice(i,i+PER).join('')+'</table>');
+    } }
+  }
   // ===== Hộp tổng + ghi chú + ô ký (đính cuối trang cuối) =====
   var q=computeQuoteLocal();
   var totbox='<table class="qx-tbl qx-totbox">'+xcolg
@@ -5036,7 +5059,7 @@ function coverTableM1(comp){
 // dòng trắng cách, sọc xen kẽ, header .thk, ô nhập (cellInput). Sửa ở đây đồng bộ với Bóc tách.
 function bgDetailHTML(){
   var cols=visCols();
-  var lines=(S.bgDeMuc && S.bgDeMuc!=='__all__') ? S.lines.filter(function(l){return l.nhom===S.bgDeMuc||String(l.nhom||'').indexOf(S.bgDeMuc+'.')===0;}) : S.lines.slice();
+  var lines=bgLines_();
   var numK=['soLuong','giaNCC','giaDaiLy','donGia','donGiaCK','lnVnd','thanhTien'], ctK=['stt','hinhAnh','dvt','chietKhau','lnPct','ckKhach','markup','margin'];
   var groups={},order=[]; lines.forEach(function(l){ var g=(l.tang||'').trim()||'CHƯA PHÂN TẦNG'; if(!groups[g]){groups[g]=[];order.push(g);} groups[g].push(l); });
   var colg='<colgroup>'+cols.map(function(c){return '<col style="width:'+colW(c[0])+'px">';}).join('')+'<col style="width:44px"></colgroup>';
@@ -5081,9 +5104,7 @@ function drawBaogia(){
   // ---- Chế độ tài liệu (xem trước phân trang + xuất) ----
   if(S.bgView==='doc'){
     box.innerHTML=sechd
-      +'<div class="cvbar" style="margin:2px 0 6px"><span class="hint">Tài liệu A4 nhiều trang — trang 1 tóm tắt hạng mục, các trang sau chi tiết. Nội dung lấy từ “Chỉnh sửa”.</span><span style="flex:1"></span>'
-      +'<button class="btn green sm" onclick="doExport(\'xlsx\',this)">'+icon('download',15)+' Xuất Excel</button>'
-      +'<button class="btn red sm" onclick="printDoc()">'+icon('download',15)+' Xuất PDF / In</button></div>'
+      +bgCtlBar_()
       +bgDocHTML();
     return;
   }
@@ -5094,7 +5115,6 @@ function drawBaogia(){
   var deSeen={}, deOpts=[{c:'__all__',n:'Tất cả'}];
   S.lines.forEach(function(l){ if(l.nhom && !deSeen[l.nhom]){ deSeen[l.nhom]=1; deOpts.push({c:l.nhom,n:nodeName(l.nhom)}); } });
   function cnt(code){ return code==='__all__'?S.lines.length:S.lines.filter(function(l){return l.nhom===code||String(l.nhom||'').indexOf(code+'.')===0;}).length; }
-  var deSel='<select class="select" onchange="setDeMuc(this.value)">'+deOpts.map(function(o){return '<option value="'+esc(o.c)+'"'+(S.bgDeMuc===o.c?' selected':'')+'>'+esc(o.n)+' ['+cnt(o.c)+']</option>';}).join('')+'</select>';
   var colChips=COLS.map(function(c){return '<span class="chip'+(S.cols[c[0]]?' on':'')+'" onclick="toggleCol(\''+c[0]+'\')">'+esc(c[1])+'</span>';}).join('');
 
   // ---- Card 1: chọn mục hiện trên tờ bìa ----
@@ -5117,7 +5137,7 @@ function drawBaogia(){
   // ---- Card 4: bảng báo giá chi tiết ----
   var card4='<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">'+icon('list',18)+'</span><h3>Bảng báo giá chi tiết</h3>'
     +'<span class="hint" style="margin-left:2px">đồng bộ Bóc tách</span><span style="flex:1"></span>'
-    +'<span class="lbl" style="margin:0;font-size:12px">Đề mục</span>'+deSel
+    +bgNodeBtn_('bgNodeBtn2')
     +'<button class="btn green sm" onclick="doExport(\'xlsx\',this)">'+icon('download',14)+' Excel</button>'
     +'<button class="btn red sm" onclick="printDoc()">'+icon('download',14)+' PDF / In</button></div>'
     +'<div class="dbcard-b"><div class="colchips">'+colChips+'</div>'+bgDetailHTML()
@@ -5137,15 +5157,23 @@ function coverAutoFill(btn){
   drawBaogia();
   toast(filled?('Đã tự điền '+filled+' mục từ bóc tách'):'Không có mã nhóm bóc tách khớp mục tờ bìa');
 }
+// Cột đưa vào file xuất = đúng các chip cột đang bật của bảng Bóc tách
+var BG_KEYMAP={donGia:'donGia', donGiaCK:'donGiaCK', thanhTien:'thanhTien', giaNCC:'giaNCC'};
+function bgExportCols_(){
+  var vis=visCols();
+  var cols=vis.map(function(c){ return {key:c[0], label:String(c[1]).toUpperCase()}; })
+    .filter(function(c){ return c.key!=='stt'; });
+  cols.unshift({key:'stt',label:'STT'});
+  if(!cols.some(function(c){ return c.key==='ten'; })) cols.splice(1,0,{key:'ten',label:'TÊN SẢN PHẨM'});
+  return cols;
+}
 async function doExport(fmt,btn){
   if(!S.cur){ toast('Chưa chọn dự án'); return; }
-  var cols=[{key:'khuVuc',label:'PHÒNG'},{key:'ten',label:'TÊN SẢN PHẨM'},{key:'thuongHieu',label:'THƯƠNG HIỆU'},
-    {key:'moTa',label:'MÔ TẢ'},{key:'kichThuoc',label:'KÍCH THƯỚC'},{key:'dvt',label:'ĐVT'},
-    {key:'soLuong',label:'SL',num:true},{key:'donGiaBan',label:'Đơn giá',num:true},{key:'thanhTienBan',label:'Thành tiền',num:true}];
+  var cols=bgExportCols_(), nodes=bgSelCodes_();
   var o=btn.textContent; btn.disabled=true; btn.textContent='Đang xuất…';
   try{
     if(fmt==='pdf'){ toast('Đang mở bản in…'); await printQuote(cols); }
-    else{ var r=await api('exportBaoGia',S.cur.maDA,cols,'xlsx'); dl(r); toast('Đã xuất Excel'); }
+    else{ var r=await api('exportBaoGia',S.cur.maDA,cols,'xlsx',nodes); dl(r); toast('Đã xuất Excel · '+cols.length+' cột'+(nodes.length?(' · '+nodes.length+' hạng mục'):'')); }
   }catch(e){ toast('Lỗi: '+e.message); } btn.disabled=false; btn.textContent=o;
 }
 function dl(res){ var b=atob(res.base64),a=new Uint8Array(b.length); for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);
@@ -8895,4 +8923,111 @@ function tkBulkSheet_(v){
     return {id:l.lineId, fields:{extra:ex}};
   });
   tkApplyEdits_(edits, v?('Đã đưa vào sheet '+tkSheetLbl_(v)):'Đã bỏ khỏi sheet');
+}
+
+/* ═══════════ XUẤT BÁO GIÁ — chọn hạng mục cần xuất + chọn cột xuất + phân trang ═══════════ */
+function bgSelSet_(){ S.bgNodes=S.bgNodes||{}; return S.bgNodes; }
+function bgSelCodes_(){ var o=bgSelSet_(); return Object.keys(o).filter(function(k){ return o[k]; }); }
+function bgNodeCnt_(code){
+  return (S.lines||[]).filter(function(l){ return l.nhom===code||String(l.nhom||'').indexOf(code+'.')===0; }).length;
+}
+// Các dòng sẽ lên báo giá (không tích gì = lấy tất cả)
+function bgLines_(){
+  var sel=bgSelCodes_(); if(!sel.length) return (S.lines||[]).slice();
+  return (S.lines||[]).filter(function(l){ var c=String(l.nhom||'');
+    return sel.some(function(nd){ return c===nd || c.indexOf(nd+'.')===0; }); });
+}
+function bgNodeLabel_(){
+  var sel=bgSelCodes_();
+  if(!sel.length) return 'TỔNG HỢP CHI PHÍ';
+  if(sel.length===1) return nodeName(sel[0])||sel[0];
+  return sel.length+' HẠNG MỤC';
+}
+function bgNodeBtn_(id){
+  var sel=bgSelCodes_(), n=bgLines_().length;
+  var lbl=sel.length?(sel.length===1?((sel[0]+'.'+(nodeName(sel[0])||''))):(sel.length+' hạng mục')):'Tất cả hạng mục';
+  return '<button class="btn ghost sm bg-nodebtn'+(sel.length?' on':'')+'" id="'+id+'" onclick="bgTreePop_(event,\''+id+'\')" '
+    +'title="Tích chọn hạng mục sẽ đưa vào file báo giá">'+icon('layers',14)+' '+esc(lbl)+' <b class="tbn">['+pad2(n)+']</b> ▾</button>';
+}
+function bgTreeNodes_(){
+  var out=TREE.filter(function(t){ return t[0]!=='X'; }).map(function(t){ return {code:t[0],name:t[1],lvl:t[2]}; });
+  customGroups().forEach(function(nm){ out.push({code:nm,name:nm,lvl:1}); });
+  return out;
+}
+function bgTreePop_(e,btnId){
+  if(e&&e.stopPropagation) e.stopPropagation();
+  var id='bgTreePop';
+  if(document.getElementById(id)){ bgTreeClose_(); return; }
+  var pop=document.createElement('div'); pop.className='fltpop bgtree'; pop.id=id;
+  document.body.appendChild(pop); S._bgTreeBtn=btnId; bgTreeRender_();
+  var b=document.getElementById(btnId);
+  if(b){ var r=b.getBoundingClientRect(), w=pop.offsetWidth||330, h=pop.offsetHeight;
+    var top=r.bottom+6; if(top+h>window.innerHeight-10) top=Math.max(10, r.top-h-6);
+    pop.style.top=top+'px'; pop.style.left=Math.max(8,Math.min(r.left, window.innerWidth-w-10))+'px'; }
+  setTimeout(function(){ document.addEventListener('mousedown',bgTreeOutside_); },0);
+}
+function bgTreeOutside_(e){
+  if(e.target.closest('#bgTreePop')||e.target.closest('.bg-nodebtn')) return; bgTreeClose_(); }
+function bgTreeClose_(){ var p=document.getElementById('bgTreePop'); if(p) p.remove();
+  document.removeEventListener('mousedown',bgTreeOutside_); }
+function bgTreeRender_(){
+  var pop=document.getElementById('bgTreePop'); if(!pop) return;
+  var sel=bgSelSet_(), nodes=bgTreeNodes_(), co=bgSelCodes_().length;
+  var chiCo=!!S._bgOnlyUsed;
+  var list=nodes.filter(function(t){ return !chiCo || bgNodeCnt_(t.code)>0; });
+  pop.innerHTML='<div class="bgt-h"><b>Chọn hạng mục xuất báo giá</b>'
+      +'<span>'+(co?co+' mục đã tích':'chưa tích = xuất tất cả')+'</span>'
+      +'<button class="colpop-x" onclick="bgTreeClose_()">✕</button></div>'
+    +'<div class="bgt-tools">'
+      +'<label class="bgt-only"><input type="checkbox" '+(chiCo?'checked':'')+' onchange="bgOnlyUsed_(this.checked)"> Chỉ hạng mục đã có dòng</label>'
+      +'<span style="flex:1"></span>'
+      +'<button class="btn ghost xs" onclick="bgSelAll_(1)">Chọn tất cả</button>'
+      +'<button class="btn ghost xs" onclick="bgSelAll_(0)">Bỏ chọn</button>'
+    +'</div>'
+    +'<div class="bgt-b">'+(list.length?list.map(function(t){
+        var n=bgNodeCnt_(t.code), on=!!sel[t.code];
+        return '<div class="bgt-i lvl'+t.lvl+(on?' on':'')+(n?'':' empty')+'" onclick="bgSelToggle_(\''+esc(t.code).replace(/'/g,"\\'")+'\')">'
+          +'<span class="nm">'+esc(t.code+'.'+t.name)+'</span>'
+          +'<span class="cn">['+pad2(n)+']</span>'
+          +'<span class="rd'+(on?' on':'')+'"></span></div>';
+      }).join(''):'<div class="colpop-empty">Không có hạng mục nào có dòng.</div>')+'</div>'
+    +'<div class="bgt-f"><span class="hint">'+pad2(bgLines_().length)+' dòng sẽ lên báo giá</span>'
+      +'<button class="btn blue sm" onclick="bgTreeClose_()">Xong</button></div>';
+}
+function bgOnlyUsed_(on){ S._bgOnlyUsed=!!on; bgTreeRender_(); }
+function bgSelToggle_(code){
+  var sel=bgSelSet_(); if(sel[code]) delete sel[code]; else sel[code]=1;
+  S.bgDeMuc=bgSelCodes_().length===1?bgSelCodes_()[0]:'__all__';
+  S.bgPage=1; bgTreeRender_(); drawBaogia();
+  setTimeout(bgTreeRender_,0);
+}
+function bgSelAll_(on){
+  S.bgNodes={};
+  if(on) bgTreeNodes_().forEach(function(t){ if(bgNodeCnt_(t.code)) S.bgNodes[t.code]=1; });
+  S.bgPage=1; bgTreeRender_(); drawBaogia(); setTimeout(bgTreeRender_,0);
+}
+/* --- mỗi hạng mục 1 trang --- */
+function bgPerSec_(){ return S.bgPerSec!==false; }
+function bgTogglePerSec_(){ S.bgPerSec=!bgPerSec_(); S.bgPage=1; drawBaogia(); }
+/* --- chọn cột sẽ xuất (dùng chung S.cols với bảng Bóc tách) --- */
+function bgColBtn_(){
+  var on=COLS.filter(function(c){ return S.cols[c[0]]; }).length;
+  return '<button class="btn ghost sm" id="bgColBtn" onclick="bgColPop_(event)" title="Chọn cột sẽ có trong file xuất">'
+    +icon('list',14)+' Cột xuất <b class="tbn">'+on+'/'+COLS.length+'</b></button>';
+}
+function bgColPop_(e){ if(e&&e.stopPropagation) e.stopPropagation();
+  colPopMake_('bgColPop','bgColBtn','Cột đưa vào file xuất',COLS.map(function(c){return c[0];}),
+    function(k){ return !!S.cols[k]; },'toggleCol','tkColAll_'); }
+function bgCtlBar_(){
+  var pages=bgBuildPages().length;
+  return '<div class="bgctl">'
+    +bgNodeBtn_('bgNodeBtn1')
+    +bgColBtn_()
+    +'<button class="btn ghost sm'+(bgPerSec_()?' on':'')+'" onclick="bgTogglePerSec_()" '
+      +'title="Mỗi hạng mục bắt đầu ở một trang mới">'+icon('doc',14)+' Mỗi phần 1 trang</button>'
+    +'<span class="bgctl-n">'+icon('doc',13)+' Số trang <b>'+pages+'</b></span>'
+    +'<span style="flex:1"></span>'
+    +'<button class="btn green sm" onclick="doExport(\'xlsx\',this)">'+icon('download',15)+' Xuất Excel</button>'
+    +'<button class="btn red sm" onclick="printDoc()">'+icon('download',15)+' Xuất PDF / In</button>'
+  +'</div>';
 }

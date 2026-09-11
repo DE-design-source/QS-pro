@@ -35,8 +35,43 @@ const EXPORT_STY = {
   dvt: { label: 'ĐVT', w: 42, al: 'center' },
   soLuong: { label: 'SỐ LƯỢNG', w: 52, al: 'center', num: true },
   donGiaBan: { label: 'ĐƠN GIÁ', w: 96, al: 'right', num: true },
-  thanhTienBan: { label: 'THÀNH TIỀN', w: 110, al: 'right', num: true, bold: true }
+  thanhTienBan: { label: 'THÀNH TIỀN', w: 110, al: 'right', num: true, bold: true },
+  // ---- các cột còn lại của bảng Bóc tách (để file xuất giống hệt bảng) ----
+  tang: { label: 'TẦNG / KHU VỰC', w: 110, al: 'center' },
+  nganh: { label: 'DÒNG SẢN PHẨM', w: 110, al: 'center' },
+  giaNCC: { label: 'GIÁ BÁN LẺ', w: 100, al: 'right', num: true },
+  chietKhau: { label: 'CHIẾT KHẤU CỦA ĐẠI LÝ (%)', w: 96, al: 'center', num: true },
+  giaDaiLy: { label: 'GIÁ ĐẠI LÝ', w: 100, al: 'right', num: true },
+  lnPct: { label: 'LỢI NHUẬN DỰ KIẾN (%)', w: 92, al: 'center', num: true },
+  donGia: { label: 'GIÁ BÁN', w: 100, al: 'right', num: true },
+  ckKhach: { label: 'CHIẾT KHẤU CHO KHÁCH HÀNG (%)', w: 100, al: 'center', num: true },
+  donGiaCK: { label: 'ĐƠN GIÁ', w: 100, al: 'right', num: true },
+  markup: { label: 'LỢI NHUẬN/GIÁ VỐN (%)', w: 96, al: 'center', num: true },
+  margin: { label: 'LỢI NHUẬN/GIÁ BÁN (%)', w: 96, al: 'center', num: true },
+  lnVnd: { label: 'LỢI NHUẬN (VND)', w: 106, al: 'right', num: true },
+  thanhTien: { label: 'THÀNH TIỀN', w: 110, al: 'right', num: true, bold: true },
+  trangThai: { label: 'TRẠNG THÁI', w: 92, al: 'center' },
+  ghiChu: { label: 'GHI CHÚ', w: 140, al: 'left', wrap: true }
 };
+// Giá trị 1 ô theo khoá cột của bảng Bóc tách (các cột dẫn xuất tính lại từ dòng)
+function nz_(v) { return Number(v) || 0; }
+function cellOfLine_(l, k) {
+  const von = nz_(l.donGiaVon), ck = nz_(l.chietKhau), sl = nz_(l.soLuong);
+  const daiLy = Math.round(von * (1 - ck / 100));
+  const net = (l.donGia != null && l.donGia !== 0) ? nz_(l.donGia) : Math.round(nz_(l.donGiaBan) * (1 - nz_(l.ckKhach) / 100));
+  switch (k) {
+    case 'nganh': return (l.extra && l.extra.nganh) || '';
+    case 'giaNCC': return von;
+    case 'giaDaiLy': return daiLy;
+    case 'donGia': return nz_(l.donGiaBan);
+    case 'donGiaCK': return net;
+    case 'markup': return daiLy > 0 ? Math.round((net - daiLy) / daiLy * 100) : 0;
+    case 'margin': return net > 0 ? Math.round((net - daiLy) / net * 100) : 0;
+    case 'lnVnd': return Math.round((net - daiLy) * sl);
+    case 'thanhTien': return nz_(l.thanhTienBan);
+    default: return null;
+  }
+}
 
 function px(w) { return Math.max(6, Math.round((w || 90) / 7)); }
 function roman_(n) {
@@ -242,7 +277,7 @@ async function buildDetailSheet(wb, ws, items, p, EXCOLS, catName) {
         else if (c.k === 'soLuong') cell.value = l.soLuong;
         else if (c.k === 'donGiaBan') cell.value = (l.donGia != null && l.donGia !== 0) ? l.donGia : l.donGiaBan;  // đơn giá NET -> đơn giá×SL = thành tiền
         else if (c.k === 'thanhTienBan') cell.value = l.thanhTienBan;
-        else cell.value = l[c.k] || '';
+        else { const cv = cellOfLine_(l, c.k); cell.value = (cv !== null) ? cv : (l[c.k] || ''); }
         cell.alignment = { horizontal: c.al || 'left', wrapText: !!c.wrap, vertical: 'middle' };
         if (c.num) cell.numFmt = '#,##0';
         if (c.bold) cell.font = { name: 'Arial', bold: true };
@@ -304,9 +339,16 @@ function sheetName_(s) {
 }
 
 /*** ===== ENTRY: exportBaoGia(maDA, cols, format) ===== ***/
-async function exportBaoGia(maDA, cols, format) {
+async function exportBaoGia(maDA, cols, format, nodes) {
   const q = await dataStore.getQuote(maDA);
   const p = q.project || {};
+  // chỉ xuất các hạng mục được tích ở tab Xuất báo giá (rỗng = xuất hết)
+  if (nodes && nodes.length) {
+    q.lines = (q.lines || []).filter(function (l) {
+      const c = String(l.nhom || '');
+      return nodes.some(function (nd) { return c === nd || c.indexOf(nd + '.') === 0; });
+    });
+  }
   const chosen = (cols && cols.length) ? cols : Object.keys(EXPORT_STY).map(function (k) { return { key: k }; });
   const EXCOLS = chosen.map(function (c) {
     const s = EXPORT_STY[c.key] || { label: c.label || c.key, w: 90, al: 'left' };
