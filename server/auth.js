@@ -573,6 +573,48 @@ async function resolvePurchaseRequest(actor, maDon, approve) {
   return { ok: true };
 }
 
+/* ===== ĐỀ XUẤT MUA HÀNG — thông báo + duyệt (tách khỏi đơn mua hàng) ===== */
+const DX_TEN = { ck: 'đề xuất chiết khấu', tt: 'đề xuất thanh toán' };
+async function notifyDeXuatAdmins(actor, dx) {
+  const me = await getUserById(actor.uid);
+  const who = me ? (me.ho_ten || me.username) : (actor.u || '');
+  const admins = await getAdmins_();
+  const ten = DX_TEN[dx.loai] || 'đề xuất';
+  for (var j = 0; j < admins.length; j++) {
+    await notify_(admins[j].id, 'de_xuat', 'Đề xuất mua hàng',
+      who + ' gửi ' + ten + ' ' + dx.ma + (dx.supplier ? ' (' + dx.supplier + ')' : ''), String(dx.ma));
+  }
+  await audit(actor, 'request_de_xuat', who + ' gửi ' + ten + ' ' + dx.ma);
+}
+async function listDeXuat(actor, loai) {
+  const filter = loai ? supa.eq('loai', loai) : '';
+  let rows = [];
+  try { rows = await supa.select('de_xuat', { filter: filter, order: 'ngay_gui.desc', limit: 200 }); }
+  catch (e) { if (/de_xuat/.test(String(e && e.message)) ) return []; throw e; }   // chưa chạy db/de_xuat.sql
+  return rows.map(store.dxHead_);
+}
+async function getDeXuat(actor, ma) {
+  const h = (await supa.select('de_xuat', { filter: supa.eq('ma_de_xuat', ma), limit: 1 }))[0];
+  if (!h) throw new Error('Không tìm thấy đề xuất');
+  const dt = await supa.select('chi_tiet_de_xuat', { filter: supa.eq('ma_de_xuat', ma), order: 'sort_no.asc' });
+  return Object.assign(store.dxHead_(h), { items: dt.map(store.dxItem_) });
+}
+async function resolveDeXuat(actor, ma, approve) {
+  const r = (await supa.select('de_xuat', { filter: supa.eq('ma_de_xuat', ma), limit: 1 }))[0];
+  if (!r) throw new Error('Không tìm thấy đề xuất');
+  const me = await getUserById(actor.uid);
+  const resolver = me ? (me.ho_ten || me.username) : actor.u;
+  const status = approve ? 'Đã duyệt' : 'Từ chối';
+  await supa.update('de_xuat', supa.eq('ma_de_xuat', ma),
+    { trang_thai: status, nguoi_duyet: resolver, ngay_duyet: new Date().toISOString() });
+  const ten = DX_TEN[r.loai] || 'đề xuất';
+  if (r.requester_id) await notify_(r.requester_id, approve ? 'de_xuat_approved' : 'de_xuat_rejected',
+    approve ? 'Đề xuất đã được duyệt' : 'Đề xuất bị từ chối',
+    'Phiếu ' + ma + (r.nha_cung_cap ? ' (' + r.nha_cung_cap + ')' : ''), String(ma));
+  await audit(actor, approve ? 'approve_de_xuat' : 'reject_de_xuat', status + ' ' + ten + ' ' + ma + ' của ' + (r.nguoi_gui || ''));
+  return { ok: true };
+}
+
 module.exports = {
   updateProductGated, createProductGated, importGated, saveLineAsProductGated, setSpDuyet, setComboGated, spMyPerms,
   setYeuThich,
@@ -585,5 +627,6 @@ module.exports = {
   notifCount, notifList, notifRead, notifReadAll,
   requestDeleteProducts, listDeleteRequests, resolveDeleteRequest,
   notifyPurchaseAdmins, listPurchaseRequests, resolvePurchaseRequest,
+  notifyDeXuatAdmins, listDeXuat, getDeXuat, resolveDeXuat,
   audit
 };

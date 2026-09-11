@@ -74,6 +74,8 @@ const REGISTRY = {
   exportBaoGia: exportBaoGia,
   sendPurchaseRequest: sendPurchaseRequest,
   getPurchaseOrders: store.getPurchaseOrders,
+  getDeXuatList: store.getDeXuatList,
+  sendDeXuat: sendDeXuat,
   // ===== Auth & phân quyền =====
   login: auth.login,
   me: auth.me,
@@ -103,7 +105,10 @@ const REGISTRY = {
   createCongTyUser: auth.createCongTyUser,
   checkExpiry: checkExpiry,
   baoCaoNhapSP: baoCaoNhapSP,
-  resolvePurchaseRequest: auth.resolvePurchaseRequest
+  resolvePurchaseRequest: auth.resolvePurchaseRequest,
+  listDeXuat: auth.listDeXuat,
+  getDeXuat: auth.getDeXuat,
+  resolveDeXuat: auth.resolveDeXuat
 };
 // Hàm không cần đăng nhập
 const PUBLIC_FNS = new Set(['login']);
@@ -113,6 +118,7 @@ const ACTOR_FNS = new Set(['me', 'logout', 'changePassword',
   'notifCount', 'notifList', 'notifRead', 'notifReadAll',
   'requestDeleteProducts', 'listDeleteRequests', 'resolveDeleteRequest',
   'sendPurchaseRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest',
+  'sendDeXuat', 'listDeXuat', 'getDeXuat', 'resolveDeXuat',
   'listCongTy', 'createCongTy', 'updateCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'checkExpiry', 'baoCaoNhapSP',
   'updateDbProductTracked', 'setSpDuyet', 'setYeuThich', 'setCombo', 'spMyPerms',
   'ctSave', 'ctUpdate', 'ctDelete', 'ctDuyet', 'ctSeed', 'ctFav',
@@ -122,6 +128,7 @@ const SUPER_FNS = new Set(['listCongTy', 'createCongTy', 'deleteCongTy', 'listCo
 const ADMIN_FNS = new Set(['adminListUsers', 'adminCreateUser', 'adminUpdateUser',
   'adminSetPassword', 'adminSetActive', 'adminDeleteUser', 'getAuditLog',
   'listDeleteRequests', 'resolveDeleteRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest',
+  'listDeXuat', 'getDeXuat', 'resolveDeXuat',
   'deleteDbProduct',     // Xóa sản phẩm trực tiếp: CHỈ Admin (nhân viên phải gửi yêu cầu)
   'updateCongTy']);      // Chủ công ty đổi logo/tên công ty mình (hàm tự kiểm đúng công ty)
 
@@ -179,17 +186,6 @@ function buildPurchaseCard(o) {
     if (Number(od.vat) > 0) tot += '\n<font color=\'grey\'>VAT ' + (od.vatPct || 0) + '%</font>　　' + fmtVN(od.vat) + ' đ';
     tot += '\n**💰 TỔNG THANH TOÁN**　　<font color=\'red\'>**' + fmtVN(od.total) + ' đ**</font>';
     els.push(md(tot, 'right'));
-    // Đợt thanh toán do phòng mua hàng đề xuất
-    const tt = Array.isArray(od.thanhToan) ? od.thanhToan : [];
-    if (tt.length) {
-      els.push({ tag: 'hr' });
-      let ln = '**🗓 ĐỀ XUẤT THANH TOÁN**';
-      tt.forEach(function (d) {
-        ln += '\nĐợt ' + d.dot + '　·　' + (Number(d.pct) || 0) + '%　·　**' + fmtVN(d.tien) + ' đ**'
-          + (d.ngay ? '　·　' + d.ngay : '') + (d.gc ? '\n<font color=\'grey\'>' + d.gc + '</font>' : '');
-      });
-      els.push(md(ln));
-    }
   });
 
   // ==== Tổng tất cả (nếu nhiều NCC) ====
@@ -208,12 +204,91 @@ function buildPurchaseCard(o) {
       config: { wide_screen_mode: true },
       header: {
         template: 'blue',
-        title: { tag: 'plain_text', content: o.loai === 'ck' ? '💬 ĐỀ XUẤT CHIẾT KHẤU' : (o.loai === 'tt' ? '💳 ĐỀ XUẤT THANH TOÁN' : '🛒 YÊU CẦU MUA HÀNG') },
+        title: { tag: 'plain_text', content: '🛒 YÊU CẦU MUA HÀNG' },
         subtitle: { tag: 'plain_text', content: (o.project || '') + (o.nguoiGui ? ' — ' + o.nguoiGui : '') }
       },
       elements: els
     }
   };
+}
+/* ===== Thẻ Lark cho ĐỀ XUẤT (chiết khấu / thanh toán) ===== */
+function buildDeXuatCard(o, ma) {
+  o = o || {};
+  const md = function (content, align) { const e = { tag: 'markdown', content: content }; if (align) e.text_align = align; return e; };
+  const colv = function (content, weight, align) { return { tag: 'column', width: 'weighted', weight: weight, vertical_align: 'center', elements: [md(content, align)] }; };
+  const rowset = function (cols) { return { tag: 'column_set', flex_mode: 'none', horizontal_spacing: 'small', columns: cols }; };
+  const els = [];
+  const isCK = o.loai !== 'tt';
+  els.push(md('🏢 **' + (o.supplier || '—') + '**'
+    + '\n<font color=\'grey\'>Dự án: ' + (o.project || '—') + '　·　' + (o.hangMuc || '') + '</font>'
+    + '\n<font color=\'grey\'>Phiếu: ' + ma + '　·　Người gửi: ' + (o.nguoiGui || '—')
+    + (o.phongBan ? '　·　' + o.phongBan : '') + '</font>'));
+  els.push({ tag: 'hr' });
+  if (isCK) {
+    const items = Array.isArray(o.items) ? o.items : [];
+    let goc = 0, sau = 0;
+    items.forEach(function (it, i) {
+      const sl = Number(it.sl) || 0, dg = Number(it.donGia) || 0, dgGoc = Number(it.donGiaGoc) || 0;
+      goc += sl * dgGoc; sau += sl * dg;
+      let left = '**' + (i + 1) + '. ' + (it.ten || '') + '**';
+      left += '\n<font color=\'grey\'>' + sl + ' ' + (it.dvt || '') + ' × ' + fmtVN(dgGoc) + ' đ</font>';
+      if (Number(it.giamGiaPct) > 0) left += '\n<font color=\'orange\'>đề xuất giảm ' + it.giamGiaPct + '% → ' + fmtVN(dg) + ' đ</font>';
+      els.push(rowset([colv(left, 3), colv('**' + fmtVN(sl * dg) + ' đ**', 1, 'right')]));
+    });
+    els.push({ tag: 'hr' });
+    els.push(md('<font color=\'grey\'>Giá hiện tại</font>　　' + fmtVN(goc) + ' đ'
+      + '\n<font color=\'orange\'>Nếu chấp nhận đề xuất</font>　　**' + fmtVN(sau) + ' đ**'
+      + '\n**💰 TIẾT KIỆM**　　<font color=\'green\'>**' + fmtVN(Math.max(0, goc - sau)) + ' đ**</font>', 'right'));
+  } else {
+    const dots = Array.isArray(o.dots) ? o.dots : [];
+    let sum = 0;
+    dots.forEach(function (d, i) {
+      sum += Number(d.tien) || 0;
+      let left = '**Đợt ' + (d.dot || i + 1) + '**　<font color=\'grey\'>' + (Number(d.pct) || 0) + '%'
+        + (d.ngay ? '　·　' + d.ngay : '') + '</font>';
+      if (d.gc) left += '\n<font color=\'grey\'>' + d.gc + '</font>';
+      els.push(rowset([colv(left, 3), colv('**' + fmtVN(d.tien) + ' đ**', 1, 'right')]));
+    });
+    els.push({ tag: 'hr' });
+    els.push(md('<font color=\'grey\'>Giá trị đơn hàng</font>　　' + fmtVN(o.tongDon || sum) + ' đ'
+      + '\n**💳 TỔNG ĐỀ XUẤT**　　<font color=\'red\'>**' + fmtVN(sum) + ' đ**</font>', 'right'));
+  }
+  if (o.ghiChu) els.push(md('<font color=\'grey\'>Ghi chú: ' + o.ghiChu + '</font>'));
+  els.push(md('⏳ <font color=\'orange\'>**Chờ duyệt**</font>'));
+  const now = new Date();
+  const stamp = ('0' + now.getDate()).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear();
+  els.push({ tag: 'note', elements: [{ tag: 'plain_text', content: '⚡ Gửi tự động từ Dezon QS Pro · ' + stamp }] });
+  return {
+    msg_type: 'interactive',
+    card: {
+      config: { wide_screen_mode: true },
+      header: {
+        template: isCK ? 'orange' : 'turquoise',
+        title: { tag: 'plain_text', content: isCK ? '💬 ĐỀ XUẤT CHIẾT KHẤU' : '💳 ĐỀ XUẤT THANH TOÁN' },
+        subtitle: { tag: 'plain_text', content: (o.project || '') + (o.nguoiGui ? ' — ' + o.nguoiGui : '') }
+      },
+      elements: els
+    }
+  };
+}
+// Gửi ĐỀ XUẤT: lưu vào bảng de_xuat (KHÔNG tạo đơn mua hàng), báo Admin, rồi bắn thẻ Lark
+async function sendDeXuat(actor, dx) {
+  dx = dx || {};
+  const saved = await store.saveDeXuat(Object.assign({ requesterId: actor && actor.uid }, dx));
+  try {
+    await auth.notifyDeXuatAdmins(actor, { ma: saved.ma, loai: saved.loai, supplier: dx.supplier });
+  } catch (e) { console.warn('[đề xuất] notify lỗi:', e && e.message); }
+  let larkOk = false;
+  try {
+    const r = await fetch(PURCHASE_WEBHOOK, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildDeXuatCard(dx, saved.ma))
+    });
+    let data = null; try { data = await r.json(); } catch (e) { data = null; }
+    larkOk = !!(data && (data.code === 0 || data.StatusCode === 0 || data.msg === 'success'));
+    if (!larkOk) console.warn('[đề xuất] webhook Lark trả lỗi:', (data && (data.msg || data.StatusMessage)) || ('HTTP ' + r.status));
+  } catch (e) { console.warn('[đề xuất] webhook lỗi:', e && e.message); }
+  return { ok: true, ma: saved.ma, loai: saved.loai, total: saved.total, lark: larkOk };
 }
 async function sendPurchaseRequest(actor, order) {
   order = order || {};
