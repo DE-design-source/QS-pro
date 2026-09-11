@@ -2295,7 +2295,6 @@ function spPTList_(){
     if(view==='__chua'){ var c1=ctOf_(r.a); if(!c1||c1.daDuyet) return false; }
     else if(view==='__da'){ var c2=ctOf_(r.a); if(!c2||!c2.daDuyet) return false; }
     else if(view==='__fav'){ var c3=ctOf_(r.a); if(!c3||!c3.yeuThich) return false; }
-    else if(view!=='all' && r.loai!==view) return false;
     if(f.ptLoai && r.loai!==f.ptLoai) return false;
     if(f.ptNhom && r.nhom!==f.ptNhom) return false;
     if(f.ptDvt && r.dvt!==f.ptDvt) return false;
@@ -2322,19 +2321,19 @@ function spPTRender_(){ return spFilter(); }
 function spPTSetView(v){ S._ptView=v; S._spPage=1; spViewTabs_(); spFilter(); }
 function spPTTabs_(){
   var el=document.getElementById('spViewTabs'); if(!el) return;
+  // ĐÚNG bộ chip như Thiết bị đèn: chỉ 4 trạng thái, cùng kiểu màu.
+  // Lọc theo "loại báo giá" đã nằm trong nút Bộ lọc (và hiện thành thẻ khi đang bật).
   var all=spPTAll_(), cur=S._ptView||'all';
   var db=all.filter(function(r){ return ctOf_(r.a); });
-  var tabs=[['all','Tất cả',all.length]].concat(PT_LOAI.map(function(x){
-    return [x[0], x[1], all.filter(function(r){ return r.loai===x[0]; }).length]; }));
-  if(db.length){
-    tabs.push(['__chua','Chưa duyệt', db.filter(function(r){ return !ctOf_(r.a).daDuyet; }).length]);
-    tabs.push(['__da','Đã duyệt', db.filter(function(r){ return ctOf_(r.a).daDuyet; }).length]);
-    tabs.push(['__fav','★ Yêu thích', db.filter(function(r){ return ctOf_(r.a).yeuThich; }).length]);
-  }
+  var chua=db.filter(function(r){ return !ctOf_(r.a).daDuyet; }).length;
+  var da=db.filter(function(r){ return ctOf_(r.a).daDuyet; }).length;
+  var fav=db.filter(function(r){ return ctOf_(r.a).yeuThich; }).length;
+  var tabs=[['all','Tất cả',all.length],['__chua','Chưa duyệt',chua],
+            ['__da','Đã duyệt',da],['__fav','★ Yêu thích',fav]];
   el.innerHTML=tabs.map(function(t){
-    return '<button class="spvt'+(cur===t[0]?' on':'')+'" onclick="spPTSetView(\''+t[0]+'\')">'+esc(t[1])
-      +(t[2]?'<span class="spvt-n">'+t[2]+'</span>':'')+'</button>'; }).join('')
-    +'<span class="spvt-note ptnote">Bấm 1 dòng để xem thông tin công tác · ⊕ để thêm vào bảng khái toán của dự án đang chọn</span>';
+    return '<button class="spvt'+(cur===t[0]?' on':'')
+      +(t[0]==='__chua'?' warn':(t[0]==='__fav'?' fav':''))+'" onclick="spPTSetView(\''+t[0]+'\')">'+esc(t[1])
+      +(t[2]?'<span class="spvt-n">'+t[2]+'</span>':'')+'</button>'; }).join('');
 }
 function spPTChips_(){
   var bar=document.getElementById('spBar'); if(!bar) return;

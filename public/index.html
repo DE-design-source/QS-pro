@@ -4137,6 +4137,16 @@ table.tk td .ln-in:focus{background:#fff}
 .citem.cc-child{cursor:pointer}
 .citem.cc-child:hover{background:#f6faff}
 .citem>.cmeta .cc-tag.kem{display:none}
+
+/* Panel trái hẹp lại khi mở panel chi tiết (3 cột) -> nút ★ bị đẩy ra ngoài và bị che.
+   Thu gọn nút Bộ lọc còn biểu tượng để cả hàng vừa khung, và cho phép xuống dòng nếu vẫn chật. */
+.cat-hd .filt-lbl{margin-left:2px}
+.boc.detail .cat-hd{flex-wrap:wrap;row-gap:6px}
+.boc.detail .cat-hd .filt-lbl{display:none}
+.boc.detail .cat-hd .filt-btn{padding:0 8px;gap:4px}
+@media(max-width:1320px){
+  .boc.detail .cat-hd .cat-count{display:none}
+}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -4238,7 +4248,7 @@ table.tk td .ln-in:focus{background:#fff}
       <!-- LEFT: filter + catalog -->
       <div class="panel catpanel" id="leftCat">
         <div class="catpanel-top">
-          <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><span class="sp" style="flex:1"></span><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg> Bộ lọc<span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button><button class="favgo-btn" id="favGoBtn" onclick="catFavToggle()"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg><span class="favgo-n" id="favGoN"></span></button></div>
+          <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><span class="sp" style="flex:1"></span><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg><span class="filt-lbl">Bộ lọc</span><span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button><button class="favgo-btn" id="favGoBtn" onclick="catFavToggle()"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg><span class="favgo-n" id="favGoN"></span></button></div>
 
           <!-- 3 bộ chọn (theo Figma) -->
           <div class="mlbl" title="Lọc danh mục sản phẩm bên dưới. Khác với ô 'Hạng mục đã bóc' ở bảng bên phải — đó là đề mục đang bóc.">Lọc theo đề mục</div>
