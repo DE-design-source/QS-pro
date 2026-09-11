@@ -1029,6 +1029,28 @@ function pdPriceFoot_(p){
 }
 // Nội dung chi tiết SP xếp dọc (panel Bóc tách)
 function pdContent_(p){ return pdMedia_(p)+pdSpecs_(p)+pdPriceFoot_(p); }
+/* Bấm 1 sản phẩm đi kèm -> hiện thông tin của chính sản phẩm đó.
+   Thẻ con không nằm trong danh sách đang lọc nên mở panel theo OBJECT, không theo chỉ số. */
+function catChildDetail_(pk,k){
+  var ds=(S._catCbIdx||{})[pk]||(S._catCb||{})[pk]||[];
+  var x=ds[k]; if(!x) return;
+  showDetailObj_(x, 'catAddChild_(\''+pk+'\','+k+')');
+}
+function showDetailObj_(p, addJs){
+  var el=document.getElementById('pdPanel'); if(!el) return;
+  S._detailIdx=null;
+  var g=document.getElementById('bocGrid'); if(g) g.classList.add('detail');
+  el.style.display='block'; el.classList.remove('ptdetail');
+  el.innerHTML='<div class="pd-head"><h3>Thông tin sản phẩm</h3><button class="pd-x" title="Đóng" onclick="hideDetail()">✕</button></div>'
+    +pdContent_(p)
+    +'<div id="pdComboPanel"></div>'
+    +'<div class="pd-actions">'
+      +'<button class="btn ghost sm" onclick="hideDetail()">Đóng</button>'
+      +'<button class="btn blue sm" onclick="'+addJs+'">'+icon('plus',14)+' Thêm vào bóc tách</button></div>';
+  document.addEventListener('keydown',pdPanelKey_);
+  el.scrollTop=0;
+  pdLoadCombo_(p, null, 'bóc tách', 'pdComboPanel');     // xem combo của chính SP này (nếu có)
+}
 function showDetail(i){
   var p=(S._filtered||[])[i]; if(!p) return;
   S._detailIdx=i;
@@ -1085,8 +1107,12 @@ function renderSanpham(){
       +'</div>'
     +'</div>';
   S._spSel=S._spSel||{}; S._spFilters=S._spFilters||{};
-  if(!S._spCols) S._spCols={thumb:1,ten:1,duyet:1,sku:1,thuong_hieu:1,hang_muc:1,
-    cong_suat_w:1,nhiet_do_mau_k:1,cri:1,goc_chieu_deg:1,giaDaiLy:1};
+  if(!S._spCols){
+    var luu=null; try{ luu=JSON.parse(localStorage.getItem('qs_spcolcfg')||'{}').on; }catch(e){}
+    S._spCols=(luu&&Object.keys(luu).length)?luu
+      :{thumb:1,ten:1,duyet:1,sku:1,thuong_hieu:1,hang_muc:1,
+        cong_suat_w:1,nhiet_do_mau_k:1,cri:1,goc_chieu_deg:1,giaDaiLy:1};
+  }
   S._spView=S._spView||'all';
   renderSpProjPanel_(); renderSpChips_(); spEditBtnSync_(); spUndoBtnSync_(); spColChips_(); spRenderHead_(); spFilter();
   spLoadPerm_().then(function(){ spEditBtnSync_(); spViewTabs_(); spFilter(); });
@@ -1686,7 +1712,8 @@ function spOrder_(){
   if(spPTMode_()) return ptOrder2_();
   var all=spAllCols_().map(function(c){ return c[0]; });
   if(!S._spOrder){
-    try{ var j=JSON.parse(localStorage.getItem('qs_spcolcfg')||'{}'); S._spOrder=j.order||null; S._spW=j.w||{}; }
+    try{ var j=JSON.parse(localStorage.getItem('qs_spcolcfg')||'{}'); S._spOrder=j.order||null; S._spW=j.w||{};
+         if(j.on && Object.keys(j.on).length) S._spCols=j.on; }          // nhớ cột đang bật/tắt
     catch(e){ S._spW={}; }
     if(!S._spOrder) S._spOrder=all.slice();
   }
@@ -1700,7 +1727,7 @@ function spOrder_(){
 function spSaveCols_(){
   try{
     if(spPTMode_()) localStorage.setItem('qs_ptcolcfg',JSON.stringify({order:S._ptOrder2,w:S._ptW2||{},on:S._ptColsOn||{}}));
-    else localStorage.setItem('qs_spcolcfg',JSON.stringify({order:S._spOrder,w:S._spW||{}}));
+    else localStorage.setItem('qs_spcolcfg',JSON.stringify({order:S._spOrder,w:S._spW||{},on:S._spCols||{}}));
   }catch(e){}
 }
 // thứ tự + độ rộng + cột hiện của BẢNG CÔNG TÁC (lưu riêng, không đụng cấu hình cột SP)
@@ -1720,8 +1747,10 @@ function ptOrder2_(){
 function spResetCols_(){
   if(spPTMode_()){ S._ptOrder2=null; S._ptW2={}; S._ptColsOn=null; try{ localStorage.removeItem('qs_ptcolcfg'); }catch(e){}
     ptOrder2_(); spColChips_(); spRenderHead_(); spFilter(); toast('Đã đặt lại cột bảng công tác'); return; }
-  S._spOrder=null; S._spW={}; try{ localStorage.removeItem('qs_spcolcfg'); }catch(e){}
-  spOrder_(); spColChips_(); spRenderHead_(); spFilter(); toast('Đã đặt lại thứ tự và độ rộng cột'); }
+  S._spOrder=null; S._spW={}; S._spCols=null; try{ localStorage.removeItem('qs_spcolcfg'); }catch(e){}
+  S._spCols={thumb:1,ten:1,duyet:1,sku:1,thuong_hieu:1,hang_muc:1,
+    cong_suat_w:1,nhiet_do_mau_k:1,cri:1,goc_chieu_deg:1,giaDaiLy:1};
+  spOrder_(); spColChips_(); spRenderHead_(); spFilter(); toast('Đã đặt lại cột bảng sản phẩm'); }
 /* Nội dung dài hơn bề rộng cột -> khi bấm vào ô, ô tự nới rộng đè lên cột bên cạnh
    để đọc và sửa trọn vẹn; rời ô là thu lại như cũ.                              */
 function spInpFocus_(e){
@@ -1795,8 +1824,9 @@ function spVisCols_(){
 }
 function spColToggle(k){
   if(k==='ten'||k==='stt') return;
-  if(spPTMode_()){ ptOrder2_(); S._ptColsOn[k]=!S._ptColsOn[k]; spSaveCols_(); }
+  if(spPTMode_()){ ptOrder2_(); S._ptColsOn[k]=!S._ptColsOn[k]; }
   else { S._spCols=S._spCols||{}; S._spCols[k]=!S._spCols[k]; }
+  spSaveCols_();                       // cả 2 hạng mục đều nhớ cột đang bật/tắt
   spColChips_(); spRenderHead_(); spFilter();
 }
 /* Chọn cột: gom vào 1 nút + bảng chọn thả xuống (trước đây trải 3 hàng chip
@@ -1856,6 +1886,7 @@ function spColAll_(on){
   });
   spSaveCols_(); spColChips_(); spRenderHead_(); spFilter();
 }
+/* Đặt lại cột: xoá luôn phần đã lưu để lần sau mở trang về đúng mặc định */
 function spRenderHead_(){
   var head=document.getElementById('spHead'); if(!head) return;
   var vis=spVisCols_(), ACT=150, SEL=38;
@@ -1921,7 +1952,11 @@ function renderSpChips_(){
   if(badge){ badge.textContent=n||''; badge.style.display=n?'inline-flex':'none'; }
   var btn=document.getElementById('spBoLocBtn'); if(btn) btn.classList.toggle('on', n>0);
 }
-function spSelFilter(key,val){ S._spFilters=S._spFilters||{}; if(!val) delete S._spFilters[key]; else S._spFilters[key]=val; renderSpChips_(); spFilter(); }
+function spSelFilter(key,val){
+  S._spFilters=S._spFilters||{}; if(!val) delete S._spFilters[key]; else S._spFilters[key]=val;
+  S._spPage=1; renderSpChips_(); spFilter();
+  if(document.getElementById('spFltPop')) spBoLocPop_();     // popover đang mở thì cập nhật theo
+}
 // chip "Dòng SP" — gộp nhom (đã chuẩn hoá) trong phạm vi hạng mục đang chọn
 function spDongChips_(){
   var scope=spScopeProducts_(), map={};
@@ -2304,25 +2339,31 @@ function spPTTabs_(){
 function spPTChips_(){
   var bar=document.getElementById('spBar'); if(!bar) return;
   var f=S._spFilters||{}, all=spPTAll_();
-  var view=S._ptView||'all';
-  var nhomM={}; all.forEach(function(r){ if(view==='all'||r.loai===view) nhomM[r.nhom]=1; });
-  var nhom=Object.keys(nhomM);
-  var treeCol='<div class="sp-fcol"><label>Đề mục</label>'
-    +'<div class="sp-catwrap"><button class="tree-btn sp-catbtn" id="spCatBtn" onclick="spCatToggle(event)">'
-      +'<span class="sp-catlbl">3.1.Phần thô</span><span class="cnt">['+pad2(all.length)+']</span><span class="sp-caret">▾</span></button>'
-      +'<div class="tree-pop" id="spCatPop" style="display:none"></div></div></div>';
+  // Hàng lọc giống hệt Thiết bị đèn: chỉ ô ĐỀ MỤC + các bộ lọc ĐANG bật (dạng thẻ có ✕).
+  // Mọi bộ lọc khác (loại báo giá · hạng mục công tác · ĐVT · khoảng giá · trạng thái)
+  // nằm trong nút "Bộ lọc", không bày inline nữa.
+  function fchip(key,lb,val){
+    return '<span class="fltag" title="'+esc(lb)+'"><i>'+esc(lb)+'</i>'+esc(val)
+      +'<b onclick="spSelFilter(\'' + key + '\',\'\')" title="Bỏ lọc này">✕</b></span>';
+  }
+  var tags='';
+  if(f.ptLoai) tags+=fchip('ptLoai','Loại báo giá',ptLoaiNgan_(f.ptLoai));
+  if(f.ptNhom) tags+=fchip('ptNhom','Hạng mục',f.ptNhom);
+  if(f.ptDvt)  tags+=fchip('ptDvt','ĐVT',f.ptDvt);
+  if(f.ptDa==='1') tags+=fchip('ptDa','Trạng thái','Đã có trong bảng');
+  if(f.ptDa==='0') tags+=fchip('ptDa','Trạng thái','Chưa thêm');
+  if(f.ptSua==='1') tags+=fchip('ptSua','Lọc','Đã sửa giá');
+  if(f.min||f.max) tags+='<span class="fltag"><i>Khoảng giá</i>'
+      +(f.min?money(f.min):'0')+' – '+(f.max?money(f.max):'∞')
+      +'<b onclick="spFltSet(\'min\',\'\');spFltSet(\'max\',\'\')" title="Bỏ lọc này">✕</b></span>';
+  var treeCol='<div class="sp-scope"><button class="tree-btn sp-catbtn" id="spCatBtn" onclick="spCatToggle(event)">'
+      +'<span class="sp-catlbl">3.1.Phần thô</span><span class="cnt">'+all.length+'</span><span class="sp-caret">▾</span></button>'
+      +'<div class="tree-pop" id="spCatPop" style="display:none"></div></div>';
+  var nS=Object.keys(ptOvrAll_()).length;
   bar.innerHTML='<div class="sp-filtrow">'+treeCol
-    +'<div class="sp-fcol"><label>Hạng mục công tác</label><select class="sp-fsel" onchange="spSelFilter(\'ptNhom\',this.value)">'
-      +'<option value="">Tất cả hạng mục công tác</option>'
-      +nhom.map(function(v){ return '<option value="'+esc(v)+'"'+(f.ptNhom===v?' selected':'')+'>'+esc(v)+'</option>'; }).join('')
-    +'</select></div>'
-    +(function(){
-        var nS=Object.keys(ptOvrAll_()).length;
-        var chip='';
-        if(nS) chip+='<span class="spchip sua" title="Trả các công tác đã sửa về đúng bảng giá gốc" onclick="ptResetOvr_()">'+nS+' công tác đã sửa giá ✕</span>';
-        if(ptFltCount_()) chip+='<span class="spchip clr" onclick="ptFltReset_();closePop&&closePop()">✕ Xóa lọc</span>';
-        return chip?('<div class="sp-fcol sp-fcol-end">'+chip+'</div>'):'';
-      })()
+    +(tags?('<div class="fltags">'+tags+'</div>'):'')
+    +(nS?'<button class="btn ghost xs sua" title="Trả các công tác đã sửa về đúng bảng giá gốc" onclick="ptResetOvr_()">'+nS+' công tác đã sửa giá ✕</button>':'')
+    +(ptFltCount_()?'<button class="btn ghost xs sp-clrflt" onclick="ptFltReset_()">Xoá lọc</button>':'')
     +'</div>';
   var badge=document.getElementById('spFltBadge'); var n=ptFltCount_();
   if(badge){ badge.textContent=n||''; badge.style.display=n?'inline-flex':'none'; }
@@ -2624,8 +2665,9 @@ async function pdLoadCombo_(p, idx, dich, boxId){
     +'<div class="pd-sec">Sản phẩm đi kèm <i>('+list.length+')</i></div>'
     +'<div class="cbi-list">'+rows+'</div>'
     +'<div class="cbi-tot"><span>Tổng combo kèm theo</span><b>'+money(tong)+' đ</b></div>'
-    +'<button class="btn blue sm cbi-add" title="Thêm sản phẩm chính và toàn bộ sản phẩm đi kèm vào '+esc(dich)+'"'
-      +' onclick="pdAddCombo_('+idx+')">'+icon('plus',14)+' Thêm cả combo</button>'
+    +((idx==null||idx<0)?''
+      :('<button class="btn blue sm cbi-add" title="Thêm sản phẩm chính và toàn bộ sản phẩm đi kèm vào '+esc(dich)+'"'
+        +' onclick="pdAddCombo_('+idx+')">'+icon('plus',14)+' Thêm cả combo</button>'))
   +'</div>';
 }
 // Thêm sản phẩm chính + toàn bộ sản phẩm đi kèm vào dự án / bóc tách
@@ -6852,16 +6894,16 @@ function catComboHtml_(p, idx){
     var img=x.hinhAnh
       ? '<img class="thumb" src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">'
       : '<div class="thumb"></div>';
-    return '<div class="citem cc-child'+(k===ds.length-1?' last':'')+'">'
+    return '<div class="citem cc-child'+(k===ds.length-1?' last':'')+'" title="Xem chi tiết sản phẩm"'
+        +' onclick="catChildDetail_(\''+pk+'\','+k+')">'
       +img
       +'<div class="cmid">'
         +'<div class="nm"><span class="cc-ix">'+((idx+1)+'.'+(k+1))+'</span>'+esc(x.ten||'')+'</div>'
         +'<div class="meta"><span class="pr">'+money(x.donGiaBan)+' đ</span></div>'
       +'</div>'
-      +'<button class="add" title="Thêm sản phẩm này vào bóc tách" onclick="catAddChild_(\''+pk+'\','+k+')">+</button>'
+      +'<button class="add" title="Thêm sản phẩm này vào bóc tách" onclick="event.stopPropagation();catAddChild_(\''+pk+'\','+k+')">+</button>'
       +'<div class="cmeta metarow">'
         +(brand?'<span class="sz brand">'+brand+'</span>':'')
-        +'<span class="cc-tag kem" title="Món đi kèm của sản phẩm phía trên">đi kèm</span>'
         +(sl>1?'<span class="sz cbsl" title="Số lượng đi kèm">×'+ptQty(sl)+'</span>':'')
       +'</div>'
       +(specs?'<div class="cspecs">'+specs+'</div>':'')
