@@ -4581,6 +4581,7 @@ function muahangCard(g, gi, vatPct){
       +'<td class="c b">'+sl+'</td>'
       +'<td class="n">'+money(dg)+'</td>'
       +'<td class="n b">'+money(ttGoc)+'</td>'
+      +'<td class="c"><span class="mh-discwrap dx"><input class="mh-disc" type="number" min="0" max="100" value="'+(mhDx_(l)||'')+'" placeholder="0" onchange="mhSetDx(\''+l.lineId+'\',this.value)" title="Mức giảm giá phòng mua hàng đề xuất với nhà cung cấp"><i>%</i></span></td>'
       +'<td class="c"><span class="mh-discwrap"><input class="mh-disc" type="number" min="0" max="100" value="'+(pct||'')+'" placeholder="0" onchange="mhSetDisc(\''+l.lineId+'\',this.value)"><i>%</i></span></td>'
       +'<td class="n b mh-ttck">'+money(ttCK)+'</td></tr>';
   }).join('');
@@ -4596,13 +4597,19 @@ function muahangCard(g, gi, vatPct){
     +'<div class="dbcard-b mhc-b">'
       +'<div class="mh-scroll"><table class="mh-tbl2">'
         +'<thead><tr><th class="c">#</th><th class="c">Ảnh</th><th>Sản phẩm</th><th class="c">ĐVT</th><th class="c">SL</th><th class="n">Đơn giá</th><th class="n">Thành tiền</th>'
+          +'<th class="c mh-disc-th dx-th">Đề xuất giảm giá từ phòng mua hàng (%)<span class="mh-bulk"><input type="number" min="0" max="100" placeholder="nhập %" onchange="mhSetDxAll('+gi+',this.value)" title="Đề xuất % cho tất cả dòng"></span></th>'
           +'<th class="c mh-disc-th">Giảm giá NCC (%)<span class="mh-bulk"><input type="number" min="0" max="100" placeholder="nhập %" onchange="mhSetDiscAll('+gi+',this.value)" title="Áp dụng % cho tất cả dòng"></span></th>'
           +'<th class="n">Thành tiền sau CK</th></tr></thead>'
-        +'<tbody>'+(rows||'<tr><td colspan="9" class="empty">—</td></tr>')+'</tbody>'
-        +'<tfoot><tr class="mhf-vat"><td colspan="7"></td><td class="n">VAT '+vatPct+'%</td><td class="n">'+money(vat)+'</td></tr>'
-        +'<tr class="mhf-tot"><td colspan="7"></td><td class="n">TỔNG</td><td class="n">'+money(tot)+'</td></tr></tfoot>'
+        +'<tbody>'+(rows||'<tr><td colspan="10" class="empty">—</td></tr>')+'</tbody>'
+        +'<tfoot><tr class="mhf-vat"><td colspan="8"></td><td class="n">VAT '+vatPct+'%</td><td class="n">'+money(vat)+'</td></tr>'
+        +'<tr class="mhf-tot"><td colspan="8"></td><td class="n">TỔNG</td><td class="n">'+money(tot)+'</td></tr></tfoot>'
       +'</table></div>'
-      +'<div class="mhc-f"><button class="btn navy sm" onclick="mhSend('+gi+',this)">'+icon('cart',15)+' Gửi mua hàng NCC này</button></div>'
+      +mhPayHtml_(g,gi,tot)
+      +'<div class="mhc-f">'
+        +(mhDxSum_(items)?'<button class="btn amber sm" onclick="mhSendDx('+gi+',this)" title="Gửi mức chiết khấu phòng mua hàng đề xuất cho nhà cung cấp">'+icon('gauge',15)+' Gửi yêu cầu chiết khấu đề xuất</button>':'')
+        +'<span style="flex:1"></span>'
+        +'<button class="btn navy sm" onclick="mhSend('+gi+',this)">'+icon('cart',15)+' Gửi mua hàng NCC này</button>'
+      +'</div>'
     +'</div></div>';
 }
 /* Panel tổng hợp bên phải — dùng lại .imp-recent của trang Nhập dữ liệu */
@@ -9030,4 +9037,159 @@ function bgCtlBar_(){
     +'<button class="btn green sm" onclick="doExport(\'xlsx\',this)">'+icon('download',15)+' Xuất Excel</button>'
     +'<button class="btn red sm" onclick="printDoc()">'+icon('download',15)+' Xuất PDF / In</button>'
   +'</div>';
+}
+
+/* ═══════════ MUA HÀNG — đề xuất giảm giá + đề xuất thanh toán theo đợt ═══════════ */
+/* Đề xuất giảm giá từ phòng mua hàng: là con số ĐỀ NGHỊ với NCC, tách khỏi
+   "Giảm giá NCC (%)" (mức NCC đã chốt). Lưu trên dòng ở extra.dxGiam. */
+function mhDx_(l){ return Math.max(0,Math.min(100,Number(l&&l.extra&&l.extra.dxGiam)||0)); }
+function mhDxSum_(items){ return (items||[]).reduce(function(a,l){ return a+mhDx_(l); },0); }
+function mhSetDx(lineId,v){
+  var l=(S.lines||[]).filter(function(x){ return x.lineId===lineId; })[0]; if(!l) return;
+  var p=Math.max(0,Math.min(100,Number(v)||0));
+  var ex=Object.assign({}, l.extra||{}); if(p) ex.dxGiam=p; else delete ex.dxGiam;
+  l.extra=ex; renderMuahang();
+  api('updateLine',lineId,{extra:ex}).catch(function(){ toast('Lưu đề xuất giảm giá lỗi'); });
+}
+function mhSetDxAll(gi,v){
+  var g=(S._mhGroups||[])[gi]; if(!g) return;
+  var p=Math.max(0,Math.min(100,Number(v)||0));
+  g.items.forEach(function(l){
+    var ex=Object.assign({}, l.extra||{}); if(p) ex.dxGiam=p; else delete ex.dxGiam;
+    l.extra=ex; api('updateLine',l.lineId,{extra:ex}).catch(function(){});
+  });
+  renderMuahang();
+}
+// Đơn giá / thành tiền NẾU nhà cung cấp chấp nhận mức đề xuất
+function mhPriceDx_(l){ return Math.round(mhPrice(l)*(1-mhDx_(l)/100)); }
+function mhSendDx(gi,btn){
+  var g=(S._mhGroups||[])[gi]; if(!g) return;
+  if(!mhValidateInfo()) return;
+  var vatPct=Number(S.cur&&S.cur.vat)||0;
+  var sub=g.items.reduce(function(a,l){ return a+(Number(l.soLuong)||0)*mhPriceDx_(l); },0);
+  var vat=Math.round(sub*vatPct/100);
+  var goc=g.items.reduce(function(a,l){ return a+(Number(l.soLuong)||0)*mhPrice(l); },0);
+  if(!confirm('Gửi đề xuất chiết khấu tới "'+g.ncc+'"?\n\nGiá gốc: '+money(goc)+' đ\nSau mức đề xuất: '+money(sub)+' đ\nGiảm: '+money(goc-sub)+' đ')) return;
+  if(btn){ btn.disabled=true; btn.dataset.t=btn.innerHTML; btn.innerHTML='Đang gửi…'; }
+  var order={ supplier:g.ncc, vatPct:vatPct, vat:vat, total:sub+vat, deXuat:true,
+    items:g.items.map(function(l){ return {ten:l.ten||'', ma:l.maSP||'', thuongHieu:l.thuongHieu||'',
+      khuVuc:l.khuVuc||'', hinhAnh:String(l.hinhAnh||'').split('\n')[0], sl:Number(l.soLuong)||0,
+      dvt:l.dvt||'Cái', donGia:mhPriceDx_(l), donGiaGoc:mhPrice(l), giamGiaPct:mhDx_(l)}; }) };
+  var base=mhBase(); base.loai='ck';
+  base.ghiChu='[ĐỀ XUẤT CHIẾT KHẤU] '+(base.ghiChu||'');
+  api('sendPurchaseRequest', Object.assign(base,{ orders:[order] }))
+    .then(function(){ toast('✔ Đã gửi đề xuất chiết khấu tới "'+g.ncc+'"'); })
+    .catch(function(e){ toast('Lỗi gửi: '+e.message); })
+    .then(function(){ if(btn){ btn.disabled=false; btn.innerHTML=btn.dataset.t; } });
+}
+
+/* ---------- Đề xuất thanh toán mục tiêu (chia đợt) ---------- */
+function mhPayKey_(){ return 'qs_mhtt_'+((S.cur&&S.cur.maDA)||''); }
+function mhPayAll_(){
+  if(S._mhPayDA!==((S.cur&&S.cur.maDA)||'')){
+    var d={}; try{ d=JSON.parse(localStorage.getItem(mhPayKey_())||'{}')||{}; }catch(e){ d={}; }
+    S._mhPay=d; S._mhPayDA=(S.cur&&S.cur.maDA)||'';
+  }
+  return S._mhPay=S._mhPay||{};
+}
+function mhPaySave_(){ try{ localStorage.setItem(mhPayKey_(), JSON.stringify(mhPayAll_())); }catch(e){} }
+function mhPayOf_(ncc){ var a=mhPayAll_(); if(!a[ncc]) a[ncc]=[{pct:100,tien:0,ngay:'',gc:''}]; return a[ncc]; }
+function mhPayOpen_(ncc){ return !!(S._mhPayOpen&&S._mhPayOpen[ncc]); }
+function mhPayToggle(gi){
+  var g=(S._mhGroups||[])[gi]; if(!g) return;
+  S._mhPayOpen=S._mhPayOpen||{};
+  if(S._mhPayOpen[g.ncc]) delete S._mhPayOpen[g.ncc]; else S._mhPayOpen[g.ncc]=1;
+  renderMuahang();
+}
+function mhPaySet(gi,i,f,v){
+  var g=(S._mhGroups||[])[gi]; if(!g) return;
+  var arr=mhPayOf_(g.ncc), d=arr[i]; if(!d) return;
+  var tot=mhTot_(g.items, Number(S.cur&&S.cur.vat)||0);
+  if(f==='pct'){ d.pct=Math.max(0,Math.min(100,Number(String(v).replace(',','.'))||0)); d.tien=Math.round(tot*d.pct/100); }
+  else if(f==='tien'){ d.tien=Math.max(0,tkNum_(v)); d.pct=tot?Math.round(d.tien/tot*1000)/10:0; }
+  else d[f]=v;
+  mhPaySave_(); renderMuahang();
+}
+function mhPayAdd(gi){
+  var g=(S._mhGroups||[])[gi]; if(!g) return;
+  var arr=mhPayOf_(g.ncc), tot=mhTot_(g.items, Number(S.cur&&S.cur.vat)||0);
+  var da=arr.reduce(function(a,d){ return a+(Number(d.pct)||0); },0);
+  var con=Math.max(0, 100-da);
+  arr.push({pct:con, tien:Math.round(tot*con/100), ngay:'', gc:''});
+  mhPaySave_(); renderMuahang();
+}
+function mhPayDel(gi,i){
+  var g=(S._mhGroups||[])[gi]; if(!g) return;
+  var arr=mhPayOf_(g.ncc); if(arr.length<=1){ toast('Cần ít nhất 1 đợt'); return; }
+  arr.splice(i,1); mhPaySave_(); renderMuahang();
+}
+function mhPayChia(gi,n){
+  var g=(S._mhGroups||[])[gi]; if(!g) return;
+  var tot=mhTot_(g.items, Number(S.cur&&S.cur.vat)||0);
+  var arr=[], moi=Math.floor(100/n*10)/10, con=tot;
+  for(var i=0;i<n;i++){
+    var pct=(i===n-1)?Math.round((100-moi*(n-1))*10)/10:moi;
+    var tien=(i===n-1)?con:Math.round(tot*pct/100);   // đợt cuối gánh phần lẻ -> tổng khớp tuyệt đối
+    con-=tien; arr.push({pct:pct, tien:tien, ngay:'', gc:''});
+  }
+  mhPayAll_()[g.ncc]=arr; mhPaySave_(); renderMuahang();
+}
+function mhPayHtml_(g,gi,tot){
+  var mo=mhPayOpen_(g.ncc), arr=mhPayOf_(g.ncc);
+  var sumTien=arr.reduce(function(a,d){ return a+(Number(d.tien)||0); },0);
+  var sumPct=arr.reduce(function(a,d){ return a+(Number(d.pct)||0); },0);
+  var du=Math.abs(sumTien-tot)<=Math.max(1000, tot*0.005);
+  var hdr='<div class="mhtt-h" onclick="mhPayToggle('+gi+')">'
+    +'<span class="mhtt-ic">'+icon('money',16)+'</span>'
+    +'<b>Đề xuất thanh toán mục tiêu</b>'
+    +'<span class="mhtt-sub">'+arr.length+' đợt · '+money(sumTien)+' đ</span>'
+    +'<span style="flex:1"></span>'
+    +'<span class="mhtt-car">'+(mo?'▾':'▸')+'</span></div>';
+  if(!mo) return '<div class="mhtt">'+hdr+'</div>';
+  var cards=arr.map(function(d,i){
+    return '<div class="mhtt-c">'
+      +'<div class="mhtt-c-h">Thanh toán đợt '+(i+1)
+        +'<button class="mhtt-x" title="Xoá đợt" onclick="mhPayDel('+gi+','+i+')">✕</button></div>'
+      +'<label class="mhtt-f"><span>%</span><input type="number" step="any" min="0" max="100" value="'+(d.pct||'')+'" placeholder="%" onchange="mhPaySet('+gi+','+i+',\'pct\',this.value)"></label>'
+      +'<label class="mhtt-f"><span>Số tiền</span><input type="text" inputmode="numeric" value="'+(d.tien?money(d.tien):'')+'" placeholder="0" onchange="mhPaySet('+gi+','+i+',\'tien\',this.value)"></label>'
+      +'<label class="mhtt-f"><span>Ngày</span><input type="date" value="'+esc(d.ngay||'')+'" onchange="mhPaySet('+gi+','+i+',\'ngay\',this.value)"></label>'
+      +'<label class="mhtt-f gc"><span>Ghi chú</span><textarea rows="2" placeholder="VD: tạm ứng ký hợp đồng" onchange="mhPaySet('+gi+','+i+',\'gc\',this.value)">'+esc(d.gc||'')+'</textarea></label>'
+    +'</div>';
+  }).join('');
+  return '<div class="mhtt open">'+hdr
+    +'<div class="mhtt-b">'
+      +'<div class="mhtt-tools"><span class="lb">Chia nhanh</span>'
+        +[2,3,4].map(function(n){ return '<button onclick="mhPayChia('+gi+','+n+')">'+n+' đợt</button>'; }).join('')
+        +'<span style="flex:1"></span>'
+        +'<button class="add" onclick="mhPayAdd('+gi+')">'+icon('plus',13)+' Thêm đợt</button></div>'
+      +'<div class="mhtt-grid">'+cards+'</div>'
+      +'<div class="mhtt-sum'+(du?' ok':' warn')+'">'
+        +'<span class="st">'+icon(du?'check':'gauge',14)+' '
+          +(du?'Đã phân bổ đủ 100% giá trị đơn hàng'
+              :(sumTien<tot?('Còn thiếu '+money(tot-sumTien)+' đ ('+Math.round((100-sumPct)*10)/10+'%)')
+                           :('Vượt '+money(sumTien-tot)+' đ')))+'</span>'
+        +'<span style="flex:1"></span>'
+        +'<span class="tt">Tổng đề xuất: <b>'+money(sumTien)+' đ</b> / '+money(tot)+' đ</span>'
+      +'</div>'
+      +'<button class="btn navy sm mhtt-send" onclick="mhSendPay('+gi+',this)">'+icon('cart',15)+' Gửi đề xuất thanh toán</button>'
+    +'</div></div>';
+}
+function mhSendPay(gi,btn){
+  var g=(S._mhGroups||[])[gi]; if(!g) return;
+  if(!mhValidateInfo()) return;
+  var vatPct=Number(S.cur&&S.cur.vat)||0, tot=mhTot_(g.items,vatPct);
+  var arr=mhPayOf_(g.ncc).filter(function(d){ return (Number(d.tien)||0)>0; });
+  if(!arr.length){ toast('Chưa nhập đợt thanh toán nào'); return; }
+  var sum=arr.reduce(function(a,d){ return a+(Number(d.tien)||0); },0);
+  if(Math.abs(sum-tot)>Math.max(1000,tot*0.005)
+     && !confirm('Tổng đề xuất ('+money(sum)+' đ) chưa khớp giá trị đơn ('+money(tot)+' đ). Vẫn gửi?')) return;
+  if(btn){ btn.disabled=true; btn.dataset.t=btn.innerHTML; btn.innerHTML='Đang gửi…'; }
+  var order=Object.assign(mhOrderOf(g), {thanhToan:arr.map(function(d,i){
+    return {dot:i+1, pct:Number(d.pct)||0, tien:Number(d.tien)||0, ngay:d.ngay||'', gc:d.gc||''}; })});
+  var base=mhBase(); base.loai='tt';
+  base.ghiChu='[ĐỀ XUẤT THANH TOÁN] '+(base.ghiChu||'');
+  api('sendPurchaseRequest', Object.assign(base,{ orders:[order] }))
+    .then(function(){ toast('✔ Đã gửi đề xuất thanh toán '+arr.length+' đợt tới "'+g.ncc+'"'); })
+    .catch(function(e){ toast('Lỗi gửi: '+e.message); })
+    .then(function(){ if(btn){ btn.disabled=false; btn.innerHTML=btn.dataset.t; } });
 }

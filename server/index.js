@@ -179,6 +179,17 @@ function buildPurchaseCard(o) {
     if (Number(od.vat) > 0) tot += '\n<font color=\'grey\'>VAT ' + (od.vatPct || 0) + '%</font>　　' + fmtVN(od.vat) + ' đ';
     tot += '\n**💰 TỔNG THANH TOÁN**　　<font color=\'red\'>**' + fmtVN(od.total) + ' đ**</font>';
     els.push(md(tot, 'right'));
+    // Đợt thanh toán do phòng mua hàng đề xuất
+    const tt = Array.isArray(od.thanhToan) ? od.thanhToan : [];
+    if (tt.length) {
+      els.push({ tag: 'hr' });
+      let ln = '**🗓 ĐỀ XUẤT THANH TOÁN**';
+      tt.forEach(function (d) {
+        ln += '\nĐợt ' + d.dot + '　·　' + (Number(d.pct) || 0) + '%　·　**' + fmtVN(d.tien) + ' đ**'
+          + (d.ngay ? '　·　' + d.ngay : '') + (d.gc ? '\n<font color=\'grey\'>' + d.gc + '</font>' : '');
+      });
+      els.push(md(ln));
+    }
   });
 
   // ==== Tổng tất cả (nếu nhiều NCC) ====
@@ -197,7 +208,7 @@ function buildPurchaseCard(o) {
       config: { wide_screen_mode: true },
       header: {
         template: 'blue',
-        title: { tag: 'plain_text', content: '🛒 YÊU CẦU MUA HÀNG' },
+        title: { tag: 'plain_text', content: o.loai === 'ck' ? '💬 ĐỀ XUẤT CHIẾT KHẤU' : (o.loai === 'tt' ? '💳 ĐỀ XUẤT THANH TOÁN' : '🛒 YÊU CẦU MUA HÀNG') },
         subtitle: { tag: 'plain_text', content: (o.project || '') + (o.nguoiGui ? ' — ' + o.nguoiGui : '') }
       },
       elements: els

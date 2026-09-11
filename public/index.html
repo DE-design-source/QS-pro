@@ -4311,6 +4311,50 @@ td.rsel input,td.rsel textarea{background:transparent}
 .bgt-i.on .nm{font-weight:600;color:var(--blue)}
 .bgt-f{display:flex;align-items:center;gap:8px;padding:9px 12px;border-top:1px solid var(--ln);background:var(--bg2)}
 .bgt-f .hint{flex:1;font-size:11.5px;color:var(--c3)}
+
+/* ═══ Mua hàng: đề xuất giảm giá + đề xuất thanh toán theo đợt ═══ */
+.mh-disc-th.dx-th{background:#fff8ec;color:#a4650a}
+.mh-discwrap.dx input{border-color:#f0d2a2;background:#fffaf2;color:#a4650a;font-weight:600}
+.mh-discwrap.dx input:focus{border-color:#e09a3c;box-shadow:0 0 0 3px rgba(224,154,60,.16)}
+.btn.amber{border-color:#e8c48a;background:#fff8ec;color:#a4650a}
+.btn.amber:hover{border-color:#d9a24a;background:#fdeeda}
+.mhc-f{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+/* khối đề xuất thanh toán */
+.mhtt{border-top:1px solid var(--ln);margin-top:2px}
+.mhtt-h{display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer;user-select:none}
+.mhtt-h:hover{background:var(--bg3)}
+.mhtt-h b{font-size:13px;color:var(--c1)}
+.mhtt-ic{display:inline-flex;color:var(--blue)}
+.mhtt-sub{font-size:12px;color:var(--c3)}
+.mhtt-car{font-size:11px;color:var(--c3)}
+.mhtt-b{padding:0 14px 14px}
+.mhtt-tools{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.mhtt-tools .lb{font-size:11.5px;font-weight:600;color:var(--c3);margin-right:2px}
+.mhtt-tools button{height:28px;padding:0 10px;border:1px solid var(--ln2);border-radius:99px;background:#fff;
+  font:inherit;font-size:12px;font-weight:600;color:var(--c2);cursor:pointer}
+.mhtt-tools button:hover{border-color:var(--blue);color:var(--blue);background:#f4f8ff}
+.mhtt-tools .add{display:inline-flex;align-items:center;gap:5px;border-style:dashed;color:var(--blue);border-color:#bcd3f5}
+.mhtt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.mhtt-c{border:1px solid var(--ln);border-radius:var(--rk);background:var(--bg2);padding:10px;display:flex;flex-direction:column;gap:7px}
+.mhtt-c-h{display:flex;align-items:center;font-size:12.5px;font-weight:600;color:var(--c1)}
+.mhtt-x{margin-left:auto;width:20px;height:20px;border:none;border-radius:6px;background:transparent;color:var(--c3);
+  font-size:11px;cursor:pointer;line-height:1}
+.mhtt-x:hover{background:#fdecea;color:#c0392b}
+.mhtt-f{display:flex;flex-direction:column;gap:3px}
+.mhtt-f>span{font-size:11px;font-weight:600;color:var(--c3)}
+.mhtt-f input,.mhtt-f textarea{height:32px;border:1px solid var(--ln2);border-radius:var(--rc);padding:0 9px;
+  font:inherit;font-size:12.5px;color:var(--c1);background:#fff;width:100%;box-sizing:border-box}
+.mhtt-f textarea{height:auto;padding:6px 9px;resize:vertical;line-height:1.4}
+.mhtt-f input:focus,.mhtt-f textarea:focus{outline:none;border-color:var(--blue);box-shadow:var(--focus)}
+.mhtt-f.gc{grid-column:1/-1}
+.mhtt-sum{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:9px 12px;
+  border-radius:var(--rc);font-size:12.5px}
+.mhtt-sum.ok{background:#effaf3;color:#1f7a45;border:1px solid #c9ecd7}
+.mhtt-sum.warn{background:#fff8ec;color:#a4650a;border:1px solid #f0dcbb}
+.mhtt-sum .st{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.mhtt-sum .tt b{font-weight:700}
+.mhtt-send{margin-top:10px}
+@media(max-width:700px){ .mhtt-grid{grid-template-columns:1fr} }
 </style>
 
 <!-- ===== TOP NAV ===== -->
