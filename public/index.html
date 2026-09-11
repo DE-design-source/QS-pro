@@ -4268,6 +4268,18 @@ td.rsel input,td.rsel textarea{background:transparent}
 .cc-tag.bt-tag.on{background:#b4620d;border-color:#b4620d;color:#fff}
 .cc-kids.bt-kids{border-left-color:#f0c9a0}
 .cc-kids.bt-kids .cc-ix{background:#fdeedd;color:#b4620d}
+
+/* sheet Nhân công / Vật tư của một hạng mục */
+.sheets{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.shchip{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 11px;border-radius:99px;
+  border:1px solid var(--ln2);background:#fff;font:inherit;font-size:12.5px;font-weight:600;color:var(--c2);
+  cursor:pointer;white-space:nowrap;transition:.12s}
+.shchip:hover{border-color:var(--blue);color:var(--blue);background:#f4f8ff}
+.shchip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.shchip .shc-c{font-weight:500;opacity:.62}
+.shchip .shc-n{font-style:normal;font-size:11px;font-weight:600;opacity:.7}
+.shchip.clr{border-style:dashed;color:var(--c3);font-weight:500}
+@media(max-width:900px){ .sheets{width:100%;order:9} }
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -4422,6 +4434,7 @@ td.rsel input,td.rsel textarea{background:transparent}
             </button>
             <div class="tree-pop" id="treePop" style="display:none"></div>
           </div>
+          <div class="sheets" id="tkSheets"></div>
           <div class="sp" style="flex:1"></div>
           <button class="tk-zen" id="tkZenBtn" onclick="tkZenToggle()" title="Thu gọn khối đầu bảng cho màn hình rộng hơn" aria-label="Thu gọn khối đầu bảng"><i></i></button>
         </div>

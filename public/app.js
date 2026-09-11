@@ -327,7 +327,10 @@ async function boot(){
     ctLoad_(true).then(function(){ if(S.node==='3.1'||spPTMode_()) ctReload_(); });
   }catch(e){ toast('Lỗi tải: '+e.message); }
 }
-function bocBoot_(){ try{ rngInit_(); tkZenApply_(); }catch(e){} }
+function bocBoot_(){ try{
+  try{ S.sheet=localStorage.getItem('qs_sheet')||''; }catch(e){ S.sheet=''; }
+  rngInit_(); tkZenApply_();
+}catch(e){} }
 function renderAll(){
   // Ô "Lọc theo đề mục" bên trái phải khớp với đề mục ĐANG BÓC ở bảng phải.
   // Trước đây chỉ đồng bộ khi bấm chọn ở cây; mở lại trang là hai bên lệch nhau.
@@ -410,7 +413,8 @@ async function addItemToFloor(tang){
   if(tang==='CHƯA PHÂN TẦNG') tang='';
   try{
     var l=await api('addLine', S.cur.maDA, {ten:'Hạng mục mới', dvt:'Cái', donGiaVon:0, donGiaBan:0,
-      nhom:S.node, hangMuc:nodeName(S.node), loai:nodeName(S.node), tang:tang}, 1);
+      nhom:S.node, hangMuc:nodeName(S.node), loai:nodeName(S.node), tang:tang,
+      extra:(S.sheet?{sheet:S.sheet}:null)}, 1);
     S.lines.push(l); renderTree(); renderFloors(); renderTable();
     focusNewLine(l.lineId);
     toast('Đã thêm hạng mục'+(tang?' vào '+tang:'')+' — sửa ngay trong bảng');
@@ -2999,10 +3003,12 @@ async function addProdObj(p,floor,sl){
     return l.nhom===S.node && (l.tang||'')===floor
       && ((p.ma&&l.maSP&&l.maSP===p.ma)||l.ten===p.ten)
       && String(l.moTa||'').trim()===String(p.moTa||'').trim()
-      && !String(l.khuVuc||'').trim();
+      && !String(l.khuVuc||'').trim()
+      && tkSheetOf_(l)===(S.sheet||'');
   })[0];
   if(same){ editLine(same.lineId,{soLuong:(Number(same.soLuong)||0)+sl}); toast('+'+sl+' số lượng: '+p.ten); return; }
-  var prod=Object.assign({},p,{ nhom:S.node, hangMuc:nodeName(S.node), loai:nodeName(S.node), tang:floor, extra:{nganh:p.nhom||''} });
+  var prod=Object.assign({},p,{ nhom:S.node, hangMuc:nodeName(S.node), loai:nodeName(S.node), tang:floor,
+    extra:Object.assign({nganh:p.nhom||''}, S.sheet?{sheet:S.sheet}:{}) });
   // ---- Optimistic: hiện dòng NGAY, đồng bộ server chạy nền ----
   var dgVon=Number(p.donGiaVon)||0, dgBan=Number(p.donGiaBan)||0;
   var temp={ lineId:'tmp_'+(S._tmpN=(S._tmpN||0)+1), _pending:true,
@@ -3242,6 +3248,8 @@ function renderTable(){
   if(!isPT && S._ptDetail) ptHideDetail_();
   if(isPT){ renderPhanTho(); return; }
   var lines=S.lines.filter(function(l){ return l.nhom===code || String(l.nhom||'').indexOf(code+'.')===0; });
+  tkSheetChips_(lines);                                   // chip Nhân công / Vật tư của hạng mục này
+  if(S.sheet) lines=lines.filter(function(l){ return tkSheetOf_(l)===S.sheet; });
   document.getElementById('tkCount').textContent='['+pad2(lines.length)+']';
   var t=document.getElementById('tkTable');
   if(!S.cur){ t.style.width=''; t.innerHTML='<tr><td class="empty">Chưa chọn dự án.</td></tr>'; return; }
@@ -8576,7 +8584,11 @@ function tkBulkEditRun_(){
 }
 function tkBulkMorePop_(e){ if(e&&e.stopPropagation) e.stopPropagation();
   var n=tkSelIds_().length;
-  var html='<button onclick="tkPopClose_();tkBulkCopy_()">'+icon('copy',15)+' Sao chép '+n+' dòng (dán được vào Excel)</button>'
+  var html='<button onclick="tkPopClose_();tkBulkSheet_(\'nc\')">'+icon('layers',15)+' Đưa vào sheet Nhân công</button>'
+    +'<button onclick="tkPopClose_();tkBulkSheet_(\'vt\')">'+icon('layers',15)+' Đưa vào sheet Vật tư</button>'
+    +'<button onclick="tkPopClose_();tkBulkSheet_(\'\')">'+icon('close',15)+' Bỏ khỏi sheet (để chung)</button>'
+    +'<div class="bb-menu-sep"></div>'
+    +'<button onclick="tkPopClose_();tkBulkCopy_()">'+icon('copy',15)+' Sao chép '+n+' dòng (dán được vào Excel)</button>'
     +'<button onclick="tkPopClose_();tkBulkDup_()">'+icon('plus',15)+' Nhân bản '+n+' dòng</button>'
     +'<button onclick="tkPopClose_();tkSelAllVisible_()">'+icon('list',15)+' Chọn tất cả dòng đang hiện</button>'
     +'<div class="bb-menu-sep"></div>'
@@ -8850,4 +8862,37 @@ function catVarHtml_(list,G){
       +(specs?'<div class="cspecs">'+specs+'</div>':'')
     +'</div>';
   }).join('')+'</div>';
+}
+
+/* ═══ Sheet Nhân công / Vật tư trong một hạng mục ═══
+   Lưu trên dòng ở extra.sheet ('nc' | 'vt' | rỗng = để chung) nên đi theo dòng, không đụng cấu trúc hạng mục. */
+var TK_SHEETS=[['nc','Nhân công'],['vt','Vật tư']];
+function tkSheetOf_(l){ return String((l&&l.extra&&l.extra.sheet)||''); }
+function tkSheetLbl_(v){ var x=TK_SHEETS.filter(function(t){ return t[0]===v; })[0]; return x?x[1]:''; }
+function setSheet(v){
+  S.sheet=(S.sheet===v)?'':v;
+  try{ localStorage.setItem('qs_sheet', S.sheet||''); }catch(e){}
+  S._tkSel={}; renderTable(); renderCard&&renderCard();
+}
+function tkSheetChips_(lines){
+  var box=document.getElementById('tkSheets'); if(!box) return;
+  var code=S.node||'', dem={nc:0,vt:0,'':0};
+  (lines||[]).forEach(function(l){ dem[tkSheetOf_(l)]=(dem[tkSheetOf_(l)]||0)+1; });
+  box.innerHTML=TK_SHEETS.map(function(t,i){
+    var on=(S.sheet===t[0]);
+    return '<button class="shchip'+(on?' on':'')+'" onclick="setSheet(\''+t[0]+'\')" '
+      +'title="Chỉ hiện các dòng '+t[1]+' của hạng mục này">'
+      +'<span class="shc-c">'+esc(code?(code+'.'+(i+1)+'.'):'')+'</span>'+t[1]
+      +'<i class="shc-n">['+pad2(dem[t[0]]||0)+']</i></button>';
+  }).join('')
+  +(S.sheet?'<button class="shchip clr" onclick="setSheet(\''+S.sheet+'\')" title="Bỏ lọc sheet, xem tất cả">✕ Tất cả</button>':'');
+}
+function tkBulkSheet_(v){
+  var ls=tkSelLines_(); if(!ls.length) return;
+  var edits=ls.map(function(l){
+    var ex=Object.assign({}, l.extra||{});
+    if(v) ex.sheet=v; else delete ex.sheet;
+    return {id:l.lineId, fields:{extra:ex}};
+  });
+  tkApplyEdits_(edits, v?('Đã đưa vào sheet '+tkSheetLbl_(v)):'Đã bỏ khỏi sheet');
 }
