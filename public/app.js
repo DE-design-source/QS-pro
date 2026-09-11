@@ -2534,46 +2534,114 @@ function spSelProds_(){ var sel=S._spSel||{};
     return arr.findIndex(function(q){return String(q.recordId||q.ma||'')===k;})===i;   // bỏ trùng
   }); }
 function spClearSel(){ S._spSel={}; spFilter(); }
-function spBulkBar_(){
-  if(spPTMode_()) return ptBulkBar_();
-  var wrap=document.getElementById('spBulkWrap'); if(!wrap) return;
-  var n=Object.keys(S._spSel||{}).length; if(!n){ wrap.innerHTML=''; return; }
-  var isAdmin=isAdminRole_();
-  var FIELDS=[['CHIẾT KHẤU ĐẠI LÝ (%)','Chiết khấu (%)'],['GIÁ BÁN LẺ','Giá bán lẻ'],['THƯƠNG HIỆU','Thương hiệu'],
-              ['NHÀ CUNG CẤP','Nhà cung cấp'],['HẠNG MỤC','Hạng mục SP'],['DÒNG SẢN PHẨM','Dòng sản phẩm'],
-              ['BẢO HÀNH (năm)','Bảo hành (năm)'],['TRẠNG THÁI','Trạng thái'],['ĐƠN VỊ TÍNH','Đơn vị tính']];
-  // 3 vùng rõ ràng: [đã chọn] · [sửa hàng loạt] · [hành động]
-  wrap.innerHTML='<div class="spbulk">'
-    // -- vùng 1: số đã chọn + bỏ chọn --
-    +'<div class="spb-z spb-count">'
-      +'<span class="spb-n">'+n+'</span>'
-      +'<span class="spb-ntxt">sản phẩm<br>đã chọn</span>'
-      +'<button class="spb-x" title="Bỏ chọn tất cả" onclick="spClearSel()">✕</button>'
-    +'</div>'
-    // -- vùng 2: sửa hàng loạt --
-    +'<div class="spb-z spb-edit">'
-      +'<span class="spb-lb">Sửa hàng loạt</span>'
-      +'<div class="spb-row">'
-        +'<select class="spb-sel" id="spbField">'+FIELDS.map(function(f){return '<option value="'+esc(f[0])+'">'+esc(f[1])+'</option>';}).join('')+'</select>'
-        +'<input class="spb-in" id="spbValue" placeholder="Giá trị mới…" onkeydown="if(event.key===\'Enter\')spBulkApply()">'
-        +'<button class="spb-apply" id="spbApplyBtn" onclick="spBulkApply()">'+icon('check',14)+'<span>Áp dụng</span></button>'
-      +'</div>'
-    +'</div>'
-    // -- vùng 3: hành động --
-    +'<div class="spb-z spb-act">'
-      +'<button class="spb-b fav" onclick="spFavBulk(1)" title="Lưu vào Sản phẩm yêu thích để dùng cho dự án sau">'+icon('star',14)+' Yêu thích</button>'
-      +(spCanDuyet_()?'<button class="spb-b duyet" onclick="spDuyetBulk(1)" title="Đánh dấu Đã duyệt">'+icon('check',14)+' Duyệt</button>':'')
-      +'<button class="spb-b primary" onclick="spBulkToProject()">'+icon('plus',14)+' Thêm vào dự án</button>'
-      +(isAdmin?'<button class="spb-b danger" title="Xoá '+n+' sản phẩm khỏi danh mục" onclick="spBulkDelete()">'+icon('trash',14)+'</button>'
-               :'<button class="spb-b danger" title="Gửi yêu cầu xoá tới Admin" onclick="spBulkRequest()">'+icon('trash',14)+'</button>')
-    +'</div></div>';
+/* ═══════════ THANH CHỌN NHIỀU — một thiết kế cho cả 2 hạng mục ═══════════
+   Thanh nổi cố định ở đáy màn hình:
+     [số đã chọn ✕] | hành động chính | Sửa hàng loạt ▾ | ⋯
+   "Sửa hàng loạt" và các thao tác phụ nằm trong bảng thả xuống nên thanh luôn gọn,
+   không bị chen chúc / đè lên nhau như trước.                                      */
+var SP_BULK_F=[['CHIẾT KHẤU ĐẠI LÝ (%)','Chiết khấu (%)'],['GIÁ BÁN LẺ','Giá bán lẻ'],['THƯƠNG HIỆU','Thương hiệu'],
+  ['NHÀ CUNG CẤP','Nhà cung cấp'],['HẠNG MỤC','Hạng mục SP'],['DÒNG SẢN PHẨM','Dòng sản phẩm'],
+  ['BẢO HÀNH (năm)','Bảo hành (năm)'],['TRẠNG THÁI','Trạng thái'],['ĐƠN VỊ TÍNH','Đơn vị tính']];
+function spBulkFields_(){
+  return spPTMode_() ? CT_BULK_F.map(function(x){ return [x[0],x[1]]; }) : SP_BULK_F;
 }
-// SỬA HÀNG LOẠT: đặt 1 giá trị cho tất cả SP đang chọn
-async function spBulkApply(){
-  var f=document.getElementById('spbField'), v=document.getElementById('spbValue'), btn=document.getElementById('spbApplyBtn');
+function spBulkBar_(){
+  var wrap=document.getElementById('spBulkWrap'); if(!wrap) return;
+  var n=Object.keys(S._spSel||{}).length;
+  if(!n){ wrap.innerHTML=''; spBulkPopClose_(); return; }
+  var PT=spPTMode_(), isAdmin=isAdminRole_();
+  var dv = PT?'công tác':'sản phẩm';
+  var chinh = PT
+    ? '<button class="bb-b primary" onclick="ptBulkAdd_()">'+icon('plus',15)+' Thêm vào bảng khái toán</button>'
+    : '<button class="bb-b primary" onclick="spBulkToProject()">'+icon('plus',15)+' Thêm vào dự án</button>';
+  var fav = PT ? 'ctFavBulk_(1)' : 'spFavBulk(1)';
+  var duyet = PT ? 'ctDuyetBulk_(1)' : 'spDuyetBulk(1)';
+  wrap.innerHTML='<div class="bbar" id="spBulkBar">'
+    +'<div class="bb-count"><b>'+n+'</b><span>'+dv+' đã chọn</span>'
+      +'<button class="bb-x" title="Bỏ chọn (Esc)" onclick="spClearSel()">✕</button></div>'
+    +'<div class="bb-sep"></div>'
+    +chinh
+    +'<button class="bb-b" onclick="'+fav+'" title="Lưu vào danh sách yêu thích">'+icon('star',15)+' Yêu thích</button>'
+    +(spCanDuyet_()?'<button class="bb-b" onclick="'+duyet+'" title="Đánh dấu Đã duyệt">'+icon('check',15)+' Duyệt</button>':'')
+    +'<button class="bb-b" id="bbEditBtn" onclick="spBulkEditPop_(event)" title="Đổi một trường cho tất cả dòng đã chọn">'
+      +icon('edit',15)+' Sửa hàng loạt <i class="bb-car">▾</i></button>'
+    +'<div class="bb-sep"></div>'
+    +'<button class="bb-ic" id="bbMoreBtn" onclick="spBulkMorePop_(event)" title="Thao tác khác">⋯</button>'
+  +'</div>';
+}
+function spBulkPopClose_(){
+  ['bbEditPop','bbMorePop'].forEach(function(id){ var e=document.getElementById(id); if(e) e.remove(); });
+  document.removeEventListener('mousedown',spBulkPopOutside_);
+}
+function spBulkPopOutside_(e){
+  if(e.target.closest('#bbEditPop')||e.target.closest('#bbMorePop')
+    ||e.target.closest('#bbEditBtn')||e.target.closest('#bbMoreBtn')) return;
+  spBulkPopClose_();
+}
+function spBulkPopPlace_(pop,btnId){
+  var b=document.getElementById(btnId); if(!b) return;
+  var r=b.getBoundingClientRect(), w=pop.offsetWidth||280;
+  pop.style.left=Math.max(10,Math.min(r.left+r.width/2-w/2, window.innerWidth-w-10))+'px';
+  pop.style.top=Math.max(10,r.top-pop.offsetHeight-10)+'px';
+}
+function spBulkEditPop_(e){
+  if(e&&e.stopPropagation) e.stopPropagation();
+  if(document.getElementById('bbEditPop')){ spBulkPopClose_(); return; }
+  spBulkPopClose_();
+  var F=spBulkFields_();
+  var pop=document.createElement('div'); pop.className='bb-pop'; pop.id='bbEditPop';
+  pop.innerHTML='<div class="bb-pop-h">Sửa hàng loạt <span>'+Object.keys(S._spSel||{}).length+' dòng</span></div>'
+    +'<div class="bb-pop-b">'
+      +'<label>Trường cần đổi</label>'
+      +'<select id="spbField">'+F.map(function(f){ return '<option value="'+esc(f[0])+'">'+esc(f[1])+'</option>'; }).join('')+'</select>'
+      +'<label>Giá trị mới</label>'
+      +'<input id="spbValue" placeholder="Nhập giá trị…" onkeydown="if(event.key===\'Enter\')spBulkApplyAny_()">'
+    +'</div>'
+    +'<div class="bb-pop-f"><button class="btn ghost sm" onclick="spBulkPopClose_()">Huỷ</button>'
+      +'<button class="btn blue sm" id="spbApplyBtn" onclick="spBulkApplyAny_()">'+icon('check',14)+' Áp dụng</button></div>';
+  document.body.appendChild(pop); spBulkPopPlace_(pop,'bbEditBtn');
+  setTimeout(function(){ document.addEventListener('mousedown',spBulkPopOutside_);
+    var v=document.getElementById('spbValue'); if(v) v.focus(); },0);
+}
+function spBulkApplyAny_(){
+  var f=document.getElementById('spbField'), v=document.getElementById('spbValue');
   if(!f||!v) return;
-  var lark=f.value, val=String(v.value).trim(), label=f.options[f.selectedIndex].text;
-  if(val===''){ toast('Chưa nhập giá trị mới'); v.focus(); return; }
+  var fld=f.value, val=v.value, nhan=f.options.length?f.options[f.selectedIndex].text:fld;
+  if(String(val).trim()===''){ toast('Chưa nhập giá trị mới'); v.focus(); return; }
+  spBulkPopClose_();
+  return spPTMode_() ? ctBulkEditRun_(fld,val) : spBulkApply(fld,val,nhan);
+}
+function spBulkMorePop_(e){
+  if(e&&e.stopPropagation) e.stopPropagation();
+  if(document.getElementById('bbMorePop')){ spBulkPopClose_(); return; }
+  spBulkPopClose_();
+  var PT=spPTMode_(), isAdmin=isAdminRole_(), n=Object.keys(S._spSel||{}).length;
+  var pop=document.createElement('div'); pop.className='bb-pop bb-menu'; pop.id='bbMorePop';
+  pop.innerHTML=
+     '<button onclick="spBulkPopClose_();'+(PT?'ptBulkXlsx_()':'spExportXlsx()')+'">'+icon('download',15)+' Tải Excel '+n+' dòng</button>'
+    +(spCanDuyet_()?'<button onclick="spBulkPopClose_();'+(PT?'ctDuyetBulk_(0)':'spDuyetBulk(0)')+'">'+icon('close',15)+' Bỏ duyệt</button>':'')
+    +'<button onclick="spBulkPopClose_();'+(PT?'ctFavBulk_(0)':'spFavBulk(0)')+'">'+icon('star',15)+' Bỏ yêu thích</button>'
+    +'<div class="bb-menu-sep"></div>'
+    +'<button class="danger" onclick="spBulkPopClose_();'
+      +(PT?'ctDeleteBulk_()':(isAdmin?'spBulkDelete()':'spBulkRequest()'))+'">'+icon('trash',15)+' '
+      +(PT?'Xoá công tác':(isAdmin?'Xoá sản phẩm':'Gửi yêu cầu xoá'))+'</button>';
+  document.body.appendChild(pop); spBulkPopPlace_(pop,'bbMoreBtn');
+  setTimeout(function(){ document.addEventListener('mousedown',spBulkPopOutside_); },0);
+}
+// Esc: bỏ chọn nhanh
+document.addEventListener('keydown',function(e){
+  if(e.key!=='Escape') return;
+  if(document.getElementById('bbEditPop')||document.getElementById('bbMorePop')){ spBulkPopClose_(); return; }
+  if(Object.keys(S._spSel||{}).length && document.getElementById('spBulkBar')) spClearSel();
+});
+// SỬA HÀNG LOẠT: đặt 1 giá trị cho tất cả SP đang chọn
+async function spBulkApply(larkIn, valIn, labelIn){
+  var f=document.getElementById('spbField'), v=document.getElementById('spbValue'), btn=document.getElementById('spbApplyBtn');
+  var lark = larkIn!=null?larkIn:(f?f.value:'');
+  var val  = String(valIn!=null?valIn:(v?v.value:'')).trim();
+  var label= labelIn || (f&&f.options.length?f.options[f.selectedIndex].text:lark);
+  if(!lark) return;
+  if(val===''){ toast('Chưa nhập giá trị mới'); if(v) v.focus(); return; }
   var all=spSelProds_(); if(!all.length) return;
   var prods=all.filter(function(p){return !p.spChung;}), bo=all.length-prods.length;
   if(!prods.length){ toast('Các sản phẩm đã chọn đều thuộc kho chung của Dezon — không sửa được'); return; }
@@ -6435,14 +6503,18 @@ async function ctDuyetBulk_(on){
 var CT_BULK_F=[['dg','Giá bán lẻ (đ)','money'],['dgnt','Đơn giá nhà thầu (đ)','money'],['dvt','Đơn vị tính','text'],
   ['ncc','Nhà thầu · nhà cung cấp','text'],['hangMuc','Hạng mục','text'],['maNhom','Số hạng mục','text'],
   ['loai','Loại báo giá','loai'],['gc','Ghi chú','text']];
-async function ctBulkEdit_(){
+function ctBulkEdit_(){
+  return ctBulkEditRun_((document.getElementById('ctbField')||{}).value||'dg',
+                        (document.getElementById('ctbValue')||{}).value||'');
+}
+async function ctBulkEditRun_(f, val){
   var rows=ptSelRows_().filter(function(r){ return ctOf_(r.a); });
   if(!rows.length){ toast('Chỉ sửa được công tác đã lưu trong cơ sở dữ liệu'); return; }
-  var f=(document.getElementById('ctbField')||{}).value||'dg';
-  var val=(document.getElementById('ctbValue')||{}).value||'';
-  var def=CT_BULK_F.filter(function(x){ return x[0]===f; })[0];
+  var def=CT_BULK_F.filter(function(x){ return x[0]===f; })[0]; if(!def) return;
+  val=String(val==null?'':val).trim();
   if(val===''){ toast('Nhập giá trị mới'); return; }
   var v = def[2]==='money' ? ptMoneyN_(val) : val;
+  if(!confirm('Đặt "'+def[1]+'" = "'+val+'" cho '+rows.length+' công tác đã chọn?')) return;
   var btn=document.getElementById('ctbApply'); if(btn) btn.disabled=true;
   var ok=0, err='';
   for(var i=0;i<rows.length;i++){
