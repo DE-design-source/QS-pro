@@ -7871,13 +7871,14 @@ function ptHeaderHtml(){
 }
 function ptInfo(k,v){ return '<div class="pt-inf"><span class="k">'+esc(k)+'</span><span class="v">'+esc(v||'—')+'</span></div>'; }
 // Cột bảng Phần thô: [key, nhãn, canh, rộng]
+// Nhãn cột viết thường như bảng Bóc tách (trước đây viết hoa cứng nên nhìn khác hẳn)
 var PT_COLS=[
-  ['stt','STT','c',44],['noidung','NỘI DUNG CÔNG VIỆC','l',300],['dvt','ĐVT','c',74],
-  ['dientich','DIỆN TÍCH','n',84],['heso','HỆ SỐ','n',64],['khoiluong','KHỐI LƯỢNG','n',96],
-  ['dgnt','ĐƠN GIÁ (NHÀ THẦU)','n',134],['ttnt','THÀNH TIỀN (NHÀ THẦU)','n',140],
-  ['lnvnd','LỢI NHUẬN (VND)','n',116],['margin','LỢI NHUẬN/GIÁ BÁN (%)','n',120],
-  ['markup','LỢI NHUẬN/GIÁ VỐN (%)','n',120],['dg','ĐƠN GIÁ','n',134],
-  ['tt','THÀNH TIỀN','n',140],['ghichu','GHI CHÚ','l',210]
+  ['stt','STT','c',52],['noidung','Nội dung công việc','l',300],['dvt','ĐVT','c',74],
+  ['dientich','Diện tích','n',92],['heso','Hệ số','n',72],['khoiluong','Khối lượng','n',104],
+  ['dgnt','Đơn giá (nhà thầu)','n',136],['ttnt','Thành tiền (nhà thầu)','n',148],
+  ['lnvnd','Lợi nhuận (VND)','n',124],['margin','Lợi nhuận/giá bán (%)','n',148],
+  ['markup','Lợi nhuận/giá vốn (%)','n',148],['dg','Đơn giá','n',134],
+  ['tt','Thành tiền','n',140],['ghichu','Ghi chú','l',210]
 ];
 /* Cố định cột trái — bảng khái toán rất rộng (14 cột), cuộn ngang là mất cột
    Nội dung công việc. Dùng lại đúng cách làm của bảng Bóc tách (class frz + biến CSS). */
@@ -8034,7 +8035,8 @@ function renderPhanTho(){
   var iTT=ptIdx_(ptVis,'tt')||ptVis.length;
   body+='<tr class="pt-spacer pt-spacer-tot"><td colspan="'+(ptVis.length+1)+'"></td></tr>';
   body+='<tr class="pt-total">'+ptCells_(ptVis,{
-      stt:'<td class="c pt-tlbl" colspan="1">TỔNG CỘNG</td>',
+      stt:'<td class="c"></td>',
+      noidung:'<td class="pt-tlbl">TỔNG CỘNG</td>',
       ttnt:'<td class="n b">'+money(comp.contractor)+'</td>',
       lnvnd:'<td class="n b">'+money(comp.profit)+' <span class="pt-pct">('+comp.profitPct.toFixed(1)+'%)</span></td>',
       tt:'<td class="n b">'+money(comp.grand)+'</td>'

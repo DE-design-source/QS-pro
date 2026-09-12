@@ -4649,6 +4649,22 @@ table.pur-tbl tbody tr:hover td,.admtbl tr:hover td{background:#f6f9ff}
 table.mh-tbl2 th.dx-th{color:#ffd79a!important}
 table.mh-tbl2 th .mh-bulk input{background:rgba(255,255,255,.92);border-color:rgba(255,255,255,.35);color:var(--c1)}
 table.mh-tbl2 th .mh-bulk input::placeholder{color:#8b97a5}
+
+/* ═══ Phần thô dùng ĐÚNG khung của bảng Bóc tách ═══ */
+/* tiêu đề cột: 1 dòng, không bẻ chữ (trước đây .thl cho xuống dòng nên header cao gấp đôi) */
+table.pt th.thk .thl{white-space:nowrap;word-break:normal;max-width:none;display:inline}
+table.pt thead th,table.pt th.thk{white-space:nowrap;vertical-align:middle}
+/* dòng hạng mục: y hệt dòng tầng bên Bóc tách */
+table.pt tr.pt-sec td{background:#f4f6f8!important;color:var(--navy)!important;
+  border-top:1px solid var(--hair-2);border-bottom:1px solid var(--hair-2);
+  font-size:11px;font-weight:650;letter-spacing:.03em;padding:10px 12px}
+table.pt tr.pt-sec .pt-secttl-in{font-size:12.5px;font-weight:650;letter-spacing:.01em;color:var(--navy)}
+/* ô dữ liệu: cùng cỡ chữ + khoảng đệm với bảng Bóc tách (12.5px / 9px 11px) */
+table.pt tbody td{font-size:12.5px;padding:9px 11px}
+table.pt tbody tr.pt-row td{height:auto}
+table.pt tbody td .pt-in,table.pt tbody td .pt-area,table.pt tbody td .pt-ro{font-size:12.5px}
+
+.pt-tlbl{white-space:nowrap;font-weight:700;color:var(--navy)}
 </style>
 
 <!-- ===== TOP NAV ===== -->
