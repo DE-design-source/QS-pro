@@ -4508,6 +4508,32 @@ table.mh-tbl2 th.mh-disc-th.dx-th{width:118px}
 .mhpm-i b{color:var(--c1);font-variant-numeric:tabular-nums}
 .mhpm-i.dx b{color:#a4650a}
 .mhpm-i.tot b{color:#0d7a5f;font-size:14.5px}
+
+/* ═══ Chọn % lợi nhuận ngay tại ô ═══ */
+td.ln-cell{position:relative}
+td.ln-cell .cin{padding-right:20px}
+.ln-pick{position:absolute;right:3px;top:50%;transform:translateY(-50%);width:16px;height:18px;padding:0;
+  border:none;background:transparent;color:var(--c4);font-size:9px;line-height:1;cursor:pointer;border-radius:4px}
+td.ln-cell:hover .ln-pick{color:var(--blue);background:#eaf1ff}
+.ln-pick:hover{color:#fff!important;background:var(--blue)!important}
+.lnpick{position:fixed;z-index:96;width:208px;background:#fff;border:1px solid var(--ln);border-radius:var(--rk);
+  box-shadow:var(--e3);overflow:hidden}
+.lnpick-h{padding:9px 12px 7px;font-size:12px;font-weight:600;color:var(--c2);border-bottom:1px solid var(--ln)}
+.lnpick-b{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:9px}
+.lnpick-b button{height:30px;border:1px solid var(--ln2);border-radius:var(--rc);background:#fff;
+  font:inherit;font-size:12.5px;font-weight:600;color:var(--c2);cursor:pointer}
+.lnpick-b button:hover{border-color:var(--blue);color:var(--blue);background:#f2f7ff}
+.lnpick-b button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.lnpick-f{display:flex;gap:6px;padding:0 9px 9px}
+.lnpick-f input{flex:1;min-width:0;height:30px;border:1px solid var(--ln2);border-radius:var(--rc);padding:0 8px;
+  font:inherit;font-size:12.5px}
+.lnpick-f input:focus{outline:none;border-color:var(--blue);box-shadow:var(--focus)}
+/* ═══ Phần thô: chừa khoảng hở trước dòng TỔNG CỘNG, bỏ kẻ dọc ở dòng "+ Thêm dòng" ═══ */
+table.pt tr.pt-spacer-tot td{height:16px}
+table.pt tr.pt-add td{border-left:none;border-right:none}
+table.pt tr.pt-total td{border-top:2px solid var(--navy)}
+table.pt tr.pt-total td:not(:first-child){border-left:none}
+table.pt tr.pt-total td{border-right:none}
 </style>
 
 <!-- ===== TOP NAV ===== -->

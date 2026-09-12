@@ -3221,6 +3221,12 @@ function cellInput(l,key){
   if(key==='ten') return '<td class="td-ten"><div style="display:flex;gap:2px;align-items:center"><input class="cin" value="'+esc(l.ten||'')+'" onchange="editLine(\''+l.lineId+'\',{ten:this.value})"><button class="pick" title="Chọn sản phẩm từ danh mục" onclick="openPick(\''+l.lineId+'\',event)">⌕</button></div></td>';
   if(TXT_COL[key]){ var f=TXT_COL[key];
     return '<td'+(key==='dvt'?' class="ct"':'')+'><input class="cin'+(key==='dvt'?' dvt-in':'')+'"'+(key==='khuVuc'?' placeholder="Phòng…" list="phongList"':'')+' value="'+esc(l[f]||'')+'" onchange="editLine(\''+l.lineId+'\',{'+f+':this.value})"></td>'; }
+  if(key==='lnPct'){
+    return '<td class="num ln-cell"><input class="cin num" type="number" step="any" value="'+(Number(l.lnPct)||0)+'"'
+      +' onchange="editLine(\''+l.lineId+'\',{lnPct:this.value})">'
+      +'<button class="ln-pick" title="Chọn nhanh 5 · 10 · 15 · 20 · 30 · 35 · 40 · 45%"'
+      +' onclick="lnPickPop_(event,\''+l.lineId+'\')">▾</button></td>';
+  }
   if(NUM_COL[key]){ var f2=NUM_COL[key];
     // Ô TIỀN hiện dấu chấm ngàn cho dễ đọc (gõ kiểu nào cũng nhận); ô số lượng/% giữ ô number
     if(MONEY_COL[key]) return '<td class="num"><input class="cin num money" type="text" inputmode="numeric"'
@@ -4552,7 +4558,7 @@ function cpToolbar_(rows){
       +icon('layers',14)+' Gom theo hạng mục</button>'
     +cpColBar_()
     +'</div>'
-    +cpLnQuick_();
+    +(cpLnBulkHien_()?cpLnQuick_():'');
 }
 /* ---------- bảng ---------- */
 function cpAlign_(k){
@@ -7727,14 +7733,16 @@ function ptEnsure(){
 }
 function ptPersist(){ try{ var k=ptKey(); var v=Number(S.ptVat); if(!isFinite(v)) v=8; S.ptVat=v;
   localStorage.setItem(k,JSON.stringify(S.phanTho)); localStorage.setItem(k+'_vat',String(v)); }catch(e){} }
-// Dòng 'item' nhập được Diện tích + Hệ số: khi cả hai có số thì Khối lượng = DT × HS (khoá ô khối lượng)
-function ptAutoKL_(it){ return ptN(it&&it.dt)>0 && ptN(it&&it.hs)>0; }
+// Dòng 'item' nhập được Diện tích + Hệ số: có diện tích là Khối lượng = DT × HS (khoá ô khối lượng).
+// BỎ TRỐNG hệ số thì hiểu là 1 — gõ hẳn số 0 thì vẫn là 0.
+function ptHs_(it){ var v=it&&it.hs; return (v===''||v==null)?1:ptN(v); }
+function ptAutoKL_(it){ return ptN(it&&it.dt)>0; }
 function ptSecTotals(sec){
   var sumKL=0, tt=0, ttnt=0;
   sec.items.forEach(function(it){
     var kl;
-    if(sec.mode==='area'||sec.mode==='area0'){ kl=ptR2(ptN(it.dt)*ptN(it.hs)); }
-    else if(ptAutoKL_(it)){ kl=ptR2(ptN(it.dt)*ptN(it.hs)); }   // dòng item: có diện tích + hệ số -> khối lượng tự tính
+    if(sec.mode==='area'||sec.mode==='area0'){ kl=ptR2(ptN(it.dt)*ptHs_(it)); }
+    else if(ptAutoKL_(it)){ kl=ptR2(ptN(it.dt)*ptHs_(it)); }    // dòng item: có diện tích -> khối lượng tự tính
     else { kl=ptN(it.kl); }
     it._kl=kl; sumKL+=kl;
     if(sec.mode==='item'){ it._tt=ptR0(kl*ptN(it.dg)); tt+=it._tt; it._ttnt=ptR0(kl*ptN(it.dgnt)); ttnt+=it._ttnt; }
@@ -7757,14 +7765,16 @@ function ptComputeAll(){
 // Ô tiền hiện có dấu chấm ("10.000.000") cho dễ đọc, gõ kiểu nào cũng nhận;
 // các ô số khác (diện tích, hệ số, %) giữ nguyên ô number để còn nhập thập phân.
 function ptMoneyN_(v){ if(typeof v==='number') return v; var x=parseInt(String(v==null?'':v).replace(/[^\d-]/g,''),10); return isNaN(x)?0:x; }
-function ptInp(si,ii,f,v,cls){
+function ptInp(si,ii,f,v,cls,goiY){
   cls=cls||'';
   var isMoney=cls.indexOf('pt-money')>=0;
   if(isMoney){
     var t=(v===''||v==null||!Number(v))?'':money(v);
     return '<input class="pt-in '+cls+'" type="text" inputmode="numeric" value="'+esc(t)+'" onchange="ptEdit('+si+','+ii+',\''+f+'\',this.value)">';
   }
-  return '<input class="pt-in '+cls+'" type="number" step="any" value="'+(v===''||v==null?'':v)+'" onchange="ptEdit('+si+','+ii+',\''+f+'\',this.value)">';
+  return '<input class="pt-in '+cls+'" type="number" step="any" value="'+(v===''||v==null?'':v)+'"'
+    +(goiY?' placeholder="'+esc(goiY)+'" title="Bỏ trống = '+esc(goiY)+'"':'')
+    +' onchange="ptEdit('+si+','+ii+',\''+f+'\',this.value)">';
 }
 function ptTxt(si,ii,f,v){ return '<textarea class="pt-in pt-area" rows="1" oninput="autoGrow(this)" onchange="ptEdit('+si+','+ii+',\''+f+'\',this.value)">'+esc(v||'')+'</textarea>'; }
 /* ═══ CÔNG THỨC GIÁ — lấy đúng theo file báo giá (sheet "mai coi công thức ở đây") ═══
@@ -7792,7 +7802,7 @@ function ptEdit(si,ii,f,val){
     var it=sec.items[ii]; if(!it) return;
     it[f]=v;
     // dòng item có DT+HS -> khối lượng bám theo tích 2 ô (bỏ trống 1 ô là trả lại nhập tay)
-    if((f==='dt'||f==='hs') && sec.mode==='item'){ if(ptAutoKL_(it)) it.kl=ptR2(ptN(it.dt)*ptN(it.hs)); }
+    if((f==='dt'||f==='hs') && sec.mode==='item'){ if(ptAutoKL_(it)) it.kl=ptR2(ptN(it.dt)*ptHs_(it)); }
     // giữ 3 đại lượng luôn khớp nhau: giá vốn ↔ %LN ↔ giá bán
     if(f==='lnPct')      it.dg=ptDgTuLn_(it.dgnt,v);
     else if(f==='dg')    it.lnPct=ptR2(ptLnTuDg_(it.dgnt,v));
@@ -7993,7 +8003,7 @@ function renderPhanTho(){
         noidung:'<td>'+ptTxt(si,ii,'n',it.n)+'</td>',
         dvt:'<td class="c dvt-cell">'+ptTxt(si,ii,'dvt',it.dvt)+'</td>',
         dientich:'<td class="n">'+((isArea||isItem)?ptInp(si,ii,'dt',it.dt):'')+'</td>',
-        heso:'<td class="n">'+((isArea||isItem)?ptInp(si,ii,'hs',it.hs):'')+'</td>',
+        heso:'<td class="n">'+((isArea||isItem)?ptInp(si,ii,'hs',it.hs,'',(ptN(it.dt)>0?'1':'')):'')+'</td>',
         khoiluong:'<td class="n">'+(isArea?'<span class="pt-ro">'+ptQty(kl)+'</span>'
            :(isItem?(ptAutoKL_(it)?'<span class="pt-ro" title="Khối lượng = Diện tích × Hệ số">'+ptQty(kl)+'</span>':ptInp(si,ii,'kl',it.kl)):''))+'</td>',
         dgnt:'<td class="n">'+(isItem?ptInp(si,ii,'dgnt',it.dgnt,'pt-money'):'')+'</td>',
@@ -8018,6 +8028,7 @@ function renderPhanTho(){
   // ---- tổng cộng / VAT / sau thuế ----  (cột 8=TT nhà thầu, 9=lợi nhuận, 13=thành tiền)
   // các dòng tổng: colspan tính theo vị trí cột đang hiện
   var iTT=ptIdx_(ptVis,'tt')||ptVis.length;
+  body+='<tr class="pt-spacer pt-spacer-tot"><td colspan="'+(ptVis.length+1)+'"></td></tr>';
   body+='<tr class="pt-total">'+ptCells_(ptVis,{
       stt:'<td class="c pt-tlbl" colspan="1">TỔNG CỘNG</td>',
       ttnt:'<td class="n b">'+money(comp.contractor)+'</td>',
@@ -9003,6 +9014,12 @@ function rngFill_(val){
 }
 
 /* ===== Chi phí: chọn nhanh % lợi nhuận ===== */
+// Chỉ hiện hàng đặt hàng loạt khi đang CHỌN nhiều dòng/ô — còn bình thường thì chọn ngay tại ô %
+function cpLnBulkHien_(){
+  var g=S._rng;
+  if(g&&g.tbl&&document.body.contains(g.tbl)&&g.tbl.closest('#v-chiphi')&&(Math.abs(g.r2-g.r1)+1)>1) return true;
+  return tkSelLines_().length>0;
+}
 function cpLnQuick_(){
   return '<div class="cp-lnq"><span class="lb">'+icon('gauge',13)+' Đặt nhanh lợi nhuận</span>'
     +'<div class="lnq">'+TK_LN_QUICK.map(function(v){
@@ -9611,4 +9628,36 @@ function mhProdModal_(lineId){
   document.body.appendChild(ov);
   document.addEventListener('keydown',spModalKey_);
   if(p.recordId||p.ma) pdLoadCombo_(p, null, 'bóc tách', 'pdComboModal');
+}
+
+/* ===== Chọn nhanh % lợi nhuận NGAY TẠI Ô (bảng nào cũng dùng) ===== */
+function lnPickClose_(){ var p=document.getElementById('lnPickPop'); if(p) p.remove();
+  document.removeEventListener('mousedown',lnPickOutside_); }
+function lnPickOutside_(e){ if(e.target.closest&&(e.target.closest('#lnPickPop')||e.target.closest('.ln-pick'))) return; lnPickClose_(); }
+function lnPickPop_(e,id){
+  if(e&&e.stopPropagation) e.stopPropagation();
+  if(document.getElementById('lnPickPop')){ lnPickClose_(); return; }
+  lnPickClose_();
+  var l=lineOf_(id); if(!l) return;
+  var cur=Number(l.lnPct)||0;
+  var pop=document.createElement('div'); pop.id='lnPickPop'; pop.className='lnpick';
+  pop.innerHTML='<div class="lnpick-h">Lợi nhuận dự kiến</div>'
+    +'<div class="lnpick-b">'+TK_LN_QUICK.map(function(v){
+        return '<button class="'+(cur===v?'on':'')+'" onclick="lnPickSet_(\''+id+'\','+v+')">'+v+'%</button>'; }).join('')+'</div>'
+    +'<div class="lnpick-f"><input id="lnPickV" type="number" step="any" placeholder="% khác" value="'+(TK_LN_QUICK.indexOf(cur)<0&&cur?cur:'')+'"'
+      +' onkeydown="if(event.key===\'Enter\')lnPickSet_(\''+id+'\',this.value)">'
+      +'<button class="btn blue xs" onclick="lnPickSet_(\''+id+'\',(document.getElementById(\'lnPickV\')||{}).value)">Áp dụng</button></div>';
+  document.body.appendChild(pop);
+  var b=e&&e.currentTarget?e.currentTarget:null;
+  var r=b?b.getBoundingClientRect():{left:200,bottom:200,top:200};
+  var w=pop.offsetWidth||208, h=pop.offsetHeight;
+  var top=r.bottom+6; if(top+h>window.innerHeight-10) top=Math.max(10,r.top-h-6);
+  pop.style.left=Math.max(8,Math.min(r.left-w+40, window.innerWidth-w-10))+'px';
+  pop.style.top=top+'px';
+  setTimeout(function(){ document.addEventListener('mousedown',lnPickOutside_); },0);
+}
+function lnPickSet_(id,v){
+  v=Number(String(v==null?'':v).replace(',','.'));
+  if(!isFinite(v)){ toast('Chưa nhập %'); return; }
+  lnPickClose_(); editLine(id,{lnPct:v});
 }
