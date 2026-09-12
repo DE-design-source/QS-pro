@@ -4572,6 +4572,37 @@ table.pt th.thk:not(:last-child)::before{
   content:'';position:absolute;right:0;top:8px;bottom:8px;width:1px;background:rgba(255,255,255,.16);pointer-events:none}
 /* ô đang chọn vùng vẫn phải thấy viền -> vạch nhường chỗ cho khung chọn */
 table.tk tr.drow>td.rsel::after{content:none}
+
+/* ═══════════════════════════════════════════════════════════════════
+   THANH ĐIỀU HƯỚNG — chữ KHÔNG BAO GIỜ xuống dòng ở zoom 100%.
+   Thu gọn cỡ chữ + khoảng cách cho vừa màn 1440; hẹp hơn nữa thì
+   giấu bớt nhãn nút phụ rồi mới tới cuộn ngang. ═══════════════════ */
+.topnav .row{gap:14px;height:56px;flex-wrap:nowrap}
+.nav{gap:11px;min-width:0;flex:1 1 auto;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;-ms-overflow-style:none}
+.nav::-webkit-scrollbar{width:0;height:0;display:none}
+.nav a{white-space:nowrap;flex:none;font-size:12.5px;gap:6px;letter-spacing:-.012em;padding:5px 1px}
+.nav a svg{width:14px;height:14px}
+.topnav .right{gap:7px;flex:none}
+.rbtn{font-size:12.5px;padding:7px 11px;gap:6px;letter-spacing:-.012em;white-space:nowrap}
+.rbtn svg{width:15px;height:15px}
+.rbtn .rb-txt{white-space:nowrap}
+.userchip{margin-left:2px;padding:4px 9px 4px 4px;gap:7px}
+.uc-av{width:24px;height:24px;font-size:12px}
+.uc-name{white-space:nowrap;font-size:12.5px}
+.topnav .logo{flex:none}
+.notifbell{flex:none}
+/* màn hẹp hơn: nút phụ còn biểu tượng, giữ nhãn cho nút chính */
+@media(max-width:1400px){
+  .rbtn:not(.primary) .rb-txt{display:none}
+  .rbtn:not(.primary){padding:7px 9px}
+  .uc-name{display:none}
+  .userchip{padding:4px}
+}
+@media(max-width:1180px){
+  .rbtn.primary .rb-txt{display:none}
+  .rbtn.primary{padding:7px 9px}
+}
 </style>
 
 <!-- ===== TOP NAV ===== -->
