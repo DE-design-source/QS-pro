@@ -4716,14 +4716,17 @@ function muahangCard(g, gi, vatPct){
     var pct=mhDisc_(l), ttCK=sl*mhPriceCK_(l); sub+=ttCK;
     var im=String(l.hinhAnh||'').split('\n')[0];
     var img=im?'<img class="mhp-img" src="'+esc(imgUrlOf(im))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="mhp-img ph"></span>';
-    var spec=[l.moTa,l.kichThuoc].map(function(x){return String(x||'').trim();}).filter(Boolean).join(' · ');
+    var mo=String(l.moTa||'').trim(), kt=String(l.kichThuoc||'').trim();
+    // mô tả và kích thước hay lặp nhau -> chỉ nối phần thật sự mới
+    var spec=(mo+(kt && spNorm_(mo).indexOf(spNorm_(kt))<0 ? (mo?' · ':'')+kt : '')).replace(/\s+/g,' ').trim();
     var sub2=[l.khuVuc,l.thuongHieu].map(function(x){return String(x||'').trim();}).filter(Boolean).join(' · ');
     return '<tr>'
       +'<td class="c mut">'+(gi+1)+'.'+(i+1)+'</td>'
       +'<td class="c">'+img+'</td>'
-      +'<td><div class="mhp-name">'+esc(l.ten||'')+'</div>'
+      +'<td class="mhp-cell" title="Bấm để xem thông tin sản phẩm" onclick="mhProdModal_(\''+l.lineId+'\')">'
+        +'<div class="mhp-name">'+esc(l.ten||'')+icon('eye',12)+'</div>'
         +(sub2?'<div class="mhp-sub">'+esc(sub2)+'</div>':'')
-        +(spec?'<div class="mhp-spec">'+esc(spec).replace(/\n/g,' ')+'</div>':'')+'</td>'
+        +(spec?'<div class="mhp-spec">'+esc(spec)+'</div>':'')+'</td>'
       +'<td class="c">'+esc(l.dvt||'Cái')+'</td>'
       +'<td class="c b">'+sl+'</td>'
       +'<td class="n">'+money(dg)+'</td>'
@@ -4744,8 +4747,10 @@ function muahangCard(g, gi, vatPct){
     +'<div class="dbcard-b mhc-b">'
       +'<div class="mh-scroll"><table class="mh-tbl2">'
         +'<thead><tr><th class="c">#</th><th class="c">Ảnh</th><th>Sản phẩm</th><th class="c">ĐVT</th><th class="c">SL</th><th class="n">Đơn giá</th><th class="n">Thành tiền</th>'
-          +'<th class="c mh-disc-th dx-th">Đề xuất giảm giá từ phòng mua hàng (%)<span class="mh-bulk"><input type="number" min="0" max="100" placeholder="nhập %" onchange="mhSetDxAll('+gi+',this.value)" title="Đề xuất % cho tất cả dòng"></span></th>'
-          +'<th class="c mh-disc-th">Giảm giá NCC (%)<span class="mh-bulk"><input type="number" min="0" max="100" placeholder="nhập %" onchange="mhSetDiscAll('+gi+',this.value)" title="Áp dụng % cho tất cả dòng"></span></th>'
+          +'<th class="c mh-disc-th dx-th" title="Mức giảm giá phòng mua hàng đề xuất với nhà cung cấp">Đề xuất giảm (%)'
+            +'<span class="mh-bulk"><input type="number" min="0" max="100" placeholder="%" onchange="mhSetDxAll('+gi+',this.value)" title="Đề xuất % cho tất cả dòng"></span></th>'
+          +'<th class="c mh-disc-th" title="Mức giảm giá nhà cung cấp đã chốt">Giảm giá NCC (%)'
+            +'<span class="mh-bulk"><input type="number" min="0" max="100" placeholder="%" onchange="mhSetDiscAll('+gi+',this.value)" title="Áp dụng % cho tất cả dòng"></span></th>'
           +'<th class="n">Thành tiền sau CK</th></tr></thead>'
         +'<tbody>'+(rows||'<tr><td colspan="10" class="empty">—</td></tr>')+'</tbody>'
         +'<tfoot><tr class="mhf-vat"><td colspan="8"></td><td class="n">VAT '+vatPct+'%</td><td class="n">'+money(vat)+'</td></tr>'
@@ -9565,4 +9570,45 @@ function tkVBarInit_(){
     });
   }
   tkVBarSync_();
+}
+
+/* ===== Mua hàng: bấm vào dòng sản phẩm để xem thông tin ===== */
+function mhFindProd_(l){
+  var ma=spNorm_(l.maSP||''), ten=spNorm_(l.ten||'');
+  var p=null;
+  if(ma) p=(S.products||[]).filter(function(x){ return spNorm_(x.ma||'')===ma; })[0];
+  if(!p && ten) p=(S.products||[]).filter(function(x){ return spNorm_(x.ten||'')===ten; })[0];
+  return p || { ten:l.ten, ma:l.maSP, thuongHieu:l.thuongHieu, ncc:l.ncc, moTa:l.moTa,
+    kichThuoc:l.kichThuoc, hinhAnh:l.hinhAnh, dvt:l.dvt, donGiaBan:l.donGiaBan, donGiaVon:l.donGiaVon };
+}
+function mhProdModal_(lineId){
+  var l=lineOf_(lineId); if(!l) return;
+  var p=mhFindProd_(l);
+  var sl=Number(l.soLuong)||0, dg=mhPrice(l), pctDx=mhDx_(l), pctCK=mhDisc_(l);
+  var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='spModalOv';
+  ov.onclick=function(e){ if(e.target===ov) spClose(); };
+  function o(k,v,cls){ return '<div class="mhpm-i'+(cls?' '+cls:'')+'"><span>'+esc(k)+'</span><b>'+v+'</b></div>'; }
+  ov.innerHTML='<div class="sp-modal sp-modal-wide pd"><div class="pd-head"><h3>Thông tin sản phẩm</h3>'
+      +'<span class="mhpm-ncc">'+icon('building',13)+' '+esc(l.ncc||l.thuongHieu||'')+'</span>'
+      +'<button class="pd-x" onclick="spClose()">✕</button></div>'
+    +'<div class="pdm-grid">'
+      +'<div class="pdm-left">'+pdMedia_(p)+'</div>'
+      +'<div class="pdm-right">'+pdSpecs_(p)
+        +'<div class="mhpm-box"><div class="pd-sec">Trong đơn mua hàng này</div>'
+          +o('Số lượng', ptQty(sl)+' '+esc(l.dvt||'Cái'))
+          +o('Đơn giá mua', money(dg)+' đ')
+          +(pctDx?o('Đề xuất giảm', pctDx+'%','dx'):'')
+          +(pctCK?o('Giảm giá NCC đã chốt', pctCK+'%'):'')
+          +o('Thành tiền sau CK', money(sl*mhPriceCK_(l))+' đ','tot')
+        +'</div>'
+      +'</div>'
+    +'</div>'
+    +'<div id="pdComboModal"></div>'
+    +'<div class="pd-actions">'
+      +'<button class="btn ghost sm" onclick="spClose()">Đóng</button>'
+      +'<button class="btn blue sm" onclick="spClose();showTab(\'boc\')">'+icon('layers',14)+' Mở bảng bóc tách</button>'
+    +'</div></div>';
+  document.body.appendChild(ov);
+  document.addEventListener('keydown',spModalKey_);
+  if(p.recordId||p.ma) pdLoadCombo_(p, null, 'bóc tách', 'pdComboModal');
 }

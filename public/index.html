@@ -4482,6 +4482,32 @@ table.tk.cpflat tr.cp-foot td{position:sticky;bottom:0;z-index:5}
 table.tk.cpflat .cin.money{text-align:right;font-variant-numeric:tabular-nums}
 table.tk.cpflat td.empty{padding:26px;text-align:center;color:var(--c3)}
 .cp-hbar{margin:8px 0 2px}
+
+/* ═══ Mua hàng: ô sản phẩm bấm được · 2 cột % gọn lại ═══ */
+table.mh-tbl2 td.mhp-cell{cursor:pointer;min-width:230px;max-width:340px}
+table.mh-tbl2 td.mhp-cell:hover .mhp-name{color:var(--blue)}
+.mhp-name{display:flex;align-items:baseline;gap:6px}
+.mhp-name svg{width:12px;height:12px;flex:none;color:var(--c4);opacity:0;transition:.12s}
+td.mhp-cell:hover .mhp-name svg{opacity:1;color:var(--blue)}
+/* mô tả dài không được kéo dòng cao lêu nghêu */
+.mhp-spec{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mhp-sub{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+/* 2 cột phần trăm: hẹp và bằng nhau */
+table.mh-tbl2 th.mh-disc-th{min-width:0;width:112px;white-space:normal;line-height:1.25}
+table.mh-tbl2 th.mh-disc-th.dx-th{width:118px}
+.mh-bulk{margin-top:4px}
+.mh-bulk input{width:62px;padding:3px 6px}
+.mh-discwrap input.mh-disc{width:62px}
+/* hộp "trong đơn mua hàng này" ở popup thông tin sản phẩm */
+.mhpm-ncc{display:inline-flex;align-items:center;gap:5px;margin-left:8px;padding:3px 9px;border-radius:99px;
+  background:var(--bg3);color:var(--c2);font-size:12px;font-weight:600}
+.mhpm-box{margin-top:14px;border:1px solid var(--ln);border-radius:var(--rk);padding:10px 12px;background:var(--bg2)}
+.mhpm-i{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:5px 0;font-size:13px}
+.mhpm-i+.mhpm-i{border-top:1px dashed var(--ln)}
+.mhpm-i span{color:var(--c3)}
+.mhpm-i b{color:var(--c1);font-variant-numeric:tabular-nums}
+.mhpm-i.dx b{color:#a4650a}
+.mhpm-i.tot b{color:#0d7a5f;font-size:14.5px}
 </style>
 
 <!-- ===== TOP NAV ===== -->
