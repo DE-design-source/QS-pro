@@ -4564,7 +4564,12 @@ table.tk tr.cp-foot>td::after{content:none}
 /* hàng tiêu đề cũng chừa hở hai đầu cho đồng bộ */
 /* .thk có class nên thắng rule 'thead th' -> phải gọi đích danh, nếu không viền
    full-height của header vẫn còn và trông khác hẳn phần thân bảng. */
-table.tk th,table.tk th.thk,table.pt thead th,table.pt th.thk{border-right:none!important;position:relative}
+/* CHỈ bỏ viền — KHÔNG đụng vào position, vì hàng tiêu đề của bảng Chi phí /
+   Dự án đang dùng position:sticky; đặt lại thành relative là header rơi mất. */
+table.tk th,table.tk th.thk,table.pt thead th,table.pt th.thk{border-right:none!important}
+table.tk th:not(.thk),table.pt thead th:not(.thk){position:relative}
+/* Header của bảng Chi phí / Dự án phải THẮNG rule .thk{position:relative} có sẵn */
+#v-chiphi table.cpflat th,#v-duan table.cpflat th{position:sticky;top:0;z-index:6}
 table.tk th:not(:last-child)::before,
 table.tk th.thk:not(:last-child)::before,
 table.pt thead th:not(:last-child)::before,
