@@ -4562,9 +4562,13 @@ table.tk tr.grp>td::after,table.tk tr.tk-spacer>td::after,
 table.tk tr.addrow>td::after,table.tk tr.cp-sub>td::after,
 table.tk tr.cp-foot>td::after{content:none}
 /* hàng tiêu đề cũng chừa hở hai đầu cho đồng bộ */
-table.tk th,table.pt thead th{border-right:none;position:relative}
+/* .thk có class nên thắng rule 'thead th' -> phải gọi đích danh, nếu không viền
+   full-height của header vẫn còn và trông khác hẳn phần thân bảng. */
+table.tk th,table.tk th.thk,table.pt thead th,table.pt th.thk{border-right:none!important;position:relative}
 table.tk th:not(:last-child)::before,
-table.pt thead th:not(:last-child)::before{
+table.tk th.thk:not(:last-child)::before,
+table.pt thead th:not(:last-child)::before,
+table.pt th.thk:not(:last-child)::before{
   content:'';position:absolute;right:0;top:8px;bottom:8px;width:1px;background:rgba(255,255,255,.16);pointer-events:none}
 /* ô đang chọn vùng vẫn phải thấy viền -> vạch nhường chỗ cho khung chọn */
 table.tk tr.drow>td.rsel::after{content:none}
