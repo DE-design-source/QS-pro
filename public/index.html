@@ -4544,7 +4544,13 @@ table.tk td,table.pt tbody td{border-left:none!important;border-right:none!impor
 table.tk tr.drow>td:not(:last-child)::after,
 table.pt tbody tr.pt-row td:not(:last-child)::after,
 table.pt tbody tr.pt-sec td:not(:last-child)::after{
-  content:'';position:absolute;right:0;top:9px;bottom:9px;width:1px;background:#d6dce4;pointer-events:none}
+  content:'';position:absolute;right:0;top:0;bottom:0;width:1px;background:#d6dce4;pointer-events:none}
+/* Trong CÙNG một tầng / hạng mục, nét kẻ chạy LIỀN; chỉ hở ở dòng đầu và dòng
+   cuối của khối để tách khối này với khối kia (đánh dấu bằng markBlocks_). */
+table.tk tr.drow.blk-first>td::after,
+table.pt tbody tr.pt-row.blk-first td::after{top:9px}
+table.tk tr.drow.blk-last>td::after,
+table.pt tbody tr.pt-row.blk-last td::after{bottom:9px}
 /* dòng tiêu đề hạng mục: vạch đậm hơn, thụt sâu hơn chút cho phân biệt */
 table.pt tbody tr.pt-sec td:not(:last-child)::after{top:7px;bottom:7px;background:#c6cfd9}
 /* dòng trắng · dòng "+ Thêm dòng" · dòng tổng · dòng nhóm: bỏ kẻ dọc -> khối tách hẳn nhau */

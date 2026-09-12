@@ -3320,6 +3320,7 @@ function renderTable(){
   t.innerHTML=colg+head+body;
   t.querySelectorAll('td.wrap textarea').forEach(autoGrow);   // ô "Thông tin chính" tự giãn hết dòng
   if(t.rows[0]) t.style.setProperty('--thH', t.rows[0].offsetHeight+'px');  // để dòng tầng dính ngay dưới header
+  markBlocks_('#tkTable');   // kẻ dọc liền trong 1 tầng, hở giữa các tầng
   tkSelPrune_();       // bỏ khỏi vùng chọn những dòng không còn trên bảng
   tkFreezeRows_();     // cố định N hàng đầu (như Excel)
   tkSelBar_();         // thanh thao tác hàng loạt (nổi ở đáy màn hình)
@@ -4483,6 +4484,7 @@ function renderChiphi(){
     +cpToolbar_(rows)
     +'<div class="dbcard cp-card">'+cpTableHtml_(keys,rows)+'</div>'
     +'<div class="tk-hbar cp-hbar" id="cpHBar" style="display:none"><div class="tk-hthumb" id="cpHThumb"></div></div>';
+  markBlocks_('#v-chiphi table.cpflat');
   hbarBind_('#v-chiphi .cp-card .tbl-wrap','cpHBar','cpHThumb');
   // dòng tiêu đề nhóm dính NGAY DƯỚI hàng tiêu đề cột (chiều cao hàng này thay đổi theo số cột)
   var tb=document.querySelector('#v-chiphi table.cpflat'), th0=tb&&tb.querySelector('th');
@@ -4698,7 +4700,8 @@ function renderDuAn(){
   box.innerHTML='<div class="sechd"><h2>Sản phẩm trong dự án</h2><span class="count">'+S.lines.length+'</span><span class="sp" style="flex:1"></span>'
       +'<span class="cp-hint">'+icon('building',13)+' '+esc(S.cur.ten||'')+' — bấm ô để sửa</span></div>'
     +stat+colbar
-    +'<div class="dbcard cp-card"><div class="tbl-wrap"><table class="tk cpflat" style="width:'+totalW+'px">'+colg+head+body+foot+'</table></div></div>';
+    +'<div class="dbcard cp-card"><div class="tbl-wrap"><table class="tk cpflat" style="min-width:'+totalW+'px;width:100%">'+colg+head+body+foot+'</table></div></div>';
+  markBlocks_('#v-duan table.cpflat');
 }
 
 /* ===== MUA HÀNG (gom theo Nhà cung cấp) ===== */
@@ -5309,6 +5312,7 @@ function drawBaogia(){
       +'<div class="b"><div class="tt">VAT '+q.vatPct+'%</div><div class="tv">'+money(q.vat)+' đ</div></div>'
       +'<div class="b grand"><div class="tt">TỔNG CỘNG</div><div class="tv">'+money(q.total)+' đ</div></div></div></div></div>';
   box.innerHTML=sechd+card1+card2+bgAreaHTML()+card4;
+  markBlocks_('#v-export table.tk');
 }
 // Feature 2: tự điền chi phí tờ bìa từ dữ liệu bóc tách (map theo mã nhóm)
 function coverAutoFill(btn){
@@ -8093,6 +8097,7 @@ function renderPhanTho(){
   if(_sc2){ _sc2.scrollTop=_sT; _sc2.scrollLeft=_sL; }
   if(_winY) window.scrollTo(0,_winY);
   ptDragBind_(pw.querySelector('table.pt'));   // kéo dòng sang hạng mục khác
+  markBlocks_('#ptWrap table.pt');             // kẻ dọc liền trong 1 hạng mục
   ptHBarInit_(); ptHBarSync_();          // thanh kéo ngang giống bảng Bóc tách
 }
 
@@ -9660,4 +9665,21 @@ function lnPickSet_(id,v){
   v=Number(String(v==null?'':v).replace(',','.'));
   if(!isFinite(v)){ toast('Chưa nhập %'); return; }
   lnPickClose_(); editLine(id,{lnPct:v});
+}
+
+/* ═══ Đánh dấu ĐẦU / CUỐI mỗi khối dòng dữ liệu ═══
+   Trong cùng một tầng (hoặc một hạng mục) kẻ dọc chạy LIỀN; chỉ hở ở đầu và
+   cuối khối để tách khối này với khối kia. Chạy sau khi vẽ bảng, dùng chung
+   cho mọi bảng nên không phải sửa từng hàm render. */
+function markBlocks_(sel){
+  document.querySelectorAll(sel||'table.tk, table.pt').forEach(function(tbl){
+    tbl.querySelectorAll('tr.blk-first,tr.blk-last').forEach(function(tr){ tr.classList.remove('blk-first','blk-last'); });
+    var truoc=null;
+    [].forEach.call(tbl.rows, function(tr){
+      var laDuLieu = tr.classList.contains('drow') || tr.classList.contains('pt-row');
+      if(laDuLieu){ if(!truoc) tr.classList.add('blk-first'); truoc=tr; }
+      else { if(truoc) truoc.classList.add('blk-last'); truoc=null; }
+    });
+    if(truoc) truoc.classList.add('blk-last');
+  });
 }
