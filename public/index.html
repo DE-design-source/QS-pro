@@ -4608,6 +4608,47 @@ table.tk tr.drow>td.rsel::after{content:none}
   .rbtn.primary .rb-txt{display:none}
   .rbtn.primary{padding:7px 9px}
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   KHUNG BẢNG CHUẨN — lấy bảng Bóc tách làm gốc, áp cho MỌI bảng dữ liệu:
+   Bóc tách · Phần thô · Chi phí · Dự án · Mua hàng · Danh sách sản phẩm ·
+   Chi tiết đơn/đề xuất · Quản trị.  (Bảng tờ bìa .cvt là tài liệu in nên giữ nguyên.)
+   ═══════════════════════════════════════════════════════════════════════════ */
+table.tk th,table.tk th.thk,
+table.pt thead th,table.pt th.thk,
+table.mh-tbl2 th,
+.sp-table thead th,.sp-table thead th.frz,
+table.pur-tbl th,
+.admtbl th{
+  background:var(--navy)!important;color:#fff!important;
+  font-size:11px;font-weight:600;letter-spacing:.01em;text-transform:none;
+  padding:11px 12px;text-align:left;white-space:nowrap;
+  border-bottom:none;border-right:none!important}
+table.tk th.n,table.pt thead th.n,table.pt th.thk.n,table.mh-tbl2 th.n,
+table.pur-tbl th.n,.sp-table thead th.num{text-align:right}
+table.tk th.c,table.pt thead th.c,table.pt th.thk.c,table.mh-tbl2 th.c,
+table.pur-tbl th.c,.sp-table thead th.ct{text-align:center}
+/* vạch chia cột ở tiêu đề: đoạn ngắn, hở 8px hai đầu — giống hệt bảng Bóc tách */
+table.mh-tbl2 th,.sp-table thead th,table.pur-tbl th,.admtbl th{position:relative}
+.sp-table thead th{position:sticky;top:0}
+.sp-table thead th.frz{position:sticky}
+table.mh-tbl2 th:not(:last-child)::before,
+.sp-table thead th:not(:last-child)::before,
+table.pur-tbl th:not(:last-child)::before,
+.admtbl th:not(:last-child)::before{
+  content:'';position:absolute;right:0;top:8px;bottom:8px;width:1px;
+  background:rgba(255,255,255,.16);pointer-events:none}
+/* thân bảng: cùng cỡ chữ, cùng khoảng đệm, kẻ ngang nhạt như nhau */
+table.mh-tbl2 td,.sp-table tbody td,table.pur-tbl td,.admtbl td{font-size:11.5px}
+table.mh-tbl2 td{padding:10px 12px}
+table.mh-tbl2 tbody tr:hover td,.sp-table tbody tr:hover td,
+table.pur-tbl tbody tr:hover td,.admtbl tr:hover td{background:#f6f9ff}
+/* icon sắp xếp / lọc trên tiêu đề giữ màu sáng cho hợp nền navy */
+.sp-table thead th .thflt,.sp-table thead th .sp-sortic{color:rgba(255,255,255,.6)}
+/* cột "Đề xuất giảm" vẫn phải nổi hơn cột "Giảm giá NCC" -> đổi sang chữ vàng nhạt */
+table.mh-tbl2 th.dx-th{color:#ffd79a!important}
+table.mh-tbl2 th .mh-bulk input{background:rgba(255,255,255,.92);border-color:rgba(255,255,255,.35);color:var(--c1)}
+table.mh-tbl2 th .mh-bulk input::placeholder{color:#8b97a5}
 </style>
 
 <!-- ===== TOP NAV ===== -->
