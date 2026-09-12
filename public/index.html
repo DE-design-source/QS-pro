@@ -4534,6 +4534,23 @@ table.pt tr.pt-add td{border-left:none;border-right:none}
 table.pt tr.pt-total td{border-top:2px solid var(--navy)}
 table.pt tr.pt-total td:not(:first-child){border-left:none}
 table.pt tr.pt-total td{border-right:none}
+
+/* ═══ Phần thô: kẻ dọc CÓ KHOẢNG HỞ — mỗi ô một đoạn ngắn, không nối thành một sợi
+   chạy suốt từ đầu bảng xuống đáy. Vẽ bằng lớp phủ nên không đụng bố cục ô. ═══ */
+table.pt tbody td{border-left:none!important;border-right:none!important;position:relative}
+table.pt tbody tr.pt-row td:not(:last-child)::after,
+table.pt tbody tr.pt-sec td:not(:last-child)::after{
+  content:'';position:absolute;right:0;top:9px;bottom:9px;width:1px;background:#d6dce4;pointer-events:none}
+table.pt tbody tr.pt-sec td:not(:last-child)::after{top:7px;bottom:7px;background:#c6cfd9}
+/* dòng trắng, dòng "+ Thêm dòng", dòng tổng: không kẻ dọc -> các khối tách hẳn nhau */
+table.pt tbody tr.pt-spacer td::after,
+table.pt tbody tr.pt-add td::after,
+table.pt tbody tr.pt-total td::after,
+table.pt tbody tr.pt-empty td::after{content:none}
+/* hàng tiêu đề cũng chừa hở hai đầu cho đồng bộ */
+table.pt thead th{border-right:none;position:relative}
+table.pt thead th:not(:last-child)::before{
+  content:'';position:absolute;right:0;top:8px;bottom:8px;width:1px;background:rgba(255,255,255,.16);pointer-events:none}
 </style>
 
 <!-- ===== TOP NAV ===== -->
