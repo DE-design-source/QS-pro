@@ -3892,22 +3892,10 @@ async function renderCongTy(){
   var viewing=S._viewAs?(list.filter(function(c){return String(c.id)===String(S._viewAs);})[0]||{}).ten:'';
   box.innerHTML='<div class="sechd"><h2>Quản lý công ty</h2><span class="count">'+list.length+'</span>'
       +'<span class="sp" style="flex:1"></span>'
-      +(sapHet||list.some(function(x){var d=ngayConLai(x.hanDung); return d!==null&&d<0;})
-        ? '<button class="btn ghost sm" id="ctNhacBtn" onclick="ctNhacGiaHan()" title="Gửi thẻ nhắc gia hạn vào Lark">'+icon('bell',14)+' Nhắc gia hạn</button>' : '')
       +'<button class="btn blue sm" onclick="ctCreate()">'+icon('plus',14)+' Tạo công ty</button></div>'
     +(viewing?'<div class="ct-viewbar">'+icon('eye',15)+' Đang xem dữ liệu của <b>'+esc(viewing)+'</b>'
       +'<button class="btn ghost xs" onclick="ctViewAs(\'\')">Thoát chế độ xem</button></div>':'')
     +stats+'<div class="ct-grid">'+cards+'</div>';
-}
-// Gửi thẻ nhắc gia hạn vào Lark (webhook mua hàng)
-async function ctNhacGiaHan(){
-  var b=document.getElementById('ctNhacBtn'); if(b){ b.disabled=true; b.textContent='Đang gửi…'; }
-  try{
-    var r=await api('checkExpiry',{force:true});
-    if(r.sent) toast('Đã gửi Lark nhắc '+r.count+' công ty: '+(r.companies||[]).join(' · '));
-    else toast(r.message||'Không gửi được — kiểm tra webhook Lark');
-  }catch(e){ toast('Lỗi: '+e.message); }
-  renderCongTy();
 }
 // Super admin "xem như" 1 công ty -> mọi API gắn header x-view-company
 function ctViewAs(id){
