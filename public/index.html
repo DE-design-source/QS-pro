@@ -3811,8 +3811,6 @@ input::placeholder,textarea::placeholder{color:var(--c4)}
 .tbl-wrap::-webkit-scrollbar-thumb:hover,.pt-scroll::-webkit-scrollbar-thumb:hover{background:#c3ccd8}
 
 /* ── Bảng chọn cột (thay 3 hàng chip cũ) ── */
-#spColBar,.sp-card .colchips.sp-colchips{display:none!important}
-.sp-card.ptmode #spColBar{display:none!important}
 .btn .tbn{font-weight:600;color:var(--c3);font-size:var(--t-xs);margin-left:1px}
 .colpop{position:fixed;z-index:120;width:300px;background:#fff;padding:0;overflow:hidden}
 .colpop-h{display:flex;align-items:center;gap:8px;padding:12px 14px 10px;border-bottom:1px solid var(--ln)}
@@ -4665,6 +4663,48 @@ table.pt tbody tr.pt-row td{height:auto}
 table.pt tbody td .pt-in,table.pt tbody td .pt-area,table.pt tbody td .pt-ro{font-size:12.5px}
 
 .pt-tlbl{white-space:nowrap;font-weight:700;color:var(--navy)}
+
+/* Hàng chip chọn cột — trở lại như ban đầu (bỏ nút "Cột n/m") */
+.colchips{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:8px 0 10px}
+.colchips .chip{cursor:pointer;height:26px;padding:0 10px;font-size:11px;font-weight:600;white-space:nowrap}
+.colchips .cp-collbl{margin-right:4px;white-space:nowrap}
+.pt-colchips .btn{height:26px}
+.bg-colchips{margin:-2px 0 12px}
+#spColBar{display:flex}
+
+/* ═══ YÊU THÍCH = TIM HỒNG (thay ngôi sao vàng ở mọi nơi) ═══ */
+:root{--fav:#ec4899;--fav-d:#db2777;--fav-bg:#fdf2f8;--fav-ln:#fbcfe8}
+.citem .cfav:hover,.citem .cfav.on,
+.sp-act.fav:hover,.sp-act.fav.on,
+.ptlib-fav:hover,.ptlib-fav.on{color:var(--fav)!important}
+.citem .cfav.on svg,.sp-act.fav.on .ico,.ptlib-fav.on svg{fill:currentColor}
+.ptlib-fav svg{fill:none}
+.spvt.fav.on{background:var(--fav-bg)!important;border-color:var(--fav-ln)!important;color:var(--fav-d)!important}
+.spvt.fav.on .spvt-n{background:var(--fav)!important;color:#fff!important}
+.favgo-btn{background:var(--fav-bg)!important;color:var(--fav)!important;border-color:var(--fav-ln)!important}
+.favgo-btn:hover{border-color:var(--fav)!important;background:#fce7f3!important;box-shadow:0 1px 4px rgba(236,72,153,.2)!important}
+.favgo-btn .favgo-n{color:var(--fav-d)!important}
+.favgo-btn.empty{background:#fff!important;color:var(--ink-3)!important;border-color:var(--line)!important}
+.favgo-btn.empty:hover{color:var(--fav)!important;border-color:var(--fav-ln)!important;background:var(--fav-bg)!important}
+.favgo-btn.on{background:var(--fav)!important;border-color:var(--fav)!important;color:#fff!important}
+.favgo-btn.on .favgo-n{color:#fff!important}
+.favgo-btn.on:hover{background:var(--fav-d)!important;border-color:var(--fav-d)!important}
+.spb-b.fav:hover{color:var(--fav)}
+
+/* ═══ Nút chọn nhanh % lợi nhuận: to hơn, luôn nhìn thấy ═══ */
+td.ln-cell .cin{padding-right:34px}
+.ln-pick{width:26px!important;height:22px!important;right:4px!important;border-radius:6px!important;
+  background:#eaf2ff!important;border:1px solid #bcd3f5!important;color:var(--blue)!important;
+  font-size:12px!important;font-weight:700;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+td.ln-cell:hover .ln-pick{background:#dbe8ff!important;border-color:var(--blue)!important}
+.ln-pick:hover{background:var(--blue)!important;border-color:var(--blue)!important;color:#fff!important}
+/* bảng chọn % to hơn cho dễ bấm */
+.lnpick{width:236px}
+.lnpick-b button{height:34px;font-size:13px}
+
+/* ═══ Tài liệu báo giá khổ A4 NGANG: cho khung xem trước cuộn ngang khi màn hẹp ═══ */
+.qs-doc{overflow-x:auto;justify-content:flex-start}
+@media(min-width:1180px){ .qs-doc{justify-content:center} }
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -4766,7 +4806,7 @@ table.pt tbody td .pt-in,table.pt tbody td .pt-area,table.pt tbody td .pt-ro{fon
       <!-- LEFT: filter + catalog -->
       <div class="panel catpanel" id="leftCat">
         <div class="catpanel-top">
-          <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><span class="sp" style="flex:1"></span><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg><span class="filt-lbl">Bộ lọc</span><span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button><button class="favgo-btn" id="favGoBtn" onclick="catFavToggle()"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg><span class="favgo-n" id="favGoN"></span></button></div>
+          <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><span class="sp" style="flex:1"></span><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg><span class="filt-lbl">Bộ lọc</span><span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button><button class="favgo-btn" id="favGoBtn" onclick="catFavToggle()"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 20.3s-7.4-4.5-9.5-9C1 8 3.2 4.6 6.7 4.6c2.1 0 3.6 1.2 5.3 3 1.7-1.8 3.2-3 5.3-3 3.5 0 5.7 3.4 4.2 6.7-2.1 4.5-9.5 9-9.5 9z"/></svg><span class="favgo-n" id="favGoN"></span></button></div>
 
           <!-- 3 bộ chọn (theo Figma) -->
           <div class="mlbl" title="Lọc danh mục sản phẩm bên dưới. Khác với ô 'Hạng mục đã bóc' ở bảng bên phải — đó là đề mục đang bóc.">Lọc theo đề mục</div>

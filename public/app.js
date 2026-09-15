@@ -77,6 +77,7 @@ var ICONS={
   left:'<path d="M15 18l-6-6 6-6"/>',
   link:'<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
   star:'<path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/>',
+  heart:'<path d="M12 20.3s-7.4-4.5-9.5-9C1 8 3.2 4.6 6.7 4.6c2.1 0 3.6 1.2 5.3 3 1.7-1.8 3.2-3 5.3-3 3.5 0 5.7 3.4 4.2 6.7-2.1 4.5-9.5 9-9.5 9z"/>',
   power:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
   temp:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/>',
   color:'<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',
@@ -638,7 +639,7 @@ function favChips_(){
   var box=document.getElementById('fFavChips'); if(!box) return;
   var so=(S.products||[]).filter(function(p){ return p.yeuThich; }).length;
   box.innerHTML='<span class="chip'+(S.fFav?' on':'')+'" onclick="catFavToggle()">'
-    +'★ Chỉ sản phẩm yêu thích<i class="chip-n">'+so+'</i></span>';
+    +'♥ Chỉ sản phẩm yêu thích<i class="chip-n">'+so+'</i></span>';
   var n=document.getElementById('nYeuThich'); if(n) n.textContent=S.fFav?'1':'';
 }
 function spVarKey_(p){ return spNorm_(p.ma||'')||spNorm_(p.ten||''); }
@@ -910,7 +911,7 @@ function renderCatalog(){
   var cc=document.getElementById('catCount'); if(cc) cc.textContent=list.length+' SP';
   updateCatUI();
   if(!list.length){ el.innerHTML=S.fFav
-      ? '<div class="ptlib-empty">'+icon('star',22)+'<b>Chưa có sản phẩm yêu thích</b><span>Bấm ngôi sao ở một sản phẩm (tại đây hoặc trong Danh sách sản phẩm) để lưu lại, lần sau mở dự án mới là lấy ra dùng ngay.</span></div>'
+      ? '<div class="ptlib-empty">'+icon('heart',22)+'<b>Chưa có sản phẩm yêu thích</b><span>Bấm biểu tượng trái tim ở một sản phẩm (tại đây hoặc trong Danh sách sản phẩm) để lưu lại, lần sau mở dự án mới là lấy ra dùng ngay.</span></div>'
       : '<div class="empty">Không có sản phẩm khớp lọc.</div>';
     S._filtered=list; return; }
   var grp=catVarGroups_(list.slice(0,300));
@@ -926,7 +927,7 @@ function renderCatalog(){
         +'<div class="nm">'+esc(p.ten)+'</div>'
         +'<div class="meta"><span class="pr">'+money(p.donGiaBan)+' đ</span></div>'
       +'</div>'
-      +'<button class="cfav'+(p.yeuThich?' on':'')+'" title="'+(p.yeuThich?'Bỏ khỏi sản phẩm yêu thích':'Thêm vào sản phẩm yêu thích')+'" onclick="event.stopPropagation();catFav('+i+','+(p.yeuThich?0:1)+')">'+icon('star',14)+'</button>'
+      +'<button class="cfav'+(p.yeuThich?' on':'')+'" title="'+(p.yeuThich?'Bỏ khỏi sản phẩm yêu thích':'Thêm vào sản phẩm yêu thích')+'" onclick="event.stopPropagation();catFav('+i+','+(p.yeuThich?0:1)+')">'+icon('heart',14)+'</button>'
       +'<button class="add" title="Thêm vào bóc tách" onclick="addProduct('+i+')">+</button>'
       // hàng chip thông số nằm RIÊNG 1 hàng, rộng hết thẻ -> đủ chỗ, không cắt, không rớt dòng
       +((brand||p.comboN||G.kids.length)?('<div class="cmeta metarow">'
@@ -1116,7 +1117,7 @@ function renderSanpham(){
             +'<button class="btn ghost sm sp-undobtn" id="spUndoBtn" onclick="spUndo_()" disabled title="Chưa có thao tác nào để hoàn tác">'
               +'<svg class="ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-4"/></svg> Hoàn tác</button>'
             +'<button class="btn ghost sm sp-editbtn" id="spEditBtn" onclick="spEditToggle()" title="Sửa nhanh ngay trên bảng — hiện tất cả cột nhập liệu">'+icon('edit',14)+' Edit</button>'
-            +'<button class="btn ghost sm" id="spColBtn" onclick="spColPop_(event)" title="Chọn cột hiển thị">'+icon('list',14)+' Cột <b class="tbn" id="spColN"></b></button>'
+
             +'<button class="btn ghost sm" id="spBoLocBtn" onclick="spToggleBoLoc(event)">'+icon('sliders',14)+' Bộ lọc<span class="spflt-badge" id="spFltBadge"></span></button>'
             +'<button class="btn ghost sm" id="spXlsBtn" onclick="spXlsClick_()" title="Tải danh sách ra file Excel">'+icon('download',14)+' <span id="spXlsLbl">Tải Excel</span></button>'
             +'<button class="btn blue sm" onclick="showTab(\'import\')">'+icon('plus',14)+' Thêm sản phẩm</button>'
@@ -1413,7 +1414,7 @@ function spViewTabs_(){
   var tabs=[['all','Tất cả', all.length?String(all.length):''],
             ['chua','Chưa duyệt', chua?String(chua):''],
             ['da','Đã duyệt', da?String(da):''],
-            ['fav','★ Yêu thích', fav?String(fav):'']];
+            ['fav','♥ Yêu thích', fav?String(fav):'']];
   el.innerHTML=tabs.map(function(t){
     return '<button class="spvt'+(cur===t[0]?' on':'')+(t[0]==='chua'?' warn':(t[0]==='fav'?' fav':''))+'" onclick="spSetView(\''+t[0]+'\')">'+esc(t[1])
       +(t[2]?'<span class="spvt-n">'+t[2]+'</span>':'')+'</button>';
@@ -1861,8 +1862,10 @@ function spColList_(){
   return spOrder_().map(function(k){ return by[k]; }).filter(Boolean);
 }
 function spColChips_(){
-  var bar=document.getElementById('spColBar'); if(bar) bar.innerHTML='';
   var cols=spColList_(), on=cols.filter(function(c){ return spColOn_(c[0]); }).length;
+  var bar=document.getElementById('spColBar');
+  if(bar) bar.innerHTML='<span class="cp-collbl">Cột hiển thị</span>'+cols.filter(function(c){ return c[0]!=='stt'&&c[0]!=='ten'; })
+    .map(function(c){ return '<span class="chip'+(spColOn_(c[0])?' on':'')+'" onclick="spColToggle(\''+c[0]+'\')">'+esc(c[1])+'</span>'; }).join('');
   var n=document.getElementById('spColN'); if(n) n.textContent=on+'/'+cols.length;
   if(document.getElementById('spColPop')) spColPopRender_();
 }
@@ -2216,7 +2219,7 @@ function ptBulkBar_(){
     +'</div>'
     +'<div class="spb-z spb-act">'
       +'<button class="spb-b primary" onclick="ptBulkAdd_()">'+icon('plus',14)+' Thêm vào bảng khái toán</button>'
-      +'<button class="spb-b fav" onclick="ctFavBulk_(1)" title="Lưu vào công tác yêu thích">'+icon('star',14)+' Yêu thích</button>'
+      +'<button class="spb-b fav" onclick="ctFavBulk_(1)" title="Lưu vào công tác yêu thích">'+icon('heart',14)+' Yêu thích</button>'
       +(spCanDuyet_()?'<button class="spb-b duyet" onclick="ctDuyetBulk_(1)" title="Duyệt các công tác đã lưu trong cơ sở dữ liệu">'+icon('check',14)+' Duyệt</button>':'')
 
       +'<button class="spb-b" onclick="ptBulkXlsx_()">'+icon('download',14)+' Tải Excel</button>'
@@ -2354,7 +2357,7 @@ function spPTTabs_(){
   var da=db.filter(function(r){ return ctOf_(r.a).daDuyet; }).length;
   var fav=db.filter(function(r){ return ctOf_(r.a).yeuThich; }).length;
   var tabs=[['all','Tất cả',all.length],['__chua','Chưa duyệt',chua],
-            ['__da','Đã duyệt',da],['__fav','★ Yêu thích',fav]];
+            ['__da','Đã duyệt',da],['__fav','♥ Yêu thích',fav]];
   el.innerHTML=tabs.map(function(t){
     return '<button class="spvt'+(cur===t[0]?' on':'')
       +(t[0]==='__chua'?' warn':(t[0]==='__fav'?' fav':''))+'" onclick="spPTSetView(\''+t[0]+'\')">'+esc(t[1])
@@ -2458,14 +2461,14 @@ function spRowActions_(p,i){
   var isAdmin=isAdminRole_();
   if(spPTMode_()){
     var c=ctOf_(p.a), da=ptDaCo_(p.sec,p.a);
-    return (c?'<button class="sp-act fav'+(c.yeuThich?' on':'')+'" title="'+(c.yeuThich?'Bỏ khỏi công tác yêu thích':'Thêm vào công tác yêu thích')+'" onclick="ctFav_(\''+c.id+'\','+(c.yeuThich?0:1)+')">'+icon('star',16)+'</button>':'')
+    return (c?'<button class="sp-act fav'+(c.yeuThich?' on':'')+'" title="'+(c.yeuThich?'Bỏ khỏi công tác yêu thích':'Thêm vào công tác yêu thích')+'" onclick="ctFav_(\''+c.id+'\','+(c.yeuThich?0:1)+')">'+icon('heart',16)+'</button>':'')
       +'<button class="sp-act add" title="'+(da?'Đã có trong bảng — bấm để thêm 1 dòng nữa':'Thêm vào bảng khái toán của dự án đang chọn')+'" onclick="ptAddFromLib('+p.si+','+p.ii+');spFilter()">'+icon('pluscircle',18)+'</button>'
       +((c&&spCanDuyet_())?'<button class="sp-act '+(c.daDuyet?'undo':'ok')+'" title="'+(c.daDuyet?'Bỏ duyệt':'Duyệt công tác này')+'" onclick="ctDuyet_(\''+c.id+'\','+(c.daDuyet?0:1)+')">'+icon('check',16)+'</button>':'')
       +(c?'<button class="sp-act edit" title="Cập nhật công tác" onclick="ctEditModal_(\''+c.id+'\')">'+icon('edit',16)+'</button>':'')
       +'<button class="sp-act" title="Xem chi tiết" onclick="spOpen_('+i+')">'+icon('eye',16)+'</button>'
       +((c&&isAdmin)?'<button class="sp-act del" title="Xoá công tác" onclick="ctDelete_(\''+c.id+'\',\''+esc(String(p.ten).replace(/'/g,"\\'"))+'\')">'+icon('trash',16)+'</button>':'');
   }
-  return '<button class="sp-act fav'+(p.yeuThich?' on':'')+'" title="'+(p.yeuThich?'Bỏ khỏi sản phẩm yêu thích':'Thêm vào sản phẩm yêu thích')+'" onclick="spFav('+i+','+(p.yeuThich?0:1)+')">'+icon('star',16)+'</button>'
+  return '<button class="sp-act fav'+(p.yeuThich?' on':'')+'" title="'+(p.yeuThich?'Bỏ khỏi sản phẩm yêu thích':'Thêm vào sản phẩm yêu thích')+'" onclick="spFav('+i+','+(p.yeuThich?0:1)+')">'+icon('heart',16)+'</button>'
     +'<button class="sp-act add" title="Ghi danh vào dự án" onclick="spAddToProject('+i+')">'+icon('pluscircle',18)+'</button>'
     +((spCanDuyet_()&&!p.spChung)?'<button class="sp-act '+(p.daDuyet?'undo':'ok')+'" title="'+(p.daDuyet?'Bỏ duyệt':'Duyệt sản phẩm này')+'" onclick="spDuyet('+i+','+(p.daDuyet?0:1)+')">'+icon('check',16)+'</button>':'')
     +(p.spChung?'':'<button class="sp-act edit" title="Cập nhật sản phẩm" onclick="spEditModal('+i+')">'+icon('edit',16)+'</button>')
@@ -2586,7 +2589,7 @@ function spBulkBar_(){
       +'<button class="bb-x" title="Bỏ chọn (Esc)" onclick="spClearSel()">✕</button></div>'
     +'<div class="bb-sep"></div>'
     +chinh
-    +'<button class="bb-b" onclick="'+fav+'" title="Lưu vào danh sách yêu thích">'+icon('star',15)+' Yêu thích</button>'
+    +'<button class="bb-b" onclick="'+fav+'" title="Lưu vào danh sách yêu thích">'+icon('heart',15)+' Yêu thích</button>'
     +(spCanDuyet_()?'<button class="bb-b" onclick="'+duyet+'" title="Đánh dấu Đã duyệt">'+icon('check',15)+' Duyệt</button>':'')
     +'<button class="bb-b" id="bbEditBtn" onclick="spBulkEditPop_(event)" title="Đổi một trường cho tất cả dòng đã chọn">'
       +icon('edit',15)+' Sửa hàng loạt <i class="bb-car">▾</i></button>'
@@ -2645,7 +2648,7 @@ function spBulkMorePop_(e){
   pop.innerHTML=
      '<button onclick="spBulkPopClose_();'+(PT?'ptBulkXlsx_()':'spExportXlsx()')+'">'+icon('download',15)+' Tải Excel '+n+' dòng</button>'
     +(spCanDuyet_()?'<button onclick="spBulkPopClose_();'+(PT?'ctDuyetBulk_(0)':'spDuyetBulk(0)')+'">'+icon('close',15)+' Bỏ duyệt</button>':'')
-    +'<button onclick="spBulkPopClose_();'+(PT?'ctFavBulk_(0)':'spFavBulk(0)')+'">'+icon('star',15)+' Bỏ yêu thích</button>'
+    +'<button onclick="spBulkPopClose_();'+(PT?'ctFavBulk_(0)':'spFavBulk(0)')+'">'+icon('heart',15)+' Bỏ yêu thích</button>'
     +'<div class="bb-menu-sep"></div>'
     +'<button class="danger" onclick="spBulkPopClose_();'
       +(PT?'ctDeleteBulk_()':(isAdmin?'spBulkDelete()':'spBulkRequest()'))+'">'+icon('trash',15)+' '
@@ -3116,10 +3119,9 @@ document.addEventListener('click',function(e){
 function renderColChips(){
   var el=document.getElementById('colChips'); if(!el) return;
   var on=COLS.filter(function(c){ return S.cols[c[0]]; }).length;
-  el.innerHTML='<button class="btn ghost sm" id="tkColBtn" onclick="tkColPop_(event)" title="Chọn cột hiển thị">'
-      +icon('list',14)+' Cột <b class="tbn">'+on+'/'+COLS.length+'</b></button>'
-    +'<button class="btn ghost sm" onclick="tkColAll_(1)">Hiện tất cả</button>'
-    +(S._tkColBak?'<button class="btn ghost sm" onclick="tkColAll_(0)">Rút gọn</button>':'');
+  el.innerHTML=COLS.map(function(c){
+    return '<span class="chip'+(S.cols[c[0]]?' on':'')+'" onclick="toggleCol(\''+c[0]+'\')">'+esc(c[1])+'</span>';
+  }).join('');
   if(document.getElementById('tkColPop')) tkColPopRender_();
 }
 function tkColPop_(e){
@@ -4413,8 +4415,8 @@ function colPopOutside_(e){
 }
 function cpColBar_(){
   var on=CP_KEYS.filter(function(k){ return S.cpCols[k]; }).length;
-  return '<div class="colchips cp-colchips"><button class="btn ghost sm" id="cpColBtn" onclick="cpColPop_(event)" title="Chọn cột hiển thị">'
-    +icon('list',14)+' Cột <b class="tbn">'+on+'/'+CP_KEYS.length+'</b></button></div>';
+  return '<div class="colchips cp-colchips"><span class="cp-collbl">Cột hiển thị</span>'
+    +CP_KEYS.map(function(k){ return '<span class="chip'+(S.cpCols[k]?' on':'')+'" onclick="cpToggle(\''+k+'\')">'+esc(cpLabel_(k))+'</span>'; }).join('')+'</div>';
 }
 function cpColPop_(e){ if(e&&e.stopPropagation) e.stopPropagation();
   colPopMake_('cpColPop','cpColBtn','Cột hiển thị',CP_KEYS,function(k){ return !!S.cpCols[k]; },'cpToggle','cpColAll_'); }
@@ -4422,8 +4424,8 @@ var CP_COL_CB=['ten','soLuong','giaDaiLy','donGia','thanhTien','lnVnd'];
 function cpColAll_(on){ CP_KEYS.forEach(function(k){ S.cpCols[k]= on?true:(CP_COL_CB.indexOf(k)>=0); }); renderChiphi(); }
 function daColBar_(){
   var on=DA_KEYS.filter(function(k){ return S._daCols[k]; }).length;
-  return '<div class="colchips cp-colchips"><button class="btn ghost sm" id="daColBtn" onclick="daColPop_(event)" title="Chọn cột hiển thị">'
-    +icon('list',14)+' Cột <b class="tbn">'+on+'/'+DA_KEYS.length+'</b></button></div>';
+  return '<div class="colchips cp-colchips"><span class="cp-collbl">Cột hiển thị</span>'
+    +DA_KEYS.map(function(k){ return '<span class="chip'+(S._daCols[k]?' on':'')+'" onclick="daColToggle(\''+k+'\')">'+esc(cpLabel_(k))+'</span>'; }).join('')+'</div>';
 }
 function daColPop_(e){ if(e&&e.stopPropagation) e.stopPropagation();
   colPopMake_('daColPop','daColBtn','Cột hiển thị',DA_KEYS,function(k){ return !!(S._daCols&&S._daCols[k]); },'daColToggle','daColAll_'); }
@@ -4546,8 +4548,8 @@ function cpToolbar_(rows){
   return '<div class="cp-bar">'+tim+loc+ket+'<span style="flex:1"></span>'
     +'<button class="btn ghost sm'+(S._cpGroup?' on':'')+'" onclick="cpToggleGroup()" title="Gom các dòng theo hạng mục và cộng tổng từng nhóm">'
       +icon('layers',14)+' Gom theo hạng mục</button>'
-    +cpColBar_()
     +'</div>'
+    +cpColBar_()
     +(cpLnBulkHien_()?cpLnQuick_():'');
 }
 /* ---------- bảng ---------- */
@@ -5007,7 +5009,7 @@ function bgBuildPages(){
       +'<td class="num">'+(l.thanhTienBan?money(l.thanhTienBan):'-')+'</td>'
       +'<td class="it">'+esc(l.ghiChu||'')+'</td></tr>';
   }
-  var PER=22, dau=true;
+  var PER=13, dau=true;          // A4 NGANG: trang thấp hơn nên ít dòng hơn mỗi trang
   // Mỗi hạng mục (phần) = một trang riêng; hạng mục dài thì tự tràn sang trang tiếp theo.
   if(bgPerSec_()){
     var byNode={}, ordN=[];
@@ -5076,7 +5078,7 @@ function bgDocHTML(){
 }
 var QS_DOC_CSS=''
 +'.qs-doc{display:flex;justify-content:center;margin:16px 0 4px}'
-+'.qs-page{width:794px;min-height:1123px;background:#fff;border:1px solid #e6e9ee;border-radius:10px;box-shadow:0 8px 30px rgba(20,40,80,.10);padding:54px 60px 48px;box-sizing:border-box;position:relative;font-family:Arial,Helvetica,sans-serif;color:#1f2937}'
++'.qs-page{width:1123px;min-height:794px;background:#fff;border:1px solid #e6e9ee;border-radius:10px;box-shadow:0 8px 30px rgba(20,40,80,.10);padding:54px 60px 48px;box-sizing:border-box;position:relative;font-family:Arial,Helvetica,sans-serif;color:#1f2937}'
 +'.qp-head{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9aa4b2;border-bottom:1px solid #eef1f4;padding-bottom:9px;margin-bottom:28px}'
 +'.qp-proj{font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.4px}'
 +'.qp-foot{position:absolute;left:60px;right:60px;bottom:22px;display:flex;justify-content:space-between;font-size:10px;color:#aab3c0;border-top:1px solid #eef1f4;padding-top:8px}'
@@ -5156,10 +5158,10 @@ function printDoc(){
   var pages=bgBuildPages(); var p=S.cur||{};
   var html=pages.map(function(pg){return pg.html;}).join('');
   var pcss=QS_DOC_CSS
-    +'@page{size:A4;margin:0}'
+    +'@page{size:A4 landscape;margin:0}'
     +'body{margin:0;background:#fff}'
     +'.qs-doc{margin:0;display:block}'
-    +'.qs-page{border:none;border-radius:0;box-shadow:none;margin:0 auto;page-break-after:always;width:210mm;min-height:296mm;padding:16mm 15mm 18mm}'
+    +'.qs-page{border:none;border-radius:0;box-shadow:none;margin:0 auto;page-break-after:always;width:297mm;min-height:209mm;padding:16mm 15mm 18mm}'
     +'.qs-page:last-child{page-break-after:auto}'
     +'.qp-foot{left:15mm;right:15mm;bottom:8mm}';
   var w=window.open('','_blank'); if(!w){ toast('Cho phép popup để in/PDF'); return; }
@@ -7194,7 +7196,7 @@ function renderPTLibrary(){
         return '<div class="ptlib-item'+(on?' on':'')+(da?' da':'')+'" title="Bấm để xem thông tin công tác · kéo để thả vào bảng"'
           +' draggable="true" ondragstart="ptLibDragStart_(event,'+si+','+ii+')" ondragend="ptLibDragEnd_()"'
           +' onclick="ptShowDetail_('+si+','+ii+')">'
-          +(ctr?'<button class="ptlib-fav'+(ctr.yeuThich?' on':'')+'" title="'+(ctr.yeuThich?'Bỏ khỏi công tác yêu thích':'Thêm vào công tác yêu thích')+'" onclick="event.stopPropagation();ctFav_(\''+ctr.id+'\','+(ctr.yeuThich?0:1)+')">'+icon('star',13)+'</button>':'')
+          +(ctr?'<button class="ptlib-fav'+(ctr.yeuThich?' on':'')+'" title="'+(ctr.yeuThich?'Bỏ khỏi công tác yêu thích':'Thêm vào công tác yêu thích')+'" onclick="event.stopPropagation();ctFav_(\''+ctr.id+'\','+(ctr.yeuThich?0:1)+')">'+icon('heart',13)+'</button>':'')
           +'<div class="ptlib-nm" title="'+esc(String(a[0]).replace(/\n/g,' ')+(gc?(' — '+gc):''))+'">'+esc(String(a[0]).split('\n')[0])
             +(coTL?'<span class="ptlib-info" title="Đã có ảnh / thông số kỹ thuật">'+icon('doc',11)+'</span>':'')+'</div>'
           +'<div class="ptlib-meta">'
@@ -8051,11 +8053,11 @@ function renderPhanTho(){
   var soLoc=Object.keys(S._ptFilter||{}).length;
   var ptOn=PT_COLS.filter(function(c){ return S._ptCols[c[0]]; }).length;
   var ptChips='<div class="colchips pt-colchips">'
-    +'<button class="btn ghost sm" id="ptColBtn" onclick="ptColPop_(event)" title="Chọn cột hiển thị">'
-      +icon('list',14)+' Cột <b class="tbn">'+ptOn+'/'+PT_COLS.length+'</b></button>'
+    +'<span class="cp-collbl">Cột hiển thị</span>'
     +'<button class="btn ghost sm'+(frz?' on':'')+'" title="Cố định cột trái khi cuộn ngang" onclick="'
       +(frz?'ptUnfreeze()':'ptFreezeTo(\''+(ptVis[1]?ptVis[1][0]:ptVis[0][0])+'\')')+'">'+icon('lock',14)+' '+esc(frzLbl)+'</button>'
     +(soLoc?'<button class="btn ghost sm on" title="Bỏ mọi bộ lọc cột" onclick="ptClearFilter()">Đang lọc '+soLoc+' cột ✕</button>':'')
+    +PT_COLS.map(function(c){ return '<span class="chip'+(S._ptCols[c[0]]?' on':'')+'" onclick="ptColToggle(\''+c[0]+'\')">'+esc(c[1])+'</span>'; }).join('')
     +'</div>';
 
   // Thanh tổng dùng chung (giống các hạng mục SP khác) — hiện cho cả Phần thô
@@ -9232,13 +9234,15 @@ function bgCtlBar_(){
   var pages=bgBuildPages().length;
   return '<div class="bgctl">'
     +bgNodeBtn_('bgNodeBtn1')
-    +bgColBtn_()
     +'<button class="btn ghost sm'+(bgPerSec_()?' on':'')+'" onclick="bgTogglePerSec_()" '
       +'title="Mỗi hạng mục bắt đầu ở một trang mới">'+icon('doc',14)+' Mỗi phần 1 trang</button>'
     +'<span class="bgctl-n">'+icon('doc',13)+' Số trang <b>'+pages+'</b></span>'
     +'<span style="flex:1"></span>'
     +'<button class="btn green sm" onclick="doExport(\'xlsx\',this)">'+icon('download',15)+' Xuất Excel</button>'
     +'<button class="btn red sm" onclick="printDoc()">'+icon('download',15)+' Xuất PDF / In</button>'
+  +'</div>'
+  +'<div class="colchips bg-colchips"><span class="cp-collbl">Cột xuất</span>'
+    +COLS.map(function(c){ return '<span class="chip'+(S.cols[c[0]]?' on':'')+'" onclick="toggleCol(\''+c[0]+'\')">'+esc(c[1])+'</span>'; }).join('')
   +'</div>';
 }
 
