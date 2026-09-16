@@ -4705,6 +4705,31 @@ td.ln-cell:hover .ln-pick{background:#dbe8ff!important;border-color:var(--blue)!
 /* ═══ Tài liệu báo giá khổ A4 NGANG: cho khung xem trước cuộn ngang khi màn hẹp ═══ */
 .qs-doc{overflow-x:auto;justify-content:flex-start}
 @media(min-width:1180px){ .qs-doc{justify-content:center} }
+
+/* Kéo chuột để chọn nhiều dòng: khoá bôi đen chữ trong lúc kéo */
+body.dsel,body.dsel *{user-select:none!important;-webkit-user-select:none!important;cursor:cell!important}
+.sp-table td.selcol,#tkTable td.dragH{cursor:cell}
+.sp-table td.selcol input.spck,#tkTable td.dragH input.tkck{cursor:pointer}
+/* ô tích của bảng Bóc tách luôn hiện khi đang chọn để còn kéo tiếp */
+body.dsel #tkTable td.dragH .tkck{opacity:1}
+
+/* ═══ Sản phẩm con (combo · biến thể): vẽ đường nối kiểu cây ═══
+   Một trục dọc bắt đầu bằng nút tròn ở thẻ cha, mỗi thẻ con có một nhánh ngang. */
+.cc-kids{position:relative;margin:2px 0 6px 18px;padding-left:18px;border-left:none!important}
+.cc-kids::before{display:block!important;content:'';position:absolute;left:0;top:-12px;bottom:0;
+  width:2px;background:#d6e0ec;border-radius:2px}
+.cc-kids::after{content:'';position:absolute;left:-5px;top:-18px;width:12px;height:12px;border-radius:50%;
+  background:#fff;border:2px solid var(--blue);box-sizing:border-box}
+.citem.cc-child{position:relative}
+.citem.cc-child::before{display:block!important;content:'';position:absolute;left:-18px;top:50%;
+  width:16px;height:2px;background:#d6e0ec;transform:translateY(-1px)}
+.citem.cc-child.last::after{display:block!important;content:'';position:absolute;left:-19px;
+  top:calc(50% + 1px);bottom:-10px;width:4px;background:#fff}
+.citem.cc-child:hover::before{background:var(--blue)}
+/* nhóm biến thể dùng tông cam cho khớp chip "Biến thể" */
+.cc-kids.bt-kids::before,.cc-kids.bt-kids .citem.cc-child::before{background:#f0c9a0}
+.cc-kids.bt-kids::after{border-color:#b4620d}
+.cc-kids.bt-kids .citem.cc-child:hover::before{background:#b4620d}
 </style>
 
 <!-- ===== TOP NAV ===== -->

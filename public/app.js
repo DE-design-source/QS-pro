@@ -329,6 +329,7 @@ async function boot(){
   }catch(e){ toast('Lỗi tải: '+e.message); }
 }
 function bocBoot_(){ try{
+  dragSelInit_();
   try{ S.sheet=localStorage.getItem('qs_sheet')||''; }catch(e){ S.sheet=''; }
   rngInit_(); tkZenApply_();
 }catch(e){} }
@@ -415,7 +416,7 @@ async function addItemToFloor(tang){
   try{
     var l=await api('addLine', S.cur.maDA, {ten:'Hạng mục mới', dvt:'Cái', donGiaVon:0, donGiaBan:0,
       nhom:S.node, hangMuc:nodeName(S.node), loai:nodeName(S.node), tang:tang,
-      extra:(S.sheet?{sheet:S.sheet}:null)}, 1);
+      extra:((S.sheet&&tkSheetCo_())?{sheet:S.sheet}:null)}, 1);
     S.lines.push(l); renderTree(); renderFloors(); renderTable();
     focusNewLine(l.lineId);
     toast('Đã thêm hạng mục'+(tang?' vào '+tang:'')+' — sửa ngay trong bảng');
@@ -2529,7 +2530,7 @@ function spFilter(){
     var drag = (!PT && !edit) ? ' draggable="true" ondragstart="spRowDragStart(event,'+i+')" ondragend="spRowDragEnd()"' : '';
     return '<tr class="sp-row'+(PT?' ptrow':'')+(daCo?' da':'')+(sel?' selrow':'')+(edit?' editrow':'')+'"'+drag
         +(edit?'':' onclick="spOpen_('+i+')"')+'>'
-      +'<td class="selcol" onclick="event.stopPropagation()"><input type="checkbox" class="spck" '+(sel?'checked':'')
+      +'<td class="selcol" onclick="event.stopPropagation()"><input type="checkbox" class="spck" data-k="'+esc(key)+'" '+(sel?'checked':'')
         +' onclick="spSelToggle(\''+esc(key)+'\',this.checked)"></td>'
       +vis.map(function(c){
           return '<td class="'+c[2]+((edit&&spCellEditable_(c,p))?' edt':'')+'">'
@@ -3008,11 +3009,11 @@ async function addProdObj(p,floor,sl){
       && ((p.ma&&l.maSP&&l.maSP===p.ma)||l.ten===p.ten)
       && String(l.moTa||'').trim()===String(p.moTa||'').trim()
       && !String(l.khuVuc||'').trim()
-      && tkSheetOf_(l)===(S.sheet||'');
+      && tkSheetOf_(l)===((tkSheetCo_()&&S.sheet)||'');
   })[0];
   if(same){ editLine(same.lineId,{soLuong:(Number(same.soLuong)||0)+sl}); toast('+'+sl+' số lượng: '+p.ten); return; }
   var prod=Object.assign({},p,{ nhom:S.node, hangMuc:nodeName(S.node), loai:nodeName(S.node), tang:floor,
-    extra:Object.assign({nganh:p.nhom||''}, S.sheet?{sheet:S.sheet}:{}) });
+    extra:Object.assign({nganh:p.nhom||''}, (S.sheet&&tkSheetCo_())?{sheet:S.sheet}:{}) });
   // ---- Optimistic: hiện dòng NGAY, đồng bộ server chạy nền ----
   var dgVon=Number(p.donGiaVon)||0, dgBan=Number(p.donGiaBan)||0;
   var temp={ lineId:'tmp_'+(S._tmpN=(S._tmpN||0)+1), _pending:true,
@@ -3261,10 +3262,10 @@ function renderTable(){
   // panel chi tiết dùng chung: rời đề mục thì đóng panel của đề mục cũ
   if(isPT && S._detailIdx!=null) hideDetail();
   if(!isPT && S._ptDetail) ptHideDetail_();
-  if(isPT){ tkSheetChips_(null); renderPhanTho(); return; }   // Phần thô không chia sheet -> dọn chip cũ
+  if(isPT){ tkSheetChips_([]); renderPhanTho(); return; }     // Phần thô: chip gắn với Loại báo giá bên trái
   var lines=S.lines.filter(function(l){ return l.nhom===code || String(l.nhom||'').indexOf(code+'.')===0; });
-  tkSheetChips_(lines);                                   // chip Nhân công / Vật tư của hạng mục này
-  if(S.sheet) lines=lines.filter(function(l){ return tkSheetOf_(l)===S.sheet; });
+  tkSheetChips_(tkSheetCo_()?lines:null);                 // chip Nhân công / Vật tư (chỉ vài hạng mục có)
+  if(S.sheet && tkSheetCo_()) lines=lines.filter(function(l){ return tkSheetOf_(l)===S.sheet; });
   document.getElementById('tkCount').textContent='['+pad2(lines.length)+']';
   var t=document.getElementById('tkTable');
   if(!S.cur){ t.style.width=''; t.innerHTML='<tr><td class="empty">Chưa chọn dự án.</td></tr>'; tkSheetChips_(null); return; }
@@ -8816,10 +8817,12 @@ function tkBulkEditRun_(){
 }
 function tkBulkMorePop_(e){ if(e&&e.stopPropagation) e.stopPropagation();
   var n=tkSelIds_().length;
-  var html='<button onclick="tkPopClose_();tkBulkSheet_(\'nc\')">'+icon('layers',15)+' Đưa vào sheet Nhân công</button>'
-    +'<button onclick="tkPopClose_();tkBulkSheet_(\'vt\')">'+icon('layers',15)+' Đưa vào sheet Vật tư</button>'
-    +'<button onclick="tkPopClose_();tkBulkSheet_(\'\')">'+icon('close',15)+' Bỏ khỏi sheet (để chung)</button>'
-    +'<div class="bb-menu-sep"></div>'
+  var html=(tkSheetCo_()
+      ? '<button onclick="tkPopClose_();tkBulkSheet_(\'nc\')">'+icon('layers',15)+' Đưa vào sheet Nhân công</button>'
+        +'<button onclick="tkPopClose_();tkBulkSheet_(\'vt\')">'+icon('layers',15)+' Đưa vào sheet Vật tư</button>'
+        +'<button onclick="tkPopClose_();tkBulkSheet_(\'\')">'+icon('close',15)+' Bỏ khỏi sheet (để chung)</button>'
+        +'<div class="bb-menu-sep"></div>'
+      : '')
     +'<button onclick="tkPopClose_();tkBulkCopy_()">'+icon('copy',15)+' Sao chép '+n+' dòng (dán được vào Excel)</button>'
     +'<button onclick="tkPopClose_();tkBulkDup_()">'+icon('plus',15)+' Nhân bản '+n+' dòng</button>'
     +'<button onclick="tkPopClose_();tkSelAllVisible_()">'+icon('list',15)+' Chọn tất cả dòng đang hiện</button>'
@@ -8953,6 +8956,7 @@ function rngBadge_(){
 function rngInit_(){
   if(S._rngInit) return; S._rngInit=1;
   document.addEventListener('mousedown',function(e){
+    if(e.target.closest&&e.target.closest('input.tkck')) return;   // đang tick chọn dòng
     var td=e.target.closest?e.target.closest('td'):null;
     var pos=td?rngPos_(td):null;
     if(!pos){ if(!e.target.closest||!e.target.closest('.rng-badge')) rngClear_(); return; }
@@ -9106,6 +9110,13 @@ function catVarHtml_(list,G){
 /* ═══ Sheet Nhân công / Vật tư trong một hạng mục ═══
    Lưu trên dòng ở extra.sheet ('nc' | 'vt' | rỗng = để chung) nên đi theo dòng, không đụng cấu trúc hạng mục. */
 var TK_SHEETS=[['nc','Nhân công'],['vt','Vật tư']];
+/* Nhân công / Vật tư CHỈ có ở: Phần thô · Thạch cao · Xây tô · Ốp lát.
+   Các hạng mục khác (Thiết bị đèn…) không chia sheet. */
+var TK_SHEET_NODES=['3.1','3.2.1','3.2.3','3.2.4'];
+function tkSheetCo_(code){
+  var c=String(code||S.node||'');
+  return TK_SHEET_NODES.some(function(n){ return c===n || c.indexOf(n+'.')===0; });
+}
 function tkSheetOf_(l){ return String((l&&l.extra&&l.extra.sheet)||''); }
 function tkSheetLbl_(v){ var x=TK_SHEETS.filter(function(t){ return t[0]===v; })[0]; return x?x[1]:''; }
 function setSheet(v){
@@ -9113,10 +9124,25 @@ function setSheet(v){
   try{ localStorage.setItem('qs_sheet', S.sheet||''); }catch(e){}
   S._tkSel={}; renderTable(); renderCard&&renderCard();
 }
+var PT_SHEET_LOAI={nc:'dt_nhancong', vt:'dt_vattu'};
 function tkSheetChips_(lines){
   var box=document.getElementById('tkSheets'); if(!box) return;
-  if(!lines){ box.innerHTML=''; return; }
-  var code=S.node||'', dem={nc:0,vt:0,'':0};
+  if(!lines || !tkSheetCo_()){ box.innerHTML=''; return; }
+  var code=S.node||'';
+  // Phần thô: Nhân công / Vật tư chính là 2 "Loại báo giá" dự toán bên panel trái
+  if(code==='3.1'){
+    var cur=ptLoai_();
+    box.innerHTML=TK_SHEETS.map(function(t,i){
+      var on=(cur===PT_SHEET_LOAI[t[0]]);
+      return '<button class="shchip'+(on?' on':'')+'" onclick="ptSheetPick_(\''+t[0]+'\')" '
+        +'title="Dự toán '+t[1]+' của Phần thô">'
+        +'<span class="shc-c">'+esc(code+'.'+(i+1)+'.')+'</span>'+t[1]+'</button>';
+    }).join('')
+    +((cur==='dt_nhancong'||cur==='dt_vattu')
+      ? '<button class="shchip clr" onclick="ptSheetPick_(\'\')" title="Quay lại khái toán">✕ Khái toán</button>' : '');
+    return;
+  }
+  var dem={nc:0,vt:0,'':0};
   (lines||[]).forEach(function(l){ dem[tkSheetOf_(l)]=(dem[tkSheetOf_(l)]||0)+1; });
   box.innerHTML=TK_SHEETS.map(function(t,i){
     var on=(S.sheet===t[0]);
@@ -9126,6 +9152,14 @@ function tkSheetChips_(lines){
       +'<i class="shc-n">['+pad2(dem[t[0]]||0)+']</i></button>';
   }).join('')
   +(S.sheet?'<button class="shchip clr" onclick="setSheet(\''+S.sheet+'\')" title="Bỏ lọc sheet, xem tất cả">✕ Tất cả</button>':'');
+}
+// Phần thô: bấm chip = đổi Loại báo giá; bấm lại chip đang bật = quay về khái toán trước đó
+function ptSheetPick_(v){
+  var dich = v ? PT_SHEET_LOAI[v] : (S._ptLoaiTruoc||'kt_chitiet');
+  var cur = ptLoai_();
+  if(v && cur===dich) dich = S._ptLoaiTruoc || 'kt_chitiet';
+  if(cur!=='dt_nhancong' && cur!=='dt_vattu') S._ptLoaiTruoc = cur;
+  ptSetLoai(dich); renderTable();
 }
 function tkBulkSheet_(v){
   var ls=tkSelLines_(); if(!ls.length) return;
@@ -9677,3 +9711,65 @@ function markBlocks_(sel){
     if(truoc) truoc.classList.add('blk-last');
   });
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   CHỌN NHIỀU DÒNG BẰNG CÁCH GIỮ CHUỘT TRÁI RỒI KÉO
+   Bấm vào ô tích rồi rê qua các dòng khác — thả chuột là xong.
+   Kéo qua dòng đã tích thì BỎ tích (theo trạng thái của dòng đầu tiên).
+   Cập nhật tại chỗ, không vẽ lại cả bảng nên kéo không bị giật.
+   ═══════════════════════════════════════════════════════════════ */
+function dragSelInit_(){
+  if(S._dselInit) return; S._dselInit=1;
+  document.addEventListener('mousedown',function(e){
+    if(e.button!==0) return;
+    var ck=e.target.closest&&e.target.closest('input.spck,input.tkck');
+    if(!ck || ck.id==='spCkAll') return;
+    if(e.shiftKey) return;                       // giữ Shift vẫn là chọn cả vùng như cũ
+    e.preventDefault();                          // tự xử lý, khỏi phụ thuộc cú click của trình duyệt
+    var loai = ck.classList.contains('spck') ? 'sp' : 'tk';
+    var d={ loai:loai, bat:!ck.checked, soDong:0 };
+    S._dsel=d; S._dselChan=1;
+    document.body.classList.add('dsel');
+    var tr=ck.closest(loai==='sp'?'tr.sp-row':'tr.drow');
+    if(tr) dragSelApply_(tr,d);                  // chọn luôn dòng đang bấm
+  });
+  // Nuốt cú click sau khi kéo, nếu không ô tích sẽ bị đảo trạng thái lần nữa
+  document.addEventListener('click',function(e){
+    if(!S._dselChan) return;
+    S._dselChan=0;
+    if(e.target.closest&&e.target.closest('input.spck,input.tkck')){ e.stopPropagation(); e.preventDefault(); }
+  },true);
+  document.addEventListener('mouseover',function(e){
+    var d=S._dsel; if(!d) return;
+    var tr=e.target.closest&&e.target.closest(d.loai==='sp'?'tr.sp-row':'#tkTable tr.drow');
+    if(tr) dragSelApply_(tr,d);
+  });
+  document.addEventListener('mouseup',function(){
+    var d=S._dsel; if(!d) return;
+    S._dsel=null; document.body.classList.remove('dsel');
+    if(d.loai==='sp'){ spBulkBar_&&spBulkBar_(); }
+    else { tkSelBar_&&tkSelBar_(); }
+    if(d.soDong>1) toast((d.bat?'Đã chọn thêm ':'Đã bỏ chọn ')+d.soDong+' dòng');
+  });
+}
+function dragSelApply_(tr,d){
+  var ck=tr.querySelector(d.loai==='sp'?'input.spck':'input.tkck'); if(!ck) return;
+  if(!!ck.checked===!!d.bat) return;                  // dòng này đã đúng trạng thái rồi
+  ck.checked=d.bat;
+  if(d.loai==='sp'){
+    var k=ck.getAttribute('data-k'); if(!k) return;
+    S._spSel=S._spSel||{};
+    if(d.bat) S._spSel[k]=1; else delete S._spSel[k];
+    tr.classList.toggle('selrow',d.bat);
+  } else {
+    var id=tr.getAttribute('data-id'); if(!id) return;
+    S._tkSel=S._tkSel||{};
+    if(d.bat) S._tkSel[id]=1; else delete S._tkSel[id];
+    tr.classList.toggle('rowsel',d.bat);
+    S._tkAnchor=id;
+  }
+  d.soDong++;
+}
+// gắn ngay khi tải trang (không chờ đăng nhập) — chỉ là 3 listener trên document
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',dragSelInit_);
+else dragSelInit_();
