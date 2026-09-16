@@ -4805,6 +4805,30 @@ body.dsel #tkTable td.dragH .tkck{opacity:1}
 .cbi-pr{flex:none;min-width:0;display:flex;align-items:baseline;gap:6px}
 .cbi-pr i{font-style:normal;font-size:10px;color:var(--c4);text-transform:uppercase;letter-spacing:.04em}
 .cbi-pr b{font-size:13px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums}
+
+/* ═══ Tay kéo đổi bề rộng panel trái (nới rộng bảng bóc tách) ═══ */
+#bocGrid{grid-template-columns:var(--catW,268px) minmax(0,1fr)}
+#bocGrid.detail{grid-template-columns:var(--catW,248px) 268px minmax(0,1fr)}
+@media(min-width:1600px){ #bocGrid{grid-template-columns:var(--catW,290px) minmax(0,1fr)}
+  #bocGrid.detail{grid-template-columns:var(--catW,262px) 288px minmax(0,1fr)} }
+@media(max-width:1120px){ #bocGrid,#bocGrid.detail{grid-template-columns:1fr}
+  .cat-resize{display:none} }
+.catpanel{position:relative}
+.cat-resize{position:absolute;top:0;right:-11px;width:14px;height:100%;cursor:col-resize;z-index:8;
+  display:flex;align-items:center;justify-content:center;background:none;border:none}
+.cat-resize i{display:block;width:4px;height:44px;border-radius:99px;background:#dbe2ec;transition:.14s}
+.cat-resize:hover i{background:var(--blue);height:70px}
+.cat-resize.dang-keo i{background:var(--blue-d);height:100%;border-radius:2px}
+body.keo-ngang,body.keo-ngang *{cursor:col-resize!important;user-select:none!important}
+
+/* Ô "Số bộ" ở đầu khối Sản phẩm đi kèm */
+.cbi-sec{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cbi-bo{margin-left:auto;display:inline-flex;align-items:center;gap:6px}
+.cbi-bo label{font-size:10.5px;font-weight:700;color:var(--c3);text-transform:uppercase;letter-spacing:.04em}
+.cbi-bo .cbi-sl{height:28px}
+.cbi-bo .cbi-sl input{width:44px;font-size:12.5px}
+.cbi-nhan{flex:none;font-size:10.5px;color:var(--c3);white-space:nowrap}
+.cbi-nhan b{color:var(--blue);font-weight:700}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -4944,6 +4968,8 @@ body.dsel #tkTable td.dragH .tkck{opacity:1}
         <div class="cat-split" id="catSplit" title="Kéo lên/xuống để thu gọn · bấm đúp để gập nhanh"><i></i></div>
 
         <div class="cat-list" id="catList"></div>
+        <div class="cat-resize" id="catResize" title="Kéo để đổi bề rộng · bấm đúp để về mặc định"
+             onmousedown="catResizeStart_(event)" ondblclick="catResizeReset_()"><i></i></div>
       </div>
 
       <!-- MIDDLE: product detail (ẩn/hiện) -->

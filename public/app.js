@@ -2738,6 +2738,7 @@ async function pdLoadCombo_(p, idx, dich, boxId){
   var list=[];
   try{ list=await api('getCombo', String(p.recordId||p.ma))||[]; }catch(e){ list=[]; }
   S._pdCombo=list; S._pdComboBox={idx:idx, dich:dich, boxId:boxId||'pdCombo'};
+  S._pdComboBo=1;                       // mỗi lần mở sản phẩm khác thì số bộ về 1
   pdComboVe_();
 }
 /* Vẽ lại khối "Sản phẩm đi kèm" — số lượng SỬA ĐƯỢC ngay tại đây */
@@ -2745,9 +2746,10 @@ function pdComboVe_(){
   var o=S._pdComboBox||{}, list=S._pdCombo||[];
   var box=document.getElementById(o.boxId||'pdCombo'); if(!box) return;
   if(!list.length){ box.innerHTML=''; return; }
-  var tong=list.reduce(function(a,x){ return a+(Number(x.donGiaBan)||0)*(Number(x.comboSL)||1); },0);
+  var bo=pdCbBo_();
+  var tong=list.reduce(function(a,x){ return a+(Number(x.donGiaBan)||0)*(Number(x.comboSL)||1)*bo; },0);
   var rows=list.map(function(x,k){
-    var sl=Number(x.comboSL)||1, dg=Number(x.donGiaBan)||0;
+    var sl=Number(x.comboSL)||1, dg=Number(x.donGiaBan)||0, slTong=sl*bo;
     var tip=x.comboNguoc?' title="Liên kết đặt từ phía sản phẩm kia — đi kèm 2 chiều"':'';
     return '<div class="cbi"'+tip+' draggable="true"'
       +' ondragstart="pdComboDrag_(event,'+k+')" ondragend="prodDragEnd()">'
@@ -2764,19 +2766,37 @@ function pdComboVe_(){
             +' onclick="event.stopPropagation()" onchange="pdCbSL_('+k+',null,this.value)">'
           +'<button class="cbi-b" title="Thêm 1" onclick="event.stopPropagation();pdCbSL_('+k+',1)">+</button>'
         +'</span>'
-        +'<span class="cbi-pr"><i>thành tiền</i><b>'+money(dg*sl)+' đ</b></span>'
+        +(bo>1?'<span class="cbi-nhan">× '+bo+' bộ = <b>'+ptQty(slTong)+'</b></span>':'')
+        +'<span class="cbi-pr"><i>thành tiền</i><b>'+money(dg*slTong)+' đ</b></span>'
       +'</div>'
     +'</div>';
   }).join('');
   box.innerHTML='<div class="pd-block pd-combo">'
-    +'<div class="pd-sec">Sản phẩm đi kèm <i>('+list.length+')</i></div>'
+    +'<div class="pd-sec cbi-sec">Sản phẩm đi kèm <i>('+list.length+')</i>'
+      +'<span class="cbi-bo" title="Số BỘ combo — số lượng từng sản phẩm bên dưới sẽ nhân lên theo số này">'
+        +'<label>Số bộ</label>'
+        +'<span class="cbi-sl">'
+          +'<button class="cbi-b" onclick="event.stopPropagation();pdCbBoSet_(-1)">−</button>'
+          +'<input type="number" min="1" step="1" value="'+bo+'" onclick="event.stopPropagation()"'
+            +' onchange="pdCbBoSet_(null,this.value)">'
+          +'<button class="cbi-b" onclick="event.stopPropagation();pdCbBoSet_(1)">+</button>'
+        +'</span></span>'
+    +'</div>'
     +'<div class="cbi-list">'+rows+'</div>'
-    +'<div class="cbi-tot"><span>Tổng combo kèm theo</span><b>'+money(tong)+' đ</b></div>'
+    +'<div class="cbi-tot"><span>Tổng combo kèm theo'+(bo>1?(' ('+bo+' bộ)'):'')+'</span><b>'+money(tong)+' đ</b></div>'
     +((o.idx==null||o.idx<0)?''
       :('<button class="btn blue sm cbi-add" title="Thêm sản phẩm chính và toàn bộ sản phẩm đi kèm vào '+esc(o.dich||'bóc tách')+'"'
-        +' onclick="pdAddCombo_('+o.idx+')">'+icon('plus',14)+' Thêm cả combo</button>'))
+        +' onclick="pdAddCombo_('+o.idx+')">'+icon('plus',14)+' Thêm '+(bo>1?(bo+' bộ combo'):'cả combo')+'</button>'))
     +'<div class="cbi-note">Số lượng sửa ở đây dùng cho lần thêm này; muốn đổi cố định thì sửa trong <b>Cập nhật sản phẩm</b>.</div>'
   +'</div>';
+}
+/* Số BỘ combo — số lượng mỗi dòng nhân với số này */
+function pdCbBo_(){ return Math.max(1, Math.min(999, Number(S._pdComboBo)||1)); }
+function pdCbBoSet_(d, giaTri){
+  var bo = (giaTri!=null&&giaTri!=='') ? Math.round(Number(String(giaTri).replace(',','.'))||0)
+                                       : pdCbBo_()+(Number(d)||0);
+  S._pdComboBo = Math.max(1, Math.min(999, bo||1));
+  pdComboVe_();
 }
 /* Đổi số lượng 1 dòng combo: d=+1/-1 hoặc nhập thẳng số */
 function pdCbSL_(k, d, giaTri){
@@ -2788,16 +2808,21 @@ function pdCbSL_(k, d, giaTri){
 }
 // Thêm sản phẩm chính + toàn bộ sản phẩm đi kèm vào dự án / bóc tách
 async function pdAddCombo_(idx){
-  var list=S._pdCombo||[];
-  var chinh=(S._spList||[])[idx];
+  var list=S._pdCombo||[], bo=pdCbBo_();
   var okTab=document.getElementById('v-sanpham').classList.contains('on');
-  if(okTab){ if(chinh) await spAddToProject(idx); }
-  else { await addProduct(idx); }
+  if(okTab){
+    var chinh=(S._spList||[])[idx];
+    if(chinh){ if(!S.cur){ toast('Chưa chọn dự án'); return; }
+      await addProdObj(chinh, undefined, bo); renderSpProjPanel_(); setTimeout(renderSpProjPanel_,700); }
+  } else {
+    var p=(S._filtered||[])[idx];
+    if(p) await addProdObj(p, S.selFloor||'', bo);
+  }
   for(var k=0;k<list.length;k++){
     var x=list[k];
-    await addProdObj(x, S.selFloor||'', Number(x.comboSL)||1);   // 1 dòng, đúng số lượng đi kèm
+    await addProdObj(x, S.selFloor||'', (Number(x.comboSL)||1)*bo);   // 1 dòng, đúng số lượng × số bộ
   }
-  toast('Đã thêm sản phẩm chính + '+list.length+' sản phẩm đi kèm');
+  toast('Đã thêm '+(bo>1?(bo+' bộ combo'):'combo')+': sản phẩm chính + '+list.length+' sản phẩm đi kèm');
 }
 // ←/→ lật ảnh ngay trong modal chi tiết, Esc để đóng
 function spModalKey_(e){
@@ -9790,3 +9815,46 @@ function dragSelApply_(tr,d){
 // gắn ngay khi tải trang (không chờ đăng nhập) — chỉ là 3 listener trên document
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',dragSelInit_);
 else dragSelInit_();
+
+/* ═══════════════════════════════════════════════════════════
+   KÉO ĐỔI BỀ RỘNG PANEL TRÁI — nới rộng khung bảng bóc tách.
+   Bề rộng lưu lại (qs_catW), bấm đúp tay kéo để về mặc định.
+   ═══════════════════════════════════════════════════════════ */
+var CAT_W_MIN=190, CAT_W_MAX=560;
+function catWApply_(){
+  var g=document.getElementById('bocGrid'); if(!g) return;
+  var w=0; try{ w=parseInt(localStorage.getItem('qs_catW')||'',10)||0; }catch(e){}
+  if(w) g.style.setProperty('--catW', Math.max(CAT_W_MIN,Math.min(CAT_W_MAX,w))+'px');
+  else g.style.removeProperty('--catW');
+}
+function catResizeStart_(e){
+  if(e.button!==0) return;
+  e.preventDefault();
+  var g=document.getElementById('bocGrid'), pn=document.getElementById('leftCat'), tay=document.getElementById('catResize');
+  if(!g||!pn) return;
+  var x0=e.clientX, w0=pn.getBoundingClientRect().width;
+  document.body.classList.add('keo-ngang'); if(tay) tay.classList.add('dang-keo');
+  function di(ev){
+    var w=Math.round(Math.max(CAT_W_MIN,Math.min(CAT_W_MAX, w0+(ev.clientX-x0))));
+    g.style.setProperty('--catW', w+'px');
+  }
+  function thoi(){
+    document.removeEventListener('mousemove',di); document.removeEventListener('mouseup',thoi);
+    document.body.classList.remove('keo-ngang'); if(tay) tay.classList.remove('dang-keo');
+    try{ localStorage.setItem('qs_catW', String(Math.round(pn.getBoundingClientRect().width))); }catch(e2){}
+    catSyncSauKeo_();
+  }
+  document.addEventListener('mousemove',di); document.addEventListener('mouseup',thoi);
+}
+function catResizeReset_(){
+  try{ localStorage.removeItem('qs_catW'); }catch(e){}
+  var g=document.getElementById('bocGrid'); if(g) g.style.removeProperty('--catW');
+  catSyncSauKeo_(); toast('Đã trả bề rộng về mặc định');
+}
+// bảng và các thanh kéo phải đo lại sau khi đổi bề rộng
+function catSyncSauKeo_(){
+  try{ tkHBarSync_&&tkHBarSync_(); tkVBarSync_&&tkVBarSync_(); syncActGutter&&syncActGutter();
+       ptHBarSync_&&ptHBarSync_(); }catch(e){}
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',catWApply_);
+else catWApply_();
