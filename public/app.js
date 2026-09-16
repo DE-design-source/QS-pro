@@ -2737,35 +2737,54 @@ async function pdLoadCombo_(p, idx, dich, boxId){
   var box=document.getElementById(boxId||'pdCombo'); if(!box) return;
   var list=[];
   try{ list=await api('getCombo', String(p.recordId||p.ma))||[]; }catch(e){ list=[]; }
-  S._pdCombo=list;
+  S._pdCombo=list; S._pdComboBox={idx:idx, dich:dich, boxId:boxId||'pdCombo'};
+  pdComboVe_();
+}
+/* Vẽ lại khối "Sản phẩm đi kèm" — số lượng SỬA ĐƯỢC ngay tại đây */
+function pdComboVe_(){
+  var o=S._pdComboBox||{}, list=S._pdCombo||[];
+  var box=document.getElementById(o.boxId||'pdCombo'); if(!box) return;
   if(!list.length){ box.innerHTML=''; return; }
   var tong=list.reduce(function(a,x){ return a+(Number(x.donGiaBan)||0)*(Number(x.comboSL)||1); },0);
-  // Mỗi dòng nêu rõ SỐ LƯỢNG · ĐƠN GIÁ · THÀNH TIỀN (yêu cầu slide: "4 nút, 4 thanh…"),
-  // tên + mã nằm dòng trên nên cột số không bị chen với chữ.
   var rows=list.map(function(x,k){
-    var sl=Number(x.comboSL)||1, dg=Number(x.donGiaBan)||0, tt=dg*sl;
+    var sl=Number(x.comboSL)||1, dg=Number(x.donGiaBan)||0;
     var tip=x.comboNguoc?' title="Liên kết đặt từ phía sản phẩm kia — đi kèm 2 chiều"':'';
-    return '<div class="cbi"'+tip+' draggable="true" title="Kéo thả vào bảng bóc tách"'
+    return '<div class="cbi"'+tip+' draggable="true"'
       +' ondragstart="pdComboDrag_(event,'+k+')" ondragend="prodDragEnd()">'
       +'<span class="cbi-ix">'+(k+1)+'</span>'
       +(x.hinhAnh?'<img class="cbi-th" src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="cbi-th"></span>')
       +'<div class="cbi-m">'
         +'<b>'+esc(x.ten||'')+(x.comboNguoc?' <span class="cbi-rev">↔</span>':'')+'</b>'
-        +'<span class="cbi-sub">'+esc(x.ma||'')+(sl>1?(' · ×'+ptQty(sl)):'')+'</span>'
-        // Cột chỉ ~288px: xếp SL/đơn giá/thành tiền thành 3 cột ngang thì tên bị cắt cụt
-        // và hàng tiêu đề lại nằm trên tên -> ghi thẳng "SL × đơn giá … thành tiền".
+        +'<span class="cbi-sub">'+esc(x.ma||'')+' · '+money(dg)+' đ/cái</span>'
       +'</div>'
-      +'<span class="cbi-pr"><b>'+money(tt)+'</b><i>'+ptQty(sl)+' × '+money(dg)+'</i></span>'
+      +'<div class="cbi-ft">'
+        +'<span class="cbi-sl">'
+          +'<button class="cbi-b" title="Bớt 1" onclick="event.stopPropagation();pdCbSL_('+k+',-1)">−</button>'
+          +'<input type="number" min="1" step="1" value="'+sl+'" title="Số lượng đi kèm"'
+            +' onclick="event.stopPropagation()" onchange="pdCbSL_('+k+',null,this.value)">'
+          +'<button class="cbi-b" title="Thêm 1" onclick="event.stopPropagation();pdCbSL_('+k+',1)">+</button>'
+        +'</span>'
+        +'<span class="cbi-pr"><i>thành tiền</i><b>'+money(dg*sl)+' đ</b></span>'
+      +'</div>'
     +'</div>';
   }).join('');
   box.innerHTML='<div class="pd-block pd-combo">'
     +'<div class="pd-sec">Sản phẩm đi kèm <i>('+list.length+')</i></div>'
     +'<div class="cbi-list">'+rows+'</div>'
     +'<div class="cbi-tot"><span>Tổng combo kèm theo</span><b>'+money(tong)+' đ</b></div>'
-    +((idx==null||idx<0)?''
-      :('<button class="btn blue sm cbi-add" title="Thêm sản phẩm chính và toàn bộ sản phẩm đi kèm vào '+esc(dich)+'"'
-        +' onclick="pdAddCombo_('+idx+')">'+icon('plus',14)+' Thêm cả combo</button>'))
+    +((o.idx==null||o.idx<0)?''
+      :('<button class="btn blue sm cbi-add" title="Thêm sản phẩm chính và toàn bộ sản phẩm đi kèm vào '+esc(o.dich||'bóc tách')+'"'
+        +' onclick="pdAddCombo_('+o.idx+')">'+icon('plus',14)+' Thêm cả combo</button>'))
+    +'<div class="cbi-note">Số lượng sửa ở đây dùng cho lần thêm này; muốn đổi cố định thì sửa trong <b>Cập nhật sản phẩm</b>.</div>'
   +'</div>';
+}
+/* Đổi số lượng 1 dòng combo: d=+1/-1 hoặc nhập thẳng số */
+function pdCbSL_(k, d, giaTri){
+  var x=(S._pdCombo||[])[k]; if(!x) return;
+  var sl = (giaTri!=null&&giaTri!=='') ? Math.round(Number(String(giaTri).replace(',','.'))||0)
+                                       : (Number(x.comboSL)||1)+(Number(d)||0);
+  x.comboSL = Math.max(1, Math.min(9999, sl||1));
+  pdComboVe_();
 }
 // Thêm sản phẩm chính + toàn bộ sản phẩm đi kèm vào dự án / bóc tách
 async function pdAddCombo_(idx){
@@ -7245,8 +7264,11 @@ function ccRow_(stt, x, phu, moJs, themJs, dragAttr){
     : '<span class="ccr-th"></span>';
   return '<div class="ccrow"'+(dragAttr||'')+' title="'+esc(String(x.ten||'')+(phu?' — '+phu:''))+'" onclick="'+moJs+'">'
     +'<span class="ccr-no">'+esc(stt)+'</span>'+img
-    +'<span class="ccr-m"><b>'+esc(x.ten||'')+'</b>'+(phu?'<i>'+esc(phu)+'</i>':'')+'</span>'
-    +'<span class="ccr-gia">'+money(x.donGiaBan)+' đ</span>'
+    +'<span class="ccr-m">'
+      +'<b>'+esc(x.ten||'')+'</b>'
+      +'<span class="ccr-r">'+(phu?'<i>'+esc(phu)+'</i>':'<i></i>')
+        +'<em class="ccr-gia">'+money(x.donGiaBan)+' đ</em></span>'
+    +'</span>'
     +'<button class="ccr-add" title="Thêm vào bóc tách" onclick="event.stopPropagation();'+themJs+'">+</button>'
   +'</div>';
 }

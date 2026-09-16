@@ -4766,6 +4766,45 @@ body.dsel #tkTable td.dragH .tkck{opacity:1}
 .ccr-add:hover{background:var(--cc-nhan);border-color:var(--cc-nhan);color:#fff}
 .cc-note{margin:6px 0 8px 16px;padding:9px 12px;border:1px dashed var(--ln2);border-radius:10px;
   font-size:11.5px;color:var(--c3);background:#fff}
+
+/* ═══ Khối sản phẩm con: hàng 2 DÒNG cho vừa cột trái hẹp (~240px) ═══ */
+.ccrow{align-items:flex-start;gap:8px;padding:9px 10px}
+.ccr-no{margin-top:2px}
+.ccr-th{width:34px;height:34px}
+.ccr-m{gap:3px}
+.ccr-m b{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;line-height:1.3}
+.ccr-r{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.ccr-r i{flex:1 1 auto;min-width:0;font-style:normal;font-size:10.5px;color:#8a97a7;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ccr-gia{font-style:normal;flex:none;font-size:12px;font-weight:700;color:var(--navy);
+  white-space:nowrap;font-variant-numeric:tabular-nums}
+.ccr-add{margin-top:2px}
+
+/* ═══ Panel chi tiết — khối "Sản phẩm đi kèm": sửa được số lượng ═══ */
+.cbi{align-items:center}
+.cbi-sl{flex:none;display:inline-flex;align-items:center;gap:0;border:1px solid var(--ln2);
+  border-radius:8px;overflow:hidden;background:#fff;height:26px}
+.cbi-sl input{width:38px;height:100%;border:none;outline:none;text-align:center;font:inherit;
+  font-size:12px;font-weight:700;color:var(--c1);background:#fff;-moz-appearance:textfield}
+.cbi-sl input::-webkit-outer-spin-button,.cbi-sl input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.cbi-sl input:focus{background:#f2f7ff}
+.cbi-b{width:22px;height:100%;border:none;background:var(--bg3);color:var(--c2);font-size:13px;
+  line-height:1;cursor:pointer;padding:0}
+.cbi-b:hover{background:var(--blue);color:#fff}
+.cbi-pr{min-width:78px}
+.cbi-note{margin-top:8px;font-size:10.5px;color:var(--c4);line-height:1.4}
+.cbi-note b{color:var(--c3);font-weight:600}
+
+/* Dòng combo ở panel chi tiết: DÒNG 1 tên · DÒNG 2 số lượng + thành tiền */
+.cbi{display:flex;flex-wrap:wrap;align-items:center;row-gap:8px}
+.cbi-m{flex:1 1 110px;min-width:0}
+.cbi-m b{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cbi-ft{flex:1 1 100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding-left:56px;border-top:1px dashed var(--ln);padding-top:8px}
+.cbi-pr{flex:none;min-width:0;display:flex;align-items:baseline;gap:6px}
+.cbi-pr i{font-style:normal;font-size:10px;color:var(--c4);text-transform:uppercase;letter-spacing:.04em}
+.cbi-pr b{font-size:13px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums}
 </style>
 
 <!-- ===== TOP NAV ===== -->
