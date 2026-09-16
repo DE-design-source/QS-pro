@@ -7221,7 +7221,7 @@ function catComboHtml_(p, idx){
   if(!ds.length) return '<div class="cc-note">Không có sản phẩm đi kèm.</div>';
   S._catCbIdx=S._catCbIdx||{}; S._catCbIdx[catCbKey_(p)]=ds;
   var pk=esc(catCbKey_(p));
-  return '<div class="cc-kids">'+ds.map(function(x,k){
+  return '<div class="cc-kids"><i class="cc-dot"></i>'+ds.map(function(x,k){
     var sl=Number(x.comboSL)||1;
     var brand=esc(x.thuongHieu||'');
     var specs=spSpecs_(x); if(specs.indexOf('muted')>=0) specs='';
@@ -9085,7 +9085,7 @@ function catVarLbl_(x){
 }
 function catVarHtml_(list,G){
   var head=G.i+1;
-  return '<div class="cc-kids bt-kids">'+G.kids.map(function(ix,k){
+  return '<div class="cc-kids bt-kids"><i class="cc-dot"></i>'+G.kids.map(function(ix,k){
     var x=list[ix]; var brand=esc(x.thuongHieu||'');
     var specs=spSpecs_(x); if(specs.indexOf('muted')>=0) specs='';
     var lbl=catVarLbl_(x);

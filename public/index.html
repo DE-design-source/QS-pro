@@ -4713,23 +4713,34 @@ body.dsel,body.dsel *{user-select:none!important;-webkit-user-select:none!import
 /* ô tích của bảng Bóc tách luôn hiện khi đang chọn để còn kéo tiếp */
 body.dsel #tkTable td.dragH .tkck{opacity:1}
 
-/* ═══ Sản phẩm con (combo · biến thể): vẽ đường nối kiểu cây ═══
-   Một trục dọc bắt đầu bằng nút tròn ở thẻ cha, mỗi thẻ con có một nhánh ngang. */
-.cc-kids{position:relative;margin:2px 0 6px 18px;padding-left:18px;border-left:none!important}
-.cc-kids::before{display:block!important;content:'';position:absolute;left:0;top:-12px;bottom:0;
-  width:2px;background:#d6e0ec;border-radius:2px}
-.cc-kids::after{content:'';position:absolute;left:-5px;top:-18px;width:12px;height:12px;border-radius:50%;
-  background:#fff;border:2px solid var(--blue);box-sizing:border-box}
-.citem.cc-child{position:relative}
-.citem.cc-child::before{display:block!important;content:'';position:absolute;left:-18px;top:50%;
-  width:16px;height:2px;background:#d6e0ec;transform:translateY(-1px)}
-.citem.cc-child.last::after{display:block!important;content:'';position:absolute;left:-19px;
-  top:calc(50% + 1px);bottom:-10px;width:4px;background:#fff}
-.citem.cc-child:hover::before{background:var(--blue)}
-/* nhóm biến thể dùng tông cam cho khớp chip "Biến thể" */
-.cc-kids.bt-kids::before,.cc-kids.bt-kids .citem.cc-child::before{background:#f0c9a0}
-.cc-kids.bt-kids::after{border-color:#b4620d}
-.cc-kids.bt-kids .citem.cc-child:hover::before{background:#b4620d}
+/* ═══ Sản phẩm con (combo · biến thể): đường nối kiểu cây ═══
+   Mỗi thẻ con có một nhánh BO GÓC đi từ trục dọc vào giữa thẻ; thẻ chưa phải
+   cuối thì nối tiếp trục xuống thẻ sau. Nhờ vậy trục tự kết thúc ở thẻ cuối,
+   không cần miếng che trắng (thứ làm lộ mảng xám lợn cợn trước đây). */
+.cc-kids{position:relative;margin:0 0 8px 22px;padding-left:24px;border-left:none!important}
+.cc-kids::before,.cc-kids::after{display:none!important}
+.citem.cc-child{position:relative;background:#fff;border-radius:10px}
+/* nhánh bo góc: từ trên xuống giữa thẻ rồi rẽ phải */
+.citem.cc-child::before{display:block!important;content:'';position:absolute;
+  left:-24px;top:-10px;width:22px;height:calc(50% + 10px);
+  border-left:1.5px solid var(--cc-ln,#b7c8de);border-bottom:1.5px solid var(--cc-ln,#b7c8de);
+  border-bottom-left-radius:12px;pointer-events:none;background:none}
+/* thẻ chưa phải cuối: kéo trục xuống thẻ kế tiếp cho liền mạch */
+.citem.cc-child:not(.last)::after{display:block!important;content:'';position:absolute;
+  left:-24px;top:50%;bottom:-10px;height:auto;width:1.5px;background:var(--cc-ln,#b7c8de);pointer-events:none}
+/* rule cũ .cc-child.last::before đặt height 23px + bo góc 2px -> phải trả lại đúng */
+.citem.cc-child.last::before{bottom:auto;height:calc(50% + 10px);border-bottom-left-radius:12px}
+.cc-kids .citem.cc-child:first-of-type.last::before{height:calc(50% + 14px)}
+.citem.cc-child.last::after{display:none!important}
+/* chấm nhỏ đầu trục, nằm ngay dưới thẻ cha */
+.cc-kids .citem.cc-child:first-of-type::before{top:-14px;height:calc(50% + 14px)}
+.cc-kids .cc-dot{position:absolute;left:-27.5px;top:-17px;width:8px;height:8px;border-radius:50%;
+  background:#fff;border:2px solid var(--cc-ln,#b7c8de);box-sizing:border-box}
+/* rê chuột: chỉ nhánh của thẻ đó sáng lên */
+.citem.cc-child:hover{background:#f7fbff}
+.citem.cc-child:hover::before{border-color:var(--cc-hl,#2563eb)}
+/* biến thể dùng tông cam cho khớp chip "Biến thể" */
+.cc-kids.bt-kids{--cc-ln:#e3b585;--cc-hl:#b4620d}
 </style>
 
 <!-- ===== TOP NAV ===== -->
