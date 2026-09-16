@@ -5000,9 +5000,8 @@ var QUOTE_ORG={ brand:'DECOX', lines:[
   'Xưởng sản xuất: KCN Vĩnh Lộc, Quận Tân Phú, TPHCM',
   'Website: decoxdesign.com' ] };
 function bgBuildPages(){
-  var p=S.cur||{}, comp=coverCosts(), total=comp.total, cost=comp.cost;
+  var p=S.cur||{}, comp=coverCosts();
   var inners=[];
-  // ===== Header thương hiệu (Decox) =====
   var hangMuc = bgNodeLabel_();
   var decoxHead='<div class="qx-head"><div class="qx-brandbox"><div class="qx-brand">'+esc(QUOTE_ORG.brand)+'</div>'
     +'<div class="qx-org">'+QUOTE_ORG.lines.map(esc).join('<br>')+'</div></div>'
@@ -5014,62 +5013,43 @@ function bgBuildPages(){
     +'<tr>'+ip('DT sử dụng',p.tongDT?p.tongDT+' m²':'')+ip('Nhu cầu',p.nhuCau)+'</tr>'
     +'<tr>'+ip('Phong cách',p.phanKhuc)+ip('DT báo giá [nhân hệ số]',p.dtBaoGia?p.dtBaoGia+' m²':'')+'</tr>'
     +'</table>';
-  // ===== Trang 1: header + info + TÓM TẮT (CHI TIẾT CÁC HẠNG MỤC + tỷ trọng) =====
-  var srows, sumTotal=total;
-  if(total>0){
-    var rows=(S.cover||[]).filter(function(c){ return !bgHidden(c.stt) && coverDepth(c.stt)<=2; }).slice().sort(coverSortFn);
-    srows=rows.map(function(c){ var lvl=coverDepth(c.stt), val=cost[c.stt]||0, pct=total>0?val/total*100:0;
-      return '<tr class="lv'+lvl+'"><td class="nm">'+esc((c.stt?c.stt+'. ':'')+(c.hangMuc||''))+'</td><td class="amt">'+moneyShort(val)+'</td><td class="pct">'+pctFmt(pct)+'</td></tr>'; }).join('');
-  } else {
-    var gt=computeQuoteLocal().subtotal, by={}, ord=[];
-    S.lines.forEach(function(l){ var code=(l.nhom||'').trim()||'__k'; if(!by[code]){ by[code]={sum:0,floors:{},forder:[]}; ord.push(code); }
-      by[code].sum+=Number(l.thanhTienBan)||0; var fl=(l.tang||'').trim()||'Khác';
-      if(!by[code].floors[fl]){ by[code].floors[fl]=0; by[code].forder.push(fl); } by[code].floors[fl]+=Number(l.thanhTienBan)||0; });
-    srows=ord.map(function(code,i){ var g=by[code], pct=gt>0?g.sum/gt*100:0;
-      var out='<tr class="lv1"><td class="nm">'+(i+1)+'. '+esc(code==='__k'?'Khác':(nodeName(code)||code))+'</td><td class="amt">'+moneyShort(g.sum)+'</td><td class="pct">'+pctFmt(pct)+'</td></tr>';
-      if(g.forder.length>1) out+=g.forder.map(function(fl,j){ var v=g.floors[fl], p2=gt>0?v/gt*100:0;
-        return '<tr class="lv2"><td class="nm">'+(i+1)+'.'+(j+1)+'. '+esc(fl)+'</td><td class="amt">'+moneyShort(v)+'</td><td class="pct">'+pctFmt(p2)+'</td></tr>'; }).join('');
-      return out; }).join('');
-    sumTotal=gt;
-  }
-  inners.push(decoxHead+infoBlock
-    +'<div class="qx-secttl">CHI TIẾT CÁC HẠNG MỤC</div>'
-    +'<div class="qsum-card"><table class="qsum">'+(srows||'<tr><td class="nm" style="color:#94a3b8;padding:16px 0">Chưa có hạng mục.</td></tr>')
-    +'<tr class="qsum-tot"><td class="nm">TỔNG CHI PHÍ DỰ KIẾN</td><td class="amt">'+moneyShort(sumTotal)+'</td><td class="pct">100%</td></tr></table></div>');
-  // ===== Bảng chi tiết kiểu XÂY THÔ (STT/NỘI DUNG/ĐVT/DIỆN TÍCH/HỆ SỐ/KHỐI LƯỢNG/ĐƠN GIÁ/THÀNH TIỀN/GHI CHÚ) =====
+  // ===== TRANG 1 = TỜ BÌA (Mẫu 1 hoặc Mẫu 2, do người dùng chọn) =====
+  inners.push(decoxHead+infoBlock+bgCoverPage_(comp));
+  // ===== Các trang sau: bảng chi tiết THEO ĐÚNG CHIP CỘT đang bật =====
   var lines=bgLines_();
-  var xcolg='<colgroup><col style="width:32px"><col><col style="width:38px"><col style="width:52px"><col style="width:42px"><col style="width:66px"><col style="width:84px"><col style="width:96px"><col style="width:86px"></colgroup>';
-  var xthead='<tr class="qx-h"><th class="ct">STT</th><th>NỘI DUNG CÔNG VIỆC</th><th class="ct">ĐVT</th><th class="num">DIỆN TÍCH</th><th class="ct">HỆ SỐ</th><th class="num">KHỐI LƯỢNG</th><th class="num">ĐƠN GIÁ</th><th class="num">THÀNH TIỀN</th><th>GHI CHÚ</th></tr>';
-  function bgRowHtml_(l,ri){
+  var cols=bgDocCols_();
+  var coAnh=cols.some(function(c){ return c[0]==='hinhAnh'; });
+  var nCot=cols.length+1;                       // +1 cho cột STT
+  var colg='<colgroup><col style="width:30px">'+cols.map(function(c){ return '<col style="width:'+bgDocW_(c[0])+'">'; }).join('')+'</colgroup>';
+  var thead='<tr class="qx-h"><th class="ct">STT</th>'
+    +cols.map(function(c){ return '<th class="'+bgDocAlign_(c[0])+'">'+esc(String(c[1]).toUpperCase())+'</th>'; }).join('')+'</tr>';
+  function rowHtml(l,ri){
     return '<tr><td class="ct">'+(ri+1)+'</td>'
-      +'<td><b>'+esc(l.ten||'')+'</b>'+(l.thuongHieu?' — '+esc(l.thuongHieu):'')+(l.moTa?'<div class="qx-desc">'+esc(l.moTa)+'</div>':'')+'</td>'
-      +'<td class="ct it">'+esc(l.dvt||'')+'</td>'
-      +'<td class="num">'+(l.dienTich!=null&&l.dienTich!==''?esc(l.dienTich):'')+'</td>'
-      +'<td class="ct">'+(l.heSo!=null&&l.heSo!==''?esc(l.heSo):'')+'</td>'
-      +'<td class="num">'+(Number(l.soLuong)||0)+'</td>'
-      +'<td class="num">'+(l.donGiaBan?money(l.donGiaBan):'')+'</td>'
-      +'<td class="num">'+(l.thanhTienBan?money(l.thanhTienBan):'-')+'</td>'
-      +'<td class="it">'+esc(l.ghiChu||'')+'</td></tr>';
+      +cols.map(function(c){ return '<td class="'+bgDocAlign_(c[0])+'">'+bgDocCell_(l,c[0])+'</td>'; }).join('')+'</tr>';
   }
-  var PER=13, dau=true;          // A4 NGANG: trang thấp hơn nên ít dòng hơn mỗi trang
-  // Mỗi hạng mục (phần) = một trang riêng; hạng mục dài thì tự tràn sang trang tiếp theo.
+  function secRow(nhan, tien){
+    var giua=Math.max(1,nCot-2);
+    return '<tr class="sec"><td class="ct"></td><td colspan="'+giua+'">'+nhan+'</td>'
+      +'<td class="num">'+(tien?money(tien):'-')+'</td></tr>';
+  }
+  var PER = coAnh ? 8 : 13;                      // có ảnh thì dòng cao hơn -> ít dòng mỗi trang
   if(bgPerSec_()){
     var byNode={}, ordN=[];
     lines.forEach(function(l){ var c=(l.nhom||'').trim()||'__k'; if(!byNode[c]){ byNode[c]=[]; ordN.push(c); } byNode[c].push(l); });
     ordN.forEach(function(code){
       var its=byNode[code], ten=(code==='__k'?'KHÁC':(nodeName(code)||code));
       var secTt=its.reduce(function(a,l){ return a+(Number(l.thanhTienBan)||0); },0);
-      var flatN=[];
-      var byF={}, ordF=[]; its.forEach(function(l){ var g=(l.tang||'').trim()||'HẠNG MỤC'; if(!byF[g]){byF[g]=[];ordF.push(g);} byF[g].push(l); });
+      var flatN=[], byF={}, ordF=[];
+      its.forEach(function(l){ var g=(l.tang||'').trim()||'HẠNG MỤC'; if(!byF[g]){byF[g]=[];ordF.push(g);} byF[g].push(l); });
       ordF.forEach(function(g,gi){
         var sub=byF[g].reduce(function(a,l){ return a+(Number(l.thanhTienBan)||0); },0);
-        flatN.push('<tr class="sec"><td class="ct">'+(ROMAN_[gi]||(gi+1))+'</td><td colspan="6">'+esc(g)+'</td><td class="num">'+(sub?money(sub):'-')+'</td><td></td></tr>');
-        byF[g].forEach(function(l,ri){ flatN.push(bgRowHtml_(l,ri)); });
+        flatN.push(secRow((ROMAN_[gi]||(gi+1))+'. '+esc(g), sub));
+        byF[g].forEach(function(l,ri){ flatN.push(rowHtml(l,ri)); });
       });
-      flatN.push('<tr class="sec"><td></td><td colspan="6" style="text-align:right"><b>TỔNG '+esc(String(ten).toUpperCase())+'</b></td><td class="num"><b>'+money(secTt)+'</b></td><td></td></tr>');
+      flatN.push(secRow('<b>TỔNG '+esc(String(ten).toUpperCase())+'</b>', secTt));
       for(var q0=0;q0<flatN.length;q0+=PER){
-        inners.push('<div class="qx-secttl">'+(q0===0?esc(String(ten).toUpperCase()):esc(String(ten).toUpperCase())+' (tiếp)')+'</div>'
-          +'<table class="qx-tbl">'+xcolg+xthead+flatN.slice(q0,q0+PER).join('')+'</table>');
+        inners.push('<div class="qx-secttl">'+esc(String(ten).toUpperCase())+(q0?' (tiếp)':'')+'</div>'
+          +'<table class="qx-tbl">'+colg+thead+flatN.slice(q0,q0+PER).join('')+'</table>');
       }
     });
   } else {
@@ -5077,19 +5057,18 @@ function bgBuildPages(){
     var flat=[];
     order.forEach(function(g,gi){
       var items=groups[g]||[], sec=items.reduce(function(a,l){return a+(Number(l.thanhTienBan)||0);},0);
-      flat.push('<tr class="sec"><td class="ct">'+(ROMAN_[gi]||(gi+1))+'</td><td colspan="6">'+esc(g)+'</td><td class="num">'+(sec?money(sec):'-')+'</td><td></td></tr>');
-      items.forEach(function(l,ri){ flat.push(bgRowHtml_(l,ri)); });
+      flat.push(secRow((ROMAN_[gi]||(gi+1))+'. '+esc(g), sec));
+      items.forEach(function(l,ri){ flat.push(rowHtml(l,ri)); });
     });
     if(flat.length){ for(var i=0;i<flat.length;i+=PER){
-      inners.push((i===0?'<div class="qx-secttl">BẢNG BÁO GIÁ CHI TIẾT</div>':'')+'<table class="qx-tbl">'+xcolg+xthead+flat.slice(i,i+PER).join('')+'</table>');
+      inners.push((i===0?'<div class="qx-secttl">BẢNG BÁO GIÁ CHI TIẾT</div>':'')+'<table class="qx-tbl">'+colg+thead+flat.slice(i,i+PER).join('')+'</table>');
     } }
   }
-  // ===== Hộp tổng + ghi chú + ô ký (đính cuối trang cuối) =====
-  var q=computeQuoteLocal();
-  var totbox='<table class="qx-tbl qx-totbox">'+xcolg
-    +'<tr><td colspan="7" class="lbl">TỔNG CỘNG:</td><td class="num">'+money(q.subtotal)+'</td><td></td></tr>'
-    +'<tr><td colspan="7" class="lbl">VAT '+q.vatPct+'%</td><td class="num">'+money(q.vat)+'</td><td></td></tr>'
-    +'<tr><td colspan="7" class="lbl">THÀNH TIỀN SAU THUẾ:</td><td class="num">'+money(q.total)+'</td><td></td></tr></table>';
+  // ===== Hộp tổng + ghi chú + ô ký =====
+  var q=computeQuoteLocal(), giua=Math.max(1,nCot-1);
+  function totRow(nhan,tien){ return '<tr><td colspan="'+giua+'" class="lbl">'+nhan+'</td><td class="num">'+money(tien)+'</td></tr>'; }
+  var totbox='<table class="qx-tbl qx-totbox">'+colg
+    +totRow('TỔNG CỘNG:',q.subtotal)+totRow('VAT '+q.vatPct+'%',q.vat)+totRow('THÀNH TIỀN SAU THUẾ:',q.total)+'</table>';
   var notes='<div class="qx-notes"><div class="h">Ghi chú:</div><ol>'
     +'<li>Khối lượng trên là tạm tính, khối lượng quyết toán theo diện tích xây dựng thực tế.</li>'
     +'<li>Giá trên chưa bao gồm nhân công hoàn thiện.</li>'
@@ -5097,12 +5076,92 @@ function bgBuildPages(){
   var sign='<div class="qx-sign"><div class="col"><div class="hd">KHÁCH HÀNG / CUSTOMER</div><div class="sp"></div></div>'
     +'<div class="col"><div class="hd">ĐƠN VỊ THI CÔNG / CONSTRUCTION UNIT</div><div class="sp"></div></div></div>';
   inners[inners.length-1]+=totbox+notes+sign;
-  // Bọc từng trang A4 + footer số trang
   var N=inners.length;
   return inners.map(function(inner,idx){
     var foot='<div class="qp-foot"><span>'+esc(QUOTE_ORG.brand)+' — '+esc(p.ten||'')+'</span><span>Trang '+(idx+1)+' / '+N+'</span></div>';
     return {html:'<div class="qs-page qx-page">'+inner+foot+'</div>'};
   });
+}
+/* ---- Tờ bìa cho TRANG 1 (bản chỉ đọc, theo Mẫu 1 / Mẫu 2) ---- */
+function bgCoverPage_(comp){
+  var cost=comp.cost, total=comp.total;
+  var rows=(S.cover||[]).filter(function(c){ return !bgHidden(c.stt); }).slice().sort(coverSortFn);
+  if(!rows.length) return '<div class="qx-secttl">CHI TIẾT CÁC HẠNG MỤC</div>'
+    +'<div class="qsum-card"><table class="qsum"><tr><td class="nm" style="color:#94a3b8;padding:16px 0">Chưa có tờ bìa — sang chế độ <b>Chỉnh sửa</b> bấm “↻ Nạp mẫu”.</td></tr></table></div>';
+  var m1 = (S.coverMau==='m1');
+  var body;
+  if(m1){
+    // Mẫu 1: gộp theo mục lớn (một ô HẠNG MỤC dùng chung cho các dòng con)
+    var secs=rows.filter(function(c){ return coverDepth(c.stt)===1; });
+    body=secs.map(function(sec){
+      var kids=rows.filter(function(c){ return c.stt!==sec.stt && String(c.stt).indexOf(sec.stt+'.')===0; });
+      if(!kids.length) kids=[sec];
+      return kids.map(function(c,ki){
+        var val=cost[c.stt]||0, pct=total>0?(val/total*100):0;
+        var lead = ki===0 ? '<td class="ct" rowspan="'+kids.length+'">'+esc(sec.stt)+'</td>'
+            +'<td class="hm" rowspan="'+kids.length+'">'+esc(sec.hangMuc||'')+'</td>' : '';
+        return '<tr>'+lead+'<td>'+esc(c===sec?'':(c.hangMuc||''))+'</td>'
+          +'<td class="num">'+money(val)+'</td><td class="num">'+pct.toFixed(2)+'%</td>'
+          +'<td class="it">'+esc(c.moTa||'')+'</td></tr>';
+      }).join('');
+    }).join('');
+    return '<div class="qx-secttl">CHI TIẾT CÁC HẠNG MỤC</div>'
+      +'<table class="qx-tbl qx-cover"><tr class="qx-h"><th class="ct">NO</th><th>HẠNG MỤC</th><th>NỘI DUNG</th>'
+      +'<th class="num">CHI PHÍ DỰ KIẾN</th><th class="num">TỶ TRỌNG</th><th>MÔ TẢ</th></tr>'
+      +body+'<tr class="sec"><td colspan="3" style="text-align:right"><b>TỔNG CHI PHÍ DỰ KIẾN</b></td>'
+      +'<td class="num"><b>'+money(total)+'</b></td><td class="num"><b>100%</b></td><td></td></tr></table>';
+  }
+  // Mẫu 2: danh sách phẳng phân cấp
+  body=rows.map(function(c){
+    var lvl=coverDepth(c.stt), val=cost[c.stt]||0, pct=total>0?(val/total*100):0;
+    return '<tr class="lv'+lvl+'"><td class="ct">'+esc(c.stt)+'</td>'
+      +'<td>'+esc(c.hangMuc||'')+'</td>'
+      +'<td class="num">'+money(val)+'</td><td class="num">'+pct.toFixed(2)+'%</td>'
+      +'<td class="it">'+esc(c.moTa||'')+'</td></tr>';
+  }).join('');
+  return '<div class="qx-secttl">CHI TIẾT CÁC HẠNG MỤC</div>'
+    +'<table class="qx-tbl qx-cover"><tr class="qx-h"><th class="ct">NO</th><th>HẠNG MỤC</th>'
+    +'<th class="num">CHI PHÍ DỰ KIẾN</th><th class="num">TỶ TRỌNG</th><th>MÔ TẢ</th></tr>'
+    +body+'<tr class="sec"><td colspan="2" style="text-align:right"><b>TỔNG CHI PHÍ DỰ KIẾN</b></td>'
+    +'<td class="num"><b>'+money(total)+'</b></td><td class="num"><b>100%</b></td><td></td></tr></table>';
+}
+/* ---- Cột của bảng chi tiết trong tài liệu = đúng các chip cột đang bật ---- */
+function bgDocCols_(){
+  var vis=visCols().filter(function(c){ return c[0]!=='stt'; });
+  if(!vis.length) vis=[['ten','Tên sản phẩm'],['soLuong','Số lượng'],['donGiaCK','Đơn giá'],['thanhTien','Thành tiền']];
+  return vis;
+}
+var BG_DOC_W={ khuVuc:'64px', maBanVe:'56px', nganh:'70px', maSP:'66px', ten:'auto', thuongHieu:'64px',
+  ncc:'64px', moTa:'auto', kichThuoc:'82px', hinhAnh:'52px', dvt:'34px', soLuong:'40px', giaNCC:'66px',
+  chietKhau:'44px', giaDaiLy:'66px', lnPct:'44px', donGia:'70px', ckKhach:'44px', donGiaCK:'70px',
+  markup:'46px', margin:'46px', lnVnd:'66px', thanhTien:'84px', trangThai:'60px', ghiChu:'70px' };
+function bgDocW_(k){ return BG_DOC_W[k]||'64px'; }
+function bgDocAlign_(k){
+  if(['soLuong','giaNCC','giaDaiLy','donGia','donGiaCK','lnVnd','thanhTien'].indexOf(k)>=0) return 'num';
+  if(['hinhAnh','dvt','chietKhau','lnPct','ckKhach','markup','margin','maBanVe','nganh'].indexOf(k)>=0) return 'ct';
+  return '';
+}
+function bgDocCell_(l,k){
+  switch(k){
+    case 'hinhAnh': return l.hinhAnh?('<img class="qx-img" src="'+esc(imgSrc1_(l.hinhAnh))+'" onerror="this.style.display=\'none\'">'):'';
+    case 'ten': return '<b>'+esc(l.ten||'')+'</b>'+(l.maSP?'<span class="qx-ma">'+esc(l.maSP)+'</span>':'');
+    case 'moTa': return '<span class="qx-desc">'+esc(l.moTa||'')+'</span>';
+    case 'kichThuoc': return '<span class="qx-desc">'+esc(l.kichThuoc||'')+'</span>';
+    case 'giaNCC': return money(l.donGiaVon);
+    case 'giaDaiLy': return money(giaDaiLy_(l));
+    case 'donGia': return l.donGiaBan?money(l.donGiaBan):'';
+    case 'donGiaCK': return money(donGiaCK_(l));
+    case 'lnVnd': return money(lnVnd_(l));
+    case 'thanhTien': return l.thanhTienBan?money(l.thanhTienBan):'-';
+    case 'markup': return markup_(l)+'%';
+    case 'margin': return margin_(l)+'%';
+    case 'chietKhau': return (Number(l.chietKhau)||0)+'%';
+    case 'lnPct': return (Number(l.lnPct)||0)+'%';
+    case 'ckKhach': return (Number(l.ckKhach)||0)+'%';
+    case 'soLuong': return String(Number(l.soLuong)||0);
+    case 'nganh': return esc((l.extra&&l.extra.nganh)||'');
+    default: return esc(l[k]==null?'':String(l[k]));
+  }
 }
 function bgPager(total,cur){
   if(total<=1) return '';
@@ -5135,6 +5194,11 @@ var QS_DOC_CSS=''
 +'.qc-info td.k{background:#f4f6f9;color:#5b6b7b;font-weight:600;width:20%}'
 +'.qc-info td.v{color:#1f2937;font-weight:600;width:30%}'
 +'.qsum-card{border:1px solid #ececec;border-radius:12px;padding:12px 26px}'
++'.qx-img{max-width:44px;max-height:34px;object-fit:contain;display:block;margin:0 auto}'
++'.qx-ma{display:block;font-size:8px;color:#9aa3af;font-weight:400;margin-top:1px}'
++'.qx-cover td.hm{font-weight:700}'
++'.qx-cover tr.lv1 td{font-weight:700;background:#fafbfc}'
++'.qx-cover tr.lv3 td:first-child{padding-left:14px}'
 +'.qsum{width:100%;border-collapse:collapse}'
 +'.qsum td{padding:9px 2px;vertical-align:baseline}'
 +'.qsum .amt{width:150px;color:#374151;font-variant-numeric:tabular-nums}'
@@ -9307,6 +9371,11 @@ function bgCtlBar_(){
   var pages=bgBuildPages().length;
   return '<div class="bgctl">'
     +bgNodeBtn_('bgNodeBtn1')
+    +'<span class="bgctl-mau" title="Kiểu tờ bìa ở trang 1">'
+      +'<label>Tờ bìa</label>'
+      +'<button class="'+(S.coverMau==='m1'?'on':'')+'" onclick="setCoverMau(\'m1\')">Mẫu 1</button>'
+      +'<button class="'+(S.coverMau==='m1'?'':'on')+'" onclick="setCoverMau(\'m2\')">Mẫu 2</button>'
+    +'</span>'
     +'<button class="btn ghost sm'+(bgPerSec_()?' on':'')+'" onclick="bgTogglePerSec_()" '
       +'title="Mỗi hạng mục bắt đầu ở một trang mới">'+icon('doc',14)+' Mỗi phần 1 trang</button>'
     +'<span class="bgctl-n">'+icon('doc',13)+' Số trang <b>'+pages+'</b></span>'
