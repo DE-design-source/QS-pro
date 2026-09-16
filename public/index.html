@@ -4741,6 +4741,31 @@ body.dsel #tkTable td.dragH .tkck{opacity:1}
 .citem.cc-child:hover::before{border-color:var(--cc-hl,#2563eb)}
 /* biến thể dùng tông cam cho khớp chip "Biến thể" */
 .cc-kids.bt-kids{--cc-ln:#e3b585;--cc-hl:#b4620d}
+
+/* ═══ Khối sản phẩm con: GỘP THÀNH MỘT KHUNG (combo xanh · biến thể cam) ═══ */
+.ccbox{--cc-vien:#dfe7f1;--cc-nen:#fbfdff;--cc-hnen:#f3f8ff;--cc-hchu:#2f5f9e;--cc-nhan:#2563eb;
+  margin:6px 0 8px 16px;border:1px solid var(--cc-vien);border-left:3px solid var(--cc-nhan);
+  border-radius:10px;background:var(--cc-nen);overflow:hidden}
+.ccbox.bt{--cc-vien:#f0ddc6;--cc-nen:#fffdfa;--cc-hnen:#fff6ec;--cc-hchu:#a4650a;--cc-nhan:#b4620d}
+.ccbox-h{display:flex;align-items:center;gap:6px;padding:7px 12px;background:var(--cc-hnen);
+  border-bottom:1px solid var(--cc-vien);font-size:10.5px;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--cc-hchu)}
+.ccbox-h i{font-style:normal;background:var(--cc-nhan);color:#fff;border-radius:99px;padding:1px 7px;font-size:10px}
+.ccrow{display:flex;align-items:center;gap:9px;padding:8px 11px;cursor:pointer;transition:background .12s}
+.ccrow+.ccrow{border-top:1px solid var(--cc-vien)}
+.ccrow:hover{background:#fff}
+.ccr-no{flex:none;font-size:10px;font-weight:700;color:var(--cc-hchu);background:#fff;
+  border:1px solid var(--cc-vien);border-radius:5px;padding:2px 5px;line-height:1}
+.ccr-th{flex:none;width:30px;height:30px;border-radius:7px;object-fit:contain;background:#fff;border:1px solid var(--cc-vien);display:block}
+.ccr-m{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ccr-m b{font-size:12px;font-weight:550;color:#243b53;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ccr-m i{font-style:normal;font-size:10.5px;color:#8a97a7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ccr-gia{flex:none;font-size:12px;font-weight:700;color:var(--navy);white-space:nowrap;font-variant-numeric:tabular-nums}
+.ccr-add{flex:none;width:22px;height:22px;border-radius:50%;border:1px solid #d7e2f2;background:#fff;
+  color:var(--cc-nhan);font-size:13px;line-height:1;cursor:pointer;padding:0}
+.ccr-add:hover{background:var(--cc-nhan);border-color:var(--cc-nhan);color:#fff}
+.cc-note{margin:6px 0 8px 16px;padding:9px 12px;border:1px dashed var(--ln2);border-radius:10px;
+  font-size:11.5px;color:var(--c3);background:#fff}
 </style>
 
 <!-- ===== TOP NAV ===== -->

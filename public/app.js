@@ -7221,29 +7221,34 @@ function catComboHtml_(p, idx){
   if(!ds.length) return '<div class="cc-note">Không có sản phẩm đi kèm.</div>';
   S._catCbIdx=S._catCbIdx||{}; S._catCbIdx[catCbKey_(p)]=ds;
   var pk=esc(catCbKey_(p));
-  return '<div class="cc-kids"><i class="cc-dot"></i>'+ds.map(function(x,k){
+  var rows=ds.map(function(x,k){
     var sl=Number(x.comboSL)||1;
-    var brand=esc(x.thuongHieu||'');
-    var specs=spSpecs_(x); if(specs.indexOf('muted')>=0) specs='';
-    var img=x.hinhAnh
-      ? '<img class="thumb" src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">'
-      : '<div class="thumb"></div>';
-    return '<div class="citem cc-child'+(k===ds.length-1?' last':'')+'" title="Xem chi tiết · kéo thả được vào bảng"'
-        +' draggable="true" ondragstart="catChildDrag_(event,\''+pk+'\','+k+')" ondragend="prodDragEnd()"'
-        +' onclick="catChildDetail_(\''+pk+'\','+k+')">'
-      +img
-      +'<div class="cmid">'
-        +'<div class="nm"><span class="cc-ix">'+((idx+1)+'.'+(k+1))+'</span>'+esc(x.ten||'')+'</div>'
-        +'<div class="meta"><span class="pr">'+money(x.donGiaBan)+' đ</span></div>'
-      +'</div>'
-      +'<button class="add" title="Thêm sản phẩm này vào bóc tách" onclick="event.stopPropagation();catAddChild_(\''+pk+'\','+k+')">+</button>'
-      +'<div class="cmeta metarow">'
-        +(brand?'<span class="sz brand">'+brand+'</span>':'')
-        +(sl>1?'<span class="sz cbsl" title="Số lượng đi kèm">×'+ptQty(sl)+'</span>':'')
-      +'</div>'
-      +(specs?'<div class="cspecs">'+specs+'</div>':'')
-    +'</div>';
-  }).join('')+'</div>';
+    var phu=[x.thuongHieu, (sl>1?('×'+ptQty(sl)):''), ccSpecTxt_(x)].map(function(t){ return String(t||'').trim(); }).filter(Boolean).join(' · ');
+    return ccRow_((idx+1)+'.'+(k+1), x, phu,
+      'catChildDetail_(\''+pk+'\','+k+')', 'catAddChild_(\''+pk+'\','+k+')', '');
+  }).join('');
+  return ccBox_('Sản phẩm đi kèm', ds.length, rows, '');
+}
+/* Khối sản phẩm con — GỘP THÀNH MỘT KHUNG (combo: xanh · biến thể: cam) */
+function ccBox_(ten, n, rows, cls){
+  return '<div class="ccbox '+(cls||'')+'">'
+    +'<div class="ccbox-h">'+esc(ten)+'<i>'+n+'</i></div>'
+    +'<div class="ccbox-b">'+rows+'</div></div>';
+}
+function ccSpecTxt_(x){
+  return [x.congSuat,x.nhietDo,x.cri?('CRI '+x.cri):'',x.gocChieu].map(function(v){ return String(v==null?'':v).trim(); })
+    .filter(Boolean).join(' · ');
+}
+function ccRow_(stt, x, phu, moJs, themJs, dragAttr){
+  var img=x.hinhAnh
+    ? '<img class="ccr-th" src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">'
+    : '<span class="ccr-th"></span>';
+  return '<div class="ccrow"'+(dragAttr||'')+' title="'+esc(String(x.ten||'')+(phu?' — '+phu:''))+'" onclick="'+moJs+'">'
+    +'<span class="ccr-no">'+esc(stt)+'</span>'+img
+    +'<span class="ccr-m"><b>'+esc(x.ten||'')+'</b>'+(phu?'<i>'+esc(phu)+'</i>':'')+'</span>'
+    +'<span class="ccr-gia">'+money(x.donGiaBan)+' đ</span>'
+    +'<button class="ccr-add" title="Thêm vào bóc tách" onclick="event.stopPropagation();'+themJs+'">+</button>'
+  +'</div>';
 }
 // Thêm 1 thành phần combo vào bóc tách, đúng số lượng đi kèm
 async function catAddChild_(pk, k){
@@ -9085,27 +9090,17 @@ function catVarLbl_(x){
 }
 function catVarHtml_(list,G){
   var head=G.i+1;
-  return '<div class="cc-kids bt-kids"><i class="cc-dot"></i>'+G.kids.map(function(ix,k){
-    var x=list[ix]; var brand=esc(x.thuongHieu||'');
-    var specs=spSpecs_(x); if(specs.indexOf('muted')>=0) specs='';
-    var lbl=catVarLbl_(x);
-    var img=x.hinhAnh
-      ? '<img class="thumb" src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">'
-      : '<div class="thumb"></div>';
-    return '<div class="citem cc-child'+(k===G.kids.length-1?' last':'')+'" title="Xem chi tiết biến thể này"'
-        +' draggable="true" ondragstart="prodDragStart(event,'+ix+')" ondragend="prodDragEnd()"'
-        +' onclick="showDetail('+ix+')">'
-      +img
-      +'<div class="cmid">'
-        +'<div class="nm"><span class="cc-ix">'+head+'.'+(k+2)+'</span>'+esc(lbl||x.ten||'')+'</div>'
-        +'<div class="meta"><span class="pr">'+money(x.donGiaBan)+' đ</span></div>'
-      +'</div>'
-      +'<button class="add" title="Thêm biến thể này vào bóc tách" onclick="event.stopPropagation();addProduct('+ix+')">+</button>'
-      +(brand?'<div class="cmeta metarow"><span class="sz brand">'+brand+'</span></div>':'')
-      +(specs?'<div class="cspecs">'+specs+'</div>':'')
-    +'</div>';
-  }).join('')+'</div>';
+  var rows=G.kids.map(function(ix,k){
+    var x=list[ix];
+    var lbl=catVarLbl_(x) || x.ten || '';
+    var phu=[x.thuongHieu, (catVarLbl_(x)?'':ccSpecTxt_(x))].map(function(t){ return String(t||'').trim(); }).filter(Boolean).join(' · ');
+    return ccRow_(head+'.'+(k+2), Object.assign({},x,{ten:lbl}), phu,
+      'showDetail('+ix+')', 'addProduct('+ix+')',
+      ' draggable="true" ondragstart="prodDragStart(event,'+ix+')" ondragend="prodDragEnd()"');
+  }).join('');
+  return ccBox_('Biến thể của sản phẩm', G.kids.length+1, rows, 'bt');
 }
+
 
 /* ═══ Sheet Nhân công / Vật tư trong một hạng mục ═══
    Lưu trên dòng ở extra.sheet ('nc' | 'vt' | rỗng = để chung) nên đi theo dòng, không đụng cấu trúc hạng mục. */
