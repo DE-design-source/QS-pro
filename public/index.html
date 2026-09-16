@@ -4829,6 +4829,39 @@ body.keo-ngang,body.keo-ngang *{cursor:col-resize!important;user-select:none!imp
 .cbi-bo .cbi-sl input{width:44px;font-size:12.5px}
 .cbi-nhan{flex:none;font-size:10.5px;color:var(--c3);white-space:nowrap}
 .cbi-nhan b{color:var(--blue);font-weight:700}
+
+/* ═══ Khối "Sản phẩm đi kèm" — dựng lại ═══
+   SỐ BỘ COMBO là điều khiển chính (thanh riêng, nút to, chip chọn nhanh);
+   SL kèm của từng dòng là số phụ (ô nhỏ nằm trong dòng chữ, không nút bấm). */
+.cbi-bobar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 10px;padding:10px 12px;
+  border:1px solid #dbe7fb;border-radius:var(--rk);background:linear-gradient(180deg,#f6faff,#eff5ff)}
+.cbi-bolb{flex:1;min-width:110px;display:flex;flex-direction:column;gap:1px}
+.cbi-bolb b{font-size:12px;font-weight:700;color:var(--navy);letter-spacing:-.01em}
+.cbi-bolb span{font-size:10.5px;color:var(--c3)}
+.cbi-bost{flex:none;display:inline-flex;align-items:center;height:34px;border:1px solid #bcd3f5;
+  border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 1px 2px rgba(37,99,235,.10)}
+.cbi-bost input{width:52px;height:100%;border:none;outline:none;text-align:center;font:inherit;
+  font-size:15px;font-weight:700;color:var(--navy);background:#fff;-moz-appearance:textfield}
+.cbi-bost input::-webkit-outer-spin-button,.cbi-bost input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.cbi-bost .cbi-b{width:32px;height:100%;background:#eaf2ff;color:var(--blue);font-size:17px;font-weight:600}
+.cbi-bost .cbi-b:hover{background:var(--blue);color:#fff}
+.cbi-chips{flex:none;display:flex;gap:4px}
+.cbi-chip{min-width:26px;height:26px;padding:0 7px;border:1px solid #cddcf5;border-radius:8px;background:#fff;
+  font:inherit;font-size:12px;font-weight:600;color:#3f628f;cursor:pointer;line-height:1}
+.cbi-chip:hover{border-color:var(--blue);color:var(--blue)}
+.cbi-chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+/* dòng: SL kèm là ô nhỏ, không nút ± */
+.cbi-ct{display:inline-flex;align-items:center;gap:6px;flex:1;min-width:0}
+.cbi-ct label{font-size:10px;font-weight:700;color:var(--c4);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.cbi-ct input{width:44px;height:26px;border:1px solid var(--ln2);border-radius:7px;text-align:center;
+  font:inherit;font-size:12.5px;font-weight:700;color:var(--c1);background:#fff;-moz-appearance:textfield}
+.cbi-ct input::-webkit-outer-spin-button,.cbi-ct input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.cbi-ct input:focus{outline:none;border-color:var(--blue);box-shadow:var(--focus)}
+.cbi-ct em{font-style:normal;font-size:10px;color:var(--c3);white-space:nowrap;flex:none}
+.cbi-ct em b{color:var(--blue);font-weight:700}
+.cbi-ft{padding-left:0;justify-content:space-between}
+.cbi-pr b{font-size:13.5px}
+.cbi-pr i{display:none}
 </style>
 
 <!-- ===== TOP NAV ===== -->

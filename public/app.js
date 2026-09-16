@@ -2741,7 +2741,11 @@ async function pdLoadCombo_(p, idx, dich, boxId){
   S._pdComboBo=1;                       // mỗi lần mở sản phẩm khác thì số bộ về 1
   pdComboVe_();
 }
-/* Vẽ lại khối "Sản phẩm đi kèm" — số lượng SỬA ĐƯỢC ngay tại đây */
+/* Vẽ lại khối "Sản phẩm đi kèm".
+   Hai con số khác vai trò nên phải khác hình dạng:
+   · SỐ BỘ COMBO — điều khiển CHÍNH: nút − / + to, kèm chip chọn nhanh.
+   · SL kèm mỗi dòng — số PHỤ: ô nhỏ, không nút bấm, nằm trong dòng chữ. */
+var PD_BO_NHANH=[1,2,3,5,10];
 function pdComboVe_(){
   var o=S._pdComboBox||{}, list=S._pdCombo||[];
   var box=document.getElementById(o.boxId||'pdCombo'); if(!box) return;
@@ -2760,34 +2764,37 @@ function pdComboVe_(){
         +'<span class="cbi-sub">'+esc(x.ma||'')+' · '+money(dg)+' đ/cái</span>'
       +'</div>'
       +'<div class="cbi-ft">'
-        +'<span class="cbi-sl">'
-          +'<button class="cbi-b" title="Bớt 1" onclick="event.stopPropagation();pdCbSL_('+k+',-1)">−</button>'
-          +'<input type="number" min="1" step="1" value="'+sl+'" title="Số lượng đi kèm"'
+        +'<span class="cbi-ct">'
+          +'<label>SL kèm</label>'
+          +'<input type="number" min="1" step="1" value="'+sl+'" title="Số lượng đi kèm cho MỖI bộ"'
             +' onclick="event.stopPropagation()" onchange="pdCbSL_('+k+',null,this.value)">'
-          +'<button class="cbi-b" title="Thêm 1" onclick="event.stopPropagation();pdCbSL_('+k+',1)">+</button>'
+          +(bo>1?('<em>×'+bo+' = <b>'+ptQty(slTong)+'</b></em>'):'')
         +'</span>'
-        +(bo>1?'<span class="cbi-nhan">× '+bo+' bộ = <b>'+ptQty(slTong)+'</b></span>':'')
-        +'<span class="cbi-pr"><i>thành tiền</i><b>'+money(dg*slTong)+' đ</b></span>'
+        +'<span class="cbi-pr"><b>'+money(dg*slTong)+' đ</b></span>'
       +'</div>'
     +'</div>';
   }).join('');
+  var chips=PD_BO_NHANH.map(function(v){
+    return '<button class="cbi-chip'+(bo===v?' on':'')+'" onclick="event.stopPropagation();pdCbBoSet_(null,'+v+')">'+v+'</button>';
+  }).join('');
   box.innerHTML='<div class="pd-block pd-combo">'
-    +'<div class="pd-sec cbi-sec">Sản phẩm đi kèm <i>('+list.length+')</i>'
-      +'<span class="cbi-bo" title="Số BỘ combo — số lượng từng sản phẩm bên dưới sẽ nhân lên theo số này">'
-        +'<label>Số bộ</label>'
-        +'<span class="cbi-sl">'
-          +'<button class="cbi-b" onclick="event.stopPropagation();pdCbBoSet_(-1)">−</button>'
-          +'<input type="number" min="1" step="1" value="'+bo+'" onclick="event.stopPropagation()"'
-            +' onchange="pdCbBoSet_(null,this.value)">'
-          +'<button class="cbi-b" onclick="event.stopPropagation();pdCbBoSet_(1)">+</button>'
-        +'</span></span>'
+    +'<div class="pd-sec">Sản phẩm đi kèm <i>('+list.length+')</i></div>'
+    +'<div class="cbi-bobar">'
+      +'<div class="cbi-bolb"><b>Số bộ combo</b><span>mỗi bộ gồm '+list.length+' sản phẩm bên dưới</span></div>'
+      +'<div class="cbi-bost">'
+        +'<button class="cbi-b" title="Bớt 1 bộ" onclick="event.stopPropagation();pdCbBoSet_(-1)">−</button>'
+        +'<input type="number" min="1" step="1" value="'+bo+'" title="Số bộ combo cần thêm"'
+          +' onclick="event.stopPropagation()" onchange="pdCbBoSet_(null,this.value)">'
+        +'<button class="cbi-b" title="Thêm 1 bộ" onclick="event.stopPropagation();pdCbBoSet_(1)">+</button>'
+      +'</div>'
+      +'<div class="cbi-chips">'+chips+'</div>'
     +'</div>'
     +'<div class="cbi-list">'+rows+'</div>'
-    +'<div class="cbi-tot"><span>Tổng combo kèm theo'+(bo>1?(' ('+bo+' bộ)'):'')+'</span><b>'+money(tong)+' đ</b></div>'
+    +'<div class="cbi-tot"><span>Tổng'+(bo>1?(' '+bo+' bộ'):' combo kèm theo')+'</span><b>'+money(tong)+' đ</b></div>'
     +((o.idx==null||o.idx<0)?''
       :('<button class="btn blue sm cbi-add" title="Thêm sản phẩm chính và toàn bộ sản phẩm đi kèm vào '+esc(o.dich||'bóc tách')+'"'
         +' onclick="pdAddCombo_('+o.idx+')">'+icon('plus',14)+' Thêm '+(bo>1?(bo+' bộ combo'):'cả combo')+'</button>'))
-    +'<div class="cbi-note">Số lượng sửa ở đây dùng cho lần thêm này; muốn đổi cố định thì sửa trong <b>Cập nhật sản phẩm</b>.</div>'
+    +'<div class="cbi-note">Sửa ở đây chỉ dùng cho lần thêm này; muốn đổi cố định thì sửa trong <b>Cập nhật sản phẩm</b>.</div>'
   +'</div>';
 }
 /* Số BỘ combo — số lượng mỗi dòng nhân với số này */
