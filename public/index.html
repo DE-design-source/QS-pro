@@ -4813,7 +4813,11 @@ body.dsel #tkTable td.dragH .tkck{opacity:1}
   #bocGrid.detail{grid-template-columns:var(--catW,262px) 288px minmax(0,1fr)} }
 @media(max-width:1120px){ #bocGrid,#bocGrid.detail{grid-template-columns:1fr}
   .cat-resize{display:none} }
-.catpanel{position:relative}
+/* Panel trái vẫn DÍNH khi cuộn. Không dùng position:relative ở đây — rule .catpanel phía trên
+   có top:74px, nên relative sẽ đẩy cả panel tụt xuống 74px và hở một khoảng trắng ở đầu panel.
+   Sticky cũng là phần tử đã định vị nên .cat-resize (absolute) vẫn neo đúng vào panel. */
+.catpanel{position:sticky;top:74px}
+@media(max-width:1120px){ .catpanel{position:static} }
 .cat-resize{position:absolute;top:0;right:-11px;width:14px;height:100%;cursor:col-resize;z-index:8;
   display:flex;align-items:center;justify-content:center;background:none;border:none}
 .cat-resize i{display:block;width:4px;height:44px;border-radius:99px;background:#dbe2ec;transition:.14s}
@@ -4904,6 +4908,17 @@ body.keo-ngang,body.keo-ngang *{cursor:col-resize!important;user-select:none!imp
   font:inherit;font-size:12px;font-weight:600;color:var(--c2);cursor:pointer}
 .bgctl-mau button:hover{border-color:var(--blue);color:var(--blue)}
 .bgctl-mau button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* ═══ Dòng vừa thêm vào bảng: cuộn tới nơi + nháy nhẹ cho dễ nhận ra ═══
+   Dùng khi kéo sản phẩm từ panel trái thả vào bảng, bấm ＋, hoặc cộng dồn số lượng. */
+@keyframes tkRowNew{
+  0%{background:#cfe4ff}
+  12%{background:#cfe4ff}
+  100%{background:#fff0}
+}
+#tkTable tr.rownew>td{animation:tkRowNew 1.35s ease-out;animation-delay:var(--fdl,0s)}
+#tkTable tr.rownew>td.dragH{box-shadow:inset 3px 0 0 var(--blue)}
+@media(prefers-reduced-motion:reduce){ #tkTable tr.rownew>td{animation-duration:.01s;background:#e6f0ff} }
 </style>
 
 <!-- ===== TOP NAV ===== -->

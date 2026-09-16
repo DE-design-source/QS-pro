@@ -3032,6 +3032,50 @@ async function spDelete(i){
 }
 function hideDetail(){ S._detailIdx=null; document.getElementById('pdPanel').style.display='none'; document.getElementById('bocGrid').classList.remove('detail'); document.removeEventListener('keydown',pdPanelKey_); }
 
+/* ===== Kéo/thêm SP xong: cuộn bảng tới dòng vừa thêm + nháy nhẹ dòng đó =====
+   renderTable() dựng lại innerHTML nên class nháy sẽ mất; vì vậy giữ id + mốc thời gian
+   trong S rồi vẽ lại sau mỗi lần render (dùng animation-delay âm để mạch nháy chạy tiếp,
+   không giật lại từ đầu khi server trả về và dòng tạm đổi thành dòng thật). */
+var TK_NEW_MS=1350;
+function tkRowEl_(id){
+  if(!id) return null;
+  var rows=document.querySelectorAll('#tkTable tr.drow');
+  for(var i=0;i<rows.length;i++) if(rows[i].dataset.id===id) return rows[i];
+  return null;
+}
+function tkStickyH_(){                                   // header + các hàng đang ghim
+  var t=document.getElementById('tkTable'); if(!t) return 0;
+  var h=(t.rows[0]||{}).offsetHeight||0;
+  t.querySelectorAll('tr.frzrow').forEach(function(tr){ h+=tr.offsetHeight; });
+  return h;
+}
+function tkRowNewPaint_(){                               // gọi ở cuối renderTable()
+  var id=S._newLid; if(!id) return;
+  var el=Date.now()-(S._newT0||0);
+  if(el>=TK_NEW_MS){ S._newLid=null; return; }
+  var tr=tkRowEl_(id); if(!tr) return;
+  tr.style.setProperty('--fdl','-'+el+'ms');
+  tr.classList.add('rownew');
+}
+function tkGotoNewRow_(id){
+  S._newLid=id; S._newT0=Date.now();
+  var tr=tkRowEl_(id); if(!tr) return;
+  tr.style.setProperty('--fdl','0s'); tr.classList.remove('rownew'); void tr.offsetWidth; tr.classList.add('rownew');
+  clearTimeout(S._newTmr);
+  S._newTmr=setTimeout(function(){ S._newLid=null; var x=tkRowEl_(id); if(x) x.classList.remove('rownew'); }, TK_NEW_MS+80);
+  var w=tr.closest('.tbl-wrap'); if(!w) return;
+  var wr=w.getBoundingClientRect(), rr=tr.getBoundingClientRect(), pad=tkStickyH_()+10;
+  var duoi=rr.bottom-(wr.bottom-8), tren=(wr.top+pad)-rr.top, sm=tkSmooth_();
+  if(duoi>0) w.scrollTo({top:w.scrollTop+duoi, behavior:sm});
+  else if(tren>0) w.scrollTo({top:Math.max(0,w.scrollTop-tren), behavior:sm});
+  // bảng đang nằm ngoài màn hình -> cuộn trang cho thấy bảng trước
+  var nwr=w.getBoundingClientRect();
+  if(nwr.bottom<90 || nwr.top>window.innerHeight-90) w.scrollIntoView({block:'center',behavior:sm});
+}
+function tkSmooth_(){
+  try{ return window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'; }catch(e){ return 'smooth'; }
+}
+
 /* ===== ADD to takeoff ===== */
 async function addProduct(i){ var p=(S._filtered||[])[i]; if(p) await addProdObj(p); }
 async function addProductObj(i){ var p=(S._filtered||[])[i]; if(p) await addProdObj(p); }
@@ -3052,7 +3096,8 @@ async function addProdObj(p,floor,sl){
       && !String(l.khuVuc||'').trim()
       && tkSheetOf_(l)===((tkSheetCo_()&&S.sheet)||'');
   })[0];
-  if(same){ editLine(same.lineId,{soLuong:(Number(same.soLuong)||0)+sl}); toast('+'+sl+' số lượng: '+p.ten); return; }
+  if(same){ editLine(same.lineId,{soLuong:(Number(same.soLuong)||0)+sl}); toast('+'+sl+' số lượng: '+p.ten);
+    tkGotoNewRow_(same.lineId); return; }
   var prod=Object.assign({},p,{ nhom:S.node, hangMuc:nodeName(S.node), loai:nodeName(S.node), tang:floor,
     extra:Object.assign({nganh:p.nhom||''}, (S.sheet&&tkSheetCo_())?{sheet:S.sheet}:{}) });
   // ---- Optimistic: hiện dòng NGAY, đồng bộ server chạy nền ----
@@ -3062,10 +3107,14 @@ async function addProdObj(p,floor,sl){
     moTa:p.moTa||'', kichThuoc:p.kichThuoc||p.size||'', dvt:p.dvt||'Cái', hinhAnh:p.hinhAnh||'',
     soLuong:sl, donGiaVon:dgVon, donGiaBan:dgBan, thanhTienVon:dgVon*sl, thanhTienBan:dgBan*sl, lnPct:0,
     nhom:S.node, hangMuc:nodeName(S.node), tang:floor };
+  var gKey=floor||'CHƯA PHÂN TẦNG';
+  if(S.collapsed[gKey]) S.collapsed[gKey]=false;      // tầng đang gập -> mở ra để thấy dòng vừa thêm
   S.lines.push(temp); renderTree(); renderFloors(); renderTable(); renderCard();
+  tkGotoNewRow_(temp.lineId);                         // cuộn tới dòng mới + nháy nhẹ
   toast('Đã thêm: '+p.ten+(sl>1?(' ×'+sl):''));
   return api('addLine', S.cur.maDA, prod, sl).then(function(l){
     var i=S.lines.indexOf(temp); if(i>=0) S.lines[i]=l; else S.lines.push(l);
+    if(S._newLid===temp.lineId) S._newLid=l.lineId;   // dòng tạm -> dòng thật: nháy chạy tiếp, không giật
     renderTree(); renderTable(); renderCard();
     if(document.getElementById('v-dash').classList.contains('on')) renderDash();
     if(bgVis()) drawBaogia();
@@ -3368,6 +3417,7 @@ function renderTable(){
   tkSelPrune_();       // bỏ khỏi vùng chọn những dòng không còn trên bảng
   tkFreezeRows_();     // cố định N hàng đầu (như Excel)
   tkSelBar_();         // thanh thao tác hàng loạt (nổi ở đáy màn hình)
+  tkRowNewPaint_();    // giữ vệt nháy của dòng vừa thêm qua các lần render lại
   renderActGutter();   // nút xoá đặt NGOÀI bảng (gutter phải), đồng bộ cuộn
   // ----- Tổng tiền (chưa VAT / VAT / tổng thành tiền) -----
   var sub=lines.reduce(function(s,l){ return s+(Number(l.thanhTienBan)||0); },0);
