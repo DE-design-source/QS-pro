@@ -6257,13 +6257,46 @@ function impLoai_(){ return S._impLoai||'sp'; }
 function impSetLoai(v){ S._impLoai=v; renderImport(); }
 // Chọn hạng mục để nhập — gộp thẳng vào ô "Ngành hàng" (trước đây là 1 hàng tab riêng)
 var IMP_LOAI=[['sp','Thiết bị đèn · sản phẩm'],['vs','Thiết bị vệ sinh · sản phẩm'],['pt','Xây dựng · công tác phần thô']];
-function impNganhSel_(){
-  var cur=impLoai_();
-  return '<div class="imp-nganh"><label>Ngành hàng</label>'
-    +'<select class="imp-nganh-sel" onchange="impSetLoai(this.value)">'
-      +IMP_LOAI.map(function(x){ return '<option value="'+x[0]+'"'+(cur===x[0]?' selected':'')+'>'+esc(x[1])+'</option>'; }).join('')
-    +'</select></div>';
+/* Ô chọn NGÀNH HÀNG ở trang Nhập dữ liệu — dựng đúng dáng ô chọn hạng mục
+   (nhãn + ô viền tròn kèm số đếm) để cả web chỉ còn một kiểu ô chọn. */
+function impNganhDem_(v){
+  if(v==='pt') return (typeof spPTAll_==='function')?spPTAll_().length:0;   // thư viện công tác
+  var ng=(v==='vs')?'vs':'den';
+  return (S.products||[]).filter(function(p){ return nganhCuaSP_(p)===ng; }).length;
 }
+function impNganhSel_(){
+  var cur=impLoai_(), ten=(IMP_LOAI.filter(function(x){ return x[0]===cur; })[0]||['',''])[1];
+  return '<div class="hm-wrap"><span class="hm-lbl">Ngành hàng</span>'
+    +'<span class="count">['+pad2(impNganhDem_(cur))+']</span>'
+    +'<button class="tree-btn hm-open on" id="ngBtn" onclick="ngPop_(event)" title="Chọn ngành hàng">'
+      +'<span class="hm-name">'+esc(ten)+'</span>'
+      +'<span class="cnt">['+pad2(impNganhDem_(cur))+']</span>'
+    +'</button></div>';
+}
+function ngPop_(e){
+  if(e&&e.stopPropagation) e.stopPropagation();
+  var id='ngPop'; if(document.getElementById(id)){ ngPopClose_(); return; }
+  var cur=impLoai_(), pop=document.createElement('div');
+  pop.className='fltpop bgtree'; pop.id=id;
+  pop.innerHTML='<div class="bgt-h"><b>Chọn ngành hàng</b>'
+      +'<button class="colpop-x" onclick="ngPopClose_()">✕</button></div>'
+    +'<div class="bgt-b">'+IMP_LOAI.map(function(x){
+        var on=(cur===x[0]);
+        return '<div class="bgt-i lvl1'+(on?' on':'')+'" onclick="ngPick_(\''+x[0]+'\')">'
+          +'<span class="nm">'+esc(x[1])+'</span>'
+          +'<span class="cn">['+pad2(impNganhDem_(x[0]))+']</span>'
+          +'<span class="rd'+(on?' on':'')+'"></span></div>';
+      }).join('')+'</div>';
+  document.body.appendChild(pop);
+  var b=document.getElementById('ngBtn');
+  if(b){ var r=b.getBoundingClientRect(), w=pop.offsetWidth||330, h=pop.offsetHeight;
+    var top=r.bottom+6; if(top+h>window.innerHeight-10) top=Math.max(10, r.top-h-6);
+    pop.style.top=top+'px'; pop.style.left=Math.max(8,Math.min(r.left, window.innerWidth-w-10))+'px'; }
+  setTimeout(function(){ document.addEventListener('mousedown',ngOutside_); },0);
+}
+function ngOutside_(e){ if(e.target.closest('#ngPop')||e.target.closest('#ngBtn')) return; ngPopClose_(); }
+function ngPopClose_(){ var p=document.getElementById('ngPop'); if(p) p.remove(); document.removeEventListener('mousedown',ngOutside_); }
+function ngPick_(v){ ngPopClose_(); impSetLoai(v); }
 function impLoaiTabs_(){ return ''; }
 function renderImport(){
   if(impLoai_()==='pt') return renderImportPT_();
