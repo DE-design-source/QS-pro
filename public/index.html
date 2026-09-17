@@ -4982,6 +4982,25 @@ tr.sp-row.sp-btkid:hover>td{background-color:#fff7ee}
    cột Sản phẩm là cột đóng băng (position:sticky), đổi position là nó rớt khỏi vùng ghim. */
 tr.sp-row.sp-btkid td.sp-name{padding-left:30px;background-image:linear-gradient(#e0a05c,#e0a05c);
   background-repeat:no-repeat;background-size:9px 1px;background-position:14px 50%}
+
+/* ═══ Phần thô dùng CHUNG cách hiển thị với bảng Bóc tách ═══
+   Tô màu điều kiện (chuột phải > Tô màu điều kiện) và vệt tìm kiếm Ctrl+F. */
+/* ô tích chọn dòng + dòng đang chọn — cùng kiểu với bảng Bóc tách */
+table.pt td.pt-grip{white-space:nowrap}
+table.pt td.pt-grip .tkck{width:15px;height:15px;margin:0 4px 0 0;vertical-align:-2px;cursor:pointer;
+  accent-color:var(--blue);opacity:0;transition:opacity .12s}
+table.pt tr.pt-row:hover td.pt-grip .tkck,table.pt td.pt-grip .tkck:checked{opacity:1}
+table.pt td.pt-grip .sttn{font-variant-numeric:tabular-nums}
+table.pt tr.pt-row.cf-red>td{background:#fdecec!important}
+table.pt tr.pt-row.cf-yellow>td{background:#fdf6da!important}
+table.pt tr.pt-row.cf-grey>td{background:#f1f4f7!important}
+/* dòng đang chọn đè lên màu điều kiện — giống thứ tự ở bảng Bóc tách */
+table.pt tr.pt-row.rowsel>td{background:#eaf3ff!important}
+table.pt tr.pt-row.rowsel>td.pt-grip{box-shadow:inset 3px 0 0 var(--blue)}
+table.pt tr.frzrow>td{background:#f7fafd!important;box-shadow:inset 0 -1px 0 var(--ln2)}
+table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
+#ptWrap td.fr-hit{background:#fff3bf!important;box-shadow:inset 0 0 0 1px #f0c000}
+#ptWrap td.fr-hit-cur{background:#ffe08a!important;box-shadow:inset 0 0 0 2px #e0a800}
 </style>
 
 <!-- ===== TOP NAV ===== -->
