@@ -1309,13 +1309,15 @@ function spAllCols_(){
   if(_spColCache) return _spColCache;
   var head=[
     ['stt','STT','ct',function(p,i){
+      var m=(S._rowMeta||[])[i];
+      if(m&&m.no) return '<span class="sp-stt'+(m.k?' sub':'')+'">'+m.no+'</span>';   // con: 1.1 · 1.2…
       var per=spPerGet_(), tr=Math.max(1,S._spPage||1);
       return '<span class="sp-stt">'+((per?(tr-1)*per:0)+i+1)+'</span>'; }],
     ['thumb','Ảnh','thumbcol',function(p){ return p.hinhAnh?'<img class="sp-th" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="sp-th"></span>'; }],
     ['ten','Sản phẩm','sp-name',function(p,i){ return '<b>'+esc(p.ten||'')+'</b><span class="sp-code">'+esc(p.ma||'')
         +(p.spChung?'<span class="sp-chung" title="Sản phẩm thuộc kho chung của Dezon — chỉ xem">Kho Dezon</span>':'')
         +(p.comboN?'<button class="sp-cbn sp-cbtog'+(spCbMo_(p)?' on':'')+'" title="Xem '+p.comboN+' sản phẩm đi kèm" onclick="event.stopPropagation();spComboToggle_('+i+')"><span class="cbc">▸</span>'+icon('layers',10)+' combo '+p.comboN+'</button>':'')
-        +spVarChip_(p)+'</span>'; },
+        +spVarChip_(p)+spCbQty_(i)+'</span>'; },
       {lark:'TÊN SẢN PHẨM', col:'ten_sp', sfx:''}],
     ['duyet','Trạng thái','ct',function(p){
       var on=!!p.daDuyet;
@@ -1460,24 +1462,6 @@ async function spFavBulk(on){
 }
 /* ═══ MỞ COMBO NGAY TRÊN DÒNG (bảng Danh sách SP) ═══ dùng chung kho dữ liệu với thư viện Bóc tách */
 function spCbMo_(p){ return !!(S._catCbOpen && S._catCbOpen[catCbKey_(p)]); }
-/* Bảng Danh sách SP: dòng bung ra nằm trong 1 ô <td>, không dùng thẻ SP như panel
-   -> render bản gọn: ảnh · tên/mã · "SL × đơn giá" · thành tiền. */
-function spComboHtml_(p){
-  var ds=(S._catCb||{})[catCbKey_(p)];
-  if(!ds) return '<div class="sp-cbnote">Đang tải sản phẩm đi kèm…</div>';
-  if(!ds.length) return '<div class="sp-cbnote">Không có sản phẩm đi kèm.</div>';
-  var tong=ds.reduce(function(s,x){ return s+(Number(x.donGiaBan)||0)*(Number(x.comboSL)||1); },0);
-  return '<div class="sp-cblist">'
-    +ds.map(function(x){
-      var sl=Number(x.comboSL)||1, tt=(Number(x.donGiaBan)||0)*sl;
-      return '<div class="sp-cbr">'
-        +(x.hinhAnh?'<img src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="sp-cbimg"></span>')
-        +'<span class="sp-cbi"><b>'+esc(x.ten||'')+'</b><i>'+esc(x.ma||'')+'</i></span>'
-        +'<span class="sp-cbq">'+ptQty(sl)+' × '+money(x.donGiaBan)+'</span>'
-        +'<span class="sp-cbt">'+money(tt)+'</span></div>';
-    }).join('')
-    +'<div class="sp-cbf"><span>Tổng combo</span><b>'+money(tong)+' đ</b></div></div>';
-}
 async function spComboToggle_(i){
   var p=(S._spList||[])[i]; if(!p) return;
   var k=catCbKey_(p); if(!k) return;
@@ -1712,7 +1696,9 @@ function spPageNums_(cur,pages){
   if(pages>1){ if(out[out.length-1]!=='…' && out[out.length-1]<pages-1) add('…'); add(pages); }
   return out;
 }
-function spPager_(total,cur,pages,per){
+/* total = số DÒNG đại diện (mỗi nhóm biến thể chỉ 1 dòng) — phân trang đếm theo đây;
+   totalSP = tổng số sản phẩm thật, để câu "…/ N sản phẩm" vẫn đúng.                    */
+function spPager_(total,cur,pages,per,totalSP){
   var el=document.getElementById('spPager'); if(!el) return;
   var from=total?((cur-1)*(per||total)+1):0, to=per?Math.min(total,cur*per):total;
   var sel='<select class="sppg-per" onchange="spSetPer(this.value)">'+SP_PER.map(function(v){
@@ -1726,7 +1712,9 @@ function spPager_(total,cur,pages,per){
       + '<button class="sppg-b" '+(cur>=pages?'disabled':'')+' onclick="spGoPage('+(cur+1)+')" title="Trang sau">'
         +'<svg class="ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>';
   }
-  el.innerHTML='<div class="sppg"><span class="sppg-info">'+(total?('Hiện <b>'+from+'–'+to+'</b> / '+total+' sản phẩm'):'Không có sản phẩm')+'</span>'
+  var nSP=(totalSP==null?total:totalSP);
+  var info=(nSP===total)?(total+' sản phẩm'):(total+' dòng · '+nSP+' sản phẩm');
+  el.innerHTML='<div class="sppg"><span class="sppg-info">'+(total?('Hiện <b>'+from+'–'+to+'</b> / '+info):'Không có sản phẩm')+'</span>'
     +'<span class="sppg-nav">'+nav+'</span>'+sel+'</div>';
 }
 /* ═══ THỨ TỰ + ĐỘ RỘNG CỘT (kéo giãn, kéo đổi chỗ — giống bảng Bóc tách) ═══ */
@@ -2512,6 +2500,10 @@ function spDataList_(){
    lại khác hẳn cách combo hiển thị (chip bung ra). Nay đồng bộ: mỗi nhóm biến thể
    chỉ hiện 1 DÒNG ĐẠI DIỆN + chip "Biến thể N"; bấm chip mới bung các dòng còn lại.
    Dòng con vẫn là dòng thật (chọn / sửa / mở chi tiết bình thường), chỉ thụt vào. */
+function spCbQty_(i){
+  var m=(S._rowMeta||[])[i]; if(!m||m.k!=='cb') return '';
+  return '<span class="sp-cbq2" title="Số lượng đi kèm cho mỗi sản phẩm chính">×'+ptQty(m.sl)+'</span>';
+}
 function spVarChip_(p){
   var m=(S._btMap||{})[spKeyOf_(p)]; if(!m) return '';
   var k=String(m.key||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
@@ -2552,14 +2544,30 @@ function spFilter(){
   var per=spPerGet_(), pages=per?Math.max(1,Math.ceil(groups.length/per)):1;
   var cur=Math.min(Math.max(1, S._spPage||1), pages); S._spPage=cur;
   var pageG=per?groups.slice((cur-1)*per, cur*per):groups;
-  var list=[]; S._btMap={}; S._btKid={};
-  pageG.forEach(function(g){
-    var n=g.kids.length+1, mo=spVarOpen_(g.key);
+  var base=[], bno=[], no0=per?(cur-1)*per:0; S._btMap={}; S._btKid={};
+  pageG.forEach(function(g,gi){
+    var n=g.kids.length+1, mo=spVarOpen_(g.key), so=String(no0+gi+1);
     if(!PT && n>1) S._btMap[spKeyOf_(g.head)]={key:g.key, n:n, mo:mo};
-    list.push(g.head);
-    if(mo) g.kids.forEach(function(x){ S._btKid[spKeyOf_(x)]=1; list.push(x); });
+    base.push(g.head); bno.push(so);
+    if(mo) g.kids.forEach(function(x,ki){ S._btKid[spKeyOf_(x)]=1; base.push(x); bno.push(so+'.'+(ki+1)); });
   });
-  S._spList=list;
+  // Combo đang mở -> chèn SP đi kèm thành DÒNG THẬT ngay dưới (đúng cột, giống biến thể),
+  // thay cho khối gộp 1 ô trước đây. S._rowMeta chạy song song với S._spList để biết
+  // dòng nào là SP đi kèm (có ×SL), dòng nào là dòng tổng / dòng báo trạng thái.
+  var list=[], meta=[];
+  base.forEach(function(p,bi){
+    var so=bno[bi];
+    list.push(p); meta.push({k:'', no:PT?'':so});
+    if(PT || !spCbMo_(p)) return;
+    var ds=(S._catCb||{})[catCbKey_(p)];
+    if(!ds){ list.push(p); meta.push({k:'note', t:'Đang tải sản phẩm đi kèm…'}); return; }
+    if(!ds.length){ list.push(p); meta.push({k:'note', t:'Không có sản phẩm đi kèm.'}); return; }
+    var tong=0;
+    ds.forEach(function(x,ci){ var sl=Number(x.comboSL)||1;
+      tong+=(Number(x.donGiaBan)||0)*sl; list.push(x); meta.push({k:'cb', sl:sl, no:so+'.'+(ci+1)}); });
+    list.push(p); meta.push({k:'sum', n:ds.length, tong:tong});
+  });
+  S._spList=list; S._rowMeta=meta;
   if(PT) S._ptRows=list;
 
   var cnt=document.getElementById('spCount');
@@ -2568,11 +2576,15 @@ function spFilter(){
 
   var vis=spVisCols_(), ncol=vis.length+2, edit=!!S._spEdit;
   document.getElementById('spBody').innerHTML = list.length ? list.map(function(p,i){
+    var m=(S._rowMeta||[])[i];
+    if(m&&m.k==='note') return '<tr class="sp-cbrow"><td colspan="'+ncol+'"><div class="sp-cbnote">'+esc(m.t)+'</div></td></tr>';
+    if(m&&m.k==='sum') return '<tr class="sp-cbsum"><td colspan="'+ncol+'">'
+      +'<span class="sp-cbsl">Tổng combo · '+m.n+' sản phẩm đi kèm</span><b>'+money(m.tong)+' đ</b></td></tr>';
     var key=spKeyOf_(p), sel=!!S._spSel[key];
     var daCo = PT && ptDaCo_(p.sec,p.a);
     var drag = (!PT && !edit) ? ' draggable="true" ondragstart="spRowDragStart(event,'+i+')" ondragend="spRowDragEnd()"' : '';
     return '<tr class="sp-row'+(PT?' ptrow':'')+(daCo?' da':'')+(sel?' selrow':'')+(edit?' editrow':'')
-        +((S._btKid&&S._btKid[key])?' sp-btkid':'')+'"'+drag
+        +((m&&m.k==='cb')?' sp-cbkid':((S._btKid&&S._btKid[key])?' sp-btkid':''))+'"'+drag
         +(edit?'':' onclick="spOpen_('+i+')"')+'>'
       +'<td class="selcol" onclick="event.stopPropagation()"><input type="checkbox" class="spck" data-k="'+esc(key)+'" '+(sel?'checked':'')
         +' onclick="spSelToggle(\''+esc(key)+'\',this.checked)"></td>'
@@ -2580,14 +2592,13 @@ function spFilter(){
           return '<td class="'+c[2]+((edit&&spCellEditable_(c,p))?' edt':'')+'">'
             +(edit?spEditCellAny_(c,p,i):c[3](p,i))+'</td>'; }).join('')
       +'<td class="act-sp" onclick="event.stopPropagation()">'+spRowActions_(p,i)+'</td>'
-    +'</tr>'
-    +((!PT&&spCbMo_(p))?('<tr class="sp-cbrow"><td colspan="'+ncol+'">'+spComboHtml_(p)+'</td></tr>'):'');
+    +'</tr>';
   }).join('') : ('<tr><td colspan="'+ncol+'"><div class="empty" style="margin:10px">'
       +(PT?'Không có công tác nào khớp bộ lọc.':'Không có sản phẩm khớp bộ lọc.')+'</div></td></tr>');
 
   var all=document.getElementById('spCkAll');
   if(all) all.checked = list.length>0 && list.every(function(p){ return S._spSel[spKeyOf_(p)]; });
-  spPager_(full.length, cur, pages, per);
+  spPager_(groups.length, cur, pages, per, full.length);
   spFreeze_(); spBulkBar_(); spEditBtnSync_();
   spHBarInit_(); spHBarSync_(); spXlsSync_();
 }

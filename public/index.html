@@ -4920,23 +4920,23 @@ body.keo-ngang,body.keo-ngang *{cursor:col-resize!important;user-select:none!imp
 #tkTable tr.rownew>td.dragH{box-shadow:inset 3px 0 0 var(--blue)}
 @media(prefers-reduced-motion:reduce){ #tkTable tr.rownew>td{animation-duration:.01s;background:#e6f0ff} }
 
-/* ═══ Cột thao tác trên thẻ sản phẩm: TIM + nút ＋ cùng cỡ, cùng trục ═══
-   Trước: tim là icon 14px dán tuyệt đối ở góc trên, nút ＋ là vòng tròn 26px dồn xuống đáy
-   -> hai cỡ khác nhau, khoảng cách nhảy theo chiều cao thẻ, nhìn lệch.
-   Nay: gom cả hai vào một cột dọc, cùng 28px, cùng bo tròn, cùng cỡ nét icon. */
-.citem>.cacts{grid-column:4;flex:none;align-self:center;display:flex;flex-direction:column;align-items:center;gap:6px}
-.citem .cacts>button{width:28px;height:28px;flex:none;padding:0;border-radius:50%;line-height:0;cursor:pointer;
-  display:inline-flex;align-items:center;justify-content:center;background:#fff;border:1.5px solid #e6ebf2;
-  color:var(--c4,#98a6b3);transition:background .14s,border-color .14s,color .14s,box-shadow .14s}
-.citem .cacts>button .ico{width:15px;height:15px}
-.citem .cfav{position:static!important;top:auto;right:auto;opacity:1!important;padding:0}
-.citem .cfav:hover{border-color:var(--fav-ln);background:var(--fav-bg);color:var(--fav)}
-.citem .cfav.on{border-color:var(--fav-ln);background:var(--fav-bg);color:var(--fav)}
-.citem .cfav.on .ico{fill:currentColor}
-.citem .cacts>.add{border-color:#cfe0fd;color:var(--blue);margin:0;align-self:center}
-.citem .cacts>.add:hover{background:var(--blue);border-color:var(--blue);color:#fff;transform:none;
-  box-shadow:0 2px 8px rgba(37,99,235,.28)}
-.citem .cacts>.add:active{background:var(--blue-d);border-color:var(--blue-d);transform:scale(.95)}
+/* ═══ Cột thao tác trên thẻ sản phẩm: TIM + ＋ — nét mảnh, KHÔNG khung tròn ═══
+   Bỏ hết nền/viền tròn: chỉ còn hình nét mảnh như bộ icon mẫu, hai nút cùng 26px,
+   cùng trục dọc nên thẻ ngắn hay dài đều thẳng hàng. */
+.citem>.cacts{grid-column:4;flex:none;align-self:center;display:flex;flex-direction:column;align-items:center;gap:4px}
+.citem .cacts>button{width:26px;height:26px;flex:none;padding:0;border:none;background:none;border-radius:50%;
+  line-height:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+  color:#c2cbd6;transition:color .14s,transform .12s}
+.citem .cacts>button .ico{width:17px;height:17px;stroke-width:1.6}
+.citem .cacts>button:hover{transform:scale(1.08)}
+.citem .cacts>button:active{transform:scale(.94)}
+.citem .cfav{position:static!important;top:auto;right:auto;opacity:1!important}
+.citem .cfav:hover{color:var(--fav)}
+.citem .cfav.on{color:var(--fav)}
+.citem .cfav.on .ico{fill:currentColor;stroke-width:1.4}
+.citem .cacts>.add{color:#b6c0cc}
+.citem .cacts>.add:hover{color:var(--blue);background:none;border:none;box-shadow:none}
+.citem .cacts>.add:active{background:none;border:none}
 @media(max-width:900px){ .citem .cacts>button{width:34px;height:34px} .citem .cacts>button .ico{width:17px;height:17px} }
 
 /* ═══ SẢN PHẨM LIÊN QUAN: 2 tab Đi kèm (combo) / Biến thể ═══ */
@@ -4958,6 +4958,21 @@ body.keo-ngang,body.keo-ngang *{cursor:col-resize!important;user-select:none!imp
 .sp-btchip.on .cbc{transform:rotate(90deg)}
 .sp-cbtog.on .cbc{transform:rotate(90deg)}
 .sp-cbn .cbc{display:inline-block;transition:transform .14s}
+/* ═══ Dòng SP đi kèm (combo) — DÒNG THẬT theo đúng cột, như dòng biến thể ═══
+   Trước đây combo bung ra là một khối gộp 1 ô, lệch hẳn khỏi lưới cột. */
+tr.sp-row.sp-cbkid>td{background-color:#fbfdff}
+tr.sp-row.sp-cbkid:hover>td{background-color:#f3f8ff}
+tr.sp-row.sp-cbkid>td:first-child{box-shadow:inset 3px 0 0 #9cc0f5}
+tr.sp-row.sp-cbkid td.sp-name{padding-left:30px;background-image:linear-gradient(#9cc0f5,#9cc0f5);
+  background-repeat:no-repeat;background-size:9px 1px;background-position:14px 50%}
+.sp-stt.sub{font-size:10.5px;color:var(--ink-3,#8b95a3);font-weight:600}
+.sp-cbq2{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:20px;background:#eef5ff;
+  color:var(--blue);font-size:9.5px;font-weight:700;vertical-align:middle;letter-spacing:.2px}
+tr.sp-cbsum>td{background:#f7fafe;border-bottom:1px solid var(--ln2,#e6ecf3);padding:7px 14px 7px 30px}
+tr.sp-cbsum>td>*{vertical-align:middle}
+.sp-cbsum .sp-cbsl{font-size:11px;font-weight:600;color:var(--ink-3,#6b7684);margin-right:10px}
+.sp-cbsum b{font-size:12.5px;color:var(--navy);font-variant-numeric:tabular-nums}
+
 /* dòng biến thể con: thụt vào + vạch cam bên trái để thấy rõ thuộc dòng cha */
 tr.sp-row.sp-btkid>td:first-child{box-shadow:inset 3px 0 0 #e8b57a}
 tr.sp-row.sp-btkid>td{background-color:#fffdfa}
