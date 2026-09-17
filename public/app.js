@@ -8298,17 +8298,39 @@ function ptApplyMau(id){
   var n=(S.phanTho||[]).reduce(function(a,x){ return a+((x.items||[]).length); },0);
   toast('Đã lấy bộ báo giá mẫu — bảng đang có '+n+' dòng');
 }
-function ptAddFromLib(si,ii,quiet){
+function ptAddFromLib(si,ii,quiet,dich){
   var tsec=PT_TEMPLATE[si]; if(!tsec) return; var a=tsec.items[ii]; if(!a) return;
   if(!S.cur){ toast('Chọn dự án trước khi thêm công tác vào bảng'); return; }
   ptEnsure();
-  var item=ptMakeItem_(tsec,a);
-  var sec=ptFindSec_(tsec);
-  if(!sec){ sec=ptNewSec_(tsec); S.phanTho.push(sec); }
-  sec.items.push(item);
+  var item=ptMakeItem_(tsec,a), sec, at;
+  if(dich && (S.phanTho||[])[dich.si]){            // kéo thả: chèn vào đúng hạng mục + đúng vị trí
+    sec=S.phanTho[dich.si];
+    at=Math.max(0, Math.min((sec.items||[]).length, Number(dich.at)||0));
+    sec.items.splice(at,0,item);
+  } else {                                          // bấm ＋ ở thư viện: về đúng hạng mục theo mẫu
+    sec=ptFindSec_(tsec);
+    if(!sec){ sec=ptNewSec_(tsec); S.phanTho.push(sec); }
+    sec.items.push(item); at=sec.items.length-1;
+  }
   if(quiet) return;
-  ptPersist(); renderPhanTho();
+  S._ptNew={si:S.phanTho.indexOf(sec), ii:at, t:Date.now()};   // cuộn tới + nháy như bảng đèn
+  ptPersist(); renderPhanTho(); ptGotoNewRow_();
   toast('Đã thêm: '+String(a[0]).split('\n')[0]);
+}
+/* Cuộn tới dòng vừa thêm ở bảng Phần thô + nháy nhẹ — dùng chung cách làm với bảng Bóc tách */
+var PT_NEW_MS=1350;
+function ptGotoNewRow_(){
+  var n=S._ptNew; if(!n) return;
+  if(Date.now()-(n.t||0)>PT_NEW_MS){ S._ptNew=null; return; }
+  var tr=document.querySelector('#ptWrap tr.pt-row[data-si="'+n.si+'"][data-ii="'+n.ii+'"]'); if(!tr) return;
+  tr.style.setProperty('--fdl','-'+(Date.now()-n.t)+'ms');
+  tr.classList.add('rownew');
+  var w=tr.closest('.pt-scroll'); if(!w) return;
+  var wr=w.getBoundingClientRect(), rr=tr.getBoundingClientRect();
+  var duoi=rr.bottom-(wr.bottom-10), tren=(wr.top+46)-rr.top;
+  var d=(duoi>0)?duoi:((tren>0)?-tren:0);
+  if(Math.abs(d)<2) return;
+  w.scrollTo({top:Math.max(0, Math.min(w.scrollHeight-w.clientHeight, w.scrollTop+d)), behavior:tkSmooth_()});
 }
 /* ═══ THÔNG TIN CÔNG TÁC (Phần thô) — panel chi tiết giống thiết bị đèn ═══
    Bấm 1 công tác ở thư viện trái -> mở panel giữa: ảnh, thông tin chính, đơn giá,
@@ -8947,6 +8969,7 @@ function renderPhanTho(){
   ptHBarInit_(); ptHBarSync_();          // thanh kéo ngang giống bảng Bóc tách
   ptSelPrune_(); ptSelBar_();            // vùng chọn dòng + thanh thao tác hàng loạt (như Bóc tách)
   ptFreezeRows_();                       // cố định N hàng đầu (như Excel)
+  ptGotoNewRow_();                       // giữ vệt nháy dòng vừa thêm qua các lần vẽ lại
 }
 
 /* ===== Sửa tên hạng mục + KÉO DÒNG giữa các hạng mục (giống bảng Bóc tách) ===== */
@@ -8982,11 +9005,25 @@ function ptMoveItem_(fs,fi,ts,ti,before){
 function ptLibDragStart_(e,si,ii){
   if(e.target.closest('button')){ e.preventDefault(); return; }
   S._ptLibDrag={si:si,ii:ii};
-  try{ e.dataTransfer.effectAllowed='copy'; e.dataTransfer.setData('text/plain','ptlib'); }catch(x){}
+  var tsec=PT_TEMPLATE[si], a=tsec&&tsec.items[ii];
+  try{
+    e.dataTransfer.effectAllowed='copy'; e.dataTransfer.setData('text/plain','ptlib');
+    // thẻ ma khi kéo — dùng CHUNG mẫu với bên Thiết bị đèn cho thống nhất
+    if(a){
+      var ten=String(a[0]).split('\n')[0], dvt=ptVal_(tsec,a,'dvt')||'', dg=ptN(ptLibDg_(tsec,a));
+      var g=document.createElement('div'); g.className='drag-ghost';
+      g.innerHTML='<span class="dg-img"></span><span class="dg-b"><span class="dg-nm">'+esc(ten)+'</span>'
+        +'<span class="dg-pr">'+esc(dvt)+(dg?(' · '+money(dg)+' đ'):'')+'</span></span>'
+        +'<span class="dg-add">'+icon('plus',14)+'Thả vào bảng</span>';
+      document.body.appendChild(g); S._ptLibGhost=g;
+      e.dataTransfer.setDragImage(g, 24, 28);
+    }
+  }catch(x){}
   var el=e.currentTarget; if(el) el.classList.add('dragging');
 }
 function ptLibDragEnd_(){
   S._ptLibDrag=null;
+  if(S._ptLibGhost){ S._ptLibGhost.remove(); S._ptLibGhost=null; }
   document.querySelectorAll('#catList .ptlib-item.dragging').forEach(function(x){ x.classList.remove('dragging'); });
   document.querySelectorAll('#ptWrap .dropInto,#ptWrap .dropTop,#ptWrap .dropBot').forEach(function(x){ x.classList.remove('dropInto','dropTop','dropBot'); });
 }
@@ -9011,8 +9048,14 @@ function ptDragBind_(tb){
     if(S._ptLibDrag){                                   // đang kéo công tác từ thư viện
       e.preventDefault(); try{ e.dataTransfer.dropEffect='copy'; }catch(x){}
       clr();
-      var t=e.target.closest('tr.pt-sec,tr.pt-row,tr.pt-add,tr.pt-empty');
-      if(t) t.classList.add('dropInto');
+      var rw=e.target.closest('tr.pt-row');
+      if(rw){                                          // rê lên 1 dòng -> vạch chèn trên/dưới (giống bảng đèn)
+        var rr=rw.getBoundingClientRect();
+        rw.classList.add(e.clientY<rr.top+rr.height/2?'dropTop':'dropBot');
+        return;
+      }
+      var t=e.target.closest('tr.pt-sec,tr.pt-add,tr.pt-empty');
+      if(t) t.classList.add('dropInto');               // rê lên tên hạng mục -> thêm vào cuối hạng mục đó
       return;
     }
     if(!S._ptDrag) return; e.preventDefault();
@@ -9027,8 +9070,20 @@ function ptDragBind_(tb){
   tb.addEventListener('drop',function(e){
     if(S._ptLibDrag){
       e.preventDefault();
-      var d=S._ptLibDrag; S._ptLibDrag=null; clr(); ptLibDragEnd_();
-      ptAddFromLib(d.si,d.ii);
+      var d=S._ptLibDrag; S._ptLibDrag=null; ptLibDragEnd_();
+      // thả ở đâu thì chèn vào ĐÚNG ĐÓ (trước đây luôn đẩy xuống cuối hạng mục theo mẫu)
+      var dich=null, rw=e.target.closest('tr.pt-row');
+      if(rw){
+        var rr=rw.getBoundingClientRect(), ii=+rw.getAttribute('data-ii');
+        dich={si:+rw.getAttribute('data-si'), at:(e.clientY<rr.top+rr.height/2?ii:ii+1)};
+      } else {
+        var sc=e.target.closest('tr.pt-sec,tr.pt-add');
+        if(sc){ var s2=+sc.getAttribute('data-si');
+          var sec2=(S.phanTho||[])[s2];
+          if(sec2) dich={si:s2, at:(sec2.items||[]).length}; }
+      }
+      clr();
+      ptAddFromLib(d.si,d.ii,false,dich);
       return;
     }
     if(!S._ptDrag) return; e.preventDefault();
