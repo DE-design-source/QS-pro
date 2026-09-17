@@ -5037,11 +5037,60 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
 }
 
 /* nút lọc hạng mục trên thanh Chi phí */
-.hm-open{display:inline-flex;align-items:center;gap:6px;max-width:250px;white-space:nowrap}
+.hm-open{display:inline-flex;align-items:center;gap:6px;max-width:430px;white-space:nowrap}
 .hm-open.on{border-color:var(--blue);color:var(--blue);background:#f5f9ff}
 .hm-open .hm-car{font-style:normal;font-size:10px;opacity:.6}
 .hm-open .hm-x{font-style:normal;font-size:11px;opacity:.7;margin-left:2px;padding:0 2px;border-radius:4px}
+.hm-open .hm-stat{margin-left:6px;padding-left:8px;border-left:1px solid var(--ln2,#e6ecf3);
+  font-size:11px;font-weight:600;color:var(--c3,#6b7684);font-variant-numeric:tabular-nums}
+.hm-open.on .hm-stat{border-color:#cfe0fd;color:var(--blue)}
 .hm-open .hm-x:hover{opacity:1;background:#e3edff}
+
+/* ═══ CHI PHÍ — khối tổng quan gọn, thấy ngay vốn / lãi ═══ */
+.cp-sum{display:flex;align-items:stretch;gap:0;margin:0 0 14px;background:#fff;border:1px solid var(--ln2,#e6ecf3);
+  border-radius:var(--r-xl,14px);box-shadow:var(--sh-1,0 1px 2px rgba(16,24,40,.05));overflow:hidden}
+.cp-sum-cell{padding:14px 18px;display:flex;flex-direction:column;justify-content:center;gap:4px;min-width:0}
+.cp-sum-cell+.cp-sum-cell{border-left:1px solid var(--ln,#eef1f5)}
+.cp-sum-cell.main{flex:0 0 clamp(248px,27%,344px)}
+.cp-sum-cell.grow{flex:1 1 auto;gap:9px}
+.cp-sum-cell.ln{flex:0 0 clamp(168px,19%,230px);align-items:flex-start}
+.cp-sum-l{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--c4,#8b96a5)}
+.cp-sum-l .ico{opacity:.75}
+.cp-sum-v{font-size:23px;font-weight:700;letter-spacing:-.03em;color:var(--navy,#14284b);
+  font-variant-numeric:tabular-nums;line-height:1.15;white-space:nowrap}
+.cp-sum-v i{font-style:normal;font-size:13px;font-weight:600;margin-left:4px;color:var(--c4,#8b96a5)}
+.cp-sum-sub{font-size:11px;color:var(--c3,#6b7684);line-height:1.45}
+.cp-sum-sub b{color:var(--ink,#22303f);font-weight:650}
+/* thanh tỉ lệ vốn / lãi */
+.cp-sum-track{display:flex;height:12px;border-radius:99px;overflow:hidden;background:#eef2f7}
+.cp-sum-track i{display:block;height:100%}
+.cp-sum-track .von{background:linear-gradient(90deg,#94a8c4,#7c93b4)}
+.cp-sum-track .ln{background:linear-gradient(90deg,#34c77b,#16a34a)}
+.cp-sum.lo .cp-sum-track .von{background:linear-gradient(90deg,#f0a3a0,#e5484d)}
+.cp-sum-leg{display:flex;flex-wrap:wrap;gap:6px 20px}
+.cp-sum-leg .lg{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--c3,#6b7684);white-space:nowrap}
+.cp-sum-leg .lg em{width:9px;height:9px;border-radius:3px;background:#7c93b4;flex:none}
+.cp-sum-leg .lg.ln em{background:#16a34a}
+.cp-sum.lo .cp-sum-leg .lg.ln em{background:#e5484d}
+.cp-sum-leg .lg b{font-weight:650;color:var(--ink,#22303f);font-variant-numeric:tabular-nums}
+.cp-sum-leg .lg i{font-style:normal;font-size:10.5px;font-weight:700;color:var(--c4,#8b96a5)}
+/* ô lợi nhuận */
+.cp-sum-cell.ln .cp-sum-v{color:#16a34a}
+.cp-sum.lo .cp-sum-cell.ln .cp-sum-v{color:#e5484d}
+.cp-sum-badge{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:99px;
+  font-size:11px;font-weight:700;background:#e7f7ec;color:#16a34a}
+.cp-sum.lo .cp-sum-badge{background:#fdecec;color:#e5484d}
+@media(max-width:1100px){
+  .cp-sum{flex-wrap:wrap}
+  .cp-sum-cell.main,.cp-sum-cell.ln{flex:1 1 50%}
+  .cp-sum-cell.grow{flex:1 1 100%;border-left:none;border-top:1px solid var(--ln,#eef1f5)}
+}
+@media(max-width:640px){
+  .cp-sum-cell{flex:1 1 100%!important;border-left:none}
+  .cp-sum-cell+.cp-sum-cell{border-top:1px solid var(--ln,#eef1f5)}
+  .cp-sum-v{font-size:20px}
+}
 </style>
 
 <!-- ===== TOP NAV ===== -->
