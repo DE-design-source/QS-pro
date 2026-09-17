@@ -4919,6 +4919,53 @@ body.keo-ngang,body.keo-ngang *{cursor:col-resize!important;user-select:none!imp
 #tkTable tr.rownew>td{animation:tkRowNew 1.35s ease-out;animation-delay:var(--fdl,0s)}
 #tkTable tr.rownew>td.dragH{box-shadow:inset 3px 0 0 var(--blue)}
 @media(prefers-reduced-motion:reduce){ #tkTable tr.rownew>td{animation-duration:.01s;background:#e6f0ff} }
+
+/* ═══ Cột thao tác trên thẻ sản phẩm: TIM + nút ＋ cùng cỡ, cùng trục ═══
+   Trước: tim là icon 14px dán tuyệt đối ở góc trên, nút ＋ là vòng tròn 26px dồn xuống đáy
+   -> hai cỡ khác nhau, khoảng cách nhảy theo chiều cao thẻ, nhìn lệch.
+   Nay: gom cả hai vào một cột dọc, cùng 28px, cùng bo tròn, cùng cỡ nét icon. */
+.citem>.cacts{grid-column:4;flex:none;align-self:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+.citem .cacts>button{width:28px;height:28px;flex:none;padding:0;border-radius:50%;line-height:0;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;background:#fff;border:1.5px solid #e6ebf2;
+  color:var(--c4,#98a6b3);transition:background .14s,border-color .14s,color .14s,box-shadow .14s}
+.citem .cacts>button .ico{width:15px;height:15px}
+.citem .cfav{position:static!important;top:auto;right:auto;opacity:1!important;padding:0}
+.citem .cfav:hover{border-color:var(--fav-ln);background:var(--fav-bg);color:var(--fav)}
+.citem .cfav.on{border-color:var(--fav-ln);background:var(--fav-bg);color:var(--fav)}
+.citem .cfav.on .ico{fill:currentColor}
+.citem .cacts>.add{border-color:#cfe0fd;color:var(--blue);margin:0;align-self:center}
+.citem .cacts>.add:hover{background:var(--blue);border-color:var(--blue);color:#fff;transform:none;
+  box-shadow:0 2px 8px rgba(37,99,235,.28)}
+.citem .cacts>.add:active{background:var(--blue-d);border-color:var(--blue-d);transform:scale(.95)}
+@media(max-width:900px){ .citem .cacts>button{width:34px;height:34px} .citem .cacts>button .ico{width:17px;height:17px} }
+
+/* ═══ SẢN PHẨM LIÊN QUAN: 2 tab Đi kèm (combo) / Biến thể ═══ */
+.cb-tabs{margin-left:auto;display:inline-flex;gap:4px;background:#f2f5f9;border-radius:var(--rc,9px);padding:3px}
+.cb-tab{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 11px;border:none;border-radius:7px;
+  background:transparent;font:inherit;font-size:11.5px;font-weight:650;color:var(--ink-3,#6b7684);cursor:pointer;
+  white-space:nowrap;transition:background .13s,color .13s,box-shadow .13s}
+.cb-tab:hover{color:var(--navy)}
+.cb-tab.on{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(16,24,40,.12)}
+.cb-tab .cb-n{padding:1px 6px;font-size:10px}
+.cb-tab.on .cb-n{background:#eaf1fe;color:var(--blue)}
+#cbTabBT.on{color:#b4620d}
+#cbTabBT.on .cb-n{background:#fff3e6;color:#b4620d}
+
+/* ═══ Chip "biến thể N" trong bảng Danh sách SP — cùng khuôn với chip combo, màu cam ═══ */
+.sp-btchip{background:#fff3e6;color:#b4620d}
+.sp-btchip .cbc{display:inline-block;transition:transform .14s}
+.sp-btchip.on{background:#b4620d;color:#fff}
+.sp-btchip.on .cbc{transform:rotate(90deg)}
+.sp-cbtog.on .cbc{transform:rotate(90deg)}
+.sp-cbn .cbc{display:inline-block;transition:transform .14s}
+/* dòng biến thể con: thụt vào + vạch cam bên trái để thấy rõ thuộc dòng cha */
+tr.sp-row.sp-btkid>td:first-child{box-shadow:inset 3px 0 0 #e8b57a}
+tr.sp-row.sp-btkid>td{background-color:#fffdfa}
+tr.sp-row.sp-btkid:hover>td{background-color:#fff7ee}
+/* Thụt vào + gạch nối: vẽ bằng background-image, KHÔNG đụng position —
+   cột Sản phẩm là cột đóng băng (position:sticky), đổi position là nó rớt khỏi vùng ghim. */
+tr.sp-row.sp-btkid td.sp-name{padding-left:30px;background-image:linear-gradient(#e0a05c,#e0a05c);
+  background-repeat:no-repeat;background-size:9px 1px;background-position:14px 50%}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -5020,7 +5067,7 @@ body.keo-ngang,body.keo-ngang *{cursor:col-resize!important;user-select:none!imp
       <!-- LEFT: filter + catalog -->
       <div class="panel catpanel" id="leftCat">
         <div class="catpanel-top">
-          <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><span class="sp" style="flex:1"></span><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg><span class="filt-lbl">Bộ lọc</span><span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button><button class="favgo-btn" id="favGoBtn" onclick="catFavToggle()"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 20.3s-7.4-4.5-9.5-9C1 8 3.2 4.6 6.7 4.6c2.1 0 3.6 1.2 5.3 3 1.7-1.8 3.2-3 5.3-3 3.5 0 5.7 3.4 4.2 6.7-2.1 4.5-9.5 9-9.5 9z"/></svg><span class="favgo-n" id="favGoN"></span></button></div>
+          <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><span class="sp" style="flex:1"></span><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg><span class="filt-lbl">Bộ lọc</span><span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button><button class="favgo-btn" id="favGoBtn" onclick="catFavToggle()"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg><span class="favgo-n" id="favGoN"></span></button></div>
 
           <!-- 3 bộ chọn (theo Figma) -->
           <div class="mlbl" title="Lọc danh mục sản phẩm bên dưới. Khác với ô 'Hạng mục đã bóc' ở bảng bên phải — đó là đề mục đang bóc.">Lọc theo đề mục</div>

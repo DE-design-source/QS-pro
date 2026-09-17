@@ -475,6 +475,12 @@ async function setComboGated(actor, key, items) {
   if (!p.edit) throw new Error('Tài khoản không có quyền sửa sản phẩm');
   return store.setCombo(actor, key, items);
 }
+// Gom nhóm biến thể — cần quyền sửa (giống combo)
+async function setBienTheGated(actor, key, ids) {
+  const p = await spPerms_(actor);
+  if (!p.edit) throw new Error('Tài khoản không có quyền sửa sản phẩm');
+  return store.setBienThe(actor, key, ids);
+}
 // Duyệt / bỏ duyệt sản phẩm — chỉ tài khoản có quyền duyệt
 async function setSpDuyet(actor, keys, approve) {
   const p = await spPerms_(actor);
@@ -616,7 +622,7 @@ async function resolveDeXuat(actor, ma, approve) {
 }
 
 module.exports = {
-  updateProductGated, createProductGated, importGated, saveLineAsProductGated, setSpDuyet, setComboGated, spMyPerms,
+  updateProductGated, createProductGated, importGated, saveLineAsProductGated, setSpDuyet, setComboGated, setBienTheGated, spMyPerms,
   setYeuThich,
   ctSaveGated, ctUpdateGated, ctDeleteGated, ctDuyetGated, ctSeedGated, ctFavGated,
   listCongTyUsers, createCongTyUser,
