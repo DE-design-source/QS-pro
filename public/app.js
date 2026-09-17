@@ -5206,7 +5206,7 @@ function bgBuildPages(){
     +'<tr>'+ip('Phong cách',p.phanKhuc)+ip('DT báo giá [nhân hệ số]',p.dtBaoGia?p.dtBaoGia+' m²':'')+'</tr>'
     +'</table>';
   // ===== TRANG 1 = TỜ BÌA (Mẫu 1 hoặc Mẫu 2, do người dùng chọn) =====
-  inners.push(decoxHead+infoBlock+bgCoverPage_(comp));
+  inners.push(decoxHead+infoBlock+(bgCoverSel_()||bgCoverPage_(comp)));
   // ===== Các trang sau: bảng chi tiết THEO ĐÚNG CHIP CỘT đang bật =====
   var lines=bgLines_();
   var cols=bgDocCols_();
@@ -5275,6 +5275,35 @@ function bgBuildPages(){
   });
 }
 /* ---- Tờ bìa cho TRANG 1 (bản chỉ đọc, theo Mẫu 1 / Mẫu 2) ---- */
+/* ═══ Tờ bìa khi ĐÃ TÍCH hạng mục ═══
+   Trước đây tờ bìa luôn in nguyên bảng mẫu (đủ 27 mục, phần lớn 0 đ) dù người dùng
+   chỉ tích vài hạng mục -> "bấm cái gì" không "hiện cái đó".
+   Nay: tích mục nào thì bảng tổng hợp ở tờ bìa chỉ liệt kê đúng mục đó, số tiền lấy
+   thẳng từ các dòng đã bóc. Không tích gì -> giữ nguyên bảng mẫu tờ bìa như cũ.
+   Tờ bìa thì LUÔN là trang 1 trong mọi trường hợp.                                  */
+function bgCoverSel_(){
+  var sel=bgSelCodes_(); if(!sel.length) return '';
+  var rows=sel.map(function(code){
+    var its=(S.lines||[]).filter(function(l){ var c=String(l.nhom||'');
+      return c===code || c.indexOf(code+'.')===0; });
+    return { code:code, ten:nodeName(code)||code, n:its.length,
+             tien:its.reduce(function(a,l){ return a+(Number(l.thanhTienBan)||0); },0) };
+  }).sort(function(a,b){ return String(a.code).localeCompare(String(b.code),'vi',{numeric:true}); });
+  var tong=rows.reduce(function(a,r){ return a+r.tien; },0);
+  var body=rows.map(function(r){
+    var pct=tong>0?(r.tien/tong*100):0;
+    return '<tr class="lv1"><td class="ct">'+esc(r.code)+'</td>'
+      +'<td>'+esc(r.ten)+'</td>'
+      +'<td class="num">'+money(r.tien)+'</td>'
+      +'<td class="num">'+pct.toFixed(2)+'%</td>'
+      +'<td class="it">'+(r.n?(pad2(r.n)+' dòng — xem bảng chi tiết ở trang sau'):'Chưa có dòng nào trong hạng mục này')+'</td></tr>';
+  }).join('');
+  return '<div class="qx-secttl">CHI TIẾT CÁC HẠNG MỤC</div>'
+    +'<table class="qx-tbl qx-cover"><tr class="qx-h"><th class="ct">NO</th><th>HẠNG MỤC</th>'
+    +'<th class="num">CHI PHÍ DỰ KIẾN</th><th class="num">TỶ TRỌNG</th><th>MÔ TẢ</th></tr>'
+    +body+'<tr class="sec"><td colspan="2" style="text-align:right"><b>TỔNG CHI PHÍ DỰ KIẾN</b></td>'
+    +'<td class="num"><b>'+money(tong)+'</b></td><td class="num"><b>'+(tong?'100%':'0%')+'</b></td><td></td></tr></table>';
+}
 function bgCoverPage_(comp){
   var cost=comp.cost, total=comp.total;
   var rows=(S.cover||[]).filter(function(c){ return !bgHidden(c.stt); }).slice().sort(coverSortFn);
@@ -5707,9 +5736,14 @@ function imgUrlOf(v){
 /* Xem ảnh cỡ lớn: lật ‹ › bằng chuột hoặc phím ←/→, Esc để đóng, có số đếm */
 function imgPop_(src){
   if(!src) return;
-  var imgs=(S._pdImgs&&S._pdImgs.length)?S._pdImgs:[src];
-  var i=imgs.indexOf(src); if(i<0) i=(S._pdIdx||0);
-  S._popIdx=i;
+  /* Ảnh bấm từ BẢNG (hoặc bất kỳ đâu ngoài panel chi tiết) không nằm trong S._pdImgs.
+     Trước đây khung xem ảnh chỉ lấy src từ S._pdImgs -> bấm ảnh trong bảng thì khung
+     mở ra TRỐNG, mà nếu trước đó từng mở panel SP khác thì lại hiện nhầm ảnh SP cũ.
+     Nay: chỉ dùng gallery khi đúng ảnh vừa bấm nằm trong gallery đó.                 */
+  var gal=(S._pdImgs&&S._pdImgs.length)?S._pdImgs:[];
+  var i=gal.indexOf(src);
+  S._popList=(i>=0)?gal:[src];
+  S._popIdx=(i>=0)?i:0;
   var o=document.getElementById('imgPop');
   if(!o){
     o=document.createElement('div'); o.id='imgPop'; o.className='imgpop';
@@ -5730,7 +5764,7 @@ function imgPop_(src){
 }
 function imgPopShow_(){
   var o=document.getElementById('imgPop'); if(!o) return;
-  var imgs=(S._pdImgs&&S._pdImgs.length)?S._pdImgs:[];
+  var imgs=S._popList||[];
   var i=S._popIdx||0;
   if(imgs[i]) o.querySelector('img').src=imgs[i];
   var many=imgs.length>1;
@@ -5739,10 +5773,11 @@ function imgPopShow_(){
   n.textContent=many?((i+1)+' / '+imgs.length):''; n.style.display=many?'':'none';
 }
 function imgPopGo_(d){
-  var imgs=(S._pdImgs&&S._pdImgs.length)?S._pdImgs:[]; if(imgs.length<2) return;
+  var imgs=S._popList||[]; if(imgs.length<2) return;
   S._popIdx=(((S._popIdx||0)+d)%imgs.length+imgs.length)%imgs.length;
   imgPopShow_();
-  if(pdEl_('pdMainImg')) pdSetImg_(S._popIdx);   // đồng bộ với gallery bên dưới
+  // chỉ đồng bộ gallery khi đang xem đúng bộ ảnh của panel chi tiết
+  if(imgs===S._pdImgs && pdEl_('pdMainImg')) pdSetImg_(S._popIdx);
 }
 function imgPopClose_(){
   var o=document.getElementById('imgPop'); if(o) o.style.display='none';
