@@ -345,7 +345,7 @@ async function boot(){
     if(!S.cur && S.projects.length) S.cur=S.projects[0];
     if(S.cur){ var f=S.projects.filter(function(p){return p.maDA===S.cur.maDA;})[0]; if(f) S.cur=f; }
     S.lines = S.cur ? (await api('getLines',S.cur.maDA)||[]) : [];
-    renderAll(); bocBoot_();
+    renderAll(); bocBoot_(); hmInit_();      // hạng mục dùng chung: khôi phục lựa chọn lần trước
     ctLoad_(true).then(function(){ if(S.node==='3.1'||spPTMode_()) ctReload_(); });
   }catch(e){ toast('Lỗi tải: '+e.message); }
 }
@@ -2086,6 +2086,7 @@ function spCatPickNode(code){
   S._spFilters={watt:{},kelvin:{},angle:{},cri:{}}; if(code) S._spFilters.node=code;
   var p=document.getElementById('spCatPop'); if(p)p.style.display='none'; document.removeEventListener('mousedown',spCatOutside);
   S._spPage=1; S._spSel={};
+  hmSet_(code,'sp');                                    // đồng bộ sang các tab khác
   renderSpChips_(); spViewTabs_(); spFilter();          // Phần thô đổi cả tab lọc lẫn bảng
   if(document.getElementById('spFltPop')) spBoLocPop_();
 }
@@ -3404,10 +3405,93 @@ function renderTree(){
   document.getElementById('treeCnt').textContent='['+pad2(nodeCount(S.node))+']';
 }
 function toggleTree(){ var p=document.getElementById('treePop'); p.style.display=p.style.display==='none'?'block':'none'; }
+/* ═══════════ HẠNG MỤC DÙNG CHUNG CHO MỌI TAB ═══════════
+   Trước đây mỗi tab giữ một lựa chọn riêng: Bóc tách có "Hạng mục đã bóc", Danh sách
+   sản phẩm có ô lọc hạng mục, Xuất báo giá có bảng tích chọn -> chọn ở tab này sang
+   tab kia lại phải chọn lại. Nay tất cả đọc/ghi chung một chỗ: S.hmNode.
+   Chọn ở đâu cũng được, mọi tab đang mở tự cập nhật theo, và nhớ lại ở lần mở sau. */
+function hmGet_(){ return S.hmNode||''; }                    // '' = tất cả hạng mục
+function hmTen_(code){ return code?((code+'. '+(nodeName(code)||code))):'Tất cả hạng mục'; }
+function hmBtnSync_(){
+  var b=document.getElementById('hmBtn'); if(!b) return;
+  var code=hmGet_();
+  b.classList.toggle('on', !!code);
+  b.innerHTML=icon('layers',14)+'<span class="hm-lbl">'+esc(hmTen_(code))+'</span><i class="hm-car">▾</i>';
+}
+function viewOn_(id){ var v=document.getElementById(id); return !!(v && v.classList.contains('on')); }
+function hmSet_(code, tuTab){
+  code=String(code||'');
+  S.hmNode=code;
+  try{ localStorage.setItem('qs_hm', code); }catch(e){}
+  hmBtnSync_();
+  // --- Bóc tách: đề mục đang bóc (chọn "tất cả" thì giữ nguyên đề mục đang làm) ---
+  if(code && S.node!==code){
+    S.node=code;
+    if(typeof renderTree==='function') renderTree();
+    if(typeof renderFloors==='function') renderFloors();
+    if(typeof renderTable==='function') renderTable();
+    if(typeof setDemucFilter==='function') setDemucFilter(code);   // kèm lọc thư viện bên trái
+  }
+  // --- Danh sách sản phẩm ---
+  S._spFilters=S._spFilters||{};
+  if(code) S._spFilters.node=code; else delete S._spFilters.node;
+  if(tuTab!=='sp' && viewOn_('v-sanpham')){
+    S._spPage=1; S._spSel={};
+    if(typeof renderSpChips_==='function') renderSpChips_();
+    if(typeof spViewTabs_==='function') spViewTabs_();
+    if(typeof spFilter==='function') spFilter();
+  }
+  // --- Xuất báo giá: tích đúng hạng mục đang chọn (không chọn = xuất tất cả) ---
+  if(tuTab!=='bg'){
+    S.bgNodes={}; if(code) S.bgNodes[code]=1;
+    S.bgDeMuc=code||'__all__'; S.bgPage=1;
+    if(typeof bgVis==='function' && bgVis() && typeof drawBaogia==='function') drawBaogia();
+  }
+  // --- Các tab còn lại chỉ cần vẽ lại nếu đang mở ---
+  if(viewOn_('v-chiphi') && typeof renderChiphi==='function') renderChiphi();
+  if(viewOn_('v-muahang') && typeof renderMuahang==='function') renderMuahang();
+}
+/* Bảng chọn hạng mục ở thanh trên — dùng chung cho mọi tab */
+function hmPop_(e){
+  if(e&&e.stopPropagation) e.stopPropagation();
+  var id='hmPop'; if(document.getElementById(id)){ hmPopClose_(); return; }
+  var pop=document.createElement('div'); pop.className='fltpop bgtree'; pop.id=id;
+  var nodes=TREE.filter(function(t){ return t[0]!=='X'; });
+  var cur=hmGet_();
+  pop.innerHTML='<div class="bgt-h"><b>Chọn hạng mục</b><span>dùng chung cho mọi tab</span>'
+      +'<button class="colpop-x" onclick="hmPopClose_()">✕</button></div>'
+    +'<div class="bgt-b">'
+      +'<div class="bgt-i lvl1'+(cur?'':' on')+'" onclick="hmPick_(\'\')"><span class="nm">Tất cả hạng mục</span>'
+        +'<span class="rd'+(cur?'':' on')+'"></span></div>'
+      +nodes.map(function(t){
+        var on=(cur===t[0]), n=(typeof nodeCount==='function')?nodeCount(t[0]):0;
+        return '<div class="bgt-i lvl'+t[2]+(on?' on':'')+'" onclick="hmPick_(\''+esc(t[0])+'\')">'
+          +'<span class="nm">'+esc(t[0]+'. '+t[1])+'</span>'
+          +'<span class="cn">'+(n?'['+pad2(n)+']':'')+'</span>'
+          +'<span class="rd'+(on?' on':'')+'"></span></div>';
+      }).join('')
+    +'</div>';
+  document.body.appendChild(pop);
+  var b=document.getElementById('hmBtn');
+  if(b){ var r=b.getBoundingClientRect(), w=pop.offsetWidth||330, h=pop.offsetHeight;
+    var top=r.bottom+6; if(top+h>window.innerHeight-10) top=Math.max(10, r.top-h-6);
+    pop.style.top=top+'px'; pop.style.left=Math.max(8,Math.min(r.left, window.innerWidth-w-10))+'px'; }
+  setTimeout(function(){ document.addEventListener('mousedown',hmOutside_); },0);
+}
+function hmOutside_(e){ if(e.target.closest('#hmPop')||e.target.closest('#hmBtn')) return; hmPopClose_(); }
+function hmPopClose_(){ var p=document.getElementById('hmPop'); if(p) p.remove(); document.removeEventListener('mousedown',hmOutside_); }
+function hmPick_(code){ hmPopClose_(); hmSet_(code); }
+function hmInit_(){
+  var luu=''; try{ luu=localStorage.getItem('qs_hm')||''; }catch(e){}
+  S.hmNode=luu||S.node||'';
+  hmBtnSync_();
+  if(luu) hmSet_(luu);
+}
 function pickNode(code){
   S.node=code;
   var tp=document.getElementById('treePop'); if(tp) tp.style.display='none';
   renderTree(); renderTable(); setDemucFilter(code);      // ô lọc trái luôn khớp đề mục đang bóc
+  hmSet_(code,'boc');                                     // đồng bộ sang các tab khác
 }
 function pickNodeIdx(i){ var t=(S._tree||[])[i]; if(t) pickNode(t.code); }
 async function addCustomGroup(){
