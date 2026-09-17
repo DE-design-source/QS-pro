@@ -3445,6 +3445,36 @@ function hmSet_(code, tuTab){
   if(viewOn_('v-chiphi') && typeof renderChiphi==='function') renderChiphi();
   if(viewOn_('v-muahang') && typeof renderMuahang==='function') renderMuahang();
 }
+/* Bảng chọn hạng mục DÙNG LẠI ĐƯỢC — trang nào thật sự cần đổi hạng mục thì gọi,
+   truyền id của chính nút bấm để bảng bám vào đó. Trang chỉ HIỂN THỊ hạng mục
+   (Chi phí, Bảng điều khiển) hoặc đã có ô chọn riêng (Bóc tách, Danh sách SP,
+   Xuất báo giá) thì KHÔNG dùng — tránh đẻ thêm nút trùng nhau.                   */
+function hmPop_(e, btnId){
+  if(e&&e.stopPropagation) e.stopPropagation();
+  var id='hmPop'; if(document.getElementById(id)){ hmPopClose_(); return; }
+  var cur=hmGet_(), pop=document.createElement('div');
+  pop.className='fltpop bgtree'; pop.id=id;
+  pop.innerHTML='<div class="bgt-h"><b>Chọn hạng mục</b><span>dùng chung với Bóc tách · Danh sách SP · Xuất báo giá</span>'
+      +'<button class="colpop-x" onclick="hmPopClose_()">✕</button></div>'
+    +'<div class="bgt-b">'+TREE.filter(function(t){ return t[0]!=='X'; }).map(function(t){
+        var on=(cur===t[0]), n=(typeof nodeCount==='function')?nodeCount(t[0]):0;
+        return '<div class="bgt-i lvl'+t[2]+(on?' on':'')+'" onclick="hmPick_(\''+esc(t[0])+'\')">'
+          +'<span class="nm">'+esc(t[0]+'. '+t[1])+'</span>'
+          +'<span class="cn">'+(n?'['+pad2(n)+']':'')+'</span>'
+          +'<span class="rd'+(on?' on':'')+'"></span></div>';
+      }).join('')+'</div>';
+  document.body.appendChild(pop);
+  var b=btnId?document.getElementById(btnId):(e&&e.currentTarget);
+  if(b&&b.getBoundingClientRect){
+    var r=b.getBoundingClientRect(), w=pop.offsetWidth||330, h=pop.offsetHeight;
+    var top=r.bottom+6; if(top+h>window.innerHeight-10) top=Math.max(10, r.top-h-6);
+    pop.style.top=top+'px'; pop.style.left=Math.max(8,Math.min(r.left, window.innerWidth-w-10))+'px';
+  }
+  setTimeout(function(){ document.addEventListener('mousedown',hmOutside_); },0);
+}
+function hmOutside_(e){ if(e.target.closest('#hmPop')||e.target.closest('.hm-open')) return; hmPopClose_(); }
+function hmPopClose_(){ var p=document.getElementById('hmPop'); if(p) p.remove(); document.removeEventListener('mousedown',hmOutside_); }
+function hmPick_(code){ hmPopClose_(); hmSet_(code); }
 function hmInit_(){
   var luu=''; try{ luu=localStorage.getItem('qs_hm')||''; }catch(e){}
   S.hmNode=luu||S.node||'';
@@ -5171,7 +5201,11 @@ function renderMuahang(){
   var grand=order.reduce(function(sum,k){ return mhOn_(k) ? sum+mhTot_(groups[k],vatPct) : sum; },0);
   function stat(v,l){ return '<div class="imp-stat"><div class="imp-stat-v">'+v+'</div><div class="imp-stat-l">'+l+'</div></div>'; }
   var statbar='<div class="imp-statbar">'
-    +'<div class="imp-nganh"><label>Hạng mục</label><div class="msel" style="min-width:210px"><span class="mlabel">'+icon('layers',15)+' '+esc(nodeName(code))+'</span><span class="mplus">▾</span></div></div>'
+    // Cả trang Mua hàng chạy theo hạng mục này -> ô phải BẤM ĐƯỢC (trước đây có mũi tên nhưng bấm không ra gì)
+    +'<div class="imp-nganh"><label>Hạng mục</label>'
+      +'<div class="msel hm-open" id="mhHmBtn" title="Đổi hạng mục — dùng chung với Bóc tách, Danh sách SP và Xuất báo giá"'
+        +' onclick="hmPop_(event,\'mhHmBtn\')"><span class="mlabel">'+icon('layers',15)+' '+esc(nodeName(code))+'</span>'
+        +'<span class="mplus">▾</span></div></div>'
     +stat(pad2(order.length),'Nhà cung cấp')+stat(pad2(lines.length),'Sản phẩm')
     +stat('<span style="color:var(--blue)">'+money(grand)+'</span>','Tổng tiền (VAT)')+'</div>';
   var cards=S._mhGroups.map(function(g,gi){ return muahangCard(g, gi, vatPct); }).join('')
