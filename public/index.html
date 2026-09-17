@@ -5036,20 +5036,17 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
   .proj-del{opacity:1}
 }
 
-/* ═══ Ô chọn hạng mục — MỘT kiểu cho mọi tab (mẫu lấy từ trang Mua hàng) ═══ */
-.hm-wrap{min-width:210px;max-width:300px;flex:none}
-.hm-wrap label{white-space:nowrap}
-.hm-open{cursor:pointer;min-width:200px}
-.hm-open .mlabel{display:inline-flex;align-items:center;gap:7px;min-width:0}
-.hm-open .mlabel .ico{flex:none;color:var(--blue);opacity:.85}
-.hm-open .hm-car{font-size:11px}
-.hm-open .hm-x{font-size:12px;border-radius:5px;padding:0 3px}
-.hm-open .hm-x:hover{color:var(--blue);background:#eaf2ff}
+/* ═══ Ô chọn hạng mục — MỘT kiểu cho mọi tab (đúng dáng ô bên Bóc tách) ═══ */
+.hm-wrap{display:inline-flex;align-items:center;gap:8px;flex:none}
+.hm-lbl{font-size:15px;font-weight:600;color:var(--ink,#22303f);white-space:nowrap}
+.hm-wrap .count{white-space:nowrap}
+.hm-open{cursor:pointer;justify-content:space-between}
+.hm-open .hm-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hm-open:hover{border-color:var(--blue)}
-/* Nhãn "Hạng mục" luôn nằm TRÊN ô chọn — giống nhau ở mọi trang */
-.hm-wrap label{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
-  color:var(--c4,#8b96a5);margin-bottom:5px}
-.cp-bar .hm-wrap,.sechd .hm-wrap{align-self:center}
+.hm-open.on{border-color:#cfe0fd}
+/* trong thanh công cụ / hàng tiêu đề: nhãn nhỏ lại cho hợp hàng */
+.cp-bar .hm-lbl,.sechd .hm-lbl,.imp-statbar .hm-lbl{font-size:12.5px;font-weight:650}
+.cp-bar .hm-open,.sechd .hm-open,.imp-statbar .hm-open{padding:6px 11px;min-width:196px;font-size:12px}
 
 </style>
 
@@ -5200,7 +5197,7 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
       <!-- RIGHT: takeoff -->
       <div class="panel tk-panel">
         <div class="toolbar">
-          <h3>Hạng mục đã bóc</h3><span class="count" id="tkCount">[00]</span>
+          <h3>Hạng mục</h3><span class="count" id="tkCount">[00]</span>
           <div style="position:relative">
             <button class="tree-btn" id="treeBtn" onclick="toggleTree()">
               <span id="treeLabel">Chọn hạng mục</span><span class="cnt" id="treeCnt"></span>

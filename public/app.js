@@ -3452,17 +3452,19 @@ function hmSet_(code, tuTab){
    (Chi phí, Bảng điều khiển) hoặc đã có ô chọn riêng (Bóc tách, Danh sách SP,
    Xuất báo giá) thì KHÔNG dùng — tránh đẻ thêm nút trùng nhau.                   */
 /* ═══ Ô CHỌN HẠNG MỤC — MỘT KIỂU DUY NHẤT cho mọi tab ═══
-   Trước đây mỗi trang một dáng (trang này nút pill, trang kia ô vuông có nhãn) nên
-   nhìn rời rạc. Nay mọi nơi đều dùng hàm này: nhãn "Hạng mục" + ô chọn giống hệt
-   ô đang dùng ở trang Mua hàng.                                                   */
+   Lấy đúng dáng của ô ở trang Bóc tách: nhãn "Hạng mục" + số đếm, rồi ô chọn
+   viền tròn ghi tên hạng mục kèm số dòng. Dùng chung cho Chi phí · Dự án ·
+   Mua hàng · Thông tin dự án nên không còn cảnh mỗi trang một kiểu.            */
 function hmSelect_(id){
   var hm=hmGet_();
-  return '<div class="imp-nganh hm-wrap"><label>Hạng mục</label>'
-    +'<div class="msel hm-open'+(hm?' active':'')+'" id="'+id+'" onclick="hmPop_(event,\''+id+'\')" title="Chọn hạng mục">'
-      +'<span class="mlabel">'+icon('layers',15)+' '+esc(hm?(hm+'. '+(nodeName(hm)||hm)):'Tất cả hạng mục')+'</span>'
-      +(hm?'<span class="mplus hm-x" title="Bỏ lọc hạng mục" onclick="event.stopPropagation();hmSet_(\'\')">✕</span>'
-          :'<span class="mplus hm-car">▾</span>')
-    +'</div></div>';
+  var n=(S.lines||[]).filter(function(l){ if(!hm) return true; var c=String(l.nhom||'');
+    return c===hm || c.indexOf(hm+'.')===0; }).length;
+  return '<div class="hm-wrap">'
+    +'<span class="hm-lbl">Hạng mục</span><span class="count">['+pad2(n)+']</span>'
+    +'<button class="tree-btn hm-open'+(hm?' on':'')+'" id="'+id+'" onclick="hmPop_(event,\''+id+'\')" title="Chọn hạng mục">'
+      +'<span class="hm-name">'+esc(hm?(hm+'.'+(nodeName(hm)||hm)):'Tất cả hạng mục')+'</span>'
+      +'<span class="cnt">['+pad2(n)+']</span>'
+    +'</button></div>';
 }
 function hmPop_(e, btnId){
   if(e&&e.stopPropagation) e.stopPropagation();
@@ -3471,7 +3473,11 @@ function hmPop_(e, btnId){
   pop.className='fltpop bgtree'; pop.id=id;
   pop.innerHTML='<div class="bgt-h"><b>Chọn hạng mục</b>'
       +'<button class="colpop-x" onclick="hmPopClose_()">✕</button></div>'
-    +'<div class="bgt-b">'+TREE.filter(function(t){ return t[0]!=='X'; }).map(function(t){
+    +'<div class="bgt-b">'
+      // luôn có lối bỏ lọc (ô chọn không còn dấu ✕ như bản trước)
+      +'<div class="bgt-i lvl1'+(cur?'':' on')+'" onclick="hmPick_(\'\')"><span class="nm">Tất cả hạng mục</span>'
+        +'<span class="cn">['+pad2((S.lines||[]).length)+']</span><span class="rd'+(cur?'':' on')+'"></span></div>'
+      +TREE.filter(function(t){ return t[0]!=='X'; }).map(function(t){
         var on=(cur===t[0]), n=(typeof nodeCount==='function')?nodeCount(t[0]):0;
         return '<div class="bgt-i lvl'+t[2]+(on?' on':'')+'" onclick="hmPick_(\''+esc(t[0])+'\')">'
           +'<span class="nm">'+esc(t[0]+'. '+t[1])+'</span>'
