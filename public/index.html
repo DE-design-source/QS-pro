@@ -5018,6 +5018,30 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
 .dh-proj .dh-proj-h,.proj-card2 .proj-head2{padding-right:34px}
 .proj-del:hover{color:var(--red,#e5484d);border-color:#f3c4c6;background:#fff5f5}
 @media(max-width:900px){ .proj-del{opacity:1} }
+
+/* ═══ Thẻ dự án ở Bảng điều khiển: bỏ khoảng trống chết ở mỗi dòng bản nháp ═══
+   Ba nút sửa/nhân bản/xoá trước đây chỉ mờ đi (opacity:0) nhưng VẪN chiếm ~90px
+   bên phải mỗi dòng -> nhìn như ô trống to. Nay thu về 0 khi không rê chuột,
+   rê tới mới nở ra; máy cảm ứng (không có hover) thì hiện sẵn. */
+.dh-draft{padding:7px 10px;gap:6px}
+.dh-draft-a{gap:4px}
+.dh-draft-a .dh-ic{width:0;min-width:0;padding:0;margin:0;border-width:0;opacity:0;overflow:hidden;
+  transition:width .14s ease,opacity .12s ease}
+.dh-draft:hover .dh-draft-a .dh-ic,.dh-draft:focus-within .dh-draft-a .dh-ic{width:25px;border-width:1px;opacity:1}
+.dh-proj{padding-bottom:6px}
+.dh-drafts{gap:4px}
+.dh-adddraft{margin-top:4px}
+@media(hover:none){
+  .dh-draft-a .dh-ic{width:30px;border-width:1px;opacity:1}
+  .proj-del{opacity:1}
+}
+
+/* nút lọc hạng mục trên thanh Chi phí */
+.hm-open{display:inline-flex;align-items:center;gap:6px;max-width:250px;white-space:nowrap}
+.hm-open.on{border-color:var(--blue);color:var(--blue);background:#f5f9ff}
+.hm-open .hm-car{font-style:normal;font-size:10px;opacity:.6}
+.hm-open .hm-x{font-style:normal;font-size:11px;opacity:.7;margin-left:2px;padding:0 2px;border-radius:4px}
+.hm-open .hm-x:hover{opacity:1;background:#e3edff}
 </style>
 
 <!-- ===== TOP NAV ===== -->

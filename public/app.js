@@ -4618,7 +4618,7 @@ async function removeProject(maDA, ev){
   catch(e){ toast('Lỗi xoá bản nháp: '+e.message); return; }      // trước đây lỗi API rơi im lặng
   if(S.cur&&S.cur.maDA===maDA) S.cur=null;
   try{ projModalClose(); }catch(e){}
-  await boot(); projRefreshAll_(); toast('Đã xoá bản nháp');
+  await projReload_(); projRefreshAll_(); toast('Đã xoá bản nháp');
 }
 
 /* ===== DASHBOARD ===== */
@@ -4668,6 +4668,16 @@ function draftListHtml(){
    Trước đây các nút trên trang Dự án / Bảng điều khiển gọi theo CHỈ SỐ trong
    S._projGroups — mà mảng này bị cả hai trang ghi đè, nên bấm "Thêm bản nháp"
    ở thẻ này lại rơi vào dự án khác. Khoá theo mã thì không bao giờ lệch.        */
+/* Tải lại NHẸ sau khi thêm/xoá bản nháp: chỉ lấy danh sách dự án + dòng của bản
+   đang mở. Trước đây gọi boot() -> kéo lại toàn bộ danh mục sản phẩm nên bấm phát
+   nào cũng phải chờ. */
+async function projReload_(){
+  try{ S.projects=await api('getProjects')||[]; }catch(e){ toast('Lỗi tải danh sách dự án: '+e.message); }
+  if(S.cur){ var f=(S.projects||[]).filter(function(p){ return p.maDA===S.cur.maDA; })[0]; S.cur=f||S.projects[0]||null; }
+  else S.cur=(S.projects||[])[0]||null;
+  try{ S.lines = S.cur ? (await api('getLines', S.cur.maDA)||[]) : []; }catch(e){ S.lines=[]; }
+  if(typeof renderAll==='function') renderAll();
+}
 function projGroupOf_(key){
   key=String(key||''); if(!key) return null;
   var gs=projectGroups();
@@ -4688,7 +4698,7 @@ async function addDraft(key){
   if(!g){ toast('Không tìm thấy dự án này — bấm F5 tải lại trang'); return; }
   try{
     var p=await api('createProject',{ten:g.name, khachHang:g.khachHang, sdt:g.sdt, diaChi:g.diaChi, vat:0});
-    S.cur=p; S.lines=[]; await boot(); projRefreshAll_();
+    S.cur=p; S.lines=[]; await projReload_(); projRefreshAll_();
     toast('Đã thêm bản nháp mới cho "'+g.name+'"');
   }catch(e){ toast('Lỗi thêm bản nháp: '+e.message); }
 }
@@ -4706,7 +4716,7 @@ async function removeProjectGroup(key, ev){
   }
   if(S.cur && g.drafts.some(function(d){ return d.maDA===S.cur.maDA; })) S.cur=null;
   try{ projModalClose&&projModalClose(); }catch(e){}
-  await boot(); projRefreshAll_();
+  await projReload_(); projRefreshAll_();
   toast(loi.length?('Xoá xong '+(n-loi.length)+'/'+n+' bản — lỗi: '+loi[0]):('Đã xoá dự án "'+g.name+'" ('+n+' bản nháp)'));
 }
 // Nhân bản 1 bản nháp (copy toàn bộ hạng mục + tờ bìa sang bản nháp mới)
@@ -4902,8 +4912,12 @@ function renderChiphi(){
   var keys=CP_KEYS.filter(function(k){ return S.cpCols[k]; });
   var rows=cpRows_();
 
-  // ---- số liệu tổng (tính trên TOÀN dự án, không phụ thuộc bộ lọc) ----
-  var von=0,ban=0; S.lines.forEach(function(l){ von+=ttVon_(l); ban+=ttBan_(l); });
+  /* ---- số liệu tổng: tính trên ĐÚNG HẠNG MỤC đang chọn (phạm vi của cả trang),
+     không phụ thuộc ô tìm kiếm / chip lọc trạng thái (những cái đó chỉ là lọc tạm). ---- */
+  var hmNow=hmGet_();
+  var scope=hmNow?(S.lines||[]).filter(function(l){ var c=String(l.nhom||'');
+      return c===hmNow || c.indexOf(hmNow+'.')===0; }):(S.lines||[]);
+  var von=0,ban=0; scope.forEach(function(l){ von+=ttVon_(l); ban+=ttBan_(l); });
   var lnT=ban-von, bien=ban>0?(lnT/ban*100):0, lnCls=lnT<0?'red':(lnT>0?'green':'');
   var vatPct=Number(S.cur.vat)||0, vat=Math.round(ban*vatPct/100);
   var stat='<div class="cp-kpis">'
@@ -4913,7 +4927,7 @@ function renderChiphi(){
     +cpKpi_(icon('gauge',17),'Biên lợi nhuận',bien.toFixed(1)+'%',lnCls)
     +cpKpi_(icon('cart',17),'Tổng gồm VAT '+vatPct+'%',money(ban+vat)+' đ','')+'</div>';
 
-  box.innerHTML='<div class="sechd"><h2>Chi phí</h2><span class="count">'+S.lines.length+'</span>'
+  box.innerHTML='<div class="sechd"><h2>Chi phí</h2><span class="count">'+scope.length+'</span>'
       +'<span class="sp" style="flex:1"></span>'
       +'<span class="cp-hint">'+icon('sliders',13)+' Bấm thẳng vào ô để sửa giá NCC · CK · %LN · giá bán — số tính lại ngay</span></div>'
     +stat
@@ -4928,8 +4942,9 @@ function renderChiphi(){
 }
 /* ---------- dữ liệu bảng: tìm kiếm · lọc · sắp xếp ---------- */
 function cpRows_(){
-  var q=spNorm_(S._cpQ||''), f=S._cpFlt||'';
+  var q=spNorm_(S._cpQ||''), f=S._cpFlt||'', hm=hmGet_();
   var out=(S.lines||[]).filter(function(l){
+    if(hm){ var c=String(l.nhom||''); if(!(c===hm || c.indexOf(hm+'.')===0)) return false; }   // hạng mục dùng chung
     if(q && spNorm_([l.ten,l.maSP,l.thuongHieu,l.ncc,l.khuVuc].join(' ')).indexOf(q)<0) return false;
     if(f==='lo'  && (ttBan_(l)-ttVon_(l))>=0) return false;
     if(f==='chuaGia' && Number(l.donGiaBan)>0) return false;
@@ -4991,7 +5006,12 @@ function cpToolbar_(rows){
     +'<input id="cpQ" value="'+esc(S._cpQ||'')+'" placeholder="Tìm tên · mã · thương hiệu · phòng…" oninput="cpSetQ(this.value)">'
     +((S._cpQ||'')?'<button class="cp-x" title="Xoá tìm kiếm" onclick="cpSetQ(\'\')">✕</button>':'')+'</div>';
   var ket=(S._cpQ||S._cpFlt)?('<span class="cp-found">'+rows.length+' / '+(S.lines||[]).length+' dòng</span>'):'';
-  return '<div class="cp-bar">'+tim+loc+ket+'<span style="flex:1"></span>'
+  var hm=hmGet_();
+  var hmBtn='<button class="btn ghost sm hm-open'+(hm?' on':'')+'" id="cpHmBtn" onclick="hmPop_(event,\'cpHmBtn\')"'
+    +' title="Lọc theo hạng mục — dùng chung với Bóc tách, Danh sách SP, Mua hàng và Xuất báo giá">'
+    +icon('layers',14)+' '+esc(hm?(hm+'. '+(nodeName(hm)||hm)):'Tất cả hạng mục')
+    +(hm?'<i class="hm-x" title="Bỏ lọc hạng mục" onclick="event.stopPropagation();hmSet_(\'\')">✕</i>':'<i class="hm-car">▾</i>')+'</button>';
+  return '<div class="cp-bar">'+tim+loc+ket+'<span style="flex:1"></span>'+hmBtn
     +'<button class="btn ghost sm'+(S._cpGroup?' on':'')+'" onclick="cpToggleGroup()" title="Gom các dòng theo hạng mục và cộng tổng từng nhóm">'
       +icon('layers',14)+' Gom theo hạng mục</button>'
     +'</div>'

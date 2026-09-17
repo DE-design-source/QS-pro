@@ -859,7 +859,10 @@ async function getQuote(maDA) {
   return { maDA: maDA, project: proj, lines: lines, subtotal: subtotal, vatPct: vatPct, vat: vat, total: subtotal + vat };
 }
 async function bootstrap(maDA) {
-  const [projects, products] = await Promise.all([getProjects(), getProducts()]);
+  // Dùng BẢN CACHE của danh mục SP (5 phút, tự xoá mỗi khi có SP thay đổi):
+  // trước đây mỗi lần boot lại kéo toàn bộ ~800 SP + kho chung + yêu thích + combo
+  // nên thêm/xoá 1 bản nháp cũng phải chờ cả danh mục tải lại.
+  const [projects, products] = await Promise.all([getProjects(), getProductsCached()]);
   let lines = [];
   if (maDA) { try { lines = await getLines(maDA); } catch (e) { lines = []; } }
   const catSheets = getCatalogSheetsFrom_(products);
