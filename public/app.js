@@ -3065,12 +3065,11 @@ function tkGotoNewRow_(id){
   S._newTmr=setTimeout(function(){ S._newLid=null; var x=tkRowEl_(id); if(x) x.classList.remove('rownew'); }, TK_NEW_MS+80);
   var w=tr.closest('.tbl-wrap'); if(!w) return;
   var wr=w.getBoundingClientRect(), rr=tr.getBoundingClientRect(), pad=tkStickyH_()+10;
-  var duoi=rr.bottom-(wr.bottom-8), tren=(wr.top+pad)-rr.top, sm=tkSmooth_();
-  if(duoi>0) w.scrollTo({top:w.scrollTop+duoi, behavior:sm});
-  else if(tren>0) w.scrollTo({top:Math.max(0,w.scrollTop-tren), behavior:sm});
-  // bảng đang nằm ngoài màn hình -> cuộn trang cho thấy bảng trước
-  var nwr=w.getBoundingClientRect();
-  if(nwr.bottom<90 || nwr.top>window.innerHeight-90) w.scrollIntoView({block:'center',behavior:sm});
+  var duoi=rr.bottom-(wr.bottom-10), tren=(wr.top+pad)-rr.top;
+  var d=(duoi>0)?duoi:((tren>0)?-tren:0);
+  if(Math.abs(d)<2) return;                      // đang thấy rồi -> đứng yên, không giật
+  var to=Math.max(0, Math.min(w.scrollHeight-w.clientHeight, w.scrollTop+d));
+  w.scrollTo({top:to, behavior:tkSmooth_()});    // cuộn tối thiểu, vừa đủ lộ dòng mới
 }
 function tkSmooth_(){
   try{ return window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'; }catch(e){ return 'smooth'; }
@@ -3410,13 +3409,18 @@ function renderTable(){
   var frzN=Math.min(S.freezeN||0,cols.length);
   t.className='tk'+(frzN?(' frz'+frzN):'');
   t.style.setProperty('--frz1w', colW(cols[0][0])+'px');
+  // Giữ nguyên chỗ đang cuộn: đổi innerHTML làm khung cuộn tụt về đầu, nên mỗi lần thêm/sửa
+  // 1 dòng là cả bảng nhảy lên trên. Lưu lại rồi trả về ngay sau khi dựng xong.
+  var _w=t.closest('.tbl-wrap'), _sT=_w?_w.scrollTop:0, _sL=_w?_w.scrollLeft:0;
   t.innerHTML=colg+head+body;
+  if(_w && (_sT||_sL)){ _w.scrollTop=_sT; _w.scrollLeft=_sL; }
   t.querySelectorAll('td.wrap textarea').forEach(autoGrow);   // ô "Thông tin chính" tự giãn hết dòng
   if(t.rows[0]) t.style.setProperty('--thH', t.rows[0].offsetHeight+'px');  // để dòng tầng dính ngay dưới header
   markBlocks_('#tkTable');   // kẻ dọc liền trong 1 tầng, hở giữa các tầng
   tkSelPrune_();       // bỏ khỏi vùng chọn những dòng không còn trên bảng
   tkFreezeRows_();     // cố định N hàng đầu (như Excel)
   tkSelBar_();         // thanh thao tác hàng loạt (nổi ở đáy màn hình)
+  if(_w && (_sT||_sL) && (_w.scrollTop!==_sT||_w.scrollLeft!==_sL)){ _w.scrollTop=_sT; _w.scrollLeft=_sL; }
   tkRowNewPaint_();    // giữ vệt nháy của dòng vừa thêm qua các lần render lại
   renderActGutter();   // nút xoá đặt NGOÀI bảng (gutter phải), đồng bộ cuộn
   // ----- Tổng tiền (chưa VAT / VAT / tổng thành tiền) -----
