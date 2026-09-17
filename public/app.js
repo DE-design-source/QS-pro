@@ -3451,17 +3451,18 @@ function hmSet_(code, tuTab){
    truyền id của chính nút bấm để bảng bám vào đó. Trang chỉ HIỂN THỊ hạng mục
    (Chi phí, Bảng điều khiển) hoặc đã có ô chọn riêng (Bóc tách, Danh sách SP,
    Xuất báo giá) thì KHÔNG dùng — tránh đẻ thêm nút trùng nhau.                   */
-/* Nút chọn hạng mục kèm số liệu của hạng mục đó trong bản nháp đang mở.
-   Đặt ở trang nào mà việc đổi hạng mục có tác dụng thấy được ngay trên trang đó. */
-function hmStatBtn_(id){
+/* ═══ Ô CHỌN HẠNG MỤC — MỘT KIỂU DUY NHẤT cho mọi tab ═══
+   Trước đây mỗi trang một dáng (trang này nút pill, trang kia ô vuông có nhãn) nên
+   nhìn rời rạc. Nay mọi nơi đều dùng hàm này: nhãn "Hạng mục" + ô chọn giống hệt
+   ô đang dùng ở trang Mua hàng.                                                   */
+function hmSelect_(id){
   var hm=hmGet_();
-  var ls=(S.lines||[]).filter(function(l){ if(!hm) return true; var c=String(l.nhom||'');
-    return c===hm || c.indexOf(hm+'.')===0; });
-  var tien=ls.reduce(function(a,l){ return a+(Number(l.thanhTienBan)||0); },0);
-  return '<button class="btn ghost sm hm-open'+(hm?' on':'')+'" id="'+id+'" onclick="hmPop_(event,\''+id+'\')" title="Chọn hạng mục">'
-    +icon('layers',14)+' '+esc(hm?(hm+'. '+(nodeName(hm)||hm)):'Tất cả hạng mục')
-    +'<span class="hm-stat">'+pad2(ls.length)+' dòng · '+money(tien)+' đ</span>'
-    +(hm?'<i class="hm-x" title="Bỏ lọc hạng mục" onclick="event.stopPropagation();hmSet_(\'\')">✕</i>':'<i class="hm-car">▾</i>')+'</button>';
+  return '<div class="imp-nganh hm-wrap"><label>Hạng mục</label>'
+    +'<div class="msel hm-open'+(hm?' active':'')+'" id="'+id+'" onclick="hmPop_(event,\''+id+'\')" title="Chọn hạng mục">'
+      +'<span class="mlabel">'+icon('layers',15)+' '+esc(hm?(hm+'. '+(nodeName(hm)||hm)):'Tất cả hạng mục')+'</span>'
+      +(hm?'<span class="mplus hm-x" title="Bỏ lọc hạng mục" onclick="event.stopPropagation();hmSet_(\'\')">✕</span>'
+          :'<span class="mplus hm-car">▾</span>')
+    +'</div></div>';
 }
 function hmPop_(e, btnId){
   if(e&&e.stopPropagation) e.stopPropagation();
@@ -4217,7 +4218,7 @@ function projInfoInner_(p, gr){
 function renderProjects(){
   var el=document.getElementById('v-project'); if(!el) return;
   var head='<div class="sechd"><h2>Thông tin dự án</h2><span class="sp" style="flex:1"></span>'
-    +(S.cur?hmStatBtn_('pjHmBtn'):'')
+    +(S.cur?hmSelect_('pjHmBtn'):'')
     +'<button class="btn ghost sm" onclick="showTab(\'dash\')">'+icon('list',14)+' Danh sách dự án</button></div>';
   if(!S.cur){ el.innerHTML=head+'<div class="dash-empty">'+icon('building',40)+'<h3>Chưa chọn dự án</h3><p>Vào <b>Bảng điều khiển</b> để tạo hoặc chọn một bản nháp.</p></div>'; return; }
   el.innerHTML=head+projInfoInner_(S.cur, currentGroup());
@@ -5021,11 +5022,7 @@ function cpToolbar_(rows){
     +'<input id="cpQ" value="'+esc(S._cpQ||'')+'" placeholder="Tìm tên · mã · thương hiệu · phòng…" oninput="cpSetQ(this.value)">'
     +((S._cpQ||'')?'<button class="cp-x" title="Xoá tìm kiếm" onclick="cpSetQ(\'\')">✕</button>':'')+'</div>';
   var ket=(S._cpQ||S._cpFlt)?('<span class="cp-found">'+rows.length+' / '+(S.lines||[]).length+' dòng</span>'):'';
-  var hm=hmGet_();
-  var hmBtn='<button class="btn ghost sm hm-open'+(hm?' on':'')+'" id="cpHmBtn" onclick="hmPop_(event,\'cpHmBtn\')"'
-    +' title="Chọn hạng mục">'
-    +icon('layers',14)+' '+esc(hm?(hm+'. '+(nodeName(hm)||hm)):'Tất cả hạng mục')
-    +(hm?'<i class="hm-x" title="Bỏ lọc hạng mục" onclick="event.stopPropagation();hmSet_(\'\')">✕</i>':'<i class="hm-car">▾</i>')+'</button>';
+  var hmBtn=hmSelect_('cpHmBtn');
   return '<div class="cp-bar">'+tim+loc+ket+'<span style="flex:1"></span>'+hmBtn
     +'<button class="btn ghost sm'+(S._cpGroup?' on':'')+'" onclick="cpToggleGroup()" title="Gom các dòng theo hạng mục và cộng tổng từng nhóm">'
       +icon('layers',14)+' Gom theo hạng mục</button>'
@@ -5173,7 +5170,7 @@ function renderDuAn(){
       return '<td class="'+alignCls(k)+'"></td>';
     }).join('')+'</tr>'; }
   box.innerHTML='<div class="sechd"><h2>Sản phẩm trong dự án</h2><span class="count">'+daLines_.length+'</span><span class="sp" style="flex:1"></span>'
-      +hmStatBtn_('daHmBtn')
+      +hmSelect_('daHmBtn')
       +'<span class="cp-hint">'+icon('building',13)+' '+esc(S.cur.ten||'')+' — bấm ô để sửa</span></div>'
     +stat+colbar
     +'<div class="dbcard cp-card"><div class="tbl-wrap"><table class="tk cpflat" style="min-width:'+totalW+'px;width:100%">'+colg+head+body+foot+'</table></div></div>';
@@ -5287,11 +5284,7 @@ function renderMuahang(){
   var grand=order.reduce(function(sum,k){ return mhOn_(k) ? sum+mhTot_(groups[k],vatPct) : sum; },0);
   function stat(v,l){ return '<div class="imp-stat"><div class="imp-stat-v">'+v+'</div><div class="imp-stat-l">'+l+'</div></div>'; }
   var statbar='<div class="imp-statbar">'
-    // Cả trang Mua hàng chạy theo hạng mục này -> ô phải BẤM ĐƯỢC (trước đây có mũi tên nhưng bấm không ra gì)
-    +'<div class="imp-nganh"><label>Hạng mục</label>'
-      +'<div class="msel hm-open" id="mhHmBtn" title="Chọn hạng mục"'
-        +' onclick="hmPop_(event,\'mhHmBtn\')"><span class="mlabel">'+icon('layers',15)+' '+esc(nodeName(code))+'</span>'
-        +'<span class="mplus">▾</span></div></div>'
+    +hmSelect_('mhHmBtn')
     +stat(pad2(order.length),'Nhà cung cấp')+stat(pad2(lines.length),'Sản phẩm')
     +stat('<span style="color:var(--blue)">'+money(grand)+'</span>','Tổng tiền (VAT)')+'</div>';
   var cards=S._mhGroups.map(function(g,gi){ return muahangCard(g, gi, vatPct); }).join('')
