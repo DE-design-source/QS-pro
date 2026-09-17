@@ -48,10 +48,39 @@ function prodToObj(r) {
   if (gocNghieng) tsk.push('Góc nghiêng: ' + gocNghieng);
   if (dong) tsk.push('Dòng SP: ' + dong);
   const size = (r.duong_kinh_mm && r.chieu_cao_mm) ? ('Ø' + r.duong_kinh_mm + '×H' + r.chieu_cao_mm + 'mm') : (r.duong_kinh_mm ? ('Ø' + r.duong_kinh_mm + 'mm') : '');
-  const thongSoTK = tsk.join('\n') || size;
+  let thongSoTK = tsk.join('\n') || size;
+  /* ===== NGÀNH HÀNG ===== 'den' (mặc định) | 'vs' = thiết bị vệ sinh.
+     Thiết bị vệ sinh ghép 2 cột gộp theo đúng file mẫu của Dezon:
+       THÔNG TIN CHÍNH  = Màu · Hệ thống xả · Thiết kế · Dòng SP · Hạng mục · Bảo hành
+       THÔNG SỐ THIẾT KẾ = Kích thước · Lượng nước xả · Tâm xả · Áp lực nước · Lưu ý   */
+  const nganh = s(r.nganh) || 'den';
+  const bh = r.bao_hanh_nam ? (r.bao_hanh_nam + ' năm') : '';
+  if (nganh === 'vs') {
+    const a = [];
+    if (s(r.mau_sac)) a.push('Màu: ' + s(r.mau_sac));
+    if (s(r.he_thong_xa)) a.push('Hệ thống xả: ' + s(r.he_thong_xa));
+    if (s(r.thiet_ke)) a.push('Thiết kế: ' + s(r.thiet_ke));
+    if (dong) a.push('Dòng SP: ' + dong);
+    if (s(r.hang_muc)) a.push('Hạng mục: ' + s(r.hang_muc));
+    if (bh) a.push('Bảo hành: ' + bh);
+    moTa = a.join('\n'); if (s(r.ghi_chu)) moTa += (moTa ? '\n' : '') + s(r.ghi_chu);
+    const b = [];
+    if (s(r.kich_thuoc)) b.push('Kích thước: ' + s(r.kich_thuoc));
+    if (s(r.luong_nuoc_xa)) b.push('Lượng nước xả: ' + s(r.luong_nuoc_xa));
+    if (s(r.tam_xa)) b.push('Tâm xả: ' + s(r.tam_xa));
+    if (s(r.ap_luc_nuoc)) b.push('Áp lực nước: ' + s(r.ap_luc_nuoc));
+    if (s(r.luu_y)) b.push('Lưu ý: ' + s(r.luu_y));
+    thongSoTK = b.join('\n');
+  }
   return {
     ma: s(r.ma_sp), ten: s(r.ten_sp), dongSanPham: dong, hangMuc: s(r.hang_muc),
-    nhom: s(r.nhom_sp) || dong, muc: 'Thiết bị đèn',
+    nhom: s(r.nhom_sp) || dong,
+    nganh: nganh,                                   // ngành hàng: 'den' | 'vs'
+    muc: (nganh === 'vs') ? 'Thiết bị vệ sinh' : 'Thiết bị đèn',   // -> đề mục 3.2.5 / 3.2.6.1 trên cây
+    // --- trường riêng của Thiết bị vệ sinh (hiện ở panel chi tiết) ---
+    kichThuocVS: s(r.kich_thuoc), heThongXa: s(r.he_thong_xa), luongNuocXa: s(r.luong_nuoc_xa),
+    thietKe: s(r.thiet_ke), tamXa: s(r.tam_xa), apLucNuoc: s(r.ap_luc_nuoc),
+    luuY: s(r.luu_y), tinhNang: s(r.tinh_nang),
     thuongHieu: s(r.thuong_hieu), ncc: s(r.nha_cung_cap),
     congSuat: congSuat, nhietDo: nhietDo, gocChieu: gocChieu,
     mauSac: s(r.mau_sac), chatLieu: chatLieu,
@@ -352,11 +381,19 @@ const DB_LABEL2COL = {
   'TÊN BỘ NGUỒN': 'ten_bo_nguon', 'MÃ BỘ NGUỒN': 'ma_bo_nguon', 'HÃNG BỘ NGUỒN': 'hang_bo_nguon', 'GIÁ BÁN BỘ NGUỒN': 'gia_ban_bo_nguon', 'VỊ TRÍ LẮP NGUỒN': 'vi_tri_lap_nguon',
   'TƯƠNG THÍCH ĐIỀU KHIỂN': 'dieu_khien', 'DÒNG RA TỐI ĐA (mA)': 'dong_ra_max_ma', 'BẢO HÀNH (năm)': 'bao_hanh_nam', 'ĐƠN VỊ TÍNH': 'dvt',
   'GIÁ BÁN LẺ': 'gia_ban_le', 'CHIẾT KHẤU ĐẠI LÝ (%)': 'ck_dai_ly_pct', 'ẢNH SẢN PHẨM': 'anh_sp', 'LINK DATASHEET': 'link_datasheet',
-  'TRẠNG THÁI': 'trang_thai', 'GHI CHÚ': 'ghi_chu'
+  'TRẠNG THÁI': 'trang_thai', 'GHI CHÚ': 'ghi_chu',
+  // ---- Ngành THIẾT BỊ VỆ SINH (db/thiet_bi_ve_sinh.sql) ----
+  'NGÀNH HÀNG': 'nganh', 'KÍCH THƯỚC': 'kich_thuoc', 'HỆ THỐNG XẢ': 'he_thong_xa',
+  'LƯỢNG NƯỚC XẢ': 'luong_nuoc_xa', 'THIẾT KẾ': 'thiet_ke', 'TÂM XẢ': 'tam_xa',
+  'ÁP LỰC NƯỚC': 'ap_luc_nuoc', 'LƯU Ý': 'luu_y', 'TÍNH NĂNG': 'tinh_nang'
 };
 // Migration chạy tay -> nếu DB chưa có cột thì đổi lỗi kỹ thuật thành hướng dẫn cụ thể
 const COL_SQL = { ten_chip_led: 'db/chip_name.sql', gia_ban_bo_nguon: 'db/gia_bo_nguon.sql', da_duyet: 'db/sp_duyet_status.sql',
-  nguoi_duyet: 'db/sp_duyet_status.sql', ngay_duyet: 'db/sp_duyet_status.sql' };
+  nguoi_duyet: 'db/sp_duyet_status.sql', ngay_duyet: 'db/sp_duyet_status.sql',
+  nganh: 'db/thiet_bi_ve_sinh.sql', kich_thuoc: 'db/thiet_bi_ve_sinh.sql', he_thong_xa: 'db/thiet_bi_ve_sinh.sql',
+  luong_nuoc_xa: 'db/thiet_bi_ve_sinh.sql', thiet_ke: 'db/thiet_bi_ve_sinh.sql', tam_xa: 'db/thiet_bi_ve_sinh.sql',
+  ap_luc_nuoc: 'db/thiet_bi_ve_sinh.sql', luu_y: 'db/thiet_bi_ve_sinh.sql', tinh_nang: 'db/thiet_bi_ve_sinh.sql',
+  nhom_bt: 'db/bien_the_nhom.sql' };
 function colErr_(e) {
   const m = (e && e.message) || '';
   for (const col in COL_SQL) {

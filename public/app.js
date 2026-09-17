@@ -926,6 +926,9 @@ function renderCatalog(){
   var isPT=(S.node==='3.1');
   applyFiltDrop();   // ẩn/hiện khối bộ lọc theo trạng thái gập/mở (và ẩn hẳn khi Phần thô)
   var hd=document.querySelector('#leftCat .cat-hd h3'); if(hd) hd.textContent=isPT?'Nội dung công việc':'Hạng mục';
+  // Lọc nhanh Công suất / Nhiệt độ màu chỉ có nghĩa với ĐÈN -> ẩn ở đề mục Thiết bị vệ sinh
+  var isVS=(S.node==='3.2.5');
+  ['sec_watt','sec_kelvin'].forEach(function(id){ var e=document.getElementById(id); if(e) e.style.display=(isVS||isPT)?'none':''; });
   var fg0=document.getElementById('favGoBtn'); if(fg0) fg0.style.display=isPT?'none':'';   // Phần thô: không có SP yêu thích
   var fw0=document.getElementById('ptFilters'); if(fw0&&!isPT) fw0.innerHTML='';   // rời Phần thô -> dọn bộ lọc riêng
   if(isPT){ renderPTLibrary(); return; }   // Phần thô: hiện thư viện nội dung công việc
@@ -991,7 +994,10 @@ function pdSection_(title, rows){
 // Ảnh (gallery nhiều ảnh) + mã + tên + Key Product Info — bám Figma
 function pdMedia_(p){
   var cong=p.congSuat||parseWatt(p.ten), nd=p.nhietDo||parseKelvin(p.ten);
-  var keyItems=[
+  var keyItems=(nganhCuaSP_(p)==='vs')
+    ? [ ['ruler', p.kichThuocVS], ['color', p.mauSac], ['temp', p.heThongXa], ['gauge', p.luongNuocXa] ]
+        .filter(function(x){ return x[1] && String(x[1]).trim(); })
+    : [
     ['power', cong + (p.dongRa?(' ('+p.dongRa+(/mA/i.test(p.dongRa)?'':'mA')+')'):'')],
     ['temp', nd + (p.quangThong?(' ('+p.quangThong+(/lm/i.test(p.quangThong)?'':'lm')+')'):'')],
     ['color', p.mauSac],
@@ -1051,6 +1057,7 @@ function pdPickImg_(btn,src){   // giữ để tương thích chỗ gọi cũ
 }
 // Các nhóm thông số — tiêu đề song ngữ + thứ tự theo Figma
 function pdSpecs_(p){
+  if(nganhCuaSP_(p)==='vs') return pdSpecsVS_(p);
   return pdSection_('Design Specifications|Thông số thiết kế',[
       ['Chất liệu',p.chatLieu],['Chiều cao',p.chieuCao],['Đường kính',p.duongKinh],
       ['Góc nghiêng / góc chỉnh hướng',p.gocNghieng],['Dòng sản phẩm',p.dongSanPham||p.nhom]])
@@ -1068,6 +1075,22 @@ function pdSpecs_(p){
       ['Lắp đặt bộ nguồn rời',p.lapNguonRoi],['Kích thước lỗ khoét trần (Cutout Size)',p.loKhoet],
       ['Cấp bảo vệ an toàn điện (Class Rating)',p.capBaoVeDien]])
     +(p.moTa && !p.chatLieu && !p.quangThong ? '<div class="pd-block"><div class="pd-sec">Thông số kỹ thuật <i>(mô tả)</i></div>'+specRows_(p.moTa)+'</div>' : '');
+}
+/* Thiết bị vệ sinh: các nhóm bám đúng sheet mẫu (Key Product Info · Thông số thiết kế · Tính năng) */
+function pdSpecsVS_(p){
+  // (Khối chip "Key Product Info" đã do pdMedia_ vẽ phía trên -> đặt tên khác cho khỏi trùng)
+  return pdSection_('Product Overview|Tổng quan sản phẩm',[
+      ['Màu',p.mauSac],['Hệ thống xả',p.heThongXa],['Thiết kế',p.thietKe],
+      ['Dòng sản phẩm',p.dongSanPham||p.nhom],['Hạng mục',p.hangMuc],['Thời gian bảo hành',p.baoHanh]])
+    +pdSection_('Design Specifications|Thông số thiết kế',[
+      ['Kích thước',p.kichThuocVS],['Lượng nước xả',p.luongNuocXa],['Tâm xả',p.tamXa],
+      ['Áp lực nước',p.apLucNuoc],['Lưu ý',p.luuY]])
+    +(String(p.tinhNang||'').trim()
+      ? '<div class="pd-block"><div class="pd-sec">Features <i>(Tính năng)</i></div>'+pdBullets_(p.tinhNang)+'</div>' : '');
+}
+function pdBullets_(text){
+  return '<div class="pd-bullets">'+String(text||'').split(/\r?\n/).map(function(x){ return x.replace(/^[•\-\*\s]+/,'').trim(); })
+    .filter(Boolean).map(function(x){ return '<div class="pd-bl">'+esc(x)+'</div>'; }).join('')+'</div>';
 }
 function pdPriceFoot_(p){
   var ds=p.linkDatasheet;
@@ -1158,12 +1181,7 @@ function renderSanpham(){
       +'</div>'
     +'</div>';
   S._spSel=S._spSel||{}; S._spFilters=S._spFilters||{};
-  if(!S._spCols){
-    var luu=null; try{ luu=JSON.parse(localStorage.getItem('qs_spcolcfg')||'{}').on; }catch(e){}
-    S._spCols=(luu&&Object.keys(luu).length)?luu
-      :{thumb:1,ten:1,duyet:1,sku:1,thuong_hieu:1,hang_muc:1,
-        cong_suat_w:1,nhiet_do_mau_k:1,cri:1,goc_chieu_deg:1,giaDaiLy:1};
-  }
+  spColsSync_();          // bộ cột theo ngành hàng đang lọc (đèn / vệ sinh)
   S._spView=S._spView||'all';
   renderSpProjPanel_(); renderSpChips_(); spEditBtnSync_(); spUndoBtnSync_(); spColChips_(); spRenderHead_(); spFilter();
   spLoadPerm_().then(function(){ spEditBtnSync_(); spViewTabs_(); spFilter(); });
@@ -1322,10 +1340,27 @@ function spSkuCount_(p){
   var k=String(p.ma||'').trim().toLowerCase();
   return k?(_skuMap[k]||1):1;
 }
-var _spColCache=null;
+var _spColCache=null, _spColNganh=null;
+/* Bảng Danh sách SP sinh cột từ bộ trường của NGÀNH đang xem:
+   lọc hạng mục = Thiết bị vệ sinh -> cột của ngành vệ sinh; Thiết bị đèn -> cột đèn;
+   chưa lọc -> gộp cả hai (cột của ngành kia vẫn tắt/rỗng, bật lại bằng chip cột). */
+function spNganhCur_(){
+  var nd=((S._spFilters||{}).node)||'';
+  if(nd==='3.2.5') return 'vs';
+  if(nd==='3.2.6'||nd==='3.2.6.1') return 'den';
+  return '';
+}
+function spColFlat_(){
+  var ng=spNganhCur_();
+  if(ng==='vs') return DB_FLAT_VS;
+  if(ng==='den') return DB_FLAT;
+  return DB_FLAT.concat(DB_FLAT_VS);
+}
 function spAllCols_(){
   if(spPTMode_()) return spPTCols_();
-  if(_spColCache) return _spColCache;
+  var ng=spNganhCur_();
+  if(_spColCache && _spColNganh===ng) return _spColCache;
+  _spColNganh=ng;
   var head=[
     ['stt','STT','ct',function(p,i){
       var m=(S._rowMeta||[])[i];
@@ -1352,8 +1387,9 @@ function spAllCols_(){
     ['nguoiSua','Người sửa cuối','',function(p){
       return p.nguoiSua?'<span class="sp-who" title="Lúc '+esc(fmtDateTime_(p.ngayCapNhat))+'">'+esc(p.nguoiSua)+'</span>':'<span class="muted">—</span>'; }]
   ];
-  var gen=[];
-  (typeof DB_FLAT!=='undefined'?DB_FLAT:[]).forEach(function(f){
+  var gen=[], daCo={};
+  spColFlat_().forEach(function(f){
+    if(daCo[f[0]]) return; daCo[f[0]]=1;
     var lark=f[0]; if(SP_SKIP[lark]) return;
     var col=DB_LABEL2COL_[lark]; if(!col) return;
     var e={lark:lark, col:col, sfx:SP_SFX[col]||'', num:!!SP_NUMCOL[col], money:!!SP_MONEY[col]};
@@ -1748,12 +1784,28 @@ var SP_DEFW={stt:52,thumb:56,ten:215,duyet:124,sku:78,giaDaiLy:122,nguoiTao:126,
   trang_thai:126,link_datasheet:112,ghi_chu:170};
 function spColW_(k){ if(spPTMode_()) return (S._ptW2&&S._ptW2[k])||PT_SPDEFW[k]||124;
   return (S._spW&&S._spW[k])||SP_DEFW[k]||124; }
+/* Bộ cột hiện mặc định theo NGÀNH: đèn thì công suất/nhiệt độ/CRI/góc chiếu,
+   vệ sinh thì kích thước/hệ thống xả/lượng nước xả/màu — và nhớ riêng cho từng ngành. */
+function spColsDefault_(ng){
+  var b={thumb:1,ten:1,duyet:1,sku:1,thuong_hieu:1,hang_muc:1,giaDaiLy:1};
+  if(ng==='vs'){ b.kich_thuoc=1; b.he_thong_xa=1; b.luong_nuoc_xa=1; b.mau_sac=1; return b; }
+  b.cong_suat_w=1; b.nhiet_do_mau_k=1; b.cri=1; b.goc_chieu_deg=1; return b;
+}
+function spColsSync_(){
+  if(spPTMode_()) return;
+  var ng=(spNganhCur_()==='vs')?'vs':'den';
+  if(S._spColsNganh===ng && S._spCols) return;
+  S._spColsNganh=ng;
+  var luu=null;
+  try{ var j=JSON.parse(localStorage.getItem('qs_spcolcfg')||'{}'); luu=(ng==='vs')?j.onVs:j.on; }catch(e){}
+  S._spCols=(luu&&Object.keys(luu).length)?luu:spColsDefault_(ng);
+}
 function spOrder_(){
   if(spPTMode_()) return ptOrder2_();
+  spColsSync_();
   var all=spAllCols_().map(function(c){ return c[0]; });
   if(!S._spOrder){
-    try{ var j=JSON.parse(localStorage.getItem('qs_spcolcfg')||'{}'); S._spOrder=j.order||null; S._spW=j.w||{};
-         if(j.on && Object.keys(j.on).length) S._spCols=j.on; }          // nhớ cột đang bật/tắt
+    try{ var j=JSON.parse(localStorage.getItem('qs_spcolcfg')||'{}'); S._spOrder=j.order||null; S._spW=j.w||{}; }
     catch(e){ S._spW={}; }
     if(!S._spOrder) S._spOrder=all.slice();
   }
@@ -1767,7 +1819,12 @@ function spOrder_(){
 function spSaveCols_(){
   try{
     if(spPTMode_()) localStorage.setItem('qs_ptcolcfg',JSON.stringify({order:S._ptOrder2,w:S._ptW2||{},on:S._ptColsOn||{}}));
-    else localStorage.setItem('qs_spcolcfg',JSON.stringify({order:S._spOrder,w:S._spW||{},on:S._spCols||{}}));
+    else {
+      var j={}; try{ j=JSON.parse(localStorage.getItem('qs_spcolcfg')||'{}')||{}; }catch(e2){}
+      j.order=S._spOrder; j.w=S._spW||{};
+      if(S._spColsNganh==='vs') j.onVs=S._spCols||{}; else j.on=S._spCols||{};
+      localStorage.setItem('qs_spcolcfg',JSON.stringify(j));
+    }
   }catch(e){}
 }
 // thứ tự + độ rộng + cột hiện của BẢNG CÔNG TÁC (lưu riêng, không đụng cấu hình cột SP)
@@ -1787,9 +1844,9 @@ function ptOrder2_(){
 function spResetCols_(){
   if(spPTMode_()){ S._ptOrder2=null; S._ptW2={}; S._ptColsOn=null; try{ localStorage.removeItem('qs_ptcolcfg'); }catch(e){}
     ptOrder2_(); spColChips_(); spRenderHead_(); spFilter(); toast('Đã đặt lại cột bảng công tác'); return; }
-  S._spOrder=null; S._spW={}; S._spCols=null; try{ localStorage.removeItem('qs_spcolcfg'); }catch(e){}
-  S._spCols={thumb:1,ten:1,duyet:1,sku:1,thuong_hieu:1,hang_muc:1,
-    cong_suat_w:1,nhiet_do_mau_k:1,cri:1,goc_chieu_deg:1,giaDaiLy:1};
+  S._spOrder=null; S._spW={}; S._spCols=null; S._spColsNganh=null;
+  try{ localStorage.removeItem('qs_spcolcfg'); }catch(e){}
+  spColsSync_();
   spOrder_(); spColChips_(); spRenderHead_(); spFilter(); toast('Đã đặt lại cột bảng sản phẩm'); }
 /* Nội dung dài hơn bề rộng cột -> khi bấm vào ô, ô tự nới rộng đè lên cột bên cạnh
    để đọc và sửa trọn vẹn; rời ô là thu lại như cũ.                              */
@@ -2096,6 +2153,13 @@ function spFltPrice(){ var f=S._spFilters=S._spFilters||{}; var mn=document.getE
   f.min=mn?(Number(mn.value)||0):0; f.max=mx?(Number(mx.value)||0):0; spAfterFlt_(); }
 function spFltReset(){ S._spFilters={watt:{},kelvin:{},angle:{},cri:{}}; spAfterFlt_(); spBoLocPop_(); }
 function spSpecs_(p){ var out=[];
+  if(nganhCuaSP_(p)==='vs'){                       // thiết bị vệ sinh: chip theo thông số của ngành
+    if(p.kichThuocVS) out.push('<span class="spec">'+esc(p.kichThuocVS)+'</span>');
+    if(p.heThongXa) out.push('<span class="spec k">'+esc(p.heThongXa)+'</span>');
+    if(p.luongNuocXa) out.push('<span class="spec">'+esc(p.luongNuocXa)+'</span>');
+    if(p.mauSac) out.push('<span class="spec">'+esc(p.mauSac)+'</span>');
+    return out.join('')||'<span class="muted">—</span>';
+  }
   if(p.congSuat) out.push('<span class="spec">'+esc(p.congSuat)+'</span>');
   if(p.nhietDo) out.push('<span class="spec k">'+esc(p.nhietDo)+'</span>');
   if(p.cri) out.push('<span class="spec">CRI '+esc(p.cri)+'</span>');
@@ -2548,6 +2612,7 @@ function spVarToggle_(k){
 }
 function spFilter(){
   var PT=spPTMode_();
+  if(!PT){ var _ngTruoc=S._spColsNganh; spColsSync_(); if(_ngTruoc!==S._spColsNganh){ _spColCache=null; S._spOrder=null; } }
   var card=document.querySelector('.sp-card');
   if(card){
     if(PT) card.classList.add('ptmode');
@@ -2917,6 +2982,10 @@ var DB_LABEL2COL_={
   'TƯƠNG THÍCH ĐIỀU KHIỂN':'dieu_khien','DÒNG RA TỐI ĐA (mA)':'dong_ra_max_ma','BẢO HÀNH (năm)':'bao_hanh_nam','ĐƠN VỊ TÍNH':'dvt',
   'GIÁ BÁN LẺ':'gia_ban_le','CHIẾT KHẤU ĐẠI LÝ (%)':'ck_dai_ly_pct','ẢNH SẢN PHẨM':'anh_sp','LINK DATASHEET':'link_datasheet',
   'TRẠNG THÁI':'trang_thai','GHI CHÚ':'ghi_chu',
+  // ---- Ngành THIẾT BỊ VỆ SINH (db/thiet_bi_ve_sinh.sql) ----
+  'NGÀNH HÀNG':'nganh','KÍCH THƯỚC':'kich_thuoc','HỆ THỐNG XẢ':'he_thong_xa',
+  'LƯỢNG NƯỚC XẢ':'luong_nuoc_xa','THIẾT KẾ':'thiet_ke','TÂM XẢ':'tam_xa',
+  'ÁP LỰC NƯỚC':'ap_luc_nuoc','LƯU Ý':'luu_y','TÍNH NĂNG':'tinh_nang',
   'GIÁ ĐẠI LÝ':'gia_dai_ly'   // chỉ HIỂN THỊ: cột tự tính, server bỏ qua khi lưu
 };
 var SP_COL2LABEL_={}; Object.keys(DB_LABEL2COL_).forEach(function(k){ SP_COL2LABEL_[DB_LABEL2COL_[k]]=k; });
@@ -3107,7 +3176,7 @@ async function spEditModal(i){
   var imgsRaw=String(raw.anh_sp||'').split('\n').map(function(s){return s.trim();}).filter(Boolean);
   S._imgMain=imgsRaw[0]||''; S._imgList=imgsRaw.slice(1);
   // ĐẦY ĐỦ trường, chia nhóm y hệt form Nhập dữ liệu
-  var fields=DB_GROUPS.map(function(gr){
+  var fields=groupsCuaSP_(p).map(function(gr){
     var inner=gr.f.map(function(f){ return speField_(f, raw); }).join('');
     if(!inner) return '';
     return '<div class="spe-grp"><div class="spe-grp-h">'+esc(gr.g)+'</div><div class="spe-fields">'+inner+'</div></div>';
@@ -5727,8 +5796,51 @@ var DB_GROUPS=[
     ['GHI CHÚ','Ghi chú','area',0] ]}
 ];
 var DB_FLAT=[]; DB_GROUPS.forEach(function(gr){ gr.f.forEach(function(f){ DB_FLAT.push(f); }); });
+
+/* ═══ NGÀNH THIẾT BỊ VỆ SINH (hạng mục 3.2.5) ═══
+   Bộ trường bám đúng sheet "Thiết bị vệ sinh" của file mẫu:
+     · Key Product Info  -> Kích thước · Màu · Hệ thống xả · Lượng nước xả · Thiết kế
+                            · Tâm xả · Áp lực nước · Lưu ý · Dòng SP · Hạng mục
+     · THÔNG TIN CHÍNH    (cột bảng bóc tách) = Màu · Hệ thống xả · Thiết kế · Dòng SP · Hạng mục · Bảo hành
+     · THÔNG SỐ THIẾT KẾ  (cột bảng bóc tách) = Kích thước · Lượng nước xả · Tâm xả · Áp lực nước · Lưu ý
+   Hai cột gộp do SERVER ghép (store_supa.prodToObj) nên bảng bóc tách,
+   báo giá và Excel đều ra cùng một nội dung.                                        */
+var DB_GROUPS_VS=[
+  {g:'Thông tin cơ bản', f:[
+    ['THƯƠNG HIỆU','Thương hiệu','text',1],['NHÀ CUNG CẤP','Nhà cung cấp','text',1],
+    ['HẠNG MỤC','Hạng mục','sel',1,['Bồn cầu','Nắp rửa điện tử','Lavabo','Vòi lavabo','Sen tắm','Bồn tắm','Bồn tiểu','Chậu rửa','Phụ kiện vệ sinh','Thiết bị khác']],
+    ['DÒNG SẢN PHẨM','Dòng sản phẩm','text',1,null,'VD: Bồn cầu treo tường'],
+    ['NHÓM SẢN PHẨM','Nhóm sản phẩm','text',0,null,'Để trống = lấy theo Dòng sản phẩm'],
+    ['TÊN SẢN PHẨM','Tên sản phẩm','text',1],['MÃ SẢN PHẨM','Mã sản phẩm','text',1] ]},
+  {g:'Thông tin giá bán', note:'Giá đại lý tự tính = Giá bán lẻ × (1 − %Chiết khấu).', f:[
+    ['GIÁ BÁN LẺ','Giá bán lẻ','num',1],['CHIẾT KHẤU ĐẠI LÝ (%)','%Chiết khấu','num',1],['GIÁ ĐẠI LÝ','Giá đại lý','calc',0] ]},
+  {g:'Key Product Info (Thông tin chính)', note:'Màu · Hệ thống xả · Thiết kế lên cột "Thông tin chính" của bảng bóc tách.', f:[
+    ['MÀU SẮC','Màu','text',1,null,'VD: Trắng mờ'],
+    ['HỆ THỐNG XẢ','Hệ thống xả','sel',0,['Tornado','Xoáy','Xả thẳng','Washdown','Siphon'],'VD: Tornado'],
+    ['THIẾT KẾ','Thiết kế','text',0,null,'VD: Thân kín, dáng chữ D'] ]},
+  {g:'Thông số thiết kế', note:'Bốn dòng dưới lên cột "Thông số thiết kế" của bảng bóc tách.', f:[
+    ['KÍCH THƯỚC','Kích thước','text',1,null,'VD: L580 x W380 x H335 (mm)'],
+    ['LƯỢNG NƯỚC XẢ','Lượng nước xả','text',0,null,'VD: 4.5/3L'],
+    ['TÂM XẢ','Tâm xả','text',0,null,'VD: 220 mm'],
+    ['ÁP LỰC NƯỚC','Áp lực nước','text',0,null,'VD: 0.05 ~ 0.75 MPa'],
+    ['LƯU Ý','Lưu ý','text',0,null,'VD: Không được kết hợp với van xả trực tiếp'] ]},
+  {g:'Tính năng', note:'Mỗi dòng một tính năng — hiện ở phần Thông tin sản phẩm (mở rộng).', f:[
+    ['TÍNH NĂNG','Tính năng','area',0,null,'• Men sứ chống dính CEFIONTECT\n• Hệ thống xả Tornado siêu êm'] ]},
+  {g:'Thương mại', f:[
+    ['BẢO HÀNH (năm)','Bảo hành (năm)','num',0],
+    ['ĐƠN VỊ TÍNH','Đơn vị tính','sel',1,['Cái','Bộ','Chiếc']],
+    ['TRẠNG THÁI','Trạng thái','sel',0,['Đang kinh doanh','Ngưng kinh doanh','Đặt hàng']],
+    ['LINK DATASHEET','Link tài liệu kỹ thuật','text',0,null,'Dán link PDF catalogue / datasheet'],
+    ['GHI CHÚ','Ghi chú','area',0] ]}
+];
+var DB_FLAT_VS=[]; DB_GROUPS_VS.forEach(function(gr){ gr.f.forEach(function(f){ DB_FLAT_VS.push(f); }); });
+/* Ngành hàng đang chọn ở trang Nhập dữ liệu -> bộ trường / bộ nhóm tương ứng */
+function impGroups_(){ return impLoai_()==='vs'?DB_GROUPS_VS:DB_GROUPS; }
+function impFlat_(){ return impLoai_()==='vs'?DB_FLAT_VS:DB_FLAT; }
+function nganhCuaSP_(p){ return (p&&p.nganh==='vs')?'vs':'den'; }
+function groupsCuaSP_(p){ return nganhCuaSP_(p)==='vs'?DB_GROUPS_VS:DB_GROUPS; }
 function dbInput(f){
-  var i=DB_FLAT.indexOf(f), lark=f[0], label=f[1], type=f[2], req=f[3], opts=f[4]||[];
+  var i=impFlat_().indexOf(f), lark=f[0], label=f[1], type=f[2], req=f[3], opts=f[4]||[];
   var ph=f[5]||label;                       // gợi ý nhập riêng (nếu có)
   var id='dbf_'+i, star=req?' <span style="color:#c33">*</span>':'', inner;
   var trg=(lark==='GIÁ BÁN LẺ'||lark==='CHIẾT KHẤU ĐẠI LÝ (%)')?' oninput="dbCalcDaiLy()"':'';
@@ -5738,7 +5850,7 @@ function dbInput(f){
   else inner='<input id="'+id+'"'+(type==='num'?' type="number"':'')+trg+' placeholder="'+esc(ph)+'">';
   return '<div class="field"><label>'+esc(label)+star+'</label>'+inner+'</div>';
 }
-function dbIdOf(label){ for(var i=0;i<DB_FLAT.length;i++) if(DB_FLAT[i][0]===label) return 'dbf_'+i; return ''; }
+function dbIdOf(label){ var fl=impFlat_(); for(var i=0;i<fl.length;i++) if(fl[i][0]===label) return 'dbf_'+i; return ''; }
 function dbCalcDaiLy(){
   var ge=document.getElementById(dbIdOf('GIÁ BÁN LẺ')), ce=document.getElementById(dbIdOf('CHIẾT KHẤU ĐẠI LÝ (%)')), oe=document.getElementById(dbIdOf('GIÁ ĐẠI LÝ'));
   if(!oe) return; var g=Number(ge&&ge.value)||0, ck=Number(ce&&ce.value)||0;
@@ -5977,7 +6089,7 @@ function nowIsoClient_(){ try{ return new Date().toISOString(); }catch(e){ retur
 function impLoai_(){ return S._impLoai||'sp'; }
 function impSetLoai(v){ S._impLoai=v; renderImport(); }
 // Chọn hạng mục để nhập — gộp thẳng vào ô "Ngành hàng" (trước đây là 1 hàng tab riêng)
-var IMP_LOAI=[['sp','Thiết bị đèn · sản phẩm'],['pt','Xây dựng · công tác phần thô']];
+var IMP_LOAI=[['sp','Thiết bị đèn · sản phẩm'],['vs','Thiết bị vệ sinh · sản phẩm'],['pt','Xây dựng · công tác phần thô']];
 function impNganhSel_(){
   var cur=impLoai_();
   return '<div class="imp-nganh"><label>Ngành hàng</label>'
@@ -5992,14 +6104,16 @@ function renderImport(){
   var box=document.getElementById('v-import');
   var form='<div class="dbwrap">'
     +imgSection()
-    +DB_GROUPS.map(function(gr){
+    +impGroups_().map(function(gr){
       return dbCard_(gr.g, DB_GICON[gr.g]||'doc', gr.note, '<div class="dbgrid">'+gr.f.map(dbInput).join('')+'</div>');
     }).join('')
     +dbCard_('Nhập biến thể (tuỳ chọn)','sliders','Nhập nhiều giá trị cách nhau bằng dấu phẩy — hệ thống tạo 1 sản phẩm cho MỖI tổ hợp (cùng mã SP, khác thông số).',
       '<div class="dbgrid">'
-      +'<div class="field"><label>Nhiệt độ màu (K)</label><input id="varKelvin" placeholder="VD: 3000, 4000, 6500" oninput="varPreview_()"></div>'
-      +'<div class="field"><label>Công suất (W)</label><input id="varWatt" placeholder="VD: 7, 9, 12" oninput="varPreview_()"></div>'
-      +'<div class="field"><label>Góc chiếu (°)</label><input id="varAngle" placeholder="VD: 24, 36, 60" oninput="varPreview_()"></div>'
+      // Ba trục dưới chỉ có nghĩa với ĐÈN — ngành vệ sinh chỉ tách biến thể theo MÀU
+      +((impLoai_()==='vs')?''
+        :('<div class="field"><label>Nhiệt độ màu (K)</label><input id="varKelvin" placeholder="VD: 3000, 4000, 6500" oninput="varPreview_()"></div>'
+         +'<div class="field"><label>Công suất (W)</label><input id="varWatt" placeholder="VD: 7, 9, 12" oninput="varPreview_()"></div>'
+         +'<div class="field"><label>Góc chiếu (°)</label><input id="varAngle" placeholder="VD: 24, 36, 60" oninput="varPreview_()"></div>'))
       +'<div class="field"><label>Màu sắc</label><input id="varColor" placeholder="VD: Đen, Trắng, Vàng" oninput="varPreview_()"></div>'
       +'</div><div class="var-note" id="varNote">Bỏ trống = chỉ tạo 1 sản phẩm theo thông số đã nhập ở trên.</div>')
     +dbCard_('Ghi danh vào dự án','building','Tuỳ chọn — đưa sản phẩm này vào một dự án ngay sau khi lưu vào Database.',
@@ -6408,7 +6522,8 @@ function varPreview_(){
 }
 async function tdSave(btn){
   var data={};
-  DB_FLAT.forEach(function(f,i){ var e=document.getElementById('dbf_'+i); if(e){ var v=(e.value||'').trim(); if(v) data[f[0]]=v; } });
+  impFlat_().forEach(function(f,i){ var e=document.getElementById('dbf_'+i); if(e){ var v=(e.value||'').trim(); if(v) data[f[0]]=v; } });
+  data['NGÀNH HÀNG']=(impLoai_()==='vs')?'vs':'den';        // đóng dấu ngành -> SP về đúng đề mục trên cây
   var ten=String(data['TÊN SẢN PHẨM']||'').trim(); if(!ten){ toast('Nhập Tên sản phẩm'); return; }
   delete data['GIÁ ĐẠI LÝ']; // cột tự tính (generated) — không ghi
   if(!data['ĐƠN VỊ TÍNH']) data['ĐƠN VỊ TÍNH']='Cái';

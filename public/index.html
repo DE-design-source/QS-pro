@@ -5001,6 +5001,11 @@ table.pt tr.frzrow>td{background:#f7fafd!important;box-shadow:inset 0 -1px 0 var
 table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
 #ptWrap td.fr-hit{background:#fff3bf!important;box-shadow:inset 0 0 0 1px #f0c000}
 #ptWrap td.fr-hit-cur{background:#ffe08a!important;box-shadow:inset 0 0 0 2px #e0a800}
+
+/* Tính năng sản phẩm (ngành Thiết bị vệ sinh) — gạch đầu dòng gọn trong panel chi tiết */
+.pd-bullets{display:flex;flex-direction:column;gap:5px;padding:2px 0 4px}
+.pd-bl{position:relative;padding-left:15px;font-size:12px;line-height:1.5;color:#425061}
+.pd-bl::before{content:'';position:absolute;left:4px;top:8px;width:4px;height:4px;border-radius:50%;background:var(--blue)}
 </style>
 
 <!-- ===== TOP NAV ===== -->
