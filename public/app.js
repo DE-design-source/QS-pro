@@ -3411,13 +3411,7 @@ function toggleTree(){ var p=document.getElementById('treePop'); p.style.display
    tab kia lại phải chọn lại. Nay tất cả đọc/ghi chung một chỗ: S.hmNode.
    Chọn ở đâu cũng được, mọi tab đang mở tự cập nhật theo, và nhớ lại ở lần mở sau. */
 function hmGet_(){ return S.hmNode||''; }                    // '' = tất cả hạng mục
-function hmTen_(code){ return code?((code+'. '+(nodeName(code)||code))):'Tất cả hạng mục'; }
-function hmBtnSync_(){
-  var b=document.getElementById('hmBtn'); if(!b) return;
-  var code=hmGet_();
-  b.classList.toggle('on', !!code);
-  b.innerHTML=icon('layers',14)+'<span class="hm-lbl">'+esc(hmTen_(code))+'</span><i class="hm-car">▾</i>';
-}
+function hmBtnSync_(){}   /* không còn nút riêng trên thanh trên — mỗi tab dùng ô chọn sẵn có của mình */
 function viewOn_(id){ var v=document.getElementById(id); return !!(v && v.classList.contains('on')); }
 function hmSet_(code, tuTab){
   code=String(code||'');
@@ -3451,36 +3445,6 @@ function hmSet_(code, tuTab){
   if(viewOn_('v-chiphi') && typeof renderChiphi==='function') renderChiphi();
   if(viewOn_('v-muahang') && typeof renderMuahang==='function') renderMuahang();
 }
-/* Bảng chọn hạng mục ở thanh trên — dùng chung cho mọi tab */
-function hmPop_(e){
-  if(e&&e.stopPropagation) e.stopPropagation();
-  var id='hmPop'; if(document.getElementById(id)){ hmPopClose_(); return; }
-  var pop=document.createElement('div'); pop.className='fltpop bgtree'; pop.id=id;
-  var nodes=TREE.filter(function(t){ return t[0]!=='X'; });
-  var cur=hmGet_();
-  pop.innerHTML='<div class="bgt-h"><b>Chọn hạng mục</b><span>dùng chung cho mọi tab</span>'
-      +'<button class="colpop-x" onclick="hmPopClose_()">✕</button></div>'
-    +'<div class="bgt-b">'
-      +'<div class="bgt-i lvl1'+(cur?'':' on')+'" onclick="hmPick_(\'\')"><span class="nm">Tất cả hạng mục</span>'
-        +'<span class="rd'+(cur?'':' on')+'"></span></div>'
-      +nodes.map(function(t){
-        var on=(cur===t[0]), n=(typeof nodeCount==='function')?nodeCount(t[0]):0;
-        return '<div class="bgt-i lvl'+t[2]+(on?' on':'')+'" onclick="hmPick_(\''+esc(t[0])+'\')">'
-          +'<span class="nm">'+esc(t[0]+'. '+t[1])+'</span>'
-          +'<span class="cn">'+(n?'['+pad2(n)+']':'')+'</span>'
-          +'<span class="rd'+(on?' on':'')+'"></span></div>';
-      }).join('')
-    +'</div>';
-  document.body.appendChild(pop);
-  var b=document.getElementById('hmBtn');
-  if(b){ var r=b.getBoundingClientRect(), w=pop.offsetWidth||330, h=pop.offsetHeight;
-    var top=r.bottom+6; if(top+h>window.innerHeight-10) top=Math.max(10, r.top-h-6);
-    pop.style.top=top+'px'; pop.style.left=Math.max(8,Math.min(r.left, window.innerWidth-w-10))+'px'; }
-  setTimeout(function(){ document.addEventListener('mousedown',hmOutside_); },0);
-}
-function hmOutside_(e){ if(e.target.closest('#hmPop')||e.target.closest('#hmBtn')) return; hmPopClose_(); }
-function hmPopClose_(){ var p=document.getElementById('hmPop'); if(p) p.remove(); document.removeEventListener('mousedown',hmOutside_); }
-function hmPick_(code){ hmPopClose_(); hmSet_(code); }
 function hmInit_(){
   var luu=''; try{ luu=localStorage.getItem('qs_hm')||''; }catch(e){}
   S.hmNode=luu||S.node||'';
