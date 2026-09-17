@@ -117,7 +117,12 @@ function rawCols_(r) {
   });
   return o;
 }
-let _cache = null, _cacheAt = 0;
+/* Cache danh mục SP — PHẢI tách theo công ty: getProducts() lọc theo công ty đang
+   đăng nhập và còn đóng dấu yêu thích / combo của chính công ty đó. Dùng chung một
+   ô nhớ cho mọi công ty sẽ khiến công ty B nhận danh mục của công ty A. */
+let _cache = {}, _cacheAt = {};
+function _ckey_() { try { return String(tenant.tenantId() || '_all'); } catch (e) { return '_all'; } }
+function _cacheClear_() { _cache = {}; _cacheAt = {}; }
 // Công ty có được dùng kho SP chung của Dezon không? -> trả id công ty Dezon
 async function spChungId_() {
   const t = tenant.tenantId(); if (!t) return null;          // super admin xem toàn hệ thống
@@ -148,7 +153,7 @@ async function getProducts() {
   } catch (e) { /* chưa có cột dung_sp_dezon -> bỏ qua */ }
   await stampYeuThich_(out);         // đánh dấu sản phẩm yêu thích của công ty
   await stampCombo_(out);            // đếm số SP đi kèm (combo)
-  _cache = out; _cacheAt = Date.now();
+  _cache[_ckey_()] = out; _cacheAt[_ckey_()] = Date.now();
   return out;
 }
 // Chặn sửa/xoá sản phẩm thuộc KHO CHUNG (không phải của công ty mình)
@@ -159,14 +164,18 @@ async function guardSpChung_(key) {
   if (r && String(r.cong_ty_id) !== String(t))
     throw new Error('Sản phẩm thuộc kho chung của Dezon — không sửa/xoá được. Hãy tạo bản sao riêng cho công ty bạn.');
 }
-async function getProductsCached() { if (_cache && Date.now() - _cacheAt < 300000) return _cache; return getProducts(); }
+async function getProductsCached() {
+  const k = _ckey_();
+  if (_cache[k] && Date.now() - (_cacheAt[k] || 0) < 300000) return _cache[k];
+  return getProducts();
+}
 async function getCatalogSheets() {
   const prods = await getProductsCached();
   const seen = {}, out = [];
   prods.forEach(function (p) { var g = p.nhom; if (g && !seen[g]) { seen[g] = 1; out.push(g); } });
   return out;
 }
-async function buildCatalog() { _cache = null; const p = await getProducts(); return { count: p.length }; }
+async function buildCatalog() { _cacheClear_(); const p = await getProducts(); return { count: p.length }; }
 
 /*** ===== DỰ ÁN (du_an) ===== ***/
 const PROJ_MAP = { ten: 'ten_du_an', khachHang: 'khach_hang', diaChi: 'dia_chi', sdt: 'sdt', trangThai: 'trang_thai',
@@ -448,7 +457,7 @@ async function saveDbProduct(actor, data, opts) {
       if (who && _hasWhoCol !== false) { row.nguoi_sua = who; row.ngay_cap_nhat = new Date().toISOString(); }
       try { await supa.update('db_san_pham', supa.eq('id', ex[0].id), row); }
       catch (e) { if (whoColMissing_(e)) { delete row.nguoi_sua; await supa.update('db_san_pham', supa.eq('id', ex[0].id), row); } else throw colErr_(e); }
-      _cache = null;
+      _cacheClear_();
       await spHistory_(actor, ma, [{ field: 'CẬP NHẬT (nhập liệu)', old: '', new: ten }]);
       if (!opts.noAudit) await logAudit_(actor, 'cap_nhat_sp', 'Cập nhật SP ' + ma + ' (' + ten + ') qua form Nhập dữ liệu');
       return { updated: true, ma: ma, ten: ten, id: ex[0].id };
@@ -461,7 +470,7 @@ async function saveDbProduct(actor, data, opts) {
     if (whoColMissing_(e)) { delete row.nguoi_tao; delete row.ngay_tao; _hasWhoCol = false; res = await supa.insert('db_san_pham', row); }
     else throw colErr_(e);
   }
-  _cache = null;
+  _cacheClear_();
   await spHistory_(actor, ma || ten, [{ field: 'TẠO SẢN PHẨM', old: '', new: ten + (who ? ' (bởi ' + who + ')' : '') }]);
   if (!opts.noAudit) await logAudit_(actor, 'them_sp', 'Thêm SP mới ' + (ma || '') + ' (' + ten + ')');
   return { created: true, ma: ma, ten: ten, id: res && res[0] && res[0].id };
@@ -473,7 +482,7 @@ async function deleteDbProduct(actor, key) {
   key = s(key).trim(); if (!key) throw new Error('Thiếu mã/ID sản phẩm.');
   const cur = await getDbProduct(key);
   const filter = /^\d+$/.test(key) ? supa.eq('id', key) : supa.eq('ma_sp', key);
-  await supa.remove('db_san_pham', filter); _cache = null;
+  await supa.remove('db_san_pham', filter); _cacheClear_();
   if (cur) {
     try {
       await supa.insert('db_san_pham_history', { ma_sp: s(cur.ma_sp), field: 'XOÁ SẢN PHẨM',
@@ -547,7 +556,7 @@ async function updateDbProductTracked(actor, key, data, opts) {
   // CHỈ cập nhật ĐÚNG dòng đang sửa (trước đây eq('ma_sp') -> ghi đè MỌI biến thể cùng mã -> lỗi trùng khoá)
   try { await supa.update('db_san_pham', supa.eq('id', cur.id), row); }
   catch (e) { if (whoColMissing_(e)) { _hasWhoCol = false; delete row.nguoi_sua; await supa.update('db_san_pham', supa.eq('id', cur.id), row); } else throw colErr_(e); }
-  _cache = null;
+  _cacheClear_();
   const who = (actor && actor.u) || 'ẩn danh';
   try {
     await supa.insert('db_san_pham_history', changes.map(function (c) {
@@ -595,7 +604,7 @@ async function setSpDuyet(actor, keys, approve) {
       (approve ? 'Duyệt ' : 'Bỏ duyệt ') + ok + ' sản phẩm: ' +
       hist.slice(0, 8).map(function (h) { return h.ma_sp || h.ten; }).join(', ') + (hist.length > 8 ? '…' : ''));
   }
-  _cache = null;
+  _cacheClear_();
   const out = { ok: ok };
   if (errs.length) out.errors = errs;
   return out;
@@ -673,7 +682,7 @@ async function setYeuThich(actor, keys, on) {
       ok++;
     } catch (e) { if (errs.length < 5) errs.push({ key: k, error: e.message }); }
   }
-  _cache = null;
+  _cacheClear_();
   const out = { ok: ok };
   if (errs.length) out.errors = errs;
   return out;
@@ -763,7 +772,7 @@ async function setCombo(actor, key, items) {
   } catch (e) { throw tblErr_(e, 'sp_combo', 'db/sp_combo.sql'); }
   await spHistory_(actor, s(cur.ma_sp), [{ field: 'SẢN PHẨM ĐI KÈM', old: '', new: items.length ? (items.length + ' sản phẩm') : 'Bỏ hết' }]);
   await logAudit_(actor, 'sua_combo', 'Đặt ' + items.length + ' sản phẩm đi kèm cho ' + s(cur.ma_sp) + ' (' + s(cur.ten_sp) + ')');
-  _cache = null;
+  _cacheClear_();
   return { ok: true, count: items.length };
 }
 /*** ===== BIẾN THỂ: nhóm do người dùng tự gom ===== ***/
@@ -816,7 +825,7 @@ async function setBienThe(actor, key, ids) {
   }
   await spHistory_(actor, s(cur.ma_sp), [{ field: 'BIẾN THỂ', old: '', new: list.length ? (list.length + ' sản phẩm cùng nhóm') : 'Bỏ nhóm' }]);
   await logAudit_(actor, 'sua_bien_the', 'Gom ' + list.length + ' biến thể cho ' + s(cur.ma_sp) + ' (' + s(cur.ten_sp) + ')');
-  _cache = null;
+  _cacheClear_();
   return { ok: true, count: list.length };
 }
 async function getProductHistory(ma) {
@@ -896,7 +905,7 @@ async function importCommit(actor, products) {
     try { const r = await saveDbProduct(actor, data, { noAudit: true }); if (r && r.updated) updated++; else inserted++; }
     catch (e) { errors.push({ ten: s(data['TÊN SẢN PHẨM']), error: e && e.message }); }
   }
-  _cache = null;
+  _cacheClear_();
   await logAudit_(actor, 'nhap_sp', 'Nhập hàng loạt: thêm ' + inserted + ', cập nhật ' + updated +
     ' sản phẩm' + (errors.length ? ' (' + errors.length + ' lỗi)' : ''));
   const out = { inserted: inserted, updated: updated };

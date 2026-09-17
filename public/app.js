@@ -3435,11 +3435,17 @@ function hmSet_(code, tuTab){
     if(typeof spViewTabs_==='function') spViewTabs_();
     if(typeof spFilter==='function') spFilter();
   }
-  // --- Xuất báo giá: tích đúng hạng mục đang chọn (không chọn = xuất tất cả) ---
-  if(tuTab!=='bg'){
-    S.bgNodes={}; if(code) S.bgNodes[code]=1;
-    S.bgDeMuc=code||'__all__'; S.bgPage=1;
-    if(typeof bgVis==='function' && bgVis() && typeof drawBaogia==='function') drawBaogia();
+  /* --- Xuất báo giá: chỉ theo khi người dùng CHƯA tự tích nhiều hạng mục ---
+     Tích nhiều hạng mục là thao tác riêng của tab đó (xuất gộp nhiều phần);
+     nếu ghi đè thì đổi hạng mục ở tab khác sẽ âm thầm làm file xuất thiếu phần.
+     Lúc mở app (tuTab='init') cũng không đụng vào, giữ nếp cũ: chưa tích = xuất tất cả. */
+  if(tuTab!=='bg' && tuTab!=='init'){
+    var daTich=Object.keys(S.bgNodes||{}).filter(function(k){ return S.bgNodes[k]; });
+    if(daTich.length<2){
+      S.bgNodes={}; if(code) S.bgNodes[code]=1;
+      S.bgDeMuc=code||'__all__'; S.bgPage=1;
+      if(typeof bgVis==='function' && bgVis() && typeof drawBaogia==='function') drawBaogia();
+    }
   }
   // --- Các tab còn lại chỉ cần vẽ lại nếu đang mở ---
   if(viewOn_('v-chiphi') && typeof renderChiphi==='function') renderChiphi();
@@ -3500,7 +3506,7 @@ function hmInit_(){
   var luu=''; try{ luu=localStorage.getItem('qs_hm')||''; }catch(e){}
   S.hmNode=luu||S.node||'';
   hmBtnSync_();
-  if(luu) hmSet_(luu);
+  if(luu) hmSet_(luu,'init');
 }
 function pickNode(code){
   S.node=code;
@@ -4952,8 +4958,8 @@ function renderChiphi(){
   box.innerHTML='<div class="sechd"><h2>Chi phí</h2><span class="count">'+scope.length+'</span>'
       +'<span class="sp" style="flex:1"></span>'
       +'<span class="cp-hint">'+icon('sliders',13)+' Bấm thẳng vào ô để sửa giá NCC · CK · %LN · giá bán — số tính lại ngay</span></div>'
-    +stat
-    +cpToolbar_(rows)
+    +stat+hmPTNote_()
+    +cpToolbar_(rows, scope)
     +'<div class="dbcard cp-card">'+cpTableHtml_(keys,rows)+'</div>'
     +'<div class="tk-hbar cp-hbar" id="cpHBar" style="display:none"><div class="tk-hthumb" id="cpHThumb"></div></div>';
   markBlocks_('#v-chiphi table.cpflat');
@@ -5009,17 +5015,30 @@ function cpSetQ(v){ S._cpQ=v; renderChiphi();
 function cpSetFlt(v){ S._cpFlt=(S._cpFlt===v)?'':v; renderChiphi(); }
 function cpToggleGroup(){ S._cpGroup=!S._cpGroup; renderChiphi(); }
 /* ---------- thanh công cụ ---------- */
-function cpToolbar_(rows){
-  var soLo=(S.lines||[]).filter(function(l){ return (ttBan_(l)-ttVon_(l))<0; }).length;
-  var soChuaGia=(S.lines||[]).filter(function(l){ return !(Number(l.donGiaBan)>0); }).length;
-  var soChuaVon=(S.lines||[]).filter(function(l){ return !(Number(l.donGiaVon)>0); }).length;
+/* Phần thô (3.1) có bảng riêng, số liệu nằm ở tab Bóc tách chứ không nằm trong
+   danh sách dòng của dự án -> các trang đọc S.lines sẽ trống. Báo rõ cho người dùng
+   thay vì để bảng rỗng không lời giải thích. */
+function hmPTNote_(){
+  if(hmGet_()!=='3.1') return '';
+  return '<div class="hm-note">'+icon('layers',15)
+    +'<span><b>Hạng mục Phần thô</b> có bảng ước tính riêng — số liệu không nằm trong danh sách dòng của trang này. '
+    +'Xem và sửa ở tab <b>Bóc tách</b>, hoặc chọn hạng mục khác ở ô bên trên.</span>'
+    +'<button class="btn ghost xs" onclick="showTab(\'boc\')">Mở Bóc tách</button></div>';
+}
+function cpToolbar_(rows, scope){
+  // Đếm trên ĐÚNG phạm vi hạng mục đang xem — trước đây đếm cả dự án nên chip ghi
+  // "Tất cả 3" trong khi bảng chỉ có 2 dòng, bấm "Đang lỗ 1" lại ra bảng rỗng.
+  scope=scope||(S.lines||[]);
+  var soLo=scope.filter(function(l){ return (ttBan_(l)-ttVon_(l))<0; }).length;
+  var soChuaGia=scope.filter(function(l){ return !(Number(l.donGiaBan)>0); }).length;
+  var soChuaVon=scope.filter(function(l){ return !(Number(l.donGiaVon)>0); }).length;
   function chip(k,nhan,n,cls){
     if(!n && k) return '';
     return '<button class="cpchip'+(S._cpFlt===k?' on':'')+(cls?' '+cls:'')+'" onclick="cpSetFlt(\'' +k+ '\')">'
       +esc(nhan)+(n!=null?'<i>'+n+'</i>':'')+'</button>';
   }
   var loc='<div class="cp-flt">'
-    +'<button class="cpchip'+(!S._cpFlt?' on':'')+'" onclick="cpSetFlt(\'\')">Tất cả<i>'+(S.lines||[]).length+'</i></button>'
+    +'<button class="cpchip'+(!S._cpFlt?' on':'')+'" onclick="cpSetFlt(\'\')">Tất cả<i>'+scope.length+'</i></button>'
     +chip('lo','Đang lỗ',soLo,'warn')
     +chip('chuaGia','Chưa có giá bán',soChuaGia)
     +chip('chuaVon','Chưa có giá vốn',soChuaVon)
@@ -5027,7 +5046,7 @@ function cpToolbar_(rows){
   var tim='<div class="cp-search">'+icon('search',14)
     +'<input id="cpQ" value="'+esc(S._cpQ||'')+'" placeholder="Tìm tên · mã · thương hiệu · phòng…" oninput="cpSetQ(this.value)">'
     +((S._cpQ||'')?'<button class="cp-x" title="Xoá tìm kiếm" onclick="cpSetQ(\'\')">✕</button>':'')+'</div>';
-  var ket=(S._cpQ||S._cpFlt)?('<span class="cp-found">'+rows.length+' / '+(S.lines||[]).length+' dòng</span>'):'';
+  var ket=(S._cpQ||S._cpFlt)?('<span class="cp-found">'+rows.length+' / '+scope.length+' dòng</span>'):'';
   var hmBtn=hmSelect_('cpHmBtn');
   return '<div class="cp-bar">'+tim+loc+ket+'<span style="flex:1"></span>'+hmBtn
     +'<button class="btn ghost sm'+(S._cpGroup?' on':'')+'" onclick="cpToggleGroup()" title="Gom các dòng theo hạng mục và cộng tổng từng nhóm">'
@@ -5178,7 +5197,7 @@ function renderDuAn(){
   box.innerHTML='<div class="sechd"><h2>Sản phẩm trong dự án</h2><span class="count">'+daLines_.length+'</span><span class="sp" style="flex:1"></span>'
       +hmSelect_('daHmBtn')
       +'<span class="cp-hint">'+icon('building',13)+' '+esc(S.cur.ten||'')+' — bấm ô để sửa</span></div>'
-    +stat+colbar
+    +stat+hmPTNote_()+colbar
     +'<div class="dbcard cp-card"><div class="tbl-wrap"><table class="tk cpflat" style="min-width:'+totalW+'px;width:100%">'+colg+head+body+foot+'</table></div></div>';
   markBlocks_('#v-duan table.cpflat');
 }
@@ -5280,8 +5299,11 @@ function mhInfo(k,v){ S._mhInfo=S._mhInfo||{}; S._mhInfo[k]=v; if(v&&v.trim){ va
 function renderMuahang(){
   var box=document.getElementById('v-muahang');
   if(!S.cur){ box.innerHTML='<div class="empty" style="padding:26px;text-align:center">Chưa chọn dự án.</div>'; return; }
-  var code=S.node;
-  var lines=S.lines.filter(function(l){ return l.nhom===code || String(l.nhom||'').indexOf(code+'.')===0; });
+  // Chạy theo HẠNG MỤC dùng chung (trước đây bám S.node nên chọn "Tất cả hạng mục"
+  // mà trang vẫn chỉ hiện đúng đề mục đang bóc).
+  var code=hmGet_();
+  var lines=code?S.lines.filter(function(l){ var c=String(l.nhom||'');
+      return c===code || c.indexOf(code+'.')===0; }):(S.lines||[]).slice();
   var vatPct=Number(S.cur.vat)||0;
   var groups={}, order=[];
   lines.forEach(function(l){ var s=String(l.ncc||l.thuongHieu||'Khác').trim()||'Khác'; if(!groups[s]){groups[s]=[];order.push(s);} groups[s].push(l); });
@@ -5295,7 +5317,7 @@ function renderMuahang(){
     +stat('<span style="color:var(--blue)">'+money(grand)+'</span>','Tổng tiền (VAT)')+'</div>';
   var cards=S._mhGroups.map(function(g,gi){ return muahangCard(g, gi, vatPct); }).join('')
     || '<div class="empty" style="padding:34px;text-align:center;background:#fff;border:1px solid var(--line);border-radius:14px">Chưa có sản phẩm trong hạng mục này.<br>Vào tab <b>Bóc tách</b> thêm sản phẩm trước.</div>';
-  box.innerHTML=statbar+'<div class="imp-layout"><div class="mhcol">'+cards+'</div>'
+  box.innerHTML=statbar+hmPTNote_()+'<div class="imp-layout"><div class="mhcol">'+cards+'</div>'
     +'<div class="mhside">'+mhSummary(S._mhGroups,vatPct,grand)+mhDxPanel_()+'</div></div>';
   if(S._mhDxDA!==S.cur.maDA) mhLoadDx_();
 }
@@ -8302,7 +8324,13 @@ function ptAddFromLib(si,ii,quiet,dich){
   var tsec=PT_TEMPLATE[si]; if(!tsec) return; var a=tsec.items[ii]; if(!a) return;
   if(!S.cur){ toast('Chọn dự án trước khi thêm công tác vào bảng'); return; }
   ptEnsure();
-  var item=ptMakeItem_(tsec,a), sec, at;
+  var item=ptMakeItem_(tsec,a), sec, at, lechKieu=false;
+  // Chỉ chèn vào hạng mục đích khi CÙNG KIỂU nhập (item / area): dòng dựng theo kiểu
+  // của mẫu, thả vào hạng mục chạy kiểu khác thì các ô không khớp cột -> khối lượng,
+  // thành tiền đều rỗng. Khác kiểu -> về đúng hạng mục theo mẫu và báo cho người dùng.
+  if(dich && (S.phanTho||[])[dich.si] && String((S.phanTho[dich.si]||{}).mode||'')!==String(tsec.mode||'')){
+    lechKieu=true; dich=null;
+  }
   if(dich && (S.phanTho||[])[dich.si]){            // kéo thả: chèn vào đúng hạng mục + đúng vị trí
     sec=S.phanTho[dich.si];
     at=Math.max(0, Math.min((sec.items||[]).length, Number(dich.at)||0));
@@ -8315,7 +8343,9 @@ function ptAddFromLib(si,ii,quiet,dich){
   if(quiet) return;
   S._ptNew={si:S.phanTho.indexOf(sec), ii:at, t:Date.now()};   // cuộn tới + nháy như bảng đèn
   ptPersist(); renderPhanTho(); ptGotoNewRow_();
-  toast('Đã thêm: '+String(a[0]).split('\n')[0]);
+  toast(lechKieu
+    ? ('Đã thêm vào "'+String(sec.t).split('\n')[0]+'" — hạng mục bạn thả vào nhập theo kiểu khác nên không chèn vào đó được')
+    : ('Đã thêm: '+String(a[0]).split('\n')[0]));
 }
 /* Cuộn tới dòng vừa thêm ở bảng Phần thô + nháy nhẹ — dùng chung cách làm với bảng Bóc tách */
 var PT_NEW_MS=1350;
