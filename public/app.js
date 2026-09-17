@@ -3454,7 +3454,7 @@ function hmPop_(e, btnId){
   var id='hmPop'; if(document.getElementById(id)){ hmPopClose_(); return; }
   var cur=hmGet_(), pop=document.createElement('div');
   pop.className='fltpop bgtree'; pop.id=id;
-  pop.innerHTML='<div class="bgt-h"><b>Chọn hạng mục</b><span>dùng chung với Bóc tách · Danh sách SP · Xuất báo giá</span>'
+  pop.innerHTML='<div class="bgt-h"><b>Chọn hạng mục</b>'
       +'<button class="colpop-x" onclick="hmPopClose_()">✕</button></div>'
     +'<div class="bgt-b">'+TREE.filter(function(t){ return t[0]!=='X'; }).map(function(t){
         var on=(cur===t[0]), n=(typeof nodeCount==='function')?nodeCount(t[0]):0;
