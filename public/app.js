@@ -54,15 +54,18 @@ var TREE=[
 function nodeName(code){ for(var i=0;i<TREE.length;i++) if(TREE[i][0]===code) return TREE[i][1]; return code; }
 
 /* cột bảng bóc: key,label,default */
+/* Khối cột thương mại (Hình ảnh → Ghi chú) theo file mẫu của Dezon: LUÔN mở sẵn ở
+   MỌI hạng mục bóc tách. Người dùng vẫn tắt bớt được bằng chip cột, nhưng mặc định
+   là hiện đủ — trước đây một nửa khối này mặc định ẩn nên mỗi hạng mục nhìn một kiểu. */
 var COLS=[
   ['stt','STT',1],['khuVuc','Phòng',1],['maBanVe','Mã số bản vẽ',0],['nganh','Dòng sản phẩm',0],
   ['maSP','Mã sản phẩm',0],['ten','Tên sản phẩm',1],['thuongHieu','Thương hiệu',1],['ncc','Nhà cung cấp',0],
   ['moTa','Thông tin chính',1],['kichThuoc','Thông số thiết kế',1],['hinhAnh','Hình ảnh',1],['dvt','Đơn vị tính',1],
-  ['soLuong','Số lượng',1],['giaNCC','Giá bán lẻ',0],['chietKhau','Chiết khấu của đại lý (%)',0],
-  ['giaDaiLy','Giá đại lý',0],['lnPct','Lợi nhuận dự kiến (%)',0],['donGia','Giá bán',1],
-  ['ckKhach','Chiết khấu cho khách hàng (%)',0],['donGiaCK','Đơn giá',1],
-  ['markup','Markup (%) — LN/giá vốn',0],['margin','Margin (%) — LN/giá bán',0],['lnVnd','Lợi nhuận (VND)',0],
-  ['thanhTien','Thành tiền',0],['trangThai','Trạng thái',0],['ghiChu','Ghi chú',0]
+  ['soLuong','Số lượng',1],['giaNCC','Giá bán lẻ',1],['chietKhau','Chiết khấu của đại lý (%)',1],
+  ['giaDaiLy','Giá đại lý',1],['lnPct','Lợi nhuận dự kiến (%)',1],['donGia','Giá bán',1],
+  ['ckKhach','Chiết khấu cho khách hàng (%)',1],['donGiaCK','Đơn giá',1],
+  ['markup','Markup (%) — LN/giá vốn',1],['margin','Margin (%) — LN/giá bán',1],['lnVnd','Lợi nhuận (VND)',1],
+  ['thanhTien','Thành tiền',1],['trangThai','Trạng thái',1],['ghiChu','Ghi chú',1]
 ];
 COLS.forEach(function(c){ S.cols[c[0]]=!!c[2]; });
 // Theo Figma: mở sẵn Công suất/Nhiệt độ/Góc chiếu; thu gọn IP/CRI/Điện áp
