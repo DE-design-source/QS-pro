@@ -4611,7 +4611,15 @@ async function saveDraftInfo(btn){
 async function saveProgress(btn){ var v=Number(document.getElementById('pf_prog').value)||0;
   try{ var p=await api('updateProject',S.cur.maDA,{tienDo:v}); syncProj(p); renderCard(); renderDash&&renderDash(); toast('Đã cập nhật tiến độ '+v+'%'); }catch(e){ toast('Lỗi: '+e.message); } }
 async function pickProject(maDA){ S.cur=S.projects.filter(function(p){return p.maDA===maDA;})[0]; S.lines=await api('getLines',maDA)||[]; S._coverDA=null; renderAll(); renderProjSel&&renderProjSel(); showTab('boc'); }
-async function removeProject(maDA){ if(!confirm('Xoá bản nháp này?'))return; await api('deleteProject',maDA); if(S.cur&&S.cur.maDA===maDA)S.cur=null; projModalClose(); await boot(); renderDash(); }
+async function removeProject(maDA, ev){
+  if(ev&&ev.stopPropagation) ev.stopPropagation();
+  if(!confirm('Xoá bản nháp này?')) return;
+  try{ await api('deleteProject',maDA); }
+  catch(e){ toast('Lỗi xoá bản nháp: '+e.message); return; }      // trước đây lỗi API rơi im lặng
+  if(S.cur&&S.cur.maDA===maDA) S.cur=null;
+  try{ projModalClose(); }catch(e){}
+  await boot(); projRefreshAll_(); toast('Đã xoá bản nháp');
+}
 
 /* ===== DASHBOARD ===== */
 function card(t,n){ return '<div class="scard"><div class="n">'+n+'</div><div class="t">'+t+'</div></div>'; }
@@ -4640,29 +4648,66 @@ function draftListHtml(){
             :'<button class="btn blue xs" onclick="pickProject(\''+esc(p.maDA)+'\')">Dùng</button>')
         +'<button class="btn ghost xs iconbtn" title="Sửa tên bản nháp" onclick="renameDraft(\''+esc(p.maDA)+'\')">'+icon('edit',12)+'</button>'
         +'<button class="btn ghost xs iconbtn" title="Nhân bản bản nháp" onclick="duplicateDraft(\''+esc(p.maDA)+'\')">'+icon('copy',12)+'</button>'
-        +'<button class="btn ghost xs iconbtn" title="Xoá bản nháp" onclick="removeProject(\''+esc(p.maDA)+'\')">'+icon('trash',12)+'</button></div></div>';
+        +'<button class="btn ghost xs iconbtn" title="Xoá bản nháp" onclick="removeProject(\''+esc(p.maDA)+'\',event)">'+icon('trash',12)+'</button></div></div>';
     }).join('');
     return '<div class="proj-card2">'
       +'<div class="proj-head2 clickable" onclick="projInfoModal(\''+esc(g.drafts[0].maDA)+'\')" title="Bấm xem thông tin dự án"><span class="proj-ic">'+icon('building',17)+'</span>'
         +'<div class="proj-ht"><div class="proj-name">'+esc(g.name)+'</div>'
           +'<div class="proj-meta">'+esc(g.khachHang||'Chưa có khách hàng')+(g.sdt?' · '+esc(g.sdt):'')+'</div></div>'
         +'<span class="proj-count">'+g.drafts.length+' bản nháp</span></div>'
+      +'<button class="proj-del" title="Xoá cả dự án này (mọi bản nháp)" onclick="removeProjectGroup(\''+esc(g.drafts[0].maDA)+'\',event)">'+icon('trash',13)+'</button>'
       +'<div class="draft-list">'+drafts+'</div>'
-      +'<button class="btn ghost sm proj-add" onclick="addDraft('+gi+')">'+icon('plus',13)+' Thêm bản nháp</button></div>';
+      +'<button class="btn ghost sm proj-add" onclick="addDraft(\''+esc(g.drafts[0].maDA)+'\')">'+icon('plus',13)+' Thêm bản nháp</button></div>';
   }).join('') || '<div class="empty" style="padding:26px;text-align:center;color:var(--muted)">Chưa có dự án. Bấm <b>"Tạo dự án"</b> để bắt đầu.</div>';
   return '<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">'+icon('home',18)+'</span><h3>Danh sách dự án</h3>'
     +'<span class="ps2-badge">'+pad2(groups.length)+'</span><span class="sp" style="flex:1"></span>'
     +'<button class="btn blue sm" onclick="openCreate()">'+icon('plus',14)+' Tạo dự án</button></div>'
     +'<div class="dbcard-b"><div class="proj-grid">'+cards+'</div></div></div>';
 }
+/* Tìm dự án (nhóm bản nháp) theo MÃ của một bản nháp bất kỳ trong nhóm.
+   Trước đây các nút trên trang Dự án / Bảng điều khiển gọi theo CHỈ SỐ trong
+   S._projGroups — mà mảng này bị cả hai trang ghi đè, nên bấm "Thêm bản nháp"
+   ở thẻ này lại rơi vào dự án khác. Khoá theo mã thì không bao giờ lệch.        */
+function projGroupOf_(key){
+  key=String(key||''); if(!key) return null;
+  var gs=projectGroups();
+  for(var i=0;i<gs.length;i++){
+    for(var j=0;j<gs[i].drafts.length;j++) if(String(gs[i].drafts[j].maDA)===key) return gs[i];
+  }
+  return null;
+}
+// Vẽ lại MỌI trang có danh sách dự án (trước đây chỉ vẽ 1 trang -> trang kia còn nút cũ, bấm ra dự án sai)
+function projRefreshAll_(){
+  try{ if(viewOn_('v-dash') && typeof renderDash==='function') renderDash(); }catch(e){}
+  try{ if(viewOn_('v-project') && typeof renderProjects==='function') renderProjects(); }catch(e){}
+  try{ if(typeof renderProjSel==='function') renderProjSel(); if(typeof renderCard==='function') renderCard(); }catch(e){}
+}
 // Thêm 1 bản nháp (phương án báo giá mới) cho dự án đang có
-async function addDraft(gi){
-  var g=(S._projGroups||[])[gi]; if(!g) return;
+async function addDraft(key){
+  var g=projGroupOf_(key);
+  if(!g){ toast('Không tìm thấy dự án này — bấm F5 tải lại trang'); return; }
   try{
     var p=await api('createProject',{ten:g.name, khachHang:g.khachHang, sdt:g.sdt, diaChi:g.diaChi, vat:0});
-    S.cur=p; S.lines=[]; await boot(); renderDash(); renderProjects();
+    S.cur=p; S.lines=[]; await boot(); projRefreshAll_();
     toast('Đã thêm bản nháp mới cho "'+g.name+'"');
-  }catch(e){ toast('Lỗi: '+e.message); }
+  }catch(e){ toast('Lỗi thêm bản nháp: '+e.message); }
+}
+/* Xoá NHANH cả dự án (mọi bản nháp của nó) — nút ✕ ở góc thẻ dự án */
+async function removeProjectGroup(key, ev){
+  if(ev&&ev.stopPropagation) ev.stopPropagation();
+  var g=projGroupOf_(key);
+  if(!g){ toast('Không tìm thấy dự án này — bấm F5 tải lại trang'); return; }
+  var n=g.drafts.length;
+  if(!confirm('Xoá cả dự án "'+g.name+'" cùng '+n+' bản nháp?\n\nToàn bộ hạng mục đã bóc trong các bản nháp này sẽ mất và KHÔNG khôi phục được.')) return;
+  var loi=[];
+  for(var i=0;i<g.drafts.length;i++){
+    try{ await api('deleteProject', g.drafts[i].maDA); }
+    catch(e){ loi.push(g.drafts[i].maDA+': '+e.message); }
+  }
+  if(S.cur && g.drafts.some(function(d){ return d.maDA===S.cur.maDA; })) S.cur=null;
+  try{ projModalClose&&projModalClose(); }catch(e){}
+  await boot(); projRefreshAll_();
+  toast(loi.length?('Xoá xong '+(n-loi.length)+'/'+n+' bản — lỗi: '+loi[0]):('Đã xoá dự án "'+g.name+'" ('+n+' bản nháp)'));
 }
 // Nhân bản 1 bản nháp (copy toàn bộ hạng mục + tờ bìa sang bản nháp mới)
 // Nhân bản: popup chọn phần cần sao chép
@@ -4768,15 +4813,16 @@ function dashProjCard_(g){
       +(on?'<span class="dh-badge">'+icon('check',12)+' Đang dùng</span>':'<button class="dh-use" title="Mở bóc tách bản này" onclick="pickProject(\''+esc(p.maDA)+'\')">Dùng</button>')
       +'<button class="dh-ic" title="Sửa tên bản nháp" onclick="renameDraft(\''+esc(p.maDA)+'\')">'+icon('edit',13)+'</button>'
       +'<button class="dh-ic" title="Nhân bản bản nháp" onclick="duplicateDraft(\''+esc(p.maDA)+'\')">'+icon('copy',13)+'</button>'
-      +'<button class="dh-ic del" title="Xoá bản nháp" onclick="removeProject(\''+esc(p.maDA)+'\')">'+icon('trash',13)+'</button>'
+      +'<button class="dh-ic del" title="Xoá bản nháp" onclick="removeProject(\''+esc(p.maDA)+'\',event)">'+icon('trash',13)+'</button>'
       +'</div></div>';
   }).join('');
   return '<div class="dh-proj">'
     +'<div class="dh-proj-h" onclick="projInfoModal(\''+esc(g.drafts[0].maDA)+'\')" title="Xem thông tin dự án"><span class="dh-proj-ic">'+icon('building',16)+'</span>'
       +'<div class="dh-proj-t"><div class="dh-proj-n">'+esc(g.name)+'</div><div class="dh-proj-m">'+esc(g.khachHang||'Chưa có khách hàng')+(g.sdt?' · '+esc(g.sdt):'')+'</div></div>'
       +'<span class="dh-proj-c">'+g.drafts.length+' bản</span></div>'
+    +'<button class="proj-del" title="Xoá cả dự án này (mọi bản nháp)" onclick="removeProjectGroup(\''+esc(g.drafts[0].maDA)+'\',event)">'+icon('trash',13)+'</button>'
     +'<div class="dh-drafts">'+drafts+'</div>'
-    +'<button class="dh-adddraft" onclick="addDraft('+gi+')">'+icon('plus',13)+' Thêm bản nháp</button></div>';
+    +'<button class="dh-adddraft" onclick="addDraft(\''+esc(g.drafts[0].maDA)+'\')">'+icon('plus',13)+' Thêm bản nháp</button></div>';
 }
 /* Chọn cột — dùng chung mẫu nút + bảng chọn cho tab Chi phí và tab Dự án */
 function colPopMake_(id,btnId,title,keys,isOn,onToggle,onAll){

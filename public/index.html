@@ -5007,6 +5007,17 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
 .pd-bl{position:relative;padding-left:15px;font-size:12px;line-height:1.5;color:#425061}
 .pd-bl::before{content:'';position:absolute;left:4px;top:8px;width:4px;height:4px;border-radius:50%;background:var(--blue)}
 
+
+/* ═══ Nút xoá nhanh ở GÓC thẻ dự án (trang Dự án + Bảng điều khiển) ═══ */
+.proj-card2,.dh-proj{position:relative}
+.proj-del{position:absolute;top:8px;right:8px;z-index:3;width:26px;height:26px;padding:0;border-radius:8px;
+  display:inline-flex;align-items:center;justify-content:center;border:1px solid transparent;background:transparent;
+  color:#b9c2cc;cursor:pointer;opacity:0;transition:opacity .13s,color .13s,background .13s,border-color .13s}
+.proj-card2:hover .proj-del,.dh-proj:hover .proj-del,.proj-del:focus-visible{opacity:1}
+/* chừa chỗ cho nút xoá, khỏi đè lên nhãn "N bản" ở cuối hàng tiêu đề */
+.dh-proj .dh-proj-h,.proj-card2 .proj-head2{padding-right:34px}
+.proj-del:hover{color:var(--red,#e5484d);border-color:#f3c4c6;background:#fff5f5}
+@media(max-width:900px){ .proj-del{opacity:1} }
 </style>
 
 <!-- ===== TOP NAV ===== -->
