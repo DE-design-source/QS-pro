@@ -4934,9 +4934,10 @@ body.keo-ngang,body.keo-ngang *{cursor:col-resize!important;user-select:none!imp
 .citem .cfav:hover{color:var(--fav)}
 .citem .cfav.on{color:var(--fav)}
 .citem .cfav.on .ico{fill:currentColor;stroke-width:1.4}
-.citem .cacts>.add{color:#b6c0cc}
-.citem .cacts>.add:hover{color:var(--blue);background:none;border:none;box-shadow:none}
-.citem .cacts>.add:active{background:none;border:none}
+/* Riêng nút ＋ GIỮ khung tròn (nhẹ, viền mảnh) — tim thì để trần cho tối giản */
+.citem .cacts>.add{width:26px;height:26px;border:1px solid #e4eaf2;background:#fff;color:#93a0b0}
+.citem .cacts>.add:hover{border-color:#bcd3f5;background:#f5f9ff;color:var(--blue);box-shadow:none}
+.citem .cacts>.add:active{background:#eaf2ff;border-color:var(--blue);color:var(--blue)}
 @media(max-width:900px){ .citem .cacts>button{width:34px;height:34px} .citem .cacts>button .ico{width:17px;height:17px} }
 
 /* ═══ SẢN PHẨM LIÊN QUAN: 2 tab Đi kèm (combo) / Biến thể ═══ */
