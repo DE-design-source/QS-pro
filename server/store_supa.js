@@ -448,7 +448,12 @@ async function saveDbProduct(actor, data, opts) {
   // Nhờ vậy cùng mã nhưng khác nhiệt độ màu sẽ là 2 SẢN PHẨM RIÊNG (biến thể), không ghi đè nhau.
   if (ma) {
     let filter = supa.eq('ma_sp', ma);
-    ['nhiet_do_mau_k', 'cong_suat_w', 'goc_chieu_deg', 'mau_sac'].forEach(function (col) {
+    // Thiết bị vệ sinh: thêm KÍCH THƯỚC vào khoá (khớp unique index trong db/thiet_bi_ve_sinh.sql).
+    // Chỉ thêm với ngành vệ sinh — SP đèn không có cột này nên giữ khoá cũ, và nếu DB
+    // chưa chạy migration thì lưu SP đèn vẫn không bị lỗi thiếu cột.
+    const keyCols = ['nhiet_do_mau_k', 'cong_suat_w', 'goc_chieu_deg', 'mau_sac'];
+    if (row.nganh === 'vs' || row.kich_thuoc) keyCols.push('kich_thuoc');
+    keyCols.forEach(function (col) {
       const v = row[col];
       filter += '&' + (v == null || v === '' ? col + '=is.null' : supa.eq(col, v));
     });

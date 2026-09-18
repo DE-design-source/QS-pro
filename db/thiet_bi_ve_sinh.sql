@@ -18,6 +18,20 @@ alter table public.db_san_pham
 
 create index if not exists db_san_pham_nganh_idx on public.db_san_pham (nganh);
 
+-- Khoá chống trùng biến thể: thêm KÍCH THƯỚC làm trục (thiết bị vệ sinh cùng mã,
+-- cùng màu nhưng khác kích thước là 2 sản phẩm riêng, không ghi đè nhau).
+-- Chỉ NỚI khoá cũ (thêm cột) nên dữ liệu đang có không thể vi phạm.
+drop index if exists db_san_pham_variant_key;
+create unique index if not exists db_san_pham_variant_key
+  on public.db_san_pham (
+    cong_ty_id, ma_sp,
+    coalesce(nhiet_do_mau_k::text,''),
+    coalesce(cong_suat_w::text,''),
+    coalesce(goc_chieu_deg::text,''),
+    coalesce(mau_sac,''),
+    coalesce(kich_thuoc,'')
+  );
+
 -- Sản phẩm đã có từ trước đều là thiết bị đèn
 update public.db_san_pham set nganh='den' where nganh is null;
 

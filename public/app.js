@@ -6332,7 +6332,8 @@ function renderImport(){
     +dbCard_('Nhập biến thể (tuỳ chọn)','sliders','Nhập nhiều giá trị cách nhau bằng dấu phẩy — hệ thống tạo 1 sản phẩm cho MỖI tổ hợp (cùng mã SP, khác thông số).',
       '<div class="dbgrid">'
       // Ba trục dưới chỉ có nghĩa với ĐÈN — ngành vệ sinh chỉ tách biến thể theo MÀU
-      +((impLoai_()==='vs')?''
+      +((impLoai_()==='vs')
+        ?'<div class="field"><label>Kích thước</label><input id="varSize" placeholder="VD: L580 x W380, L620 x W390" oninput="varPreview_()"></div>'
         :('<div class="field"><label>Nhiệt độ màu (K)</label><input id="varKelvin" placeholder="VD: 3000, 4000, 6500" oninput="varPreview_()"></div>'
          +'<div class="field"><label>Công suất (W)</label><input id="varWatt" placeholder="VD: 7, 9, 12" oninput="varPreview_()"></div>'
          +'<div class="field"><label>Góc chiếu (°)</label><input id="varAngle" placeholder="VD: 24, 36, 60" oninput="varPreview_()"></div>'))
@@ -6714,13 +6715,15 @@ async function impCommit(btn){
 function varList_(id){ var e=document.getElementById(id); if(!e) return [];
   return String(e.value||'').split(',').map(function(x){return x.trim();}).filter(Boolean); }
 function varCombos_(){
-  var K=varList_('varKelvin'), W=varList_('varWatt'), A=varList_('varAngle'), C=varList_('varColor');
-  if(!K.length && !W.length && !A.length && !C.length) return [];   // không dùng biến thể
+  var K=varList_('varKelvin'), W=varList_('varWatt'), A=varList_('varAngle'), C=varList_('varColor'), Z=varList_('varSize');
+  if(!K.length && !W.length && !A.length && !C.length && !Z.length) return [];   // không dùng biến thể
   var out=[];
   (K.length?K:[null]).forEach(function(k){
     (W.length?W:[null]).forEach(function(w){
       (A.length?A:[null]).forEach(function(a){
-        (C.length?C:[null]).forEach(function(c){ out.push({k:k,w:w,a:a,c:c}); });
+        (C.length?C:[null]).forEach(function(c){
+          (Z.length?Z:[null]).forEach(function(z){ out.push({k:k,w:w,a:a,c:c,z:z}); });
+        });
       });
     });
   });
@@ -6728,7 +6731,7 @@ function varCombos_(){
 }
 function varPreview_(){
   var el=document.getElementById('varNote'); if(!el) return;
-  var K=varList_('varKelvin'), W=varList_('varWatt'), A=varList_('varAngle'), C=varList_('varColor');
+  var K=varList_('varKelvin'), W=varList_('varWatt'), A=varList_('varAngle'), C=varList_('varColor'), Z=varList_('varSize');
   var c=varCombos_();
   if(!c.length){ el.className='var-note'; el.textContent='Bỏ trống = chỉ tạo 1 sản phẩm theo thông số đã nhập ở trên.'; return; }
   // Ghi RÕ phép nhân để không hiểu nhầm số lượng (VD 2 nhiệt độ × 2 góc = 4, KHÔNG phải 12)
@@ -6737,9 +6740,10 @@ function varPreview_(){
   if(W.length) parts.push(W.length+' công suất');
   if(A.length) parts.push(A.length+' góc');
   if(C.length) parts.push(C.length+' màu');
+  if(Z.length) parts.push(Z.length+' kích thước');
   el.className='var-note on';
   el.innerHTML='<div class="var-math">'+parts.join(' <b>×</b> ')+' <b>=</b> <span class="var-total">'+c.length+' sản phẩm</span></div>'
-    +'<div class="var-list">'+c.slice(0,8).map(function(x){ return '<span class="var-chip">'+[x.w?x.w+'W':'',x.k?x.k+'K':'',x.a?x.a+'°':'',x.c||''].filter(Boolean).join(' · ')+'</span>'; }).join('')
+    +'<div class="var-list">'+c.slice(0,8).map(function(x){ return '<span class="var-chip">'+[x.w?x.w+'W':'',x.k?x.k+'K':'',x.a?x.a+'°':'',x.c||'',x.z||''].filter(Boolean).join(' · ')+'</span>'; }).join('')
     +(c.length>8?' <i>… +'+(c.length-8)+' nữa</i>':'')+'</div>';
 }
 async function tdSave(btn){
@@ -6766,9 +6770,10 @@ async function tdSave(btn){
         if(c.w) d2['CÔNG SUẤT (W)']=c.w;
         if(c.a) d2['GÓC CHIẾU (°)']=c.a;
         if(c.c) d2['MÀU SẮC']=c.c;
+        if(c.z) d2['KÍCH THƯỚC']=c.z;
         if(btn) btn.textContent='⏳ Đang lưu biến thể '+(ci+1)+'/'+combos.length+'…';
         try{ await api('saveDbProduct',d2); okN++; }
-        catch(e2){ errN++; if(varErrs.length<3) varErrs.push([c.w?c.w+'W':'',c.k?c.k+'K':'',c.a?c.a+'°':'',c.c||''].filter(Boolean).join('/')+': '+e2.message.slice(0,70)); }
+        catch(e2){ errN++; if(varErrs.length<3) varErrs.push([c.w?c.w+'W':'',c.k?c.k+'K':'',c.a?c.a+'°':'',c.c||'',c.z||''].filter(Boolean).join('/')+': '+e2.message.slice(0,70)); }
       }
       r={updated:false};
       sessionAdd_({ten:ten+' ('+okN+' biến thể)', ma:data['MÃ SẢN PHẨM']||'', nhieuBienThe:true,
