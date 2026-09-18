@@ -5071,47 +5071,45 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
 .chip-quick b{font-weight:700;opacity:.75}
 .chip-quick i{font-style:normal;font-size:9px;opacity:.7}
 
-/* ═══ CHỌN HẠNG MỤC KIỂU MIND MAP (panel trái Bóc tách) ═══
-   Một đường ray dọc bên trái nối các cấp: chấm đặc = cấp đã chọn, vòng rỗng = cấp đang chọn tiếp. */
-.mm-nav{margin:2px 0 6px}
+/* ═══ CHỌN HẠNG MỤC KIỂU MIND MAP (panel trái Bóc tách) — tối giản ═══
+   Ray mảnh 1px, chấm nhỏ, không khung/không bóng; phân cấp bằng màu chữ và khoảng trắng. */
+.mm-nav{margin:4px 0 8px}
 .mm-rail{display:flex;flex-direction:column}
-.mm-step{position:relative;padding:0 0 10px 22px}
+.mm-step{position:relative;padding:0 0 6px 18px}
 .mm-step:last-child{padding-bottom:0}
-.mm-step::before{content:'';position:absolute;left:6px;top:14px;bottom:-4px;width:2px;border-radius:2px;background:#dbe6f5}
+.mm-step::before{content:'';position:absolute;left:3.5px;top:16px;bottom:-2px;width:1px;background:#e3e9f1}
 .mm-step:last-child::before{display:none}
-.mm-step::after{content:'';position:absolute;left:1px;top:9px;width:12px;height:12px;border-radius:50%;box-sizing:border-box;
-  background:#fff;border:2px solid #9db8e2}
-.mm-step.path::after{background:#9db8e2;border-color:#9db8e2;transform:scale(.72)}
-.mm-step.leaf::after{background:var(--blue);border-color:var(--blue);transform:none;box-shadow:0 0 0 3px #dbe8ff}
-/* viên đã chọn */
-.mm-pill{display:flex;align-items:center;gap:7px;width:100%;height:30px;padding:0 10px 0 6px;border-radius:8px;
-  border:1px solid transparent;background:none;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink,#22303f);
-  text-align:left;cursor:pointer;transition:background .12s,border-color .12s}
-.mm-pill:hover{background:#f3f7fd;border-color:#e1e9f5}
-.mm-pill .mm-ic{margin-left:auto;font-size:11px;color:#9aa8ba;flex:none}
-.mm-step.leaf .mm-pill{background:#eef4ff;border-color:#cfe0fd;color:var(--blue)}
-.mm-step.leaf .mm-pill .mm-ic{color:var(--blue);font-weight:700}
-/* mã số + tên */
-.mm-code{flex:none;min-width:26px;padding:1px 6px;border-radius:5px;background:#eef1f6;color:#5c6b7d;
-  font-size:10.5px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums}
-.mm-step.leaf .mm-code{background:var(--blue);color:#fff}
+.mm-step::after{content:'';position:absolute;left:0;top:11px;width:8px;height:8px;border-radius:50%;box-sizing:border-box;
+  background:#fff;border:1px solid #b9c6d8}
+.mm-step.path::after{background:#b9c6d8;border-color:#b9c6d8}
+.mm-step.leaf::after{background:var(--blue);border-color:var(--blue)}
+/* dòng đã chọn */
+.mm-pill{display:flex;align-items:center;gap:8px;width:100%;height:30px;padding:0 6px;margin-left:-6px;border:none;border-radius:6px;
+  background:none;font:inherit;font-size:12.5px;font-weight:500;color:#556274;text-align:left;cursor:pointer;transition:background .12s,color .12s}
+.mm-pill:hover{background:#f6f8fb;color:var(--ink,#22303f)}
+.mm-pill .mm-ic{margin-left:auto;flex:none;font-size:10px;color:#b3bdca;opacity:0;transition:opacity .12s}
+.mm-pill:hover .mm-ic{opacity:1}
+.mm-step.leaf .mm-pill{color:var(--ink,#1c2735);font-weight:600}
+.mm-step.leaf .mm-pill .mm-ic{opacity:1;color:var(--blue);font-size:11px}
+/* mã số: chữ nhỏ, mờ, căn cột — không nền */
+.mm-code{flex:none;min-width:30px;font-size:11px;font-weight:500;color:#9aa6b5;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.mm-step.leaf .mm-code{color:var(--blue)}
 .mm-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mm-num{flex:none;font-size:10.5px;font-weight:700;color:#8b96a5;background:#f3f5f8;border-radius:99px;padding:0 6px;line-height:17px}
+.mm-num{flex:none;font-size:10.5px;font-weight:500;color:#aab4c1;font-variant-numeric:tabular-nums}
 /* cấp đang chọn tiếp */
-.mm-cap{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8b96a5;
-  line-height:30px;height:30px;padding-left:6px}
-.mm-list{display:flex;flex-direction:column;padding:4px;border:1px solid #e6ecf4;border-radius:10px;background:#fff;
-  box-shadow:0 1px 2px rgba(16,24,40,.04)}
-.mm-item{display:flex;align-items:center;gap:7px;height:32px;padding:0 8px 0 6px;border:none;border-radius:7px;background:none;
-  font:inherit;font-size:12.5px;color:var(--ink,#22303f);text-align:left;cursor:pointer;transition:background .1s}
-.mm-item:hover{background:#f3f7fd}
-.mm-item .mm-go{margin-left:auto;flex:none;color:#9aa8ba;font-size:14px;line-height:1}
+.mm-cap{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#a3aebb;line-height:30px;height:30px}
+.mm-list{display:flex;flex-direction:column;margin:-2px 0 2px -6px}
+.mm-item{position:relative;display:flex;align-items:center;gap:8px;height:30px;padding:0 6px;border:none;border-radius:6px;background:none;
+  font:inherit;font-size:12.5px;font-weight:400;color:#3a4656;text-align:left;cursor:pointer;transition:background .1s,color .1s}
+.mm-item:hover{background:#f6f8fb;color:var(--ink,#1c2735)}
+.mm-item .mm-go{margin-left:auto;flex:none;color:#c2cad5;font-size:13px;line-height:1}
 .mm-item:hover .mm-go{color:var(--blue)}
-.mm-item.on{background:#eef4ff;color:var(--blue);font-weight:650}
-.mm-item.on .mm-code{background:var(--blue);color:#fff}
-.mm-item.on .mm-go{color:var(--blue);font-size:12px;font-weight:700}
-.mm-reset{margin:8px 0 0 22px;border:none;background:none;padding:0;font:inherit;font-size:11.5px;font-weight:600;color:var(--blue);cursor:pointer}
-.mm-reset:hover{text-decoration:underline}
+.mm-item.on{color:var(--blue);font-weight:600}
+.mm-item.on .mm-code{color:var(--blue)}
+.mm-item.on::before{content:'';position:absolute;left:-12.5px;top:50%;width:5px;height:5px;margin-top:-2.5px;border-radius:50%;background:var(--blue)}
+.mm-item.on .mm-go{color:var(--blue);font-size:11px}
+.mm-reset{margin:6px 0 0 18px;border:none;background:none;padding:0;font:inherit;font-size:11.5px;font-weight:500;color:#8b96a5;cursor:pointer}
+.mm-reset:hover{color:var(--blue)}
 </style>
 
 <!-- ===== TOP NAV ===== -->
