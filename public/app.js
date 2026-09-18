@@ -612,7 +612,7 @@ function toggleFsec(key){
 }
 var FSEC_ALWAYS={};      // Công suất / Nhiệt độ màu giờ cũng gập/mở được (nhớ trạng thái) cho panel gọn
 function applyFsec(){
-  ['watt','kelvin','angle','ip','cri','volt','combo','yeuthich'].forEach(function(k){
+  ['watt','kelvin','angle','ip','cri','volt','combo','yeuthich','brand','price'].forEach(function(k){
     var s=document.getElementById('sec_'+k); if(!s) return;
     s.classList.toggle('open', FSEC_ALWAYS[k] ? true : (S.fsecOpen[k]!==false));
     if(FSEC_ALWAYS[k]) s.classList.add('nofold');
@@ -906,8 +906,50 @@ function positionFiltPop_(){
   lf.style.position='fixed'; lf.style.width=w+'px'; lf.style.left=left+'px'; lf.style.top=top+'px';
   lf.style.maxHeight=Math.max(220,window.innerHeight-top-12)+'px';
 }
+/* ═══ BỘ LỌC: popover chỉ liệt kê TÊN bộ lọc; bật tên nào thì bộ lọc đó hiện trên panel ═══
+   Mặc định trên panel có Công suất + Nhiệt độ màu. Khối bộ lọc là CÙNG một phần tử DOM,
+   chỉ chuyển qua lại giữa panel (#pinFilters) và kho ẩn (#filtStore) — nên mọi hàm vẽ /
+   lọc cũ vẫn chạy nguyên, không phải viết lại từng bộ lọc. */
+var FLT_REG=[['watt','Công suất'],['kelvin','Nhiệt độ màu'],['angle','Góc chiếu sáng'],
+  ['yeuthich','Yêu thích'],['combo','Combo'],['brand','Thương hiệu'],['price','Khoảng giá']];
+function fltPins_(){
+  try{ var v=JSON.parse(localStorage.getItem('qs_pinflt')||'null'); if(Array.isArray(v)) return v; }catch(e){}
+  return ['watt','kelvin'];
+}
+function fltApplyPins_(){
+  var pin=fltPins_(), box=document.getElementById('pinFilters'), store=document.getElementById('filtStore');
+  if(!box||!store) return;
+  pin.forEach(function(k){ var el=document.getElementById('sec_'+k); if(el && el.parentNode!==box) box.appendChild(el); });
+  FLT_REG.forEach(function(f){ if(pin.indexOf(f[0])>=0) return;
+    var el=document.getElementById('sec_'+f[0]); if(el && el.parentNode!==store) store.appendChild(el); });
+}
+function fltActiveN_(k){
+  function n(o){ return Object.keys(o||{}).filter(function(x){ return o[x]; }).length; }
+  if(k==='watt') return n(S.fWatt); if(k==='kelvin') return n(S.fKelvin); if(k==='angle') return n(S.fAngle);
+  if(k==='yeuthich') return S.fFav?1:0; if(k==='combo') return S.fCombo?1:0; if(k==='brand') return S.fBrand?1:0;
+  if(k==='price'){ var a=document.getElementById('fMin'), b=document.getElementById('fMax'); return ((a&&a.value)||(b&&b.value))?1:0; }
+  return 0;
+}
+function fltNamesRender_(){
+  var el=document.getElementById('filtNames'); if(!el) return;
+  var pin=fltPins_();
+  el.innerHTML=FLT_REG.map(function(f){
+    var on=pin.indexOf(f[0])>=0, n=fltActiveN_(f[0]);
+    return '<button class="fn-row'+(on?' on':'')+'" onclick="fltTogglePin_(\''+f[0]+'\')" title="'+(on?'Đang hiện trên panel — bấm để ẩn':'Bấm để hiện trên panel')+'">'
+      +'<span class="fn-t">'+esc(f[1])+'</span>'+(n?'<span class="fn-n">'+n+'</span>':'')
+      +'<span class="fn-sw"></span></button>';
+  }).join('');
+}
+function fltTogglePin_(k){
+  var pin=fltPins_(), i=pin.indexOf(k);
+  if(i>=0) pin.splice(i,1); else pin.push(k);          // bật mới -> nằm cuối panel
+  try{ localStorage.setItem('qs_pinflt', JSON.stringify(pin)); }catch(e){}
+  fltApplyPins_(); fltNamesRender_();
+  if(S._filtOpen && typeof positionFiltPop_==='function') positionFiltPop_();
+}
 function applyFiltDrop(){
   var isPT=(S.node==='3.1');
+  fltApplyPins_(); fltNamesRender_();
   var lf=document.getElementById('lightFilters'), se=document.getElementById('selExtra'), btn=document.getElementById('filtBtn');
   var open=!!S._filtOpen && !isPT;
   if(se) se.style.display=isPT?'none':'';

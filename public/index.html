@@ -5189,6 +5189,38 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
 #bocGrid.nocat #leftCat,#bocGrid.nocat .cat-resize{display:none!important}
 #bocGrid.nocat{grid-template-columns:minmax(0,1fr)!important}
 #bocGrid.nocat.detail{grid-template-columns:268px minmax(0,1fr)!important}
+
+/* ═══ Bộ lọc: popover chỉ liệt kê TÊN; bộ lọc được chọn hiện trên panel ═══ */
+.fp-note{font-size:11.5px;color:#8b96a5;padding:2px 16px 8px}
+#filtNames{display:flex;flex-direction:column;padding:0 8px 8px}
+.fn-row{display:flex;align-items:center;gap:10px;height:40px;padding:0 10px;border:none;border-radius:8px;background:none;
+  font:inherit;font-size:13px;color:#2a3542;text-align:left;cursor:pointer;transition:background .1s}
+.fn-row:hover{background:#f4f7fb}
+.fn-row .fn-t{flex:1;min-width:0}
+.fn-row .fn-n{font-size:10.5px;font-weight:700;color:#fff;background:var(--blue);border-radius:99px;padding:0 7px;line-height:18px}
+.fn-row .fn-sw{flex:none;width:30px;height:18px;border-radius:99px;background:#dfe4ea;position:relative;transition:background .15s}
+.fn-row .fn-sw::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 2px rgba(0,0,0,.2);transition:transform .15s}
+.fn-row.on .fn-sw{background:var(--blue)}
+.fn-row.on .fn-sw::after{transform:translateX(12px)}
+.fn-row.on .fn-t{font-weight:600;color:#1c2735}
+/* các bộ lọc ghim lên panel: cùng dáng với Công suất / Nhiệt độ màu */
+#leftCat #pinFilters{border-top:1px solid #e8ecf1}
+#leftCat #pinFilters .fsec{border:none!important;border-radius:0!important;background:none!important;box-shadow:none!important;
+  margin:0!important;padding:14px 0 14px 6px!important;border-bottom:1px solid #e8ecf1!important}
+#leftCat #pinFilters .fsec-h{padding:0 0 10px!important;cursor:pointer;display:flex;align-items:center;background:none!important}
+#leftCat #pinFilters .fsec-t{font-size:14px!important;font-weight:650!important;color:#1c2735!important;text-transform:none!important;letter-spacing:-.01em!important}
+#leftCat #pinFilters .fsec-n{display:none!important}
+#leftCat #pinFilters .fsec-c{display:inline-flex!important;margin-left:auto;width:22px;height:22px;align-items:center;justify-content:center;
+  border-radius:6px;color:#8b96a5;font-size:11px;transition:transform .15s}
+#leftCat #pinFilters .fsec:not(.open) .fsec-c{transform:rotate(-90deg)}
+#leftCat #pinFilters .fsec:not(.open) .chips,#leftCat #pinFilters .fsec:not(.open) .fsec-b{display:none!important}
+#leftCat #pinFilters .fsec:not(.open) .fsec-h{padding-bottom:0!important}
+#leftCat #pinFilters .fsec:not(#sec_watt):not(#sec_kelvin).open .chips{display:flex!important;flex-wrap:wrap;gap:6px!important;padding:0 8px 0 0!important;max-height:84px;overflow:auto}
+#leftCat #pinFilters .fsec:not(#sec_watt):not(#sec_kelvin) .chip{height:32px;display:inline-flex;align-items:center;padding:0 11px;border-radius:9px;border:1px solid #e3e7ec;
+  background:#fff;font-size:12px;color:#2a3542}
+#leftCat #pinFilters .fsec:not(#sec_watt):not(#sec_kelvin) .chip.on{background:#e5e7ea;border-color:#e5e7ea;font-weight:600}
+#leftCat #pinFilters .selrow select,#leftCat #pinFilters .pricerow input{height:34px;border-radius:9px}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -5308,21 +5340,26 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
           <!-- Lọc nhanh luôn hiện: Công suất + Nhiệt độ màu -->
           <div class="fsec open" id="sec_watt"><div class="fsec-h" onclick="toggleFsec('watt')"><span class="fsec-t">Công suất</span><span class="fsec-n" id="nWatt"></span><span class="fsec-c">▾</span></div><div class="chips" id="fWatt"></div></div>
           <div class="fsec open" id="sec_kelvin"><div class="fsec-h" onclick="toggleFsec('kelvin')"><span class="fsec-t">Nhiệt độ màu</span><span class="fsec-n" id="nKelvin"></span><span class="fsec-c">▾</span></div><div class="chips" id="fKelvin"></div></div>
+          <div id="pinFilters"></div>
           </div>
           <div id="catActive" class="cat-active"></div>
           <div id="lightFilters" class="filt-pop" style="display:none">
-          <div class="filt-pop-hd"><b>Bộ lọc liên quan</b><span class="filt-pop-x" onclick="toggleFiltDrop()">✕</span></div>
+          <div class="filt-pop-hd"><b>Bộ lọc</b><span class="filt-pop-x" onclick="toggleFiltDrop()">✕</span></div>
+          <div class="fp-note">Bấm tên bộ lọc để hiện / ẩn nó trên panel</div>
+          <div id="filtNames"></div>
+          <div id="filtStore" style="display:none">
           <!-- Tile bộ lọc (popover nổi, mở bằng nút "bộ lọc") — lọc phụ -->
           <div class="fsec open" id="sec_angle"><div class="fsec-h" onclick="toggleFsec('angle')"><span class="fsec-t">Góc chiếu sáng</span><span class="fsec-n" id="nAngle"></span><span class="fsec-c">▾</span></div><div class="chips" id="fAngle"></div></div>
           <input id="fSearch" type="hidden" value="">
           <div class="fsec open" id="sec_yeuthich"><div class="fsec-h" onclick="toggleFsec('yeuthich')"><span class="fsec-t">Yêu thích</span><span class="fsec-n" id="nYeuThich"></span><span class="fsec-c">▾</span></div><div class="chips" id="fFavChips"></div></div>
           <div class="fsec open" id="sec_combo"><div class="fsec-h" onclick="toggleFsec('combo')"><span class="fsec-t">Combo</span><span class="fsec-n" id="nCombo"></span><span class="fsec-c">▾</span></div><div class="chips" id="fComboChips"></div></div>
-          <div class="lbl">Thương hiệu</div>
-          <div class="selrow"><select id="fBrand"></select></div>
-          <div class="lbl">Tìm theo khoảng giá</div>
-          <div class="pricerow">
-            <span style="color:var(--muted)">Giá từ</span><input id="fMin" type="number" placeholder="">
-            <span style="color:var(--muted)">Tới</span><input id="fMax" type="number" placeholder="">
+          <div class="fsec open" id="sec_brand"><div class="fsec-h" onclick="toggleFsec('brand')"><span class="fsec-t">Thương hiệu</span><span class="fsec-n"></span><span class="fsec-c">▾</span></div>
+            <div class="fsec-b"><div class="selrow"><select id="fBrand"></select></div></div></div>
+          <div class="fsec open" id="sec_price"><div class="fsec-h" onclick="toggleFsec('price')"><span class="fsec-t">Khoảng giá</span><span class="fsec-n"></span><span class="fsec-c">▾</span></div>
+            <div class="fsec-b"><div class="pricerow">
+              <span style="color:var(--muted)">Giá từ</span><input id="fMin" type="number" placeholder="">
+              <span style="color:var(--muted)">Tới</span><input id="fMax" type="number" placeholder="">
+            </div></div></div>
           </div>
           <div class="filt-pop-ft"><button class="btn ghost sm" onclick="clearAllFilters()">Xoá lọc</button><button class="btn blue sm" onclick="toggleFiltDrop()">Xong</button></div>
           </div>
