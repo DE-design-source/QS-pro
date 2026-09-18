@@ -3537,10 +3537,62 @@ document.addEventListener('click',function(e){
 
 /* ===== CHỌN CỘT — 1 nút + bảng chọn thả xuống (dùng chung cho bảng Bóc tách và Khái toán) =====
    Trước đây trải hết chip ra 2-3 hàng, chiếm gần hết phần đầu bảng.                     */
+/* ═══ CHỌN NHANH bộ cột cho bảng bóc tách ═══
+   Hàng chip vẫn giữ để bật/tắt từng cột; nút "Chọn nhanh" bật cả một bộ cột
+   theo mục đích trong 1 lần bấm. Bộ "Báo giá cho khách" ẩn đúng các cột mà file
+   mẫu ghi "Ẩn trong xuất báo giá" (giá đại lý, lợi nhuận, markup, margin…).       */
+var TK_PRESETS=[
+  ['all','Hiện tất cả cột',null],
+  ['macdinh','Mặc định','default'],
+  ['khach','Báo giá cho khách',['stt','khuVuc','ten','thuongHieu','moTa','kichThuoc','hinhAnh','dvt','soLuong','donGia','ckKhach','donGiaCK','thanhTien','ghiChu']],
+  ['sp','Thông tin sản phẩm',['stt','khuVuc','maBanVe','maSP','ten','thuongHieu','ncc','moTa','kichThuoc','hinhAnh','dvt','soLuong']],
+  ['gia','Giá & lợi nhuận',['stt','ten','soLuong','giaNCC','chietKhau','giaDaiLy','lnPct','donGia','ckKhach','donGiaCK','markup','margin','lnVnd','thanhTien']],
+  ['gon','Tối giản',['stt','ten','soLuong','donGiaCK','thanhTien']]
+];
+function tkPresetKeys_(ps){
+  if(ps[2]===null) return COLS.map(function(c){ return c[0]; });
+  if(ps[2]==='default') return COLS.filter(function(c){ return c[2]; }).map(function(c){ return c[0]; });
+  return ps[2];
+}
+function tkPresetOn_(ps){                      // bộ cột nào đang khớp đúng với cột đang bật
+  var want={}; tkPresetKeys_(ps).forEach(function(k){ want[k]=1; });
+  return COLS.every(function(c){ return !!S.cols[c[0]]===!!want[c[0]]; });
+}
+function tkPresetApply_(id){
+  var ps=TK_PRESETS.filter(function(x){ return x[0]===id; })[0]; if(!ps) return;
+  var want={}; tkPresetKeys_(ps).forEach(function(k){ want[k]=1; });
+  COLS.forEach(function(c){ S.cols[c[0]]=!!want[c[0]]; });
+  S.cols.ten=true;                               // cột Tên sản phẩm luôn phải có
+  tkPresetClose_(); renderColChips(); renderTable(); if(bgVis()) drawBaogia();
+  toast('Đã bật bộ cột: '+ps[1]);
+}
+function tkPresetPop_(e){
+  if(e&&e.stopPropagation) e.stopPropagation();
+  if(document.getElementById('tkPresetPop')){ tkPresetClose_(); return; }
+  var pop=document.createElement('div'); pop.className='fltpop bgtree'; pop.id='tkPresetPop';
+  pop.innerHTML='<div class="bgt-h"><b>Chọn nhanh cột</b><button class="colpop-x" onclick="tkPresetClose_()">✕</button></div>'
+    +'<div class="bgt-b">'+TK_PRESETS.map(function(ps){
+        var on=tkPresetOn_(ps), n=tkPresetKeys_(ps).length;
+        return '<div class="bgt-i lvl1'+(on?' on':'')+'" onclick="tkPresetApply_(\''+ps[0]+'\')">'
+          +'<span class="nm">'+esc(ps[1])+'</span><span class="cn">'+n+' cột</span>'
+          +'<span class="rd'+(on?' on':'')+'"></span></div>';
+      }).join('')+'</div>';
+  document.body.appendChild(pop);
+  var b=document.getElementById('tkPresetBtn');
+  if(b){ var r=b.getBoundingClientRect(), w=pop.offsetWidth||300, h=pop.offsetHeight;
+    var top=r.bottom+6; if(top+h>window.innerHeight-10) top=Math.max(10, r.top-h-6);
+    pop.style.top=top+'px'; pop.style.left=Math.max(8,Math.min(r.left, window.innerWidth-w-10))+'px'; }
+  setTimeout(function(){ document.addEventListener('mousedown',tkPresetOutside_); },0);
+}
+function tkPresetOutside_(e){ if(e.target.closest('#tkPresetPop')||e.target.closest('#tkPresetBtn')) return; tkPresetClose_(); }
+function tkPresetClose_(){ var p=document.getElementById('tkPresetPop'); if(p) p.remove(); document.removeEventListener('mousedown',tkPresetOutside_); }
 function renderColChips(){
   var el=document.getElementById('colChips'); if(!el) return;
   var on=COLS.filter(function(c){ return S.cols[c[0]]; }).length;
-  el.innerHTML=COLS.map(function(c){
+  var cur=TK_PRESETS.filter(tkPresetOn_)[0];
+  el.innerHTML='<button class="chip-quick" id="tkPresetBtn" onclick="tkPresetPop_(event)" title="Bật cả một bộ cột theo mục đích">'
+      +icon('sliders',13)+'<span>'+esc(cur?cur[1]:'Chọn nhanh')+'</span><b>'+on+'/'+COLS.length+'</b><i>▾</i></button>'
+    +COLS.map(function(c){
     return '<span class="chip'+(S.cols[c[0]]?' on':'')+'" onclick="toggleCol(\''+c[0]+'\')">'+esc(c[1])+'</span>';
   }).join('');
   if(document.getElementById('tkColPop')) tkColPopRender_();
