@@ -619,7 +619,7 @@ function renderFilters(){
   // nhóm (multi-select)
   var sel=Object.keys(S.fNhomSet||{}).filter(function(k){return S.fNhomSet[k];});
   var fn=document.getElementById('fNhom');
-  if(fn){ var lb=fn.querySelector('.mlabel'); if(lb) lb.textContent = sel.length? (sel.length===1?sel[0]:sel.length+' hạng mục đã chọn') : 'Tất cả hạng mục'; fn.classList.toggle('active',sel.length>0); }
+  if(fn){ var lb=fn.querySelector('.mlabel'); if(lb) lb.textContent = sel.length? (sel.length===1?sel[0]:sel.length+' hạng mục đã chọn') : 'Hạng mục sản phẩm'; fn.classList.toggle('active',sel.length>0); }
   // brand
   var br={}; S.products.forEach(function(p){ if(p.thuongHieu) br[p.thuongHieu]=1; });
   var fb=document.getElementById('fBrand');
@@ -772,7 +772,7 @@ function toggleInProj(){ openInProjSel({stopPropagation:function(){},currentTarg
 function updateInProj_(){
   var box=document.getElementById('fInProj'), lb=document.getElementById('fInProjLabel'); if(!lb) return;
   var name=''; if(S._inProjMa){ var p=(S.projects||[]).filter(function(x){return x.maDA===S._inProjMa;})[0]; name=p?(p.ten||p.maDA):S._inProjMa; }
-  lb.textContent = S._inProjMa ? name : 'Tất cả sản phẩm';
+  lb.textContent = S._inProjMa ? name : 'Đèn trong dự án';
   if(box) box.classList.toggle('active', !!S._inProjMa);
   setMselIcon('fInProj', !!S._inProjMa);
 }
@@ -3541,7 +3541,28 @@ function mmCnt_(code){ var n=(typeof nodeCount==='function')?nodeCount(code):0; 
 function mmCode_(code){ var n=mmNode_(code); return (n&&!n.custom)?n.c:''; }
 function mmName_(code){ var n=mmNode_(code); return n?n.t:code; }
 function mmNum_(code){ var n=(typeof nodeCount==='function')?nodeCount(code):0; return n?'<span class="mm-num">'+n+'</span>':''; }
+/* Ô đề mục gọn 1 dòng: ghi đủ đường đang chọn (vd "3.1.Phần thô · Dự toán · Nhân công") */
+function mmSelSync_(){
+  var sel=document.getElementById('mmSel'), lb=document.getElementById('mmSelLbl'); if(!lb) return;
+  var t=(S.node?(mmCode_(S.node)?mmCode_(S.node)+'.':'')+mmName_(S.node):'Hạng mục');
+  if(S.node==='3.1'){ var lo=ptLoai_();
+    t+=' · '+({kt_chitiet:'Khái toán chi tiết',kt_sobo:'Khái toán sơ bộ',dt_nhancong:'Dự toán · Nhân công',dt_vattu:'Dự toán · Vật tư'}[lo]||''); }
+  else if(S.sheet && typeof tkSheetCo_==='function' && tkSheetCo_(S.node)) t+=' · '+(S.sheet==='nc'?'Nhân công':'Vật tư');
+  lb.textContent=t;
+  var nav=document.getElementById('mmNav');
+  if(sel) sel.classList.toggle('open', !!S._mmUI);
+  if(nav) nav.style.display=S._mmUI?'':'none';
+}
+function mmToggle_(e){ if(e&&e.stopPropagation) e.stopPropagation(); S._mmUI=!S._mmUI; if(!S._mmUI) S._mmBrowse=null; renderMM_(); }
+function mmClose_(){ S._mmUI=false; S._mmBrowse=null; renderMM_(); }
+// bấm ra ngoài ô đề mục / bộ chọn thì thu gọn lại
+document.addEventListener('mousedown',function(e){
+  if(!S._mmUI) return;
+  if(e.target.closest && (e.target.closest('#mmNav')||e.target.closest('#mmSel'))) return;
+  mmClose_();
+});
 function renderMM_(){
+  mmSelSync_();
   var el=document.getElementById('mmNav'); if(!el) return;
   if(S._mmBrowse!=null && S._mmAt!==S.node) S._mmBrowse=null;   // đề mục đổi từ nơi khác -> thôi duyệt dở
   var dangDuyet=(S._mmBrowse!=null);
@@ -3591,17 +3612,22 @@ function mmPick2_(cap, opts, sel, fn){
 }
 function mmPick_(code){
   if(mmKids_(code).length){ S._mmBrowse=code; S._mmAt=S.node; renderMM_(); return; }   // còn cấp con -> mở tiếp
-  S._mmBrowse=null; pickNode(code); renderMM_();
+  S._mmBrowse=null; pickNode(code);
+  var coPhu=(code==='3.1')||(typeof tkSheetCo_==='function'&&tkSheetCo_(code));
+  if(!coPhu) S._mmUI=false;                      // đề mục không có cấp phụ -> chọn xong thu gọn
+  renderMM_();
 }
 function mmOpen_(parent){ S._mmBrowse=parent; S._mmAt=S.node; renderMM_(); }
 function mmCancel_(){ S._mmBrowse=null; renderMM_(); }
 function mmLoai_(v){
   if(v==='dt'){ var lo=ptLoai_(); v=(lo.indexOf('dt_')===0)?lo:'dt_nhancong'; }
-  ptSetLoai(v); renderTable(); renderMM_();
+  var laDT=(v.indexOf('dt_')===0), vuaMoDT=laDT && ptLoai_().indexOf('dt_')!==0;
+  ptSetLoai(v); if(!vuaMoDT) S._mmUI=false;      // chọn xong cấp cuối -> thu gọn; vừa mở "Dự toán" thì giữ để chọn Nhân công/Vật tư
+  renderTable(); renderMM_();
 }
 function mmSheet_(v){
   S.sheet=v||''; try{ localStorage.setItem('qs_sheet', S.sheet); }catch(e){}
-  S._tkSel={}; renderTable(); if(typeof renderCard==='function') renderCard(); renderMM_();
+  S._tkSel={}; S._mmUI=false; renderTable(); if(typeof renderCard==='function') renderCard(); renderMM_();
 }
 function pickNode(code){
   S.node=code;

@@ -5138,6 +5138,23 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
 #leftCat #sec_watt .chip:hover,#leftCat #sec_kelvin .chip:hover{border-color:#c8cfd8!important}
 #leftCat #sec_watt .chip.on,#leftCat #sec_kelvin .chip.on{background:#e5e7ea!important;border-color:#e5e7ea!important;color:#1c2735!important}
 #leftCat #sec_kelvin .chip .dot{width:10px!important;height:10px!important;border-radius:50%;flex:none;margin:0!important}
+
+/* ═══ Khối lọc đầu panel trái — theo bản vẽ: 3 ô viên thuốc xếp chồng, không nhãn phụ ═══ */
+#leftCat #selExtra > .mlbl{display:none}
+#leftCat #mmSel,#leftCat #fNhom,#leftCat #fInProj{height:38px;padding:0 8px 0 12px;margin:0 0 8px;border:1px solid #c9d0d9;
+  border-radius:10px;background:#fff;font-size:13px;font-weight:500;color:#2a3542;box-shadow:none;transition:border-color .12s}
+#leftCat #mmSel:hover,#leftCat #fNhom:hover,#leftCat #fInProj:hover{border-color:#8f9bab}
+#leftCat #mmSel{font-weight:650;color:#1c2735;border-color:#1c2735}
+#leftCat #mmSel .mplus,#leftCat #fNhom .mplus,#leftCat #fInProj .mplus{width:20px;height:20px;border-radius:50%;background:#e8ebef;
+  color:#3a4656;justify-content:center;flex:none}
+#leftCat #mmSel .mplus svg,#leftCat #fNhom .mplus svg,#leftCat #fInProj .mplus svg{width:14px;height:14px}
+#leftCat #mmSel .mplus svg circle,#leftCat #fNhom .mplus svg circle,#leftCat #fInProj .mplus svg circle{display:none}
+#leftCat #mmSel.open .mplus{transform:rotate(45deg)}
+#leftCat #mmSel .mplus{transition:transform .15s}
+/* mind map xổ ra ngay dưới ô đề mục */
+#leftCat #mmNav{margin:-2px 0 10px;padding:10px 10px 8px;border:1px solid #e6eaf0;border-radius:10px;background:#fff}
+/* Công suất / Nhiệt độ màu thụt vào như bản vẽ */
+#leftCat #sec_watt,#leftCat #sec_kelvin{padding-left:14px!important}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -5242,18 +5259,18 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
           <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><span class="sp" style="flex:1"></span><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg><span class="filt-lbl">Bộ lọc</span><span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button><button class="favgo-btn" id="favGoBtn" onclick="catFavToggle()"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg><span class="favgo-n" id="favGoN"></span></button></div>
 
           <!-- 3 bộ chọn (theo Figma) -->
-          <div class="mlbl">Hạng mục</div>
-          <!-- Chọn hạng mục kiểu mind map: bấm tới đâu hiện cấp con tới đó -->
-          <div class="mm-nav" id="mmNav"></div>
+          <!-- Ô ĐỀ MỤC: một dòng gọn; bấm vào mới xổ bộ chọn mind map (bấm tới đâu hiện tới đó) -->
+          <div class="msel mm-sel active" id="mmSel" onclick="mmToggle_(event)"><span class="mlabel" id="mmSelLbl">Hạng mục</span><span class="mplus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
+          <div class="mm-nav" id="mmNav" style="display:none"></div>
           <div style="display:none"><div class="mlbl" title="Lọc danh mục sản phẩm bên dưới. Khác với ô 'Hạng mục đã bóc' ở bảng bên phải — đó là đề mục đang bóc.">Lọc theo đề mục</div>
           <div class="msel" id="fDemuc" onclick="openDemucSel(event)"><span class="mlabel" id="fDemucLabel">Tất cả đề mục</span><span class="mplus" id="fDemucClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div></div>
           <!-- Bộ lọc riêng của PHẦN THÔ (Loại báo giá / Nhà thầu / Báo giá mẫu) — nằm ngay dưới Đề mục -->
           <div id="ptFilters"></div>
           <div id="selExtra">
           <div class="mlbl">Hạng mục sản phẩm</div>
-          <div class="msel" id="fNhom" onclick="openNhomMsel(event)"><span class="mlabel">Tất cả hạng mục</span><span class="mplus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
+          <div class="msel" id="fNhom" onclick="openNhomMsel(event)"><span class="mlabel">Hạng mục sản phẩm</span><span class="mplus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
           <div class="mlbl">Đèn trong dự án</div>
-          <div class="msel" id="fInProj" onclick="openInProjSel(event)"><span class="mlabel" id="fInProjLabel">Tất cả sản phẩm</span><span class="mplus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
+          <div class="msel" id="fInProj" onclick="openInProjSel(event)"><span class="mlabel" id="fInProjLabel">Đèn trong dự án</span><span class="mplus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
           <!-- Lọc nhanh luôn hiện: Công suất + Nhiệt độ màu -->
           <div class="fsec open" id="sec_watt"><div class="fsec-h" onclick="toggleFsec('watt')"><span class="fsec-t">Công suất</span><span class="fsec-n" id="nWatt"></span><span class="fsec-c">▾</span></div><div class="chips" id="fWatt"></div></div>
           <div class="fsec open" id="sec_kelvin"><div class="fsec-h" onclick="toggleFsec('kelvin')"><span class="fsec-t">Nhiệt độ màu</span><span class="fsec-n" id="nKelvin"></span><span class="fsec-c">▾</span></div><div class="chips" id="fKelvin"></div></div>
