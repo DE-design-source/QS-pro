@@ -5070,6 +5070,35 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
 .chip-quick:hover{background:#eaf2ff;border-style:solid}
 .chip-quick b{font-weight:700;opacity:.75}
 .chip-quick i{font-style:normal;font-size:9px;opacity:.7}
+
+/* ═══ CHỌN HẠNG MỤC KIỂU MIND MAP (panel trái Bóc tách) ═══ */
+.mm-nav{display:flex;flex-direction:column;gap:0;margin:2px 0 4px}
+.mm-lv{position:relative;padding-left:16px}
+.mm-lv:first-child{padding-left:0}
+.mm-lv+.mm-lv::before{content:'';position:absolute;left:6px;top:0;height:17px;width:9px;
+  border-left:1.5px solid #bcd0ec;border-bottom:1.5px solid #bcd0ec;border-bottom-left-radius:6px}
+.mm-lv+.mm-lv{margin-top:4px}
+.mm-lv .mm-lv{padding-left:16px}
+.mm-node{display:flex;align-items:center;gap:6px;width:100%;min-height:34px;padding:6px 10px;border-radius:9px;
+  border:1px solid #d7e2f0;background:#f4f8ff;color:var(--navy,#14284b);font:inherit;font-size:12.5px;font-weight:650;
+  text-align:left;cursor:pointer;transition:border-color .12s,background .12s}
+.mm-node:hover{border-color:var(--blue)}
+.mm-node .mm-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mm-node .mm-n{font-size:10.5px;font-weight:700;color:var(--c4,#8b96a5)}
+.mm-node .mm-ch{font-size:10px;color:var(--blue);opacity:.75}
+.mm-node.leaf{background:var(--blue);border-color:var(--blue);color:#fff}
+.mm-node.leaf .mm-n,.mm-node.leaf .mm-ch{color:#dbe8ff}
+.mm-cap{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--c4,#8b96a5);margin:2px 0 4px}
+.mm-opts{display:flex;flex-direction:column;gap:4px;padding:6px;border:1px dashed #cfdcef;border-radius:10px;background:#fff}
+.mm-opt{display:flex;align-items:center;gap:6px;padding:6px 9px;border-radius:7px;border:1px solid transparent;background:none;
+  font:inherit;font-size:12px;color:var(--ink,#22303f);text-align:left;cursor:pointer}
+.mm-opt:hover{background:#f2f7ff;border-color:#d7e5fb}
+.mm-opt .mm-t{flex:1;min-width:0}
+.mm-opt .mm-n{font-size:10.5px;color:var(--c4,#8b96a5);font-weight:600}
+.mm-opt .mm-ch{font-size:10px;color:var(--blue);opacity:.7}
+.mm-opt.on{background:#eaf2ff;border-color:#bcd6f5;color:var(--blue);font-weight:650}
+.mm-reset{align-self:flex-start;margin-top:6px;border:none;background:none;padding:0;font:inherit;font-size:11px;color:var(--c3,#6b7684);cursor:pointer}
+.mm-reset:hover{color:var(--blue)}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -5174,8 +5203,11 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
           <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><span class="sp" style="flex:1"></span><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg><span class="filt-lbl">Bộ lọc</span><span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button><button class="favgo-btn" id="favGoBtn" onclick="catFavToggle()"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg><span class="favgo-n" id="favGoN"></span></button></div>
 
           <!-- 3 bộ chọn (theo Figma) -->
-          <div class="mlbl" title="Lọc danh mục sản phẩm bên dưới. Khác với ô 'Hạng mục đã bóc' ở bảng bên phải — đó là đề mục đang bóc.">Lọc theo đề mục</div>
-          <div class="msel" id="fDemuc" onclick="openDemucSel(event)"><span class="mlabel" id="fDemucLabel">Tất cả đề mục</span><span class="mplus" id="fDemucClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div>
+          <div class="mlbl">Hạng mục</div>
+          <!-- Chọn hạng mục kiểu mind map: bấm tới đâu hiện cấp con tới đó -->
+          <div class="mm-nav" id="mmNav"></div>
+          <div style="display:none"><div class="mlbl" title="Lọc danh mục sản phẩm bên dưới. Khác với ô 'Hạng mục đã bóc' ở bảng bên phải — đó là đề mục đang bóc.">Lọc theo đề mục</div>
+          <div class="msel" id="fDemuc" onclick="openDemucSel(event)"><span class="mlabel" id="fDemucLabel">Tất cả đề mục</span><span class="mplus" id="fDemucClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div></div>
           <!-- Bộ lọc riêng của PHẦN THÔ (Loại báo giá / Nhà thầu / Báo giá mẫu) — nằm ngay dưới Đề mục -->
           <div id="ptFilters"></div>
           <div id="selExtra">

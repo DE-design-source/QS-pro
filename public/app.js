@@ -924,6 +924,7 @@ function toggleFiltDrop(){
 }
 function renderCatalog(){
   var isPT=(S.node==='3.1');
+  if(typeof renderMM_==='function') renderMM_();
   applyFiltDrop();   // ẩn/hiện khối bộ lọc theo trạng thái gập/mở (và ẩn hẳn khi Phần thô)
   var hd=document.querySelector('#leftCat .cat-hd h3'); if(hd) hd.textContent=isPT?'Nội dung công việc':'Hạng mục';
   // Lọc nhanh Công suất / Nhiệt độ màu chỉ có nghĩa với ĐÈN -> ẩn ở đề mục Thiết bị vệ sinh
@@ -3507,6 +3508,93 @@ function hmInit_(){
   S.hmNode=luu||S.node||'';
   hmBtnSync_();
   if(luu) hmSet_(luu,'init');
+}
+/* ═══════════ CHỌN HẠNG MỤC KIỂU MIND MAP ═══════════
+   Bấm tới đâu hiện cấp con tới đó:  3. Xây dựng → 3.1. Phần thô →
+   3.1.1 Khái toán chi tiết / 3.1.2 Khái toán sơ bộ / 3.1.3 Dự toán → Nhân công / Vật tư.
+   Nút có cấp con: bấm = mở cấp con (chưa đổi đề mục đang bóc).
+   Nút lá: bấm = chọn thật (pickNode -> đồng bộ mọi tab như cũ).
+   Bấm lại một nút đã chọn ở giữa đường = mở lại cấp đó để chọn nhánh khác.       */
+function mmNodes_(){
+  var out=TREE.filter(function(t){ return t[0]!=='X'; }).map(function(t){ return {c:t[0], t:t[1], l:t[2]}; });
+  customGroups().forEach(function(n){ out.push({c:n, t:n, l:1, custom:true}); });
+  return out;
+}
+function mmNode_(code){ return mmNodes_().filter(function(n){ return n.c===code; })[0]||null; }
+function mmKids_(code){
+  var ns=mmNodes_();
+  if(code==='#') return ns.filter(function(n){ return n.l===1; });
+  var me=ns.filter(function(n){ return n.c===code; })[0]; if(!me||me.custom) return [];
+  return ns.filter(function(n){ return n.l===me.l+1 && n.c.indexOf(code+'.')===0; });
+}
+function mmPath_(code){                              // '3.2.6.1' -> ['3','3.2','3.2.6','3.2.6.1']
+  if(!code||code==='#') return [];
+  var me=mmNode_(code); if(!me) return [];
+  if(me.custom) return [code];
+  var parts=String(code).split('.'), out=[];
+  for(var i=1;i<=parts.length;i++){ var c=parts.slice(0,i).join('.'); if(mmNode_(c)) out.push(c); }
+  return out;
+}
+function mmLbl_(code){ var n=mmNode_(code); return n?(n.custom?n.t:(n.c+'. '+n.t)):code; }
+function mmCnt_(code){ var n=(typeof nodeCount==='function')?nodeCount(code):0; return n?('<span class="mm-n">['+pad2(n)+']</span>'):''; }
+function renderMM_(){
+  var el=document.getElementById('mmNav'); if(!el) return;
+  if(S._mmBrowse!=null && S._mmAt!==S.node) S._mmBrowse=null;   // đề mục đổi từ nơi khác -> thôi duyệt dở
+  var dangDuyet=(S._mmBrowse!=null);
+  var cur=dangDuyet?S._mmBrowse:(S.node||'');
+  var path=mmPath_(cur), lv=[], parent='#';
+  path.forEach(function(code,i){
+    var laLa=(!dangDuyet && i===path.length-1 && !mmKids_(code).length);
+    lv.push('<button class="mm-node'+(laLa?' leaf':'')+'" onclick="mmOpen_(\''+esc(parent)+'\')" title="Bấm để chọn nhánh khác ở cấp này">'
+      +'<span class="mm-t">'+esc(mmLbl_(code))+'</span>'+mmCnt_(code)
+      +(mmKids_(code).length?'<span class="mm-ch">▾</span>':'')+'</button>');
+    parent=code;
+  });
+  var kids=mmKids_(parent);
+  if(kids.length){                                     // cấp đang mở: liệt kê nhánh con để chọn
+    lv.push('<div class="mm-cap">'+(parent==='#'?'Chọn hạng mục':'Trong '+esc(mmLbl_(parent)))+'</div>'
+      +'<div class="mm-opts">'+kids.map(function(k){
+        var coCon=mmKids_(k.c).length>0;
+        return '<button class="mm-opt" onclick="mmPick_(\''+esc(k.c)+'\')">'
+          +'<span class="mm-t">'+esc(mmLbl_(k.c))+'</span>'+mmCnt_(k.c)
+          +(coCon?'<span class="mm-ch">›</span>':'')+'</button>';
+      }).join('')+'</div>');
+  } else if(!dangDuyet){                               // tới lá: các cấp phụ của đề mục đó
+    if(S.node==='3.1'){
+      var lo=ptLoai_(), top=(lo.indexOf('dt_')===0)?'dt':lo;
+      lv.push(mmPick2_('Loại báo giá',[['kt_chitiet','3.1.1. Khái toán chi tiết'],['kt_sobo','3.1.2. Khái toán sơ bộ'],['dt','3.1.3. Dự toán']],top,'mmLoai_'));
+      if(top==='dt') lv.push(mmPick2_('Dự toán',[['dt_nhancong','1. Nhân công'],['dt_vattu','2. Vật tư']],lo,'mmLoai_'));
+    } else if(typeof tkSheetCo_==='function' && tkSheetCo_(S.node)){
+      lv.push(mmPick2_('Phân loại',[['','Tất cả'],['nc','1. Nhân công'],['vt','2. Vật tư']],S.sheet||'','mmSheet_'));
+    }
+  }
+  // lồng từng cấp vào nhau để có đường nối như mind map
+  var html='';
+  for(var i=lv.length-1;i>=0;i--) html='<div class="mm-lv">'+lv[i]+html+'</div>';
+  el.innerHTML=html+(dangDuyet?'<button class="mm-reset" onclick="mmCancel_()">← Quay về hạng mục đang bóc</button>':'');
+}
+// cấp phụ (loại báo giá / nhân công - vật tư): chọn 1 trong vài mục, mục đang chọn tô đậm
+function mmPick2_(cap, opts, sel, fn){
+  var chon=opts.filter(function(o){ return o[0]===sel; })[0];
+  return '<div class="mm-cap">'+esc(cap)+'</div><div class="mm-opts">'+opts.map(function(o){
+      var on=(o[0]===sel);
+      return '<button class="mm-opt'+(on?' on':'')+'" onclick="'+fn+'(\''+o[0]+'\')">'
+        +'<span class="mm-t">'+esc(o[1])+'</span>'+(on?'<span class="mm-ch">✓</span>':'')+'</button>';
+    }).join('')+'</div>'+(chon?'':'');
+}
+function mmPick_(code){
+  if(mmKids_(code).length){ S._mmBrowse=code; S._mmAt=S.node; renderMM_(); return; }   // còn cấp con -> mở tiếp
+  S._mmBrowse=null; pickNode(code); renderMM_();
+}
+function mmOpen_(parent){ S._mmBrowse=parent; S._mmAt=S.node; renderMM_(); }
+function mmCancel_(){ S._mmBrowse=null; renderMM_(); }
+function mmLoai_(v){
+  if(v==='dt'){ var lo=ptLoai_(); v=(lo.indexOf('dt_')===0)?lo:'dt_nhancong'; }
+  ptSetLoai(v); renderTable(); renderMM_();
+}
+function mmSheet_(v){
+  S.sheet=v||''; try{ localStorage.setItem('qs_sheet', S.sheet); }catch(e){}
+  S._tkSel={}; renderTable(); if(typeof renderCard==='function') renderCard(); renderMM_();
 }
 function pickNode(code){
   S.node=code;
@@ -7164,6 +7252,7 @@ function ptLoai_(){
   return S._ptLoai||'kt_chitiet';
 }
 function ptSetLoai(v){ S._ptLoai=v; try{ localStorage.setItem('qs_ptLoai',v); }catch(e){} renderPTLibrary();
+  if(typeof renderMM_==='function') renderMM_();
   // bảng trống: lời nhắc trong bảng khác nhau giữa Khái toán và Dự toán -> vẽ lại cho khớp
   if(Array.isArray(S.phanTho)&&!S.phanTho.length) renderPhanTho(); }
 function ptSecsOfLoai_(v){ return PT_TEMPLATE.filter(function(s){ return !s.an && (s.loai||'kt_chitiet')===v; }); }
@@ -10113,6 +10202,7 @@ function setSheet(v){
 }
 var PT_SHEET_LOAI={nc:'dt_nhancong', vt:'dt_vattu'};
 function tkSheetChips_(lines){
+  if(typeof renderMM_==='function') renderMM_();          // mind map bên trái luôn khớp sheet / loại báo giá
   var box=document.getElementById('tkSheets'); if(!box) return;
   if(!lines || !tkSheetCo_()){ box.innerHTML=''; return; }
   var code=S.node||'';
