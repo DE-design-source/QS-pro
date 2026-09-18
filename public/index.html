@@ -5221,6 +5221,62 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
   background:#fff;font-size:12px;color:#2a3542}
 #leftCat #pinFilters .fsec:not(#sec_watt):not(#sec_kelvin) .chip.on{background:#e5e7ea;border-color:#e5e7ea;font-weight:600}
 #leftCat #pinFilters .selrow select,#leftCat #pinFilters .pricerow input{height:34px;border-radius:9px}
+
+/* ═══ Form nhập công tác Phần thô — theo bản vẽ ═══ */
+.ctcard2 .dbcard-b{padding:6px 28px 10px}
+.ctx2 .c2s{padding:24px 0 28px;border-bottom:1px solid #e3e7ec}
+.ctx2 .c2s:last-of-type{border-bottom:none}
+.ctx2 .c2h{margin:0 0 22px;font-size:19px;font-weight:500;color:#1c2735;letter-spacing:-.015em}
+.ctx2 .c2h .c2opt{font-size:12px;font-weight:400;color:#9aa6b5;margin-left:8px;letter-spacing:0}
+.ctx2 .c2g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px 56px}
+.ctx2 .c2-span2{grid-column:span 2}
+.ctx2 .c2-span3{grid-column:1 / -1}
+.ctx2 .c2f label{display:flex;align-items:center;gap:6px;margin:0 0 9px;font-size:13.5px;font-weight:700;color:#14335c}
+.ctx2 .c2f label .req{color:#e5484d;font-size:14px;line-height:1}
+.ctx2 .c2i{position:relative;display:flex;align-items:center}
+.ctx2 .c2i input,.ctx2 .c2i select,.ctx2 .c2i textarea{width:100%;height:42px;padding:0 38px 0 12px;border:1px solid #2a3542;border-radius:9px;
+  background:#fff;font:inherit;font-size:13.5px;color:#1c2735;outline:none;transition:border-color .12s,box-shadow .12s}
+.ctx2 .c2i textarea{height:auto;min-height:42px;padding:10px 12px;resize:vertical;line-height:1.45}
+.ctx2 .c2i select{padding-right:12px}
+.ctx2 .c2i input::placeholder,.ctx2 .c2i textarea::placeholder{color:#9aa4b0}
+.ctx2 .c2i input:focus,.ctx2 .c2i select:focus,.ctx2 .c2i textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.14)}
+.ctx2 .c2i-b{position:absolute;right:9px;width:20px;height:20px;border:none;border-radius:50%;background:#e6e9ed;color:#2a3542;
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.ctx2 .c2i-b:hover{background:#d4dae1}
+.ctx2 .c2u{position:absolute;right:12px;font-size:12px;font-weight:600;color:#8b96a5;pointer-events:none}
+.ctx2 .ctf-prev{min-height:42px;display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;padding:0 12px;border-radius:9px;background:#f6f8fb;font-size:12.5px}
+/* đề mục lớn */
+.ctx2 .c2gh{display:flex;align-items:center;gap:10px;margin:0 0 18px}
+.ctx2 .c2gt{flex:0 1 460px;min-width:0;height:34px;padding:0 2px;border:none;border-bottom:1px dashed transparent;background:none;
+  font:inherit;font-size:19px;font-weight:500;color:#1c2735;outline:none}
+.ctx2 .c2gt::placeholder{color:#1c2735;opacity:.9}
+.ctx2 .c2gt:hover,.ctx2 .c2gt:focus{border-bottom-color:#b8c3d1}
+.ctx2 .c2plus{flex:none;width:26px;height:26px;border:none;border-radius:50%;background:#e1e5ea;color:#2a3542;display:inline-flex;
+  align-items:center;justify-content:center;cursor:pointer;padding:0;transition:background .12s}
+.ctx2 .c2plus:hover{background:var(--blue);color:#fff}
+.ctx2 .c2plus.sm{width:22px;height:22px}
+.ctx2 .c2del{border:none;background:none;font:inherit;font-size:12px;color:#9aa4b0;cursor:pointer}
+.ctx2 .c2del:hover{color:#e5484d}
+/* thẻ đề mục nhỏ */
+.ctx2 .c2card{display:flex;flex-direction:column}
+.ctx2 .c2ch{display:flex;align-items:center;gap:8px;margin:0 0 9px}
+.ctx2 .c2ch b{font-size:13.5px;font-weight:700;color:#1c2735}
+.ctx2 .c2ch .c2x{margin-left:auto;border:none;background:none;color:#b6bfca;cursor:pointer;font-size:12px;opacity:0;transition:opacity .12s}
+.ctx2 .c2card:hover .c2x{opacity:1}
+.ctx2 .c2ch .c2x:hover{color:#e5484d}
+.ctx2 .c2cb{position:relative;border:1px solid #2a3542;border-radius:9px;background:#fff;transition:border-color .12s,box-shadow .12s}
+.ctx2 .c2cb:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.14)}
+.ctx2 .c2cb textarea{display:block;width:100%;min-height:170px;padding:12px 12px 48px;border:none;border-radius:9px;background:none;
+  font:inherit;font-size:13px;line-height:1.5;color:#1c2735;outline:none;resize:vertical}
+.ctx2 .c2cb textarea::placeholder{color:#9aa4b0}
+.ctx2 .c2save{position:absolute;right:10px;bottom:10px;height:28px;min-width:74px;padding:0 14px;border:none;border-radius:6px;
+  background:#1583f5;color:#fff;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+.ctx2 .c2save:hover{background:#0f6fd6}
+.ctx2 .c2card.ok .c2cb{border-color:#9fd3b3}
+.ctx2 .c2card.ok .c2save{background:#e7f7ec;color:#16a34a}
+@media(max-width:1100px){ .ctx2 .c2g{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 28px} .ctx2 .c2-span2{grid-column:span 2} }
+@media(max-width:700px){ .ctx2 .c2g{grid-template-columns:1fr} .ctx2 .c2-span2{grid-column:auto} .ctcard2 .dbcard-b{padding:4px 14px} }
+.ctx2 .c2i input.ct-money,.ctx2 .c2i input.ct-pct{text-align:left!important;padding-right:50px}
 </style>
 
 <!-- ===== TOP NAV ===== -->
