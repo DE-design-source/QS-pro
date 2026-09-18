@@ -574,7 +574,8 @@ function ctColor(k){ var n=parseInt(k,10)||0; if(n<=2700)return '#f0a500'; if(n<
 function chipGroup(key, elId, badgeId, field, stateMap, dataAttr, opts){
   opts=opts||{};
   var el=document.getElementById(elId); if(!el) return;
-  var all=distinctSpec(field).sort(cmpNum);
+  // bỏ giá trị rỗng kiểu "0K" / "0W" (dữ liệu nhập thiếu) — không phải lựa chọn lọc thật
+  var all=distinctSpec(field).filter(function(v){ return !/^0+([.,]0+)?\s*[a-z°]*$/i.test(String(v).trim()); }).sort(cmpNum);
   var selN=all.filter(function(v){return stateMap[v];}).length;
   var badge=document.getElementById(badgeId);
   if(badge) badge.textContent = selN ? ('· '+selN+' đã chọn') : (all.length ? ('· '+all.length) : '');
@@ -583,7 +584,7 @@ function chipGroup(key, elId, badgeId, field, stateMap, dataAttr, opts){
   else{
     html=all.map(function(v){
       var dot=opts.dot?'<span class="dot" style="background:'+opts.dot(v)+'"></span>':'';
-      return '<span class="chip'+(opts.wide?' wide':'')+(stateMap[v]?' on':'')+'" '+dataAttr+'="'+esc(v)+'">'+dot+esc(v)+'</span>';
+      return '<span class="chip'+(opts.wide?' wide':'')+(stateMap[v]?' on':'')+'" '+dataAttr+'="'+esc(v)+'" title="'+esc(v)+'">'+dot+esc(v)+'</span>';
     }).join('');
   }
   el.innerHTML=html;
