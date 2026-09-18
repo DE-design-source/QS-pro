@@ -3537,50 +3537,56 @@ function mmPath_(code){                              // '3.2.6.1' -> ['3','3.2',
 }
 function mmLbl_(code){ var n=mmNode_(code); return n?(n.custom?n.t:(n.c+'. '+n.t)):code; }
 function mmCnt_(code){ var n=(typeof nodeCount==='function')?nodeCount(code):0; return n?('<span class="mm-n">['+pad2(n)+']</span>'):''; }
+function mmCode_(code){ var n=mmNode_(code); return (n&&!n.custom)?n.c:''; }
+function mmName_(code){ var n=mmNode_(code); return n?n.t:code; }
+function mmNum_(code){ var n=(typeof nodeCount==='function')?nodeCount(code):0; return n?'<span class="mm-num">'+n+'</span>':''; }
 function renderMM_(){
   var el=document.getElementById('mmNav'); if(!el) return;
   if(S._mmBrowse!=null && S._mmAt!==S.node) S._mmBrowse=null;   // đề mục đổi từ nơi khác -> thôi duyệt dở
   var dangDuyet=(S._mmBrowse!=null);
   var cur=dangDuyet?S._mmBrowse:(S.node||'');
-  var path=mmPath_(cur), lv=[], parent='#';
+  var path=mmPath_(cur), st=[], parent='#';
+  // --- các nút ĐÃ CHỌN trên đường đi: viên thuốc gọn, bấm để đổi nhánh ở cấp đó ---
   path.forEach(function(code,i){
     var laLa=(!dangDuyet && i===path.length-1 && !mmKids_(code).length);
-    lv.push('<button class="mm-node'+(laLa?' leaf':'')+'" onclick="mmOpen_(\''+esc(parent)+'\')" title="Bấm để chọn nhánh khác ở cấp này">'
-      +'<span class="mm-t">'+esc(mmLbl_(code))+'</span>'+mmCnt_(code)
-      +(mmKids_(code).length?'<span class="mm-ch">▾</span>':'')+'</button>');
+    st.push('<div class="mm-step path'+(laLa?' leaf':'')+'">'
+      +'<button class="mm-pill" onclick="mmOpen_(\''+esc(parent)+'\')" title="Bấm để đổi sang nhánh khác ở cấp này">'
+        +(mmCode_(code)?'<span class="mm-code">'+esc(mmCode_(code))+'</span>':'')
+        +'<span class="mm-t">'+esc(mmName_(code))+'</span>'+mmNum_(code)
+        +'<span class="mm-ic">'+(laLa?'✓':'⌄')+'</span></button></div>');
     parent=code;
   });
+  // --- cấp đang mở: danh sách nhánh con ---
   var kids=mmKids_(parent);
-  if(kids.length){                                     // cấp đang mở: liệt kê nhánh con để chọn
-    lv.push('<div class="mm-cap">'+(parent==='#'?'Chọn hạng mục':'Trong '+esc(mmLbl_(parent)))+'</div>'
-      +'<div class="mm-opts">'+kids.map(function(k){
+  if(kids.length){
+    st.push('<div class="mm-step pick"><div class="mm-cap">'+(parent==='#'?'Chọn hạng mục':'Chọn tiếp')+'</div>'
+      +'<div class="mm-list">'+kids.map(function(k){
         var coCon=mmKids_(k.c).length>0;
-        return '<button class="mm-opt" onclick="mmPick_(\''+esc(k.c)+'\')">'
-          +'<span class="mm-t">'+esc(mmLbl_(k.c))+'</span>'+mmCnt_(k.c)
-          +(coCon?'<span class="mm-ch">›</span>':'')+'</button>';
-      }).join('')+'</div>');
-  } else if(!dangDuyet){                               // tới lá: các cấp phụ của đề mục đó
+        return '<button class="mm-item" onclick="mmPick_(\''+esc(k.c)+'\')">'
+          +(mmCode_(k.c)?'<span class="mm-code">'+esc(mmCode_(k.c))+'</span>':'')
+          +'<span class="mm-t">'+esc(k.t)+'</span>'+mmNum_(k.c)
+          +(coCon?'<span class="mm-go">›</span>':'')+'</button>';
+      }).join('')+'</div></div>');
+  } else if(!dangDuyet){                              // tới lá: các cấp phụ của đề mục đó
     if(S.node==='3.1'){
       var lo=ptLoai_(), top=(lo.indexOf('dt_')===0)?'dt':lo;
-      lv.push(mmPick2_('Loại báo giá',[['kt_chitiet','3.1.1. Khái toán chi tiết'],['kt_sobo','3.1.2. Khái toán sơ bộ'],['dt','3.1.3. Dự toán']],top,'mmLoai_'));
-      if(top==='dt') lv.push(mmPick2_('Dự toán',[['dt_nhancong','1. Nhân công'],['dt_vattu','2. Vật tư']],lo,'mmLoai_'));
+      st.push(mmPick2_('Loại báo giá',[['kt_chitiet','3.1.1','Khái toán chi tiết'],['kt_sobo','3.1.2','Khái toán sơ bộ'],['dt','3.1.3','Dự toán']],top,'mmLoai_'));
+      if(top==='dt') st.push(mmPick2_('Dự toán',[['dt_nhancong','1','Nhân công'],['dt_vattu','2','Vật tư']],lo,'mmLoai_'));
     } else if(typeof tkSheetCo_==='function' && tkSheetCo_(S.node)){
-      lv.push(mmPick2_('Phân loại',[['','Tất cả'],['nc','1. Nhân công'],['vt','2. Vật tư']],S.sheet||'','mmSheet_'));
+      st.push(mmPick2_('Phân loại',[['','','Tất cả'],['nc','1','Nhân công'],['vt','2','Vật tư']],S.sheet||'','mmSheet_'));
     }
   }
-  // lồng từng cấp vào nhau để có đường nối như mind map
-  var html='';
-  for(var i=lv.length-1;i>=0;i--) html='<div class="mm-lv">'+lv[i]+html+'</div>';
-  el.innerHTML=html+(dangDuyet?'<button class="mm-reset" onclick="mmCancel_()">← Quay về hạng mục đang bóc</button>':'');
+  el.innerHTML='<div class="mm-rail">'+st.join('')+'</div>'
+    +(dangDuyet?'<button class="mm-reset" onclick="mmCancel_()">← Về hạng mục đang bóc</button>':'');
 }
-// cấp phụ (loại báo giá / nhân công - vật tư): chọn 1 trong vài mục, mục đang chọn tô đậm
+// cấp phụ (loại báo giá / nhân công - vật tư): chọn 1 trong vài mục
 function mmPick2_(cap, opts, sel, fn){
-  var chon=opts.filter(function(o){ return o[0]===sel; })[0];
-  return '<div class="mm-cap">'+esc(cap)+'</div><div class="mm-opts">'+opts.map(function(o){
+  return '<div class="mm-step pick"><div class="mm-cap">'+esc(cap)+'</div><div class="mm-list">'+opts.map(function(o){
       var on=(o[0]===sel);
-      return '<button class="mm-opt'+(on?' on':'')+'" onclick="'+fn+'(\''+o[0]+'\')">'
-        +'<span class="mm-t">'+esc(o[1])+'</span>'+(on?'<span class="mm-ch">✓</span>':'')+'</button>';
-    }).join('')+'</div>'+(chon?'':'');
+      return '<button class="mm-item'+(on?' on':'')+'" onclick="'+fn+'(\''+o[0]+'\')">'
+        +(o[1]?'<span class="mm-code">'+esc(o[1])+'</span>':'')
+        +'<span class="mm-t">'+esc(o[2])+'</span>'+(on?'<span class="mm-go">✓</span>':'')+'</button>';
+    }).join('')+'</div></div>';
 }
 function mmPick_(code){
   if(mmKids_(code).length){ S._mmBrowse=code; S._mmAt=S.node; renderMM_(); return; }   // còn cấp con -> mở tiếp

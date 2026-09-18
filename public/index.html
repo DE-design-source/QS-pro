@@ -5071,34 +5071,47 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
 .chip-quick b{font-weight:700;opacity:.75}
 .chip-quick i{font-style:normal;font-size:9px;opacity:.7}
 
-/* ═══ CHỌN HẠNG MỤC KIỂU MIND MAP (panel trái Bóc tách) ═══ */
-.mm-nav{display:flex;flex-direction:column;gap:0;margin:2px 0 4px}
-.mm-lv{position:relative;padding-left:16px}
-.mm-lv:first-child{padding-left:0}
-.mm-lv+.mm-lv::before{content:'';position:absolute;left:6px;top:0;height:17px;width:9px;
-  border-left:1.5px solid #bcd0ec;border-bottom:1.5px solid #bcd0ec;border-bottom-left-radius:6px}
-.mm-lv+.mm-lv{margin-top:4px}
-.mm-lv .mm-lv{padding-left:16px}
-.mm-node{display:flex;align-items:center;gap:6px;width:100%;min-height:34px;padding:6px 10px;border-radius:9px;
-  border:1px solid #d7e2f0;background:#f4f8ff;color:var(--navy,#14284b);font:inherit;font-size:12.5px;font-weight:650;
-  text-align:left;cursor:pointer;transition:border-color .12s,background .12s}
-.mm-node:hover{border-color:var(--blue)}
-.mm-node .mm-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mm-node .mm-n{font-size:10.5px;font-weight:700;color:var(--c4,#8b96a5)}
-.mm-node .mm-ch{font-size:10px;color:var(--blue);opacity:.75}
-.mm-node.leaf{background:var(--blue);border-color:var(--blue);color:#fff}
-.mm-node.leaf .mm-n,.mm-node.leaf .mm-ch{color:#dbe8ff}
-.mm-cap{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--c4,#8b96a5);margin:2px 0 4px}
-.mm-opts{display:flex;flex-direction:column;gap:4px;padding:6px;border:1px dashed #cfdcef;border-radius:10px;background:#fff}
-.mm-opt{display:flex;align-items:center;gap:6px;padding:6px 9px;border-radius:7px;border:1px solid transparent;background:none;
-  font:inherit;font-size:12px;color:var(--ink,#22303f);text-align:left;cursor:pointer}
-.mm-opt:hover{background:#f2f7ff;border-color:#d7e5fb}
-.mm-opt .mm-t{flex:1;min-width:0}
-.mm-opt .mm-n{font-size:10.5px;color:var(--c4,#8b96a5);font-weight:600}
-.mm-opt .mm-ch{font-size:10px;color:var(--blue);opacity:.7}
-.mm-opt.on{background:#eaf2ff;border-color:#bcd6f5;color:var(--blue);font-weight:650}
-.mm-reset{align-self:flex-start;margin-top:6px;border:none;background:none;padding:0;font:inherit;font-size:11px;color:var(--c3,#6b7684);cursor:pointer}
-.mm-reset:hover{color:var(--blue)}
+/* ═══ CHỌN HẠNG MỤC KIỂU MIND MAP (panel trái Bóc tách) ═══
+   Một đường ray dọc bên trái nối các cấp: chấm đặc = cấp đã chọn, vòng rỗng = cấp đang chọn tiếp. */
+.mm-nav{margin:2px 0 6px}
+.mm-rail{display:flex;flex-direction:column}
+.mm-step{position:relative;padding:0 0 10px 22px}
+.mm-step:last-child{padding-bottom:0}
+.mm-step::before{content:'';position:absolute;left:6px;top:14px;bottom:-4px;width:2px;border-radius:2px;background:#dbe6f5}
+.mm-step:last-child::before{display:none}
+.mm-step::after{content:'';position:absolute;left:1px;top:9px;width:12px;height:12px;border-radius:50%;box-sizing:border-box;
+  background:#fff;border:2px solid #9db8e2}
+.mm-step.path::after{background:#9db8e2;border-color:#9db8e2;transform:scale(.72)}
+.mm-step.leaf::after{background:var(--blue);border-color:var(--blue);transform:none;box-shadow:0 0 0 3px #dbe8ff}
+/* viên đã chọn */
+.mm-pill{display:flex;align-items:center;gap:7px;width:100%;height:30px;padding:0 10px 0 6px;border-radius:8px;
+  border:1px solid transparent;background:none;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink,#22303f);
+  text-align:left;cursor:pointer;transition:background .12s,border-color .12s}
+.mm-pill:hover{background:#f3f7fd;border-color:#e1e9f5}
+.mm-pill .mm-ic{margin-left:auto;font-size:11px;color:#9aa8ba;flex:none}
+.mm-step.leaf .mm-pill{background:#eef4ff;border-color:#cfe0fd;color:var(--blue)}
+.mm-step.leaf .mm-pill .mm-ic{color:var(--blue);font-weight:700}
+/* mã số + tên */
+.mm-code{flex:none;min-width:26px;padding:1px 6px;border-radius:5px;background:#eef1f6;color:#5c6b7d;
+  font-size:10.5px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums}
+.mm-step.leaf .mm-code{background:var(--blue);color:#fff}
+.mm-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mm-num{flex:none;font-size:10.5px;font-weight:700;color:#8b96a5;background:#f3f5f8;border-radius:99px;padding:0 6px;line-height:17px}
+/* cấp đang chọn tiếp */
+.mm-cap{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8b96a5;
+  line-height:30px;height:30px;padding-left:6px}
+.mm-list{display:flex;flex-direction:column;padding:4px;border:1px solid #e6ecf4;border-radius:10px;background:#fff;
+  box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.mm-item{display:flex;align-items:center;gap:7px;height:32px;padding:0 8px 0 6px;border:none;border-radius:7px;background:none;
+  font:inherit;font-size:12.5px;color:var(--ink,#22303f);text-align:left;cursor:pointer;transition:background .1s}
+.mm-item:hover{background:#f3f7fd}
+.mm-item .mm-go{margin-left:auto;flex:none;color:#9aa8ba;font-size:14px;line-height:1}
+.mm-item:hover .mm-go{color:var(--blue)}
+.mm-item.on{background:#eef4ff;color:var(--blue);font-weight:650}
+.mm-item.on .mm-code{background:var(--blue);color:#fff}
+.mm-item.on .mm-go{color:var(--blue);font-size:12px;font-weight:700}
+.mm-reset{margin:8px 0 0 22px;border:none;background:none;padding:0;font:inherit;font-size:11.5px;font-weight:600;color:var(--blue);cursor:pointer}
+.mm-reset:hover{text-decoration:underline}
 </style>
 
 <!-- ===== TOP NAV ===== -->
