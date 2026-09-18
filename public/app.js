@@ -345,7 +345,7 @@ async function boot(){
     if(!S.cur && S.projects.length) S.cur=S.projects[0];
     if(S.cur){ var f=S.projects.filter(function(p){return p.maDA===S.cur.maDA;})[0]; if(f) S.cur=f; }
     S.lines = S.cur ? (await api('getLines',S.cur.maDA)||[]) : [];
-    renderAll(); bocBoot_(); hmInit_();      // hạng mục dùng chung: khôi phục lựa chọn lần trước
+    renderAll(); bocBoot_(); hmInit_(); sideApply_();      // hạng mục dùng chung: khôi phục lựa chọn lần trước
     ctLoad_(true).then(function(){ if(S.node==='3.1'||spPTMode_()) ctReload_(); });
   }catch(e){ toast('Lỗi tải: '+e.message); }
 }
@@ -594,6 +594,15 @@ function chipGroup(key, elId, badgeId, field, stateMap, dataAttr, opts){
   };
 }
 // gập/mở 1 nhóm lọc (mặc định MỞ; nhớ trạng thái ở localStorage)
+/* Ẩn / hiện panel sản phẩm bên trái — ẩn đi thì bảng bóc tách chiếm hết bề ngang */
+function sideGet_(){ try{ return localStorage.getItem('qs_sideOff')==='1'; }catch(e){ return false; } }
+function sideApply_(){
+  var g=document.getElementById('bocGrid'), off=sideGet_(); if(g) g.classList.toggle('nocat', off);
+  var b=document.getElementById('sideTog');
+  if(b){ b.classList.toggle('on', off); b.title=off?'Hiện panel sản phẩm':'Ẩn panel sản phẩm — bảng rộng hơn'; }
+  if(typeof tkHBarSync_==='function') try{ tkHBarSync_(); }catch(e){}
+}
+function sideToggle_(){ try{ localStorage.setItem('qs_sideOff', sideGet_()?'0':'1'); }catch(e){} sideApply_(); }
 function toggleFsec(key){
   if(FSEC_ALWAYS[key]) return;            // Công suất / Nhiệt độ màu luôn mở
   var open=(S.fsecOpen[key]!==false);
@@ -601,7 +610,7 @@ function toggleFsec(key){
   try{ localStorage.setItem('qs_fsec', JSON.stringify(S.fsecOpen)); }catch(e){}
   applyFsec();
 }
-var FSEC_ALWAYS={watt:1,kelvin:1};      // 2 bộ lọc dùng nhiều nhất -> luôn mở, không gập
+var FSEC_ALWAYS={};      // Công suất / Nhiệt độ màu giờ cũng gập/mở được (nhớ trạng thái) cho panel gọn
 function applyFsec(){
   ['watt','kelvin','angle','ip','cri','volt','combo','yeuthich'].forEach(function(k){
     var s=document.getElementById('sec_'+k); if(!s) return;

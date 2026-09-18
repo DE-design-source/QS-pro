@@ -5169,6 +5169,26 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
   #leftCat .cat-list{flex:1 1 auto;min-height:0}
 }
 #leftCat #sec_watt .chip .ctx,#leftCat #sec_kelvin .chip .ctx{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Công suất / Nhiệt độ màu: chữ nhỏ lại + gập/mở được */
+#leftCat #sec_watt .chip{font-size:11.5px!important;height:34px!important}
+#leftCat #sec_kelvin .chip{font-size:11px!important;height:34px!important}
+#leftCat #sec_watt .fsec-h,#leftCat #sec_kelvin .fsec-h{cursor:pointer!important;display:flex;align-items:center}
+#leftCat #sec_watt .fsec-c,#leftCat #sec_kelvin .fsec-c{display:inline-flex!important;margin-left:auto;width:22px;height:22px;
+  align-items:center;justify-content:center;border-radius:6px;color:#8b96a5;font-size:11px;transition:transform .15s,background .12s}
+#leftCat #sec_watt .fsec-h:hover .fsec-c,#leftCat #sec_kelvin .fsec-h:hover .fsec-c{background:#f1f4f8;color:#1c2735}
+#leftCat #sec_watt:not(.open) .fsec-c,#leftCat #sec_kelvin:not(.open) .fsec-c{transform:rotate(-90deg)}
+#leftCat #sec_watt:not(.open) .chips,#leftCat #sec_kelvin:not(.open) .chips{display:none!important}
+#leftCat #sec_watt:not(.open) .fsec-h,#leftCat #sec_kelvin:not(.open) .fsec-h{padding-bottom:0!important}
+/* Nút ẩn/hiện panel sản phẩm */
+.side-tog{flex:none;width:30px;height:30px;margin-right:4px;border:1px solid var(--ln2,#e3e8ef);border-radius:8px;background:#fff;
+  color:#5b6878;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .12s,color .12s}
+.side-tog:hover{border-color:var(--blue);color:var(--blue)}
+.side-tog.on{background:#eef4ff;border-color:#cfe0fd;color:var(--blue)}
+.side-tog.on .sd-ar{transform:rotate(180deg);transform-origin:14px 12px}
+#bocGrid.nocat #leftCat,#bocGrid.nocat .cat-resize{display:none!important}
+#bocGrid.nocat{grid-template-columns:minmax(0,1fr)!important}
+#bocGrid.nocat.detail{grid-template-columns:268px minmax(0,1fr)!important}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -5321,7 +5341,7 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
       <!-- RIGHT: takeoff -->
       <div class="panel tk-panel">
         <div class="toolbar">
-          <h3>Hạng mục</h3><span class="count" id="tkCount">[00]</span>
+          <button class="side-tog" id="sideTog" onclick="sideToggle_()" title="Ẩn panel sản phẩm — bảng rộng hơn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/><path class="sd-ar" d="M15 10l-2 2 2 2"/></svg></button><h3>Hạng mục</h3><span class="count" id="tkCount">[00]</span>
           <div style="position:relative">
             <button class="tree-btn" id="treeBtn" onclick="toggleTree()">
               <span id="treeLabel">Chọn hạng mục</span><span class="cnt" id="treeCnt"></span>
