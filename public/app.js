@@ -584,7 +584,7 @@ function chipGroup(key, elId, badgeId, field, stateMap, dataAttr, opts){
   else{
     html=all.map(function(v){
       var dot=opts.dot?'<span class="dot" style="background:'+opts.dot(v)+'"></span>':'';
-      return '<span class="chip'+(opts.wide?' wide':'')+(stateMap[v]?' on':'')+'" '+dataAttr+'="'+esc(v)+'" title="'+esc(v)+'">'+dot+esc(v)+'</span>';
+      return '<span class="chip'+(opts.wide?' wide':'')+(stateMap[v]?' on':'')+'" '+dataAttr+'="'+esc(v)+'" title="'+esc(v)+'">'+dot+'<span class="ctx">'+esc(v)+'</span></span>';
     }).join('');
   }
   el.innerHTML=html;

@@ -5125,8 +5125,9 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
 #leftCat #sec_watt .chips,#leftCat #sec_kelvin .chips{display:grid!important;gap:8px!important;padding:0 10px 0 0!important;margin:0!important;
   max-height:84px!important;overflow-y:auto!important;overflow-x:hidden!important;align-content:start!important;
   scrollbar-width:thin!important;scrollbar-color:#cdd3da transparent!important}
-#leftCat #sec_watt .chips{grid-template-columns:repeat(5,minmax(0,1fr))!important}
-#leftCat #sec_kelvin .chips{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+/* TỐI ĐA 5 ô/hàng (panel rộng thì ô to ra); panel bị kéo hẹp thì tự bớt cột — mỗi ô không nhỏ hơn 48px nên chữ không bao giờ bị cắt */
+#leftCat #sec_watt .chips{grid-template-columns:repeat(auto-fill,minmax(max(42px,calc((100% - 32px) / 5)),1fr))!important}
+#leftCat #sec_kelvin .chips{grid-template-columns:repeat(auto-fill,minmax(max(62px,calc((100% - 24px) / 4)),1fr))!important}
 #leftCat #sec_watt .chips::-webkit-scrollbar,#leftCat #sec_kelvin .chips::-webkit-scrollbar{display:block!important;width:4px!important}
 #leftCat #sec_watt .chips::-webkit-scrollbar-thumb,#leftCat #sec_kelvin .chips::-webkit-scrollbar-thumb{background:#cdd3da!important;border-radius:4px!important}
 #leftCat #sec_watt .chips::-webkit-scrollbar-track,#leftCat #sec_kelvin .chips::-webkit-scrollbar-track{background:transparent!important}
@@ -5137,7 +5138,9 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
   cursor:pointer;box-shadow:none!important;transition:border-color .12s,background .12s}
 #leftCat #sec_watt .chip:hover,#leftCat #sec_kelvin .chip:hover{border-color:#c8cfd8!important}
 #leftCat #sec_watt .chip.on,#leftCat #sec_kelvin .chip.on{background:#e5e7ea!important;border-color:#e5e7ea!important;color:#1c2735!important}
-#leftCat #sec_kelvin .chip .dot{width:10px!important;height:10px!important;border-radius:50%;flex:none;margin:0!important}
+#leftCat #sec_kelvin .chip{font-size:12px!important;gap:5px!important;padding:0 3px!important}
+#leftCat #sec_watt .chip{font-size:12.5px!important;padding:0 3px!important}
+#leftCat #sec_kelvin .chip .dot{width:9px!important;height:9px!important;border-radius:50%;flex:none;margin:0!important}
 
 /* ═══ Khối lọc đầu panel trái — theo bản vẽ: 3 ô viên thuốc xếp chồng, không nhãn phụ ═══ */
 #leftCat #selExtra > .mlbl{display:none}
@@ -5154,7 +5157,18 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
 /* mind map xổ ra ngay dưới ô đề mục */
 #leftCat #mmNav{margin:-2px 0 10px;padding:10px 10px 8px;border:1px solid #e6eaf0;border-radius:10px;background:#fff}
 /* Công suất / Nhiệt độ màu thụt vào như bản vẽ */
-#leftCat #sec_watt,#leftCat #sec_kelvin{padding-left:14px!important}
+#leftCat #sec_watt,#leftCat #sec_kelvin{padding-left:6px!important}
+
+/* ═══ Panel trái: DANH SÁCH SẢN PHẨM luôn còn chỗ ═══
+   Panel cao đúng bằng màn hình; khối lọc phía trên tối đa ~55% và tự cuộn bên trong,
+   phần còn lại (≥45%) luôn dành cho danh sách sản phẩm để kéo/thả — trước đây khối lọc
+   dài ra (nhiều chip, kéo panel hẹp) là đẩy danh sách sản phẩm xuống mất hẳn. */
+@media(min-width:1121px){
+  #leftCat.catpanel{height:calc(100vh - 92px)}
+  #leftCat .catpanel-top{max-height:55%}
+  #leftCat .cat-list{flex:1 1 auto;min-height:0}
+}
+#leftCat #sec_watt .chip .ctx,#leftCat #sec_kelvin .chip .ctx{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
 
 <!-- ===== TOP NAV ===== -->
