@@ -6387,7 +6387,7 @@ var DB_FLAT_VS=[]; DB_GROUPS_VS.forEach(function(gr){ gr.f.forEach(function(f){ 
 /* Ngành hàng đang chọn ở trang Nhập dữ liệu -> bộ trường / bộ nhóm tương ứng */
 function impGroups_(){ return impLoai_()==='vs'?DB_GROUPS_VS:DB_GROUPS; }
 function impFlat_(){ return impLoai_()==='vs'?DB_FLAT_VS:DB_FLAT; }
-function nganhCuaSP_(p){ return (p&&p.nganh==='vs')?'vs':'den'; }
+function nganhCuaSP_(p){ return (p&&(p.nganh==='vs'||(!p.nganh&&VS_SPEC.chuanHM(p.hangMuc))))?'vs':'den'; }
 function groupsCuaSP_(p){ return nganhCuaSP_(p)==='vs'?DB_GROUPS_VS:DB_GROUPS; }
 function dbInput(f){
   var i=impFlat_().indexOf(f), lark=f[0], label=f[1], type=f[2], req=f[3], opts=f[4]||[];
@@ -7121,7 +7121,13 @@ async function impPick(input){
   var pv=document.getElementById('impPreview'); pv.innerHTML='<div style="color:var(--muted)">Đang đọc file "'+esc(f.name)+'"…</div>';
   var reader=new FileReader();
   reader.onload=async function(){
-    try{ var b64=String(reader.result).split(',')[1]; S._impNganh=(impLoai_()==='vs')?'vs':''; var res=await api('importParse',b64,ext,S._impNganh); impShow(res); }
+    try{ var b64=String(reader.result).split(',')[1]; S._impNganh=(impLoai_()==='vs')?'vs':''; var res=await api('importParse',b64,ext,S._impNganh);
+      // File thiết bị vệ sinh mà ô Ngành hàng đang để Thiết bị đèn -> tự nhận theo cột HẠNG MỤC
+      if(!S._impNganh){ var ps=res.products||[], soVS=ps.filter(function(p){ return VS_SPEC.chuanHM((p._raw||{})['HẠNG MỤC']||p.hangMuc); }).length;
+        if(ps.length && soVS*2>=ps.length){ S._impNganh='vs'; ps.forEach(function(p){ p._nganh='vs'; });
+          S._impLoai='vs'; renderImport(); pv=document.getElementById('impPreview');
+          toast('File là THIẾT BỊ VỆ SINH (theo cột Hạng mục) — đã tự chuyển ngành hàng sang Thiết bị vệ sinh'); } }
+      impShow(res); }
     catch(e){ pv.innerHTML='<div style="color:#c33">Lỗi đọc file: '+esc(e.message)+'</div>'; }
   };
   reader.onerror=function(){ pv.innerHTML='<div style="color:#c33">Không đọc được file.</div>'; };

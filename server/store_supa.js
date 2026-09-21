@@ -54,7 +54,8 @@ function prodToObj(r) {
      Thiết bị vệ sinh ghép 2 cột gộp theo đúng file mẫu của Dezon:
        THÔNG TIN CHÍNH  = Màu · Hệ thống xả · Thiết kế · Dòng SP · Hạng mục · Bảo hành
        THÔNG SỐ THIẾT KẾ = Kích thước · Lượng nước xả · Tâm xả · Áp lực nước · Lưu ý   */
-  const nganh = s(r.nganh) || 'den';
+  // Ngành trống (SP nhập khi ô Ngành hàng đang để Thiết bị đèn) mà hạng mục là hạng mục vệ sinh -> vs
+  const nganh = s(r.nganh) || (VS.chuanHM(r.hang_muc) ? 'vs' : 'den');
   const bh = r.bao_hanh_nam ? (r.bao_hanh_nam + ' năm') : '';
   if (nganh === 'vs') {
     // Mỗi hạng mục có bộ thông số riêng (public/vs-spec.js): chinh -> THÔNG TIN CHÍNH, tk -> THÔNG SỐ THIẾT KẾ.
@@ -450,6 +451,7 @@ async function saveDbProduct(actor, data, opts) {
     else if (DB_NUM.indexOf(label) >= 0) v = n(v);
     row[col] = v;
   });
+  if (!row.nganh && VS.chuanHM(row.hang_muc)) row.nganh = 'vs';
   const ma = s(data['MÃ SẢN PHẨM']).trim();
   // Khoá trùng = MÃ SP + các trục BIẾN THỂ (nhiệt độ màu / công suất / góc chiếu).
   // Nhờ vậy cùng mã nhưng khác nhiệt độ màu sẽ là 2 SẢN PHẨM RIÊNG (biến thể), không ghi đè nhau.
@@ -917,7 +919,9 @@ async function importCommit(actor, products) {
     if (!s(data['TRẠNG THÁI']).trim()) data['TRẠNG THÁI'] = 'Đang kinh doanh';
     if (!s(data['TÊN SẢN PHẨM']).trim()) continue;
     if (s(data['TÊN SẢN PHẨM']).trim().indexOf(VS.VD) === 0) continue;   // dòng ví dụ của file mẫu
-    if (p._nganh === 'vs' || s(data['NGÀNH HÀNG']) === 'vs') {
+    const laVS = p._nganh === 'vs' || s(data['NGÀNH HÀNG']) === 'vs'
+      || (s(data['NGÀNH HÀNG']) !== 'den' && !!VS.chuanHM(data['HẠNG MỤC']));   // hạng mục vệ sinh -> tự nhận ngành
+    if (laVS) {
       // THIẾT BỊ VỆ SINH: đóng dấu ngành (-> SP về đề mục 3.2.5), chuẩn hoá tên hạng mục và
       // CHỈ giữ thông số thuộc hạng mục đó — cột của hạng mục khác trong file bị bỏ qua.
       data['NGÀNH HÀNG'] = 'vs';
