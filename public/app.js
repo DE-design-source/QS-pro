@@ -6570,13 +6570,20 @@ function impDateTime_(iso){
 function impRecentList(){
   var ps=(S._sessionAdded||[]);  // CHỈ SP thêm/nhập trong PHIÊN hiện tại
   var pd=(S._pending||[]);        // chờ lưu: chưa vào Database cho tới khi bấm "Thêm sản phẩm"
-  var pRows=pd.map(function(p,i){
-    var img=p.hinhAnh?'<img class="imp-rth" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="imp-rth"></span>';
-    return '<tr class="imp-rpend'+(p.loi?' err':'')+'"'+(p.loi?' title="'+esc(p.loi)+'"':'')+'><td class="c imp-ract">'
-      +'<button class="imp-redit" title="Bỏ khỏi danh sách chờ" onclick="pendingDel_('+i+')">✕</button></td><td class="c">'+(i+1)+'</td>'
-      +'<td class="imp-rname">'+esc(p.ten||'')+(p.bienThe?'<i class="imp-rma">'+esc(p.bienThe)+'</i>':'')
-      +(p.ma?'<i class="imp-rma">'+esc(p.ma)+'</i>':'')+(p.loi?'<i class="imp-rloi">'+esc(p.loi)+'</i>':'')+'</td><td class="c">'+img+'</td>'
-      +'<td>'+esc(p.thuongHieu||'—')+'</td><td class="imp-rdate"><span class="imp-rchip">'+(p.loi?'Lỗi':'Chờ lưu')+'</span></td></tr>';
+  // Thẻ chờ lưu: ảnh · tên (2 dòng) · mã/biến thể · thương hiệu · trạng thái + 2 nút rõ ràng Sửa / Xoá
+  var pCards=pd.map(function(p,i){
+    var img=p.hinhAnh?'<img class="pc-th" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="pc-th pc-noimg">'+icon('image',14)+'</span>';
+    var dangSua=(S._pendEdit===p.uid);
+    var phu=[p.ma, p.bienThe, p.thuongHieu].filter(Boolean).map(esc).join(' · ');
+    return '<div class="pc'+(p.loi?' err':'')+(dangSua?' editing':'')+'">'+img
+      +'<div class="pc-mid"><div class="pc-name" title="'+esc(p.ten||'')+'">'+esc(p.ten||'')+'</div>'
+        +(phu?'<div class="pc-sub">'+phu+'</div>':'')
+        +(p.loi?'<div class="pc-loi">'+esc(p.loi)+'</div>':'')
+        +'<span class="pc-tag">'+(dangSua?'Đang sửa':(p.loi?'Lỗi — sửa lại':'Chờ lưu'))+'</span></div>'
+      +'<div class="pc-act">'
+        +'<button class="pc-btn" title="Sửa — mở lại trong form" onclick="pendingEdit_('+i+')">'+icon('edit',14)+'</button>'
+        +'<button class="pc-btn del" title="Xoá khỏi danh sách chờ" onclick="pendingDel_('+i+')">'+icon('trash',14)+'</button>'
+      +'</div></div>';
   }).join('');
   var rows=ps.map(function(p,i){
     var im=String(p.hinhAnh||'').split('\n')[0];
@@ -6589,7 +6596,9 @@ function impRecentList(){
       +(p.ma?'<i class="imp-rma">'+esc(p.ma)+'</i>':'')+'</td><td class="c">'+img+'</td>'
       +'<td>'+esc(p.thuongHieu||'—')+'</td><td class="imp-rdate">'+(impDateTime_(p.capNhat)||'—')+'</td></tr>';
   }).join('');
-  if(!pRows && !rows) rows='<tr><td colspan="6" class="empty" style="padding:24px 12px;font-size:12.5px;line-height:1.5">Chưa nhập sản phẩm nào trong phiên này.<br>Sản phẩm bạn <b>thêm / nhập file</b> sẽ hiện ở đây — bấm <b>Thêm sản phẩm</b> để lưu vào Database.</td></tr>';
+  if(!pCards && !rows) rows='<tr><td colspan="6" class="empty" style="padding:24px 12px;font-size:12.5px;line-height:1.5">Chưa nhập sản phẩm nào trong phiên này.<br>Sản phẩm bạn <b>thêm / nhập file</b> sẽ hiện ở đây — bấm <b>Thêm sản phẩm</b> để lưu vào Database.</td></tr>';
+  var choHtml=pd.length?('<div class="pc-hd">Chờ lưu <span>'+pd.length+'</span><i>Chưa vào Database</i></div><div class="pc-list">'+pCards+'</div>'):'';
+  var daHd=(pd.length&&ps.length)?'<div class="pc-hd done">Đã lưu vào Database <span>'+ps.length+'</span></div>':'';
   var nut='<div class="imp-rfoot">'
     +(pd.length?'<div class="imp-rfoot-note"><b>'+pd.length+'</b> sản phẩm đang chờ — <b>chưa</b> lưu vào Database</div>':'')
     +'<button class="btn blue block" id="pendBtn" onclick="pendingCommit_(this)"'+(pd.length?'':' disabled')+'>'+icon('plus',15)
@@ -6597,7 +6606,8 @@ function impRecentList(){
   return '<div class="imp-recent-h">Sản phẩm vừa nhập (phiên này) <span class="count">'+pad2(pd.length+ps.length)+'</span></div>'
     +'<div class="imp-recent-note">Danh sách này chỉ ghi lại thao tác của <b>phiên đang mở</b> — tải lại trang sẽ trống. '
     +'Sản phẩm đã lưu <b>vẫn nằm trong Database</b>: <a onclick="showTab(\'sanpham\')">xem Danh sách sản phẩm →</a></div>'
-    +'<div class="imp-recent-b"><table class="imp-rtbl"><thead><tr><th class="c">Sửa</th><th class="c">STT</th><th>Tên sản phẩm</th><th class="c">Hình ảnh</th><th>Thương hiệu</th><th>Ngày cập nhật</th></tr></thead><tbody>'+pRows+rows+'</tbody></table></div>'
+    +'<div class="imp-recent-b">'+choHtml+daHd
+      +(rows?'<table class="imp-rtbl"><thead><tr><th class="c">Sửa</th><th class="c">STT</th><th>Tên sản phẩm</th><th class="c">Hình ảnh</th><th>Thương hiệu</th><th>Ngày cập nhật</th></tr></thead><tbody>'+rows+'</tbody></table>':'')+'</div>'
     +nut;
 }
 /* ═══ DANH SÁCH CHỜ LƯU ═══
@@ -6605,8 +6615,51 @@ function impRecentList(){
    Bấm "Thêm sản phẩm" mới ghi vào Database: SP từ form -> saveDbProduct từng cái,
    SP từ file -> importCommit cả lô (server kiểm tra hạng mục / thông số bắt buộc).
    Lưu được -> chuyển sang danh sách "đã nhập"; lỗi -> ở lại, hiện lý do.          */
-function pendingAdd_(items){ S._pending=(items||[]).concat(S._pending||[]); impRecentRefresh_(); }
-function pendingDel_(i){ (S._pending||[]).splice(i,1); impRecentRefresh_(); }
+var _pendSeq=0;
+function pendUid_(){ return 'p'+(++_pendSeq); }
+function pendingAdd_(items){ (items||[]).forEach(function(x){ if(!x.uid) x.uid=pendUid_(); });
+  S._pending=(items||[]).concat(S._pending||[]); impRecentRefresh_(); }
+function pendingDel_(i){
+  var it=(S._pending||[])[i]; if(!it) return;
+  if(!confirm('Xoá "'+it.ten+'" khỏi danh sách chờ?\n(Sản phẩm chưa được lưu vào Database nên sẽ mất hẳn.)')) return;
+  S._pending.splice(i,1);
+  if(S._pendEdit===it.uid){ S._pendEdit=null; renderImport(); } else impRecentRefresh_();
+}
+/* SỬA 1 dòng chờ: nạp lại vào đúng form (đúng ngành, hạng mục, thông số, ảnh) để chỉnh,
+   bấm "Cập nhật vào danh sách chờ" thì thay đúng dòng đó. Dòng từ file Excel cũng sửa được như vậy. */
+function pendItemData_(it){
+  if(it.kind==='form') return Object.assign({}, it.data);
+  var d=Object.assign({}, (it.prod&&it.prod._raw)||{}), p=it.prod||{};
+  var fill=function(k,v){ if(!String(d[k]||'').trim() && v) d[k]=v; };
+  fill('TÊN SẢN PHẨM',p.ten); fill('MÃ SẢN PHẨM',p.ma); fill('THƯƠNG HIỆU',p.thuongHieu); fill('NHÀ CUNG CẤP',p.ncc);
+  fill('HẠNG MỤC',p.hangMuc); fill('GIÁ BÁN LẺ',p.gia?String(p.gia):''); fill('ĐƠN VỊ TÍNH',p.dvt);
+  if(p.hinhAnh) d['ẢNH SẢN PHẨM']=p.hinhAnh;
+  return d;
+}
+function pendingEdit_(i){
+  var it=(S._pending||[])[i]; if(!it) return;
+  if(S._pendEdit && S._pendEdit!==it.uid && !confirm('Đang sửa một sản phẩm khác — bỏ các thay đổi chưa cập nhật?')) return;
+  var d=pendItemData_(it);
+  S._pendEdit=it.uid;
+  S._impLoai=(it.nganh==='vs'||d['NGÀNH HÀNG']==='vs')?'vs':'sp';
+  renderImport();
+  var box=document.getElementById('v-import');
+  impFlat_().forEach(function(f){
+    var el=document.getElementById(dbIdOf(f[0])); if(!el) return;
+    var v=d[f[0]]; if(f[0]==='HẠNG MỤC' && S._impLoai==='vs') v=VS_SPEC.chuanHM(v)||v;
+    if(v!=null && v!=='') el.value=String(v);
+  });
+  if(S._impLoai==='vs') vsApplyHM_(box, d['HẠNG MỤC']);
+  dbCalcDaiLy();
+  var imgs=String(d['ẢNH SẢN PHẨM']||it.hinhAnh||'').split('\n').map(function(x){ return x.trim(); }).filter(Boolean);
+  S._imgMain=imgs[0]||''; S._imgList=imgs.slice(1); upRefresh();
+  // ghi danh dự án đã chọn trước đó
+  if(it.ghi){ var gd=document.getElementById('impGhiDanh'), ps=document.getElementById('impProjSel'), sl=document.getElementById('impGhiSL');
+    if(gd) gd.checked=true; if(ps) ps.value=it.ghi.maDA; if(sl) sl.value=it.ghi.qty; }
+  var f0=document.querySelector('#v-import .dbwrap'); if(f0&&f0.scrollIntoView) f0.scrollIntoView({behavior:'smooth',block:'start'});
+  toast('Đã mở "'+it.ten+'" trong form — sửa xong bấm "Cập nhật vào danh sách chờ"');
+}
+function pendingEditCancel_(){ S._pendEdit=null; renderImport(); }
 function impRecentRefresh_(){
   var box=document.getElementById('impRecentBox'); if(box) box.innerHTML=impRecentList();
   var sb=document.querySelector('#v-import .imp-statbar'); if(sb && impLoai_()!=='pt') sb.outerHTML=impStatBar();
@@ -6616,6 +6669,8 @@ window.addEventListener('beforeunload',function(e){
 });
 async function pendingCommit_(btn){
   var ds=(S._pending||[]).slice(); if(!ds.length){ toast('Chưa có sản phẩm nào chờ lưu'); return; }
+  if(S._pendEdit && !confirm('Bạn đang sửa 1 sản phẩm trong form nhưng chưa bấm "Cập nhật".\nLưu luôn bản CŨ của sản phẩm đó?')) return;
+  if(S._pendEdit){ S._pendEdit=null; renderImport(); }
   if(btn){ btn.disabled=true; btn.textContent='⏳ Đang lưu 0/'+ds.length+'…'; }
   var ok=0, loi=0, conLai=[], ghiN=0;
   var form=ds.filter(function(x){ return x.kind==='form'; }), file=ds.filter(function(x){ return x.kind==='file'; });
@@ -6755,7 +6810,11 @@ function renderImport(){
         +(S.projects||[]).map(function(p){ return '<option value="'+esc(p.maDA)+'"'+(S.cur&&S.cur.maDA===p.maDA?' selected':'')+'>'+esc(p.ten)+'</option>'; }).join('')+'</select></div>'
       +'<div class="field"><label>Số lượng</label><input type="number" id="impGhiSL" min="1" value="1"></div>'
       +'</div><label class="imp-ghck"><input type="checkbox" id="impGhiDanh"> Thêm sản phẩm này vào dự án đã chọn sau khi lưu</label>')
-    +'<div class="savebar"><button class="btn blue block" onclick="tdSave(this)">Đưa vào danh sách chờ</button><button class="btn ghost sm" onclick="renderImport()" style="margin-top:8px">Xoá form</button></div>'
+    +(S._pendEdit
+      ?'<div class="savebar"><div class="pe-note">'+icon('edit',14)+' Đang sửa 1 sản phẩm trong danh sách chờ — chỉnh xong bấm <b>Cập nhật</b></div>'
+        +'<button class="btn blue block" onclick="tdSave(this)">'+icon('check',15)+' Cập nhật vào danh sách chờ</button>'
+        +'<button class="btn ghost sm" onclick="pendingEditCancel_()" style="margin-top:8px">Huỷ sửa</button></div>'
+      :'<div class="savebar"><button class="btn blue block" onclick="tdSave(this)">Đưa vào danh sách chờ</button><button class="btn ghost sm" onclick="renderImport()" style="margin-top:8px">Xoá form</button></div>')
     +dbCard_('Nhập hàng loạt từ file', 'download', 'Tải file mẫu → điền dữ liệu → chọn file lên. Hệ thống tự dò cột theo tiêu đề; sau đó tải ảnh cho từng SP rồi lưu vào DB_Sản phẩm.',
       '<div class="imp-file-row">'
       +((impLoai_()==='vs')
@@ -7239,8 +7298,17 @@ async function tdSave(btn){
       moTa:data['MÔ TẢ']||'', kichThuoc:data['KÍCH THƯỚC']||'', dvt:data['ĐƠN VỊ TÍNH']||'Cái', hinhAnh:data['ẢNH SẢN PHẨM']||'',
       donGiaVon:gia, donGiaBan:gia, nhom:'3.2.6.1', hangMuc:nodeName('3.2.6.1'), loai:nodeName('3.2.6.1'), tang:'', extra:{nganh:data['DÒNG SẢN PHẨM']||''} } };
   }
-  pendingAdd_(items);
-  toast('Đã đưa '+(items.length>1?(items.length+' biến thể của '):'')+'"'+ten+'" vào danh sách chờ — bấm "Thêm sản phẩm" để lưu vào Database');
+  var dangSua=S._pendEdit, viTri=(S._pending||[]).map(function(x){ return x.uid; }).indexOf(dangSua);
+  S._pendEdit=null;
+  if(dangSua && viTri>=0){
+    // SỬA: thay đúng dòng đang sửa (giữ vị trí), không tạo dòng mới
+    items.forEach(function(x){ x.uid=pendUid_(); });
+    S._pending.splice.apply(S._pending,[viTri,1].concat(items));
+    toast('Đã cập nhật "'+ten+'" trong danh sách chờ');
+  } else {
+    pendingAdd_(items);
+    toast('Đã đưa '+(items.length>1?(items.length+' biến thể của '):'')+'"'+ten+'" vào danh sách chờ — bấm "Thêm sản phẩm" để lưu vào Database');
+  }
   renderImport();
 }
 
