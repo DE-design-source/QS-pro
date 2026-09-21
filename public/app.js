@@ -6872,7 +6872,11 @@ function renderImportPT_(){
   var chuaDuyet=(S.congTac||[]).filter(function(c){ return !c.daDuyet; }).length;
   var sua=ctPendItem_(S._ctPendEdit);                 // đang sửa 1 công tác trong danh sách chờ
   if(S._ctPendEdit && !sua) S._ctPendEdit=null;
+  // Ảnh: dùng CHUNG khối "Ảnh sản phẩm" của form SP (ảnh đại diện + ảnh chi tiết, kéo-thả / dán)
+  var anh=String((sua&&sua.d.hinhAnh)||'').split('\n').map(function(x){ return x.trim(); }).filter(Boolean);
+  S._imgMain=anh[0]||''; S._imgList=anh.slice(1);
   var form='<div class="dbwrap ctimp">'
+    +imgSection().replace('<h3>Ảnh sản phẩm</h3>','<h3>Ảnh công tác</h3>')
     +ctFormHtml2_(sua?sua.d:{},'imp')
     +'<div class="savebar">'
       +(sua?'<div class="pe-note">'+icon('edit',14)+' Đang sửa 1 công tác trong danh sách chờ — chỉnh xong bấm <b>Cập nhật</b></div>':'')
@@ -6948,6 +6952,7 @@ function ctRecentList_(){
 function ctRecentRefresh_(){ var b=document.getElementById('impRecentBox'); if(b && impLoai_()==='pt') b.innerHTML=ctRecentList_(); }
 // Bấm nút dưới form: đưa vào danh sách chờ (hoặc cập nhật đúng dòng đang sửa) — CHƯA ghi Database
 async function ctImpSave(btn){
+  if((S._imgUploading||0)>0){ if(btn){ btn.disabled=true; btn.textContent='⏳ Đợi tải ảnh…'; } await waitUploads_(15000); }
   var d=ctFormRead_('imp');
   if(!d.ten){ toast('Nhập tên hạng mục / nội dung công việc'); return; }
   if(!d.hangMuc){ toast('Nhập hạng mục'); return; }
@@ -8171,7 +8176,9 @@ function ctFormHtml2_(c, pre){
   c=c||{}; pre=pre||'imp';
   var mode=c.mode||'item';
   var PLUS='<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg>';
-  function lbl(id,t,req){ return '<label for="'+pre+id+'">'+esc(t)+(req?'<b class="req">✱</b>':'')+'</label>'; }
+  var IMP=(pre==='imp');       // trang Nhập dữ liệu: cùng quy ước với form Thiết bị đèn / vệ sinh
+  function lbl(id,t,req){ return '<label for="'+pre+id+'">'+esc(t)+(req?(IMP?' <span style="color:#c33">*</span>':'<b class="req">✱</b>'):'')+'</label>'; }
+  function note(t){ return IMP?'<p class="dbnote c2note">'+esc(t)+'</p>':''; }
   function inp(id,t,val,ph,req,list,extra){
     return '<div class="c2f">'+lbl(id,t,req)+'<div class="c2i">'
       +'<input id="'+pre+id+'"'+(list?' list="'+list+'"':'')+' value="'+esc(val==null?'':val)+'" placeholder="'+esc(ph||'')+'"'+(extra||'')+'>'
@@ -8186,7 +8193,8 @@ function ctFormHtml2_(c, pre){
       +inp('Ncc','Nhà cung cấp (Nếu có)',c.ncc,'VD: H77',0,'ctNccDL')
       +inp('HangMuc','Hạng mục',c.hangMuc,'VD: Công tác ép cọc',1,'ctHangMucDL')
     +'</div></section>'
-    +'<section class="c2s"><h3 class="c2h"><span class="c2hic">'+icon('money',18)+'</span>Thông tin giá bán</h3><div class="c2g">'
+    +'<section class="c2s"><h3 class="c2h"><span class="c2hic">'+icon('money',18)+'</span>Thông tin giá bán</h3>'
+      +note('Giá đại lý tự tính = Giá bán lẻ × (1 − %Chiết khấu). Nhập giá đại lý thì %Chiết khấu tự tính ngược lại.')+'<div class="c2g">'
       +'<div class="c2f ct-f-dg">'+lbl('Dg','Giá bán lẻ',1)+'<div class="c2i"><input id="'+pre+'Dg" class="ct-money" inputmode="numeric" value="'+esc(dg?money(dg):'')+'" placeholder="VD: 450.000" oninput="ctGiaSync_(\''+pre+'\',\'dg\')"><span class="c2u">VND</span></div></div>'
       +'<div class="c2f ct-f-ck">'+lbl('Ck','%Chiết khấu',1)+'<div class="c2i"><input id="'+pre+'Ck" class="ct-pct" inputmode="decimal" value="'+esc(ck===''?'':ck)+'" placeholder="VD: 10" oninput="ctGiaSync_(\''+pre+'\',\'ck\')"><span class="c2u">%</span></div></div>'
       +'<div class="c2f ct-f-dgnt">'+lbl('Dgnt','Giá đại lý',1)+'<div class="c2i"><input id="'+pre+'Dgnt" class="ct-money" inputmode="numeric" value="'+esc(dgnt?money(dgnt):'')+'" placeholder="Tự tính" oninput="ctGiaSync_(\''+pre+'\',\'dgnt\')"><span class="c2u">VND</span></div></div>'
@@ -8195,7 +8203,8 @@ function ctFormHtml2_(c, pre){
     +'</div></section>'
     +'<div id="'+pre+'Grps"></div>'
     +'<input type="hidden" id="'+pre+'ThongSo" value="'+esc(c.thongSo||'')+'">'
-    +'<section class="c2s"><h3 class="c2h"><span class="c2hic">'+icon('sliders',18)+'</span>Thông tin khác <span class="c2opt">loại báo giá · cách tính · ảnh</span></h3><div class="c2g">'
+    +'<section class="c2s"><h3 class="c2h"><span class="c2hic">'+icon('sliders',18)+'</span>Thông tin khác'+(IMP?'':' <span class="c2opt">loại báo giá · cách tính · ảnh</span>')+'</h3>'
+      +note('Loại báo giá, cách tính khối lượng và tài liệu kỹ thuật đi kèm công tác.')+'<div class="c2g">'
       +'<div class="c2f">'+lbl('Loai','Loại báo giá',1)+'<div class="c2i"><select id="'+pre+'Loai">'+PT_LOAI.map(function(x){
           return '<option value="'+x[0]+'"'+((c.loai||'kt_chitiet')===x[0]?' selected':'')+'>'+esc(x[1])+'</option>'; }).join('')+'</select></div></div>'
       +'<div class="c2f">'+lbl('ModeSel','Cách tính',0)+'<div class="c2i"><select id="'+pre+'ModeSel" onchange="ctModePick_(\''+pre+'\',this.value)">'
@@ -8208,7 +8217,7 @@ function ctFormHtml2_(c, pre){
       +'<div class="c2f">'+lbl('Gc','Ghi chú · điều kiện áp dụng',0)+'<div class="c2i"><textarea id="'+pre+'Gc" rows="2" placeholder="VD: Đơn giá cho trên 20m/tim cọc">'+esc(c.gc||'')+'</textarea></div></div>'
       +'<div class="c2f">'+lbl('PhamVi','Phạm vi ứng dụng',0)+'<div class="c2i"><textarea id="'+pre+'PhamVi" rows="2" placeholder="Mỗi dòng 1 ý">'+esc(c.phamVi||'')+'</textarea></div></div>'
       +inp('LinkTaiLieu','Link tài liệu kỹ thuật',c.linkTaiLieu,'https://…')
-      +'<div class="c2f c2-span3"><label>Ảnh công tác</label><div class="ct-imgrow" id="'+pre+'ImgRow"></div>'
+      +'<div class="c2f c2-span3 ct-f-img"><label>Ảnh công tác</label><div class="ct-imgrow" id="'+pre+'ImgRow"></div>'
         +'<button type="button" class="btn ghost sm" onclick="ctPickImg_(\''+pre+'\')">'+icon('plus',14)+' Thêm ảnh</button>'
         +'<input type="hidden" id="'+pre+'HinhAnh" value="'+esc(c.hinhAnh||'')+'"></div>'
     +'</div></section>'
@@ -8226,12 +8235,14 @@ function ctGrpRenderCards_(pre){
   var grps=ctGrpsGet_(pre);
   if(!grps.length){ grps.push({t:'',rows:[{k:'',v:''},{k:'',v:''},{k:'',v:''}]}); }
   var PLUS='<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg>';
+  var IMP=(pre==='imp');
   box.innerHTML=grps.map(function(g,gi){
     return '<section class="c2s c2grp">'
       +'<div class="c2gh"><span class="c2hic">'+icon('doc',18)+'</span><input class="c2gt" id="'+pre+'GT'+gi+'" value="'+esc(g.t||'')+'" placeholder="Đề mục lớn — VD: Thông số kỹ thuật tham khảo">'
         +'<button type="button" class="c2plus" title="Thêm đề mục lớn" onclick="ctGrpAddCard_(\''+pre+'\','+gi+')">'+PLUS+'</button>'
         +(grps.length>1?'<button type="button" class="c2del" title="Xoá đề mục lớn này" onclick="ctGrpDel_(\''+pre+'\','+gi+')">Xoá</button>':'')
       +'</div>'
+      +((IMP&&gi===0)?'<p class="dbnote c2note">Thông số kỹ thuật của công tác — đặt tên đề mục lớn, mỗi ô đề mục nhỏ 1 thông tin (VD Lực ép tối đa: 90 tấn). Bấm + để thêm.</p>':'')
       +'<div class="c2g">'+g.rows.map(function(r,ri){
           var txt=(r.k&&String(r.k).trim())?(String(r.k).trim()+': '+(r.v||'')):(r.v||'');
           return '<div class="c2card'+(r._ok?' ok':'')+'">'
@@ -8421,10 +8432,14 @@ function ctFormRead_(pre){
   function v(id){ var e=document.getElementById(pre+id); return e?String(e.value||'').trim():''; }
   function num(id){ var t=v(id); return t===''?'':ptN(t); }
   ctGrpRead_(pre);
+  var anh=v('HinhAnh');
+  // Trang Nhập dữ liệu: ảnh lấy từ khối Ảnh dùng chung (bỏ ảnh xem trước chưa tải xong)
+  if(pre==='imp' && document.getElementById('upMain'))
+    anh=[S._imgMain].concat(S._imgList||[]).filter(function(x){ return x && String(x).indexOf('data:')!==0; }).join('\n');
   return {loai:v('Loai'), mode:v('Mode')||'item', maNhom:v('MaNhom'), hangMuc:v('HangMuc'), ten:v('Ten'),
     ncc:v('Ncc'), dvt:v('Dvt'), kl:num('Kl'), dt:num('Dt'), hs:num('Hs'),
     dgnt:ptMoneyN_(v('Dgnt')), dg:ptMoneyN_(v('Dg')),
-    gc:v('Gc'), thongSo:v('ThongSo'), phamVi:v('PhamVi'), linkTaiLieu:v('LinkTaiLieu'), hinhAnh:v('HinhAnh')};
+    gc:v('Gc'), thongSo:v('ThongSo'), phamVi:v('PhamVi'), linkTaiLieu:v('LinkTaiLieu'), hinhAnh:anh};
 }
 function ctEditModal_(id){
   var c=(S.congTac||[]).filter(function(x){ return x.id===id; })[0]; if(!c) return;
