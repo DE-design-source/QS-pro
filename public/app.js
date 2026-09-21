@@ -6701,7 +6701,7 @@ function impRecentRefresh_(){
   var sb=document.querySelector('#v-import .imp-statbar'); if(sb && impLoai_()!=='pt') sb.outerHTML=impStatBar();
 }
 window.addEventListener('beforeunload',function(e){
-  if((S._pending||[]).length){ e.preventDefault(); e.returnValue='Còn sản phẩm chưa lưu vào Database'; return e.returnValue; }
+  if((S._pending||[]).length||(S._ctPending||[]).length){ e.preventDefault(); e.returnValue='Còn dữ liệu chưa lưu vào Database'; return e.returnValue; }
 });
 async function pendingCommit_(btn){
   var ds=(S._pending||[]).slice(); if(!ds.length){ toast('Chưa có sản phẩm nào chờ lưu'); return; }
@@ -6870,14 +6870,20 @@ function renderImportPT_(){
   var box=document.getElementById('v-import'); if(!box) return;
   var n=(S.congTac||[]).length;
   var chuaDuyet=(S.congTac||[]).filter(function(c){ return !c.daDuyet; }).length;
-  var form='<div class="dbwrap">'
-    +'<div class="dbcard ctcard ctcard2"><div class="dbcard-b">'+ctFormHtml2_({},'imp')+'</div></div>'
+  var sua=ctPendItem_(S._ctPendEdit);                 // đang sửa 1 công tác trong danh sách chờ
+  if(S._ctPendEdit && !sua) S._ctPendEdit=null;
+  var form='<div class="dbwrap ctimp">'
+    +ctFormHtml2_(sua?sua.d:{},'imp')
     +'<div class="savebar">'
-      +'<label class="imp-ghck"><input type="checkbox" id="impCtGhi"'+(S._ctGhi?' checked':'')+' onchange="S._ctGhi=this.checked">'
+      +(sua?'<div class="pe-note">'+icon('edit',14)+' Đang sửa 1 công tác trong danh sách chờ — chỉnh xong bấm <b>Cập nhật</b></div>':'')
+      +'<label class="imp-ghck"><input type="checkbox" id="impCtGhi"'+((sua?sua.ghi:S._ctGhi)?' checked':'')+' onchange="S._ctGhi=this.checked">'
         +' Thêm luôn vào bảng khái toán của dự án đang chọn'+(S.cur?(' — '+esc(S.cur.ten)):' (chưa chọn dự án)')+'</label>'
-      +'<button class="btn blue block" onclick="ctImpSave(this)">'+icon('plus',15)+' Thêm công tác vào Database</button>'
-      +'<button class="btn ghost sm" onclick="renderImport()" style="margin-top:8px">Xoá form</button></div>'
-    +'</div>';
+      +(sua
+        ?'<button class="btn blue block" onclick="ctImpSave(this)">'+icon('check',15)+' Cập nhật vào danh sách chờ</button>'
+          +'<button class="btn ghost sm" onclick="S._ctPendEdit=null;renderImportPT_()" style="margin-top:8px">Huỷ sửa</button>'
+        :'<button class="btn blue block" onclick="ctImpSave(this)">Đưa vào danh sách chờ</button>'
+          +'<button class="btn ghost sm" onclick="renderImport()" style="margin-top:8px">Xoá form</button>')
+    +'</div></div>';
   var recent='<div class="imp-recent" id="impRecentBox">'+ctRecentList_()+'</div>';
   function stat(label,val){ return '<div class="imp-stat"><div class="imp-stat-v">'+val+'</div><div class="imp-stat-l">'+esc(label)+'</div></div>'; }
   box.innerHTML='<div class="sechd imp-sechd"><h2>Nhập dữ liệu</h2>'
@@ -6890,11 +6896,29 @@ function renderImportPT_(){
     +'<div class="imp-layout">'+form+recent+'</div>';
   S._ctGrp={}; ctFormInit_('imp');
 }
+/* ═══ CÔNG TÁC: DANH SÁCH CHỜ LƯU (giống sản phẩm) ═══
+   Form chỉ đưa công tác vào S._ctPending (panel phải, thẻ có Sửa / Xoá);
+   bấm "Thêm công tác" mới ghi vào Database (ctSave từng công tác, lỗi thì ở lại kèm lý do). */
+var _ctPendSeq=0;
+function ctPendItem_(uid){ return uid?(S._ctPending||[]).filter(function(x){ return x.uid===uid; })[0]:null; }
 function ctRecentList_(){
-  // ĐÚNG cơ chế như bên Thiết bị đèn: chỉ liệt kê công tác nhập trong PHIÊN ĐANG MỞ,
-  // không đổ cả cơ sở dữ liệu ra đây (trước đây lấy 20 bản ghi mới nhất nên 217 công tác
-  // vừa nạp cũng hiện thành "vừa nhập").
-  var ps=(S._ctSessionAdded||[]);
+  var ps=(S._ctSessionAdded||[]);   // đã lưu trong PHIÊN này
+  var pd=(S._ctPending||[]);        // chờ lưu
+  var cards=pd.map(function(x,i){
+    var c=x.d, im=String(c.hinhAnh||'').split('\n')[0], dangSua=(S._ctPendEdit===x.uid);
+    var img=im?'<img class="pc-th" src="'+esc(imgUrlOf(im))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="pc-th pc-noimg">'+icon('image',14)+'</span>';
+    var phu=[c.hangMuc, c.dg?(money(c.dg)+' đ'+(c.dvt?'/'+c.dvt:'')):'', ptLoaiNgan_(c.loai)].filter(Boolean).map(esc).join(' · ');
+    return '<div class="pc'+(x.loi?' err':'')+(dangSua?' editing':'')+'">'+img
+      +'<div class="pc-mid"><div class="pc-name" title="'+esc(c.ten||'')+'">'+esc(c.ten||'')+'</div>'
+        +(phu?'<div class="pc-sub">'+phu+'</div>':'')
+        +(x.loi?'<div class="pc-loi">'+esc(x.loi)+'</div>':'')
+        +'<span class="pc-tag">'+(dangSua?'Đang sửa':(x.loi?'Lỗi — sửa lại':'Chờ lưu'))+'</span>'
+        +(x.ghi?'<span class="pc-tag kt">+ khái toán</span>':'')+'</div>'
+      +'<div class="pc-act">'
+        +'<button class="pc-btn" title="Sửa — mở lại trong form" onclick="ctPendEdit_('+i+')">'+icon('edit',14)+'</button>'
+        +'<button class="pc-btn del" title="Xoá khỏi danh sách chờ" onclick="ctPendDel_('+i+')">'+icon('trash',14)+'</button>'
+      +'</div></div>';
+  }).join('');
   var rows=ps.map(function(c,i){
     var im=String(c.hinhAnh||'').split('\n')[0];
     var img=im?'<img class="imp-rth" src="'+esc(imgUrlOf(im))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="imp-rth"></span>';
@@ -6906,33 +6930,76 @@ function ctRecentList_(){
       +(c.hangMuc?'<i class="imp-rma">'+esc(c.hangMuc)+'</i>':'')+'</td><td class="c">'+img+'</td>'
       +'<td>'+esc(ptLoaiNgan_(c.loai))+'</td>'
       +'<td class="imp-rdate">'+(c.dg?money(c.dg)+' đ':'—')+'</td></tr>';
-  }).join('') || '<tr><td colspan="6" class="empty" style="padding:24px 12px;font-size:12.5px;line-height:1.5">Chưa nhập công tác nào trong phiên này.<br>Công tác bạn <b>thêm</b> ở phiên này sẽ hiện ở đây.</td></tr>';
-  return '<div class="imp-recent-h">Công tác vừa nhập (phiên này) <span class="count">'+pad2(ps.length)+'</span></div>'
+  }).join('');
+  if(!cards && !rows) rows='<tr><td colspan="6" class="empty" style="padding:24px 12px;font-size:12.5px;line-height:1.5">Chưa nhập công tác nào trong phiên này.<br>Công tác bạn nhập sẽ hiện ở đây — bấm <b>Thêm công tác</b> để lưu vào Database.</td></tr>';
+  return '<div class="imp-recent-h">Công tác vừa nhập (phiên này) <span class="count">'+pad2(pd.length+ps.length)+'</span></div>'
     +'<div class="imp-recent-note">Danh sách này chỉ ghi lại thao tác của <b>phiên đang mở</b> — tải lại trang sẽ trống. '
     +'Công tác đã lưu <b>vẫn nằm trong Database</b>: <a onclick="showTab(\'sanpham\');setTimeout(function(){spCatPickNode(\'3.1\');},300)">xem Danh sách sản phẩm →</a></div>'
-    +'<div class="imp-recent-b"><table class="imp-rtbl"><thead><tr><th class="c">Sửa</th><th class="c">STT</th><th>Nội dung công việc</th><th class="c">Hình ảnh</th><th>Loại báo giá</th><th>Đơn giá</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    +'<div class="imp-recent-b">'
+      +(pd.length?'<div class="pc-hd">Chờ lưu <span>'+pd.length+'</span><i>Chưa vào Database</i></div><div class="pc-list">'+cards+'</div>':'')
+      +((pd.length&&ps.length)?'<div class="pc-hd done">Đã lưu vào Database <span>'+ps.length+'</span></div>':'')
+      +(rows?'<table class="imp-rtbl"><thead><tr><th class="c">Sửa</th><th class="c">STT</th><th>Nội dung công việc</th><th class="c">Hình ảnh</th><th>Loại báo giá</th><th>Đơn giá</th></tr></thead><tbody>'+rows+'</tbody></table>':'')
+    +'</div>'
+    +'<div class="imp-rfoot">'
+      +(pd.length?'<div class="imp-rfoot-note"><b>'+pd.length+'</b> công tác đang chờ — <b>chưa</b> lưu vào Database</div>':'')
+      +'<button class="btn blue block" onclick="ctPendCommit_(this)"'+(pd.length?'':' disabled')+'>'+icon('plus',15)
+      +' Thêm công tác'+(pd.length?' ('+pd.length+')':'')+'</button></div>';
 }
+function ctRecentRefresh_(){ var b=document.getElementById('impRecentBox'); if(b && impLoai_()==='pt') b.innerHTML=ctRecentList_(); }
+// Bấm nút dưới form: đưa vào danh sách chờ (hoặc cập nhật đúng dòng đang sửa) — CHƯA ghi Database
 async function ctImpSave(btn){
   var d=ctFormRead_('imp');
-  if(!d.ten){ toast('Nhập nội dung công việc'); return; }
+  if(!d.ten){ toast('Nhập tên hạng mục / nội dung công việc'); return; }
   if(!d.hangMuc){ toast('Nhập hạng mục'); return; }
-  if(btn){ btn.disabled=true; btn.textContent='Đang lưu…'; }
-  try{
-    var kq=await api('ctSave', d);
-    await ctLoad_(true);
-    // ghi vào danh sách "vừa nhập" của phiên này (giống S._sessionAdded bên sản phẩm)
-    S._ctSessionAdded=S._ctSessionAdded||[];
-    S._ctSessionAdded.unshift((kq&&kq.rows&&kq.rows[0])||d);
-    var them='';
-    if(S._ctGhi && S.cur){                       // ghi thẳng vào bảng khái toán của dự án đang mở
-      var si=PT_TEMPLATE.findIndex(function(x){ return x.db && x.t===d.hangMuc && ptSecLoai_(x)===d.loai; });
-      var ii=si>=0?PT_TEMPLATE[si].items.findIndex(function(a){ var c=ctOf_(a); return c && c.ten===d.ten; }):-1;
-      if(si>=0 && ii>=0){ ptAddFromLib(si,ii,true); ptPersist(); renderPhanTho(); them=' · đã thêm vào bảng khái toán'; }
-    }
-    toast('Đã thêm công tác: '+d.ten+them);
-    renderImportPT_();
-  }catch(e){ toast('Lỗi lưu: '+e.message); }
-  if(btn){ btn.disabled=false; btn.innerHTML=icon('plus',15)+' Thêm công tác vào Database'; }
+  var ghiEl=document.getElementById('impCtGhi'), ghi=!!(ghiEl&&ghiEl.checked);
+  S._ctPending=S._ctPending||[];
+  var sua=ctPendItem_(S._ctPendEdit);
+  if(sua){ sua.d=d; sua.ghi=ghi; delete sua.loi; toast('Đã cập nhật "'+d.ten+'" trong danh sách chờ'); }
+  else { S._ctPending.unshift({uid:'c'+(++_ctPendSeq), d:d, ghi:ghi});
+    toast('Đã đưa "'+d.ten+'" vào danh sách chờ — bấm "Thêm công tác" để lưu vào Database'); }
+  S._ctPendEdit=null;
+  renderImportPT_();
+}
+function ctPendEdit_(i){
+  var x=(S._ctPending||[])[i]; if(!x) return;
+  if(S._ctPendEdit && S._ctPendEdit!==x.uid && !confirm('Đang sửa một công tác khác — bỏ các thay đổi chưa cập nhật?')) return;
+  S._ctPendEdit=x.uid; renderImportPT_();
+  var f=document.querySelector('#v-import .dbwrap'); if(f&&f.scrollIntoView) f.scrollIntoView({behavior:'smooth',block:'start'});
+  toast('Đã mở "'+x.d.ten+'" trong form — sửa xong bấm "Cập nhật vào danh sách chờ"');
+}
+function ctPendDel_(i){
+  var x=(S._ctPending||[])[i]; if(!x) return;
+  if(!confirm('Xoá "'+x.d.ten+'" khỏi danh sách chờ?\n(Công tác chưa được lưu vào Database nên sẽ mất hẳn.)')) return;
+  S._ctPending.splice(i,1);
+  if(S._ctPendEdit===x.uid){ S._ctPendEdit=null; renderImportPT_(); } else ctRecentRefresh_();
+}
+async function ctPendCommit_(btn){
+  var ds=(S._ctPending||[]).slice(); if(!ds.length){ toast('Chưa có công tác nào chờ lưu'); return; }
+  if(S._ctPendEdit && !confirm('Bạn đang sửa 1 công tác trong form nhưng chưa bấm "Cập nhật".\nLưu luôn bản CŨ của công tác đó?')) return;
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Đang lưu 0/'+ds.length+'…'; }
+  var ok=0, conLai=[], daLuu=[];
+  for(var k=0;k<ds.length;k++){
+    var x=ds[k];
+    try{ var kq=await api('ctSave', x.d); ok++; daLuu.push(x);
+      S._ctSessionAdded=S._ctSessionAdded||[]; S._ctSessionAdded.unshift((kq&&kq.rows&&kq.rows[0])||x.d); }
+    catch(e){ x.loi=String(e.message||e).slice(0,160); conLai.push(x); }
+    if(btn) btn.textContent='⏳ Đang lưu '+(k+1)+'/'+ds.length+'…';
+  }
+  S._ctPending=conLai; S._ctPendEdit=null;
+  try{ await ctLoad_(true); }catch(e){}
+  // Thêm vào bảng khái toán của dự án đang mở (những công tác đã tick)
+  var them=0;
+  if(S.cur) daLuu.filter(function(x){ return x.ghi; }).forEach(function(x){
+    var d=x.d, si=PT_TEMPLATE.findIndex(function(t){ return t.db && t.t===d.hangMuc && ptSecLoai_(t)===d.loai; });
+    var ii=si>=0?PT_TEMPLATE[si].items.findIndex(function(a){ var c=ctOf_(a); return c && c.ten===d.ten; }):-1;
+    if(si>=0 && ii>=0){ ptAddFromLib(si,ii,true); them++; }
+  });
+  if(them){ ptPersist(); try{ renderPhanTho(); }catch(e){} }
+  renderImportPT_();
+  var msg='Đã lưu '+ok+' công tác vào Database'+(them?(' · thêm '+them+' vào bảng khái toán'):'');
+  if(conLai.length) alert(msg+'.\n\n'+conLai.length+' công tác KHÔNG lưu được (vẫn nằm trong danh sách chờ, nhãn "Lỗi"):\n'
+    +conLai.map(function(x){ return '• '+x.d.ten+': '+x.loi; }).join('\n'));
+  else toast(msg);
 }
 /* ── Nhập hàng loạt công tác từ Excel/CSV ── */
 async function ctImpPick(input){
@@ -8114,12 +8181,12 @@ function ctFormHtml2_(c, pre){
   var dg=Number(c.dg)||0, dgnt=Number(c.dgnt)||0, ck=(dg&&dgnt)?ptR2((1-dgnt/dg)*100):'';
   var MODES=[['item','Khối lượng × đơn giá'],['area','Diện tích × hệ số'],['area0','Chỉ tính khối lượng'],['none','Chỉ liệt kê']];
   return '<div class="ctf ctx2" id="'+pre+'Form">'
-    +'<section class="c2s"><h3 class="c2h">Thông tin cơ bản</h3><div class="c2g">'
+    +'<section class="c2s"><h3 class="c2h"><span class="c2hic">'+icon('tag',18)+'</span>Thông tin cơ bản</h3><div class="c2g">'
       +inp('Ten','Tên hạng mục',c.ten,'VD: Giàn tải, máy ép cọc Pmax 90T',1)
       +inp('Ncc','Nhà cung cấp (Nếu có)',c.ncc,'VD: H77',0,'ctNccDL')
       +inp('HangMuc','Hạng mục',c.hangMuc,'VD: Công tác ép cọc',1,'ctHangMucDL')
     +'</div></section>'
-    +'<section class="c2s"><h3 class="c2h">Thông tin giá bán</h3><div class="c2g">'
+    +'<section class="c2s"><h3 class="c2h"><span class="c2hic">'+icon('money',18)+'</span>Thông tin giá bán</h3><div class="c2g">'
       +'<div class="c2f ct-f-dg">'+lbl('Dg','Giá bán lẻ',1)+'<div class="c2i"><input id="'+pre+'Dg" class="ct-money" inputmode="numeric" value="'+esc(dg?money(dg):'')+'" placeholder="VD: 450.000" oninput="ctGiaSync_(\''+pre+'\',\'dg\')"><span class="c2u">VND</span></div></div>'
       +'<div class="c2f ct-f-ck">'+lbl('Ck','%Chiết khấu',1)+'<div class="c2i"><input id="'+pre+'Ck" class="ct-pct" inputmode="decimal" value="'+esc(ck===''?'':ck)+'" placeholder="VD: 10" oninput="ctGiaSync_(\''+pre+'\',\'ck\')"><span class="c2u">%</span></div></div>'
       +'<div class="c2f ct-f-dgnt">'+lbl('Dgnt','Giá đại lý',1)+'<div class="c2i"><input id="'+pre+'Dgnt" class="ct-money" inputmode="numeric" value="'+esc(dgnt?money(dgnt):'')+'" placeholder="Tự tính" oninput="ctGiaSync_(\''+pre+'\',\'dgnt\')"><span class="c2u">VND</span></div></div>'
@@ -8128,7 +8195,7 @@ function ctFormHtml2_(c, pre){
     +'</div></section>'
     +'<div id="'+pre+'Grps"></div>'
     +'<input type="hidden" id="'+pre+'ThongSo" value="'+esc(c.thongSo||'')+'">'
-    +'<section class="c2s"><h3 class="c2h">Thông tin khác <span class="c2opt">loại báo giá · cách tính · ảnh</span></h3><div class="c2g">'
+    +'<section class="c2s"><h3 class="c2h"><span class="c2hic">'+icon('sliders',18)+'</span>Thông tin khác <span class="c2opt">loại báo giá · cách tính · ảnh</span></h3><div class="c2g">'
       +'<div class="c2f">'+lbl('Loai','Loại báo giá',1)+'<div class="c2i"><select id="'+pre+'Loai">'+PT_LOAI.map(function(x){
           return '<option value="'+x[0]+'"'+((c.loai||'kt_chitiet')===x[0]?' selected':'')+'>'+esc(x[1])+'</option>'; }).join('')+'</select></div></div>'
       +'<div class="c2f">'+lbl('ModeSel','Cách tính',0)+'<div class="c2i"><select id="'+pre+'ModeSel" onchange="ctModePick_(\''+pre+'\',this.value)">'
@@ -8161,7 +8228,7 @@ function ctGrpRenderCards_(pre){
   var PLUS='<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg>';
   box.innerHTML=grps.map(function(g,gi){
     return '<section class="c2s c2grp">'
-      +'<div class="c2gh"><input class="c2gt" id="'+pre+'GT'+gi+'" value="'+esc(g.t||'')+'" placeholder="Đề mục lớn — VD: Thông số kỹ thuật tham khảo">'
+      +'<div class="c2gh"><span class="c2hic">'+icon('doc',18)+'</span><input class="c2gt" id="'+pre+'GT'+gi+'" value="'+esc(g.t||'')+'" placeholder="Đề mục lớn — VD: Thông số kỹ thuật tham khảo">'
         +'<button type="button" class="c2plus" title="Thêm đề mục lớn" onclick="ctGrpAddCard_(\''+pre+'\','+gi+')">'+PLUS+'</button>'
         +(grps.length>1?'<button type="button" class="c2del" title="Xoá đề mục lớn này" onclick="ctGrpDel_(\''+pre+'\','+gi+')">Xoá</button>':'')
       +'</div>'
@@ -8184,7 +8251,7 @@ function ctCardSave_(pre,gi,ri){
   var g=ctGrpRead_(pre), r=g[gi]&&g[gi].rows[ri]; if(!r) return;
   if(!String(r.v||'').trim()){ toast('Nhập thông tin đề mục nhỏ trước'); return; }
   r._ok=true; ctGrpSet_(pre,g);
-  toast('Đã lưu đề mục nhỏ — bấm "Thêm công tác vào Database" để ghi cả công tác');
+  toast('Đã lưu đề mục nhỏ — bấm "Đưa vào danh sách chờ" để ghi cả công tác');
 }
 function ctModePick_(pre,m){
   var h=document.getElementById(pre+'Mode'); if(h) h.value=m;
