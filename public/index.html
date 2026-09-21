@@ -758,6 +758,10 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 .imp-rfoot{padding:12px 14px;border-top:1px solid var(--line);background:#fff}
 /* thẻ Chờ lưu (panel Sản phẩm vừa nhập) */
 .cb-sug-h{padding:7px 10px 5px;font-size:11px;font-weight:600;color:#1d4ed8;background:#f2f7ff;border-bottom:1px solid #e3ecfb}
+.pf-link{grid-column:1/-1}
+.pf-link-row{display:flex;gap:8px;align-items:center}.pf-link-row input{flex:1}
+.dh-dezon{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:7px;border:1px solid #cfe0ff;background:#f2f7ff;color:#1d4ed8;font-size:11px;font-weight:600;text-decoration:none;white-space:nowrap;margin-right:6px}
+.dh-dezon:hover{background:#e3edff}
 .pc-hd{display:flex;align-items:center;gap:6px;padding:10px 14px 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#92400e}
 .pc-hd span{background:#fdecc8;color:#92400e;border-radius:6px;padding:1px 6px;font-size:10.5px}
 .pc-hd i{margin-left:auto;font-style:normal;font-weight:500;text-transform:none;letter-spacing:0;color:#b08a4a;font-size:11px}
@@ -5543,6 +5547,7 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
   <div class="field"><label>Khách hàng</label><input id="npKH"></div>
   <div class="field"><label>Số điện thoại</label><input id="npSDT"></div>
   <div class="field"><label>Địa chỉ</label><input id="npAddr"></div>
+  <div class="field"><label>Link dự án trên Dezon <span style="color:var(--ink-3);font-weight:400">(tuỳ chọn)</span></label><input id="npLink" type="url" placeholder="https://dezon.vn/…"></div>
   <div class="field"><label>VAT (%)</label><input id="npVat" type="number" value="0"></div>
   <div class="foot"><button class="btn ghost" onclick="closeCreate()">Huỷ</button>
     <button class="btn blue" onclick="doCreate()">Lưu dự án</button></div>

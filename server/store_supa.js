@@ -179,7 +179,7 @@ async function buildCatalog() { _cacheClear_(); const p = await getProducts(); r
 const PROJ_MAP = { ten: 'ten_du_an', khachHang: 'khach_hang', diaChi: 'dia_chi', sdt: 'sdt', trangThai: 'trang_thai',
   vat: 'vat_pct', tienDo: 'tien_do_pct', ghiChu: 'ghi_chu', quyMo: 'quy_mo', tongDT: 'tong_dt', dtBaoGia: 'dt_bao_gia',
   nhuCau: 'nhu_cau', phanKhuc: 'phan_khuc', maBaoGia: 'ma_bao_gia', nhomTuTao: 'nhom_tu_tao', tangTuTao: 'tang_tu_tao',
-  tenBanNhap: 'ten_ban_nhap' };
+  tenBanNhap: 'ten_ban_nhap', linkDezon: 'link_dezon' };
 function projToObj(r) {
   const o = { maDA: s(r.ma_da), ngayTao: s(r.ngay_tao), capNhat: s(r.cap_nhat) };
   Object.keys(PROJ_MAP).forEach(function (k) { var col = PROJ_MAP[k]; o[k] = (k === 'vat' || k === 'tienDo') ? n(r[col]) : s(r[col]); });
@@ -203,14 +203,18 @@ async function createProject(data) {
   const row = { ma_da: data.maDA || genMaDA_(), ngay_tao: nowIso(), cap_nhat: nowIso() };
   Object.keys(PROJ_MAP).forEach(function (k) { if (data[k] != null && data[k] !== '') row[PROJ_MAP[k]] = data[k]; });
   if (!row.trang_thai) row.trang_thai = 'Bản nháp';
-  const res = await supa.insert('du_an', row);
+  let res;
+  try { res = await supa.insert('du_an', row); }
+  catch (e) { throw colErr_(e); }
   return projToObj(res[0]);
 }
 async function updateProject(maDA, fields) {
   fields = fields || {};
   const patch = { cap_nhat: nowIso() };
   Object.keys(fields).forEach(function (k) { if (PROJ_MAP[k]) patch[PROJ_MAP[k]] = fields[k]; });
-  const res = await supa.update('du_an', supa.eq('ma_da', maDA), patch);
+  let res;
+  try { res = await supa.update('du_an', supa.eq('ma_da', maDA), patch); }
+  catch (e) { throw colErr_(e); }            // chưa chạy migration -> báo đúng file SQL cần chạy
   return res[0] ? projToObj(res[0]) : getProject(maDA);
 }
 async function deleteProject(maDA) {
@@ -402,7 +406,7 @@ const COL_SQL = { ten_chip_led: 'db/chip_name.sql', gia_ban_bo_nguon: 'db/gia_bo
   nganh: 'db/thiet_bi_ve_sinh.sql', kich_thuoc: 'db/thiet_bi_ve_sinh.sql', he_thong_xa: 'db/thiet_bi_ve_sinh.sql',
   luong_nuoc_xa: 'db/thiet_bi_ve_sinh.sql', thiet_ke: 'db/thiet_bi_ve_sinh.sql', tam_xa: 'db/thiet_bi_ve_sinh.sql',
   ap_luc_nuoc: 'db/thiet_bi_ve_sinh.sql', luu_y: 'db/thiet_bi_ve_sinh.sql', tinh_nang: 'db/thiet_bi_ve_sinh.sql',
-  nhom_bt: 'db/bien_the_nhom.sql' };
+  nhom_bt: 'db/bien_the_nhom.sql', link_dezon: 'db/du_an_link_dezon.sql' };
 ['kieu_lap_dat', 'loai_nap', 'loai_voi', 'loai_sen', 'kieu_dieu_khien', 'massage', 'so_ho', 'luu_luong', 'loi_van', 'bat_sen',
   'che_do_phun', 'so_lo_voi', 'xa_tran', 'dung_tich', 'nguon_dien', 'bon_cau_tuong_thich', 'do_day', 'be_mat']
   .forEach(function (c) { COL_SQL[c] = 'db/thiet_bi_ve_sinh_v2.sql'; });

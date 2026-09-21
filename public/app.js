@@ -552,6 +552,7 @@ async function doCreate(){
   try{
     var p=await api('createProject',{ten:ten,khachHang:document.getElementById('npKH').value,
       sdt:document.getElementById('npSDT').value,diaChi:document.getElementById('npAddr').value,
+      linkDezon:(function(v){ v=String(v||'').trim(); return v?dezonUrl_(v):''; })((document.getElementById('npLink')||{}).value),
       vat:Number(document.getElementById('npVat').value)||0});
     closeCreate(); S.cur=p; document.getElementById('npTen').value='';
     await boot(); renderDash(); renderProjects(); toast('Đã tạo bản nháp');
@@ -4557,7 +4558,13 @@ function projInfoInner_(p, gr){
     +'<div class="ps2-tabs">'+tabs+'<button class="draft-tab add" onclick="addDraftForCur()">'+icon('plus',13)+' Thêm bản nháp</button></div></div>';
   var shared=dbCard_('Thông tin dự án','building','Áp dụng cho tất cả bản nháp của dự án này.',
     '<div class="dbgrid">'+pf_('Tên dự án','pf_ten',p.ten)+pf_('Khách hàng','pf_kh',p.khachHang)+pf_('Số điện thoại','pf_sdt',p.sdt)
-    +pf_('Địa chỉ','pf_addr',p.diaChi)+'</div>'
+    +pf_('Địa chỉ','pf_addr',p.diaChi)
+    // Link bài dự án trên dezon.vn — dán link, bấm biểu tượng để mở
+    +'<div class="field pf-link"><label>Link dự án trên Dezon</label><div class="pf-link-row">'
+      +'<input id="pf_link" type="url" placeholder="https://dezon.vn/…" value="'+esc(p.linkDezon||'')+'">'
+      +(p.linkDezon?'<a class="btn ghost sm" href="'+esc(dezonUrl_(p.linkDezon))+'" target="_blank" rel="noopener" title="Mở bài dự án trên dezon.vn">'+icon('link',14)+' Mở</a>':'')
+    +'</div></div>'
+    +'</div>'
     +'<div class="pf-save"><button class="btn blue" onclick="saveProjectShared(this)">'+icon('check',15)+' Lưu thông tin dự án</button></div>');
   var draftInner='<div class="dbgrid">'
     +pf_('Tên bản nháp','pf_tbn',p.tenBanNhap)
@@ -4968,7 +4975,11 @@ async function addDraftForCur(){
 // Lưu thông tin dự án -> áp dụng cho MỌI bản nháp (giữ nhóm nhất quán)
 async function saveProjectShared(btn){
   var g=function(id){var e=document.getElementById(id);return e?e.value:'';};
-  var shared={ten:g('pf_ten'),khachHang:g('pf_kh'),sdt:g('pf_sdt'),diaChi:g('pf_addr')};
+  var shared={ten:g('pf_ten'),khachHang:g('pf_kh'),sdt:g('pf_sdt'),diaChi:g('pf_addr'),linkDezon:String(g('pf_link')||'').trim()};
+  if(shared.linkDezon && !/^https?:\/\//i.test(shared.linkDezon)) shared.linkDezon='https://'+shared.linkDezon;
+  if(shared.linkDezon && !/(^|\.)dezon\.vn$/i.test(dezonHost_(shared.linkDezon))
+     && !confirm('Link này không thuộc dezon.vn:\n'+shared.linkDezon+'\n\nVẫn lưu?')) return;
+  if(!shared.linkDezon && !(S.cur&&S.cur.linkDezon)) delete shared.linkDezon;   // không đụng cột khi không có link
   var gr=currentGroup(); if(!gr) return; btn.disabled=true;
   try{
     for(var i=0;i<gr.drafts.length;i++){ var pp=await api('updateProject',gr.drafts[i].maDA,shared); syncProj(pp); }
@@ -5000,6 +5011,8 @@ async function removeProject(maDA, ev){
 
 /* ===== DASHBOARD ===== */
 function card(t,n){ return '<div class="scard"><div class="n">'+n+'</div><div class="t">'+t+'</div></div>'; }
+function dezonHost_(u){ try{ return new URL(u).hostname; }catch(e){ return ''; } }
+function dezonUrl_(u){ u=String(u||'').trim(); return /^https?:\/\//i.test(u)?u:('https://'+u); }
 // Gom bản nháp theo Dự án (cùng tên dự án = cùng 1 dự án)
 function projectGroups(){
   var groups={}, order=[];
@@ -5008,6 +5021,7 @@ function projectGroups(){
     if(!groups[key]){ groups[key]={name:p.ten||'(Chưa đặt tên)', khachHang:p.khachHang, diaChi:p.diaChi, sdt:p.sdt, drafts:[]}; order.push(key); }
     var g=groups[key]; g.drafts.push(p);
     if(p.khachHang) g.khachHang=p.khachHang; if(p.diaChi) g.diaChi=p.diaChi; if(p.sdt) g.sdt=p.sdt;
+    if(p.linkDezon) g.linkDezon=p.linkDezon;
   });
   order.forEach(function(k){ groups[k].drafts.sort(function(a,b){ return String(a.ngayTao||'').localeCompare(String(b.ngayTao||'')); }); });
   return order.map(function(k){ return groups[k]; });
@@ -5206,6 +5220,7 @@ function dashProjCard_(g){
   return '<div class="dh-proj">'
     +'<div class="dh-proj-h" onclick="projInfoModal(\''+esc(g.drafts[0].maDA)+'\')" title="Xem thông tin dự án"><span class="dh-proj-ic">'+icon('building',16)+'</span>'
       +'<div class="dh-proj-t"><div class="dh-proj-n">'+esc(g.name)+'</div><div class="dh-proj-m">'+esc(g.khachHang||'Chưa có khách hàng')+(g.sdt?' · '+esc(g.sdt):'')+'</div></div>'
+      +(g.linkDezon?'<a class="dh-dezon" href="'+esc(dezonUrl_(g.linkDezon))+'" target="_blank" rel="noopener" title="Mở bài dự án trên dezon.vn" onclick="event.stopPropagation()">'+icon('link',12)+' Dezon</a>':'')
       +'<span class="dh-proj-c">'+g.drafts.length+' bản</span></div>'
     +'<button class="proj-del" title="Xoá cả dự án này (mọi bản nháp)" onclick="removeProjectGroup(\''+esc(g.drafts[0].maDA)+'\',event)">'+icon('trash',13)+'</button>'
     +'<div class="dh-drafts">'+drafts+'</div>'
