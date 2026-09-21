@@ -723,6 +723,16 @@ app.post('/export/san-pham', async function (req, res) {
   }
 });
 
+// File mẫu nhập hàng loạt THIẾT BỊ VỆ SINH — tạo động từ public/vs-spec.js (1 sheet / hạng mục)
+app.get('/mau-nhap-thiet-bi-ve-sinh.xlsx', async function (req, res) {
+  try {
+    const buf = await require('./vs-template').buildVsTemplate();
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', "attachment; filename=\"Mau-nhap-thiet-bi-ve-sinh-DezonQS.xlsx\"");
+    res.setHeader('Cache-Control', 'no-cache');
+    res.send(Buffer.from(buf));
+  } catch (e) { res.status(500).send('Lỗi tạo file mẫu: ' + (e && e.message)); }
+});
 app.get('/healthz', function (req, res) { res.json({ ok: true }); });
 
 app.listen(config.port, function () {

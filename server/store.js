@@ -750,7 +750,7 @@ function matchAlias_(h) {
   return null;
 }
 function pick2_(row, idx) { return (idx == null) ? '' : String(row[idx] == null ? '' : row[idx]).trim(); }
-async function importParse(base64, ext) {
+async function importParse(base64, ext, nganh) {
   const ExcelJS = require('exceljs');
   const buf = Buffer.from(String(base64 || ''), 'base64');
   const wb = new ExcelJS.Workbook();
@@ -760,36 +760,55 @@ async function importParse(base64, ext) {
   } else {
     await wb.xlsx.load(buf);
   }
-  const ws = wb.worksheets[0];
-  if (!ws) throw new Error('File không có sheet dữ liệu');
-  const grid = [];
-  ws.eachRow({ includeEmpty: false }, function (row) {
-    const arr = []; row.eachCell({ includeEmpty: true }, function (cell, col) { arr[col - 1] = importCell_(cell.value); });
-    grid.push(arr);
-  });
-  if (!grid.length) throw new Error('File rỗng');
-  var hr = -1, map = null;
-  for (var i = 0; i < Math.min(grid.length, 15); i++) {
-    var m = {}; grid[i].forEach(function (h, ci) { var key = matchAlias_(h); if (key && m[key] === undefined) m[key] = ci; });
-    if (m.ten !== undefined) { hr = i; map = m; break; }
-  }
-  if (hr < 0) throw new Error('Không tìm thấy cột "Tên sản phẩm" trong file (cần 1 cột tiêu đề có chữ Tên / Name)');
-  var headers = grid[hr].map(function (h) { return String(h == null ? '' : h); });
-  const products = [];
-  for (var r = hr + 1; r < grid.length; r++) {
-    var row = grid[r]; var ten = pick2_(row, map.ten); if (!ten) continue;
-    // _raw: giữ nguyên MỌI cột theo tiêu đề gốc để importCommit map đầy đủ trường (thông số đèn)
-    var raw = {}; headers.forEach(function (h, ci) { if (h) raw[h] = String(row[ci] == null ? '' : row[ci]).trim(); });
-    products.push({
-      ten: ten, nhom: pick2_(row, map.nhom), hangMuc: pick2_(row, map.hangMuc), thuongHieu: pick2_(row, map.thuongHieu),
-      ncc: pick2_(row, map.ncc), ma: pick2_(row, map.ma), kichThuoc: pick2_(row, map.kichThuoc),
-      dvt: pick2_(row, map.dvt) || 'Cái', gia: round0_(toNumber_(pick2_(row, map.gia))),
-      moTa: pick2_(row, map.moTa), hinhAnh: pick2_(row, map.hinhAnh), _raw: raw
+  if (!wb.worksheets.length) throw new Error('File không có sheet dữ liệu');
+  /* Thiết bị đèn: chỉ đọc sheet đầu (như cũ).
+     Thiết bị vệ sinh: file mẫu có 1 sheet cho MỖI hạng mục (Bồn cầu, Lavabo, Sen tắm…) -> đọc hết
+     các sheet (trừ "Hướng dẫn"); ô HẠNG MỤC để trống thì lấy theo tên sheet. */
+  const vs = nganh === 'vs';
+  const VS = vs ? require('../public/vs-spec.js') : null;
+  const sheets = vs ? wb.worksheets.filter(function (w) { return normalize_(w.name) !== 'HUONG DAN'; }) : [wb.worksheets[0]];
+  const products = [], headerList = [], seenH = {}, mapped = {};
+  let found = false;
+  for (const ws of sheets) {
+    const grid = [];
+    ws.eachRow({ includeEmpty: false }, function (row) {
+      const arr = []; row.eachCell({ includeEmpty: true }, function (cell, col) { arr[col - 1] = importCell_(cell.value); });
+      grid.push(arr);
     });
+    if (!grid.length) continue;
+    var hr = -1, map = null;
+    for (var i = 0; i < Math.min(grid.length, 15); i++) {
+      var m = {}; grid[i].forEach(function (h, ci) { var key = matchAlias_(h); if (key && m[key] === undefined) m[key] = ci; });
+      if (m.ten !== undefined) { hr = i; map = m; break; }
+    }
+    if (hr < 0) continue;
+    found = true;
+    var headers = grid[hr].map(function (h) { return String(h == null ? '' : h).trim(); });
+    headers.forEach(function (h) { if (h && !seenH[h]) { seenH[h] = 1; headerList.push(h); } });
+    Object.keys(map).forEach(function (k) { if (!mapped[k]) mapped[k] = headers[map[k]]; });
+    const hmSheet = vs ? VS.chuanHM(ws.name) : '';
+    for (var r = hr + 1; r < grid.length; r++) {
+      var row = grid[r]; var ten = pick2_(row, map.ten); if (!ten) continue;
+      if (vs && ten.indexOf(VS.VD) === 0) continue;               // dòng ví dụ của file mẫu
+      // _raw: giữ nguyên MỌI cột theo tiêu đề gốc để importCommit map đầy đủ trường (thông số đèn / vệ sinh)
+      var raw = {}; headers.forEach(function (h, ci) { if (h) raw[h] = String(row[ci] == null ? '' : row[ci]).trim(); });
+      if (vs) {
+        if (!raw['HẠNG MỤC'] && hmSheet) raw['HẠNG MỤC'] = hmSheet;
+        if (raw['HẠNG MỤC']) raw['HẠNG MỤC'] = VS.chuanHM(raw['HẠNG MỤC']) || raw['HẠNG MỤC'];
+      }
+      products.push({
+        ten: ten, nhom: pick2_(row, map.nhom), hangMuc: vs ? (raw['HẠNG MỤC'] || '') : pick2_(row, map.hangMuc), thuongHieu: pick2_(row, map.thuongHieu),
+        ncc: pick2_(row, map.ncc), ma: pick2_(row, map.ma), kichThuoc: pick2_(row, map.kichThuoc),
+        dvt: pick2_(row, map.dvt) || 'Cái', gia: round0_(toNumber_(pick2_(row, map.gia))),
+        moTa: pick2_(row, map.moTa), hinhAnh: pick2_(row, map.hinhAnh), _raw: raw,
+        _sheet: ws.name, _nganh: vs ? 'vs' : undefined
+      });
+      if (products.length >= 2000) break;
+    }
     if (products.length >= 2000) break;
   }
-  var mapped = {}; Object.keys(map).forEach(function (k) { mapped[k] = headers[map[k]]; });
-  var headerList = headers.filter(function (h) { return String(h || '').trim(); });
+  if (!found) throw new Error('Không tìm thấy cột "Tên sản phẩm" trong file (cần 1 cột tiêu đề có chữ Tên / Name)');
+  if (vs && seenH['HẠNG MỤC'] === undefined) headerList.splice(Math.min(2, headerList.length), 0, 'HẠNG MỤC');
   return { count: products.length, products: products, mapped: mapped, headers: headerList };
 }
 async function importCommit(products) {

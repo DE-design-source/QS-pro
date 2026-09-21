@@ -771,6 +771,11 @@ table.imp-pvtbl{border-collapse:separate;border-spacing:0;font-size:12.5px;white
 .imp-pvtbl td.iied{cursor:text;min-width:96px}
 .imp-pvtbl td.iied:hover{background:#f2f7ff}
 .imp-pvtbl td.iied:focus{outline:2px solid var(--blue);outline-offset:-2px;background:#fff;border-radius:2px}
+.imp-pvtbl td.iina{background:repeating-linear-gradient(135deg,#f6f7f9 0 6px,#eef0f3 6px 12px);color:#b3bac5;text-align:center;cursor:not-allowed;min-width:60px}
+.imp-pvtbl td.iimiss{box-shadow:inset 0 0 0 1.5px #e5484d;background:#fff5f5}
+.imp-pvtbl tr.iierr td.iisttd{color:#c33;font-weight:600}
+.imp-pvtbl .iiwarn{display:inline-grid;place-items:center;width:15px;height:15px;margin-left:4px;border-radius:50%;background:#e5484d;color:#fff;font-size:10px;font-weight:700;vertical-align:middle}
+.vs-empty{margin:0 0 4px;padding:10px 12px;border:1px dashed var(--line,#d6dbe3);border-radius:8px}
 .imp-pvtbl tbody tr:nth-child(even) td{background:#f8fafc}
 .imp-pvtbl tbody tr:hover td{background:#eef5ff}
 /* cột Ảnh dính bên trái */
@@ -5221,6 +5226,22 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
   background:#fff;font-size:12px;color:#2a3542}
 #leftCat #pinFilters .fsec:not(#sec_watt):not(#sec_kelvin) .chip.on{background:#e5e7ea;border-color:#e5e7ea;font-weight:600}
 #leftCat #pinFilters .selrow select,#leftCat #pinFilters .pricerow input{height:34px;border-radius:9px}
+/* bộ lọc Thiết bị vệ sinh: cùng dáng với các bộ lọc ghim */
+#leftCat #vsFilters .fsec{border:none;border-radius:0;background:none;box-shadow:none;margin:0;padding:14px 0 14px 6px;border-bottom:1px solid #e8ecf1}
+#leftCat #vsFilters .fsec-h{padding:0 0 10px;cursor:pointer;display:flex;align-items:center;background:none}
+#leftCat #vsFilters .fsec-t{font-size:14px;font-weight:650;color:#1c2735;letter-spacing:-.01em;text-transform:none!important}
+#leftCat #vsFilters .fsec-n{margin-left:6px;font-size:11.5px;color:#8b96a5;font-weight:500}
+#leftCat #vsFilters .fsec-c{display:inline-flex;margin-left:auto;width:22px;height:22px;align-items:center;justify-content:center;
+  border-radius:6px;color:#8b96a5;font-size:11px;transition:transform .15s}
+#leftCat #vsFilters .fsec:not(.open) .fsec-c{transform:rotate(-90deg)}
+#leftCat #vsFilters .fsec:not(.open) .chips{display:none}
+#leftCat #vsFilters .fsec:not(.open) .fsec-h{padding-bottom:0}
+#leftCat #vsFilters .chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 8px 0 0;margin:0;max-height:84px;overflow:auto}
+#leftCat #vsFilters .chip{height:32px;display:inline-flex;align-items:center;gap:5px;padding:0 11px;border-radius:9px;border:1px solid #e3e7ec;
+  background:#fff;font-size:12px;color:#2a3542;cursor:pointer}
+#leftCat #vsFilters .chip:hover{border-color:#c8cfd8}
+#leftCat #vsFilters .chip.on{background:#e5e7ea;border-color:#e5e7ea;font-weight:600}
+#leftCat #vsFilters .chip i{font-style:normal;font-size:10.5px;color:#8b96a5;font-weight:500}
 
 /* ═══ Form nhập công tác Phần thô — theo bản vẽ ═══ */
 .ctcard2 .dbcard-b{padding:6px 28px 10px}
@@ -5396,6 +5417,8 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
           <!-- Lọc nhanh luôn hiện: Công suất + Nhiệt độ màu -->
           <div class="fsec open" id="sec_watt"><div class="fsec-h" onclick="toggleFsec('watt')"><span class="fsec-t">Công suất</span><span class="fsec-n" id="nWatt"></span><span class="fsec-c">▾</span></div><div class="chips" id="fWatt"></div></div>
           <div class="fsec open" id="sec_kelvin"><div class="fsec-h" onclick="toggleFsec('kelvin')"><span class="fsec-t">Nhiệt độ màu</span><span class="fsec-n" id="nKelvin"></span><span class="fsec-c">▾</span></div><div class="chips" id="fKelvin"></div></div>
+          <!-- Thiết bị vệ sinh (đề mục 3.2.5): bộ lọc sinh từ public/vs-spec.js thay cho Công suất / Nhiệt độ màu -->
+          <div id="vsFilters" style="display:none"></div>
           <div id="pinFilters"></div>
           </div>
           <div id="catActive" class="cat-active"></div>
@@ -5506,4 +5529,5 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
 </datalist>
 <div id="toast"></div>
 
+<script src="vs-spec.js"></script>
 <script src="app.js"></script>

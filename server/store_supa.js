@@ -5,7 +5,8 @@
  ************************************************************/
 const supa = require('./supa');
 const tenant = require('./tenant');
-const larkStore = require('./store');   // tái dùng hàm thuần: importParse, cover template, export helpers
+const larkStore = require('./store');
+const VS = require('../public/vs-spec.js');   // thông số thiết bị vệ sinh theo từng hạng mục   // tái dùng hàm thuần: importParse, cover template, export helpers
 
 /*** ===== HELPERS ===== ***/
 function n(v) { if (v == null || v === '') return 0; var x = Number(v); return isNaN(x) ? 0 : x; }
@@ -56,21 +57,18 @@ function prodToObj(r) {
   const nganh = s(r.nganh) || 'den';
   const bh = r.bao_hanh_nam ? (r.bao_hanh_nam + ' năm') : '';
   if (nganh === 'vs') {
-    const a = [];
-    if (s(r.mau_sac)) a.push('Màu: ' + s(r.mau_sac));
-    if (s(r.he_thong_xa)) a.push('Hệ thống xả: ' + s(r.he_thong_xa));
-    if (s(r.thiet_ke)) a.push('Thiết kế: ' + s(r.thiet_ke));
+    // Mỗi hạng mục có bộ thông số riêng (public/vs-spec.js): chinh -> THÔNG TIN CHÍNH, tk -> THÔNG SỐ THIẾT KẾ.
+    // Hạng mục lạ / chưa chọn -> in mọi thông số có giá trị.
+    const h = VS.hmOf(r.hang_muc);
+    const line = function (lb) { const m = VS.METRIC[lb], v = s(r[m[0]]); return v ? (m[1] + ': ' + v) : ''; };
+    const chinh = h ? h.chinh : VS.ALL.filter(function (lb) { return VS.METRIC[lb][2] === 'sel' || lb === 'THIẾT KẾ'; });
+    const tk = h ? h.tk : VS.ALL.filter(function (lb) { return chinh.indexOf(lb) < 0; });
+    const a = chinh.map(line).filter(Boolean);
     if (dong) a.push('Dòng SP: ' + dong);
-    if (s(r.hang_muc)) a.push('Hạng mục: ' + s(r.hang_muc));
+    if (s(r.hang_muc)) a.push('Hạng mục: ' + (VS.chuanHM(r.hang_muc) || s(r.hang_muc)));
     if (bh) a.push('Bảo hành: ' + bh);
     moTa = a.join('\n'); if (s(r.ghi_chu)) moTa += (moTa ? '\n' : '') + s(r.ghi_chu);
-    const b = [];
-    if (s(r.kich_thuoc)) b.push('Kích thước: ' + s(r.kich_thuoc));
-    if (s(r.luong_nuoc_xa)) b.push('Lượng nước xả: ' + s(r.luong_nuoc_xa));
-    if (s(r.tam_xa)) b.push('Tâm xả: ' + s(r.tam_xa));
-    if (s(r.ap_luc_nuoc)) b.push('Áp lực nước: ' + s(r.ap_luc_nuoc));
-    if (s(r.luu_y)) b.push('Lưu ý: ' + s(r.luu_y));
-    thongSoTK = b.join('\n');
+    thongSoTK = tk.map(line).filter(Boolean).join('\n');
   }
   return {
     ma: s(r.ma_sp), ten: s(r.ten_sp), dongSanPham: dong, hangMuc: s(r.hang_muc),
@@ -396,6 +394,8 @@ const DB_LABEL2COL = {
   'LƯỢNG NƯỚC XẢ': 'luong_nuoc_xa', 'THIẾT KẾ': 'thiet_ke', 'TÂM XẢ': 'tam_xa',
   'ÁP LỰC NƯỚC': 'ap_luc_nuoc', 'LƯU Ý': 'luu_y', 'TÍNH NĂNG': 'tinh_nang'
 };
+// Thông số RIÊNG từng hạng mục vệ sinh (public/vs-spec.js — nguồn chung với form & file mẫu)
+Object.keys(VS.METRIC).forEach(function (lb) { if (!DB_LABEL2COL[lb]) DB_LABEL2COL[lb] = VS.METRIC[lb][0]; });
 // Migration chạy tay -> nếu DB chưa có cột thì đổi lỗi kỹ thuật thành hướng dẫn cụ thể
 const COL_SQL = { ten_chip_led: 'db/chip_name.sql', gia_ban_bo_nguon: 'db/gia_bo_nguon.sql', da_duyet: 'db/sp_duyet_status.sql',
   nguoi_duyet: 'db/sp_duyet_status.sql', ngay_duyet: 'db/sp_duyet_status.sql',
@@ -403,6 +403,9 @@ const COL_SQL = { ten_chip_led: 'db/chip_name.sql', gia_ban_bo_nguon: 'db/gia_bo
   luong_nuoc_xa: 'db/thiet_bi_ve_sinh.sql', thiet_ke: 'db/thiet_bi_ve_sinh.sql', tam_xa: 'db/thiet_bi_ve_sinh.sql',
   ap_luc_nuoc: 'db/thiet_bi_ve_sinh.sql', luu_y: 'db/thiet_bi_ve_sinh.sql', tinh_nang: 'db/thiet_bi_ve_sinh.sql',
   nhom_bt: 'db/bien_the_nhom.sql' };
+['kieu_lap_dat', 'loai_nap', 'loai_voi', 'loai_sen', 'kieu_dieu_khien', 'massage', 'so_ho', 'luu_luong', 'loi_van', 'bat_sen',
+  'che_do_phun', 'so_lo_voi', 'xa_tran', 'dung_tich', 'nguon_dien', 'bon_cau_tuong_thich', 'do_day', 'be_mat']
+  .forEach(function (c) { COL_SQL[c] = 'db/thiet_bi_ve_sinh_v2.sql'; });
 function colErr_(e) {
   const m = (e && e.message) || '';
   for (const col in COL_SQL) {
@@ -537,6 +540,8 @@ async function diffDbProduct(key, data) {
   const row = dataToRow_(data);
   const changes = [];
   Object.keys(row).forEach(function (col) {
+    // Cột chưa có trong DB (chưa chạy migration) mà cũng không nhập gì -> bỏ, tránh lỗi "column does not exist"
+    if (!(col in cur) && (row[col] == null || row[col] === '')) { delete row[col]; return; }
     const oldS = (cur[col] == null ? '' : String(cur[col]));
     const newS = (row[col] == null ? '' : String(row[col]));
     if (oldS !== newS) changes.push({ field: COL2LABEL[col] || col, old: oldS, new: newS });
@@ -889,7 +894,7 @@ function getCatalogSheetsFrom_(products) {
 }
 
 /*** ===== IMPORT (tái dùng parse của store.js) ===== ***/
-function importParse(base64, ext) { return larkStore.importParse(base64, ext); }
+function importParse(base64, ext, nganh) { return larkStore.importParse(base64, ext, nganh); }
 async function importCommit(actor, products) {
   if (products === undefined && Array.isArray(actor)) { products = actor; actor = null; }
   // Dùng lại saveDbProduct cho từng SP (đúng path đã hoạt động: tự check + INSERT/UPDATE,
@@ -907,6 +912,19 @@ async function importCommit(actor, products) {
     if (!s(data['ĐƠN VỊ TÍNH']).trim()) data['ĐƠN VỊ TÍNH'] = p.dvt || 'Cái';
     if (!s(data['TRẠNG THÁI']).trim()) data['TRẠNG THÁI'] = 'Đang kinh doanh';
     if (!s(data['TÊN SẢN PHẨM']).trim()) continue;
+    if (s(data['TÊN SẢN PHẨM']).trim().indexOf(VS.VD) === 0) continue;   // dòng ví dụ của file mẫu
+    if (p._nganh === 'vs' || s(data['NGÀNH HÀNG']) === 'vs') {
+      // THIẾT BỊ VỆ SINH: đóng dấu ngành (-> SP về đề mục 3.2.5), chuẩn hoá tên hạng mục và
+      // CHỈ giữ thông số thuộc hạng mục đó — cột của hạng mục khác trong file bị bỏ qua.
+      data['NGÀNH HÀNG'] = 'vs';
+      const hm = VS.chuanHM(data['HẠNG MỤC']);
+      if (!hm) { errors.push({ ten: s(data['TÊN SẢN PHẨM']), error: 'Hạng mục "' + s(data['HẠNG MỤC']) + '" không thuộc danh sách: ' + VS.HANG_MUC.join(', ') }); continue; }
+      data['HẠNG MỤC'] = hm;
+      const cho = VS.labelsOf(hm);
+      Object.keys(VS.METRIC).forEach(function (lb) { if (cho.indexOf(lb) < 0) delete data[lb]; });
+      const thieu = VS.HM[hm].req.filter(function (lb) { return !s(data[lb]).trim(); });
+      if (thieu.length) { errors.push({ ten: s(data['TÊN SẢN PHẨM']), error: hm + ' thiếu: ' + thieu.map(function (lb) { return VS.METRIC[lb][1]; }).join(', ') }); continue; }
+    }
     try { const r = await saveDbProduct(actor, data, { noAudit: true }); if (r && r.updated) updated++; else inserted++; }
     catch (e) { errors.push({ ten: s(data['TÊN SẢN PHẨM']), error: e && e.message }); }
   }
