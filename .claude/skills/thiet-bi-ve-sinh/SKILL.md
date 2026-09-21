@@ -20,8 +20,8 @@ Module UMD (`window.VS_SPEC` ở trình duyệt, `require('../public/vs-spec.js'
 | Chỗ | File / hàm |
 |---|---|
 | Form Nhập + modal Sửa: chỉ hiện thông số của hạng mục đang chọn | `app.js` `DB_GROUPS_VS` (hợp mọi hạng mục), `vsApplyHM_`, `tdSave`, `speField_`, `spEditSave` (xoá thông số không thuộc hạng mục) |
-| File mẫu nhập hàng loạt (1 sheet / hạng mục, dropdown, sheet Hướng dẫn) | `server/vs-template.js` → route `GET /mau-nhap-thiet-bi-ve-sinh.xlsx` (tạo động, không có file tĩnh) |
-| Đọc file: đọc MỌI sheet (trừ "Hướng dẫn"), HẠNG MỤC trống = tên sheet | `server/store.js` `importParse(b64, ext, 'vs')` |
+| File mẫu nhập hàng loạt — **bố cục y hệt file mẫu đèn** (user yêu cầu): 1 sheet `San pham` phẳng, tiêu đề xanh sáng `FF2563EB` = bắt buộc / xanh đậm `FF12324C` = tuỳ chọn, dòng ví dụ nền `FFF7F9FC` chữ nghiêng xám (người dùng tự xoá), không dropdown/ghi chú; sheet `Hướng dẫn` đánh số + bảng thông số theo hạng mục | `server/vs-template.js` → route `GET /mau-nhap-thiet-bi-ve-sinh.xlsx` (tạo động, không có file tĩnh) |
+| Đọc file: đọc MỌI sheet (trừ "Hướng dẫn"), HẠNG MỤC trống = tên sheet (vẫn nhận file kiểu cũ 1 sheet/hạng mục) | `server/store.js` `importParse(b64, ext, 'vs')` |
 | Commit: đóng dấu `nganh='vs'`, chuẩn hoá hạng mục, bỏ cột của hạng mục khác, chặn thiếu bắt buộc | `server/store_supa.js` `importCommit` (client gửi `p._nganh='vs'`) |
 | Xem trước import: ô "—" = không áp dụng, viền đỏ = thiếu bắt buộc | `app.js` `impVsCheck_`, `impRow_`, `impVsSummary_` |
 | Ghép Thông tin chính / Thông số thiết kế | `store_supa.js` `prodToObj` nhánh `nganh==='vs'` |
