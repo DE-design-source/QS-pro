@@ -6569,6 +6569,15 @@ function impDateTime_(iso){
 }
 function impRecentList(){
   var ps=(S._sessionAdded||[]);  // CHỈ SP thêm/nhập trong PHIÊN hiện tại
+  var pd=(S._pending||[]);        // chờ lưu: chưa vào Database cho tới khi bấm "Thêm sản phẩm"
+  var pRows=pd.map(function(p,i){
+    var img=p.hinhAnh?'<img class="imp-rth" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="imp-rth"></span>';
+    return '<tr class="imp-rpend'+(p.loi?' err':'')+'"'+(p.loi?' title="'+esc(p.loi)+'"':'')+'><td class="c imp-ract">'
+      +'<button class="imp-redit" title="Bỏ khỏi danh sách chờ" onclick="pendingDel_('+i+')">✕</button></td><td class="c">'+(i+1)+'</td>'
+      +'<td class="imp-rname">'+esc(p.ten||'')+(p.bienThe?'<i class="imp-rma">'+esc(p.bienThe)+'</i>':'')
+      +(p.ma?'<i class="imp-rma">'+esc(p.ma)+'</i>':'')+(p.loi?'<i class="imp-rloi">'+esc(p.loi)+'</i>':'')+'</td><td class="c">'+img+'</td>'
+      +'<td>'+esc(p.thuongHieu||'—')+'</td><td class="imp-rdate"><span class="imp-rchip">'+(p.loi?'Lỗi':'Chờ lưu')+'</span></td></tr>';
+  }).join('');
   var rows=ps.map(function(p,i){
     var im=String(p.hinhAnh||'').split('\n')[0];
     var img=im?'<img class="imp-rth" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="imp-rth"></span>';
@@ -6579,11 +6588,66 @@ function impRecentList(){
       +'<td class="imp-rname">'+esc(p.ten||'')
       +(p.ma?'<i class="imp-rma">'+esc(p.ma)+'</i>':'')+'</td><td class="c">'+img+'</td>'
       +'<td>'+esc(p.thuongHieu||'—')+'</td><td class="imp-rdate">'+(impDateTime_(p.capNhat)||'—')+'</td></tr>';
-  }).join('') || '<tr><td colspan="6" class="empty" style="padding:24px 12px;font-size:12.5px;line-height:1.5">Chưa nhập sản phẩm nào trong phiên này.<br>Sản phẩm bạn <b>thêm / nhập file</b> ở phiên này sẽ hiện ở đây.</td></tr>';
-  return '<div class="imp-recent-h">Sản phẩm vừa nhập (phiên này) <span class="count">'+pad2(ps.length)+'</span></div>'
+  }).join('');
+  if(!pRows && !rows) rows='<tr><td colspan="6" class="empty" style="padding:24px 12px;font-size:12.5px;line-height:1.5">Chưa nhập sản phẩm nào trong phiên này.<br>Sản phẩm bạn <b>thêm / nhập file</b> sẽ hiện ở đây — bấm <b>Thêm sản phẩm</b> để lưu vào Database.</td></tr>';
+  var nut='<div class="imp-rfoot">'
+    +(pd.length?'<div class="imp-rfoot-note"><b>'+pd.length+'</b> sản phẩm đang chờ — <b>chưa</b> lưu vào Database</div>':'')
+    +'<button class="btn blue block" id="pendBtn" onclick="pendingCommit_(this)"'+(pd.length?'':' disabled')+'>'+icon('plus',15)
+    +' Thêm sản phẩm'+(pd.length?' ('+pd.length+')':'')+'</button></div>';
+  return '<div class="imp-recent-h">Sản phẩm vừa nhập (phiên này) <span class="count">'+pad2(pd.length+ps.length)+'</span></div>'
     +'<div class="imp-recent-note">Danh sách này chỉ ghi lại thao tác của <b>phiên đang mở</b> — tải lại trang sẽ trống. '
     +'Sản phẩm đã lưu <b>vẫn nằm trong Database</b>: <a onclick="showTab(\'sanpham\')">xem Danh sách sản phẩm →</a></div>'
-    +'<div class="imp-recent-b"><table class="imp-rtbl"><thead><tr><th class="c">Sửa</th><th class="c">STT</th><th>Tên sản phẩm</th><th class="c">Hình ảnh</th><th>Thương hiệu</th><th>Ngày cập nhật</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    +'<div class="imp-recent-b"><table class="imp-rtbl"><thead><tr><th class="c">Sửa</th><th class="c">STT</th><th>Tên sản phẩm</th><th class="c">Hình ảnh</th><th>Thương hiệu</th><th>Ngày cập nhật</th></tr></thead><tbody>'+pRows+rows+'</tbody></table></div>'
+    +nut;
+}
+/* ═══ DANH SÁCH CHỜ LƯU ═══
+   Form Nhập / file Excel chỉ đưa SP vào S._pending (hiện ở panel phải, nhãn "Chờ lưu").
+   Bấm "Thêm sản phẩm" mới ghi vào Database: SP từ form -> saveDbProduct từng cái,
+   SP từ file -> importCommit cả lô (server kiểm tra hạng mục / thông số bắt buộc).
+   Lưu được -> chuyển sang danh sách "đã nhập"; lỗi -> ở lại, hiện lý do.          */
+function pendingAdd_(items){ S._pending=(items||[]).concat(S._pending||[]); impRecentRefresh_(); }
+function pendingDel_(i){ (S._pending||[]).splice(i,1); impRecentRefresh_(); }
+function impRecentRefresh_(){
+  var box=document.getElementById('impRecentBox'); if(box) box.innerHTML=impRecentList();
+  var sb=document.querySelector('#v-import .imp-statbar'); if(sb && impLoai_()!=='pt') sb.outerHTML=impStatBar();
+}
+window.addEventListener('beforeunload',function(e){
+  if((S._pending||[]).length){ e.preventDefault(); e.returnValue='Còn sản phẩm chưa lưu vào Database'; return e.returnValue; }
+});
+async function pendingCommit_(btn){
+  var ds=(S._pending||[]).slice(); if(!ds.length){ toast('Chưa có sản phẩm nào chờ lưu'); return; }
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Đang lưu 0/'+ds.length+'…'; }
+  var ok=0, loi=0, conLai=[], ghiN=0;
+  var form=ds.filter(function(x){ return x.kind==='form'; }), file=ds.filter(function(x){ return x.kind==='file'; });
+  for(var k=0;k<form.length;k++){
+    var it=form[k];
+    try{
+      await api('saveDbProduct', it.data); ok++;
+      sessionAdd_({ten:it.ten+(it.bienThe?' ('+it.bienThe+')':''), ma:it.ma, thuongHieu:it.thuongHieu, ncc:it.ncc, hinhAnh:it.hinhAnh});
+      if(it.ghi){ try{ await api('addLine', it.ghi.maDA, it.ghi.prod, it.ghi.qty); ghiN++;
+          if(S.cur&&S.cur.maDA===it.ghi.maDA){ S.lines=await api('getLines',it.ghi.maDA)||S.lines; } }
+        catch(e3){ toast('Lưu "'+it.ten+'" OK nhưng ghi danh dự án lỗi: '+e3.message); } }
+    }catch(e){ loi++; it.loi=e.message.slice(0,160); conLai.push(it); }
+    if(btn) btn.textContent='⏳ Đang lưu '+(k+1)+'/'+ds.length+'…';
+  }
+  if(file.length){
+    try{
+      var r=await api('importCommit', file.map(function(x){ return x.prod; }));
+      var bad={}; (r.errors||[]).forEach(function(e){ bad[e.ten]=e.error; });
+      file.forEach(function(it){
+        if(bad[it.ten]!=null){ loi++; it.loi=String(bad[it.ten]).slice(0,160); conLai.push(it); }
+        else { ok++; sessionAdd_({ten:it.ten, ma:it.ma, thuongHieu:it.thuongHieu, ncc:it.ncc, hinhAnh:it.hinhAnh}); }
+      });
+    }catch(e){ file.forEach(function(it){ loi++; it.loi=e.message.slice(0,160); conLai.push(it); }); }
+  }
+  S._pending=conLai;
+  try{ S.products=await api('getProducts')||S.products; }catch(e){}
+  impRecentRefresh_();
+  try{ renderFilters(); renderCatalog(); }catch(e){}     // làm mới panel Bóc tách (nếu đang dựng)
+  var msg='Đã lưu '+ok+' sản phẩm vào Database'+(ghiN?(' · ghi danh '+ghiN+' vào dự án'):'');
+  if(loi) alert(msg+'.\n\n'+loi+' sản phẩm KHÔNG lưu được (vẫn nằm trong danh sách chờ, nhãn "Lỗi"):\n'
+    +conLai.slice(0,30).map(function(x){ return '• '+x.ten+': '+x.loi; }).join('\n'));
+  else toast(msg);
 }
 /* ═══ SỬA LẠI SẢN PHẨM NGAY Ở PANEL "SP VỪA NHẬP" ═══
    Mở đúng modal Cập nhật sản phẩm đang dùng ở Danh sách SP, nên mọi trường,
@@ -6691,7 +6755,7 @@ function renderImport(){
         +(S.projects||[]).map(function(p){ return '<option value="'+esc(p.maDA)+'"'+(S.cur&&S.cur.maDA===p.maDA?' selected':'')+'>'+esc(p.ten)+'</option>'; }).join('')+'</select></div>'
       +'<div class="field"><label>Số lượng</label><input type="number" id="impGhiSL" min="1" value="1"></div>'
       +'</div><label class="imp-ghck"><input type="checkbox" id="impGhiDanh"> Thêm sản phẩm này vào dự án đã chọn sau khi lưu</label>')
-    +'<div class="savebar"><button class="btn blue block" onclick="tdSave(this)">Thêm sản phẩm vào Database</button><button class="btn ghost sm" onclick="renderImport()" style="margin-top:8px">Xoá form</button></div>'
+    +'<div class="savebar"><button class="btn blue block" onclick="tdSave(this)">Đưa vào danh sách chờ</button><button class="btn ghost sm" onclick="renderImport()" style="margin-top:8px">Xoá form</button></div>'
     +dbCard_('Nhập hàng loạt từ file', 'download', 'Tải file mẫu → điền dữ liệu → chọn file lên. Hệ thống tự dò cột theo tiêu đề; sau đó tải ảnh cho từng SP rồi lưu vào DB_Sản phẩm.',
       '<div class="imp-file-row">'
       +((impLoai_()==='vs')
@@ -7074,7 +7138,7 @@ function impShow(res){
     +(S._impNganh==='vs'?'<div class="imp-pv-sub" id="impVsSum"></div>':'')+'</div>'
     +'<div class="imp-pv-wrap"><table class="imp-pvtbl"><thead><tr><th class="iistth">STT</th><th class="iiimgth">Ảnh (chính + chi tiết)</th>'
       +heads.map(function(h){return '<th>'+esc(h)+'</th>';}).join('')+'</tr></thead><tbody id="impBody">'+rows+'</tbody></table></div>'
-    +'<div class="imp-pv-foot"><button class="btn blue" onclick="impCommit(this)">'+icon('check',15)+' Nhập '+res.count+' sản phẩm vào danh mục</button>'
+    +'<div class="imp-pv-foot"><button class="btn blue" onclick="impCommit(this)">'+icon('check',15)+' Đưa '+res.count+' sản phẩm vào danh sách chờ</button>'
       +'<span class="imp-pv-note">Cột nhận diện & map DB: '+recog+'</span></div>';
   impUpdateCounter(); impVsSummary_();
 }
@@ -7082,21 +7146,16 @@ async function impCommit(btn){
   if(!S._impProducts||!S._impProducts.length){ toast('Chưa có dữ liệu'); return; }
   if((S._imgUploading||0)>0){ toast('Đang tải ảnh lên, đợi chút…'); if(btn){ btn.disabled=true; var ot=btn.textContent; btn.textContent='⏳ Đợi tải ảnh…'; } await waitUploads_(20000); if(btn){ btn.disabled=false; btn.textContent=ot; } }
   var missing=S._impProducts.filter(function(p){return !p.hinhAnh;}).length;
-  if(missing>0 && !confirm('Còn '+missing+' sản phẩm CHƯA có ảnh.\nBạn nên bấm ô ＋ ở cột Ảnh để tải hình cho từng SP.\n\nVẫn nhập bây giờ?')) return;
-  btn.disabled=true; var o=btn.textContent; btn.textContent='Đang nhập…';
-  try{ var items=S._impProducts.slice();
-    if(S._impNganh==='vs') items.forEach(function(p){ p._nganh='vs'; });   // server đóng dấu ngành + lọc thông số theo hạng mục
-    var r=await api('importCommit', items); S.products=await api('getProducts')||S.products;
-    var loiTen={}; (r.errors||[]).forEach(function(e){ loiTen[e.ten]=1; });
-    items.forEach(function(p){ if(!loiTen[p.ten]) sessionAdd_({ten:p.ten, ma:p.ma, thuongHieu:p.thuongHieu, ncc:p.ncc, hinhAnh:p.hinhAnh}); });
-    var msg='Đã nhập '+(r.inserted||0)+' sản phẩm mới'+(r.updated?(', cập nhật '+r.updated):'')+' vào danh mục';
-    if(r.errors&&r.errors.length){
-      toast(msg+' — '+r.errors.length+' dòng LỖI (xem chi tiết)');
-      alert(msg+'.\n\n'+r.errors.length+' dòng KHÔNG nhập được:\n'+r.errors.slice(0,30).map(function(e){ return '• '+e.ten+': '+e.error; }).join('\n')
-        +(r.errors.length>30?'\n… +'+(r.errors.length-30)+' dòng nữa':''));
-    } else toast(msg);
-    renderImport(); renderFilters(); renderCatalog(); }
-  catch(e){ toast('Lỗi nhập: '+e.message); btn.disabled=false; btn.textContent=o; }
+  if(missing>0 && !confirm('Còn '+missing+' sản phẩm CHƯA có ảnh.\nBạn nên bấm ô ＋ ở cột Ảnh để tải hình cho từng SP.\n\nVẫn tiếp tục?')) return;
+  // KHÔNG lưu ngay: đưa cả lô vào danh sách CHỜ LƯU — bấm "Thêm sản phẩm" ở panel phải mới ghi vào Database
+  var vs=(S._impNganh==='vs');
+  pendingAdd_(S._impProducts.map(function(p){
+    if(vs) p._nganh='vs';                      // server đóng dấu ngành + lọc thông số theo hạng mục
+    return {kind:'file', prod:p, ten:p.ten, ma:p.ma, thuongHieu:p.thuongHieu, ncc:p.ncc, hinhAnh:p.hinhAnh, nganh:vs?'vs':'den'};
+  }));
+  toast('Đã đưa '+S._impProducts.length+' sản phẩm vào danh sách chờ — bấm "Thêm sản phẩm" để lưu vào Database');
+  S._impProducts=[]; var pv=document.getElementById('impPreview'); if(pv) pv.innerHTML='';
+  var f=document.getElementById('impFile'); if(f) f.value='';
 }
 /* ===== BIẾN THỂ: sinh tổ hợp nhiệt độ màu × công suất × góc chiếu ===== */
 function varList_(id){ var e=document.getElementById(id); if(!e) return [];
@@ -7156,48 +7215,33 @@ async function tdSave(btn){
   if((S._imgUploading||0)>0){ btn.textContent='⏳ Đợi tải ảnh…'; await waitUploads_(15000); } // đợi ảnh tải xong để lưu đủ ảnh
   var imgs=[S._imgMain].concat(S._imgList||[]).filter(Boolean).filter(function(v){return v.indexOf('data:')!==0;}); // bỏ preview base64 chưa upload xong
   if(imgs.length) data['ẢNH SẢN PHẨM']=imgs.join('\n');
-  btn.textContent='⏳ Đang lưu…';
-  try{
-    var combos=varCombos_(), r;
-    if(combos.length){
-      // BIẾN THỂ: tạo 1 sản phẩm cho mỗi tổ hợp (cùng mã SP, khác nhiệt độ/công suất/góc)
-      var okN=0, errN=0, varErrs=[];
-      for(var ci=0; ci<combos.length; ci++){
-        var c=combos[ci], d2=Object.assign({},data);
-        if(c.k) d2['NHIỆT ĐỘ MÀU (K)']=c.k;
-        if(c.w) d2['CÔNG SUẤT (W)']=c.w;
-        if(c.a) d2['GÓC CHIẾU (°)']=c.a;
-        if(c.c) d2['MÀU SẮC']=c.c;
-        if(c.z) d2['KÍCH THƯỚC']=c.z;
-        if(btn) btn.textContent='⏳ Đang lưu biến thể '+(ci+1)+'/'+combos.length+'…';
-        try{ await api('saveDbProduct',d2); okN++; }
-        catch(e2){ errN++; if(varErrs.length<3) varErrs.push([c.w?c.w+'W':'',c.k?c.k+'K':'',c.a?c.a+'°':'',c.c||'',c.z||''].filter(Boolean).join('/')+': '+e2.message.slice(0,70)); }
-      }
-      r={updated:false};
-      sessionAdd_({ten:ten+' ('+okN+' biến thể)', ma:data['MÃ SẢN PHẨM']||'', nhieuBienThe:true,
-        thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'', hinhAnh:data['ẢNH SẢN PHẨM']||''});
-      if(errN){ toast('Lưu '+okN+'/'+(okN+errN)+' biến thể — '+errN+' LỖI: '+varErrs.join(' | ')); console.warn('[biến thể] lỗi:',varErrs); }
-      else toast('Đã lưu đủ '+okN+' biến thể của "'+ten+'"');
-    } else {
-      r=await api('saveDbProduct',data);
-      sessionAdd_({ten:ten, ma:data['MÃ SẢN PHẨM']||'',
-        thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'', hinhAnh:data['ẢNH SẢN PHẨM']||''});
-      toast((r.updated?'Đã cập nhật':'Đã thêm')+' "'+ten+'" vào DB_Sản phẩm');
-    }
-    // Ghi danh vào dự án (tuỳ chọn)
-    var gd=document.getElementById('impGhiDanh'), ps=document.getElementById('impProjSel'), sl=document.getElementById('impGhiSL');
-    if(gd&&gd.checked&&ps&&ps.value){
-      var gia=Number(data['GIÁ BÁN LẺ'])||0, qty=Math.max(1,Number(sl&&sl.value)||1);
-      var prod={ ten:ten, ma:data['MÃ SẢN PHẨM']||'', thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'',
-        moTa:data['MÔ TẢ']||'', kichThuoc:data['KÍCH THƯỚC']||'', dvt:data['ĐƠN VỊ TÍNH']||'Cái', hinhAnh:data['ẢNH SẢN PHẨM']||'',
-        donGiaVon:gia, donGiaBan:gia, nhom:'3.2.6.1', hangMuc:nodeName('3.2.6.1'), loai:nodeName('3.2.6.1'), tang:'', extra:{nganh:data['DÒNG SẢN PHẨM']||''} };
-      try{ await api('addLine', ps.value, prod, qty);
-        if(S.cur&&S.cur.maDA===ps.value){ S.lines=await api('getLines',ps.value)||S.lines; }
-        toast('Đã ghi danh "'+ten+'" vào dự án (×'+qty+')'); }
-      catch(e2){ toast('Lưu OK nhưng ghi danh lỗi: '+e2.message); }
-    }
-    renderImport(); }
-  catch(e){ toast('Lỗi: '+e.message); btn.disabled=false; btn.textContent=o; }
+  /* KHÔNG lưu ngay: đưa vào danh sách CHỜ LƯU ở panel bên phải — bấm "Thêm sản phẩm" mới ghi vào Database */
+  var meta={thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'', hinhAnh:data['ẢNH SẢN PHẨM']||'', nganh:data['NGÀNH HÀNG']};
+  var combos=varCombos_(), items=[];
+  if(combos.length){
+    // BIẾN THỂ: 1 sản phẩm cho mỗi tổ hợp (cùng mã SP, khác nhiệt độ/công suất/góc/màu/kích thước)
+    combos.forEach(function(c){
+      var d2=Object.assign({},data);
+      if(c.k) d2['NHIỆT ĐỘ MÀU (K)']=c.k;
+      if(c.w) d2['CÔNG SUẤT (W)']=c.w;
+      if(c.a) d2['GÓC CHIẾU (°)']=c.a;
+      if(c.c) d2['MÀU SẮC']=c.c;
+      if(c.z) d2['KÍCH THƯỚC']=c.z;
+      var bt=[c.w?c.w+'W':'',c.k?c.k+'K':'',c.a?c.a+'°':'',c.c||'',c.z||''].filter(Boolean).join(' · ');
+      items.push(Object.assign({kind:'form', data:d2, ten:ten, bienThe:bt, ma:data['MÃ SẢN PHẨM']||''}, meta));
+    });
+  } else items.push(Object.assign({kind:'form', data:data, ten:ten, ma:data['MÃ SẢN PHẨM']||''}, meta));
+  // Ghi danh vào dự án (tuỳ chọn) — thực hiện SAU khi lưu thành công, gắn vào dòng đầu của lượt này
+  var gd=document.getElementById('impGhiDanh'), ps=document.getElementById('impProjSel'), sl=document.getElementById('impGhiSL');
+  if(gd&&gd.checked&&ps&&ps.value){
+    var gia=Number(data['GIÁ BÁN LẺ'])||0, qty=Math.max(1,Number(sl&&sl.value)||1);
+    items[0].ghi={ maDA:ps.value, qty:qty, prod:{ ten:ten, ma:data['MÃ SẢN PHẨM']||'', thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'',
+      moTa:data['MÔ TẢ']||'', kichThuoc:data['KÍCH THƯỚC']||'', dvt:data['ĐƠN VỊ TÍNH']||'Cái', hinhAnh:data['ẢNH SẢN PHẨM']||'',
+      donGiaVon:gia, donGiaBan:gia, nhom:'3.2.6.1', hangMuc:nodeName('3.2.6.1'), loai:nodeName('3.2.6.1'), tang:'', extra:{nganh:data['DÒNG SẢN PHẨM']||''} } };
+  }
+  pendingAdd_(items);
+  toast('Đã đưa '+(items.length>1?(items.length+' biến thể của '):'')+'"'+ten+'" vào danh sách chờ — bấm "Thêm sản phẩm" để lưu vào Database');
+  renderImport();
 }
 
 /* ===================================================================
