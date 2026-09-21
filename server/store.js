@@ -746,7 +746,12 @@ function importCell_(v) {
 function matchAlias_(h) {
   const n = normalize_(h); if (!n) return null;
   for (const k in IMPORT_ALIAS) for (var i = 0; i < IMPORT_ALIAS[k].length; i++) if (n === normalize_(IMPORT_ALIAS[k][i])) return k;
-  for (const k2 in IMPORT_ALIAS) for (var j = 0; j < IMPORT_ALIAS[k2].length; j++) if (n.indexOf(normalize_(IMPORT_ALIAS[k2][j])) !== -1) return k2;
+  // Khớp theo NGUYÊN TỪ (không khớp chuỗi con): "ẢNH" không được khớp nhầm vào "BẢO HÀNH", "MÃ" vào "MÀU SẮC"…
+  const w = ' ' + n.replace(/[^A-Z0-9]+/g, ' ').trim() + ' ';
+  for (const k2 in IMPORT_ALIAS) for (var j = 0; j < IMPORT_ALIAS[k2].length; j++) {
+    const a = normalize_(IMPORT_ALIAS[k2][j]).replace(/[^A-Z0-9]+/g, ' ').trim();
+    if (a && w.indexOf(' ' + a + ' ') !== -1) return k2;
+  }
   return null;
 }
 function pick2_(row, idx) { return (idx == null) ? '' : String(row[idx] == null ? '' : row[idx]).trim(); }
@@ -762,8 +767,8 @@ async function importParse(base64, ext, nganh) {
   }
   if (!wb.worksheets.length) throw new Error('File không có sheet dữ liệu');
   /* Thiết bị đèn: chỉ đọc sheet đầu (như cũ).
-     Thiết bị vệ sinh: file mẫu có 1 sheet cho MỖI hạng mục (Bồn cầu, Lavabo, Sen tắm…) -> đọc hết
-     các sheet (trừ "Hướng dẫn"); ô HẠNG MỤC để trống thì lấy theo tên sheet. */
+     Thiết bị vệ sinh: đọc MỌI sheet (trừ "Hướng dẫn") — file mẫu hiện là 1 sheet "San pham",
+     vẫn nhận file kiểu cũ 1 sheet / hạng mục (ô HẠNG MỤC trống thì lấy theo tên sheet). */
   const vs = nganh === 'vs';
   const VS = vs ? require('../public/vs-spec.js') : null;
   const sheets = vs ? wb.worksheets.filter(function (w) { return normalize_(w.name) !== 'HUONG DAN'; }) : [wb.worksheets[0]];

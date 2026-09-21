@@ -1,7 +1,8 @@
 /* ═══ THIẾT BỊ VỆ SINH — BỘ THÔNG SỐ THEO TỪNG HẠNG MỤC (nguồn DUY NHẤT) ═══
    Dùng chung cho:
      · Form Nhập dữ liệu / modal Sửa SP (public/app.js)  -> chỉ hiện thông số của hạng mục đang chọn
-     · File mẫu nhập hàng loạt (server tạo động /mau-nhap-thiet-bi-ve-sinh.xlsx) -> 1 sheet / hạng mục
+     · File mẫu nhập hàng loạt (server tạo động /mau-nhap-thiet-bi-ve-sinh.xlsx) -> 1 sheet "San pham"
+       phẳng như file mẫu đèn; cột HẠNG MỤC của từng dòng quyết định thông số được nhận
      · Server (store_supa) -> map cột DB, lọc thông số khi nhập, ghép cột "Thông tin chính" /
        "Thông số thiết kế" cho bảng bóc tách & báo giá
    Sửa danh sách ở ĐÂY là cả 3 nơi đổi theo -> không còn lệch nhau.
@@ -167,6 +168,11 @@
     }
   };
   var HANG_MUC = Object.keys(HM);
+  // Trường CHUNG của mọi SP vệ sinh (ngoài thông số theo hạng mục) — cột nào ngoài CHUNG + thông số
+  // của hạng mục (vd Công suất, Nhiệt độ màu của đèn) đều bị bỏ khi nhập thiết bị vệ sinh.
+  var CHUNG = ['THƯƠNG HIỆU', 'NHÀ CUNG CẤP', 'HẠNG MỤC', 'DÒNG SẢN PHẨM', 'NHÓM SẢN PHẨM', 'TÊN SẢN PHẨM', 'MÃ SẢN PHẨM',
+    'GIÁ BÁN LẺ', 'CHIẾT KHẤU ĐẠI LÝ (%)', 'TÍNH NĂNG', 'BẢO HÀNH (năm)', 'ĐƠN VỊ TÍNH', 'TRẠNG THÁI',
+    'LINK DATASHEET', 'GHI CHÚ', 'ẢNH SẢN PHẨM', 'NGÀNH HÀNG'];
 
   // Hạng mục người dùng gõ (không dấu / hoa thường / thừa khoảng trắng) -> tên chuẩn; không khớp -> ''
   function bo_dau(s) {
@@ -183,10 +189,24 @@
   var ALL = Object.keys(METRIC);
   // Nhãn thông số áp dụng cho 1 hạng mục (chinh + tk), không khớp hạng mục -> tất cả
   function labelsOf(v) { var h = hmOf(v); return h ? h.chinh.concat(h.tk) : ALL.slice(); }
+  // Hợp thông số của mọi hạng mục theo khối ('chinh' | 'tk'), đúng thứ tự khai báo
+  function gom(k) {
+    var out = [];
+    HANG_MUC.forEach(function (hm) { HM[hm][k].forEach(function (lb) { if (out.indexOf(lb) < 0) out.push(lb); }); });
+    return out;
+  }
+  var CHINH_ALL = gom('chinh'), TK_ALL = gom('tk').filter(function (lb) { return CHINH_ALL.indexOf(lb) < 0; });
+  // Ngành của 1 SP: 'vs' nếu đánh dấu vs, hoặc CHƯA đánh dấu mà hạng mục là hạng mục vệ sinh; còn lại theo giá trị / 'den'
+  function nganhOf(nganh, hangMuc) {
+    var n = String(nganh == null ? '' : nganh).trim();
+    if (n) return n;
+    return chuanHM(hangMuc) ? 'vs' : 'den';
+  }
   function optsOf(v, lb) { var h = hmOf(v); return (h && h.opt[lb]) || []; }
   function isReq(v, lb) { var h = hmOf(v); return !!(h && h.req.indexOf(lb) >= 0); }
 
-  var api = { METRIC: METRIC, HM: HM, HANG_MUC: HANG_MUC, ALL: ALL,
+  var api = { METRIC: METRIC, HM: HM, HANG_MUC: HANG_MUC, ALL: ALL, CHUNG: CHUNG,
+    gom: gom, CHINH_ALL: CHINH_ALL, TK_ALL: TK_ALL, nganhOf: nganhOf,
     chuanHM: chuanHM, hmOf: hmOf, labelsOf: labelsOf, optsOf: optsOf, isReq: isReq,
     // Tiền tố đánh dấu dòng ví dụ trong file mẫu — dòng có tên bắt đầu bằng chuỗi này bị bỏ qua khi nhập
     VD: '[VÍ DỤ]' };

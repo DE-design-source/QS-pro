@@ -9,17 +9,11 @@ const VS = require('../public/vs-spec.js');
 
 const REQ = 'FF2563EB', OPT = 'FF12324C', VD_FILL = 'FFF7F9FC', VD_FONT = 'FF7B8794', LINE = 'FFE9EBEF';
 
-// Thông số: hợp của mọi hạng mục — "Thông tin chính" trước, "Thông số thiết kế" sau (đúng thứ tự form)
-function gom(k) {
-  const out = [];
-  VS.HANG_MUC.forEach(function (hm) { VS.HM[hm][k].forEach(function (lb) { if (out.indexOf(lb) < 0) out.push(lb); }); });
-  return out;
-}
 // Thông số bắt buộc với ÍT NHẤT 1 hạng mục -> tô xanh sáng (chi tiết từng hạng mục ở sheet Hướng dẫn)
 function batBuoc(lb) { return VS.HANG_MUC.some(function (hm) { return VS.HM[hm].req.indexOf(lb) >= 0; }); }
 
 function cotMau() {
-  const metric = gom('chinh'); gom('tk').forEach(function (lb) { if (metric.indexOf(lb) < 0) metric.push(lb); });
+  const metric = VS.CHINH_ALL.concat(VS.TK_ALL);   // "Thông tin chính" trước, "Thông số thiết kế" sau (đúng thứ tự form)
   return [
     ['THƯƠNG HIỆU', 1, 14], ['NHÀ CUNG CẤP', 1, 14], ['HẠNG MỤC', 1, 16], ['DÒNG SẢN PHẨM', 1, 18],
     ['TÊN SẢN PHẨM', 1, 34], ['MÃ SẢN PHẨM', 1, 16], ['GIÁ BÁN LẺ', 1, 13], ['CHIẾT KHẤU ĐẠI LÝ (%)', 1, 13]
@@ -37,7 +31,9 @@ function dongMau() {
     return Object.assign({ 'THƯƠNG HIỆU': 'TOTO', 'NHÀ CUNG CẤP': 'Công ty ABC', 'HẠNG MỤC': hm,
       'CHIẾT KHẤU ĐẠI LÝ (%)': 30, 'BẢO HÀNH (năm)': 2, 'TRẠNG THÁI': 'Đang kinh doanh' }, VS.HM[hm].mau, them || {});
   };
-  return [mk('Bồn cầu'), mk('Bồn cầu', { 'MÀU SẮC': 'Đen mờ', 'GIÁ BÁN LẺ': 13900000 }), mk('Sen tắm')];
+  // Tên bắt đầu "[VÍ DỤ]" -> hệ thống TỰ BỎ QUA khi nhập (quên xoá cũng không thành sản phẩm thật)
+  return [mk('Bồn cầu'), mk('Bồn cầu', { 'MÀU SẮC': 'Đen mờ', 'GIÁ BÁN LẺ': 13900000 }), mk('Sen tắm')]
+    .map(function (r) { r['TÊN SẢN PHẨM'] = VS.VD + ' ' + r['TÊN SẢN PHẨM']; return r; });
 }
 
 async function buildVsTemplate() {
@@ -88,7 +84,7 @@ async function buildVsTemplate() {
     r.getCell(3).alignment = { vertical: 'top', wrapText: true };
   }
   const soVD = dongMau().length;
-  line('Điền vào sheet "San pham"', 'Mỗi dòng = 1 sản phẩm. Tiêu đề XANH SÁNG là bắt buộc, xanh đậm là tuỳ chọn. Xoá ' + soVD + ' dòng ví dụ trước khi nhập thật.', 32);
+  line('Điền vào sheet "San pham"', 'Mỗi dòng = 1 sản phẩm. Tiêu đề XANH SÁNG là bắt buộc, xanh đậm là tuỳ chọn. ' + soVD + ' dòng ví dụ (chữ nghiêng, tên bắt đầu "' + VS.VD + '") được hệ thống TỰ BỎ QUA khi nhập — có thể xoá hoặc để nguyên.', 46);
   line('Hạng mục (quan trọng)', 'Cột HẠNG MỤC phải là 1 trong: ' + VS.HANG_MUC.join(' / ') + '. Hạng mục quyết định thông số nào được nhận — mỗi dòng CHỈ điền thông số của hạng mục đó (bảng cuối sheet); cột của hạng mục khác để trống, có điền cũng bị bỏ qua.');
   line('Thông số bắt buộc', 'Cột thông số tô xanh sáng là bắt buộc với MỘT SỐ hạng mục (dấu * ở bảng cuối sheet). Dòng thiếu thông số bắt buộc của hạng mục mình sẽ KHÔNG được nhập và bị báo lỗi kèm tên sản phẩm.');
   line('Giá & chiết khấu', 'GIÁ BÁN LẺ nhập số (vd 12500000). Giá đại lý hệ thống TỰ TÍNH = Giá bán lẻ × (1 − Chiết khấu %). Không cần nhập cột Giá đại lý.');

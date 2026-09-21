@@ -723,7 +723,7 @@ app.post('/export/san-pham', async function (req, res) {
   }
 });
 
-// File mẫu nhập hàng loạt THIẾT BỊ VỆ SINH — tạo động từ public/vs-spec.js (1 sheet / hạng mục)
+// File mẫu nhập hàng loạt THIẾT BỊ VỆ SINH — tạo động từ public/vs-spec.js (1 sheet "San pham" như mẫu đèn)
 app.get('/mau-nhap-thiet-bi-ve-sinh.xlsx', async function (req, res) {
   try {
     const buf = await require('./vs-template').buildVsTemplate();
