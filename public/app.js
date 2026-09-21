@@ -3201,20 +3201,38 @@ function cbAdd_(recordId){
   cbRender_(); cbSearch_('');
   var inp=document.getElementById('cbSearch'); if(inp){ inp.value=''; inp.focus(); }
 }
+/* SP đang sửa là thiết bị vệ sinh? -> chữ hướng dẫn, gợi ý & nhãn theo ngành vệ sinh */
+function cbVS_(){ return nganhCuaSP_(S._spEditP)==='vs'; }
+function cbLbl_(p){ return nganhCuaSP_(p)==='vs'
+  ? [VS_SPEC.chuanHM(p.hangMuc)||p.hangMuc, p.mauSac].filter(Boolean).join(' · ')
+  : [p.congSuat, p.nhietDo].filter(Boolean).join(' · '); }
 function cbSearch_(q){
   var box=document.getElementById('cbSug'); if(!box) return;
   q=String(q||'').trim().toLowerCase();
-  if(q.length<1){ box.innerHTML=''; box.style.display='none'; return; }
-  var cur=String(S._spEditRecId||'');
+  var cur=String(S._spEditRecId||''), me=S._spEditP||{}, ng=nganhCuaSP_(me);
   var chon={}; (S._combo||[]).forEach(function(x){ chon[String(x.recordId)]=1; });
-  var hit=(S.products||[]).filter(function(p){
-    if(String(p.recordId)===cur || chon[String(p.recordId)]) return false;
-    return ((p.ten||'')+' '+(p.ma||'')+' '+(p.thuongHieu||'')).toLowerCase().indexOf(q)>=0;
-  }).slice(0,8);
-  box.innerHTML=hit.length?hit.map(function(p){
-    return '<button class="cb-sug" onclick="cbAdd_(\''+esc(String(p.recordId))+'\')">'
+  var ok=function(p){ return String(p.recordId)!==cur && !chon[String(p.recordId)]; };
+  var hit, tieuDe='';
+  if(q.length<1){
+    // Ô trống: thiết bị vệ sinh gợi ý SP thuộc các hạng mục hay đi kèm (bồn cầu -> nắp rửa, lavabo -> vòi…)
+    var h=(ng==='vs')?VS_SPEC.hmOf(me.hangMuc):null;
+    if(!h||!h.kem.length){ box.innerHTML=''; box.style.display='none'; return; }
+    hit=(S.products||[]).filter(function(p){ return ok(p) && nganhCuaSP_(p)==='vs' && h.kem.indexOf(VS_SPEC.chuanHM(p.hangMuc))>=0; }).slice(0,8);
+    if(!hit.length){ box.innerHTML=''; box.style.display='none'; return; }
+    tieuDe='<div class="cb-sug-h">Gợi ý đi kèm: '+esc(h.kem.join(', '))+'</div>';
+  } else {
+    hit=(S.products||[]).filter(function(p){
+      return ok(p) && ((p.ten||'')+' '+(p.ma||'')+' '+(p.thuongHieu||'')+' '+(p.hangMuc||'')).toLowerCase().indexOf(q)>=0;
+    });
+    // cùng ngành với SP đang sửa lên trước (vệ sinh đi với vệ sinh, đèn đi với đèn)
+    hit.sort(function(a,b){ return (nganhCuaSP_(a)===ng?0:1)-(nganhCuaSP_(b)===ng?0:1); });
+    hit=hit.slice(0,8);
+  }
+  box.innerHTML=hit.length?tieuDe+hit.map(function(p){
+    var lbl=cbLbl_(p);
+    return '<button class="cb-sug" onmousedown="event.preventDefault()" onclick="cbAdd_(\''+esc(String(p.recordId))+'\')">'
       +(p.hinhAnh?'<img src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="cb-img"></span>')
-      +'<span class="cb-sug-nm">'+esc(p.ten||'')+'<i>'+esc(p.ma||'')+(p.donGiaBan?' · '+money(p.donGiaBan)+'đ':'')+'</i></span></button>';
+      +'<span class="cb-sug-nm">'+esc(p.ten||'')+'<i>'+esc(p.ma||'')+(lbl?' · '+esc(lbl):'')+(p.donGiaBan?' · '+money(p.donGiaBan)+'đ':'')+'</i></span></button>';
   }).join(''):'<div class="cb-empty">Không tìm thấy sản phẩm khớp.</div>';
   box.style.display='block';
 }
@@ -3222,6 +3240,7 @@ function cbSearch_(q){
    S._bt = [{recordId, ma, ten, hinhAnh, donGiaBan, ...}] — chỉ là danh sách SP,
    không có số lượng như combo (biến thể là CÙNG một sản phẩm, khác thông số). */
 function btLbl_(x){
+  if(x.nganh==='vs') return [x.mauSac, x.raw&&x.raw.kich_thuoc].map(function(v){ return String(v==null?'':v).trim(); }).filter(Boolean).join(' · ');
   return [x.congSuat,x.nhietDo,x.gocChieu,x.mauSac].map(function(v){ return String(v==null?'':v).trim(); })
     .filter(Boolean).join(' · ');
 }
@@ -3250,7 +3269,7 @@ function btAdd_(recordId){
   if(S._bt.some(function(x){ return String(x.recordId)===String(p.recordId); })){ toast('Sản phẩm này đã có trong nhóm biến thể'); return; }
   if(String(p.nhomBT||'').trim()) toast('Sản phẩm này đang ở nhóm biến thể khác — lưu xong sẽ chuyển sang nhóm này');
   S._bt.push({recordId:p.recordId, ma:p.ma, ten:p.ten, hinhAnh:p.hinhAnh, donGiaBan:p.donGiaBan,
-              congSuat:p.congSuat, nhietDo:p.nhietDo, gocChieu:p.gocChieu, mauSac:p.mauSac});
+              congSuat:p.congSuat, nhietDo:p.nhietDo, gocChieu:p.gocChieu, mauSac:p.mauSac, nganh:p.nganh, raw:p.raw});
   btRender_(); btSearch_('');
   var inp=document.getElementById('btSearch'); if(inp){ inp.value=''; inp.focus(); }
 }
@@ -3290,14 +3309,16 @@ function cbSection_(){
         +'<button type="button" class="cb-tab" id="cbTabBT" onclick="cbTab_(\'bt\')">Biến thể<span class="cb-n" id="btCount">0</span></button>'
       +'</div></div>'
     +'<div id="cbPane">'
-      +'<p class="cb-note">Chọn các sản phẩm luôn bán/lắp cùng sản phẩm này (bộ nguồn, thanh ray…). '
+      +'<p class="cb-note">'+(cbVS_()
+          ?'Chọn các thiết bị luôn bán/lắp cùng sản phẩm này (VD bồn cầu + nắp rửa điện tử + vòi xịt, lavabo + vòi lavabo + bộ xả). '
+          :'Chọn các sản phẩm luôn bán/lắp cùng sản phẩm này (bộ nguồn, thanh ray…). ')
         +'Khi thêm vào dự án có thể thêm cả combo một lượt.</p>'
-      +'<div class="cb-find"><input id="cbSearch" placeholder="Tìm theo tên, mã hoặc thương hiệu…" autocomplete="off" oninput="cbSearch_(this.value)">'
+      +'<div class="cb-find"><input id="cbSearch" placeholder="Tìm theo tên, mã hoặc thương hiệu…" autocomplete="off" oninput="cbSearch_(this.value)" onfocus="cbSearch_(this.value)">'
         +'<div class="cb-sug-box" id="cbSug"></div></div>'
       +'<div class="cb-list" id="cbList"></div>'
     +'</div>'
     +'<div id="btPane" style="display:none">'
-      +'<p class="cb-note">Gom các sản phẩm là CÙNG một sản phẩm nhưng khác thông số (công suất, nhiệt độ màu, góc chiếu, màu). '
+      +'<p class="cb-note">Gom các sản phẩm là CÙNG một sản phẩm nhưng khác thông số ('+(cbVS_()?'màu sắc, kích thước':'công suất, nhiệt độ màu, góc chiếu, màu')+'). '
         +'Bảng Danh sách SP và thư viện Bóc tách sẽ gộp chúng thành một dòng, bung ra mới thấy từng biến thể.</p>'
       +'<div class="cb-find"><input id="btSearch" placeholder="Tìm biến thể theo tên, mã hoặc thương hiệu…" autocomplete="off" oninput="btSearch_(this.value)">'
         +'<div class="cb-sug-box" id="btSug"></div></div>'
@@ -3316,7 +3337,7 @@ async function spEditModal(i){
   document.body.appendChild(ov);
   var raw=null, hist=[];
   var editKey = (p.recordId!=null && p.recordId!=='') ? String(p.recordId) : p.ma;   // id dòng = đúng biến thể
-  S._spEditRecId=p.recordId; S._combo=[]; S._bt=[]; S._cbTab='combo';
+  S._spEditRecId=p.recordId; S._spEditP=p; S._combo=[]; S._bt=[]; S._cbTab='combo';
   try{ raw=await api('getDbProduct', editKey); hist=await api('getProductHistory', p.ma)||[]; }catch(e){}
   try{ S._combo=(await api('getCombo', editKey)||[]).map(function(x){
         return {recordId:x.recordId, ma:x.ma, ten:x.ten, hinhAnh:x.hinhAnh, donGiaBan:x.donGiaBan, comboSL:x.comboSL||1,

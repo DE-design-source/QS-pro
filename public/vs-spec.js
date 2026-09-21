@@ -48,9 +48,11 @@
   var CO_KHONG = ['Có', 'Không'];
 
   /* Mỗi hạng mục: chinh = khối "Key Product Info (Thông tin chính)", tk = "Thông số thiết kế",
-     req = thông số BẮT BUỘC, opt = danh sách chọn riêng của hạng mục, mau = 1 dòng ví dụ trong file mẫu. */
+     req = thông số BẮT BUỘC, opt = danh sách chọn riêng của hạng mục, mau = 1 dòng ví dụ trong file mẫu,
+     kem = hạng mục thường bán/lắp CÙNG (gợi ý sản phẩm đi kèm - combo). */
   var HM = {
     'Bồn cầu': {
+      kem: ['Nắp rửa điện tử', 'Phụ kiện vệ sinh'],   // hạng mục gợi ý khi chọn SP đi kèm (combo)
       chinh: ['MÀU SẮC', 'KIỂU LẮP ĐẶT', 'HỆ THỐNG XẢ', 'LOẠI NẮP', 'THIẾT KẾ'],
       tk: ['KÍCH THƯỚC', 'LƯỢNG NƯỚC XẢ', 'TÂM XẢ', 'ÁP LỰC NƯỚC', 'BỀ MẶT HOÀN THIỆN', 'LƯU Ý'],
       req: ['MÀU SẮC', 'KIỂU LẮP ĐẶT', 'KÍCH THƯỚC', 'LƯỢNG NƯỚC XẢ'],
@@ -63,6 +65,7 @@
              'BỀ MẶT HOÀN THIỆN': 'Men sứ chống bám bẩn', 'GIÁ BÁN LẺ': 12500000, 'ĐƠN VỊ TÍNH': 'Bộ' }
     },
     'Nắp rửa điện tử': {
+      kem: ['Bồn cầu'],   // hạng mục gợi ý khi chọn SP đi kèm (combo)
       chinh: ['MÀU SẮC', 'KIỂU ĐIỀU KHIỂN', 'THIẾT KẾ'],
       tk: ['KÍCH THƯỚC', 'NGUỒN ĐIỆN', 'ÁP LỰC NƯỚC', 'BỒN CẦU TƯƠNG THÍCH', 'LƯU Ý'],
       req: ['MÀU SẮC', 'KÍCH THƯỚC', 'NGUỒN ĐIỆN'],
@@ -73,6 +76,7 @@
              'GIÁ BÁN LẺ': 9800000, 'ĐƠN VỊ TÍNH': 'Cái' }
     },
     'Lavabo': {
+      kem: ['Vòi lavabo', 'Phụ kiện vệ sinh'],   // hạng mục gợi ý khi chọn SP đi kèm (combo)
       chinh: ['MÀU SẮC', 'KIỂU LẮP ĐẶT', 'CHẤT LIỆU', 'THIẾT KẾ'],
       tk: ['KÍCH THƯỚC', 'SỐ LỖ VÒI', 'XẢ TRÀN', 'BỀ MẶT HOÀN THIỆN', 'LƯU Ý'],
       req: ['MÀU SẮC', 'KIỂU LẮP ĐẶT', 'KÍCH THƯỚC'],
@@ -83,6 +87,7 @@
              'SỐ LỖ VÒI': '0 lỗ', 'XẢ TRÀN': 'Không', 'GIÁ BÁN LẺ': 3200000, 'ĐƠN VỊ TÍNH': 'Cái' }
     },
     'Vòi lavabo': {
+      kem: ['Lavabo'],   // hạng mục gợi ý khi chọn SP đi kèm (combo)
       chinh: ['MÀU SẮC', 'LOẠI VÒI', 'KIỂU LẮP ĐẶT', 'CHẤT LIỆU', 'THIẾT KẾ'],
       tk: ['KÍCH THƯỚC', 'LƯU LƯỢNG NƯỚC', 'ÁP LỰC NƯỚC', 'LÕI VAN', 'BỀ MẶT HOÀN THIỆN', 'LƯU Ý'],
       req: ['MÀU SẮC', 'LOẠI VÒI', 'KIỂU LẮP ĐẶT'],
@@ -94,6 +99,7 @@
              'BỀ MẶT HOÀN THIỆN': 'Xi mạ Chrome', 'GIÁ BÁN LẺ': 4100000, 'ĐƠN VỊ TÍNH': 'Bộ' }
     },
     'Sen tắm': {
+      kem: ['Bồn tắm', 'Phụ kiện vệ sinh'],   // hạng mục gợi ý khi chọn SP đi kèm (combo)
       chinh: ['MÀU SẮC', 'LOẠI SEN', 'KIỂU LẮP ĐẶT', 'CHẤT LIỆU', 'THIẾT KẾ'],
       tk: ['KÍCH THƯỚC', 'KÍCH THƯỚC BÁT SEN', 'CHẾ ĐỘ PHUN', 'LƯU LƯỢNG NƯỚC', 'ÁP LỰC NƯỚC', 'LÕI VAN', 'BỀ MẶT HOÀN THIỆN', 'LƯU Ý'],
       req: ['MÀU SẮC', 'LOẠI SEN', 'KÍCH THƯỚC BÁT SEN'],
@@ -105,6 +111,7 @@
              'LƯU LƯỢNG NƯỚC': '9 L/phút', 'BỀ MẶT HOÀN THIỆN': 'Xi mạ Chrome', 'GIÁ BÁN LẺ': 15600000, 'ĐƠN VỊ TÍNH': 'Bộ' }
     },
     'Bồn tắm': {
+      kem: ['Sen tắm', 'Phụ kiện vệ sinh'],   // hạng mục gợi ý khi chọn SP đi kèm (combo)
       chinh: ['MÀU SẮC', 'KIỂU LẮP ĐẶT', 'CHẤT LIỆU', 'CHỨC NĂNG MASSAGE', 'THIẾT KẾ'],
       tk: ['KÍCH THƯỚC', 'DUNG TÍCH', 'XẢ TRÀN', 'NGUỒN ĐIỆN', 'LƯU Ý'],
       req: ['MÀU SẮC', 'KIỂU LẮP ĐẶT', 'CHẤT LIỆU', 'KÍCH THƯỚC'],
@@ -116,6 +123,7 @@
              'KÍCH THƯỚC': 'L1.700 x W800 x H600 (mm)', 'DUNG TÍCH': '230 L', 'XẢ TRÀN': 'Có', 'GIÁ BÁN LẺ': 28000000, 'ĐƠN VỊ TÍNH': 'Cái' }
     },
     'Bồn tiểu': {
+      kem: ['Phụ kiện vệ sinh'],   // hạng mục gợi ý khi chọn SP đi kèm (combo)
       chinh: ['MÀU SẮC', 'KIỂU LẮP ĐẶT', 'HỆ THỐNG XẢ', 'THIẾT KẾ'],
       tk: ['KÍCH THƯỚC', 'LƯỢNG NƯỚC XẢ', 'ÁP LỰC NƯỚC', 'NGUỒN ĐIỆN', 'LƯU Ý'],
       req: ['MÀU SẮC', 'KIỂU LẮP ĐẶT', 'HỆ THỐNG XẢ', 'KÍCH THƯỚC'],
@@ -126,6 +134,7 @@
              'LƯỢNG NƯỚC XẢ': '0.8 L', 'NGUỒN ĐIỆN': 'Pin 6V', 'GIÁ BÁN LẺ': 8900000, 'ĐƠN VỊ TÍNH': 'Bộ' }
     },
     'Chậu rửa': {
+      kem: ['Phụ kiện vệ sinh'],   // hạng mục gợi ý khi chọn SP đi kèm (combo)
       chinh: ['MÀU SẮC', 'KIỂU LẮP ĐẶT', 'CHẤT LIỆU', 'SỐ HỐ', 'THIẾT KẾ'],
       tk: ['KÍCH THƯỚC', 'ĐỘ DÀY', 'SỐ LỖ VÒI', 'BỀ MẶT HOÀN THIỆN', 'LƯU Ý'],
       req: ['KIỂU LẮP ĐẶT', 'CHẤT LIỆU', 'SỐ HỐ', 'KÍCH THƯỚC'],
@@ -137,6 +146,7 @@
              'KÍCH THƯỚC': 'L820 x W450 x H220 (mm)', 'ĐỘ DÀY': '1.2 mm', 'SỐ LỖ VÒI': '1 lỗ', 'GIÁ BÁN LẺ': 5400000, 'ĐƠN VỊ TÍNH': 'Cái' }
     },
     'Phụ kiện vệ sinh': {
+      kem: [],   // hạng mục gợi ý khi chọn SP đi kèm (combo)
       chinh: ['MÀU SẮC', 'CHẤT LIỆU', 'KIỂU LẮP ĐẶT', 'THIẾT KẾ'],
       tk: ['KÍCH THƯỚC', 'BỀ MẶT HOÀN THIỆN', 'LƯU Ý'],
       req: ['MÀU SẮC', 'CHẤT LIỆU'],
@@ -146,6 +156,7 @@
              'BỀ MẶT HOÀN THIỆN': 'Xi mạ Chrome', 'GIÁ BÁN LẺ': 1250000, 'ĐƠN VỊ TÍNH': 'Cái' }
     },
     'Thiết bị khác': {
+      kem: [],   // hạng mục gợi ý khi chọn SP đi kèm (combo)
       chinh: ['MÀU SẮC', 'CHẤT LIỆU', 'KIỂU LẮP ĐẶT', 'THIẾT KẾ'],
       tk: ['KÍCH THƯỚC', 'NGUỒN ĐIỆN', 'ÁP LỰC NƯỚC', 'LƯU Ý'],
       req: [],
