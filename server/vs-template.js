@@ -31,16 +31,13 @@ function cotMau() {
   ]);
 }
 
-// Dòng ví dụ: 1 dòng / hạng mục + 1 biến thể (cùng mã, khác màu) để minh hoạ quy tắc biến thể
+// Dòng ví dụ: 3 dòng như file mẫu đèn — Bồn cầu + 1 biến thể (cùng mã, khác màu) + Sen tắm
 function dongMau() {
-  const rows = [];
-  VS.HANG_MUC.forEach(function (hm) {
-    const r = Object.assign({ 'THƯƠNG HIỆU': 'TOTO', 'NHÀ CUNG CẤP': 'Công ty ABC', 'HẠNG MỤC': hm,
-      'CHIẾT KHẤU ĐẠI LÝ (%)': 30, 'BẢO HÀNH (năm)': 2, 'TRẠNG THÁI': 'Đang kinh doanh' }, VS.HM[hm].mau);
-    rows.push(r);
-    if (hm === 'Bồn cầu') rows.push(Object.assign({}, r, { 'MÀU SẮC': 'Đen mờ', 'GIÁ BÁN LẺ': 13900000 }));
-  });
-  return rows;
+  const mk = function (hm, them) {
+    return Object.assign({ 'THƯƠNG HIỆU': 'TOTO', 'NHÀ CUNG CẤP': 'Công ty ABC', 'HẠNG MỤC': hm,
+      'CHIẾT KHẤU ĐẠI LÝ (%)': 30, 'BẢO HÀNH (năm)': 2, 'TRẠNG THÁI': 'Đang kinh doanh' }, VS.HM[hm].mau, them || {});
+  };
+  return [mk('Bồn cầu'), mk('Bồn cầu', { 'MÀU SẮC': 'Đen mờ', 'GIÁ BÁN LẺ': 13900000 }), mk('Sen tắm')];
 }
 
 async function buildVsTemplate() {
