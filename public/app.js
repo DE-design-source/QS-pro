@@ -3571,18 +3571,16 @@ function renderTree(){
   var nodes=TREE.filter(function(t){return t[0]!=='X';}).map(function(t){return {code:t[0],name:t[1],lvl:t[2]};});
   customGroups().forEach(function(n){ nodes.push({code:n,name:n,lvl:1,custom:true}); });
   S._tree=nodes;
-  pop.innerHTML=nodes.map(function(t,i){
-    var cnt=nodeCount(t.code);
-    var del=t.custom?' <b onclick="event.stopPropagation();delCustomGroup('+i+')" style="color:#c33;cursor:pointer">✕</b>':'';
-    return '<div class="tnode lvl'+t.lvl+(S.node===t.code?' on':'')+'" onclick="pickNodeIdx('+i+')">'
-      +'<span class="nm">'+esc(t.code+'.'+t.name)+'</span><span class="cn">['+pad2(cnt)+']'+del+'</span><span class="rd"></span></div>';
-  }).join('')
-  +'<div class="tnode lvl1" style="color:var(--blue);font-weight:700" onclick="addCustomGroup()">＋ X. THÊM HẠNG MỤC</div>';
+  // Ô Hạng mục trên đầu bảng dùng CÙNG bộ chọn kiểu mind map với ô đề mục ở panel trái (renderMM_)
+  pop.classList.add('mm-pop');
+  pop.innerHTML=mmHtml_(true);
   var sel=nodes.filter(function(t){return t.code===S.node;})[0];
   document.getElementById('treeLabel').textContent=sel?(sel.code+'.'+sel.name):'Chọn hạng mục';
   document.getElementById('treeCnt').textContent='['+pad2(nodeCount(S.node))+']';
 }
-function toggleTree(){ var p=document.getElementById('treePop'); p.style.display=p.style.display==='none'?'block':'none'; }
+function toggleTree(){ var p=document.getElementById('treePop'); var mo=(p.style.display==='none');
+  if(mo){ S._mmBrowse=null; p.innerHTML=mmHtml_(true); }          // mở ra luôn bắt đầu từ đường đang chọn
+  p.style.display=mo?'block':'none'; }
 /* ═══════════ HẠNG MỤC DÙNG CHUNG CHO MỌI TAB ═══════════
    Trước đây mỗi tab giữ một lựa chọn riêng: Bóc tách có "Hạng mục đã bóc", Danh sách
    sản phẩm có ô lọc hạng mục, Xuất báo giá có bảng tích chọn -> chọn ở tab này sang
@@ -3734,13 +3732,18 @@ function mmClose_(){ S._mmUI=false; S._mmBrowse=null; renderMM_(); }
 // bấm ra ngoài ô đề mục / bộ chọn thì thu gọn lại
 document.addEventListener('mousedown',function(e){
   if(!S._mmUI) return;
-  if(e.target.closest && (e.target.closest('#mmNav')||e.target.closest('#mmSel'))) return;
+  if(e.target.closest && (e.target.closest('#mmNav')||e.target.closest('#mmSel')||e.target.closest('#treePop')||e.target.closest('#treeBtn'))) return;
   mmClose_();
 });
 function renderMM_(){
   mmSelSync_();
-  var el=document.getElementById('mmNav'); if(!el) return;
   if(S._mmBrowse!=null && S._mmAt!==S.node) S._mmBrowse=null;   // đề mục đổi từ nơi khác -> thôi duyệt dở
+  var el=document.getElementById('mmNav'); if(el) el.innerHTML=mmHtml_(false);
+  var tp=document.getElementById('treePop'); if(tp && tp.style.display!=='none') tp.innerHTML=mmHtml_(true);   // ô Hạng mục trên bảng
+}
+/* HTML bộ chọn mind map — dùng cho ô đề mục panel trái (forTree=false) và ô Hạng mục đầu bảng (true).
+   Bản trên bảng có thêm số dòng đã bóc, nút thêm / xoá hạng mục tự tạo. */
+function mmHtml_(forTree){
   var dangDuyet=(S._mmBrowse!=null);
   var cur=dangDuyet?S._mmBrowse:(S.node||'');
   var path=mmPath_(cur), st=[], parent='#';
@@ -3774,8 +3777,16 @@ function renderMM_(){
       st.push(mmPick2_('Phân loại',[['','','Tất cả'],['nc','1','Nhân công'],['vt','2','Vật tư']],S.sheet||'','mmSheet_'));
     }
   }
-  el.innerHTML='<div class="mm-rail">'+st.join('')+'</div>'
-    +(dangDuyet?'<button class="mm-reset" onclick="mmCancel_()">← Về hạng mục đang bóc</button>':'');
+  var them='';
+  if(forTree && parent==='#'){          // đang ở cấp gốc: quản lý hạng mục tự tạo của dự án
+    var tu=customGroups();
+    them=(tu.length?'<div class="mm-cust">'+tu.map(function(n){ var i=(S._tree||[]).map(function(t){ return t.code; }).indexOf(n);
+        return '<span class="mm-cust-i">'+esc(n)+'<b title="Xoá hạng mục tự tạo" onclick="event.stopPropagation();delCustomGroup('+i+')">✕</b></span>'; }).join('')+'</div>':'')
+      +'<button class="mm-add" onclick="addCustomGroup()">＋ Thêm hạng mục</button>';
+  } else if(forTree) them='<button class="mm-add" onclick="addCustomGroup()">＋ Thêm hạng mục</button>';
+  return '<div class="mm-rail">'+st.join('')+'</div>'
+    +(dangDuyet?'<button class="mm-reset" onclick="mmCancel_()">← Về hạng mục đang bóc</button>':'')
+    +them;
 }
 // cấp phụ (loại báo giá / nhân công - vật tư): chọn 1 trong vài mục
 function mmPick2_(cap, opts, sel, fn){
@@ -3786,11 +3797,15 @@ function mmPick2_(cap, opts, sel, fn){
         +'<span class="mm-t">'+esc(o[2])+'</span>'+(on?'<span class="mm-go">✓</span>':'')+'</button>';
     }).join('')+'</div></div>';
 }
+function mmTreeOpen_(){ var tp=document.getElementById('treePop'); return !!(tp && tp.style.display!=='none'); }
+function mmTreeClose_(){ var tp=document.getElementById('treePop'); if(tp) tp.style.display='none'; }
 function mmPick_(code){
   if(mmKids_(code).length){ S._mmBrowse=code; S._mmAt=S.node; renderMM_(); return; }   // còn cấp con -> mở tiếp
+  var tuTren=mmTreeOpen_();                      // đang chọn từ ô Hạng mục đầu bảng
   S._mmBrowse=null; pickNode(code);
   var coPhu=(code==='3.1')||(typeof tkSheetCo_==='function'&&tkSheetCo_(code));
   if(!coPhu) S._mmUI=false;                      // đề mục không có cấp phụ -> chọn xong thu gọn
+  if(tuTren && coPhu){ var tp=document.getElementById('treePop'); if(tp) tp.style.display='block'; }   // giữ mở để chọn cấp phụ
   renderMM_();
 }
 function mmOpen_(parent){ S._mmBrowse=parent; S._mmAt=S.node; renderMM_(); }
@@ -3798,12 +3813,12 @@ function mmCancel_(){ S._mmBrowse=null; renderMM_(); }
 function mmLoai_(v){
   if(v==='dt'){ var lo=ptLoai_(); v=(lo.indexOf('dt_')===0)?lo:'dt_nhancong'; }
   var laDT=(v.indexOf('dt_')===0), vuaMoDT=laDT && ptLoai_().indexOf('dt_')!==0;
-  ptSetLoai(v); if(!vuaMoDT) S._mmUI=false;      // chọn xong cấp cuối -> thu gọn; vừa mở "Dự toán" thì giữ để chọn Nhân công/Vật tư
+  ptSetLoai(v); if(!vuaMoDT){ S._mmUI=false; mmTreeClose_(); }   // chọn xong cấp cuối -> thu gọn; vừa mở "Dự toán" thì giữ để chọn Nhân công/Vật tư
   renderTable(); renderMM_();
 }
 function mmSheet_(v){
   S.sheet=v||''; try{ localStorage.setItem('qs_sheet', S.sheet); }catch(e){}
-  S._tkSel={}; S._mmUI=false; renderTable(); if(typeof renderCard==='function') renderCard(); renderMM_();
+  S._tkSel={}; S._mmUI=false; mmTreeClose_(); renderTable(); if(typeof renderCard==='function') renderCard(); renderMM_();
 }
 function pickNode(code){
   S.node=code;
@@ -3829,6 +3844,7 @@ async function delCustomGroup(i){
   catch(e){ toast('Lỗi: '+e.message); }
 }
 document.addEventListener('click',function(e){
+  if(!document.contains(e.target)) return;      // mục vừa bấm đã được vẽ lại (duyệt cấp con) -> không phải bấm ra ngoài
   if(!e.target.closest('#treePop') && !e.target.closest('#treeBtn')){ var p=document.getElementById('treePop'); if(p) p.style.display='none'; }
 });
 
