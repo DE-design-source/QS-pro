@@ -2524,9 +2524,12 @@ async function ptExportXlsx(chiChon){
 }
 function spXlsClick_(){ return spPTMode_()?ptExportXlsx(Object.keys(S._spSel||{}).length>0):spExportXlsx(); }
 function spPTMode_(){ return String((S._spFilters||{}).node||'')==='3.1'; }
-function ptLoaiLabel_(v){ var m=PT_LOAI.filter(function(x){ return x[0]===v; })[0]; return m?m[1]:v; }
-var PT_LOAI_NGAN={kt_chitiet:'KT chi tiết',kt_sobo:'KT sơ bộ',dt_nhancong:'DT · Nhân công',dt_vattu:'DT · Vật tư'};
+function ptLoaiLabel_(v){ var m=PT_LOAI.filter(function(x){ return x[0]===ptLoaiGop_(v); })[0]; return m?m[1]:v; }
+var PT_LOAI_NGAN={kt_chitiet:'Khái toán',kt_sobo:'Khái toán',dt_nhancong:'DT · Nhân công',dt_vattu:'DT · Vật tư'};
 function ptLoaiNgan_(v){ return PT_LOAI_NGAN[v]||ptLoaiLabel_(v); }
+/* Khái toán = 1 loại duy nhất (Nhân công + Vật tư). Dữ liệu cũ còn 'kt_sobo' (khái toán sơ bộ)
+   -> quy về 'kt_chitiet' khi SO SÁNH / HIỂN THỊ; giá trị gốc trong DB giữ nguyên.            */
+function ptLoaiGop_(v){ v=String(v||'kt_chitiet'); return (v.indexOf('kt_')===0)?'kt_chitiet':v; }
 function spPTAll_(){
   var out=[];
   PT_TEMPLATE.forEach(function(sec,si){
@@ -2549,7 +2552,7 @@ function spPTList_(){
     if(view==='__chua'){ var c1=ctOf_(r.a); if(!c1||c1.daDuyet) return false; }
     else if(view==='__da'){ var c2=ctOf_(r.a); if(!c2||!c2.daDuyet) return false; }
     else if(view==='__fav'){ var c3=ctOf_(r.a); if(!c3||!c3.yeuThich) return false; }
-    if(f.ptLoai && r.loai!==f.ptLoai) return false;
+    if(f.ptLoai && ptLoaiGop_(r.loai)!==ptLoaiGop_(f.ptLoai)) return false;
     if(f.ptNhom && r.nhom!==f.ptNhom) return false;
     if(f.ptDvt && r.dvt!==f.ptDvt) return false;
     if(f.ptSua==='1' && !r.daSua) return false;
@@ -3720,8 +3723,8 @@ function mmSelSync_(){
   var sel=document.getElementById('mmSel'), lb=document.getElementById('mmSelLbl'); if(!lb) return;
   var t=(S.node?(mmCode_(S.node)?mmCode_(S.node)+'.':'')+mmName_(S.node):'Hạng mục');
   if(S.node==='3.1'){ var lo=ptLoai_();
-    t+=' · '+({kt_chitiet:'Khái toán chi tiết',kt_sobo:'Khái toán sơ bộ',dt_nhancong:'Dự toán · Nhân công',dt_vattu:'Dự toán · Vật tư'}[lo]||''); }
-  else if(S.sheet && typeof tkSheetCo_==='function' && tkSheetCo_(S.node)) t+=' · '+(S.sheet==='nc'?'Nhân công':'Vật tư');
+    t+=' · '+({kt_chitiet:'Khái toán',dt_nhancong:'Dự toán · Nhân công',dt_vattu:'Dự toán · Vật tư'}[lo]||''); }
+  else if(typeof tkSheetCo_==='function' && tkSheetCo_(S.node)) t+=' · '+(S.sheet==='nc'?'Dự toán · Nhân công':(S.sheet==='vt'?'Dự toán · Vật tư':'Khái toán'));
   lb.textContent=t;
   var nav=document.getElementById('mmNav');
   if(sel) sel.classList.toggle('open', !!S._mmUI);
@@ -3771,10 +3774,12 @@ function mmHtml_(forTree){
   } else if(!dangDuyet){                              // tới lá: các cấp phụ của đề mục đó
     if(S.node==='3.1'){
       var lo=ptLoai_(), top=(lo.indexOf('dt_')===0)?'dt':lo;
-      st.push(mmPick2_('Loại báo giá',[['kt_chitiet','3.1.1','Khái toán chi tiết'],['kt_sobo','3.1.2','Khái toán sơ bộ'],['dt','3.1.3','Dự toán']],top,'mmLoai_'));
-      if(top==='dt') st.push(mmPick2_('Dự toán',[['dt_nhancong','1','Nhân công'],['dt_vattu','2','Vật tư']],lo,'mmLoai_'));
+      st.push(mmPick2_('Loại báo giá',[['kt_chitiet','1','Khái toán · Nhân công + Vật tư'],['dt','2','Dự toán']],top,'mmLoai_'));
+      if(top==='dt') st.push(mmPick2_('Dự toán',[['dt_nhancong','2.1','Nhân công'],['dt_vattu','2.2','Vật tư']],lo,'mmLoai_'));
     } else if(typeof tkSheetCo_==='function' && tkSheetCo_(S.node)){
-      st.push(mmPick2_('Phân loại',[['','','Tất cả'],['nc','1','Nhân công'],['vt','2','Vật tư']],S.sheet||'','mmSheet_'));
+      var sh=S.sheet||'', dtMo=(sh==='nc'||sh==='vt'||S._mmDT===S.node);
+      st.push(mmPick2_('Loại báo giá',[['','1','Khái toán · Nhân công + Vật tư'],['dt','2','Dự toán']],dtMo?'dt':'','mmSheet_'));
+      if(dtMo) st.push(mmPick2_('Dự toán',[['nc','2.1','Nhân công'],['vt','2.2','Vật tư']],sh,'mmSheet_'));
     }
   }
   var them='';
@@ -3817,6 +3822,8 @@ function mmLoai_(v){
   renderTable(); renderMM_();
 }
 function mmSheet_(v){
+  if(v==='dt'){ S._mmDT=S.node; renderMM_(); return; }          // mở cấp Dự toán -> chọn tiếp Nhân công / Vật tư
+  S._mmDT=null;
   S.sheet=v||''; try{ localStorage.setItem('qs_sheet', S.sheet); }catch(e){}
   S._tkSel={}; S._mmUI=false; mmTreeClose_(); renderTable(); if(typeof renderCard==='function') renderCard(); renderMM_();
 }
@@ -7093,7 +7100,7 @@ async function ctPendCommitRun_(ds, btn){
   // Thêm vào bảng khái toán của dự án đang mở (những công tác đã tick)
   var them=0;
   if(S.cur) daLuu.filter(function(x){ return x.ghi; }).forEach(function(x){
-    var d=x.d, si=PT_TEMPLATE.findIndex(function(t){ return t.db && t.t===d.hangMuc && ptSecLoai_(t)===d.loai; });
+    var d=x.d, si=PT_TEMPLATE.findIndex(function(t){ return t.db && t.t===d.hangMuc && ptLoaiGop_(ptSecLoai_(t))===ptLoaiGop_(d.loai); });
     var ii=si>=0?PT_TEMPLATE[si].items.findIndex(function(a){ var c=ctOf_(a); return c && c.ten===d.ten; }):-1;
     if(si>=0 && ii>=0){ ptAddFromLib(si,ii,true); them++; }
   });
@@ -7821,9 +7828,9 @@ function ptQty(x){ x=Number(x)||0; return x.toLocaleString('vi-VN',{maximumFract
              └─ Sơ bộ      -> chọn nhà thầu -> chọn dự án mẫu -> ra đơn giá trọn gói
    Khái toán: thư viện 156 công tác (bảng giá cố định).
    Dự toán : nhập SỐ LIỆU ĐẦU VÀO -> tự tính khối lượng -> áp ĐỊNH MỨC hao phí (xem DT_BO). */
+/* Cấu trúc: KHÁI TOÁN (Nhân công + Vật tư, 1 bảng)  ·  DỰ TOÁN › Nhân công / Vật tư */
 var PT_LOAI=[
-  ['kt_chitiet','Khái toán chi tiết','Khái toán','Chọn nhà thầu → ra báo giá theo m2 / md / cái'],
-  ['kt_sobo',   'Khái toán sơ bộ',   'Khái toán','Chọn nhà thầu → chọn dự án mẫu → ra đơn giá trọn gói'],
+  ['kt_chitiet','Khái toán · Nhân công + Vật tư','Khái toán','Chọn nhà thầu → báo giá theo m2 / md / cái, hoặc lấy báo giá mẫu dự án'],
   ['dt_nhancong','Dự toán · Nhân công','Dự toán','Nhập số liệu đầu vào → tính khối lượng → nhân công và ca máy theo định mức'],
   ['dt_vattu',   'Dự toán · Vật tư',  'Dự toán','Nhập số liệu đầu vào → khối lượng vật tư × đơn giá nhà cung cấp']
 ];
@@ -7831,13 +7838,13 @@ function ptCfLoad_(){ if(S.ptCf) return; try{ S.ptCf=JSON.parse(localStorage.get
 ptCfLoad_();
 function ptLoai_(){
   if(S._ptLoai===undefined){ try{ S._ptLoai=localStorage.getItem('qs_ptLoai')||'kt_chitiet'; }catch(e){ S._ptLoai='kt_chitiet'; } }
-  return S._ptLoai||'kt_chitiet';
+  return ptLoaiGop_(S._ptLoai||'kt_chitiet');
 }
 function ptSetLoai(v){ S._ptLoai=v; try{ localStorage.setItem('qs_ptLoai',v); }catch(e){} renderPTLibrary();
   if(typeof renderMM_==='function') renderMM_();
   // bảng trống: lời nhắc trong bảng khác nhau giữa Khái toán và Dự toán -> vẽ lại cho khớp
   if(Array.isArray(S.phanTho)&&!S.phanTho.length) renderPhanTho(); }
-function ptSecsOfLoai_(v){ return PT_TEMPLATE.filter(function(s){ return !s.an && (s.loai||'kt_chitiet')===v; }); }
+function ptSecsOfLoai_(v){ v=ptLoaiGop_(v); return PT_TEMPLATE.filter(function(s){ return !s.an && ptLoaiGop_(s.loai)===v; }); }
 function ptLoaiCount_(v){ return ptSecsOfLoai_(v).reduce(function(a,s){ return a+s.items.length; },0); }
 
 /* ═══════════════ DỰ TOÁN THEO ĐỊNH MỨC ═══════════════
@@ -8213,7 +8220,7 @@ function ctFormHtml_(c, pre){
         +fld(2,'MaNhom','Số hạng mục',c.maNhom,'II')
         +'<div class="f f-5"><label for="'+pre+'Loai">Loại báo giá<b class="req">*</b></label>'
           +'<select id="'+pre+'Loai">'+PT_LOAI.map(function(x){
-              return '<option value="'+x[0]+'"'+((c.loai||'kt_chitiet')===x[0]?' selected':'')+'>'+esc(x[1])+'</option>'; }).join('')
+              return '<option value="'+x[0]+'"'+(ptLoaiGop_(c.loai)===x[0]?' selected':'')+'>'+esc(x[1])+'</option>'; }).join('')
         +'</select></div>'
         +fld(6,'Ncc','Nhà thầu · nhà cung cấp',c.ncc,'VD: H77',0,'ctNccDL')
         +fld(6,'Dvt','Đơn vị tính',c.dvt,'VD: m · m2 · tim · gói',1,'ctDvtDL')
@@ -8304,7 +8311,8 @@ function ctFormHtml2_(c, pre){
     +'<section class="c2s"><h3 class="c2h"><span class="c2hic">'+icon('sliders',18)+'</span>Thông tin khác'+(IMP?'':' <span class="c2opt">loại báo giá · cách tính · ảnh</span>')+'</h3>'
       +note('Loại báo giá, cách tính khối lượng và tài liệu kỹ thuật đi kèm công tác.')+'<div class="c2g">'
       +'<div class="c2f">'+lbl('Loai','Loại báo giá',1)+'<div class="c2i"><select id="'+pre+'Loai">'+PT_LOAI.map(function(x){
-          return '<option value="'+x[0]+'"'+((c.loai||'kt_chitiet')===x[0]?' selected':'')+'>'+esc(x[1])+'</option>'; }).join('')+'</select></div></div>'
+          return '<option value="'+x[0]+'"'+(ptLoaiGop_(c.loai)===x[0]?' selected':'')+'>'+esc(x[1])+'</option>'; }).join('')+'</select></div>'
+        +'<input type="hidden" id="'+pre+'LoaiGoc" value="'+esc(c.loai||'')+'"></div>'
       +'<div class="c2f">'+lbl('ModeSel','Cách tính',0)+'<div class="c2i"><select id="'+pre+'ModeSel" onchange="ctModePick_(\''+pre+'\',this.value)">'
           +MODES.map(function(m){ return '<option value="'+m[0]+'"'+(mode===m[0]?' selected':'')+'>'+esc(m[1])+'</option>'; }).join('')
         +'</select></div><input type="hidden" id="'+pre+'Mode" value="'+esc(mode)+'"><div id="'+pre+'Seg" style="display:none"></div></div>'
@@ -8535,7 +8543,9 @@ function ctFormRead_(pre){
   // Trang Nhập dữ liệu: ảnh lấy từ khối Ảnh dùng chung (bỏ ảnh xem trước chưa tải xong)
   if(pre==='imp' && document.getElementById('upMain'))
     anh=[S._imgMain].concat(S._imgList||[]).filter(function(x){ return x && String(x).indexOf('data:')!==0; }).join('\n');
-  return {loai:v('Loai'), mode:v('Mode')||'item', maNhom:v('MaNhom'), hangMuc:v('HangMuc'), ten:v('Ten'),
+  var loai=v('Loai'), goc=v('LoaiGoc');
+  if(goc && ptLoaiGop_(goc)===loai) loai=goc;                  // vẫn là Khái toán -> giữ giá trị gốc (vd kt_sobo của báo giá mẫu)
+  return {loai:loai, mode:v('Mode')||'item', maNhom:v('MaNhom'), hangMuc:v('HangMuc'), ten:v('Ten'),
     ncc:v('Ncc'), dvt:v('Dvt'), kl:num('Kl'), dt:num('Dt'), hs:num('Hs'),
     dgnt:ptMoneyN_(v('Dgnt')), dg:ptMoneyN_(v('Dg')),
     gc:v('Gc'), thongSo:v('ThongSo'), phamVi:v('PhamVi'), linkTaiLieu:v('LinkTaiLieu'), hinhAnh:anh};
@@ -8684,7 +8694,7 @@ function renderPTLibrary(){
     +'<div class="ptlib-fld"><label>Nhà thầu</label><div class="ptlib-selwrap"><select class="ptlib-sel" onchange="ptSetContractor(this.value)">'
       +'<option value="">Đơn giá theo nhà thầu</option>'
       +PT_CONTRACTORS.map(function(c){ return '<option'+(cur===c?' selected':'')+'>'+esc(c)+'</option>'; }).join('')+'</select></div></div>'
-    +(loai==='kt_sobo'
+    +(loai==='kt_chitiet'
       ? '<div class="ptlib-fld"><label>Báo giá mẫu dự án</label><div class="ptlib-selwrap">'
         +'<select class="ptlib-sel" onchange="ptApplyMau(this.value);this.selectedIndex=0">'
         +'<option value="">Tạo dự án mới hoặc lấy báo giá mẫu dự án cũ</option>'
@@ -9281,7 +9291,7 @@ function ptDetailParts_(si,ii){
                : ptInfo_(ten);
   var imgs=ptInfoImgs_(inf);
   var gcGoc=gc; if(inf.gc) gc=inf.gc;
-  var loai=PT_LOAI.filter(function(x){ return x[0]===(sec.loai||'kt_chitiet'); })[0]||PT_LOAI[0];
+  var loai=PT_LOAI.filter(function(x){ return x[0]===ptLoaiGop_(sec.loai); })[0]||PT_LOAI[0];
   var ln=dgBan-dgNT, lnPct=dgBan?(ln/dgBan*100):0;
   var P={};
   P.coAnh = imgs.length>0;
@@ -9339,7 +9349,7 @@ function ptDetailHtml_(si,ii){
                : ptInfo_(ten);
   var imgs=ptInfoImgs_(inf);
   var gcGoc=gc; if(inf.gc) gc=inf.gc;                       // ghi chú người dùng sửa đè lên ghi chú gốc
-  var loai=PT_LOAI.filter(function(x){ return x[0]===(sec.loai||'kt_chitiet'); })[0]||PT_LOAI[0];
+  var loai=PT_LOAI.filter(function(x){ return x[0]===ptLoaiGop_(sec.loai); })[0]||PT_LOAI[0];
   var ln=dgBan-dgNT, lnPct=dgBan?(ln/dgBan*100):0;
   var html=ptMedia_(imgs)
     +'<div class="pcode">'+esc(sec.r)+'.'+(ii+1)+' · '+esc(String(sec.t).split('\n')[0])+'</div>'
@@ -10888,7 +10898,7 @@ function tkSheetCo_(code){
 function tkSheetOf_(l){ return String((l&&l.extra&&l.extra.sheet)||''); }
 function tkSheetLbl_(v){ var x=TK_SHEETS.filter(function(t){ return t[0]===v; })[0]; return x?x[1]:''; }
 function setSheet(v){
-  S.sheet=(S.sheet===v)?'':v;
+  S.sheet=v||''; S._mmDT=null;                // '' = Khái toán (gộp NC + VT) · 'nc' / 'vt' = Dự toán
   try{ localStorage.setItem('qs_sheet', S.sheet||''); }catch(e){}
   S._tkSel={}; renderTable(); renderCard&&renderCard();
 }
@@ -10899,36 +10909,29 @@ function tkSheetChips_(lines){
   if(!lines || !tkSheetCo_()){ box.innerHTML=''; return; }
   var code=S.node||'';
   // Phần thô: Nhân công / Vật tư chính là 2 "Loại báo giá" dự toán bên panel trái
+  /* Cùng 1 cấu trúc cho Phần thô và Thạch cao / Xây tô / Ốp lát:
+       Khái toán (Nhân công + Vật tư)  |  Dự toán · Nhân công  |  Dự toán · Vật tư        */
+  function chip(on, js, so, ten, tip, n){ return '<button class="shchip'+(on?' on':'')+'" onclick="'+js+'" title="'+esc(tip)+'">'
+    +'<span class="shc-c">'+esc(so)+'</span>'+ten+(n!=null?'<i class="shc-n">['+pad2(n)+']</i>':'')+'</button>'; }
   if(code==='3.1'){
     var cur=ptLoai_();
-    box.innerHTML=TK_SHEETS.map(function(t,i){
-      var on=(cur===PT_SHEET_LOAI[t[0]]);
-      return '<button class="shchip'+(on?' on':'')+'" onclick="ptSheetPick_(\''+t[0]+'\')" '
-        +'title="Dự toán '+t[1]+' của Phần thô">'
-        +'<span class="shc-c">'+esc(code+'.'+(i+1)+'.')+'</span>'+t[1]+'</button>';
-    }).join('')
-    +((cur==='dt_nhancong'||cur==='dt_vattu')
-      ? '<button class="shchip clr" onclick="ptSheetPick_(\'\')" title="Quay lại khái toán">✕ Khái toán</button>' : '');
+    box.innerHTML=chip(cur==='kt_chitiet','ptSheetPick_(\'\')','1.','Khái toán <em class="shc-s">Nhân công + Vật tư</em>','Khái toán Phần thô — gộp nhân công và vật tư')
+      +'<span class="shc-sep">Dự toán</span>'
+      +chip(cur==='dt_nhancong','ptSheetPick_(\'nc\')','2.1','Nhân công','Dự toán Nhân công của Phần thô')
+      +chip(cur==='dt_vattu','ptSheetPick_(\'vt\')','2.2','Vật tư','Dự toán Vật tư của Phần thô');
     return;
   }
   var dem={nc:0,vt:0,'':0};
   (lines||[]).forEach(function(l){ dem[tkSheetOf_(l)]=(dem[tkSheetOf_(l)]||0)+1; });
-  box.innerHTML=TK_SHEETS.map(function(t,i){
-    var on=(S.sheet===t[0]);
-    return '<button class="shchip'+(on?' on':'')+'" onclick="setSheet(\''+t[0]+'\')" '
-      +'title="Chỉ hiện các dòng '+t[1]+' của hạng mục này">'
-      +'<span class="shc-c">'+esc(code?(code+'.'+(i+1)+'.'):'')+'</span>'+t[1]
-      +'<i class="shc-n">['+pad2(dem[t[0]]||0)+']</i></button>';
-  }).join('')
-  +(S.sheet?'<button class="shchip clr" onclick="setSheet(\''+S.sheet+'\')" title="Bỏ lọc sheet, xem tất cả">✕ Tất cả</button>':'');
+  var sh=S.sheet||'';
+  box.innerHTML=chip(!sh,'setSheet(\'\')','1.','Khái toán <em class="shc-s">Nhân công + Vật tư</em>','Khái toán: xem gộp mọi dòng nhân công + vật tư',(lines||[]).length)
+    +'<span class="shc-sep">Dự toán</span>'
+    +chip(sh==='nc','setSheet(\'nc\')','2.1','Nhân công','Dự toán: chỉ các dòng Nhân công',dem.nc||0)
+    +chip(sh==='vt','setSheet(\'vt\')','2.2','Vật tư','Dự toán: chỉ các dòng Vật tư',dem.vt||0);
 }
 // Phần thô: bấm chip = đổi Loại báo giá; bấm lại chip đang bật = quay về khái toán trước đó
 function ptSheetPick_(v){
-  var dich = v ? PT_SHEET_LOAI[v] : (S._ptLoaiTruoc||'kt_chitiet');
-  var cur = ptLoai_();
-  if(v && cur===dich) dich = S._ptLoaiTruoc || 'kt_chitiet';
-  if(cur!=='dt_nhancong' && cur!=='dt_vattu') S._ptLoaiTruoc = cur;
-  ptSetLoai(dich); renderTable();
+  ptSetLoai(v ? PT_SHEET_LOAI[v] : 'kt_chitiet'); renderTable();    // '' = Khái toán (NC + VT)
 }
 function tkBulkSheet_(v){
   var ls=tkSelLines_(); if(!ls.length) return;

@@ -1315,7 +1315,7 @@ function ctMatchAlias_(h) {
   }
   return '';
 }
-const CT_LOAI_ALIAS = { 'khai toan chi tiet': 'kt_chitiet', 'khai toan so bo': 'kt_sobo',
+const CT_LOAI_ALIAS = { 'khai toan': 'kt_chitiet', 'khai toan nhan cong + vat tu': 'kt_chitiet', 'khai toan chi tiet': 'kt_chitiet', 'khai toan so bo': 'kt_sobo',
   'du toan nhan cong': 'dt_nhancong', 'du toan vat tu': 'dt_vattu' };
 const CT_MODE_ALIAS = { 'khoi luong x don gia': 'item', 'khoi luong': 'item', 'item': 'item',
   'dien tich x he so': 'area', 'dien tich': 'area', 'area': 'area',
