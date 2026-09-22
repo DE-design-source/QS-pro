@@ -1068,7 +1068,8 @@ function renderCatalog(){
   var hd=document.querySelector('#leftCat .cat-hd h3'); if(hd) hd.textContent=isPT?'Nội dung công việc':'Hạng mục';
   // Lọc nhanh Công suất / Nhiệt độ màu chỉ có nghĩa với ĐÈN -> ẩn ở đề mục Thiết bị vệ sinh
   var isVS=(S.node==='3.2.5');
-  ['sec_watt','sec_kelvin','sec_angle'].forEach(function(id){ var e=document.getElementById(id); if(e) e.style.display=(isVS||isPT)?'none':''; });
+  var ctSecs=isPT?[]:ctSecsOfNode_(S.node);          // Thạch cao / Sơn nước / Xây tô / Ốp lát / Cửa: có công tác để chọn
+  ['sec_watt','sec_kelvin','sec_angle'].forEach(function(id){ var e=document.getElementById(id); if(e) e.style.display=(isVS||isPT||ctSecs.length)?'none':''; });
   renderVsFilters_(); updateInProj_();
   var fg0=document.getElementById('favGoBtn'); if(fg0) fg0.style.display=isPT?'none':'';   // Phần thô: không có SP yêu thích
   var fw0=document.getElementById('ptFilters'); if(fw0&&!isPT) fw0.innerHTML='';   // rời Phần thô -> dọn bộ lọc riêng
@@ -1077,6 +1078,11 @@ function renderCatalog(){
   var el=document.getElementById('catList');
   var cc=document.getElementById('catCount'); if(cc) cc.textContent=list.length+' SP';
   updateCatUI();
+  if(ctSecs.length){
+    var nCt=ctSecs.reduce(function(n,s){ return n+s.items.length; },0);
+    if(cc) cc.textContent=nCt+' công tác'+(list.length?(' · '+list.length+' SP'):'');
+    if(!list.length){ el.innerHTML=renderCtLib_(ctSecs); S._filtered=list; return; }
+  }
   if(!list.length){ el.innerHTML=S.fFav
       ? '<div class="ptlib-empty">'+icon('heart',22)+'<b>Chưa có sản phẩm yêu thích</b><span>Bấm biểu tượng trái tim ở một sản phẩm (tại đây hoặc trong Danh sách sản phẩm) để lưu lại, lần sau mở dự án mới là lấy ra dùng ngay.</span></div>'
       : '<div class="empty">Không có sản phẩm khớp lọc.</div>';
@@ -1113,6 +1119,7 @@ function renderCatalog(){
     +(catCbMo_(p)?catComboHtml_(p,i):'')             // thành phần combo = thẻ SP thật, nằm ngang hàng
     +(catVarMo_(p)?catVarHtml_(list,G):'');          // các biến thể còn lại của cùng 1 sản phẩm
   }).join('');
+  if(ctSecs.length) el.innerHTML=renderCtLib_(ctSecs)+'<div class="ctlib-h sp">'+icon('tag',13)+' Sản phẩm<span>'+list.length+'</span></div>'+el.innerHTML;
   S._filtered=list;
 }
 function specRows_(text){
@@ -8046,6 +8053,61 @@ var PT_CONTRACTORS=['H77','Decox','TTP','Unicons'];
    (thư viện trái, bảng Danh sách sản phẩm, panel thông tin, thêm vào bảng khái toán) chạy
    như cũ, không phải sửa lại đường đi dữ liệu.                                            */
 function ctOf_(a){ return (a && a.ct) || null; }
+/* ═══ PHÂN LỚP CÔNG TÁC THEO ĐỀ MỤC CÂY ═══
+   Thư viện công tác (Phần thô) có cả nhóm hoàn thiện. Mỗi nhóm được xếp thêm vào đúng đề mục
+   để khi bóc tách Thạch cao / Sơn nước / Xây tô / Ốp lát / Cửa thì panel trái có công tác để chọn.
+   Công tác VẪN hiện ở 3.1 Phần thô như cũ (khái toán trọn gói vẫn chọn được).
+   Xếp theo tên nhóm (hạng mục của công tác) — thêm quy tắc ở đây khi có nhóm mới.      */
+var CT_DEMUC_RULES=[
+  [/thach cao/,'3.2.1'],
+  [/son nuoc|\bson\b/,'3.2.2'],
+  [/xay tuong|trat tuong|xay to/,'3.2.3'],
+  [/op lat|\bda\b|san go/,'3.2.4'],
+  [/nhom|kinh|\bsat\b|cua cuon|\bcua\b/,'3.2.8']
+];
+function ctDeMucOf_(hangMuc){
+  var t=String(hangMuc||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase();
+  for(var i=0;i<CT_DEMUC_RULES.length;i++) if(CT_DEMUC_RULES[i][0].test(t)) return CT_DEMUC_RULES[i][1];
+  return '';
+}
+// Các nhóm công tác (trong CSDL) thuộc đề mục đang chọn (kể cả khi chọn cấp con, vd 3.2.8.1 -> nhóm 3.2.8)
+function ctSecsOfNode_(node){
+  node=String(node||''); if(!node || node==='3.1') return [];
+  return PT_TEMPLATE.filter(function(sec){
+    if(!sec.db || !(sec.items||[]).length) return false;
+    var dm=ctDeMucOf_(String(sec.t).split('\n')[0]); if(!dm) return false;
+    return node===dm || node.indexOf(dm+'.')===0;
+  });
+}
+// Thêm 1 công tác vào bảng bóc tách của đề mục đang chọn (dòng thường: ĐVT · đơn giá · SL)
+function ctAddToBoc_(si,ii){
+  var sec=PT_TEMPLATE[si], a=sec&&sec.items[ii]; if(!a) return;
+  var c=ctOf_(a)||{}, dg=Number(c.dg)||ptLibDg_(sec,a)||0, von=Number(c.dgnt)||dg;
+  var anh=String(c.hinhAnh||'').split('\n')[0];
+  Promise.resolve(addProdObj({ ten:String(a[0]).split('\n')[0], ma:'', thuongHieu:'', ncc:c.ncc||'', moTa:String(c.gc||c.thongSo||'').trim(),
+    kichThuoc:'', dvt:a[1]||c.dvt||'', hinhAnh:anh, donGiaVon:von, donGiaBan:dg, nhom:String(sec.t).split('\n')[0] }))
+    .then(function(){ try{ renderCatalog(); }catch(e){} });      // cập nhật dấu "✓ đã thêm" trên thẻ
+}
+function renderCtLib_(secs){
+  return '<div class="ptlib ctlib"><div class="ctlib-h">'+icon('layers',13)+' Công tác '+esc(nodeName(S.node))
+      +'<span>'+secs.reduce(function(n,s){ return n+s.items.length; },0)+'</span></div>'
+    +secs.map(function(sec){
+    var si=PT_TEMPLATE.indexOf(sec), col=S._ptLibCol&&S._ptLibCol[si];
+    return '<div class="ptlib-sec"><div class="ptlib-h" onclick="ptLibToggle('+si+')">'
+        +'<span class="ptlib-caret">'+(col?'▸':'▾')+'</span><span class="ptlib-htt">'+esc(String(sec.t).split('\n')[0])+'</span>'
+        +'<span class="ptlib-hn">'+sec.items.length+'</span>'
+        +'<span class="ptlib-lo">'+esc(ptLoaiNgan_(sec.loai))+'</span></div>'
+      +(col?'':'<div class="ptlib-items">'+sec.items.map(function(a,ii){
+        var dg=ptLibDg_(sec,a), dt=S._ptDetail, on=(dt&&dt.si===si&&dt.ii===ii);
+        var da=(S.lines||[]).some(function(l){ return l.nhom===S.node && l.ten===String(a[0]).split('\n')[0]; });
+        return '<div class="ptlib-item'+(on?' on':'')+(da?' da':'')+'" title="Bấm để xem thông tin công tác" onclick="ptShowDetail_('+si+','+ii+')">'
+          +'<div class="ptlib-nm" title="'+esc(String(a[0]).replace(/\n/g,' '))+'">'+esc(String(a[0]).split('\n')[0])+'</div>'
+          +'<div class="ptlib-meta"><span class="ptlib-dvt">'+esc(a[1]||'')+'</span><span class="ptlib-dg">'+(dg?(money(dg)+' đ'):'—')+'</span>'
+            +(da?'<span class="ptlib-da" title="Đã có trong bảng bóc tách">✓ đã thêm</span>':'')+'</div>'
+          +'<button class="ptlib-add" title="Thêm vào bảng bóc tách" onclick="event.stopPropagation();ctAddToBoc_('+si+','+ii+')">'+icon('plus',14)+'</button></div>';
+      }).join('')+'</div>')+'</div>';
+  }).join('')+'</div>';
+}
 function ctSecOf_(sec){ return !!(sec && sec.db); }
 function ctItemArr_(c){
   var a;
@@ -9445,7 +9507,7 @@ function ptShowDetail_(si,ii){
         +(ctOf_(sec.items[ii])
           ?'<button class="btn ghost sm" onclick="ctEditModal_(\''+ctOf_(sec.items[ii]).id+'\')">'+icon('edit',14)+' Sửa công tác</button>'
           :'<button class="btn ghost sm" onclick="ptInfoEdit_('+si+','+ii+',1)">'+icon('edit',14)+' Sửa thông tin</button>')
-        +'<button class="btn blue sm" onclick="ptAddFromLib('+si+','+ii+')">'+icon('plus',14)+' Thêm vào bảng</button>'
+        +'<button class="btn blue sm" onclick="'+(S.node==='3.1'?'ptAddFromLib':'ctAddToBoc_')+'('+si+','+ii+')">'+icon('plus',14)+' Thêm vào bảng</button>'
       +'</div>');
   document.addEventListener('keydown',pdPanelKey_);
   el.scrollTop=0;
