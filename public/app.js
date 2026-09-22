@@ -60,7 +60,7 @@ function nodeName(code){ for(var i=0;i<TREE.length;i++) if(TREE[i][0]===code) re
 var COLS=[
   ['stt','STT',1],['khuVuc','Phòng',1],['maBanVe','Mã số bản vẽ',0],['nganh','Dòng sản phẩm',0],
   ['maSP','Mã sản phẩm',0],['ten','Tên sản phẩm',1],['thuongHieu','Thương hiệu',1],['ncc','Nhà cung cấp',0],
-  ['moTa','Thông tin chính',1],['kichThuoc','Thông số thiết kế',1],['hinhAnh','Hình ảnh',1],['dvt','Đơn vị tính',1],
+  ['moTa','Thông tin chính',1],['kichThuoc','Thông số thiết kế',1],['hinhAnh','Hình ảnh',1],['taiLieu','Tài liệu',1],['dvt','Đơn vị tính',1],
   ['soLuong','Số lượng',1],['giaNCC','Giá bán lẻ',1],['chietKhau','Chiết khấu của đại lý (%)',1],
   ['giaDaiLy','Giá đại lý',1],['lnPct','Lợi nhuận dự kiến (%)',1],['donGia','Giá bán',1],
   ['ckKhach','Chiết khấu cho khách hàng (%)',1],['donGiaCK','Đơn giá',1],
@@ -118,7 +118,7 @@ var ICONS={
 };
 function icon(name,size){ size=size||16; var p=ICONS[name]; if(!p) return ''; return '<svg class="ico" width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'; }
 // Độ rộng mặc định + cấu hình cột (thứ tự, rộng, lọc) lưu localStorage
-var DEFW={stt:66,khuVuc:120,maBanVe:92,nganh:120,maSP:110,ten:190,thuongHieu:110,ncc:120,moTa:186,kichThuoc:150,hinhAnh:104,dvt:84,soLuong:84,giaNCC:104,chietKhau:120,giaDaiLy:104,lnPct:96,donGia:104,ckKhach:130,donGiaCK:104,markup:130,margin:130,lnVnd:120,thanhTien:112,trangThai:104,ghiChu:150};
+var DEFW={taiLieu:92,stt:66,khuVuc:120,maBanVe:92,nganh:120,maSP:110,ten:190,thuongHieu:110,ncc:120,moTa:186,kichThuoc:150,hinhAnh:104,dvt:84,soLuong:84,giaNCC:104,chietKhau:120,giaDaiLy:104,lnPct:96,donGia:104,ckKhach:130,donGiaCK:104,markup:130,margin:130,lnVnd:120,thanhTien:112,trangThai:104,ghiChu:150};
 S.colOrder=null; S.colW={}; S.colFilter={}; S.collapsed={};
 // Công cụ kiểu bảng tính cho Bóc tách: sắp xếp / cố định cột / tô màu điều kiện
 S.sortKey=''; S.sortDir='asc'; S.freezeN=0; S.cfRules={};
@@ -1255,14 +1255,11 @@ function pdBullets_(text){
     .filter(Boolean).map(function(x){ return '<div class="pd-bl">'+esc(x)+'</div>'; }).join('')+'</div>';
 }
 function pdPriceFoot_(p){
-  var raw=p.raw||{}, docs=[['Tài liệu kỹ thuật',p.linkDatasheet||raw.link_datasheet],['Thông số kỹ thuật',p.thongSoFile||raw.thong_so_file],
-    ['Hướng dẫn cài đặt',p.huongDanLapDat||raw.huong_dan_lap_dat],['File bản vẽ',p.fileBanVe||raw.file_ban_ve]]
-    .filter(function(d){ return String(d[1]||'').trim(); });
-  return '<div class="pd-price"><span>Đơn giá</span><b>'+money(p.donGiaBan)+' đ</b></div>'
-    +'<div class="pd-foot2 pd-docs">'
-      +(docs.length?docs.map(function(d){ return '<a class="pd-fbtn" href="'+esc(d[1])+'" target="_blank" rel="noopener" title="'+esc(docName_(d[1]))+'">'+icon('doc',14)+' '+esc(d[0])+'</a>'; }).join('')
-        :'<span class="pd-fbtn dis" title="Sản phẩm chưa có tài liệu">'+icon('doc',14)+' Chưa có tài liệu</span>')
-    +'</div>';
+  var docs=prodDocs_(p);
+  return '<div class="pd-block pd-docblk"><div class="pd-sec">Tài liệu <i>('+docs.length+' file)</i></div>'
+      +(docs.length?'<div class="tl-body">'+docRowsHtml_(docs)+'</div>':'<div class="tl-empty">Sản phẩm chưa có tài liệu — thêm ở Nhập dữ liệu hoặc Sửa sản phẩm.</div>')
+    +'</div>'
+    +'<div class="pd-price"><span>Đơn giá</span><b>'+money(p.donGiaBan)+' đ</b></div>';
 }
 // Nội dung chi tiết SP xếp dọc (panel Bóc tách)
 function pdContent_(p){ return pdMedia_(p)+pdSpecs_(p)+pdPriceFoot_(p); }
@@ -3406,6 +3403,7 @@ async function spEditModal(i){
       +(spCanDuyet_()?'<button class="btn ghost sm" id="speDuyetBtn" onclick="spEditSave(1)" title="Lưu thay đổi rồi đánh dấu Đã duyệt">'+icon('check',14)+' Lưu &amp; duyệt</button>':'')
       +'<button class="btn blue" id="speSaveBtn" onclick="spEditSave()">'+icon('check',15)+' Lưu cập nhật</button></div>';
   if(nganhCuaSP_(p)==='vs'){ var hmSel=ov.querySelector('[data-col="hang_muc"]'); vsApplyHM_(ov, hmSel?hmSel.value:raw.hang_muc, 1); }
+  ov.querySelectorAll('.docf').forEach(docRender_);
   cbRender_(); btRender_(); cbTab_((S._bt||[]).length&&!(S._combo||[]).length?'bt':'combo');
   document.addEventListener('mousedown',cbOutside_);
 }
@@ -4228,6 +4226,9 @@ function cellVal(l,key){
     case 'moTa': return '<div class="desc">'+esc(l.moTa||'')+'</div>';
     case 'kichThuoc': return esc(l.kichThuoc||'');
     case 'hinhAnh': return l.hinhAnh?'<img class="pimg" src="'+esc(imgSrc1_(l.hinhAnh))+'" onclick="imgPop_(this.src)" title="Bấm để xem ảnh lớn" onerror="this.style.visibility=\'hidden\'">':'';
+    case 'taiLieu': { var dl=lineDocs_(l); return dl.length
+        ? '<button class="tl-badge" onclick="event.stopPropagation();tlPop_(event,\''+esc(l.lineId)+'\')" title="Xem '+dl.length+' tài liệu">'+icon('doc',13)+' '+dl.length+'</button>'
+        : '<span class="tl-none" title="Sản phẩm chưa có tài liệu">—</span>'; }
     case 'dvt': return esc(l.dvt||'');
     case 'giaNCC': return money(l.donGiaVon);
     case 'chietKhau': return (Number(l.chietKhau)||0)+'%';
@@ -4278,7 +4279,7 @@ function cellInput(l,key){
       +' value="'+cur+'" onchange="editProfit_(\''+l.lineId+'\',\''+key+'\',this.value)">'
       +(key==='lnVnd'?'':'<i class="ln-pc">%</i>')+'</td>';
   }
-  var cls=(['giaDaiLy','donGiaCK','thanhTien'].indexOf(key)>=0)?'num':(['hinhAnh','nganh'].indexOf(key)>=0?'ct':'');
+  var cls=(['giaDaiLy','donGiaCK','thanhTien'].indexOf(key)>=0)?'num':(['hinhAnh','nganh','taiLieu'].indexOf(key)>=0?'ct':'');
   return '<td class="'+cls+'">'+cellVal(l,key)+'</td>';
 }
 function renderTable(){
@@ -6251,7 +6252,7 @@ function bgCoverPage_(comp){
 }
 /* ---- Cột của bảng chi tiết trong tài liệu = đúng các chip cột đang bật ---- */
 function bgDocCols_(){
-  var vis=visCols().filter(function(c){ return c[0]!=='stt'; });
+  var vis=visCols().filter(function(c){ return c[0]!=='stt' && c[0]!=='taiLieu'; });
   if(!vis.length) vis=[['ten','Tên sản phẩm'],['soLuong','Số lượng'],['donGiaCK','Đơn giá'],['thanhTien','Thành tiền']];
   return vis;
 }
@@ -6550,7 +6551,7 @@ var BG_KEYMAP={donGia:'donGia', donGiaCK:'donGiaCK', thanhTien:'thanhTien', giaN
 function bgExportCols_(){
   var vis=visCols();
   var cols=vis.map(function(c){ return {key:c[0], label:String(c[1]).toUpperCase()}; })
-    .filter(function(c){ return c.key!=='stt'; });
+    .filter(function(c){ return c.key!=='stt' && c.key!=='taiLieu'; });
   cols.unshift({key:'stt',label:'STT'});
   if(!cols.some(function(c){ return c.key==='ten'; })) cols.splice(1,0,{key:'ten',label:'TÊN SẢN PHẨM'});
   return cols;
@@ -6667,29 +6668,90 @@ function dbInput(f){
   else inner='<input id="'+id+'"'+(type==='num'?' type="number"':'')+trg+' placeholder="'+esc(ph)+'">';
   return '<div class="field'+(type==='doc'?' docfield':'')+'"'+(f[6]==='vs'?' data-vs="'+esc(lark)+'"':'')+'><label>'+esc(label)+star+'</label>'+inner+'</div>';
 }
+/* ═══ TÀI LIỆU SẢN PHẨM — mỗi trường chứa NHIỀU file (mỗi dòng 1 link: file tải lên kho hoặc link dán) ═══ */
+var DOC_GROUPS=[['link_datasheet','linkDatasheet','Tài liệu kỹ thuật'],['thong_so_file','thongSoFile','Thông số kỹ thuật'],
+  ['huong_dan_lap_dat','huongDanLapDat','Hướng dẫn cài đặt'],['file_ban_ve','fileBanVe','File bản vẽ']];
+function docList_(v){ return String(v||'').split(/\r?\n|\s*;\s*/).map(function(x){ return x.trim(); }).filter(Boolean); }
+// Toàn bộ file của 1 sản phẩm: [{g:'Hướng dẫn cài đặt', url}]
+function prodDocs_(p){ var raw=(p&&p.raw)||{}, out=[];
+  DOC_GROUPS.forEach(function(d){ docList_(raw[d[0]]||(p&&p[d[1]])).forEach(function(u){ out.push({g:d[2], url:u}); }); });
+  return out; }
+// Dòng bóc tách -> sản phẩm gốc trong danh mục (theo mã SP, dự phòng theo tên) -> tài liệu
+function lineProd_(l){ var ma=String(l.maSP||'').trim().toLowerCase(), ten=String(l.ten||'').trim().toLowerCase(), ds=S.products||[], p=null;
+  if(ma) p=ds.filter(function(x){ return String(x.ma||'').trim().toLowerCase()===ma && prodDocs_(x).length; })[0]||ds.filter(function(x){ return String(x.ma||'').trim().toLowerCase()===ma; })[0];
+  if(!p && ten) p=ds.filter(function(x){ return String(x.ten||'').trim().toLowerCase()===ten; })[0];
+  return p||null; }
+function lineDocs_(l){ var p=lineProd_(l); return p?prodDocs_(p):[]; }
+function docExt_(u){ var m=/\.([a-z0-9]{2,4})(?:$|[?#])/i.exec(String(u||'').split('?')[0]); return m?m[1].toLowerCase():'link'; }
+// Danh sách file (dùng chung panel chi tiết SP và popup ở cột Tài liệu)
+function docRowsHtml_(docs){
+  var g='';
+  return docs.map(function(d){
+    var h=(d.g!==g)?'<div class="tl-g">'+esc(d.g)+'</div>':''; g=d.g; var ext=docExt_(d.url);
+    return h+'<div class="tl-row"><span class="tl-ext e-'+esc(ext)+'">'+esc(ext==='link'?'LINK':ext.toUpperCase())+'</span>'
+      +'<a class="tl-nm" href="'+esc(d.url)+'" target="_blank" rel="noopener" title="Mở '+esc(docName_(d.url))+'">'+esc(docName_(d.url))+'</a>'
+      +'<a class="tl-act" href="'+esc(d.url)+'" target="_blank" rel="noopener" download title="Tải về">'+icon('download',13)+'</a></div>';
+  }).join('');
+}
+function tlPop_(e,lineId){
+  closePop();
+  var l=(S.lines||[]).filter(function(x){ return String(x.lineId)===String(lineId); })[0]; if(!l) return;
+  var docs=lineDocs_(l);
+  var pop=document.createElement('div'); pop.className='fltpop tl-pop'; pop.id='qs_pop';
+  pop.innerHTML='<div class="bgt-h"><b>Tài liệu · '+esc(l.ten||'')+'</b><button class="colpop-x" onclick="closePop()">✕</button></div>'
+    +'<div class="tl-body">'+(docs.length?docRowsHtml_(docs):'<div class="tl-empty">Sản phẩm chưa có tài liệu.</div>')+'</div>';
+  document.body.appendChild(pop);
+  var r=e.currentTarget.getBoundingClientRect(), w=pop.offsetWidth||340, h=pop.offsetHeight;
+  var top=r.bottom+6; if(top+h>window.innerHeight-10) top=Math.max(10,r.top-h-6);
+  pop.style.top=top+'px'; pop.style.left=Math.max(8,Math.min(r.left,window.innerWidth-w-10))+'px';
+  setTimeout(function(){ document.addEventListener('mousedown',popOutside); },0);
+}
 /* ═══ Ô TÀI LIỆU: tải file lên kho (uploadFile) HOẶC dán link — dùng ở form Nhập & modal Sửa ═══ */
 function docName_(u){ u=String(u||'').trim(); if(!u) return '';
   var t=u.split('?')[0].split('/').pop()||u; try{ t=decodeURIComponent(t); }catch(e){}
   return t.replace(/^\d{10,}-/,''); }                    // bỏ tiền tố thời gian của file đã tải lên
 function docChip_(u){ u=String(u||'').trim(); if(!u) return '';
   return '<a class="docf-chip" href="'+esc(u)+'" target="_blank" rel="noopener" title="Mở tài liệu">'+icon('doc',13)+'<span>'+esc(docName_(u))+'</span></a>'; }
+// Ô tài liệu nhiều file: input ẩn (giữ giá trị, mỗi dòng 1 link) + danh sách file (xoá từng file) + dán link / tải file
 function docInput_(attr,val){
-  return '<div class="docf"><input '+attr+' value="'+esc(val||'')+'" placeholder="Dán link hoặc bấm Tải file" oninput="docSync_(this)">'
-    +'<button type="button" class="docf-b" onclick="docPick_(this)" title="Tải file lên (PDF, ảnh, DWG/DXF, ZIP…, tối đa 20MB)">'+icon('download',14)+' Tải file</button></div>'
-    +'<div class="docf-cur">'+docChip_(val)+'</div>';
+  return '<div class="docf"><input type="hidden" class="docf-v" '+attr+' value="'+esc(val||'')+'">'
+    +'<div class="docf-list"></div>'
+    +'<div class="docf-add"><input class="docf-url" placeholder="Dán link rồi Enter" onkeydown="if(event.key===\'Enter\'){event.preventDefault();docAddUrl_(this)}">'
+      +'<button type="button" class="docf-b" onclick="docAddUrl_(this.previousElementSibling)" title="Thêm link đã dán">Thêm link</button>'
+      +'<button type="button" class="docf-b up" onclick="docPick_(this)" title="Tải 1 hoặc nhiều file lên (PDF, ảnh, DWG/DXF, ZIP…, mỗi file tối đa 20MB)">'+icon('download',14)+' Tải file</button></div>'
+    +'</div>';
 }
-function docSync_(inp){ var c=inp&&inp.parentNode&&inp.parentNode.nextElementSibling; if(c) c.innerHTML=docChip_(inp.value); }
+function docWrap_(el){ return el&&el.closest?el.closest('.docf'):null; }
+function docRender_(w){
+  if(!w) return; var v=w.querySelector('.docf-v'), ds=docList_(v&&v.value), box=w.querySelector('.docf-list');
+  if(box) box.innerHTML=ds.map(function(u,i){ var ext=docExt_(u);
+    return '<div class="docf-it"><span class="tl-ext e-'+esc(ext)+'">'+esc(ext==='link'?'LINK':ext.toUpperCase())+'</span>'
+      +'<a href="'+esc(u)+'" target="_blank" rel="noopener" title="Mở">'+esc(docName_(u))+'</a>'
+      +'<button type="button" title="Bỏ file này" onclick="docDel_(this,'+i+')">✕</button></div>'; }).join('');
+}
+function docSet_(w,ds){ var v=w.querySelector('.docf-v'); if(!v) return; v.value=ds.join('\n'); docRender_(w);
+  try{ v.dispatchEvent(new Event('input',{bubbles:true})); }catch(e){} }
+function docDel_(btn,i){ var w=docWrap_(btn), ds=docList_(w.querySelector('.docf-v').value); ds.splice(i,1); docSet_(w,ds); }
+function docAddUrl_(inp){ var w=docWrap_(inp), u=String(inp.value||'').trim(); if(!u) return;
+  if(!/^https?:\/\//i.test(u)) u='https://'+u;
+  var ds=docList_(w.querySelector('.docf-v').value); if(ds.indexOf(u)<0) ds.push(u); inp.value=''; docSet_(w,ds); }
+function docSync_(el){ docRender_(docWrap_(el)); }               // tương thích chỗ gọi cũ
 function docPick_(btn){
-  var inp=btn.previousElementSibling, f=document.createElement('input'); f.type='file';
+  var w=docWrap_(btn), f=document.createElement('input'); f.type='file'; f.multiple=true;
   f.accept='.pdf,.png,.jpg,.jpeg,.webp,.dwg,.dxf,.skp,.zip,.rar,.7z,.doc,.docx,.xls,.xlsx,.ppt,.pptx';
-  f.onchange=function(){
-    var file=f.files&&f.files[0]; if(!file) return;
-    if(file.size>20*1024*1024){ toast('File quá lớn (tối đa 20MB) — hãy dán link thay vì tải lên'); return; }
-    var goc=btn.innerHTML; btn.disabled=true; btn.textContent='Đang tải…'; upBusy_(1);   // Lưu sẽ đợi file tải xong
-    readB64_(file).then(function(d){ return api('uploadFile', d, file.name); })
-      .then(function(r){ inp.value=(r&&r.url)||''; docSync_(inp); toast('Đã tải lên: '+file.name); })
-      .catch(function(e){ toast('Tải file lỗi: '+e.message); })
-      .then(function(){ btn.disabled=false; btn.innerHTML=goc; upBusy_(-1); });
+  f.onchange=async function(){
+    var fs=Array.prototype.slice.call(f.files||[]); if(!fs.length) return;
+    var goc=btn.innerHTML; btn.disabled=true; upBusy_(1);                 // Lưu sẽ đợi file tải xong
+    try{
+      for(var k=0;k<fs.length;k++){
+        var file=fs[k]; btn.textContent='Đang tải '+(k+1)+'/'+fs.length+'…';
+        if(file.size>20*1024*1024){ toast('"'+file.name+'" quá lớn (tối đa 20MB) — hãy dán link'); continue; }
+        try{ var r=await api('uploadFile', await readB64_(file), file.name);
+          if(r&&r.url){ var ds=docList_(w.querySelector('.docf-v').value); ds.push(r.url); docSet_(w,ds); } }
+        catch(e){ toast('Tải "'+file.name+'" lỗi: '+e.message); }
+      }
+      toast('Đã tải lên '+fs.length+' file');
+    } finally { btn.disabled=false; btn.innerHTML=goc; upBusy_(-1); }
   };
   f.click();
 }
@@ -6987,7 +7049,7 @@ function pendFillForm_(it){
   });
   if(S._impLoai==='vs') vsApplyHM_(box, d['HẠNG MỤC']);
   dbCalcDaiLy();
-  document.querySelectorAll('#v-import .docf input').forEach(docSync_);       // hiện tên file tài liệu
+  document.querySelectorAll('#v-import .docf').forEach(docRender_);           // hiện danh sách file tài liệu
   S._impCombo=(it.combo||[]).map(function(x){ return Object.assign({},x); }); impCbRender_();
   var imgs=String(d['ẢNH SẢN PHẨM']||it.hinhAnh||'').split('\n').map(function(x){ return x.trim(); }).filter(Boolean);
   S._imgMain=imgs[0]||''; S._imgList=imgs.slice(1); upRefresh();
@@ -7226,7 +7288,7 @@ function renderImport(){
     +impLoaiTabs_()+impStatBar()
     +'<div class="imp-layout">'+form+'<div class="imp-recent" id="impRecentBox">'+impRecentList()+'</div></div>';
   if(impLoai_()==='vs') vsApplyHM_(box,'');
-  impCbRender_();
+  impCbRender_(); box.querySelectorAll('.docf').forEach(docRender_);
   if(suaIt) pendFillForm_(suaIt);            // nạp lại dữ liệu dòng đang sửa (sau đổi tab / vẽ lại)
 }
 /* Nhập dữ liệu — hạng mục PHẦN THÔ: thêm công tác xây dựng vào cơ sở dữ liệu */
