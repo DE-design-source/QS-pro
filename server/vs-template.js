@@ -21,7 +21,8 @@ function cotMau() {
     return [lb, batBuoc(lb) ? 1 : 0, (lb === 'KÍCH THƯỚC' || lb === 'BỒN CẦU TƯƠNG THÍCH') ? 24 : (lb === 'LƯU Ý' || lb === 'THIẾT KẾ' ? 20 : 15)];
   })).concat([
     ['TÍNH NĂNG', 0, 30], ['BẢO HÀNH (năm)', 0, 13], ['NHÓM SẢN PHẨM', 0, 13], ['ĐƠN VỊ TÍNH', 1, 13],
-    ['LINK DATASHEET', 0, 20], ['TRẠNG THÁI', 0, 16], ['GHI CHÚ', 0, 22]
+    ['LINK DATASHEET', 0, 20], ['THÔNG SỐ KỸ THUẬT', 0, 20], ['HƯỚNG DẪN CÀI ĐẶT', 0, 20], ['FILE BẢN VẼ', 0, 20],
+    ['TRẠNG THÁI', 0, 16], ['GHI CHÚ', 0, 22]
   ]);
 }
 

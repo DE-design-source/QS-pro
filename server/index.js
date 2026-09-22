@@ -46,6 +46,7 @@ const REGISTRY = {
   saveLineAsProduct: auth.saveLineAsProductGated,
   saveDbProduct: auth.createProductGated,   // cửa ngõ: cần quyền sửa + đóng dấu người tạo
   uploadImage: store.uploadImage,
+  uploadFile: store.uploadFile,
   deleteDbProduct: store.deleteDbProduct,
   getDbProduct: store.getDbProduct,
   updateDbProductTracked: auth.updateProductGated,   // cửa ngõ: chỉ 'sp_edit' -> tạo phiếu chờ duyệt

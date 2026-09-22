@@ -5609,6 +5609,21 @@ body > :not(.topnav):not(.wrap):not(script):not(#loginScreen) > *{zoom:var(--uiz
   font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
 #v-boc .pt-colchips .chip.on{background:#dfe3e8!important;border-color:#dfe3e8!important;color:#1c2735!important}
 #v-boc .pt-colchips .chip.fltchip.on{background:#eaf1ff!important;border-color:#cfe0ff!important;color:#1d4ed8!important}
+
+/* ô Tài liệu: tải file hoặc dán link */
+.docf{display:flex;gap:6px;align-items:stretch}
+.docf input{flex:1;min-width:0}
+.docf-b{flex:none;display:inline-flex;align-items:center;gap:5px;padding:0 10px;border:1px solid #d7dde4;border-radius:8px;background:#fff;
+  font:inherit;font-size:12px;font-weight:600;color:#3a4653;cursor:pointer;white-space:nowrap}
+.docf-b:hover{border-color:var(--blue);color:var(--blue)}
+.docf-b[disabled]{opacity:.6;cursor:wait}
+.docf-b svg{transform:rotate(180deg)}
+.docf-cur:empty{display:none}
+.docf-cur{margin-top:5px}
+.docf-chip{display:inline-flex;align-items:center;gap:5px;max-width:100%;padding:3px 8px;border-radius:6px;background:#f1f5fb;color:#1d4ed8;font-size:11.5px;text-decoration:none}
+.docf-chip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.docf-chip:hover{background:#e3edff}
+.pd-docs{flex-wrap:wrap}
 </style>
 
 <!-- ===== TOP NAV ===== -->

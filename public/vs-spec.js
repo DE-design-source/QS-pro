@@ -172,7 +172,7 @@
   // của hạng mục (vd Công suất, Nhiệt độ màu của đèn) đều bị bỏ khi nhập thiết bị vệ sinh.
   var CHUNG = ['THƯƠNG HIỆU', 'NHÀ CUNG CẤP', 'HẠNG MỤC', 'DÒNG SẢN PHẨM', 'NHÓM SẢN PHẨM', 'TÊN SẢN PHẨM', 'MÃ SẢN PHẨM',
     'GIÁ BÁN LẺ', 'CHIẾT KHẤU ĐẠI LÝ (%)', 'TÍNH NĂNG', 'BẢO HÀNH (năm)', 'ĐƠN VỊ TÍNH', 'TRẠNG THÁI',
-    'LINK DATASHEET', 'GHI CHÚ', 'ẢNH SẢN PHẨM', 'NGÀNH HÀNG'];
+    'LINK DATASHEET', 'THÔNG SỐ KỸ THUẬT', 'HƯỚNG DẪN CÀI ĐẶT', 'FILE BẢN VẼ', 'GHI CHÚ', 'ẢNH SẢN PHẨM', 'NGÀNH HÀNG'];
 
   // Hạng mục người dùng gõ (không dấu / hoa thường / thừa khoảng trắng) -> tên chuẩn; không khớp -> ''
   function bo_dau(s) {

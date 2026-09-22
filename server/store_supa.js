@@ -89,6 +89,7 @@ function prodToObj(r) {
     tenBoNguon: s(r.ten_bo_nguon), maBoNguon: s(r.ma_bo_nguon), hangBoNguon: s(r.hang_bo_nguon),
     viTriNguon: s(r.vi_tri_lap_nguon), tuongThich: s(r.dieu_khien), dongRa: r.dong_ra_max_ma ? (r.dong_ra_max_ma + 'mA') : '',
     lapNguonRoi: r.lap_nguon_roi ? 'Có' : '', capBaoVeDien: s(r.class_rating), linkDatasheet: s(r.link_datasheet),
+    thongSoFile: s(r.thong_so_file), huongDanLapDat: s(r.huong_dan_lap_dat), fileBanVe: s(r.file_ban_ve),
     kichThuoc: thongSoTK, size: size,
     dvt: s(r.dvt) || 'Cái', hinhAnh: firstImg(r.anh_sp), anhTatCa: s(r.anh_sp), moTa: moTa,
     giaBanLe: n(r.gia_ban_le), ckDaiLy: n(r.ck_dai_ly_pct),   // để sửa TRỰC TIẾP trong bảng Danh sách SP
@@ -397,6 +398,8 @@ const DB_LABEL2COL = {
   'LƯỢNG NƯỚC XẢ': 'luong_nuoc_xa', 'THIẾT KẾ': 'thiet_ke', 'TÂM XẢ': 'tam_xa',
   'ÁP LỰC NƯỚC': 'ap_luc_nuoc', 'LƯU Ý': 'luu_y', 'TÍNH NĂNG': 'tinh_nang'
 };
+// Tài liệu sản phẩm (db/tai_lieu_sp.sql): mỗi trường 1 link — file tải lên kho hoặc link dán vào
+Object.assign(DB_LABEL2COL, { 'THÔNG SỐ KỸ THUẬT': 'thong_so_file', 'HƯỚNG DẪN CÀI ĐẶT': 'huong_dan_lap_dat', 'FILE BẢN VẼ': 'file_ban_ve' });
 // Thông số RIÊNG từng hạng mục vệ sinh (public/vs-spec.js — nguồn chung với form & file mẫu)
 Object.keys(VS.METRIC).forEach(function (lb) { if (!DB_LABEL2COL[lb]) DB_LABEL2COL[lb] = VS.METRIC[lb][0]; });
 // Migration chạy tay -> nếu DB chưa có cột thì đổi lỗi kỹ thuật thành hướng dẫn cụ thể
@@ -406,6 +409,7 @@ const COL_SQL = { ten_chip_led: 'db/chip_name.sql', gia_ban_bo_nguon: 'db/gia_bo
   luong_nuoc_xa: 'db/thiet_bi_ve_sinh.sql', thiet_ke: 'db/thiet_bi_ve_sinh.sql', tam_xa: 'db/thiet_bi_ve_sinh.sql',
   ap_luc_nuoc: 'db/thiet_bi_ve_sinh.sql', luu_y: 'db/thiet_bi_ve_sinh.sql', tinh_nang: 'db/thiet_bi_ve_sinh.sql',
   nhom_bt: 'db/bien_the_nhom.sql', link_dezon: 'db/du_an_link_dezon.sql' };
+['thong_so_file', 'huong_dan_lap_dat', 'file_ban_ve'].forEach(function (c) { COL_SQL[c] = 'db/tai_lieu_sp.sql'; });
 // Mọi cột thông số vệ sinh chưa có trong bảng trên -> trỏ về migration v2 (thêm metric mới thì nhớ thêm SQL)
 Object.keys(VS.METRIC).forEach(function (lb) { const c = VS.METRIC[lb][0]; if (!COL_SQL[c]) COL_SQL[c] = 'db/thiet_bi_ve_sinh_v2.sql'; });
 function colErr_(e) {
@@ -865,6 +869,23 @@ async function uploadImage(base64, fileName) {
   const path = 'sp/' + Date.now() + '-' + Math.floor(Math.random() * 1e6) + '.' + ext;
   const url = await supa.uploadToStorage(buf, path, ct);
   return { token: url, url: url };
+}
+
+// Tải FILE tài liệu (PDF, bản vẽ DWG/DXF, ảnh, ZIP…) lên kho — giữ đuôi & tên gốc để người xem nhận ra
+const DOC_EXT = /^(pdf|png|jpe?g|webp|gif|dwg|dxf|skp|zip|rar|7z|docx?|xlsx?|pptx?)$/i;
+async function uploadFile(base64, fileName) {
+  const m = /^data:([^;]*);base64,/.exec(s(base64));
+  const buf = Buffer.from(s(base64).replace(/^data:[^;]*;base64,/, ''), 'base64');
+  if (!buf.length) throw new Error('File rỗng.');
+  if (buf.length > 20 * 1024 * 1024) throw new Error('File quá lớn (tối đa 20MB) — hãy dán link thay vì tải lên.');
+  const ten = s(fileName).split(/[\\/]/).pop() || 'tai-lieu';
+  const ext = (ten.split('.').pop() || '').toLowerCase();
+  if (!DOC_EXT.test(ext)) throw new Error('Định dạng .' + ext + ' chưa hỗ trợ (PDF, ảnh, DWG/DXF, SKP, ZIP/RAR, Word, Excel).');
+  const goc = ten.replace(/\.[^.]+$/, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D')
+    .replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'tai-lieu';
+  const path = 'docs/' + Date.now() + '-' + goc + '.' + ext;
+  const url = await supa.uploadToStorage(buf, path, (m && m[1]) || 'application/octet-stream');
+  return { url: url, name: ten };
 }
 
 /*** ===== DASHBOARD / QUOTE / BOOTSTRAP ===== ***/
@@ -1387,7 +1408,7 @@ module.exports = {
   getCombo, setCombo,
   getBienThe, setBienThe,
   DB_LABEL2COL,
-  getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, getDashboard, getQuote, importParse, importCommit,
+  getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, getDashboard, getQuote, importParse, importCommit, uploadFile,
   savePurchaseOrder, getPurchaseOrders,
   saveDeXuat, getDeXuatList, dxHead_, dxItem_,
   ctGetHistory

@@ -1251,12 +1251,13 @@ function pdBullets_(text){
     .filter(Boolean).map(function(x){ return '<div class="pd-bl">'+esc(x)+'</div>'; }).join('')+'</div>';
 }
 function pdPriceFoot_(p){
-  var ds=p.linkDatasheet;
+  var raw=p.raw||{}, docs=[['Tài liệu kỹ thuật',p.linkDatasheet||raw.link_datasheet],['Thông số kỹ thuật',p.thongSoFile||raw.thong_so_file],
+    ['Hướng dẫn cài đặt',p.huongDanLapDat||raw.huong_dan_lap_dat],['File bản vẽ',p.fileBanVe||raw.file_ban_ve]]
+    .filter(function(d){ return String(d[1]||'').trim(); });
   return '<div class="pd-price"><span>Đơn giá</span><b>'+money(p.donGiaBan)+' đ</b></div>'
-    +'<div class="pd-foot2">'
-      +(ds?'<a class="pd-fbtn" href="'+esc(ds)+'" target="_blank" rel="noopener">'+icon('doc',14)+' Tài liệu kỹ thuật</a>'
-          :'<span class="pd-fbtn dis" title="Sản phẩm chưa có link datasheet">'+icon('doc',14)+' Tài liệu kỹ thuật</span>')
-      +(ds?'<a class="pd-fbtn" href="'+esc(ds)+'" download target="_blank" rel="noopener">'+icon('download',14)+' Tải về</a>':'')
+    +'<div class="pd-foot2 pd-docs">'
+      +(docs.length?docs.map(function(d){ return '<a class="pd-fbtn" href="'+esc(d[1])+'" target="_blank" rel="noopener" title="'+esc(docName_(d[1]))+'">'+icon('doc',14)+' '+esc(d[0])+'</a>'; }).join('')
+        :'<span class="pd-fbtn dis" title="Sản phẩm chưa có tài liệu">'+icon('doc',14)+' Chưa có tài liệu</span>')
     +'</div>';
 }
 // Nội dung chi tiết SP xếp dọc (panel Bóc tách)
@@ -3158,6 +3159,7 @@ var DB_LABEL2COL_={
   'GIÁ ĐẠI LÝ':'gia_dai_ly'   // chỉ HIỂN THỊ: cột tự tính, server bỏ qua khi lưu
 };
 Object.keys(VS_SPEC.METRIC).forEach(function(lb){ if(!DB_LABEL2COL_[lb]) DB_LABEL2COL_[lb]=VS_SPEC.METRIC[lb][0]; });
+Object.assign(DB_LABEL2COL_,{'THÔNG SỐ KỸ THUẬT':'thong_so_file','HƯỚNG DẪN CÀI ĐẶT':'huong_dan_lap_dat','FILE BẢN VẼ':'file_ban_ve'});   // db/tai_lieu_sp.sql
 var SP_COL2LABEL_={}; Object.keys(DB_LABEL2COL_).forEach(function(k){ SP_COL2LABEL_[DB_LABEL2COL_[k]]=k; });
 // Dựng 1 ô nhập trong modal Sửa theo ĐÚNG định nghĩa của form Nhập (nhãn, kiểu, gợi ý, danh sách chọn)
 function speField_(f, raw){
@@ -3167,6 +3169,7 @@ function speField_(f, raw){
   if(lark==='LẮP NGUỒN RỜI') val=(val===true||val==='true')?'Có':(val?'Có':'');
   var star=req?' <span class="spe-req">*</span>':'';
   var inner;
+  if(type==='doc') return '<div class="spe-f wide docfield"><label>'+esc(label)+'</label>'+docInput_('data-col="'+col+'"',val)+'</div>';
   if(type==='hm'){
     var hmC=VS_SPEC.chuanHM(val)||val;
     inner='<select data-col="'+col+'" onchange="vsApplyHM_(document.getElementById(\'spEditOv\'),this.value,1)"><option value="">— Chọn hạng mục —</option>'
@@ -6600,8 +6603,10 @@ var DB_GROUPS=[
   {g:'Thương mại', f:[
     ['BẢO HÀNH (năm)','Bảo hành (năm)','num',0],['ĐƠN VỊ TÍNH','Đơn vị tính','sel',1,['Cái','Bộ','Mét']],
     ['TRẠNG THÁI','Trạng thái','sel',0,['Đang kinh doanh','Ngưng kinh doanh','Đặt hàng']],
-    ['LINK DATASHEET','Link tài liệu kỹ thuật','text',0,null,'Dán link PDF catalogue / datasheet'],
-    ['GHI CHÚ','Ghi chú','area',0] ]}
+    ['GHI CHÚ','Ghi chú','area',0] ]},
+  {g:'Tài liệu', note:'Tải file lên (PDF, ảnh, bản vẽ DWG/DXF, ZIP…) hoặc dán link — hiện thành nút mở trong Thông tin sản phẩm.', f:[
+    ['LINK DATASHEET','Tài liệu kỹ thuật / Catalogue','doc',0],['THÔNG SỐ KỸ THUẬT','Thông số kỹ thuật','doc',0],
+    ['HƯỚNG DẪN CÀI ĐẶT','Hướng dẫn cài đặt','doc',0],['FILE BẢN VẼ','File bản vẽ','doc',0] ]},
 ];
 var DB_FLAT=[]; DB_GROUPS.forEach(function(gr){ gr.f.forEach(function(f){ DB_FLAT.push(f); }); });
 
@@ -6633,8 +6638,10 @@ var DB_GROUPS_VS=[
     ['BẢO HÀNH (năm)','Bảo hành (năm)','num',0],
     ['ĐƠN VỊ TÍNH','Đơn vị tính','sel',1,['Cái','Bộ','Chiếc']],
     ['TRẠNG THÁI','Trạng thái','sel',0,['Đang kinh doanh','Ngưng kinh doanh','Đặt hàng']],
-    ['LINK DATASHEET','Link tài liệu kỹ thuật','text',0,null,'Dán link PDF catalogue / datasheet'],
-    ['GHI CHÚ','Ghi chú','area',0] ]}
+    ['GHI CHÚ','Ghi chú','area',0] ]},
+  {g:'Tài liệu', note:'Tải file lên (PDF, ảnh, bản vẽ DWG/DXF, ZIP…) hoặc dán link — hiện thành nút mở trong Thông tin sản phẩm.', f:[
+    ['LINK DATASHEET','Tài liệu kỹ thuật / Catalogue','doc',0],['THÔNG SỐ KỸ THUẬT','Thông số kỹ thuật','doc',0],
+    ['HƯỚNG DẪN CÀI ĐẶT','Hướng dẫn cài đặt','doc',0],['FILE BẢN VẼ','File bản vẽ','doc',0] ]},
 ];
 var DB_FLAT_VS=[]; DB_GROUPS_VS.forEach(function(gr){ gr.f.forEach(function(f){ DB_FLAT_VS.push(f); }); });
 /* Ngành hàng đang chọn ở trang Nhập dữ liệu -> bộ trường / bộ nhóm tương ứng */
@@ -6649,11 +6656,38 @@ function dbInput(f){
   var trg=(lark==='GIÁ BÁN LẺ'||lark==='CHIẾT KHẤU ĐẠI LÝ (%)')?' oninput="dbCalcDaiLy()"':'';
   if(type==='calc') inner='<input id="'+id+'" class="calc" type="number" placeholder="Tự tính từ giá bán & %CK" readonly>';
   else if(type==='area') inner='<textarea id="'+id+'" placeholder="'+esc(label)+'" style="min-height:54px"></textarea>';
+  else if(type==='doc') inner=docInput_('id="'+id+'"','');
   else if(type==='hm') inner='<select id="'+id+'" onchange="vsApplyHM_(document.getElementById(\'v-import\'),this.value)"><option value="">— Chọn hạng mục —</option>'
       +opts.map(function(o){return '<option value="'+esc(o)+'">'+esc(o)+'</option>';}).join('')+'</select>';
   else if(type==='sel') inner='<input id="'+id+'" list="dl_'+i+'" placeholder="'+esc(f[6]==='vs'?(ph||label):label)+'"><datalist id="dl_'+i+'">'+opts.map(function(o){return '<option value="'+esc(o)+'">';}).join('')+'</datalist>';
   else inner='<input id="'+id+'"'+(type==='num'?' type="number"':'')+trg+' placeholder="'+esc(ph)+'">';
-  return '<div class="field"'+(f[6]==='vs'?' data-vs="'+esc(lark)+'"':'')+'><label>'+esc(label)+star+'</label>'+inner+'</div>';
+  return '<div class="field'+(type==='doc'?' docfield':'')+'"'+(f[6]==='vs'?' data-vs="'+esc(lark)+'"':'')+'><label>'+esc(label)+star+'</label>'+inner+'</div>';
+}
+/* ═══ Ô TÀI LIỆU: tải file lên kho (uploadFile) HOẶC dán link — dùng ở form Nhập & modal Sửa ═══ */
+function docName_(u){ u=String(u||'').trim(); if(!u) return '';
+  var t=u.split('?')[0].split('/').pop()||u; try{ t=decodeURIComponent(t); }catch(e){}
+  return t.replace(/^\d{10,}-/,''); }                    // bỏ tiền tố thời gian của file đã tải lên
+function docChip_(u){ u=String(u||'').trim(); if(!u) return '';
+  return '<a class="docf-chip" href="'+esc(u)+'" target="_blank" rel="noopener" title="Mở tài liệu">'+icon('doc',13)+'<span>'+esc(docName_(u))+'</span></a>'; }
+function docInput_(attr,val){
+  return '<div class="docf"><input '+attr+' value="'+esc(val||'')+'" placeholder="Dán link hoặc bấm Tải file" oninput="docSync_(this)">'
+    +'<button type="button" class="docf-b" onclick="docPick_(this)" title="Tải file lên (PDF, ảnh, DWG/DXF, ZIP…, tối đa 20MB)">'+icon('download',14)+' Tải file</button></div>'
+    +'<div class="docf-cur">'+docChip_(val)+'</div>';
+}
+function docSync_(inp){ var c=inp&&inp.parentNode&&inp.parentNode.nextElementSibling; if(c) c.innerHTML=docChip_(inp.value); }
+function docPick_(btn){
+  var inp=btn.previousElementSibling, f=document.createElement('input'); f.type='file';
+  f.accept='.pdf,.png,.jpg,.jpeg,.webp,.dwg,.dxf,.skp,.zip,.rar,.7z,.doc,.docx,.xls,.xlsx,.ppt,.pptx';
+  f.onchange=function(){
+    var file=f.files&&f.files[0]; if(!file) return;
+    if(file.size>20*1024*1024){ toast('File quá lớn (tối đa 20MB) — hãy dán link thay vì tải lên'); return; }
+    var goc=btn.innerHTML; btn.disabled=true; btn.textContent='Đang tải…'; upBusy_(1);   // Lưu sẽ đợi file tải xong
+    readB64_(file).then(function(d){ return api('uploadFile', d, file.name); })
+      .then(function(r){ inp.value=(r&&r.url)||''; docSync_(inp); toast('Đã tải lên: '+file.name); })
+      .catch(function(e){ toast('Tải file lỗi: '+e.message); })
+      .then(function(){ btn.disabled=false; btn.innerHTML=goc; upBusy_(-1); });
+  };
+  f.click();
 }
 /* THIẾT BỊ VỆ SINH: chỉ hiện thông số của hạng mục đang chọn (form Nhập & modal Sửa dùng chung).
    Ô thuộc hạng mục khác bị ẩn; dấu * và danh sách chọn đổi theo hạng mục (VS_SPEC).          */
@@ -6835,7 +6869,7 @@ function upMoreInner_(){
     +'<div class="up-s">chọn được <b>nhiều ảnh</b> cùng lúc</div>'
     +'<div class="up-paste">'+icon('copy',11)+' hoặc dán ảnh bằng Ctrl+V</div>';
 }
-var DB_GICON={'Thông tin cơ bản':'tag','Thông tin giá bán':'money','Key Product Info (Thông tin chính)':'bulb','Thông số thiết kế':'ruler','Performance Specifications (Thông số hiệu suất)':'gauge','Driver (Nguồn LED / Chấn lưu)':'plug','Installation Specifications (Thông số lắp đặt)':'wrench','Thương mại':'sliders'};
+var DB_GICON={'Tài liệu':'doc','Thông tin cơ bản':'tag','Thông tin giá bán':'money','Key Product Info (Thông tin chính)':'bulb','Thông số thiết kế':'ruler','Performance Specifications (Thông số hiệu suất)':'gauge','Driver (Nguồn LED / Chấn lưu)':'plug','Installation Specifications (Thông số lắp đặt)':'wrench','Thương mại':'sliders'};
 function dbCard_(title, ic, note, inner){
   return '<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">'+(icon(ic,18)||esc(ic))+'</span><h3>'+esc(title)+'</h3></div>'
     +'<div class="dbcard-b">'+(note?'<p class="dbnote">'+esc(note)+'</p>':'')+inner+'</div></div>';
@@ -6870,7 +6904,8 @@ function impRecentList(){
         +(p.bienThe?'<div class="pc-bt" title="Biến thể">'+esc(p.bienThe)+'</div>':'')      // biến thể dòng riêng để phân biệt thẻ
         +(phu?'<div class="pc-sub" title="'+esc(phu)+'">'+esc(phu)+'</div>':'')
         +(p.loi?'<div class="pc-loi">'+esc(p.loi)+'</div>':'')
-        +'<span class="pc-tag">'+(dangSua?'Đang sửa':(p.loi?'Lỗi — sửa lại':'Chờ lưu'))+'</span></div>'
+        +'<span class="pc-tag">'+(dangSua?'Đang sửa':(p.loi?'Lỗi — sửa lại':'Chờ lưu'))+'</span>'
+        +((p.combo&&p.combo.length)?'<span class="pc-tag kt">+ combo '+p.combo.length+'</span>':'')+'</div>'
       +'<div class="pc-act">'
         +'<button class="pc-btn" title="Sửa — mở lại trong form" onclick="pendingEdit_('+i+')">'+icon('edit',14)+'</button>'
         +'<button class="pc-btn del" title="Xoá khỏi danh sách chờ" onclick="pendingDel_('+i+')">'+icon('trash',14)+'</button>'
@@ -6948,6 +6983,8 @@ function pendFillForm_(it){
   });
   if(S._impLoai==='vs') vsApplyHM_(box, d['HẠNG MỤC']);
   dbCalcDaiLy();
+  document.querySelectorAll('#v-import .docf input').forEach(docSync_);       // hiện tên file tài liệu
+  S._impCombo=(it.combo||[]).map(function(x){ return Object.assign({},x); }); impCbRender_();
   var imgs=String(d['ẢNH SẢN PHẨM']||it.hinhAnh||'').split('\n').map(function(x){ return x.trim(); }).filter(Boolean);
   S._imgMain=imgs[0]||''; S._imgList=imgs.slice(1); upRefresh();
   // ghi danh dự án đã chọn trước đó
@@ -6978,7 +7015,10 @@ async function pendingCommitRun_(ds, btn){
   for(var k=0;k<form.length;k++){
     var it=form[k];
     try{
-      await api('saveDbProduct', it.data); ok++;
+      var rs=await api('saveDbProduct', it.data); ok++;
+      if(it.combo && it.combo.length && rs && rs.id){
+        try{ await api('setCombo', String(rs.id), it.combo.map(function(x){ return {id:x.recordId, soLuong:Number(x.comboSL)||1}; })); }
+        catch(e4){ toast('Lưu "'+it.ten+'" OK nhưng combo lỗi: '+e4.message); } }
       sessionAdd_({ten:it.ten+(it.bienThe?' ('+it.bienThe+')':''), ma:it.ma, thuongHieu:it.thuongHieu, ncc:it.ncc, hinhAnh:it.hinhAnh});
       if(it.ghi){ try{ await api('addLine', it.ghi.maDA, it.ghi.prod, it.ghi.qty); ghiN++;
           if(S.cur&&S.cur.maDA===it.ghi.maDA){ S.lines=await api('getLines',it.ghi.maDA)||S.lines; } }
@@ -7087,8 +7127,51 @@ function ngOutside_(e){ if(e.target.closest('#ngPop')||e.target.closest('#ngBtn'
 function ngPopClose_(){ var p=document.getElementById('ngPop'); if(p) p.remove(); document.removeEventListener('mousedown',ngOutside_); }
 function ngPick_(v){ ngPopClose_(); impSetLoai(v); }
 function impLoaiTabs_(){ return ''; }
+/* Combo chọn ngay trong form Nhập: S._impCombo = [{recordId, ma, ten, hinhAnh, donGiaBan, comboSL}] */
+function impCbRender_(){
+  var box=document.getElementById('impCbList'); if(!box) return;
+  var ds=S._impCombo||[];
+  box.innerHTML=ds.length?ds.map(function(x,i){
+    return '<div class="cb-item">'+(x.hinhAnh?'<img class="cb-img" src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="cb-img"></span>')
+      +'<div class="cb-info"><div class="cb-nm" title="'+esc(x.ten||'')+'">'+esc(x.ten||'')+'</div><div class="cb-sub">'+esc(x.ma||'')+(x.donGiaBan?' · '+money(x.donGiaBan)+'đ':'')+'</div></div>'
+      +'<label class="cb-sl" title="Số lượng đi kèm cho mỗi sản phẩm chính">×<input type="number" min="1" step="1" value="'+(Number(x.comboSL)||1)+'" oninput="impCbSL_('+i+',this.value)"></label>'
+      +'<button class="cb-del" title="Bỏ khỏi combo" onclick="impCbDel_('+i+')">'+icon('x',14)+'</button></div>';
+  }).join(''):'<div class="cb-empty">Chưa chọn sản phẩm đi kèm — gõ tên / mã ở ô trên'+(impLoai_()==='vs'?', hoặc bấm vào ô để xem gợi ý theo hạng mục':'')+'.</div>';
+}
+function impCbSL_(i,v){ var x=(S._impCombo||[])[i]; if(x) x.comboSL=Math.max(1,Number(v)||1); }
+function impCbDel_(i){ (S._impCombo||[]).splice(i,1); impCbRender_(); }
+function impCbAdd_(rid){
+  var p=(S.products||[]).filter(function(x){ return String(x.recordId)===String(rid); })[0]; if(!p) return;
+  S._impCombo=S._impCombo||[];
+  if(S._impCombo.some(function(x){ return String(x.recordId)===String(rid); })){ toast('Sản phẩm này đã có trong combo'); return; }
+  S._impCombo.push({recordId:p.recordId, ma:p.ma, ten:p.ten, hinhAnh:p.hinhAnh, donGiaBan:p.donGiaBan, comboSL:1});
+  var q=document.getElementById('impCbQ'); if(q) q.value='';
+  impCbRender_(); impCbSearch_('');
+}
+function impCbSearch_(q){
+  var box=document.getElementById('impCbSug'); if(!box) return;
+  q=String(q||'').trim().toLowerCase();
+  var ng=(impLoai_()==='vs')?'vs':'den', chon={}; (S._impCombo||[]).forEach(function(x){ chon[String(x.recordId)]=1; });
+  var hit, tieuDe='';
+  if(!q){
+    var hmEl=document.getElementById(dbIdOf('HẠNG MỤC')), h=(ng==='vs'&&hmEl)?VS_SPEC.hmOf(hmEl.value):null;
+    if(!h||!h.kem.length){ box.style.display='none'; return; }
+    hit=(S.products||[]).filter(function(p){ return !chon[String(p.recordId)] && nganhCuaSP_(p)==='vs' && h.kem.indexOf(VS_SPEC.chuanHM(p.hangMuc))>=0; }).slice(0,8);
+    tieuDe='<div class="cb-sug-h">Gợi ý đi kèm: '+esc(h.kem.join(', '))+'</div>';
+  } else {
+    hit=(S.products||[]).filter(function(p){ return !chon[String(p.recordId)] && ((p.ten||'')+' '+(p.ma||'')+' '+(p.thuongHieu||'')).toLowerCase().indexOf(q)>=0; });
+    hit.sort(function(a,b){ return (nganhCuaSP_(a)===ng?0:1)-(nganhCuaSP_(b)===ng?0:1); }); hit=hit.slice(0,8);
+  }
+  box.innerHTML=hit.length?tieuDe+hit.map(function(p){ var lbl=cbLbl_(p);
+    return '<button class="cb-sug" onmousedown="event.preventDefault()" onclick="impCbAdd_(\''+esc(String(p.recordId))+'\')">'
+      +(p.hinhAnh?'<img src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="cb-img"></span>')
+      +'<span class="cb-sug-nm">'+esc(p.ten||'')+'<i>'+esc(p.ma||'')+(lbl?' · '+esc(lbl):'')+(p.donGiaBan?' · '+money(p.donGiaBan)+'đ':'')+'</i></span></button>';
+  }).join(''):'<div class="cb-empty">Không tìm thấy sản phẩm khớp.</div>';
+  box.style.display='block';
+}
 function renderImport(){
   if(impLoai_()==='pt') return renderImportPT_();
+  S._impCombo=[];                                   // form mới: combo trống (đang sửa dòng chờ thì pendFillForm_ nạp lại)
   // Đang sửa 1 dòng chờ: chỉ giữ chế độ sửa nếu dòng còn tồn tại và ĐÚNG ngành đang xem (đổi ngành = huỷ sửa)
   var suaIt=S._pendEdit?(S._pending||[]).filter(function(x){ return x.uid===S._pendEdit; })[0]:null;
   if(S._pendEdit && (!suaIt || pendNganhLoai_(suaIt)!==impLoai_())){ S._pendEdit=null; suaIt=null; }
@@ -7101,6 +7184,10 @@ function renderImport(){
         (gr.vs?'<div class="vs-empty dbnote">Chọn <b>Hạng mục</b> ở phần Thông tin cơ bản để hiện đúng thông số của hạng mục đó.</div>':'')
         +'<div class="dbgrid">'+gr.f.map(dbInput).join('')+'</div>');
     }).join('')
+    +dbCard_('Sản phẩm đi kèm (combo)','layers','Chọn các sản phẩm luôn bán / lắp cùng sản phẩm này (VD bồn cầu + nắp rửa + vòi xịt). Lưu cùng lúc khi bấm Thêm sản phẩm.',
+      '<div class="cb-find"><input id="impCbQ" placeholder="Tìm theo tên, mã hoặc thương hiệu…" autocomplete="off"'
+        +' oninput="impCbSearch_(this.value)" onfocus="impCbSearch_(this.value)" onblur="setTimeout(function(){ var b=document.getElementById(\'impCbSug\'); if(b) b.style.display=\'none\'; },150)">'
+        +'<div class="cb-sug-box" id="impCbSug"></div></div><div class="cb-list" id="impCbList"></div>')
     +dbCard_('Nhập biến thể (tuỳ chọn)','sliders','Nhập nhiều giá trị cách nhau bằng dấu phẩy — hệ thống tạo 1 sản phẩm cho MỖI tổ hợp (cùng mã SP, khác thông số).',
       '<div class="dbgrid">'
       // Ba trục dưới chỉ có nghĩa với ĐÈN — ngành vệ sinh chỉ tách biến thể theo MÀU
@@ -7135,6 +7222,7 @@ function renderImport(){
     +impLoaiTabs_()+impStatBar()
     +'<div class="imp-layout">'+form+'<div class="imp-recent" id="impRecentBox">'+impRecentList()+'</div></div>';
   if(impLoai_()==='vs') vsApplyHM_(box,'');
+  impCbRender_();
   if(suaIt) pendFillForm_(suaIt);            // nạp lại dữ liệu dòng đang sửa (sau đổi tab / vẽ lại)
 }
 /* Nhập dữ liệu — hạng mục PHẦN THÔ: thêm công tác xây dựng vào cơ sở dữ liệu */
@@ -7687,6 +7775,8 @@ async function tdSave(btn){
       items.push(Object.assign({kind:'form', data:d2, ten:ten, bienThe:bt, ma:data['MÃ SẢN PHẨM']||''}, meta));
     });
   } else items.push(Object.assign({kind:'form', data:data, ten:ten, ma:data['MÃ SẢN PHẨM']||''}, meta));
+  var cbo=(S._impCombo||[]).map(function(x){ return Object.assign({},x); });
+  if(cbo.length) items.forEach(function(x){ x.combo=cbo; });          // mỗi biến thể cùng bộ đi kèm
   // Ghi danh vào dự án (tuỳ chọn) — thực hiện SAU khi lưu thành công, gắn vào dòng đầu của lượt này
   var gd=document.getElementById('impGhiDanh'), ps=document.getElementById('impProjSel'), sl=document.getElementById('impGhiSL');
   if(gd&&gd.checked&&ps&&ps.value){
