@@ -5671,6 +5671,31 @@ body > :not(.topnav):not(.wrap):not(script):not(#loginScreen) > *{zoom:var(--uiz
 @keyframes splRun{0%{left:-40%}100%{left:100%}}
 @keyframes splGlow{0%,100%{opacity:.75;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}}
 @media (prefers-reduced-motion:reduce){ .spl-glow,.spl-bar span{animation:none} .spl-bar span{left:30%} }
+
+/* ═══ Chi phí / Dự án: hàng "Hạng mục đã bóc" + dòng số liệu + khung Cột hiển thị giống Bóc tách ═══ */
+.pgh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 0;padding:10px 14px;background:#fff;border:1px solid var(--ln,#e8ecf1);border-radius:12px}
+.pgh-lbl{font-size:13px;font-weight:600;color:#3a4653}
+.pgh .pgh-pill{border:1px solid #d7dde4;border-radius:999px;height:34px;padding:0 10px 0 14px;gap:10px;min-width:210px;font-weight:600}
+.pgh .pgh-pill::after{content:'+';display:inline-grid;place-items:center;width:16px;height:16px;margin-left:auto;border-radius:50%;background:#e6e9ed;color:#2a3542;font-size:12px;font-weight:600;line-height:1}
+.pgh .pgh-pill:hover{border-color:#aab6c4}
+.pgh-tot{margin-left:auto;flex-wrap:wrap;row-gap:6px}
+.tkt-i.ln.green b{color:#15803d}
+.tkt-i.ln.red b{color:#c33}
+.pg-cols{margin:10px 0 0;padding:8px 14px;background:#fff;border:1px solid var(--ln,#e8ecf1);border-radius:12px}
+.pg-cols .tk-frame-hr{display:flex;align-items:center;gap:8px}
+.pg-cols .tk-frame-h.fold-h{display:inline-flex;align-items:center;gap:6px;margin:0;padding:4px 6px 4px 0;border:none;background:none;cursor:pointer;font:inherit;
+  font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6b7684}
+.pg-cols .tk-frame-h.fold-h b{font-weight:600;color:#9aa4b0;letter-spacing:0}
+.pg-cols .tk-frame-h.fold-h:hover{color:var(--blue)}
+.pg-q{height:24px;padding:0 9px;border:1px dashed #b9c9e6;border-radius:6px;background:#f7faff;font:inherit;font-size:11px;font-weight:600;color:#1d4ed8;cursor:pointer}
+.pg-q:hover{border-style:solid;background:#eaf1ff}
+.pg-cols .colchips{margin:8px 0 2px!important}
+body.fold-cols .pg-cols .colchips{display:none}
+.pg-cols .colchips .chip{height:24px;padding:0 9px;border-radius:4px;border:1px solid #2a3542;background:#fff;color:#1c2735;font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.pg-cols .colchips .chip.on{background:#dfe3e8;border-color:#dfe3e8;color:#1c2735}
+/* dòng được nhảy tới từ Tìm nhanh / Vừa thêm */
+tr.qb-flash td{animation:qbFlash 1.8s ease}
+@keyframes qbFlash{0%,35%{background:#fff4c2}100%{background:inherit}}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -5780,9 +5805,9 @@ body > :not(.topnav):not(.wrap):not(script):not(#loginScreen) > *{zoom:var(--uiz
   </div>
 
   <!-- ===== VIEW: BÓC TÁCH ===== -->
+  <!-- Thanh công cụ nhanh DÙNG CHUNG Bóc tách · Chi phí · Dự án (qbMount_ chuyển tới trên tab đang mở) -->
+  <div class="qbar" id="qbar"></div>
   <div class="view on" id="v-boc">
-    <!-- Thanh công cụ nhanh: hạng mục gần đây · tìm nhanh (Ctrl/⌘+K) · nút nhanh -->
-    <div class="qbar" id="qbar"></div>
     <div class="boc" id="bocGrid">
       <!-- LEFT: filter + catalog -->
       <div class="panel catpanel" id="leftCat">
