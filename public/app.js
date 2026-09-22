@@ -3879,17 +3879,71 @@ function tkPresetApply_(id){
   tkPresetClose_(); renderColChips(); renderTable(); if(bgVis()) drawBaogia();
   toast('Đã bật bộ cột: '+ps[1]);
 }
+/* ═══ BỘ CỘT "CỦA TÔI" — lưu theo TÀI KHOẢN ═══
+   Bấm "Lưu cột đang hiện…" -> ghi vào users.ui_prefs.tkCols trên server (đăng nhập máy khác vẫn còn),
+   kèm bản dự phòng localStorage theo tên tài khoản. Mỗi lần đăng nhập tự bật lại đúng bộ này. */
+function tkMyKey_(){ return 'qs_tkcols_'+String((S.me&&S.me.username)||'').toLowerCase(); }
+function tkMyCols_(){
+  var v=S.me&&S.me.uiPrefs&&S.me.uiPrefs.tkCols;
+  if(!Array.isArray(v)){ try{ v=JSON.parse(localStorage.getItem(tkMyKey_())||'null'); }catch(e){ v=null; } }
+  if(!Array.isArray(v)) return null;
+  var ok={}; COLS.forEach(function(c){ ok[c[0]]=1; });
+  v=v.filter(function(k){ return ok[k]; });
+  return v.length?v:null;
+}
+function tkMyOn_(){ var v=tkMyCols_(); if(!v) return false; var want={}; v.forEach(function(k){ want[k]=1; }); want.ten=1;
+  return COLS.every(function(c){ return !!S.cols[c[0]]===!!want[c[0]]; }); }
+// Đăng nhập xong: bật bộ cột của tài khoản (chưa lưu thì về Mặc định — không mang bộ cột của tài khoản trước)
+function tkMyColsApply_(){
+  var v=tkMyCols_(), want={};
+  if(v){ v.forEach(function(k){ want[k]=1; }); } else COLS.forEach(function(c){ if(c[2]) want[c[0]]=1; });
+  COLS.forEach(function(c){ S.cols[c[0]]=!!want[c[0]]; }); S.cols.ten=true;
+}
+function tkMyUse_(){
+  if(!tkMyCols_()) return; tkMyColsApply_();
+  tkPresetClose_(); renderColChips(); renderTable(); if(bgVis()) drawBaogia();
+  toast('Đã bật bộ cột của tôi');
+}
+async function tkMySave_(){
+  var keys=COLS.filter(function(c){ return S.cols[c[0]]; }).map(function(c){ return c[0]; });
+  try{ localStorage.setItem(tkMyKey_(), JSON.stringify(keys)); }catch(e){}
+  try{
+    var r=await api('setMyPref','tkCols',keys);
+    if(S.me) S.me.uiPrefs=(r&&r.uiPrefs)||Object.assign({},S.me.uiPrefs,{tkCols:keys});
+    toast('Đã lưu '+keys.length+' cột làm mặc định của tài khoản '+((S.me&&S.me.username)||''));
+  }catch(e){ toast('Đã lưu trên máy này. Lưu theo tài khoản lỗi: '+e.message); }
+  tkPresetClose_(); renderColChips();
+}
+async function tkMyClear_(){
+  if(!confirm('Xoá bộ cột "Của tôi"? Lần sau đăng nhập sẽ dùng bộ Mặc định.')) return;
+  try{ localStorage.removeItem(tkMyKey_()); }catch(e){}
+  try{ var r=await api('setMyPref','tkCols',null); if(S.me) S.me.uiPrefs=(r&&r.uiPrefs)||{}; }
+  catch(e){ if(S.me&&S.me.uiPrefs) delete S.me.uiPrefs.tkCols; }
+  tkPresetClose_(); renderColChips(); toast('Đã xoá bộ cột của tôi');
+}
 function tkPresetPop_(e){
   if(e&&e.stopPropagation) e.stopPropagation();
   if(document.getElementById('tkPresetPop')){ tkPresetClose_(); return; }
   var pop=document.createElement('div'); pop.className='fltpop bgtree'; pop.id='tkPresetPop';
+  var mine=tkMyCols_(), mineOn=tkMyOn_(), dem=COLS.filter(function(c){ return S.cols[c[0]]; }).length;
   pop.innerHTML='<div class="bgt-h"><b>Chọn nhanh cột</b><button class="colpop-x" onclick="tkPresetClose_()">✕</button></div>'
-    +'<div class="bgt-b">'+TK_PRESETS.map(function(ps){
+    +'<div class="bgt-b">'
+      // bộ cột RIÊNG của tài khoản — luôn đứng đầu
+      +(mine?('<div class="bgt-i lvl1 tkmine'+(mineOn?' on':'')+'" onclick="tkMyUse_()">'
+          +'<span class="nm">'+icon('check',13)+' Của tôi <i class="tkmine-u">'+esc((S.me&&S.me.username)||'')+'</i></span><span class="cn">'+mine.length+' cột</span>'
+          +'<span class="rd'+(mineOn?' on':'')+'"></span></div>'):'')
+      +TK_PRESETS.map(function(ps){
         var on=tkPresetOn_(ps), n=tkPresetKeys_(ps).length;
         return '<div class="bgt-i lvl1'+(on?' on':'')+'" onclick="tkPresetApply_(\''+ps[0]+'\')">'
           +'<span class="nm">'+esc(ps[1])+'</span><span class="cn">'+n+' cột</span>'
           +'<span class="rd'+(on?' on':'')+'"></span></div>';
-      }).join('')+'</div>';
+      }).join('')+'</div>'
+    +'<div class="tkmine-f">'
+      +'<button class="btn blue sm" onclick="tkMySave_()"'+(mineOn?' disabled title="Bộ cột đang hiện đã là bộ của bạn"':'')+'>'+icon('check',13)
+        +' Lưu '+dem+' cột đang hiện làm mặc định của tôi</button>'
+      +(mine?'<button class="btn ghost sm" onclick="tkMyClear_()">Xoá bộ của tôi</button>':'')
+      +'<div class="tkmine-n">Lưu theo tài khoản — lần sau đăng nhập (kể cả máy khác) tự hiện đúng các cột này.</div>'
+    +'</div>';
   document.body.appendChild(pop);
   var b=document.getElementById('tkPresetBtn');
   if(b){ var r=b.getBoundingClientRect(), w=pop.offsetWidth||300, h=pop.offsetHeight;
@@ -3903,8 +3957,9 @@ function renderColChips(){
   var el=document.getElementById('colChips'); if(!el) return;
   var on=COLS.filter(function(c){ return S.cols[c[0]]; }).length;
   var cur=TK_PRESETS.filter(tkPresetOn_)[0];
-  el.innerHTML='<button class="chip-quick" id="tkPresetBtn" onclick="tkPresetPop_(event)" title="Bật cả một bộ cột theo mục đích">'
-      +icon('sliders',13)+'<span>'+esc(cur?cur[1]:'Chọn nhanh')+'</span><b>'+on+'/'+COLS.length+'</b><i>▾</i></button>'
+  var nhan=tkMyOn_()?'Của tôi':(cur?cur[1]:'Chọn nhanh');
+  el.innerHTML='<button class="chip-quick" id="tkPresetBtn" onclick="tkPresetPop_(event)" title="Bật cả một bộ cột theo mục đích / bộ cột của tôi">'
+      +icon('sliders',13)+'<span>'+esc(nhan)+'</span><b>'+on+'/'+COLS.length+'</b><i>▾</i></button>'
     +COLS.map(function(c){
     return '<span class="chip'+(S.cols[c[0]]?' on':'')+'" onclick="toggleCol(\''+c[0]+'\')">'+esc(c[1])+'</span>';
   }).join('');
@@ -9938,7 +9993,9 @@ async function doLogin_(){
   btn.disabled=false; btn.textContent='Đăng nhập';
 }
 function loginTogglePw(){ var i=document.getElementById('loginPw'), e=document.querySelector('.login-eye'); if(!i)return; var show=i.type==='password'; i.type=show?'text':'password'; if(e) e.classList.toggle('on',show); i.focus(); }
-function onAuthed_(){ var ls=document.getElementById('loginScreen'); if(ls) ls.style.display='none'; applyRoleUI_(); boot();
+function onAuthed_(){ var ls=document.getElementById('loginScreen'); if(ls) ls.style.display='none'; applyRoleUI_();
+  try{ tkMyColsApply_(); }catch(e){}           // bật bộ cột "Của tôi" của tài khoản vừa đăng nhập
+  boot();
   // Nếu tài khoản không có quyền vào tab đang mở -> chuyển tới tab đầu tiên hợp lệ
   var cur=document.querySelector('#nav a.active, .topnav .right a.active'); var t=cur?cur.getAttribute('data-tab'):'boc';
   if(!canTab(t)){ var f=firstAllowedTab_(); if(f) showTab(f); }

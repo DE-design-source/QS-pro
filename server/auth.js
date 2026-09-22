@@ -231,14 +231,37 @@ async function login(username, password) {
   } else if (u.cong_ty_id) { ct = await getCongTy(u.cong_ty_id); }
   await supa.update('users', supa.eq('id', u.id), patch, { noScope: true });
   await audit({ uid: u.id, u: u.username }, 'login', 'Đăng nhập' + (isBcrypt ? '' : ' (tự băm mật khẩu)'));
-  return { token: makeToken(u), user: userOut(u), congTy: ct };
+  return { token: makeToken(u), user: Object.assign(userOut(u), { uiPrefs: prefsOf_(u) }), congTy: ct };
 }
 async function me(actor) {
   const u = await getUserById(actor.uid);
   if (!u || u.active === false) throw new Error('Phiên không hợp lệ');
   const out = userOut(u);
+  out.uiPrefs = prefsOf_(u);
   out.congTy = await getCongTy(u.cong_ty_id);
   return out;
+}
+/* ---------- Cài đặt giao diện RIÊNG từng tài khoản (db/user_ui_prefs.sql) ----------
+   ui_prefs = { tkCols: [...] } — bộ cột "Của tôi" của bảng Bóc tách, theo tài khoản
+   nên đăng nhập máy khác vẫn giữ. value = null -> xoá khoá đó.                     */
+function prefsOf_(u) { const p = u && u.ui_prefs; return (p && typeof p === 'object' && !Array.isArray(p)) ? p : {}; }
+const PREF_KEYS = ['tkCols'];
+async function setMyPref(actor, key, value) {
+  if (PREF_KEYS.indexOf(key) < 0) throw new Error('Khoá cài đặt không hợp lệ');
+  if (value != null && key === 'tkCols' && !(Array.isArray(value) && value.length <= 60 && value.every(function (x) { return typeof x === 'string' && x.length < 40; })))
+    throw new Error('Bộ cột không hợp lệ');
+  const u = await getUserById(actor.uid);
+  if (!u) throw new Error('Phiên không hợp lệ');
+  const prefs = Object.assign({}, prefsOf_(u));
+  if (value == null) delete prefs[key]; else prefs[key] = value;
+  try { await supa.update('users', supa.eq('id', u.id), { ui_prefs: prefs }, { noScope: true }); }
+  catch (e) {
+    const m = (e && e.message) || '';
+    if (/ui_prefs/.test(m) && /(column|schema cache|PGRST204)/i.test(m))
+      throw new Error('Cơ sở dữ liệu chưa có cột "ui_prefs". Vào Supabase → SQL Editor chạy file db/user_ui_prefs.sql rồi thử lại.');
+    throw e;
+  }
+  return { ok: true, uiPrefs: prefs };
 }
 async function logout(actor) { await audit(actor, 'logout', 'Đăng xuất'); return { ok: true }; }
 async function changePassword(actor, oldPw, newPw) {
@@ -628,7 +651,7 @@ module.exports = {
   listCongTyUsers, createCongTyUser,
   listCongTy, createCongTy, updateCongTy, deleteCongTy, getCongTy,
   getPurchaseOrder,
-  verifyToken, login, me, logout, changePassword,
+  verifyToken, login, me, logout, changePassword, setMyPref,
   adminListUsers, adminCreateUser, adminUpdateUser, adminSetPassword, adminSetActive, adminDeleteUser, getAuditLog,
   notifCount, notifList, notifRead, notifReadAll,
   requestDeleteProducts, listDeleteRequests, resolveDeleteRequest,

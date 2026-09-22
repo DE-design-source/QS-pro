@@ -82,6 +82,7 @@ const REGISTRY = {
   // ===== Auth & phân quyền =====
   login: auth.login,
   me: auth.me,
+  setMyPref: auth.setMyPref,
   logout: auth.logout,
   changePassword: auth.changePassword,
   adminListUsers: auth.adminListUsers,
@@ -115,7 +116,7 @@ const REGISTRY = {
 // Hàm không cần đăng nhập
 const PUBLIC_FNS = new Set(['login']);
 // Hàm cần đưa "actor" (người thao tác) làm tham số đầu
-const ACTOR_FNS = new Set(['me', 'logout', 'changePassword',
+const ACTOR_FNS = new Set(['me', 'setMyPref', 'logout', 'changePassword',
   'adminListUsers', 'adminCreateUser', 'adminUpdateUser', 'adminSetPassword', 'adminSetActive', 'adminDeleteUser',
   'notifCount', 'notifList', 'notifRead', 'notifReadAll',
   'requestDeleteProducts', 'listDeleteRequests', 'resolveDeleteRequest',
