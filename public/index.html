@@ -5525,6 +5525,14 @@ body.fold-totals .tk-panel .tk-totals{display:none}
 #tkPresetSlot .chip-quick{margin:0}
 .tk-panel .tk-frame-cols .colchips{margin-top:8px}
 body.fold-cols .tk-panel .tk-frame-cols .colchips{display:none}
+
+/* ════════ CỠ GIAO DIỆN: ở 100% trình duyệt, app hiển thị gọn như 90% ════════
+   Thu nhỏ phần TRANG (menu + nội dung). Popup / cửa sổ nổi được gắn thẳng vào <body> và đặt vị trí
+   theo toạ độ màn hình -> KHÔNG thu nhỏ khung của chúng (để vẫn mở đúng chỗ), chỉ thu nhỏ nội dung bên trong. */
+:root{--uiz:1}
+@media (min-width:1200px){ :root{--uiz:.9} }
+.topnav, body > .wrap{zoom:var(--uiz)}
+body > :not(.topnav):not(.wrap):not(script):not(#loginScreen) > *{zoom:var(--uiz)}
 </style>
 
 <!-- ===== TOP NAV ===== -->
