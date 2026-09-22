@@ -5547,6 +5547,68 @@ body.fold-cols .tk-panel .tk-frame-cols .colchips{display:none}
 @media (min-width:1200px){ :root{--uiz:.9} }
 .topnav, body > .wrap{zoom:var(--uiz)}
 body > :not(.topnav):not(.wrap):not(script):not(#loginScreen) > *{zoom:var(--uiz)}
+
+/* ════════ BÓC TÁCH — TỐI GIẢN (không khung lồng khung, ít viền, ít màu đậm) ════════ */
+/* panel phải: các khối trong cùng 1 thẻ, ngăn bằng đường kẻ mảnh */
+#v-boc .tk-panel{padding:14px 16px 12px}
+#v-boc .tk-panel .tk-frame{border:none;border-radius:0;background:none;box-shadow:none}
+#v-boc .tk-panel .toolbar.tk-frame-hm{padding:0 0 12px;margin:0 0 2px;border-bottom:1px solid #eef1f4;gap:10px;flex-wrap:wrap}
+#v-boc .tk-panel .tk-frame-cols{padding:10px 0;margin:0 0 12px;border-bottom:1px solid #eef1f4}
+#v-boc .tk-panel .toolbar h3{font-size:13px;font-weight:600;color:#3a4653}
+#v-boc .tk-zen,#v-boc .tk-mini{display:none!important}          /* đã có nút Mở rộng bảng trên thanh công cụ */
+#v-boc .side-tog{width:32px;height:32px;border:1px solid #e3e8ee;border-radius:8px;background:#fff}
+#v-boc .tk-panel .tk-frame-hm .tree-btn{border:1px solid #d7dde4;height:34px;padding:0 10px 0 14px;font-weight:600}
+#v-boc .tk-panel .tk-frame-hm .tree-btn:hover{border-color:#aab6c4}
+/* tổng tiền: dòng số liệu bên phải */
+#v-boc .tk-panel .toolbar .tk-totals{margin:0 0 0 auto;display:block}
+.tkt-row{display:flex;align-items:center;gap:0}
+.tkt-i{display:flex;align-items:baseline;gap:7px;padding:0 14px;border-left:1px solid #e6eaef;white-space:nowrap}
+.tkt-i:first-child{border-left:none}
+.tkt-i i{font-style:normal;font-size:11.5px;color:#8b96a5;display:inline-flex;align-items:center;gap:4px}
+.tkt-i b{font-size:13.5px;font-weight:600;color:#1c2735}
+.tkt-i.grand{padding-right:2px}
+.tkt-i.grand i{color:#1c2735;font-weight:600}
+.tkt-i.grand b{font-size:16px;font-weight:700;color:var(--navy,#12315a)}
+.tkt-i .tkt-vat{width:38px;height:24px;padding:0 5px;font-size:12px;border:1px solid #e3e8ee;border-radius:6px;text-align:right}
+@media(max-width:1280px){ .tkt-i{padding:0 9px} .tkt-i.grand b{font-size:14.5px} }
+/* ĐẦU BẢNG SÁNG MÀU */
+#v-boc table.tk th{background:#f6f8fa!important;color:#3a4653!important;font-size:11px!important;font-weight:600!important;letter-spacing:.02em!important;
+  text-transform:none!important;border-right:1px solid #eceff3!important;border-bottom:1px solid #e3e8ee!important;padding:9px 10px!important}
+#v-boc table.tk th .thflt{color:#9aa4b0}
+#v-boc table.tk th.thk.fltOn .thflt{color:#1d4ed8}
+#v-boc table.tk th.sortOn{background:#eaf1ff!important;color:#1d4ed8!important}
+#v-boc table.tk th.sortOn .thl{color:#1d4ed8!important}
+#v-boc table.tk th.thk.dropL{box-shadow:inset 3px 0 0 var(--blue)}
+#v-boc table.tk th.thk.dropR{box-shadow:inset -3px 0 0 var(--blue)}
+#v-boc #tkNormal .tbl-wrap{border:1px solid #e3e8ee;border-radius:10px}
+/* hàng tầng / phòng nhẹ */
+#v-boc table.tk tr.grp td{background:#fafbfc!important;color:#1c2735!important;font-size:11.5px!important;font-weight:700!important;letter-spacing:.03em;
+  border-top:1px solid #eef1f4!important;border-bottom:1px solid #eef1f4!important;padding:9px 12px!important}
+#v-boc table.tk tr.drow:hover td{background:#f7faff}
+/* PANEL TRÁI nhẹ hơn */
+#v-boc #leftCat .msel{border:1px solid #dfe4ea!important;background:#fff;height:38px}
+#v-boc #leftCat .msel.active{border-color:#b9c4d2!important}
+#v-boc #leftCat .msel:hover{border-color:#aab6c4!important}
+#v-boc #catList .citem{border:none;border-bottom:1px solid #f0f2f5;border-radius:0;padding-top:12px;padding-bottom:12px}
+#v-boc #catList .citem:hover{background:#fafbfc}
+/* thẻ Biến thể / Combo: trung tính thay cam / xanh đậm */
+#v-boc .cc-tag{background:#f3f5f8!important;border:1px solid #e3e8ee!important;color:#4a5563!important}
+#v-boc .cc-tag.on{background:#eaf1ff!important;border-color:#cfe0ff!important;color:#1d4ed8!important}
+#v-boc .ccbox,#v-boc .ccbox.bt{--cc-vien:#e6eaef;--cc-nen:#fbfcfd;--cc-hnen:#f6f8fa;--cc-hchu:#4a5563;--cc-nhan:#64748b}
+
+/* bảng Phần thô: cùng kiểu đầu bảng sáng */
+#v-boc table.pt th{background:#f6f8fa!important;color:#3a4653!important;font-size:11px!important;font-weight:600!important;letter-spacing:.02em!important;
+  text-transform:none!important;border-right:1px solid #eceff3!important;border-bottom:1px solid #e3e8ee!important}
+#v-boc table.pt th.thk.sortOn{background:#eaf1ff!important;color:#1d4ed8!important}
+#v-boc table.pt th.thk .ptrsz:hover{background:rgba(37,99,235,.12)}
+#v-boc table.pt tr.pt-sec td{background:#fafbfc!important;border-color:#eef1f4!important}
+#v-boc table.pt tr.pt-grand td{border-top:1px solid #d7dde4!important}
+
+/* chip cột bảng Phần thô: cùng kiểu chip cột bảng bóc tách */
+#v-boc .pt-colchips .chip{height:24px;padding:0 9px;border-radius:4px;border:1px solid #2a3542;background:#fff;color:#1c2735;
+  font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+#v-boc .pt-colchips .chip.on{background:#dfe3e8!important;border-color:#dfe3e8!important;color:#1c2735!important}
+#v-boc .pt-colchips .chip.fltchip.on{background:#eaf1ff!important;border-color:#cfe0ff!important;color:#1d4ed8!important}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -5718,10 +5780,10 @@ body > :not(.topnav):not(.wrap):not(script):not(#loginScreen) > *{zoom:var(--uiz
           </div>
           <div class="sheets" id="tkSheets"></div>
           <div class="sp" style="flex:1"></div>
-          <span class="tk-mini" id="tkMini" onclick="foldToggle_('totals')" title="Bấm để mở lại khối tổng tiền"></span>
+          <div class="tk-totals" id="tkTotals"></div>
+          <span class="tk-mini" id="tkMini"></span>
           <button class="tk-zen" id="tkZenBtn" onclick="tkZenToggle()" title="Thu gọn khối đầu bảng cho màn hình rộng hơn" aria-label="Thu gọn khối đầu bảng"><i></i></button>
         </div>
-        <div class="tk-totals" id="tkTotals"></div>
         <div id="tkNormal">
           <div class="floorhint" id="floorHint"></div>
           <div class="tk-frame tk-frame-cols">

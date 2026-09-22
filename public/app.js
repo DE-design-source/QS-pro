@@ -3902,7 +3902,7 @@ function qbRightSync_(){
     +qbBtn_('qbRepl',QB_IC.repl,'Tìm & thay trong bảng (Ctrl+F)','openFindReplace()',false)
     +'<span class="qb-sep"></span>'
     +qbBtn_('qbSide',QB_IC.panel,side?'Hiện panel sản phẩm bên trái':'Ẩn panel sản phẩm — bảng rộng hơn','sideToggle_();qbRightSync_()',side)
-    +qbBtn_('qbZen',QB_IC.zen,zen?'Mở lại các khối đầu trang':'Mở rộng bảng — thu gọn băng dự án, tổng tiền, chip cột','foldAll_()',zen)
+    +qbBtn_('qbZen',QB_IC.zen,zen?'Mở lại các khối đầu trang':'Mở rộng bảng — thu gọn băng dự án và chip cột','foldAll_()',zen)
     +'<button class="qb-exp" onclick="showTab(\'export\')" title="Sang tab Xuất báo giá">'+icon('download',14)+' Xuất báo giá</button>';
 }
 function qbGoNode_(code){ if(code===S.node) return; pickNode(code); }
@@ -4364,15 +4364,13 @@ function renderTable(){
   var vat=Math.round(sub*vatPct/100);
   var te=document.getElementById('tkTotals');
   if(te){
-    te.innerHTML='<div class="tkt-bar">'
-     +'<div class="tkt-seg"><span class="tkt-ic">'+icon('money',16)+'</span><span class="tkt-c"><span class="tkt-l">Tổng chưa VAT</span><span class="tkt-v">'+money(sub)+' đ</span></span></div>'
-     +'<div class="tkt-seg"><span class="tkt-ic">'+icon('gauge',16)+'</span><span class="tkt-c"><span class="tkt-l">Thuế VAT <input class="tkt-vat" type="number" step="any" min="0" value="'+vatPct+'" onchange="setVat(this.value)">%</span><span class="tkt-v">'+money(vat)+' đ</span></span></div>'
-     +'<div class="tkt-seg grand"><span class="tkt-ic">'+icon('cart',17)+'</span><span class="tkt-c"><span class="tkt-l">Tổng thành tiền</span><span class="tkt-v">'+money(sub+vat)+' đ</span></span></div>'
-     +'<button class="fold-btn tkt-fold" onclick="foldToggle_(\'totals\')" title="Thu gọn khối tổng tiền (vẫn thấy tổng trên hàng Hạng mục)"><i class="fold-ic"></i></button>'
+    // Tổng tiền = 1 dòng số liệu gọn ngay trên hàng Hạng mục đã bóc (không còn 3 hộp to)
+    te.innerHTML='<div class="tkt-row">'
+     +'<span class="tkt-i"><i>Chưa VAT</i><b>'+money(sub)+' đ</b></span>'
+     +'<span class="tkt-i"><i>VAT <input class="tkt-vat" type="number" step="any" min="0" value="'+vatPct+'" onchange="setVat(this.value)" title="Thuế VAT (%)">%</i><b>'+money(vat)+' đ</b></span>'
+     +'<span class="tkt-i grand"><i>Tổng</i><b>'+money(sub+vat)+' đ</b></span>'
      +'</div>';
   }
-  var mini=document.getElementById('tkMini');
-  if(mini) mini.innerHTML='<span>Tổng</span><b>'+money(sub+vat)+' đ</b>'+(vatPct?'<i>gồm VAT '+vatPct+'%</i>':'');
 }
 function setVat(v){
   v=Number(v)||0; if(!S.cur) return;
@@ -10073,10 +10071,10 @@ function renderPhanTho(){
 
   // Thanh tổng dùng chung (giống các hạng mục SP khác) — hiện cho cả Phần thô
   var teP=document.getElementById('tkTotals');
-  if(teP){ teP.innerHTML='<div class="tkt-bar">'
-    +'<div class="tkt-seg"><span class="tkt-ic">'+icon('money',16)+'</span><span class="tkt-c"><span class="tkt-l">Tổng chưa VAT</span><span class="tkt-v">'+money(comp.grand)+' đ</span></span></div>'
-    +'<div class="tkt-seg"><span class="tkt-ic">'+icon('gauge',16)+'</span><span class="tkt-c"><span class="tkt-l">Thuế VAT <input class="tkt-vat" type="number" step="any" min="0" value="'+comp.vatPct+'" onchange="ptSetVat(this.value)">%</span><span class="tkt-v">'+money(comp.vat)+' đ</span></span></div>'
-    +'<div class="tkt-seg grand"><span class="tkt-ic">'+icon('cart',17)+'</span><span class="tkt-c"><span class="tkt-l">Tổng thành tiền</span><span class="tkt-v">'+money(comp.afterTax)+' đ</span></span></div>'
+  if(teP){ teP.innerHTML='<div class="tkt-row">'           // cùng kiểu dòng số liệu gọn với bảng bóc tách
+    +'<span class="tkt-i"><i>Chưa VAT</i><b>'+money(comp.grand)+' đ</b></span>'
+    +'<span class="tkt-i"><i>VAT <input class="tkt-vat" type="number" step="any" min="0" value="'+comp.vatPct+'" onchange="ptSetVat(this.value)" title="Thuế VAT (%)">%</i><b>'+money(comp.vat)+' đ</b></span>'
+    +'<span class="tkt-i grand"><i>Tổng</i><b>'+money(comp.afterTax)+' đ</b></span>'
     +'</div>'; }
   var tcP=document.getElementById('tkCount'); if(tcP){ var nItems=(S.phanTho||[]).reduce(function(s,se){return s+((se.items||[]).length);},0); tcP.textContent='['+pad2(nItems)+']'; }
   // giữ nguyên vị trí đang cuộn (thêm/sửa dòng không được nhảy về đầu bảng)
@@ -10940,7 +10938,7 @@ function tkZenToggle(){ foldAll_(); }
 /* ═══ THU GỌN TỪNG KHỐI ĐỂ MỞ RỘNG BẢNG ═══
    Khối nào phía trên bảng cũng gập được: băng dự án · tổng tiền · chip cột. Nhớ theo máy (qs_fold).
    Nút ⤢ "Mở rộng bảng" (thanh công cụ nhanh / đầu bảng) gập tất cả một lần; bấm lại mở lại như trước. */
-var FOLD_KEYS=['pcard','totals','cols'];
+var FOLD_KEYS=['pcard','cols'];                       // tổng tiền giờ nằm gọn trên hàng Hạng mục — không cần gập
 function foldGet_(){ try{ var v=JSON.parse(localStorage.getItem('qs_fold')||'null'); if(v&&typeof v==='object') return v; }catch(e){}
   return {cols:true};                                    // mặc định: chip cột gọn 1 dòng (bấm mới bung)
 }
