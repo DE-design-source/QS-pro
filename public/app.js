@@ -3884,14 +3884,14 @@ function qbRecentSync_(){
 function qbRightSync_(){
   var box=document.getElementById('qbRight'); if(!box) return;
   var nf=(typeof activeFiltCount_==='function')?activeFiltCount_():0;
-  var side=(typeof sideGet_==='function')&&sideGet_(), zen=!!(document.querySelector('.tk-panel.zen'));
+  var side=(typeof sideGet_==='function')&&sideGet_(), zen=(typeof foldAllOn_==='function')&&foldAllOn_();
   box.innerHTML=qbBtn_('qbFilt',QB_IC.filter,'Bộ lọc sản phẩm'+(nf?(' — đang lọc '+nf):''),'qbFilter_(event)',nf>0,nf||'')
     +qbBtn_('qbFav',icon('heart',16),S.fFav?'Đang chỉ hiện sản phẩm yêu thích — bấm để bỏ':'Chỉ hiện sản phẩm yêu thích','catFavToggle();qbRightSync_()',!!S.fFav)
     +qbBtn_('qbHist',QB_IC.hist,'Vừa thêm vào bảng — xem lại / thêm lại','qbHistPop_(event)',false)
     +qbBtn_('qbRepl',QB_IC.repl,'Tìm & thay trong bảng (Ctrl+F)','openFindReplace()',false)
     +'<span class="qb-sep"></span>'
     +qbBtn_('qbSide',QB_IC.panel,side?'Hiện panel sản phẩm bên trái':'Ẩn panel sản phẩm — bảng rộng hơn','sideToggle_();qbRightSync_()',side)
-    +qbBtn_('qbZen',QB_IC.zen,zen?'Mở lại khối đầu bảng':'Thu gọn khối đầu bảng','tkZenToggle();qbRightSync_()',zen)
+    +qbBtn_('qbZen',QB_IC.zen,zen?'Mở lại các khối đầu trang':'Mở rộng bảng — thu gọn băng dự án, tổng tiền, chip cột','foldAll_()',zen)
     +'<button class="qb-exp" onclick="showTab(\'export\')" title="Sang tab Xuất báo giá">'+icon('download',14)+' Xuất báo giá</button>';
 }
 function qbGoNode_(code){ if(code===S.node) return; pickNode(code); }
@@ -4127,8 +4127,12 @@ function renderColChips(){
   var on=COLS.filter(function(c){ return S.cols[c[0]]; }).length;
   var cur=TK_PRESETS.filter(tkPresetOn_)[0];
   var nhan=tkMyOn_()?'Của tôi':(cur?cur[1]:'Chọn nhanh');
-  el.innerHTML='<button class="chip-quick" id="tkPresetBtn" onclick="tkPresetPop_(event)" title="Bật cả một bộ cột theo mục đích / bộ cột của tôi">'
-      +icon('sliders',13)+'<span>'+esc(nhan)+'</span><b>'+on+'/'+COLS.length+'</b><i>▾</i></button>'
+  var nut='<button class="chip-quick" id="tkPresetBtn" onclick="tkPresetPop_(event)" title="Bật cả một bộ cột theo mục đích / bộ cột của tôi">'
+      +icon('sliders',13)+'<span>'+esc(nhan)+'</span><b>'+on+'/'+COLS.length+'</b><i>▾</i></button>';
+  var slot=document.getElementById('tkPresetSlot'), nEl=document.getElementById('tkColsN');
+  if(nEl) nEl.textContent=on+'/'+COLS.length;
+  if(slot) slot.innerHTML=nut;
+  el.innerHTML=(slot?'':nut)
     +COLS.map(function(c){
     return '<span class="chip'+(S.cols[c[0]]?' on':'')+'" onclick="toggleCol(\''+c[0]+'\')">'+esc(c[1])+'</span>';
   }).join('');
@@ -4353,8 +4357,11 @@ function renderTable(){
      +'<div class="tkt-seg"><span class="tkt-ic">'+icon('money',16)+'</span><span class="tkt-c"><span class="tkt-l">Tổng chưa VAT</span><span class="tkt-v">'+money(sub)+' đ</span></span></div>'
      +'<div class="tkt-seg"><span class="tkt-ic">'+icon('gauge',16)+'</span><span class="tkt-c"><span class="tkt-l">Thuế VAT <input class="tkt-vat" type="number" step="any" min="0" value="'+vatPct+'" onchange="setVat(this.value)">%</span><span class="tkt-v">'+money(vat)+' đ</span></span></div>'
      +'<div class="tkt-seg grand"><span class="tkt-ic">'+icon('cart',17)+'</span><span class="tkt-c"><span class="tkt-l">Tổng thành tiền</span><span class="tkt-v">'+money(sub+vat)+' đ</span></span></div>'
+     +'<button class="fold-btn tkt-fold" onclick="foldToggle_(\'totals\')" title="Thu gọn khối tổng tiền (vẫn thấy tổng trên hàng Hạng mục)"><i class="fold-ic"></i></button>'
      +'</div>';
   }
+  var mini=document.getElementById('tkMini');
+  if(mini) mini.innerHTML='<span>Tổng</span><b>'+money(sub+vat)+' đ</b>'+(vatPct?'<i>gồm VAT '+vatPct+'%</i>':'');
 }
 function setVat(v){
   v=Number(v)||0; if(!S.cur) return;
@@ -10894,12 +10901,35 @@ function tkFreezeRows_(){
 
 /* ---------- thu gọn khối đầu bảng ---------- */
 function tkZenGet_(){ try{ return localStorage.getItem('qs_tkzen')==='1'; }catch(e){ return false; } }
-function tkZenToggle(){
-  var on=!tkZenGet_(); try{ localStorage.setItem('qs_tkzen', on?'1':'0'); }catch(e){}
-  tkZenApply_(); toast(on?'Đã thu gọn khối đầu bảng — màn hình rộng hơn':'Đã mở lại khối đầu bảng');
+function tkZenToggle(){ foldAll_(); }
+/* ═══ THU GỌN TỪNG KHỐI ĐỂ MỞ RỘNG BẢNG ═══
+   Khối nào phía trên bảng cũng gập được: băng dự án · tổng tiền · chip cột. Nhớ theo máy (qs_fold).
+   Nút ⤢ "Mở rộng bảng" (thanh công cụ nhanh / đầu bảng) gập tất cả một lần; bấm lại mở lại như trước. */
+var FOLD_KEYS=['pcard','totals','cols'];
+function foldGet_(){ try{ var v=JSON.parse(localStorage.getItem('qs_fold')||'null'); if(v&&typeof v==='object') return v; }catch(e){}
+  return {cols:true};                                    // mặc định: chip cột gọn 1 dòng (bấm mới bung)
+}
+function foldSet_(v){ try{ localStorage.setItem('qs_fold', JSON.stringify(v)); }catch(e){} foldApply_(); }
+function foldToggle_(k){ var v=foldGet_(); v[k]=!v[k]; delete v._all; foldSet_(v); }
+function foldAllOn_(){ var v=foldGet_(); return FOLD_KEYS.every(function(k){ return v[k]; }); }
+function foldAll_(){
+  var v=foldGet_();
+  if(foldAllOn_()){ var truoc=v._truoc||{}; v={}; FOLD_KEYS.forEach(function(k){ v[k]=!!truoc[k]; }); if(!FOLD_KEYS.some(function(k){ return v[k]; })) v={cols:true}; }
+  else { var tr={}; FOLD_KEYS.forEach(function(k){ tr[k]=!!v[k]; }); v={_truoc:tr}; FOLD_KEYS.forEach(function(k){ v[k]=true; }); }
+  foldSet_(v);
+  toast(foldAllOn_()?'Đã thu gọn đầu trang — bảng rộng hơn':'Đã mở lại các khối đầu trang');
+}
+function foldApply_(){
+  var v=foldGet_(), b=document.body; if(!b) return;
+  FOLD_KEYS.forEach(function(k){ b.classList.toggle('fold-'+k, !!v[k]); });
+  var z=document.getElementById('tkZenBtn'), all=foldAllOn_();
+  if(z){ z.classList.toggle('on',all); z.title=all?'Mở lại các khối đầu trang':'Thu gọn đầu trang cho bảng rộng hơn'; }
+  if(typeof qbRightSync_==='function') qbRightSync_();
+  setTimeout(function(){ try{ tkHBarSync_&&tkHBarSync_(); syncActGutter&&syncActGutter(); }catch(e){} },30);
 }
 function tkZenApply_(){
-  var on=tkZenGet_(), p=document.querySelector('.tk-panel'); if(!p) return;
+  foldApply_();                                          // cơ chế cũ (qs_tkzen) thay bằng gập từng khối
+  var on=false, p=document.querySelector('.tk-panel'); if(!p) return;
   p.classList.toggle('zen',on);
   var b=document.getElementById('tkZenBtn');
   if(b){ b.classList.toggle('on',on); b.title=on?'Mở lại khối tổng tiền & chip cột':'Thu gọn khối đầu bảng cho màn hình rộng hơn'; }

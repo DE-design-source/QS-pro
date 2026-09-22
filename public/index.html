@@ -5462,6 +5462,69 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
 #v-import .ctimp .ctx2 .c2cb textarea::placeholder{color:#aeb7c1}
 .pc-tag.kt{background:#e0f2fe;color:#075985;margin-left:4px}
 
+
+/* ════════ BỐ CỤC CHUẨN 100% (1440–1920) + GẬP TỪNG KHỐI ĐỂ MỞ RỘNG BẢNG ════════ */
+/* nút gập dùng chung */
+.fold-btn{width:28px;height:28px;display:grid;place-items:center;border:1px solid transparent;border-radius:8px;background:none;cursor:pointer;flex:none;color:inherit;opacity:.75}
+.fold-btn:hover{opacity:1;background:#ffffff1f}
+.fold-ic{display:inline-block;width:8px;height:8px;border-right:1.8px solid currentColor;border-bottom:1.8px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .15s}
+/* mở = mũi tên lên (bấm để gập) · gập = mũi tên xuống */
+.pc-fold .fold-ic,.tkt-fold .fold-ic{transform:translateY(2px) rotate(-135deg)}
+body.fold-pcard .pc-fold .fold-ic{transform:translateY(-2px) rotate(45deg)}
+.fold-h .fold-ic{margin-left:6px;transform:translateY(-2px) rotate(45deg)}
+body:not(.fold-cols) .fold-h .fold-ic{transform:translateY(2px) rotate(-135deg)}
+
+/* --- băng dự án: gọn hơn ở 100% --- */
+#pcard.pcard{padding:10px 14px 10px 20px;gap:22px;margin-top:10px}
+#pcard .pc-top h1{font-size:17px}
+#pcard .pc-prog .pct{font-size:22px}
+#pcard .pc-fold{color:#cfe0f2;align-self:center}
+/* băng dự án khi gập: 1 dòng mảnh */
+body.fold-pcard #pcard.pcard{padding:6px 12px 6px 18px;gap:16px}
+body.fold-pcard #pcard .pc-info,body.fold-pcard #pcard .pc-kpi,body.fold-pcard #pcard .pc-edit,body.fold-pcard #pcard .pc-prog .bar{display:none}
+body.fold-pcard #pcard .pc-main{display:flex;align-items:center;gap:12px;flex:1}
+body.fold-pcard #pcard .pc-top h1{font-size:14px}
+body.fold-pcard #pcard .macode{margin:0;font-size:11px}
+body.fold-pcard #pcard .pc-prog{flex-direction:row;align-items:center;min-width:0}
+body.fold-pcard #pcard .pc-prog .pct{font-size:13px}
+
+/* --- thanh công cụ nhanh sát băng dự án --- */
+.qbar{margin-top:10px}
+.qbar+.boc{margin-top:10px}
+
+/* --- panel trái đủ rộng ở 100% để tiêu đề không bị cắt --- */
+@media(min-width:1360px){ #bocGrid{grid-template-columns:var(--catW,300px) minmax(0,1fr)} }
+
+/* --- khung Hạng mục đã bóc --- */
+.tk-panel .toolbar.tk-frame-hm{padding:8px 10px 8px 12px;margin-bottom:8px}
+.tk-mini{display:none;align-items:baseline;gap:6px;padding:4px 10px;border-radius:8px;background:#f3f6fa;cursor:pointer;white-space:nowrap;font-size:12px;color:#6b7684}
+.tk-mini b{font-size:13.5px;color:var(--navy,#12315a)}
+.tk-mini i{font-style:normal;font-size:11px;color:#9aa4b0}
+.tk-mini:hover{background:#eaf1ff}
+body.fold-totals .tk-mini{display:inline-flex}
+
+/* --- tổng tiền: 1 dải gọn (nhãn + số cùng hàng) --- */
+.tk-panel .tk-totals{margin:0 0 8px}
+.tk-panel .tkt-bar{align-items:stretch;gap:8px;flex-wrap:nowrap}
+.tk-panel .tkt-seg{padding:6px 12px;min-height:40px}
+.tk-panel .tkt-c{flex-direction:row;align-items:center;gap:10px;flex-wrap:wrap}
+.tk-panel .tkt-seg .tkt-l{font-size:11px}
+.tk-panel .tkt-seg .tkt-v{font-size:14px}
+.tk-panel .tkt-seg.grand .tkt-v{font-size:15px}
+.tk-panel .tkt-fold{align-self:center;color:#8b96a5;border-color:var(--ln,#e3e8ee);background:#fff;opacity:1}
+.tk-panel .tkt-fold:hover{background:#f3f6fa}
+body.fold-totals .tk-panel .tk-totals{display:none}
+
+/* --- khung Cột hiển thị: tiêu đề bấm để bung/gập chip, nút Chọn nhanh luôn thấy --- */
+.tk-panel .tk-frame-cols{padding:8px 12px}
+.tk-frame-hr{display:flex;align-items:center;gap:10px}
+.tk-panel .tk-frame-h.fold-h{display:inline-flex;align-items:center;gap:6px;margin:0;padding:4px 6px 4px 0;border:none;background:none;cursor:pointer;font:inherit;
+  font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6b7684}
+.tk-panel .tk-frame-h.fold-h b{font-weight:600;color:#9aa4b0;letter-spacing:0}
+.tk-panel .tk-frame-h.fold-h:hover{color:var(--blue)}
+#tkPresetSlot .chip-quick{margin:0}
+.tk-panel .tk-frame-cols .colchips{margin-top:8px}
+body.fold-cols .tk-panel .tk-frame-cols .colchips{display:none}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -5555,6 +5618,7 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
     </div>
     <div class="pc-kpi" id="pcKpi"></div>
     <div class="pc-prog"><div class="pct" id="pcPct">0%</div><div class="bar"><i id="pcBar"></i></div></div>
+    <button class="fold-btn pc-fold" onclick="event.stopPropagation();foldToggle_('pcard')" title="Thu gọn / mở băng thông tin dự án" aria-label="Thu gọn băng dự án"><i class="fold-ic"></i></button>
   </div>
 
   <!-- ===== VIEW: BÓC TÁCH ===== -->
@@ -5632,12 +5696,16 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
           </div>
           <div class="sheets" id="tkSheets"></div>
           <div class="sp" style="flex:1"></div>
+          <span class="tk-mini" id="tkMini" onclick="foldToggle_('totals')" title="Bấm để mở lại khối tổng tiền"></span>
           <button class="tk-zen" id="tkZenBtn" onclick="tkZenToggle()" title="Thu gọn khối đầu bảng cho màn hình rộng hơn" aria-label="Thu gọn khối đầu bảng"><i></i></button>
         </div>
         <div class="tk-totals" id="tkTotals"></div>
         <div id="tkNormal">
           <div class="floorhint" id="floorHint"></div>
-          <div class="tk-frame tk-frame-cols"><div class="tk-frame-h">Cột hiển thị</div><div class="colchips" id="colChips"></div></div>
+          <div class="tk-frame tk-frame-cols">
+            <div class="tk-frame-hr"><button class="tk-frame-h fold-h" onclick="foldToggle_('cols')" title="Ẩn / hiện các chip cột">Cột hiển thị <b id="tkColsN"></b><i class="fold-ic"></i></button>
+              <span id="tkPresetSlot"></span></div>
+            <div class="colchips" id="colChips"></div></div>
           <div class="tbl-wrap"><table class="tk" id="tkTable" oncontextmenu="tkCtx(event)"></table></div>
           <div class="actgutter" id="actGutter"><div id="actGutterInner"></div></div>
           <div class="tk-hbar" id="tkHBar" style="display:none"><div class="tk-hthumb" id="tkHThumb"></div></div>
