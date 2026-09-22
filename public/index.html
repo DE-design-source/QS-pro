@@ -5571,19 +5571,13 @@ body > :not(.topnav):not(.wrap):not(script):not(#loginScreen) > *{zoom:var(--uiz
 .tkt-i.grand b{font-size:16px;font-weight:700;color:var(--navy,#12315a)}
 .tkt-i .tkt-vat{width:38px;height:24px;padding:0 5px;font-size:12px;border:1px solid #e3e8ee;border-radius:6px;text-align:right}
 @media(max-width:1280px){ .tkt-i{padding:0 9px} .tkt-i.grand b{font-size:14.5px} }
-/* ĐẦU BẢNG SÁNG MÀU */
-#v-boc table.tk th{background:#f6f8fa!important;color:#3a4653!important;font-size:11px!important;font-weight:600!important;letter-spacing:.02em!important;
-  text-transform:none!important;border-right:1px solid #eceff3!important;border-bottom:1px solid #e3e8ee!important;padding:9px 10px!important}
-#v-boc table.tk th .thflt{color:#9aa4b0}
-#v-boc table.tk th.thk.fltOn .thflt{color:#1d4ed8}
-#v-boc table.tk th.sortOn{background:#eaf1ff!important;color:#1d4ed8!important}
-#v-boc table.tk th.sortOn .thl{color:#1d4ed8!important}
-#v-boc table.tk th.thk.dropL{box-shadow:inset 3px 0 0 var(--blue)}
-#v-boc table.tk th.thk.dropR{box-shadow:inset -3px 0 0 var(--blue)}
+/* ĐẦU BẢNG: xanh navy (giữ nhận diện) */
+#v-boc table.tk th{background:var(--navy,#12324c)!important;color:#fff!important;font-size:11px!important;font-weight:600!important;letter-spacing:.02em!important;
+  text-transform:none!important;border-right:1px solid rgba(255,255,255,.12)!important;padding:9px 10px!important}
 #v-boc #tkNormal .tbl-wrap{border:1px solid #e3e8ee;border-radius:10px}
 /* hàng tầng / phòng nhẹ */
-#v-boc table.tk tr.grp td{background:#fafbfc!important;color:#1c2735!important;font-size:11.5px!important;font-weight:700!important;letter-spacing:.03em;
-  border-top:1px solid #eef1f4!important;border-bottom:1px solid #eef1f4!important;padding:9px 12px!important}
+#v-boc table.tk tr.grp td{background:#eef1f4!important;color:#1c2735!important;font-size:11.5px!important;font-weight:700!important;letter-spacing:.03em;
+  border-top:1px solid #e3e8ee!important;border-bottom:1px solid #e3e8ee!important;padding:9px 12px!important}
 #v-boc table.tk tr.drow:hover td{background:#f7faff}
 /* PANEL TRÁI nhẹ hơn */
 #v-boc #leftCat .msel{border:1px solid #dfe4ea!important;background:#fff;height:38px}
@@ -5597,11 +5591,9 @@ body > :not(.topnav):not(.wrap):not(script):not(#loginScreen) > *{zoom:var(--uiz
 #v-boc .ccbox,#v-boc .ccbox.bt{--cc-vien:#e6eaef;--cc-nen:#fbfcfd;--cc-hnen:#f6f8fa;--cc-hchu:#4a5563;--cc-nhan:#64748b}
 
 /* bảng Phần thô: cùng kiểu đầu bảng sáng */
-#v-boc table.pt th{background:#f6f8fa!important;color:#3a4653!important;font-size:11px!important;font-weight:600!important;letter-spacing:.02em!important;
-  text-transform:none!important;border-right:1px solid #eceff3!important;border-bottom:1px solid #e3e8ee!important}
-#v-boc table.pt th.thk.sortOn{background:#eaf1ff!important;color:#1d4ed8!important}
-#v-boc table.pt th.thk .ptrsz:hover{background:rgba(37,99,235,.12)}
-#v-boc table.pt tr.pt-sec td{background:#fafbfc!important;border-color:#eef1f4!important}
+#v-boc table.pt th{background:var(--navy,#12324c)!important;color:#fff!important;font-size:11px!important;font-weight:600!important;letter-spacing:.02em!important;
+  text-transform:none!important;border-right:1px solid rgba(255,255,255,.12)!important}
+#v-boc table.pt tr.pt-sec td{background:#eef1f4!important;border-color:#e3e8ee!important}
 #v-boc table.pt tr.pt-grand td{border-top:1px solid #d7dde4!important}
 
 /* chip cột bảng Phần thô: cùng kiểu chip cột bảng bóc tách */
