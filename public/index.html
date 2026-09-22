@@ -5211,6 +5211,20 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
 .ctlib-h span{margin-left:auto;font-weight:600;color:#a3aebb}
 .ctlib-h.sp{margin-top:14px;padding-top:10px;border-top:1px solid var(--ln,#e8ecf1)}
 .ctlib .ptlib-lo{margin-left:6px;padding:1px 6px;border-radius:5px;background:#f1f4f8;color:#8b96a5;font-size:10px;font-weight:600;white-space:nowrap}
+/* luồng chọn Phần thô ở panel trái: ① loại báo giá → ② nhà thầu → ③ dự án mẫu → kết quả */
+.pt-flow{display:flex;flex-direction:column;gap:10px}
+.pt-step{display:flex;gap:10px;align-items:flex-start;position:relative}
+.pt-step:not(:last-of-type)::after{content:'';position:absolute;left:10px;top:24px;bottom:-12px;width:1px;background:#e3e8ee}
+.pt-sn{width:21px;height:21px;border-radius:50%;background:#eaf1ff;color:#1d4ed8;font-size:11px;font-weight:700;display:grid;place-items:center;flex:none;margin-top:1px;position:relative;z-index:1}
+.pt-sb{flex:1;min-width:0}
+.pt-sl{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8b96a5;margin:2px 0 5px}
+.pt-msel{margin:0}
+.pt-msel .mlabel b{font-weight:650}
+.pt-shint{font-size:11px;color:#8b96a5;margin-top:4px}
+.pt-out{display:flex;align-items:center;gap:6px;margin-left:31px;padding:7px 10px;border-radius:8px;background:#f0fdf4;color:#15803d;font-size:12px;font-weight:600}
+.pt-ig{cursor:default;font-size:10.5px!important;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8b96a5}
+.pt-ig:hover{background:none!important}
+.pt-isub{display:block;font-style:normal;font-size:11px;color:#8b96a5;font-weight:400;margin-top:1px}
 /* chip Khái toán / Dự toán đầu bảng */
 .shchip .shc-s{font-style:normal;font-weight:500;opacity:.7;margin-left:4px;font-size:.92em}
 .shc-sep{align-self:center;margin:0 2px 0 8px;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8b96a5}

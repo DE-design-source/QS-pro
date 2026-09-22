@@ -2533,11 +2533,21 @@ async function ptExportXlsx(chiChon){
 function spXlsClick_(){ return spPTMode_()?ptExportXlsx(Object.keys(S._spSel||{}).length>0):spExportXlsx(); }
 function spPTMode_(){ return String((S._spFilters||{}).node||'')==='3.1'; }
 function ptLoaiLabel_(v){ var m=PT_LOAI.filter(function(x){ return x[0]===ptLoaiGop_(v); })[0]; return m?m[1]:v; }
-var PT_LOAI_NGAN={kt_chitiet:'Khái toán',kt_sobo:'Khái toán',dt_nhancong:'DT · Nhân công',dt_vattu:'DT · Vật tư'};
+var PT_LOAI_NGAN={kt_chitiet:'KT chi tiết',kt_sobo:'KT sơ bộ',dt_nhancong:'DT · Nhân công',dt_vattu:'DT · Vật tư'};
 function ptLoaiNgan_(v){ return PT_LOAI_NGAN[v]||ptLoaiLabel_(v); }
-/* Khái toán = 1 loại duy nhất (Nhân công + Vật tư). Dữ liệu cũ còn 'kt_sobo' (khái toán sơ bộ)
-   -> quy về 'kt_chitiet' khi SO SÁNH / HIỂN THỊ; giá trị gốc trong DB giữ nguyên.            */
-function ptLoaiGop_(v){ v=String(v||'kt_chitiet'); return (v.indexOf('kt_')===0)?'kt_chitiet':v; }
+/* Loại báo giá Phần thô (theo sơ đồ nghiệp vụ):
+     KHÁI TOÁN CHI TIẾT → chọn nhà thầu → báo giá theo m2 / md / cái
+     KHÁI TOÁN SƠ BỘ    → chọn nhà thầu → chọn dự án mẫu → đơn giá trọn gói
+     DỰ TOÁN → NHÂN CÔNG (báo giá theo m2 / md / cái) · VẬT TƯ (báo giá vật tư)
+   ptLoaiGop_ giữ lại làm chuẩn hoá (rỗng -> kt_chitiet); 4 loại KHÔNG gộp nhau.            */
+function ptLoaiGop_(v){ return String(v||'kt_chitiet'); }
+// "Khái toán chi tiết" -> "Chi tiết" khi đã nằm dưới nhóm Khái toán
+var PT_LOAI_NHOM=[
+  ['kt','1','Khái toán',[['kt_chitiet','1.1','Khái toán chi tiết','Chọn nhà thầu → báo giá theo m2 / md / cái'],
+                         ['kt_sobo','1.2','Khái toán sơ bộ','Chọn nhà thầu → chọn dự án mẫu → đơn giá trọn gói']]],
+  ['dt','2','Dự toán',[['dt_nhancong','2.1','Nhân công','Báo giá theo m2 / md / cái'],
+                       ['dt_vattu','2.2','Vật tư','Báo giá vật tư']]]
+];
 function spPTAll_(){
   var out=[];
   PT_TEMPLATE.forEach(function(sec,si){
@@ -3731,8 +3741,8 @@ function mmSelSync_(){
   var sel=document.getElementById('mmSel'), lb=document.getElementById('mmSelLbl'); if(!lb) return;
   var t=(S.node?(mmCode_(S.node)?mmCode_(S.node)+'.':'')+mmName_(S.node):'Hạng mục');
   if(S.node==='3.1'){ var lo=ptLoai_();
-    t+=' · '+({kt_chitiet:'Khái toán',dt_nhancong:'Dự toán · Nhân công',dt_vattu:'Dự toán · Vật tư'}[lo]||''); }
-  else if(typeof tkSheetCo_==='function' && tkSheetCo_(S.node)) t+=' · '+(S.sheet==='nc'?'Dự toán · Nhân công':(S.sheet==='vt'?'Dự toán · Vật tư':'Khái toán'));
+    t+=' · '+({kt_chitiet:'Khái toán chi tiết',kt_sobo:'Khái toán sơ bộ',dt_nhancong:'Dự toán · Nhân công',dt_vattu:'Dự toán · Vật tư'}[lo]||''); }
+  else if(S.sheet && typeof tkSheetCo_==='function' && tkSheetCo_(S.node)) t+=' · '+(S.sheet==='nc'?'Nhân công':'Vật tư');
   lb.textContent=t;
   var nav=document.getElementById('mmNav');
   if(sel) sel.classList.toggle('open', !!S._mmUI);
@@ -3782,12 +3792,12 @@ function mmHtml_(forTree){
   } else if(!dangDuyet){                              // tới lá: các cấp phụ của đề mục đó
     if(S.node==='3.1'){
       var lo=ptLoai_(), top=(lo.indexOf('dt_')===0)?'dt':lo;
-      st.push(mmPick2_('Loại báo giá',[['kt_chitiet','1','Khái toán · Nhân công + Vật tư'],['dt','2','Dự toán']],top,'mmLoai_'));
-      if(top==='dt') st.push(mmPick2_('Dự toán',[['dt_nhancong','2.1','Nhân công'],['dt_vattu','2.2','Vật tư']],lo,'mmLoai_'));
+      var nhom=(lo.indexOf('dt_')===0)?'dt':'kt';
+      st.push(mmPick2_('Loại báo giá',PT_LOAI_NHOM.map(function(g){ return [g[0],g[1],g[2]]; }),nhom,'mmLoai_'));
+      var g=PT_LOAI_NHOM.filter(function(x){ return x[0]===nhom; })[0];
+      st.push(mmPick2_(g[2],g[3].map(function(x){ return [x[0],x[1],x[2].replace(/^Khái toán (\S)/,function(m,c){ return c.toUpperCase(); })]; }),lo,'mmLoai_'));
     } else if(typeof tkSheetCo_==='function' && tkSheetCo_(S.node)){
-      var sh=S.sheet||'', dtMo=(sh==='nc'||sh==='vt'||S._mmDT===S.node);
-      st.push(mmPick2_('Loại báo giá',[['','1','Khái toán · Nhân công + Vật tư'],['dt','2','Dự toán']],dtMo?'dt':'','mmSheet_'));
-      if(dtMo) st.push(mmPick2_('Dự toán',[['nc','2.1','Nhân công'],['vt','2.2','Vật tư']],sh,'mmSheet_'));
+      st.push(mmPick2_('Phân loại',[['','','Tất cả'],['nc','1','Nhân công'],['vt','2','Vật tư']],S.sheet||'','mmSheet_'));
     }
   }
   var them='';
@@ -3824,13 +3834,14 @@ function mmPick_(code){
 function mmOpen_(parent){ S._mmBrowse=parent; S._mmAt=S.node; renderMM_(); }
 function mmCancel_(){ S._mmBrowse=null; renderMM_(); }
 function mmLoai_(v){
-  if(v==='dt'){ var lo=ptLoai_(); v=(lo.indexOf('dt_')===0)?lo:'dt_nhancong'; }
-  var laDT=(v.indexOf('dt_')===0), vuaMoDT=laDT && ptLoai_().indexOf('dt_')!==0;
+  var lo=ptLoai_(), vuaMoNhom=false;
+  if(v==='dt'){ vuaMoNhom=(lo.indexOf('dt_')!==0); v=vuaMoNhom?'dt_nhancong':lo; }
+  else if(v==='kt'){ vuaMoNhom=(lo.indexOf('kt_')!==0); v=vuaMoNhom?'kt_chitiet':lo; }
+  var vuaMoDT=vuaMoNhom;                        // vừa đổi nhóm -> giữ mở để chọn loại con
   ptSetLoai(v); if(!vuaMoDT){ S._mmUI=false; mmTreeClose_(); }   // chọn xong cấp cuối -> thu gọn; vừa mở "Dự toán" thì giữ để chọn Nhân công/Vật tư
   renderTable(); renderMM_();
 }
 function mmSheet_(v){
-  if(v==='dt'){ S._mmDT=S.node; renderMM_(); return; }          // mở cấp Dự toán -> chọn tiếp Nhân công / Vật tư
   S._mmDT=null;
   S.sheet=v||''; try{ localStorage.setItem('qs_sheet', S.sheet); }catch(e){}
   S._tkSel={}; S._mmUI=false; mmTreeClose_(); renderTable(); if(typeof renderCard==='function') renderCard(); renderMM_();
@@ -7997,9 +8008,9 @@ function ptQty(x){ x=Number(x)||0; return x.toLocaleString('vi-VN',{maximumFract
              └─ Sơ bộ      -> chọn nhà thầu -> chọn dự án mẫu -> ra đơn giá trọn gói
    Khái toán: thư viện 156 công tác (bảng giá cố định).
    Dự toán : nhập SỐ LIỆU ĐẦU VÀO -> tự tính khối lượng -> áp ĐỊNH MỨC hao phí (xem DT_BO). */
-/* Cấu trúc: KHÁI TOÁN (Nhân công + Vật tư, 1 bảng)  ·  DỰ TOÁN › Nhân công / Vật tư */
 var PT_LOAI=[
-  ['kt_chitiet','Khái toán · Nhân công + Vật tư','Khái toán','Chọn nhà thầu → báo giá theo m2 / md / cái, hoặc lấy báo giá mẫu dự án'],
+  ['kt_chitiet','Khái toán chi tiết','Khái toán','Chọn nhà thầu → ra báo giá theo m2 / md / cái'],
+  ['kt_sobo',   'Khái toán sơ bộ',   'Khái toán','Chọn nhà thầu → chọn dự án mẫu → ra đơn giá trọn gói'],
   ['dt_nhancong','Dự toán · Nhân công','Dự toán','Nhập số liệu đầu vào → tính khối lượng → nhân công và ca máy theo định mức'],
   ['dt_vattu',   'Dự toán · Vật tư',  'Dự toán','Nhập số liệu đầu vào → khối lượng vật tư × đơn giá nhà cung cấp']
 ];
@@ -8907,25 +8918,21 @@ function renderPTLibrary(){
   var cur=S._ptContractor||'';
   var meta=PT_LOAI.filter(function(x){ return x[0]===loai; })[0]||PT_LOAI[0];
   // Bộ lọc PHÂN LOẠI + Nhà thầu + Báo giá mẫu (theo sơ đồ nghiệp vụ)
-  var top='<div class="ptlib-top">'
-    +'<div class="ptlib-fld"><label>Loại báo giá</label><div class="ptlib-selwrap">'
-      +'<select class="ptlib-sel" title="'+esc(meta[3])+'" onchange="ptSetLoai(this.value)">'
-      +PT_LOAI.map(function(x){
-        var n=ptLoaiCount_(x[0]);
-        return '<option value="'+x[0]+'"'+(loai===x[0]?' selected':'')+'>'+esc(x[1])+(n?(' ('+n+')'):' (chưa có)')+'</option>';
-      }).join('')+'</select></div>'
-      +'</div>'
-    +'<div class="ptlib-fld"><label>Nhà thầu</label><div class="ptlib-selwrap"><select class="ptlib-sel" onchange="ptSetContractor(this.value)">'
-      +'<option value="">Đơn giá theo nhà thầu</option>'
-      +PT_CONTRACTORS.map(function(c){ return '<option'+(cur===c?' selected':'')+'>'+esc(c)+'</option>'; }).join('')+'</select></div></div>'
-    +(loai==='kt_chitiet'
-      ? '<div class="ptlib-fld"><label>Báo giá mẫu dự án</label><div class="ptlib-selwrap">'
-        +'<select class="ptlib-sel" onchange="ptApplyMau(this.value);this.selectedIndex=0">'
-        +'<option value="">Tạo dự án mới hoặc lấy báo giá mẫu dự án cũ</option>'
-        +PT_MAU.map(function(m){ return '<option value="'+esc(m.id)+'">'+esc(m.ten)+'</option>'; }).join('')
-        +'</select></div>'
-        +'<p class="ptlib-hint">Chọn 1 mẫu để đưa cả bộ hạng mục vào bảng, rồi sửa diện tích · hệ số · đơn giá theo dự án đang làm.</p></div>'
-      : '')
+  /* Theo sơ đồ nghiệp vụ: ① Hạng mục sản phẩm (loại báo giá) → ② Tên nhà thầu → ③ Dự án mẫu (chỉ Khái toán sơ bộ)
+     → kết quả (báo giá theo m2/md/cái · đơn giá trọn gói · báo giá vật tư). */
+  var nh=PT_LOAI_NHOM.filter(function(g){ return g[3].some(function(x){ return x[0]===loai; }); })[0]||PT_LOAI_NHOM[0];
+  var lx=nh[3].filter(function(x){ return x[0]===loai; })[0]||nh[3][0];
+  var buoc=0;
+  function msel(lb, val, js, on, sub){ buoc++;
+    return '<div class="pt-step"><span class="pt-sn">'+buoc+'</span><div class="pt-sb"><div class="pt-sl">'+esc(lb)+'</div>'
+      +'<div class="msel pt-msel'+(on?' active':'')+'" onclick="'+js+'"><span class="mlabel">'+val+'</span>'
+      +'<span class="mplus">'+SVG_PLUS+'</span></div>'+(sub?'<div class="pt-shint">'+sub+'</div>':'')+'</div></div>'; }
+  var top='<div class="ptlib-top pt-flow">'
+    +msel('Hạng mục sản phẩm', '<b>'+esc(nh[2])+'</b> · '+esc(lx[2].replace(/^Khái toán (\S)/,function(m,c){ return c.toUpperCase(); })), 'ptMselPop_(event,\'loai\')', true)
+    +msel('Tên nhà thầu', cur?('<b>'+esc(cur)+'</b>'):'Chọn nhà thầu', 'ptMselPop_(event,\'ncc\')', !!cur)
+    +(loai==='kt_sobo'?msel('Dự án mẫu','Chọn dự án mẫu → lấy cả bộ đơn giá','ptMselPop_(event,\'mau\')',false):'')
+    +'<div class="pt-out">'+icon('check',13)+' '+esc({kt_chitiet:'Ra báo giá theo m2 / md / cái',kt_sobo:'Ra đơn giá theo đơn gói',
+        dt_nhancong:'Ra báo giá theo m2 / md / cái',dt_vattu:'Ra báo giá vật tư'}[loai]||'')+'</div>'
     +'</div>';
   if(loai.indexOf('dt_')===0) top+=dtPanel_(loai);           // Dự toán: thêm bảng số liệu đầu vào + khối lượng
   var fw=document.getElementById('ptFilters'); if(fw) fw.innerHTML=top;   // khối lọc nằm ngay dưới ô Đề mục
@@ -9350,6 +9357,34 @@ function ptSortSet_(k,dir){ S._ptSort=k||''; S._ptSortDir=dir||'asc'; renderPhan
 function ptShowAllCols_(){ S._ptCols={}; PT_COLS.forEach(function(c){ S._ptCols[c[0]]=true; }); renderPhanTho(); }
 function ptHBarSync_(){ hbarSync_('#ptWrap .pt-scroll','ptHBar','ptHThumb'); }
 function ptHBarInit_(){ hbarBind_('#ptWrap .pt-scroll','ptHBar','ptHThumb'); }
+/* Ô chọn ở panel trái Phần thô: loại báo giá (nhóm Khái toán / Dự toán) · nhà thầu · dự án mẫu */
+function ptMselPop_(e, kind){
+  if(e&&e.stopPropagation) e.stopPropagation();
+  var old=document.getElementById('qs_pop'); if(old){ var k0=old.getAttribute('data-k'); closePop(); if(k0===kind) return; }
+  var lo=ptLoai_(), cur=S._ptContractor||'', html='';
+  function it(on, js, nm, cn, sub){ return '<div class="bgt-i lvl2'+(on?' on':'')+'" onclick="'+js+'"><span class="nm">'+nm+(sub?'<i class="pt-isub">'+esc(sub)+'</i>':'')+'</span>'
+    +'<span class="cn">'+(cn||'')+'</span><span class="rd'+(on?' on':'')+'"></span></div>'; }
+  if(kind==='loai'){
+    html='<div class="bgt-h"><b>Hạng mục sản phẩm</b></div><div class="bgt-b">'+PT_LOAI_NHOM.map(function(g){
+      return '<div class="bgt-i lvl1 pt-ig"><span class="nm">'+esc(g[1]+'. '+g[2])+'</span></div>'+g[3].map(function(x){
+        var n=ptLoaiCount_(x[0]);
+        return it(lo===x[0],'closePop();ptSetLoai(\''+x[0]+'\');renderTable()',esc(x[1]+' '+x[2]),n?(n+' công tác'):'chưa có',x[3]); }).join('');
+    }).join('')+'</div>';
+  } else if(kind==='ncc'){
+    html='<div class="bgt-h"><b>Tên nhà thầu</b></div><div class="bgt-b">'
+      +it(!cur,'closePop();ptSetContractor(\'\');renderPTLibrary()','Tất cả nhà thầu','','')
+      +PT_CONTRACTORS.map(function(c){ return it(cur===c,'closePop();ptSetContractor(\''+esc(c)+'\');renderPTLibrary()',esc(c),'',''); }).join('')+'</div>';
+  } else {
+    html='<div class="bgt-h"><b>Dự án mẫu</b></div><div class="bgt-b">'+PT_MAU.map(function(m){
+      return it(false,'closePop();ptApplyMau(\''+esc(m.id)+'\')',esc(m.ten),'',m.mo||''); }).join('')
+      +'<p class="ptlib-hint" style="padding:6px 12px">Chọn 1 mẫu để đưa cả bộ hạng mục vào bảng → ra đơn giá trọn gói; sửa diện tích · hệ số · đơn giá theo dự án đang làm.</p></div>';
+  }
+  var pop=document.createElement('div'); pop.className='fltpop bgtree'; pop.id='qs_pop'; pop.setAttribute('data-k',kind); pop.innerHTML=html;
+  document.body.appendChild(pop);
+  var b=e&&e.currentTarget; if(b&&b.getBoundingClientRect){ var r=b.getBoundingClientRect();
+    pop.style.top=(r.bottom+6)+'px'; pop.style.left=Math.max(8,r.left)+'px'; pop.style.minWidth=Math.max(260,r.width)+'px'; }
+  setTimeout(function(){ document.addEventListener('mousedown',popOutside); },0);
+}
 function ptSetContractor(v){ S._ptContractor=v||''; toast(v?('Đơn giá theo nhà thầu: '+v):'Bỏ chọn nhà thầu'); }
 function ptLibToggle(si){ S._ptLibCol=S._ptLibCol||{}; S._ptLibCol[si]=!S._ptLibCol[si]; renderPTLibrary(); }
 // nút + ĐỎ ở section = CHỌN TẤT CẢ: thêm toàn bộ công tác của nhóm vào bảng ước tính
@@ -11145,7 +11180,7 @@ function tkSheetCo_(code){
 function tkSheetOf_(l){ return String((l&&l.extra&&l.extra.sheet)||''); }
 function tkSheetLbl_(v){ var x=TK_SHEETS.filter(function(t){ return t[0]===v; })[0]; return x?x[1]:''; }
 function setSheet(v){
-  S.sheet=v||''; S._mmDT=null;                // '' = Khái toán (gộp NC + VT) · 'nc' / 'vt' = Dự toán
+  S.sheet=(S.sheet===v)?'':(v||''); S._mmDT=null;   // bấm lại chip đang bật = xem tất cả
   try{ localStorage.setItem('qs_sheet', S.sheet||''); }catch(e){}
   S._tkSel={}; renderTable(); renderCard&&renderCard();
 }
@@ -11160,25 +11195,25 @@ function tkSheetChips_(lines){
        Khái toán (Nhân công + Vật tư)  |  Dự toán · Nhân công  |  Dự toán · Vật tư        */
   function chip(on, js, so, ten, tip, n){ return '<button class="shchip'+(on?' on':'')+'" onclick="'+js+'" title="'+esc(tip)+'">'
     +'<span class="shc-c">'+esc(so)+'</span>'+ten+(n!=null?'<i class="shc-n">['+pad2(n)+']</i>':'')+'</button>'; }
-  if(code==='3.1'){
+  if(code==='3.1'){                  // Phần thô: 1. Khái toán (1.1 chi tiết · 1.2 sơ bộ) · 2. Dự toán (2.1 NC · 2.2 VT)
     var cur=ptLoai_();
-    box.innerHTML=chip(cur==='kt_chitiet','ptSheetPick_(\'\')','1.','Khái toán <em class="shc-s">Nhân công + Vật tư</em>','Khái toán Phần thô — gộp nhân công và vật tư')
-      +'<span class="shc-sep">Dự toán</span>'
-      +chip(cur==='dt_nhancong','ptSheetPick_(\'nc\')','2.1','Nhân công','Dự toán Nhân công của Phần thô')
-      +chip(cur==='dt_vattu','ptSheetPick_(\'vt\')','2.2','Vật tư','Dự toán Vật tư của Phần thô');
+    box.innerHTML=PT_LOAI_NHOM.map(function(g){
+      return '<span class="shc-sep">'+esc(g[1]+'. '+g[2])+'</span>'+g[3].map(function(x){
+        return chip(cur===x[0],'ptSheetPick_(\''+x[0]+'\')',x[1],esc(x[2].replace(/^Khái toán (\S)/,function(m,c){ return c.toUpperCase(); })),x[2]+' — '+x[3]); }).join('');
+    }).join('');
     return;
   }
+  // Thạch cao / Xây tô / Ốp lát: lọc dòng Nhân công / Vật tư (bấm lại = xem tất cả)
   var dem={nc:0,vt:0,'':0};
   (lines||[]).forEach(function(l){ dem[tkSheetOf_(l)]=(dem[tkSheetOf_(l)]||0)+1; });
-  var sh=S.sheet||'';
-  box.innerHTML=chip(!sh,'setSheet(\'\')','1.','Khái toán <em class="shc-s">Nhân công + Vật tư</em>','Khái toán: xem gộp mọi dòng nhân công + vật tư',(lines||[]).length)
-    +'<span class="shc-sep">Dự toán</span>'
-    +chip(sh==='nc','setSheet(\'nc\')','2.1','Nhân công','Dự toán: chỉ các dòng Nhân công',dem.nc||0)
-    +chip(sh==='vt','setSheet(\'vt\')','2.2','Vật tư','Dự toán: chỉ các dòng Vật tư',dem.vt||0);
+  box.innerHTML=TK_SHEETS.map(function(t,i){
+    return chip(S.sheet===t[0],'setSheet(\''+t[0]+'\')',(code?(code+'.'+(i+1)+'.'):''),t[1],'Chỉ hiện các dòng '+t[1]+' của hạng mục này',dem[t[0]]||0);
+  }).join('')
+  +(S.sheet?'<button class="shchip clr" onclick="setSheet(\''+S.sheet+'\')" title="Bỏ lọc, xem tất cả">✕ Tất cả</button>':'');
 }
 // Phần thô: bấm chip = đổi Loại báo giá; bấm lại chip đang bật = quay về khái toán trước đó
 function ptSheetPick_(v){
-  ptSetLoai(v ? PT_SHEET_LOAI[v] : 'kt_chitiet'); renderTable();    // '' = Khái toán (NC + VT)
+  ptSetLoai(PT_SHEET_LOAI[v]||v||'kt_chitiet'); renderTable();   // nhận 'nc'/'vt' (cũ) hoặc mã loại báo giá
 }
 function tkBulkSheet_(v){
   var ls=tkSelLines_(); if(!ls.length) return;
