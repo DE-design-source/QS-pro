@@ -340,14 +340,18 @@ var ANGLES=['8°','12°','20°','22°','30°','38°','40°','50°','60°','12x60
 /* ===== BOOT ===== */
 async function boot(){
   try{
+    splashStep_('Đang tải dự án & danh mục sản phẩm…');
     var b=await api('bootstrap', S.cur?S.cur.maDA:null);
     S.projects=b.projects||[]; S.products=b.products||[];
     if(!S.cur && S.projects.length) S.cur=S.projects[0];
     if(S.cur){ var f=S.projects.filter(function(p){return p.maDA===S.cur.maDA;})[0]; if(f) S.cur=f; }
+    if(S.cur) splashStep_('Đang tải bảng bóc tách “'+(S.cur.ten||S.cur.maDA)+'”…');
     S.lines = S.cur ? (await api('getLines',S.cur.maDA)||[]) : [];
+    splashStep_('Đang dựng giao diện…');
     renderAll(); bocBoot_(); hmInit_(); sideApply_();      // hạng mục dùng chung: khôi phục lựa chọn lần trước
+    splashDone_();
     ctLoad_(true).then(function(){ if(S.node==='3.1'||spPTMode_()) ctReload_(); });
-  }catch(e){ toast('Lỗi tải: '+e.message); }
+  }catch(e){ splashDone_(); toast('Lỗi tải: '+e.message); }
 }
 function bocBoot_(){ try{
   dragSelInit_();
@@ -10325,14 +10329,29 @@ function ptDragBind_(tb){
   });
 }
 
+/* ═══ MÀN HÌNH CHỜ (#splash trong index.html) ═══
+   Hiện ngay khi mở trang, báo đúng bước đang làm; mờ dần khi đã vẽ xong dữ liệu hoặc khi cần đăng nhập.
+   Máy chủ Render ngủ -> lần đầu có thể lâu: sau 6 giây hiện lời nhắc; quá 45 giây thì tự ẩn để không kẹt. */
+var SPLASH_T0=Date.now();
+function splashStep_(t){ var m=document.getElementById('splashMsg'); if(m) m.textContent=t; }
+setTimeout(function(){ var h=document.getElementById('splashHint'), s=document.getElementById('splash');
+  if(h && s && !s.classList.contains('hide')) h.textContent='Máy chủ đang khởi động — lần đầu có thể mất 20–30 giây.'; },6000);
+setTimeout(function(){ splashDone_(); },45000);
+function splashDone_(){
+  var s=document.getElementById('splash'); if(!s || s.classList.contains('hide')) return;
+  var cho=Math.max(0, 650-(Date.now()-SPLASH_T0));            // hiện tối thiểu ~0.65s cho khỏi chớp
+  setTimeout(function(){ s.classList.add('hide'); setTimeout(function(){ if(s.parentNode) s.parentNode.removeChild(s); },600); }, cho);
+}
 /* ===================== AUTH & ADMIN ===================== */
 async function authStart_(){
   var t=authToken();
   if(!t){ showLogin_(); return; }
+  splashStep_('Đang xác thực tài khoản…');
   try{ var u=await api('me'); S.me=u; S.congTy=u.congTy||null; onAuthed_(); }
   catch(e){ setAuthToken(''); showLogin_(); }
 }
 function showLogin_(msg){
+  splashDone_();
   var ls=document.getElementById('loginScreen'); if(ls) ls.style.display='flex';
   var m=document.getElementById('loginMsg'); if(m){ m.textContent=msg||''; m.style.display=msg?'block':'none'; }
   var u=document.getElementById('loginUser'); if(u) setTimeout(function(){u.focus();},60);

@@ -5624,9 +5624,48 @@ body > :not(.topnav):not(.wrap):not(script):not(#loginScreen) > *{zoom:var(--uiz
 .docf-chip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .docf-chip:hover{background:#e3edff}
 .pd-docs{flex-wrap:wrap}
+
+/* ════════ MÀN HÌNH CHỜ ════════ */
+.splash{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  background:radial-gradient(120% 90% at 50% 38%,#18406e 0%,#0f2a4c 45%,#0a1c33 100%);color:#fff;
+  transition:opacity .5s ease,visibility .5s ease}
+.splash.hide{opacity:0;visibility:hidden}
+.splash.hide .spl-card{transform:translateY(-6px) scale(.985)}
+.spl-glow{position:absolute;width:620px;height:620px;border-radius:50%;left:50%;top:42%;transform:translate(-50%,-50%);
+  background:radial-gradient(circle,rgba(120,170,255,.16) 0%,rgba(120,170,255,0) 62%);animation:splGlow 4.5s ease-in-out infinite}
+.spl-card{position:relative;display:flex;flex-direction:column;align-items:center;transition:transform .5s ease}
+.spl-logo{width:210px;height:auto;filter:brightness(0) invert(1);opacity:0;animation:splUp .9s cubic-bezier(.2,.7,.2,1) .1s forwards}
+.spl-tag{margin-top:16px;display:flex;align-items:center;gap:12px;font-size:11px;font-weight:500;letter-spacing:.34em;text-transform:uppercase;
+  color:rgba(214,228,247,.72);opacity:0;animation:splUp .9s cubic-bezier(.2,.7,.2,1) .3s forwards}
+.spl-tag i{width:3px;height:3px;border-radius:50%;background:rgba(214,228,247,.5)}
+.spl-bar{position:relative;width:180px;height:2px;margin-top:40px;border-radius:2px;background:rgba(255,255,255,.12);overflow:hidden;
+  opacity:0;animation:splFade .6s ease .5s forwards}
+.spl-bar span{position:absolute;top:0;bottom:0;width:40%;border-radius:2px;
+  background:linear-gradient(90deg,rgba(143,190,255,0),#9cc3ff 50%,rgba(143,190,255,0));animation:splRun 1.35s cubic-bezier(.45,.05,.55,.95) infinite}
+.spl-msg{margin-top:16px;min-height:18px;font-size:12.5px;font-weight:500;letter-spacing:.02em;color:rgba(226,236,250,.86);
+  opacity:0;animation:splFade .6s ease .6s forwards;transition:opacity .25s}
+.spl-hint{margin-top:6px;min-height:16px;font-size:11.5px;color:rgba(190,208,232,.6);text-align:center;max-width:380px;line-height:1.5}
+.spl-foot{position:absolute;bottom:26px;left:0;right:0;text-align:center;font-size:10.5px;letter-spacing:.28em;color:rgba(190,208,232,.38)}
+@keyframes splUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes splFade{to{opacity:1}}
+@keyframes splRun{0%{left:-40%}100%{left:100%}}
+@keyframes splGlow{0%,100%{opacity:.75;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}}
+@media (prefers-reduced-motion:reduce){ .spl-glow,.spl-bar span{animation:none} .spl-bar span{left:30%} }
 </style>
 
 <!-- ===== TOP NAV ===== -->
+<!-- ═══ MÀN HÌNH CHỜ: hiện ngay khi mở trang, mờ dần khi dữ liệu đã tải xong (splashDone_ trong app.js) ═══ -->
+<div id="splash" class="splash" role="status" aria-live="polite">
+  <div class="spl-glow"></div>
+  <div class="spl-card">
+    <img class="spl-logo" src="logo.svg" alt="DEZON">
+    <div class="spl-tag">Dự toán <i></i> Bóc tách <i></i> Báo giá</div>
+    <div class="spl-bar"><span></span></div>
+    <div class="spl-msg" id="splashMsg">Đang khởi động…</div>
+    <div class="spl-hint" id="splashHint"></div>
+  </div>
+  <div class="spl-foot">DEZON PRO · dezon.vn</div>
+</div>
 <div class="topnav"><div class="wrap"><div class="row">
   <button class="mb-burger" id="mbBurger" onclick="mbToggleNav()" aria-label="Menu">
     <span></span><span></span><span></span></button>
