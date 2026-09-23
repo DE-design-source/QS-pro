@@ -4090,104 +4090,167 @@ var TK_PRESETS=[
   ['gia','Giá & lợi nhuận',['stt','ten','soLuong','giaNCC','chietKhau','giaDaiLy','lnPct','donGia','ckKhach','donGiaCK','markup','margin','lnVnd','thanhTien']],
   ['gon','Tối giản',['stt','ten','soLuong','donGiaCK','thanhTien']]
 ];
-function tkPresetKeys_(ps){
-  if(ps[2]===null) return COLS.map(function(c){ return c[0]; });
-  if(ps[2]==='default') return COLS.filter(function(c){ return c[2]; }).map(function(c){ return c[0]; });
-  return ps[2];
+/* ═══ BỘ CỘT DÙNG CHUNG CHO NHIỀU BẢNG ═══
+   Bóc tách, Chi phí, Dự án, Xuất báo giá đều dùng CHUNG một nút "Chọn nhanh" + một bảng
+   thả xuống: bộ "Của tôi" (lưu theo tài khoản qua users.ui_prefs) đứng đầu, rồi các bộ
+   dựng sẵn ở TK_PRESETS. Mỗi bảng chỉ khai báo ở đây: danh sách cột, bộ mặc định, cách
+   bật/tắt và cách vẽ lại — thêm bảng mới không phải viết lại bảng chọn.
+   Bóc tách và Xuất báo giá dùng chung S.cols nên chung luôn bộ cột 'tk'.                */
+var COLSET={
+  tk:{ ten:'Bóc tách', pref:'tkCols', luon:'ten',
+    keys:function(){ return COLS.map(function(c){ return c[0]; }); },
+    macdinh:function(){ return COLS.filter(function(c){ return c[2]; }).map(function(c){ return c[0]; }); },
+    on:function(k){ return !!(S.cols||{})[k]; },
+    set:function(m){ S.cols=S.cols||{}; COLS.forEach(function(c){ S.cols[c[0]]=!!m[c[0]]; }); },
+    ve:function(){ try{ renderColChips(); renderTable(); }catch(e){} try{ if(bgVis()) drawBaogia(); }catch(e){} } },
+  cp:{ ten:'Chi phí', pref:'cpCols', luon:'ten',
+    keys:function(){ return CP_KEYS.slice(); },
+    macdinh:function(){ return ['ten','dvt','soLuong','giaNCC','chietKhau','giaDaiLy','lnPct','donGia','thanhTien','lnVnd']; },
+    on:function(k){ return !!(S.cpCols||{})[k]; },
+    set:function(m){ S.cpCols=S.cpCols||{}; CP_KEYS.forEach(function(k){ S.cpCols[k]=!!m[k]; }); },
+    ve:function(){ try{ renderChiphi(); }catch(e){} } },
+  da:{ ten:'Dự án', pref:'daCols', luon:'ten',
+    keys:function(){ return DA_KEYS.slice(); },
+    macdinh:function(){ return ['khuVuc','ten','thuongHieu','moTa','kichThuoc','hinhAnh','dvt','soLuong','donGia','thanhTien']; },
+    on:function(k){ return !!(S._daCols||{})[k]; },
+    set:function(m){ S._daCols=S._daCols||{}; DA_KEYS.forEach(function(k){ S._daCols[k]=!!m[k]; }); },
+    ve:function(){ try{ renderDuAn(); }catch(e){} } }
+};
+function csTab_(t){ return COLSET[t]||COLSET.tk; }
+function csKeys_(t){ return csTab_(t).keys(); }
+function csOn_(t,k){ return csTab_(t).on(k); }
+function csDangBat_(t){ return csKeys_(t).filter(function(k){ return csOn_(t,k); }); }
+/* Bộ dựng sẵn viết theo key cột của Bóc tách; bảng khác chỉ lấy phần key mình có. */
+function csPresetKeys_(t,ps){
+  var ks=csKeys_(t);
+  if(ps[2]===null) return ks.slice();
+  var ds=(ps[2]==='default')?csTab_(t).macdinh():ps[2];
+  return ds.filter(function(k){ return ks.indexOf(k)>=0; });
 }
-function tkPresetOn_(ps){                      // bộ cột nào đang khớp đúng với cột đang bật
-  var want={}; tkPresetKeys_(ps).forEach(function(k){ want[k]=1; });
-  return COLS.every(function(c){ return !!S.cols[c[0]]===!!want[c[0]]; });
+function csWant_(t,list){
+  var m={}; list.forEach(function(k){ m[k]=1; });
+  var l=csTab_(t).luon; if(l) m[l]=1;                 // cột Tên sản phẩm luôn phải có
+  return m;
 }
-function tkPresetApply_(id){
+function csPresetOn_(t,ps){                          // bộ nào đang khớp đúng với cột đang bật
+  var want=csWant_(t,csPresetKeys_(t,ps));
+  return csKeys_(t).every(function(k){ return !!csOn_(t,k)===!!want[k]; });
+}
+function csPresetApply_(t,id){
   var ps=TK_PRESETS.filter(function(x){ return x[0]===id; })[0]; if(!ps) return;
-  var want={}; tkPresetKeys_(ps).forEach(function(k){ want[k]=1; });
-  COLS.forEach(function(c){ S.cols[c[0]]=!!want[c[0]]; });
-  S.cols.ten=true;                               // cột Tên sản phẩm luôn phải có
-  tkPresetClose_(); renderColChips(); renderTable(); if(bgVis()) drawBaogia();
+  csTab_(t).set(csWant_(t,csPresetKeys_(t,ps)));
+  csPresetClose_(); csTab_(t).ve();
   toast('Đã bật bộ cột: '+ps[1]);
 }
 /* ═══ BỘ CỘT "CỦA TÔI" — lưu theo TÀI KHOẢN ═══
-   Bấm "Lưu cột đang hiện…" -> ghi vào users.ui_prefs.tkCols trên server (đăng nhập máy khác vẫn còn),
-   kèm bản dự phòng localStorage theo tên tài khoản. Mỗi lần đăng nhập tự bật lại đúng bộ này. */
-function tkMyKey_(){ return 'qs_tkcols_'+String((S.me&&S.me.username)||'').toLowerCase(); }
-function tkMyCols_(){
-  var v=S.me&&S.me.uiPrefs&&S.me.uiPrefs.tkCols;
-  if(!Array.isArray(v)){ try{ v=JSON.parse(localStorage.getItem(tkMyKey_())||'null'); }catch(e){ v=null; } }
+   Bấm "Lưu cột đang hiện…" -> ghi vào users.ui_prefs.<pref> trên server (đăng nhập máy
+   khác vẫn còn), kèm bản dự phòng localStorage theo tên tài khoản. Mỗi lần đăng nhập tự
+   bật lại đúng bộ này cho TỪNG bảng.                                                   */
+function csMyKey_(t){ var u=String((S.me&&S.me.username)||'').toLowerCase();
+  return t==='tk' ? ('qs_tkcols_'+u) : ('qs_cols_'+t+'_'+u); }   // 'tk' giữ khoá cũ để không mất bộ đã lưu
+function csMyCols_(t){
+  var v=S.me&&S.me.uiPrefs&&S.me.uiPrefs[csTab_(t).pref];
+  if(!Array.isArray(v)){ try{ v=JSON.parse(localStorage.getItem(csMyKey_(t))||'null'); }catch(e){ v=null; } }
   if(!Array.isArray(v)) return null;
-  var ok={}; COLS.forEach(function(c){ ok[c[0]]=1; });
-  v=v.filter(function(k){ return ok[k]; });
+  var ks=csKeys_(t); v=v.filter(function(k){ return ks.indexOf(k)>=0; });
   return v.length?v:null;
 }
-function tkMyOn_(){ var v=tkMyCols_(); if(!v) return false; var want={}; v.forEach(function(k){ want[k]=1; }); want.ten=1;
-  return COLS.every(function(c){ return !!S.cols[c[0]]===!!want[c[0]]; }); }
-// Đăng nhập xong: bật bộ cột của tài khoản (chưa lưu thì về Mặc định — không mang bộ cột của tài khoản trước)
-function tkMyColsApply_(){
-  var v=tkMyCols_(), want={};
-  if(v){ v.forEach(function(k){ want[k]=1; }); } else COLS.forEach(function(c){ if(c[2]) want[c[0]]=1; });
-  COLS.forEach(function(c){ S.cols[c[0]]=!!want[c[0]]; }); S.cols.ten=true;
+function csMyOn_(t){ var v=csMyCols_(t); if(!v) return false;
+  var want=csWant_(t,v);
+  return csKeys_(t).every(function(k){ return !!csOn_(t,k)===!!want[k]; }); }
+// Đăng nhập xong: bật bộ cột của tài khoản (chưa lưu thì về Mặc định — không mang bộ của tài khoản trước)
+function csMyApply_(t){ var v=csMyCols_(t); csTab_(t).set(csWant_(t, v||csTab_(t).macdinh())); }
+function csMyApplyAll_(){ Object.keys(COLSET).forEach(function(t){ try{ csMyApply_(t); }catch(e){} }); }
+function csMyUse_(t){
+  if(!csMyCols_(t)) return; csMyApply_(t);
+  csPresetClose_(); csTab_(t).ve(); toast('Đã bật bộ cột của tôi');
 }
-function tkMyUse_(){
-  if(!tkMyCols_()) return; tkMyColsApply_();
-  tkPresetClose_(); renderColChips(); renderTable(); if(bgVis()) drawBaogia();
-  toast('Đã bật bộ cột của tôi');
-}
-async function tkMySave_(){
-  var keys=COLS.filter(function(c){ return S.cols[c[0]]; }).map(function(c){ return c[0]; });
-  try{ localStorage.setItem(tkMyKey_(), JSON.stringify(keys)); }catch(e){}
+async function csMySave_(t){
+  var keys=csDangBat_(t);
+  try{ localStorage.setItem(csMyKey_(t), JSON.stringify(keys)); }catch(e){}
   try{
-    var r=await api('setMyPref','tkCols',keys);
-    if(S.me) S.me.uiPrefs=(r&&r.uiPrefs)||Object.assign({},S.me.uiPrefs,{tkCols:keys});
+    var r=await api('setMyPref',csTab_(t).pref,keys);
+    if(S.me){ var up={}; up[csTab_(t).pref]=keys; S.me.uiPrefs=(r&&r.uiPrefs)||Object.assign({},S.me.uiPrefs,up); }
     toast('Đã lưu '+keys.length+' cột làm mặc định của tài khoản '+((S.me&&S.me.username)||''));
   }catch(e){ toast('Đã lưu trên máy này. Lưu theo tài khoản lỗi: '+e.message); }
-  tkPresetClose_(); renderColChips();
+  csPresetClose_(); csTab_(t).ve();
 }
-async function tkMyClear_(){
-  if(!confirm('Xoá bộ cột "Của tôi"? Lần sau đăng nhập sẽ dùng bộ Mặc định.')) return;
-  try{ localStorage.removeItem(tkMyKey_()); }catch(e){}
-  try{ var r=await api('setMyPref','tkCols',null); if(S.me) S.me.uiPrefs=(r&&r.uiPrefs)||{}; }
-  catch(e){ if(S.me&&S.me.uiPrefs) delete S.me.uiPrefs.tkCols; }
-  tkPresetClose_(); renderColChips(); toast('Đã xoá bộ cột của tôi');
+async function csMyClear_(t){
+  if(!confirm('Xoá bộ cột "Của tôi" của bảng '+csTab_(t).ten+'? Lần sau đăng nhập sẽ dùng bộ Mặc định.')) return;
+  try{ localStorage.removeItem(csMyKey_(t)); }catch(e){}
+  try{ var r=await api('setMyPref',csTab_(t).pref,null); if(S.me) S.me.uiPrefs=(r&&r.uiPrefs)||{}; }
+  catch(e){ if(S.me&&S.me.uiPrefs) delete S.me.uiPrefs[csTab_(t).pref]; }
+  csPresetClose_(); csTab_(t).ve(); toast('Đã xoá bộ cột của tôi');
 }
-function tkPresetPop_(e){
+/* Nút "Chọn nhanh" — nhãn là tên bộ đang khớp (hoặc "Của tôi") + số cột đang bật */
+function csQuickBtn_(t,btnId){
+  var ks=csKeys_(t), on=csDangBat_(t).length;
+  var cur=TK_PRESETS.filter(function(ps){ return csPresetOn_(t,ps); })[0];
+  var nhan=csMyOn_(t)?'Của tôi':(cur?cur[1]:'Chọn nhanh');
+  return '<button class="chip-quick" id="'+btnId+'" onclick="csPresetPop_(event,\''+t+'\',\''+btnId+'\')"'
+    +' title="Bật cả một bộ cột theo mục đích / bộ cột của tôi">'
+    +icon('sliders',13)+'<span>'+esc(nhan)+'</span><b>'+on+'/'+ks.length+'</b><i>▾</i></button>';
+}
+function csPresetPop_(e,t,btnId){
   if(e&&e.stopPropagation) e.stopPropagation();
-  if(document.getElementById('tkPresetPop')){ tkPresetClose_(); return; }
+  t=t||'tk'; btnId=btnId||'tkPresetBtn';
+  if(document.getElementById('tkPresetPop')){ csPresetClose_(); return; }
   var pop=document.createElement('div'); pop.className='fltpop bgtree'; pop.id='tkPresetPop';
-  var mine=tkMyCols_(), mineOn=tkMyOn_(), dem=COLS.filter(function(c){ return S.cols[c[0]]; }).length;
-  pop.innerHTML='<div class="bgt-h"><b>Chọn nhanh cột</b><button class="colpop-x" onclick="tkPresetClose_()">✕</button></div>'
+  var mine=csMyCols_(t), mineOn=csMyOn_(t), dem=csDangBat_(t).length;
+  pop.innerHTML='<div class="bgt-h"><b>Chọn nhanh cột</b><button class="colpop-x" onclick="csPresetClose_()">✕</button></div>'
     +'<div class="bgt-b">'
       // bộ cột RIÊNG của tài khoản — luôn đứng đầu
-      +(mine?('<div class="bgt-i lvl1 tkmine'+(mineOn?' on':'')+'" onclick="tkMyUse_()">'
+      +(mine?('<div class="bgt-i lvl1 tkmine'+(mineOn?' on':'')+'" onclick="csMyUse_(\''+t+'\')">'
           +'<span class="nm">'+icon('check',13)+' Của tôi <i class="tkmine-u">'+esc((S.me&&S.me.username)||'')+'</i></span><span class="cn">'+mine.length+' cột</span>'
           +'<span class="rd'+(mineOn?' on':'')+'"></span></div>'):'')
-      +TK_PRESETS.map(function(ps){
-        var on=tkPresetOn_(ps), n=tkPresetKeys_(ps).length;
-        return '<div class="bgt-i lvl1'+(on?' on':'')+'" onclick="tkPresetApply_(\''+ps[0]+'\')">'
-          +'<span class="nm">'+esc(ps[1])+'</span><span class="cn">'+n+' cột</span>'
-          +'<span class="rd'+(on?' on':'')+'"></span></div>';
-      }).join('')+'</div>'
+      // Bảng ít cột hơn Bóc tách (Dự án, Chi phí) có thể khiến 2 bộ ra CÙNG một danh sách
+      // (vd "Mặc định" và "Báo giá cho khách") -> chỉ giữ bộ đầu tiên, tránh 2 dòng y hệt nhau.
+      +(function(){ var da={};
+        return TK_PRESETS.filter(function(ps){
+          var sig=csPresetKeys_(t,ps).slice().sort().join('|');
+          if(da[sig]) return false; da[sig]=1; return true;
+        }).map(function(ps){
+          var on=csPresetOn_(t,ps), n=csPresetKeys_(t,ps).length;
+          return '<div class="bgt-i lvl1'+(on?' on':'')+'" onclick="csPresetApply_(\''+t+'\',\''+ps[0]+'\')">'
+            +'<span class="nm">'+esc(ps[1])+'</span><span class="cn">'+n+' cột</span>'
+            +'<span class="rd'+(on?' on':'')+'"></span></div>';
+        }).join('');
+      })()+'</div>'
     +'<div class="tkmine-f">'
-      +'<button class="btn blue sm" onclick="tkMySave_()"'+(mineOn?' disabled title="Bộ cột đang hiện đã là bộ của bạn"':'')+'>'+icon('check',13)
+      +'<button class="btn blue sm" onclick="csMySave_(\''+t+'\')"'+(mineOn?' disabled title="Bộ cột đang hiện đã là bộ của bạn"':'')+'>'+icon('check',13)
         +' Lưu '+dem+' cột đang hiện làm mặc định của tôi</button>'
-      +(mine?'<button class="btn ghost sm" onclick="tkMyClear_()">Xoá bộ của tôi</button>':'')
+      +(mine?'<button class="btn ghost sm" onclick="csMyClear_(\''+t+'\')">Xoá bộ của tôi</button>':'')
       +'<div class="tkmine-n">Lưu theo tài khoản — lần sau đăng nhập (kể cả máy khác) tự hiện đúng các cột này.</div>'
     +'</div>';
   document.body.appendChild(pop);
-  var b=document.getElementById('tkPresetBtn');
+  var b=document.getElementById(btnId);
   if(b){ var r=b.getBoundingClientRect(), w=pop.offsetWidth||300, h=pop.offsetHeight;
     var top=r.bottom+6; if(top+h>window.innerHeight-10) top=Math.max(10, r.top-h-6);
     pop.style.top=top+'px'; pop.style.left=Math.max(8,Math.min(r.left, window.innerWidth-w-10))+'px'; }
+  S._csBtn=btnId;
   setTimeout(function(){ document.addEventListener('mousedown',tkPresetOutside_); },0);
 }
-function tkPresetOutside_(e){ if(e.target.closest('#tkPresetPop')||e.target.closest('#tkPresetBtn')) return; tkPresetClose_(); }
+function csPresetClose_(){ tkPresetClose_(); }
+/* --- tên cũ vẫn dùng ở Bóc tách --- */
+function tkPresetKeys_(ps){ return csPresetKeys_('tk',ps); }
+function tkPresetOn_(ps){ return csPresetOn_('tk',ps); }
+function tkPresetApply_(id){ return csPresetApply_('tk',id); }
+function tkMyCols_(){ return csMyCols_('tk'); }
+function tkMyOn_(){ return csMyOn_('tk'); }
+function tkMyColsApply_(){ csMyApplyAll_(); }
+function tkMyUse_(){ return csMyUse_('tk'); }
+function tkMySave_(){ return csMySave_('tk'); }
+function tkMyClear_(){ return csMyClear_('tk'); }
+function tkPresetPop_(e){ return csPresetPop_(e,'tk','tkPresetBtn'); }
+function tkPresetOutside_(e){
+  if(e.target.closest('#tkPresetPop')) return;
+  if(S._csBtn && e.target.closest('#'+S._csBtn)) return;
+  tkPresetClose_(); }
 function tkPresetClose_(){ var p=document.getElementById('tkPresetPop'); if(p) p.remove(); document.removeEventListener('mousedown',tkPresetOutside_); }
 function renderColChips(){
   var el=document.getElementById('colChips'); if(!el) return;
   var on=COLS.filter(function(c){ return S.cols[c[0]]; }).length;
-  var cur=TK_PRESETS.filter(tkPresetOn_)[0];
-  var nhan=tkMyOn_()?'Của tôi':(cur?cur[1]:'Chọn nhanh');
-  var nut='<button class="chip-quick" id="tkPresetBtn" onclick="tkPresetPop_(event)" title="Bật cả một bộ cột theo mục đích / bộ cột của tôi">'
-      +icon('sliders',13)+'<span>'+esc(nhan)+'</span><b>'+on+'/'+COLS.length+'</b><i>▾</i></button>';
+  var nut=csQuickBtn_('tk','tkPresetBtn');
   var slot=document.getElementById('tkPresetSlot'), nEl=document.getElementById('tkColsN');
   if(nEl) nEl.textContent=on+'/'+COLS.length;
   if(slot) slot.innerHTML=nut;
@@ -5570,7 +5633,7 @@ function colPopOutside_(e){
 function cpColBar_(){
   var on=CP_KEYS.filter(function(k){ return S.cpCols[k]; }).length;
   return pgColFrame_(on, CP_KEYS.length, '<div class="colchips cp-colchips">'
-    +CP_KEYS.map(function(k){ return '<span class="chip'+(S.cpCols[k]?' on':'')+'" onclick="cpToggle(\''+k+'\')">'+esc(cpLabel_(k))+'</span>'; }).join('')+'</div>', 'cpColAll_');
+    +CP_KEYS.map(function(k){ return '<span class="chip'+(S.cpCols[k]?' on':'')+'" onclick="cpToggle(\''+k+'\')">'+esc(cpLabel_(k))+'</span>'; }).join('')+'</div>', 'cpColAll_', 'cp', 'cpPresetBtn');
 }
 function cpColPop_(e){ if(e&&e.stopPropagation) e.stopPropagation();
   colPopMake_('cpColPop','cpColBtn','Cột hiển thị',CP_KEYS,function(k){ return !!S.cpCols[k]; },'cpToggle','cpColAll_'); }
@@ -5579,7 +5642,7 @@ function cpColAll_(on){ CP_KEYS.forEach(function(k){ S.cpCols[k]= on?true:(CP_CO
 function daColBar_(){
   var on=DA_KEYS.filter(function(k){ return S._daCols[k]; }).length;
   return pgColFrame_(on, DA_KEYS.length, '<div class="colchips cp-colchips">'
-    +DA_KEYS.map(function(k){ return '<span class="chip'+(S._daCols[k]?' on':'')+'" onclick="daColToggle(\''+k+'\')">'+esc(cpLabel_(k))+'</span>'; }).join('')+'</div>', 'daColAll_');
+    +DA_KEYS.map(function(k){ return '<span class="chip'+(S._daCols[k]?' on':'')+'" onclick="daColToggle(\''+k+'\')">'+esc(cpLabel_(k))+'</span>'; }).join('')+'</div>', 'daColAll_', 'da', 'daPresetBtn');
 }
 function daColPop_(e){ if(e&&e.stopPropagation) e.stopPropagation();
   colPopMake_('daColPop','daColBtn','Cột hiển thị',DA_KEYS,function(k){ return !!(S._daCols&&S._daCols[k]); },'daColToggle','daColAll_'); }
@@ -5604,9 +5667,10 @@ function pgVat_(){ var v=Number(S.cur&&S.cur.vat)||0;
   return '<i>VAT <input class="tkt-vat" type="number" step="any" min="0" value="'+v+'" onchange="pgSetVat_(this.value)" title="Thuế VAT (%)">%</i>'; }
 function pgSetVat_(v){ setVat(v); refreshActiveTab_(); }
 // Khung "Cột hiển thị" gập / mở (chung trạng thái với Bóc tách) + bật nhanh tất cả / cơ bản
-function pgColFrame_(on,total,chips,fnAll){
+function pgColFrame_(on,total,chips,fnAll,csKey,btnId){
   return '<div class="pg-cols"><div class="tk-frame-hr">'
       +'<button class="tk-frame-h fold-h" onclick="foldToggle_(\'cols\')" title="Ẩn / hiện các chip cột">Cột hiển thị <b>'+on+'/'+total+'</b><i class="fold-ic"></i></button>'
+      +(csKey?csQuickBtn_(csKey,btnId):'')
       +'<button class="pg-q" onclick="'+fnAll+'(1)">Hiện tất cả</button><button class="pg-q" onclick="'+fnAll+'(0)">Cột cơ bản</button></div>'
     +chips+'</div>';
 }
@@ -11634,6 +11698,7 @@ function bgCtlBar_(){
     +'<button class="btn red sm" onclick="printDoc()">'+icon('download',15)+' Xuất PDF / In</button>'
   +'</div>'
   +'<div class="colchips bg-colchips"><span class="cp-collbl">Cột xuất</span>'
+    +csQuickBtn_('tk','bgPresetBtn')
     +COLS.map(function(c){ return '<span class="chip'+(S.cols[c[0]]?' on':'')+'" onclick="toggleCol(\''+c[0]+'\')">'+esc(c[1])+'</span>'; }).join('')
   +'</div>';
 }
