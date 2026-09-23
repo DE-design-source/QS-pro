@@ -1099,7 +1099,7 @@ async function getDeXuatList(maDA) {
 function ctToObj(r) {
   return {
     id: r.id, loai: s(r.loai) || 'kt_chitiet', mode: s(r.che_do) || 'item',
-    maNhom: s(r.ma_nhom), hangMuc: s(r.hang_muc), ten: s(r.ten), dvt: s(r.dvt), ncc: s(r.nha_cung_cap),
+    maNhom: s(r.ma_nhom), hangMuc: s(r.hang_muc), deMuc: s(r.de_muc), ten: s(r.ten), dvt: s(r.dvt), ncc: s(r.nha_cung_cap),
     kl: r.khoi_luong == null ? '' : n(r.khoi_luong),
     dt: r.dien_tich == null ? '' : n(r.dien_tich),
     hs: r.he_so == null ? '' : n(r.he_so),
@@ -1117,7 +1117,7 @@ function ctToRow_(d) {
   function num(v) { return (v === '' || v == null) ? null : n(v); }
   const r = {
     loai: s(d.loai) || 'kt_chitiet', che_do: s(d.mode) || 'item',
-    ma_nhom: s(d.maNhom), hang_muc: s(d.hangMuc), ten: s(d.ten), dvt: s(d.dvt), nha_cung_cap: s(d.ncc),
+    ma_nhom: s(d.maNhom), hang_muc: s(d.hangMuc), de_muc: s(d.deMuc), ten: s(d.ten), dvt: s(d.dvt), nha_cung_cap: s(d.ncc),
     khoi_luong: num(d.kl), dien_tich: num(d.dt), he_so: num(d.hs),
     don_gia_nha_thau: num(d.dgnt), don_gia: num(d.dg),
     ghi_chu: s(d.gc), hinh_anh: s(d.hinhAnh), thong_so: s(d.thongSo),
@@ -1187,7 +1187,7 @@ async function ctSave(actor, data) {
 }
 /* ===== Lịch sử cập nhật CÔNG TÁC — y như sản phẩm đèn ===== */
 const CT_FIELD_LBL = {
-  loai: 'LOẠI BÁO GIÁ', che_do: 'CHẾ ĐỘ', ma_nhom: 'MÃ NHÓM', hang_muc: 'HẠNG MỤC', ten: 'TÊN CÔNG TÁC',
+  loai: 'LOẠI BÁO GIÁ', che_do: 'CHẾ ĐỘ', ma_nhom: 'MÃ NHÓM', hang_muc: 'HẠNG MỤC', de_muc: 'ĐỀ MỤC BÓC TÁCH', ten: 'TÊN CÔNG TÁC',
   dvt: 'ĐƠN VỊ TÍNH', nha_cung_cap: 'NHÀ THẦU / NCC', khoi_luong: 'KHỐI LƯỢNG', dien_tich: 'DIỆN TÍCH',
   he_so: 'HỆ SỐ', don_gia_nha_thau: 'ĐƠN GIÁ NHÀ THẦU', don_gia: 'ĐƠN GIÁ', ghi_chu: 'GHI CHÚ',
   hinh_anh: 'HÌNH ẢNH', thong_so: 'THÔNG SỐ', pham_vi: 'PHẠM VI', link_tai_lieu: 'LINK TÀI LIỆU',

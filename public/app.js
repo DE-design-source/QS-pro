@@ -7721,7 +7721,8 @@ function ctRecentList_(){
   var cards=pd.map(function(x,i){
     var c=x.d, im=String(c.hinhAnh||'').split('\n')[0], dangSua=(S._ctPendEdit===x.uid);
     var img=im?'<img class="pc-th" src="'+esc(imgUrlOf(im))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="pc-th pc-noimg">'+icon('image',14)+'</span>';
-    var phu=[c.hangMuc, c.dg?(money(c.dg)+' đ'+(c.dvt?'/'+c.dvt:'')):'', ptLoaiNgan_(c.loai)].filter(Boolean).join(' · ');
+    var dmC=ctDeMucCua_(c);
+    var phu=[c.hangMuc, dmC?(dmC+' '+nodeName(dmC)):'', c.dg?(money(c.dg)+' đ'+(c.dvt?'/'+c.dvt:'')):'', ptLoaiNgan_(c.loai)].filter(Boolean).join(' · ');
     return '<div class="pc'+(x.loi?' err':'')+(dangSua?' editing':'')+'">'+img
       +'<div class="pc-mid"><div class="pc-name" title="'+esc(c.ten||'')+'">'+esc(c.ten||'')+'</div>'
         +(phu?'<div class="pc-sub" title="'+esc(phu)+'">'+esc(phu)+'</div>':'')
@@ -8785,12 +8786,49 @@ function ctDeMucOf_(hangMuc){
   for(var i=0;i<CT_DEMUC_RULES.length;i++) if(CT_DEMUC_RULES[i][0].test(t)) return CT_DEMUC_RULES[i][1];
   return '';
 }
+/* ═══ CHỌN ĐỀ MỤC (PHÂN LOẠI) NGAY KHI NHẬP CÔNG TÁC ═══
+   Đoán theo tên hạng mục chỉ đúng với vài tên quen (sơn, thạch cao, ốp lát…). Nay form
+   Nhập dữ liệu có ô chọn thẳng đề mục con, lưu ở cột cong_tac.de_muc:
+     rỗng = vẫn tự nhận theo tên  ·  '0' = chỉ nằm ở 3.1 Phần thô  ·  mã đề mục = ghim vào đó.
+   Công tác LUÔN hiện ở 3.1 Phần thô; có đề mục thì hiện thêm ở đúng đề mục khi bóc tách. */
+var CT_DEMUC_CHON=['3.2.1','3.2.2','3.2.3','3.2.4','3.2.5','3.2.6','3.2.6.1','3.2.6.2','3.2.7','3.2.8','3.2.8.1','3.2.8.2'];
+function ctDeMucNhan_(hangMuc){ var c=ctDeMucOf_(hangMuc); return c?(c+' '+nodeName(c)):''; }
+function ctDeMucOpts_(cur, hangMuc){
+  cur=String(cur==null?'':cur);
+  var tu=ctDeMucNhan_(hangMuc);
+  return '<option value=""'+(cur?'':' selected')+'>— Tự nhận theo tên hạng mục'+(tu?(': '+tu):': chưa nhận ra')+' —</option>'
+    +'<option value="0"'+(cur==='0'?' selected':'')+'>Chỉ nằm ở 3.1 Phần thô</option>'
+    +CT_DEMUC_CHON.map(function(cd){
+      return '<option value="'+cd+'"'+(cur===cd?' selected':'')+'>'+cd+' · '+esc(nodeName(cd))+'</option>'; }).join('');
+}
+// đổi tên hạng mục -> cập nhật lại nhãn "tự nhận" của ô chọn đề mục
+function ctDeMucSync_(pre){
+  var sel=document.getElementById(pre+'DeMuc'), hm=document.getElementById(pre+'HangMuc');
+  if(!sel||!sel.options.length) return;
+  var tu=ctDeMucNhan_(hm?hm.value:'');
+  sel.options[0].textContent='— Tự nhận theo tên hạng mục'+(tu?(': '+tu):': chưa nhận ra')+' —';
+}
+// đề mục thật sự của 1 công tác trong CSDL
+function ctDeMucCua_(c){
+  var v=String((c&&c.deMuc)||'').trim();
+  if(v==='0') return '';                                  // người dùng chọn: chỉ ở Phần thô
+  if(v) return v;
+  return ctDeMucOf_((c&&c.hangMuc)||'');
+}
+// đề mục của 1 hạng mục công tác (nhóm trong thư viện Phần thô)
+function ctSecDeMuc_(sec){
+  if(!sec) return '';
+  var v=String(sec.deMuc||'').trim();
+  if(v==='0') return '';
+  if(v) return v;
+  return ctDeMucOf_(String(sec.t||'').split('\n')[0]);
+}
 // Các nhóm công tác (trong CSDL) thuộc đề mục đang chọn (kể cả khi chọn cấp con, vd 3.2.8.1 -> nhóm 3.2.8)
 function ctSecsOfNode_(node){
   node=String(node||''); if(!node || node==='3.1') return [];
   return PT_TEMPLATE.filter(function(sec){
     if(!sec.db || !(sec.items||[]).length) return false;
-    var dm=ctDeMucOf_(String(sec.t).split('\n')[0]); if(!dm) return false;
+    var dm=ctSecDeMuc_(sec); if(!dm) return false;
     return node===dm || node.indexOf(dm+'.')===0;
   });
 }
@@ -8839,8 +8877,9 @@ function ctSyncTemplate_(){
   PT_TEMPLATE=PT_TEMPLATE.filter(function(s){ return !s.db; });
   var list=S.congTac||[], secs={}, order=[];
   list.forEach(function(c){
-    var loai=c.loai||'kt_chitiet', t=c.hangMuc||'CHƯA PHÂN NHÓM', k=loai+'|'+t;
-    if(!secs[k]){ secs[k]={r:c.maNhom||'', t:t, loai:loai, mode:c.mode||'item', db:true, up:0, items:[]}; order.push(k); }
+    var loai=c.loai||'kt_chitiet', t=c.hangMuc||'CHƯA PHÂN NHÓM';
+    var dm=String(c.deMuc||'').trim(), k=loai+'|'+t+'|'+dm;   // khác đề mục = nhóm khác (mỗi nhóm 1 đề mục)
+    if(!secs[k]){ secs[k]={r:c.maNhom||'', t:t, loai:loai, mode:c.mode||'item', db:true, up:0, deMuc:dm, items:[]}; order.push(k); }
     var sec=secs[k];
     if(!sec.r && c.maNhom) sec.r=c.maNhom;
     if(sec.mode==='area' && !sec.up && c.dg) sec.up=c.dg;      // đơn giá chung của nhóm
@@ -8994,6 +9033,8 @@ function ctFormHtml_(c, pre){
       +'<div class="ctf-grid">'
         +fld(12,'Ten','Nội dung công việc',c.ten,'VD: Giàn tải, máy ép cọc Pmax 90T',1)
         +fld(5,'HangMuc','Hạng mục',c.hangMuc,'VD: Công tác ép cọc',1,'ctHangMucDL')
+        +'<div class="f f-5"><label for="'+pre+'DeMuc">Phân loại (đề mục bóc tách)</label>'
+          +'<select id="'+pre+'DeMuc">'+ctDeMucOpts_(c.deMuc,c.hangMuc)+'</select></div>'
         +fld(2,'MaNhom','Số hạng mục',c.maNhom,'II')
         +'<div class="f f-5"><label for="'+pre+'Loai">Loại báo giá<b class="req">*</b></label>'
           +'<select id="'+pre+'Loai">'+PT_LOAI.map(function(x){
@@ -9074,6 +9115,10 @@ function ctFormHtml2_(c, pre){
       +inp('Ten','Tên hạng mục',c.ten,'VD: Giàn tải, máy ép cọc Pmax 90T',1)
       +inp('Ncc','Nhà cung cấp (Nếu có)',c.ncc,'VD: H77',0,'ctNccDL')
       +inp('HangMuc','Hạng mục',c.hangMuc,'VD: Công tác ép cọc',1,'ctHangMucDL')
+      +'<div class="c2f">'+lbl('DeMuc','Phân loại (đề mục bóc tách)',0)
+        +'<div class="c2i"><select id="'+pre+'DeMuc">'+ctDeMucOpts_(c.deMuc,c.hangMuc)+'</select></div>'
+        +'<p class="dbnote c2note">Công tác luôn có ở <b>3.1 Phần thô</b>. Chọn thêm đề mục (VD 3.2.2 Sơn nước) để khi bóc tách đề mục đó cũng chọn được công tác này.</p>'
+      +'</div>'
     +'</div></section>'
     +'<section class="c2s"><h3 class="c2h"><span class="c2hic">'+icon('money',18)+'</span>Thông tin giá bán</h3>'
       +note('Giá đại lý tự tính = Giá bán lẻ × (1 − %Chiết khấu). Nhập giá đại lý thì %Chiết khấu tự tính ngược lại.')+'<div class="c2g">'
@@ -9278,7 +9323,11 @@ function ctPrev_(pre){
 function ctFormInit_(pre){
   ctImgRender_(pre); ctGrpRender_(pre); ctModeSync_(pre); ctGiaSync_(pre,'');
   var f=document.getElementById(pre+'Form');
-  if(f) f.addEventListener('input',function(e){ if(/^(.*)(Kl|Dt|Hs|Dvt)$/.test(e.target.id)) ctPrev_(pre); });
+  if(f) f.addEventListener('input',function(e){
+    if(/^(.*)(Kl|Dt|Hs|Dvt)$/.test(e.target.id)) ctPrev_(pre);
+    if(/HangMuc$/.test(e.target.id)) ctDeMucSync_(pre);
+  });
+  ctDeMucSync_(pre);
 }
 function ctImgRender_(pre){
   var box=document.getElementById(pre+'ImgRow'); if(!box) return;
@@ -9322,7 +9371,7 @@ function ctFormRead_(pre){
     anh=[S._imgMain].concat(S._imgList||[]).filter(function(x){ return x && String(x).indexOf('data:')!==0; }).join('\n');
   var loai=v('Loai'), goc=v('LoaiGoc');
   if(goc && ptLoaiGop_(goc)===loai) loai=goc;                  // vẫn là Khái toán -> giữ giá trị gốc (vd kt_sobo của báo giá mẫu)
-  return {loai:loai, mode:v('Mode')||'item', maNhom:v('MaNhom'), hangMuc:v('HangMuc'), ten:v('Ten'),
+  return {loai:loai, mode:v('Mode')||'item', maNhom:v('MaNhom'), hangMuc:v('HangMuc'), deMuc:v('DeMuc'), ten:v('Ten'),
     ncc:v('Ncc'), dvt:v('Dvt'), kl:num('Kl'), dt:num('Dt'), hs:num('Hs'),
     dgnt:ptMoneyN_(v('Dgnt')), dg:ptMoneyN_(v('Dg')),
     gc:v('Gc'), thongSo:v('ThongSo'), phamVi:v('PhamVi'), linkTaiLieu:v('LinkTaiLieu'), hinhAnh:anh};
@@ -9493,6 +9542,8 @@ function renderPTLibrary(){
     var nDaCo=sec.items.filter(function(a){ return ptDaCo_(sec,a); }).length;
     return '<div class="ptlib-sec"><div class="ptlib-h" onclick="ptLibToggle('+si+')">'
         +'<span class="ptlib-caret">'+(col?'▸':'▾')+'</span><span class="ptlib-htt">'+esc(sec.r)+'. '+esc(String(sec.t).split('\n')[0])+'</span>'
+        +(function(){ var dm=ctSecDeMuc_(sec); return dm
+            ?'<span class="ptlib-dm" title="Nhóm này còn hiện ở đề mục '+esc(dm+' '+nodeName(dm))+' khi bóc tách">'+esc(dm)+'</span>':''; })()
         +'<span class="ptlib-hn'+(nDaCo?' on':'')+'" title="'+(nDaCo?('Đã thêm '+nDaCo+'/'+sec.items.length+' công tác'):(sec.items.length+' công tác'))+'">'
           +(nDaCo?(nDaCo+'/'+sec.items.length):sec.items.length)+'</span>'
         +'<button class="ptlib-secadd" title="Thêm cả nhóm vào bảng" onclick="event.stopPropagation();ptAddToSec_('+si+')">+</button></div>'
