@@ -1835,7 +1835,14 @@ async function spInlineSave(el){
   d[lark]=v;                                                             // ghi ĐÚNG giá trị gốc người dùng gõ
   try{
     var res=await api('updateDbProductTracked', String(p.recordId||p.ma), d);
-    el.classList.remove('saving'); el.classList.add('ok');
+    el.classList.remove('saving');
+    if(res && res.updated===false){            // máy chủ không ghi gì -> KHÔNG báo xanh như đã lưu
+      el.classList.add('err');
+      el.value=String(old==null?'':old);
+      toast('Máy chủ báo không có gì thay đổi nên chưa lưu. Tải lại trang (Ctrl/⌘+Shift+R) rồi thử lại — nếu vẫn vậy, báo lại để kiểm tra bản ghi.');
+      return;
+    }
+    el.classList.add('ok');
 
     spUndoPush_([{key:String(p.recordId||p.ma), ma:p.ma, lark:lark, col:col, old:oldRaw}],
       lark+' của "'+(p.ten||p.ma||'')+'"');
@@ -3468,7 +3475,7 @@ async function spEditSave(luuVaDuyet){
 async function spDelete(i){
   var p=(S._spList||[])[i]; if(!p) return;
   if(!confirm('Xoá sản phẩm "'+p.ten+'" khỏi danh mục?')) return;
-  try{ await api('deleteDbProduct', p.ma||String(p.recordId)); S.products=await api('getProducts')||S.products;
+  try{ await api('deleteDbProduct', String(p.recordId||p.ma)); S.products=await api('getProducts')||S.products;
     toast('Đã xoá: '+p.ten); spFilter(); renderFilters&&renderFilters(); renderCatalog&&renderCatalog(); }
   catch(e){ toast('Lỗi xoá: '+e.message); }
 }
@@ -3897,8 +3904,57 @@ var QB_IC={
   panel:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>',
   zen:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>',
   hist:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>',
-  repl:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6"/><path d="M20 20l-5.6-5.6M8 10h4"/></svg>'
+  repl:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6"/><path d="M20 20l-5.6-5.6M8 10h4"/></svg>',
+  gia:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v5h-5"/><path d="M12 8v8M9.5 10.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/></svg>'
 };
+function giaLechN_(){ try{ var n=giaLechList_().length; return n?String(n):''; }catch(e){ return ''; } }
+function giaSyncTitle_(){
+  var n=giaLechN_();
+  return n?(n+' dòng đang lệch giá so với Danh sách sản phẩm — bấm để cập nhật')
+          :'Cập nhật giá dòng theo Danh sách sản phẩm (đang khớp hết)';
+}
+/* ═══ CẬP NHẬT GIÁ DÒNG THEO DANH MỤC ═══
+   Dòng trong bảng bóc tách là BẢN CHỤP giá lúc thêm — sửa giá ở Danh sách SP không tự
+   đổi dòng đã bóc (để báo giá đã chốt không tự nhảy số). Nút này đối chiếu theo mã SP
+   rồi cập nhật những dòng lệch giá, giữ nguyên %lợi nhuận đang đặt của từng dòng.   */
+function giaSpCuaDong_(l){
+  var ma=String(l.maSP||'').trim().toLowerCase(); if(!ma) return null;
+  var ds=(S.products||[]).filter(function(p){ return String(p.ma||'').trim().toLowerCase()===ma; });
+  if(!ds.length) return null;
+  if(ds.length>1){                                   // nhiều biến thể cùng mã -> khớp thêm theo tên
+    var ten=spNorm_(l.ten||'');
+    ds = ds.filter(function(p){ return spNorm_(p.ten||'')===ten; }).concat(ds);
+  }
+  var von=Math.round(Number(ds[0].donGiaVon)||0);
+  return von?{p:ds[0], von:von}:null;
+}
+function giaLechList_(){
+  return (S.lines||[]).map(function(l){
+    var g=giaSpCuaDong_(l); if(!g) return null;
+    if(Math.round(Number(l.donGiaVon)||0)===g.von) return null;
+    return {l:l, von:g.von, cu:Math.round(Number(l.donGiaVon)||0)};
+  }).filter(Boolean);
+}
+async function giaSyncRun_(){
+  if(!S.cur){ toast('Chưa chọn dự án'); return; }
+  var ds=giaLechList_();
+  if(!ds.length){ toast('Mọi dòng trong dự án đã khớp giá danh mục'); return; }
+  var vd=ds.slice(0,6).map(function(x){ return '• '+(x.l.ten||'')+': '+money(x.cu)+' → '+money(x.von); }).join('\n');
+  if(!confirm('Cập nhật giá vốn cho '+ds.length+' dòng theo Danh sách sản phẩm?\n(%Lợi nhuận của từng dòng giữ nguyên, giá bán tính lại theo đó.)\n\n'
+    +vd+(ds.length>6?('\n… và '+(ds.length-6)+' dòng nữa'):''))) return;
+  var ok=0, loi=0;
+  for(var i=0;i<ds.length;i++){
+    try{
+      var r=await api('updateLine', ds[i].l.lineId, { donGiaVon: ds[i].von });
+      var j=S.lines.indexOf(ds[i].l);
+      if(r&&j>=0) S.lines[j]=r; else ds[i].l.donGiaVon=ds[i].von;
+      ok++;
+    }catch(e){ loi++; }
+  }
+  refreshActiveTab_();
+  try{ renderTable&&renderTable(); renderCard&&renderCard(); }catch(e){}
+  toast('Đã cập nhật giá '+ok+' dòng'+(loi?(' · '+loi+' dòng lỗi'):''));
+}
 function qbRender_(){
   var el=document.getElementById('qbar'); if(!el) return;
   if(document.activeElement && document.activeElement.id==='qbQ') { qbRightSync_(); qbRecentSync_(); return; }   // đang gõ: không vẽ lại ô tìm
@@ -3929,6 +3985,7 @@ function qbRightSync_(){
   if(qbTab_()!=='boc'){                 // Chi phí / Dự án: vừa thêm · mở rộng bảng · xuất báo giá
     box.innerHTML=qbBtn_('qbHist',QB_IC.hist,'Vừa thêm vào bảng — xem lại / thêm lại','qbHistPop_(event)',false)
       +'<span class="qb-sep"></span>'
+      +qbBtn_('qbGia',QB_IC.gia,giaSyncTitle_(),'giaSyncRun_()',false,giaLechN_())
       +qbBtn_('qbZen',QB_IC.zen,zen?'Mở lại các khối đầu trang':'Mở rộng bảng — thu gọn băng dự án và chip cột','foldAll_()',zen)
       +'<button class="qb-exp" onclick="showTab(\'export\')" title="Sang tab Xuất báo giá">'+icon('download',14)+' Xuất báo giá</button>';
     return;
@@ -3938,6 +3995,7 @@ function qbRightSync_(){
     +qbBtn_('qbHist',QB_IC.hist,'Vừa thêm vào bảng — xem lại / thêm lại','qbHistPop_(event)',false)
     +qbBtn_('qbRepl',QB_IC.repl,'Tìm & thay trong bảng (Ctrl+F)','openFindReplace()',false)
     +'<span class="qb-sep"></span>'
+    +qbBtn_('qbGia',QB_IC.gia,giaSyncTitle_(),'giaSyncRun_()',false,giaLechN_())
     +qbBtn_('qbSide',QB_IC.panel,side?'Hiện panel sản phẩm bên trái':'Ẩn panel sản phẩm — bảng rộng hơn','sideToggle_();qbRightSync_()',side)
     +qbBtn_('qbZen',QB_IC.zen,zen?'Mở lại các khối đầu trang':'Mở rộng bảng — thu gọn băng dự án và chip cột','foldAll_()',zen)
     +'<button class="qb-exp" onclick="showTab(\'export\')" title="Sang tab Xuất báo giá">'+icon('download',14)+' Xuất báo giá</button>';

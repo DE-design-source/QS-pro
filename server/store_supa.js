@@ -158,7 +158,7 @@ async function getProducts() {
 async function guardSpChung_(key) {
   const t = tenant.tenantId(); if (!t) return;               // super admin: cho phép
   const filter = /^\d+$/.test(String(key)) ? supa.eq('id', key) : supa.eq('ma_sp', key);
-  const r = (await supa.select('db_san_pham', { select: 'id,cong_ty_id', filter: filter, limit: 1, noScope: true }))[0];
+  const r = (await supa.select('db_san_pham', { select: 'id,cong_ty_id', filter: filter, order: 'id.asc', limit: 1, noScope: true }))[0];
   if (r && String(r.cong_ty_id) !== String(t))
     throw new Error('Sản phẩm thuộc kho chung của Dezon — không sửa/xoá được. Hãy tạo bản sao riêng cho công ty bạn.');
 }
@@ -496,8 +496,10 @@ async function deleteDbProduct(actor, key) {
   await guardSpChung_(key);
   key = s(key).trim(); if (!key) throw new Error('Thiếu mã/ID sản phẩm.');
   const cur = await getDbProduct(key);
-  const filter = /^\d+$/.test(key) ? supa.eq('id', key) : supa.eq('ma_sp', key);
-  await supa.remove('db_san_pham', filter); _cacheClear_();
+  if (!cur) throw new Error('Không tìm thấy sản phẩm để xoá.');
+  // Xoá ĐÚNG dòng đã tra được. Trước đây key là mã thì xoá theo ma_sp -> mất CẢ NHÓM
+  // biến thể dùng chung mã, dù người dùng chỉ bấm xoá một biến thể.
+  await supa.remove('db_san_pham', supa.eq('id', cur.id)); _cacheClear_();
   if (cur) {
     try {
       await supa.insert('db_san_pham_history', { ma_sp: s(cur.ma_sp), field: 'XOÁ SẢN PHẨM',
@@ -523,7 +525,9 @@ const COL2LABEL = {}; Object.keys(DB_LABEL2COL).forEach(function (lb) { COL2LABE
 async function getDbProduct(key) {
   key = s(key).trim(); if (!key) return null;
   const filter = /^\d+$/.test(key) ? supa.eq('id', key) : supa.eq('ma_sp', key);
-  const rows = await supa.select('db_san_pham', { select: '*', filter: filter, limit: 1 });
+  // ma_sp KHÔNG unique (biến thể dùng chung mã) -> phải sắp xếp để luôn lấy đúng một dòng,
+  // nếu không mỗi lần gọi có thể trúng biến thể khác nhau và sửa nhầm dòng.
+  const rows = await supa.select('db_san_pham', { select: '*', filter: filter, order: 'id.asc', limit: 1 });
   return rows[0] || null;
 }
 // Chuyển {nhãn: giá trị} -> {cột DB: giá trị đã ép kiểu}
