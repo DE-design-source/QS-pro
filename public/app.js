@@ -3520,18 +3520,31 @@ function tkSmooth_(){
 /* ===== ADD to takeoff ===== */
 async function addProduct(i){ var p=(S._filtered||[])[i]; if(p) await addProdObj(p); }
 async function addProductObj(i){ var p=(S._filtered||[])[i]; if(p) await addProdObj(p); }
-async function addProdObj(p,floor,sl){
+/* ═══ ĐỀ MỤC ĐỂ GHI DANH 1 SẢN PHẨM ═══
+   Ở tab Bóc tách, đề mục là do người dùng tự chọn trên cây (kể cả nhóm tự tạo) -> luôn tôn trọng.
+   Ở các tab khác (Danh sách sản phẩm, combo ở panel chi tiết…) KHÔNG có ô chọn đề mục, nên phải
+   lấy đề mục theo NGÀNH của chính sản phẩm: Thiết bị vệ sinh -> 3.2.5, Thiết bị đèn -> 3.2.6.1.
+   Trước đây luôn dùng S.node: ghi danh SP vệ sinh trong khi Bóc tách còn đứng ở Thiết bị đèn thì
+   dòng rơi vào đề mục đèn — vào tab Dự án / Chi phí lọc 3.2.5 lại thấy trống dù đã thêm. */
+function prodNode_(p){
+  if(viewOn_('v-boc')) return S.node;                       // Bóc tách: theo đề mục đang chọn
+  var nd=spNodeCodeOf_(p)||''; if(!nd) return S.node;        // không rõ ngành -> giữ nếp cũ
+  var cur=String(S.node||'');
+  return (cur===nd || cur.indexOf(nd+'.')===0) ? cur : nd;   // đang ở đúng ngành (hoặc đề mục con) -> giữ
+}
+async function addProdObj(p,floor,sl,node){
   if(!S.cur){ toast('Chưa chọn dự án — bấm Tạo dự án +'); return; }
   sl=Math.max(1, Math.round(Number(sl)||1));      // thêm nhiều đơn vị 1 lần (dùng cho combo)
   if(floor==null) floor=S.selFloor||'';
   if(floor==='CHƯA PHÂN TẦNG') floor='';
+  var nd=String(node||prodNode_(p)||S.node||'');
   // cộng dồn SL nếu đã có cùng SP trong cùng hạng mục + tầng
   // Gộp SL chỉ khi TRÙNG CẢ THÔNG SỐ. Biến thể khác nhiệt độ/công suất/góc/màu tuy cùng mã+tên
   // vẫn là 2 DÒNG RIÊNG (trước đây gộp mất, kéo 4 biến thể chỉ vào 1 dòng).
   // Gộp SL chỉ khi: cùng hạng mục + tầng, TRÙNG CẢ THÔNG SỐ (biến thể khác = dòng riêng)
   // VÀ dòng đó CHƯA điền PHÒNG. Đã gán phòng -> thêm SP đó nữa nghĩa là cho PHÒNG KHÁC -> tạo DÒNG MỚI.
   var same=S.lines.filter(function(l){
-    return l.nhom===S.node && (l.tang||'')===floor
+    return l.nhom===nd && (l.tang||'')===floor
       && ((p.ma&&l.maSP&&l.maSP===p.ma)||l.ten===p.ten)
       && String(l.moTa||'').trim()===String(p.moTa||'').trim()
       && !String(l.khuVuc||'').trim()
@@ -3539,7 +3552,7 @@ async function addProdObj(p,floor,sl){
   })[0];
   if(same){ editLine(same.lineId,{soLuong:(Number(same.soLuong)||0)+sl}); toast('+'+sl+' số lượng: '+p.ten);
     tkGotoNewRow_(same.lineId); return; }
-  var prod=Object.assign({},p,{ nhom:S.node, hangMuc:nodeName(S.node), loai:nodeName(S.node), tang:floor,
+  var prod=Object.assign({},p,{ nhom:nd, hangMuc:nodeName(nd), loai:nodeName(nd), tang:floor,
     extra:Object.assign({nganh:p.nhom||''}, (S.sheet&&tkSheetCo_())?{sheet:S.sheet}:{}) });
   // ---- Optimistic: hiện dòng NGAY, đồng bộ server chạy nền ----
   var dgVon=Number(p.donGiaVon)||0, dgBan=Number(p.donGiaBan)||0;
@@ -3547,7 +3560,7 @@ async function addProdObj(p,floor,sl){
     khuVuc:'', maBanVe:'', maSP:p.ma||'', ten:p.ten||'', thuongHieu:p.thuongHieu||'', ncc:p.ncc||'',
     moTa:p.moTa||'', kichThuoc:p.kichThuoc||p.size||'', dvt:p.dvt||'Cái', hinhAnh:p.hinhAnh||'',
     soLuong:sl, donGiaVon:dgVon, donGiaBan:dgBan, thanhTienVon:dgVon*sl, thanhTienBan:dgBan*sl, lnPct:0,
-    nhom:S.node, hangMuc:nodeName(S.node), tang:floor };
+    nhom:nd, hangMuc:nodeName(nd), tang:floor };
   var gKey=floor||'CHƯA PHÂN TẦNG';
   if(S.collapsed[gKey]) S.collapsed[gKey]=false;      // tầng đang gập -> mở ra để thấy dòng vừa thêm
   S.lines.push(temp); renderTree(); renderFloors(); renderTable(); renderCard();
@@ -5633,7 +5646,7 @@ function renderChiphi(){
   box.innerHTML='<div class="sechd"><h2>Chi phí</h2><span class="count">'+scope.length+'</span>'
       +'<span class="sp" style="flex:1"></span>'
       +'<span class="cp-hint">'+icon('sliders',13)+' Bấm thẳng vào ô để sửa giá NCC · CK · %LN · giá bán — số tính lại ngay</span></div>'
-    +stat+hmPTNote_()
+    +stat+hmPTNote_()+hmLacNote_(scope.length)
     +cpToolbar_(rows, scope)
     +'<div class="dbcard cp-card">'+cpTableHtml_(keys,rows)+'</div>'
     +'<div class="tk-hbar cp-hbar" id="cpHBar" style="display:none"><div class="tk-hthumb" id="cpHThumb"></div></div>';
@@ -5693,6 +5706,62 @@ function cpToggleGroup(){ S._cpGroup=!S._cpGroup; renderChiphi(); }
 /* Phần thô (3.1) có bảng riêng, số liệu nằm ở tab Bóc tách chứ không nằm trong
    danh sách dòng của dự án -> các trang đọc S.lines sẽ trống. Báo rõ cho người dùng
    thay vì để bảng rỗng không lời giải thích. */
+/* ═══ DÒNG NẰM SAI NGÀNH — sửa lại một lượt ═══
+   Bản cũ ghi danh từ form Nhập luôn đóng dấu 3.2.6.1 (Thiết bị đèn), nên sản phẩm vệ sinh
+   ghi danh xong nằm ở đề mục đèn: vào Dự án lọc 3.2.5 thấy trống. Chỉ xét các đề mục ngành
+   hàng chuẩn -> nhóm tự tạo / đề mục người dùng cố ý chọn ở Bóc tách không bị đụng tới. */
+var NGANH_NODES=['3.2.5','3.2.6','3.2.6.1'];
+function spByMa_(){ var m={}; (S.products||[]).forEach(function(p){
+    var k=String(p.ma||'').trim().toLowerCase(); if(k&&!m[k]) m[k]=p; }); return m; }
+function hmSaiNganh_(){
+  if(!(S.products||[]).length) return [];
+  var byMa=spByMa_();
+  return (S.lines||[]).filter(function(l){
+    if(NGANH_NODES.indexOf(String(l.nhom||''))<0) return false;
+    var p=byMa[String(l.maSP||'').trim().toLowerCase()]; if(!p) return false;
+    var nd=spNodeCodeOf_(p); return !!nd && nd!==String(l.nhom||'');
+  });
+}
+function hmSaiNote_(){
+  var ds=hmSaiNganh_(); if(!ds.length) return '';
+  return '<div class="hm-note">'+icon('layers',15)
+    +'<span><b>'+ds.length+' dòng</b> đang nằm ở hạng mục không đúng ngành hàng của sản phẩm '
+    +'(ghi danh bằng bản cũ) nên lọc theo hạng mục sẽ không thấy.</span>'
+    +'<button class="btn ghost xs" onclick="hmSaiFix_(this)">Chuyển '+ds.length+' dòng về đúng hạng mục</button></div>';
+}
+async function hmSaiFix_(btn){
+  var ds=hmSaiNganh_(); if(!ds.length) return;
+  if(!confirm('Chuyển '+ds.length+' dòng về đúng hạng mục theo ngành hàng của sản phẩm?')) return;
+  var byMa=spByMa_(), ok=0;
+  if(btn){ btn.disabled=true; btn.textContent='Đang chuyển…'; }
+  for(var i=0;i<ds.length;i++){
+    var l=ds[i], p=byMa[String(l.maSP||'').trim().toLowerCase()], nd=p?spNodeCodeOf_(p):'';
+    if(!nd) continue;
+    try{
+      var r=await api('updateLine', l.lineId, { nhom:nd, loai:nodeName(nd) });
+      var j=S.lines.indexOf(l);
+      if(r&&j>=0) S.lines[j]=r; else { l.nhom=nd; l.loai=nodeName(nd); }
+      ok++;
+    }catch(e){}
+  }
+  toast(ok?('Đã chuyển '+ok+' dòng về đúng hạng mục'):'Không chuyển được dòng nào');
+  refreshActiveTab_();
+}
+/* Đang lọc 1 hạng mục mà bảng trống TRONG KHI dự án vẫn có sản phẩm ở hạng mục khác
+   -> nói thẳng ra và cho bỏ lọc / nhảy tới hạng mục đang có dòng. Trước đây chỉ hiện
+   "Chưa có sản phẩm", người dùng ghi danh xong vào xem tưởng là không lưu được.        */
+function hmLacNote_(soHien){
+  var hm=hmGet_(); if(!hm || soHien || hm==='3.1') return '';
+  var all=(S.lines||[]); if(!all.length) return '';
+  var dem={}; all.forEach(function(l){ var c=String(l.nhom||'')||'(chưa rõ)'; dem[c]=(dem[c]||0)+1; });
+  var ds=Object.keys(dem).sort(function(a,b){ return dem[b]-dem[a]; });
+  var ten=function(c){ return nodeName(c)||c; };
+  return '<div class="hm-note">'+icon('layers',15)
+    +'<span>Dự án đang có <b>'+all.length+' sản phẩm</b> nhưng không dòng nào thuộc <b>'+esc(hm+'.'+ten(hm))+'</b>. '
+    +'Sản phẩm đang nằm ở: '+ds.slice(0,4).map(function(c){ return '<b>'+esc(ten(c))+'</b> ('+dem[c]+')'; }).join(' · ')+'.</span>'
+    +ds.slice(0,2).map(function(c){ return '<button class="btn ghost xs" onclick="hmSet_(\''+esc(c)+'\')">Xem '+esc(ten(c))+'</button>'; }).join('')
+    +'<button class="btn ghost xs" onclick="hmSet_(\'\')">Tất cả hạng mục</button></div>';
+}
 function hmPTNote_(){
   if(hmGet_()!=='3.1') return '';
   return '<div class="hm-note">'+icon('layers',15)
@@ -5869,7 +5938,7 @@ function renderDuAn(){
     }).join('')+'</tr>'; }
   box.innerHTML='<div class="sechd"><h2>Sản phẩm trong dự án</h2><span class="count">'+daLines_.length+'</span><span class="sp" style="flex:1"></span>'
       +'<span class="cp-hint">'+icon('building',13)+' '+esc(S.cur.ten||'')+' — bấm ô để sửa</span></div>'
-    +stat+hmPTNote_()+colbar
+    +stat+hmPTNote_()+hmSaiNote_()+hmLacNote_(daLines_.length)+colbar
     +'<div class="dbcard cp-card"><div class="tbl-wrap"><table class="tk cpflat" style="min-width:'+totalW+'px;width:100%">'+colg+head+body+foot+'</table></div></div>';
   markBlocks_('#v-duan table.cpflat');
 }
@@ -5989,7 +6058,7 @@ function renderMuahang(){
     +stat('<span style="color:var(--blue)">'+money(grand)+'</span>','Tổng tiền (VAT)')+'</div>';
   var cards=S._mhGroups.map(function(g,gi){ return muahangCard(g, gi, vatPct); }).join('')
     || '<div class="empty" style="padding:34px;text-align:center;background:#fff;border:1px solid var(--line);border-radius:14px">Chưa có sản phẩm trong hạng mục này.<br>Vào tab <b>Bóc tách</b> thêm sản phẩm trước.</div>';
-  box.innerHTML=statbar+hmPTNote_()+'<div class="imp-layout"><div class="mhcol">'+cards+'</div>'
+  box.innerHTML=statbar+hmPTNote_()+hmLacNote_(lines.length)+'<div class="imp-layout"><div class="mhcol">'+cards+'</div>'
     +'<div class="mhside">'+mhSummary(S._mhGroups,vatPct,grand)+mhDxPanel_()+'</div></div>';
   if(S._mhDxDA!==S.cur.maDA) mhLoadDx_();
 }
@@ -7016,7 +7085,8 @@ function impRecentList(){
         +(phu?'<div class="pc-sub" title="'+esc(phu)+'">'+esc(phu)+'</div>':'')
         +(p.loi?'<div class="pc-loi">'+esc(p.loi)+'</div>':'')
         +'<span class="pc-tag">'+(dangSua?'Đang sửa':(p.loi?'Lỗi — sửa lại':'Chờ lưu'))+'</span>'
-        +((p.combo&&p.combo.length)?'<span class="pc-tag kt">+ combo '+p.combo.length+'</span>':'')+'</div>'
+        +((p.combo&&p.combo.length)?'<span class="pc-tag kt">+ combo '+p.combo.length+'</span>':'')
+        +(p.ghi?'<span class="pc-tag kt" title="Ghi danh vào dự án sau khi lưu">→ dự án ×'+(p.ghi.qty||1)+'</span>':'')+'</div>'
       +'<div class="pc-act">'
         +'<button class="pc-btn" title="Sửa — mở lại trong form" onclick="pendingEdit_('+i+')">'+icon('edit',14)+'</button>'
         +'<button class="pc-btn del" title="Xoá khỏi danh sách chờ" onclick="pendingDel_('+i+')">'+icon('trash',14)+'</button>'
@@ -7121,7 +7191,7 @@ async function pendingCommit_(btn){
 }
 async function pendingCommitRun_(ds, btn){
   if(btn){ btn.disabled=true; btn.textContent='⏳ Đang lưu 0/'+ds.length+'…'; }
-  var ok=0, loi=0, conLai=[], ghiN=0;
+  var ok=0, loi=0, conLai=[], ghiN=0, ghiDs=[];
   var form=ds.filter(function(x){ return x.kind==='form'; }), file=ds.filter(function(x){ return x.kind==='file'; });
   for(var k=0;k<form.length;k++){
     var it=form[k];
@@ -7131,9 +7201,8 @@ async function pendingCommitRun_(ds, btn){
         try{ await api('setCombo', String(rs.id), it.combo.map(function(x){ return {id:x.recordId, soLuong:Number(x.comboSL)||1}; })); }
         catch(e4){ toast('Lưu "'+it.ten+'" OK nhưng combo lỗi: '+e4.message); } }
       sessionAdd_({ten:it.ten+(it.bienThe?' ('+it.bienThe+')':''), ma:it.ma, thuongHieu:it.thuongHieu, ncc:it.ncc, hinhAnh:it.hinhAnh});
-      if(it.ghi){ try{ await api('addLine', it.ghi.maDA, it.ghi.prod, it.ghi.qty); ghiN++;
-          if(S.cur&&S.cur.maDA===it.ghi.maDA){ S.lines=await api('getLines',it.ghi.maDA)||S.lines; } }
-        catch(e3){ toast('Lưu "'+it.ten+'" OK nhưng ghi danh dự án lỗi: '+e3.message); } }
+      // ghi danh vào dự án: để DÀNH LẠI, chạy sau khi tải lại danh mục (lấy đúng SP vừa lưu)
+      if(it.ghi) ghiDs.push({ ghi:it.ghi, rid:(rs&&rs.id!=null)?String(rs.id):'', ten:it.ten });
     }catch(e){ loi++; it.loi=e.message.slice(0,160); conLai.push(it); }
     if(btn) btn.textContent='⏳ Đang lưu '+(k+1)+'/'+ds.length+'…';
   }
@@ -7152,6 +7221,16 @@ async function pendingCommitRun_(ds, btn){
   var xong={}; ds.forEach(function(x){ if(conLai.indexOf(x)<0) xong[x.uid]=1; });
   S._pending=(S._pending||[]).filter(function(x){ return !xong[x.uid]; });
   try{ S.products=await api('getProducts')||S.products; }catch(e){}
+  /* Ghi danh vào dự án — làm SAU khi danh mục đã tải lại: lấy đúng sản phẩm vừa lưu nên dòng
+     trong dự án có đủ Thông tin chính / Thông số thiết kế / ảnh, thay vì bản rút gọn từ form. */
+  for(var gi=0; gi<ghiDs.length; gi++){
+    var g=ghiDs[gi], pr=g.ghi.prod, nd=String(pr.nhom||'3.2.6.1');
+    var real=g.rid?(S.products||[]).filter(function(x){ return String(x.recordId||'')===g.rid; })[0]:null;
+    if(real) pr=Object.assign({}, real, { nhom:nd, hangMuc:nodeName(nd), loai:nodeName(nd), tang:'', extra:{nganh:real.nhom||''} });
+    try{ await api('addLine', g.ghi.maDA, pr, g.ghi.qty); ghiN++;
+      if(S.cur&&S.cur.maDA===g.ghi.maDA){ S.lines=await api('getLines',g.ghi.maDA)||S.lines; } }
+    catch(e3){ toast('Lưu "'+g.ten+'" OK nhưng ghi danh dự án lỗi: '+e3.message); }
+  }
   impRecentRefresh_();
   try{ renderFilters(); renderCatalog(); }catch(e){}     // làm mới panel Bóc tách (nếu đang dựng)
   var msg='Đã lưu '+ok+' sản phẩm vào Database'+(ghiN?(' · ghi danh '+ghiN+' vào dự án'):'');
@@ -7890,11 +7969,17 @@ async function tdSave(btn){
   if(cbo.length) items.forEach(function(x){ x.combo=cbo; });          // mỗi biến thể cùng bộ đi kèm
   // Ghi danh vào dự án (tuỳ chọn) — thực hiện SAU khi lưu thành công, gắn vào dòng đầu của lượt này
   var gd=document.getElementById('impGhiDanh'), ps=document.getElementById('impProjSel'), sl=document.getElementById('impGhiSL');
+  // Tick ghi danh mà chưa chọn dự án -> báo ngay, đừng để lưu xong mới thấy dự án trống
+  if(gd&&gd.checked&&ps&&!ps.value){ btn.disabled=false; btn.textContent=o||btn.textContent;
+    toast('Đã tick "Thêm vào dự án" nhưng chưa chọn dự án — chọn dự án ở ô bên cạnh'); ps.focus(); return; }
   if(gd&&gd.checked&&ps&&ps.value){
     var gia=Number(data['GIÁ BÁN LẺ'])||0, qty=Math.max(1,Number(sl&&sl.value)||1);
+    // Đề mục theo NGÀNH đang nhập: vệ sinh -> 3.2.5, đèn -> 3.2.6.1 (trước đây luôn ghi vào
+    // 3.2.6.1 nên SP vệ sinh ghi danh xong vào tab Dự án lọc 3.2.5 lại không thấy).
+    var ndGhi=(impLoai_()==='vs')?'3.2.5':'3.2.6.1';
     items[0].ghi={ maDA:ps.value, qty:qty, prod:{ ten:ten, ma:data['MÃ SẢN PHẨM']||'', thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'',
       moTa:data['MÔ TẢ']||'', kichThuoc:data['KÍCH THƯỚC']||'', dvt:data['ĐƠN VỊ TÍNH']||'Cái', hinhAnh:data['ẢNH SẢN PHẨM']||'',
-      donGiaVon:gia, donGiaBan:gia, nhom:'3.2.6.1', hangMuc:nodeName('3.2.6.1'), loai:nodeName('3.2.6.1'), tang:'', extra:{nganh:data['DÒNG SẢN PHẨM']||''} } };
+      donGiaVon:gia, donGiaBan:gia, nhom:ndGhi, hangMuc:nodeName(ndGhi), loai:nodeName(ndGhi), tang:'', extra:{nganh:data['DÒNG SẢN PHẨM']||''} } };
   }
   var dangSua=S._pendEdit, viTri=(S._pending||[]).map(function(x){ return x.uid; }).indexOf(dangSua);
   S._pendEdit=null;
