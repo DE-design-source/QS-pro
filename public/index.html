@@ -595,7 +595,13 @@ table.tk textarea.cin{min-height:34px;resize:vertical;line-height:1.3;white-spac
 .cp-colchips{align-items:center;margin:2px 0 12px}
 .cp-collbl{color:#8a96a5;text-transform:uppercase;font-size:10.5px;letter-spacing:.4px;font-weight:700;margin-right:4px}
 .cp-card{padding:0;overflow:hidden}
-.cp-card .tbl-wrap{max-height:none;overflow:auto}
+/* Bảng Chi phí / Dự án: cuộn TRONG khung (đầu bảng dính, hàng TỔNG ghim đáy) để có chỗ
+   cho thanh kéo dọc tự vẽ — thanh cuộn gốc của trình duyệt bị ẩn toàn app. */
+.cp-card .tbl-wrap{max-height:calc(100vh - 168px);overflow:auto}
+.pg-tblhost{position:relative}
+.cp-card .tbl-wrap.pad-vb{padding-right:15px}
+.pg-tblhost .tk-hbar{margin:8px 0 2px}
+@media(max-width:1120px){ .cp-card .tbl-wrap{max-height:72vh} }
 /* bảng Chi phí = y hệt Bóc tách (.tk) + header dính + hàng TỔNG */
 table.tk.cpflat th{position:sticky;top:0;z-index:5}
 table.tk.cpflat .cp-neg{color:#dc2626;font-weight:700} table.tk.cpflat .cp-pos{color:#16a34a;font-weight:600}

@@ -5662,6 +5662,20 @@ function pgHeadRow_(id, n, stats){
       +'<span class="hm-name">'+esc(hm?(hm+'.'+(nodeName(hm)||hm)):'Tất cả hạng mục')+'</span><span class="cnt">['+pad2(n)+']</span></button>'
     +'<div class="tkt-row pgh-tot">'+stats+'</div></div>';
 }
+/* Khung bảng + 2 thanh kéo (ngang · dọc) tự vẽ — dùng chung cho Chi phí và Dự án.
+   Thanh cuộn gốc của trình duyệt bị ẩn toàn app, không có 2 thanh này là bảng rộng
+   hơn màn hình không kéo sang phải được. */
+function pgTblHost_(id, inner){
+  return '<div class="pg-tblhost" id="'+id+'Host">'
+    +'<div class="dbcard cp-card">'+inner+'</div>'
+    +'<div class="tk-hbar cp-hbar" id="'+id+'HBar" style="display:none"><div class="tk-hthumb" id="'+id+'HThumb"></div></div>'
+    +'<div class="tk-vbar" id="'+id+'VBar" style="display:none"><div class="tk-vthumb" id="'+id+'VThumb"></div></div>'
+  +'</div>';
+}
+function pgBarsBind_(id){
+  hbarBind_('#'+id+'Host .tbl-wrap', id+'HBar', id+'HThumb');
+  vbarBind_('#'+id+'Host','.tbl-wrap', id+'VBar', id+'VThumb');
+}
 function pgStat_(lb,val,cls){ return '<span class="tkt-i '+(cls||'')+'"><i>'+lb+'</i><b>'+val+'</b></span>'; }
 function pgVat_(){ var v=Number(S.cur&&S.cur.vat)||0;
   return '<i>VAT <input class="tkt-vat" type="number" step="any" min="0" value="'+v+'" onchange="pgSetVat_(this.value)" title="Thuế VAT (%)">%</i>'; }
@@ -5712,10 +5726,9 @@ function renderChiphi(){
       +'<span class="cp-hint">'+icon('sliders',13)+' Bấm thẳng vào ô để sửa giá NCC · CK · %LN · giá bán — số tính lại ngay</span></div>'
     +stat+hmPTNote_()+hmLacNote_(scope.length)
     +cpToolbar_(rows, scope)
-    +'<div class="dbcard cp-card">'+cpTableHtml_(keys,rows)+'</div>'
-    +'<div class="tk-hbar cp-hbar" id="cpHBar" style="display:none"><div class="tk-hthumb" id="cpHThumb"></div></div>';
+    +pgTblHost_('cp', cpTableHtml_(keys,rows));
   markBlocks_('#v-chiphi table.cpflat');
-  hbarBind_('#v-chiphi .cp-card .tbl-wrap','cpHBar','cpHThumb');
+  pgBarsBind_('cp');
   // dòng tiêu đề nhóm dính NGAY DƯỚI hàng tiêu đề cột (chiều cao hàng này thay đổi theo số cột)
   var tb=document.querySelector('#v-chiphi table.cpflat'), th0=tb&&tb.querySelector('th');
   if(tb&&th0) tb.style.setProperty('--cpTh', th0.offsetHeight+'px');
@@ -6003,8 +6016,9 @@ function renderDuAn(){
   box.innerHTML='<div class="sechd"><h2>Sản phẩm trong dự án</h2><span class="count">'+daLines_.length+'</span><span class="sp" style="flex:1"></span>'
       +'<span class="cp-hint">'+icon('building',13)+' '+esc(S.cur.ten||'')+' — bấm ô để sửa</span></div>'
     +stat+hmPTNote_()+hmSaiNote_()+hmLacNote_(daLines_.length)+colbar
-    +'<div class="dbcard cp-card"><div class="tbl-wrap"><table class="tk cpflat" style="min-width:'+totalW+'px;width:100%">'+colg+head+body+foot+'</table></div></div>';
+    +pgTblHost_('da','<div class="tbl-wrap"><table class="tk cpflat" style="min-width:'+totalW+'px;width:100%">'+colg+head+body+foot+'</table></div>');
   markBlocks_('#v-duan table.cpflat');
+  pgBarsBind_('da');
 }
 
 /* ===== MUA HÀNG (gom theo Nhà cung cấp) ===== */
@@ -12252,14 +12266,20 @@ function mhDxPanel_(){
 /* ═══ Thanh kéo DỌC tự vẽ cho bảng Bóc tách ═══
    Thanh cuộn gốc phải ẩn (nếu bật lại, Chrome mới bỏ qua ::-webkit-scrollbar và
    đẻ thêm một thanh NGANG 17px nằm chồng lên thanh kéo ngang tự vẽ). */
-function tkVBarSync_(){
-  var norm=document.getElementById('tkNormal'), bar=document.getElementById('tkVBar'), th=document.getElementById('tkVThumb');
-  var wrap=norm&&norm.querySelector('.tbl-wrap');
-  if(!norm||!bar||!th||!wrap) return;
+/* ═══ THANH KÉO DỌC TỰ VẼ — DÙNG CHUNG ═══
+   Thanh cuộn gốc của trình duyệt bị ẩn (để không đẻ ra 2 thanh chồng nhau), nên mỗi bảng
+   cuộn trong khung phải có thanh tự vẽ. Trước chỉ bảng Bóc tách có; nay Chi phí và Dự án
+   dùng chung đúng hàm này, chỉ khác id của khung / thanh.                              */
+function vbarSync_(hostSel, wrapSel, barId, thId){
+  var host=document.querySelector(hostSel), bar=document.getElementById(barId), th=document.getElementById(thId);
+  var wrap=host&&host.querySelector(wrapSel);
+  if(!host||!bar||!th||!wrap) return;
   var sh=wrap.scrollHeight, ch=wrap.clientHeight;
+  // chừa chỗ cho thanh dọc (thanh nằm ĐÈ mép phải) để không che mất cột cuối
+  if(wrap.classList.contains('pad-vb')!==(sh>ch+1)) wrap.classList.toggle('pad-vb', sh>ch+1);
   if(sh<=ch+1){ bar.style.display='none'; return; }
-  var headH=(document.querySelector('#tkTable tr:first-child th')||{}).offsetHeight||46;
-  var nb=norm.getBoundingClientRect(), wr=wrap.getBoundingClientRect();
+  var headH=(wrap.querySelector('tr:first-child th')||{}).offsetHeight||46;
+  var nb=host.getBoundingClientRect(), wr=wrap.getBoundingClientRect();
   var hsb=wrap.offsetHeight-wrap.clientHeight;                    // chiều cao thanh cuộn ngang gốc (đang ẩn = 0)
   bar.style.display='';
   bar.style.top=(wr.top-nb.top+headH+2)+'px';
@@ -12272,12 +12292,14 @@ function tkVBarSync_(){
   th.style.height=tw+'px';
   th.style.top=Math.round(maxScroll?(wrap.scrollTop/maxScroll)*maxTop:0)+'px';
 }
-function tkVBarInit_(){
-  var norm=document.getElementById('tkNormal'), bar=document.getElementById('tkVBar'), th=document.getElementById('tkVThumb');
-  var wrap=norm&&norm.querySelector('.tbl-wrap');
-  if(!norm||!bar||!th||!wrap) return;
-  if(wrap.dataset.vb!=='1'){ wrap.dataset.vb='1'; wrap.addEventListener('scroll',tkVBarSync_,{passive:true}); }
-  if(!S._vbarResize){ S._vbarResize=1; window.addEventListener('resize',tkVBarSync_); }
+function vbarBind_(hostSel, wrapSel, barId, thId){
+  var host=document.querySelector(hostSel), bar=document.getElementById(barId), th=document.getElementById(thId);
+  var wrap=host&&host.querySelector(wrapSel);
+  if(!host||!bar||!th||!wrap) return;
+  var sync=function(){ vbarSync_(hostSel,wrapSel,barId,thId); };
+  if(wrap.dataset.vb!=='1'){ wrap.dataset.vb='1'; wrap.addEventListener('scroll',sync,{passive:true}); }
+  S._vbarResize=S._vbarResize||{};
+  if(!S._vbarResize[barId]){ S._vbarResize[barId]=1; window.addEventListener('resize',function(){ vbarSync_(hostSel,wrapSel,barId,thId); }); }
   if(th.dataset.vb!=='1'){
     th.dataset.vb='1';
     th.addEventListener('mousedown',function(e){
@@ -12285,7 +12307,7 @@ function tkVBarInit_(){
       var sy=e.clientY, st=wrap.scrollTop;
       var H=bar.clientHeight, tw=th.offsetHeight, maxTop=H-tw, maxScroll=wrap.scrollHeight-wrap.clientHeight;
       th.classList.add('dragging'); document.body.style.cursor='grabbing';
-      function mv(ev){ var d=ev.clientY-sy; wrap.scrollTop = st + (maxTop? d*maxScroll/maxTop : 0); tkVBarSync_(); }
+      function mv(ev){ var d=ev.clientY-sy; wrap.scrollTop = st + (maxTop? d*maxScroll/maxTop : 0); sync(); }
       function up(){ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up);
         th.classList.remove('dragging'); document.body.style.cursor=''; }
       document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
@@ -12298,11 +12320,13 @@ function tkVBarInit_(){
       var r=bar.getBoundingClientRect(), tw=th.offsetHeight;
       var pos=Math.min(Math.max(0,e.clientY-r.top-tw/2), r.height-tw);
       var maxScroll=wrap.scrollHeight-wrap.clientHeight, maxTop=r.height-tw;
-      wrap.scrollTop = maxTop? pos*maxScroll/maxTop : 0; tkVBarSync_();
+      wrap.scrollTop = maxTop? pos*maxScroll/maxTop : 0; sync();
     });
   }
-  tkVBarSync_();
+  sync();
 }
+function tkVBarSync_(){ vbarSync_('#tkNormal','.tbl-wrap','tkVBar','tkVThumb'); }
+function tkVBarInit_(){ vbarBind_('#tkNormal','.tbl-wrap','tkVBar','tkVThumb'); }
 
 /* ===== Mua hàng: bấm vào dòng sản phẩm để xem thông tin ===== */
 function mhFindProd_(l){
