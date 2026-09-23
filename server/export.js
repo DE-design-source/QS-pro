@@ -338,8 +338,96 @@ function sheetName_(s) {
   return n || 'Sheet';
 }
 
+/*** ===== SHEET "3.1 Phần thô" =====
+ * Bảng ước tính chi phí xây dựng thô nằm ở máy người dùng (localStorage theo dự án),
+ * không có trong db_bao_gia -> client gửi kèm khi bấm Xuất Excel. Không gửi thì bỏ sheet.
+ * pt = [{ten, tt, items:[{n,dvt,kl,dgnt,ttnt,dg,tt,gc}]}]
+ ***/
+function buildPhanThoSheet(ws, p, pt) {
+  const COLS = [
+    { label: 'STT', w: 6, al: 'center' },
+    { label: 'NỘI DUNG CÔNG VIỆC', w: 46, al: 'left', wrap: true },
+    { label: 'ĐVT', w: 9, al: 'center' },
+    { label: 'KHỐI LƯỢNG', w: 13, al: 'right' },
+    { label: 'ĐƠN GIÁ (NHÀ THẦU)', w: 17, al: 'right' },
+    { label: 'THÀNH TIỀN (NHÀ THẦU)', w: 19, al: 'right' },
+    { label: 'ĐƠN GIÁ', w: 15, al: 'right' },
+    { label: 'THÀNH TIỀN', w: 17, al: 'right' },
+    { label: 'GHI CHÚ', w: 26, al: 'left', wrap: true }
+  ];
+  ws.columns = COLS.map(function (c) { return { width: c.w }; });
+  const n = COLS.length;
+  ws.mergeCells(1, 1, 1, n);
+  const t = ws.getCell(1, 1);
+  t.value = 'PHẦN THÔ — BẢNG ƯỚC TÍNH CHI PHÍ XÂY DỰNG';
+  t.font = { bold: true, size: 13, color: { argb: NAVY } };
+  t.alignment = { horizontal: 'center', vertical: 'middle' };
+  ws.getRow(1).height = 26;
+  ws.mergeCells(2, 1, 2, n);
+  const t2 = ws.getCell(2, 1);
+  t2.value = 'Dự án: ' + String((p && p.ten) || '');
+  t2.font = { italic: true, size: 10, color: { argb: 'FF5B6B7B' } };
+  const bd = {
+    left: { style: 'thin', color: { argb: LINE } }, right: { style: 'thin', color: { argb: LINE } },
+    top: { style: 'thin', color: { argb: LINE } }, bottom: { style: 'thin', color: { argb: LINE } }
+  };
+  const hr = ws.getRow(4); hr.height = 30;
+  COLS.forEach(function (c, i) {
+    const cell = hr.getCell(i + 1);
+    cell.value = c.label;
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY2 } };
+    cell.font = { bold: true, color: { argb: WHITE }, size: 10 };
+    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+    cell.border = bd;
+  });
+  let r = 5, tong = 0;
+  const num = '#,##0';
+  (pt || []).forEach(function (sec, si) {
+    const stt = si + 1;
+    const row = ws.getRow(r++);
+    row.getCell(1).value = stt;
+    row.getCell(2).value = String(sec.ten || '');
+    row.getCell(n - 1).value = Number(sec.tt) || 0;
+    for (let i = 1; i <= n; i++) {
+      const c = row.getCell(i);
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: GHEAD } };
+      c.font = { bold: true, color: { argb: NAVY } };
+      c.border = bd;
+      c.alignment = { horizontal: COLS[i - 1].al, vertical: 'middle', wrapText: !!COLS[i - 1].wrap };
+      if (i === n - 1) c.numFmt = num;
+    }
+    tong += Number(sec.tt) || 0;
+    (sec.items || []).forEach(function (it, ii) {
+      const rw = ws.getRow(r++);
+      const vals = [ii + 1, String(it.n || ''), String(it.dvt || ''), Number(it.kl) || 0,
+        Number(it.dgnt) || 0, Number(it.ttnt) || 0, Number(it.dg) || 0, Number(it.tt) || 0, String(it.gc || '')];
+      vals.forEach(function (v, i) {
+        const c = rw.getCell(i + 1);
+        c.value = v;
+        c.border = bd;
+        c.alignment = { horizontal: COLS[i].al, vertical: 'top', wrapText: !!COLS[i].wrap };
+        if (i >= 3 && i <= 7) c.numFmt = i === 3 ? '#,##0.##' : num;
+        if (ii % 2 === 1) c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: STRIPE } };
+      });
+    });
+  });
+  const tr = ws.getRow(r);
+  ws.mergeCells(r, 1, r, n - 2);
+  tr.getCell(1).value = 'TỔNG PHẦN THÔ';
+  tr.getCell(n - 1).value = tong;
+  for (let i = 1; i <= n; i++) {
+    const c = tr.getCell(i);
+    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY2 } };
+    c.font = { bold: true, color: { argb: WHITE }, size: 11 };
+    c.border = bd;
+    c.alignment = { horizontal: i === 1 ? 'right' : 'right', vertical: 'middle' };
+    if (i === n - 1) c.numFmt = num;
+  }
+  ws.views = [{ state: 'frozen', ySplit: 4 }];
+}
+
 /*** ===== ENTRY: exportBaoGia(maDA, cols, format) ===== ***/
-async function exportBaoGia(maDA, cols, format, nodes) {
+async function exportBaoGia(maDA, cols, format, nodes, phanTho) {
   const q = await dataStore.getQuote(maDA);
   const p = q.project || {};
   // chỉ xuất các hạng mục được tích ở tab Xuất báo giá (rỗng = xuất hết)
@@ -359,6 +447,7 @@ async function exportBaoGia(maDA, cols, format, nodes) {
   const cover = await dataStore.getCoverOrInit(maDA);
   buildCoverSheet(wb.addWorksheet('Tờ bìa'), p, cover);
   buildSection32(wb.addWorksheet('3.2 Phần hoàn thiện'), p, cover);
+  if (Array.isArray(phanTho) && phanTho.length) buildPhanThoSheet(wb.addWorksheet('3.1 Phần thô'), p, phanTho);
 
   const cats = []; const cmap = {};
   q.lines.forEach(function (l) {
@@ -387,4 +476,5 @@ async function exportBaoGia(maDA, cols, format, nodes) {
   };
 }
 
+exportBaoGia.buildPhanThoSheet = buildPhanThoSheet;   // để test riêng sheet Phần thô
 module.exports = exportBaoGia;
