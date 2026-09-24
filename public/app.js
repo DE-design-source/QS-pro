@@ -7471,7 +7471,7 @@ function dbInput(f){
   if(type==='calc') inner='<input id="'+id+'" class="calc" type="number" placeholder="Tự tính từ giá bán & %CK" readonly>';
   else if(type==='area') inner='<textarea id="'+id+'" placeholder="'+esc(label)+'" style="min-height:54px"></textarea>';
   else if(type==='doc') inner=docInput_('id="'+id+'"','');
-  else if(type==='hm') inner='<select id="'+id+'" onchange="vsApplyHM_(document.getElementById(\'v-import\'),this.value)"><option value="">— Chọn hạng mục —</option>'
+  else if(type==='hm') inner='<select id="'+id+'" onchange="vsApplyHM_(document.getElementById(\'v-import\'),this.value);sonTplSync_()"><option value="">— Chọn hạng mục —</option>'
       +opts.map(function(o){return '<option value="'+esc(o)+'">'+esc(o)+'</option>';}).join('')+'</select>';
   else if(type==='sel') inner='<input id="'+id+'" list="dl_'+i+'" placeholder="'+esc(f[6]==='vs'?(ph||label):label)+'"><datalist id="dl_'+i+'">'+opts.map(function(o){return '<option value="'+esc(o)+'">';}).join('')+'</datalist>';
   else inner='<input id="'+id+'"'+(type==='num'?' type="number"':'')+trg+' placeholder="'+esc(ph)+'">';
@@ -7970,6 +7970,28 @@ function sessionAdd_(o){ S._sessionAdded=S._sessionAdded||[];
     hinhAnh:o.hinhAnh||'',capNhat:o.capNhat||nowIsoClient_(), nhieuBienThe:!!o.nhieuBienThe}); }
 function nowIsoClient_(){ try{ return new Date().toISOString(); }catch(e){ return ''; } }
 // Tab Nhập dữ liệu có 2 hạng mục: Sản phẩm (đèn) và Phần thô (công tác xây dựng)
+/* ═══ FILE MẪU SƠN NƯỚC THEO ĐÚNG HẠNG MỤC ĐANG CHỌN ═══
+   Mỗi hạng mục sơn có bộ thông số riêng; file gộp cả 8 hạng mục thì bảng 39 cột, điền
+   nhầm cột của hạng mục khác là dòng đó bị bỏ. Nay phải CHỌN HẠNG MỤC trước (form hiện
+   đúng bộ thông số) rồi mới tải được file mẫu — file chỉ có cột của hạng mục đó.      */
+function sonHmDangChon_(){
+  var e=document.getElementById(dbIdOf('HẠNG MỤC'));
+  return e?(SON_SPEC.chuanHM(e.value)||''):'';
+}
+function sonTplBtn_(){
+  var hm=sonHmDangChon_();
+  if(!hm) return '<button class="btn ghost sm" disabled title="Chọn Hạng mục ở khối Thông tin cơ bản trước — file mẫu sẽ đúng bộ thông số của hạng mục đó">'
+    +icon('download',14)+' Tải file mẫu — chọn hạng mục trước</button>';
+  return '<a class="btn ghost sm" href="/mau-nhap-son-nuoc.xlsx?hm='+encodeURIComponent(hm)+'"'
+    +' title="File mẫu chỉ gồm thông số của hạng mục '+esc(hm)+'">'+icon('download',14)+' Tải file mẫu · '+esc(hm)+'</a>';
+}
+// đổi hạng mục -> nút tải file mẫu đổi theo (không vẽ lại cả form cho khỏi mất dữ liệu đang gõ)
+function sonTplSync_(){
+  var box=document.getElementById('impFileRow'); if(!box || impLoai_()!=='son') return;
+  var cu=box.querySelector('.btn.ghost.sm'); if(!cu) return;
+  var tmp=document.createElement('div'); tmp.innerHTML=sonTplBtn_();
+  cu.replaceWith(tmp.firstChild);
+}
 function impLoai_(){ return S._impLoai||'sp'; }
 function impSetLoai(v){ S._impLoai=v; renderImport(); }
 // Chọn hạng mục để nhập — gộp thẳng vào ô "Ngành hàng" (trước đây là 1 hàng tab riêng)
@@ -8101,11 +8123,11 @@ function renderImport(){
         +'<button class="btn ghost sm" onclick="pendingEditCancel_()" style="margin-top:8px">Huỷ sửa</button></div>'
       :'<div class="savebar"><button class="btn blue block" onclick="tdSave(this)">Đưa vào danh sách chờ</button><button class="btn ghost sm" onclick="renderImport()" style="margin-top:8px">Xoá form</button></div>')
     +dbCard_('Nhập hàng loạt từ file', 'download', 'Tải file mẫu → điền dữ liệu → chọn file lên. Hệ thống tự dò cột theo tiêu đề; tải ảnh cho từng SP rồi đưa vào danh sách chờ — bấm Thêm sản phẩm để lưu.',
-      '<div class="imp-file-row">'
+      '<div class="imp-file-row" id="impFileRow">'
       +((impLoai_()==='vs')
         ?'<a class="btn ghost sm" href="/mau-nhap-thiet-bi-ve-sinh.xlsx" download="Mau-nhap-thiet-bi-ve-sinh-DezonQS.xlsx">'+icon('download',14)+' Tải file mẫu thiết bị vệ sinh</a>'
         :(impLoai_()==='son'
-          ?'<a class="btn ghost sm" href="/mau-nhap-son-nuoc.xlsx" download="Mau-nhap-son-nuoc-DezonQS.xlsx">'+icon('download',14)+' Tải file mẫu sơn nước</a>'
+          ? sonTplBtn_()
           :'<a class="btn ghost sm" href="/mau-nhap-hang-loat.xlsx" download="Mau-nhap-hang-loat-DezonQS.xlsx">'+icon('download',14)+' Tải file mẫu</a>'))
       +'<span class="imp-file-sep"></span><input type="file" id="impFile" accept=".xlsx,.xls,.csv" onchange="impPick(this)" style="font:inherit"></div>'
       +'<div id="impPreview" style="margin-top:12px"></div>')

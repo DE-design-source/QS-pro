@@ -9,16 +9,20 @@ const SON = require('../public/son-spec.js');
 
 const REQ = 'FF2563EB', OPT = 'FF12324C', VD_FILL = 'FFF7F9FC', VD_FONT = 'FF7B8794', LINE = 'FFE9EBEF';
 
-// Thông số bắt buộc với ÍT NHẤT 1 hạng mục -> tô xanh sáng (chi tiết từng hạng mục ở sheet Hướng dẫn)
-function batBuoc(lb) { return SON.HANG_MUC.some(function (hm) { return SON.HM[hm].req.indexOf(lb) >= 0; }); }
+/* hm = 1 hạng mục cụ thể -> file mẫu CHỈ có thông số của hạng mục đó (đúng bộ ô đang hiện
+   trên form Nhập dữ liệu). Bỏ trống -> file gộp mọi hạng mục như trước.                  */
+function dsHM(hm) { return hm ? [hm] : SON.HANG_MUC; }
+// Thông số bắt buộc với ÍT NHẤT 1 hạng mục trong phạm vi -> tô xanh sáng
+function batBuoc(lb, hm) { return dsHM(hm).some(function (h) { return SON.HM[h].req.indexOf(lb) >= 0; }); }
 
-function cotMau() {
-  const metric = SON.CHINH_ALL.concat(SON.TK_ALL);   // "Thông tin chính" trước, "Thông số thiết kế" sau (đúng thứ tự form)
+function cotMau(hm) {
+  // 1 hạng mục -> đúng thứ tự thông số của hạng mục đó; nhiều hạng mục -> hợp của tất cả
+  const metric = hm ? SON.HM[hm].chinh.concat(SON.HM[hm].tk) : SON.CHINH_ALL.concat(SON.TK_ALL);
   return [
     ['THƯƠNG HIỆU', 1, 14], ['NHÀ CUNG CẤP', 1, 14], ['HẠNG MỤC', 1, 16], ['DÒNG SẢN PHẨM', 1, 18],
     ['TÊN SẢN PHẨM', 1, 34], ['MÃ SẢN PHẨM', 1, 16], ['GIÁ BÁN LẺ', 1, 13], ['CHIẾT KHẤU ĐẠI LÝ (%)', 1, 13]
   ].concat(metric.map(function (lb) {
-    return [lb, batBuoc(lb) ? 1 : 0, (lb === 'ĐỘ PHỦ' || lb === 'ĐIỂM BÙNG CHÁY' || lb === 'TÍNH DẺO') ? 26 : (lb === 'LƯU Ý' || lb === 'GIỚI HẠN NỔ' || lb === 'THỜI GIAN KHÔ' ? 20 : 15)];
+    return [lb, batBuoc(lb, hm) ? 1 : 0, (lb === 'ĐỘ PHỦ' || lb === 'ĐIỂM BÙNG CHÁY' || lb === 'TÍNH DẺO') ? 26 : (lb === 'LƯU Ý' || lb === 'GIỚI HẠN NỔ' || lb === 'THỜI GIAN KHÔ' ? 20 : 15)];
   })).concat([
     ['TÍNH NĂNG', 0, 30], ['BẢO HÀNH (năm)', 0, 13], ['NHÓM SẢN PHẨM', 0, 13], ['ĐƠN VỊ TÍNH', 1, 13],
     ['LINK DATASHEET', 0, 20], ['THÔNG SỐ KỸ THUẬT', 0, 20], ['HƯỚNG DẪN CÀI ĐẶT', 0, 20], ['FILE BẢN VẼ', 0, 20],
@@ -26,21 +30,25 @@ function cotMau() {
   ]);
 }
 
-// Dòng ví dụ: 3 dòng như file mẫu đèn — 1 dòng sơn ngoại thất + 1 quy cách khác (cùng mã) + 1 sơn lót
-function dongMau() {
-  const mk = function (hm, them) {
-    return Object.assign({ 'THƯƠNG HIỆU': 'Dulux', 'NHÀ CUNG CẤP': 'Công ty ABC', 'HẠNG MỤC': hm,
-      'CHIẾT KHẤU ĐẠI LÝ (%)': 25, 'TRẠNG THÁI': 'Đang kinh doanh' }, SON.HM[hm].mau, them || {});
+// Dòng ví dụ: 3 dòng như file mẫu đèn. Chọn 1 hạng mục -> cả 3 dòng đều của hạng mục đó
+// (1 dòng gốc + 1 quy cách khác cùng mã + 1 dòng để trống bớt cho dễ nhìn).
+function dongMau(hm) {
+  const mk = function (h, them) {
+    return Object.assign({ 'THƯƠNG HIỆU': 'Dulux', 'NHÀ CUNG CẤP': 'Công ty ABC', 'HẠNG MỤC': h,
+      'CHIẾT KHẤU ĐẠI LÝ (%)': 25, 'TRẠNG THÁI': 'Đang kinh doanh' }, SON.HM[h].mau, them || {});
   };
+  const ds = hm
+    ? [mk(hm), mk(hm, { 'KÍCH THƯỚC': '5L', 'GIÁ BÁN LẺ': 890000 })]
+    : [mk('Sơn ngoại thất'), mk('Sơn ngoại thất', { 'KÍCH THƯỚC': '5L', 'GIÁ BÁN LẺ': 890000 }), mk('Sơn lót')];
   // Tên bắt đầu "[VÍ DỤ]" -> hệ thống TỰ BỎ QUA khi nhập (quên xoá cũng không thành sản phẩm thật)
-  return [mk('Sơn ngoại thất'), mk('Sơn ngoại thất', { 'KÍCH THƯỚC': '5L', 'GIÁ BÁN LẺ': 890000 }), mk('Sơn lót')]
-    .map(function (r) { r['TÊN SẢN PHẨM'] = SON.VD + ' ' + r['TÊN SẢN PHẨM']; return r; });
+  return ds.map(function (r) { r['TÊN SẢN PHẨM'] = SON.VD + ' ' + r['TÊN SẢN PHẨM']; return r; });
 }
 
-async function buildSonTemplate() {
+async function buildSonTemplate(hangMuc) {
+  const hm = SON.chuanHM(hangMuc) || '';          // tên hạng mục gõ sai / bỏ trống -> file gộp mọi hạng mục
   const wb = new ExcelJS.Workbook();
   wb.creator = 'Dezon QS Pro';
-  const cols = cotMau();
+  const cols = cotMau(hm);
   const bien = { left: { style: 'thin', color: { argb: LINE } }, right: { style: 'thin', color: { argb: LINE } },
     top: { style: 'thin', color: { argb: LINE } }, bottom: { style: 'thin', color: { argb: LINE } } };
 
@@ -55,7 +63,7 @@ async function buildSonTemplate() {
     cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
     cell.border = bien;
   });
-  dongMau().forEach(function (sp) {
+  dongMau(hm).forEach(function (sp) {
     const row = ws.addRow(cols.map(function (c) { return sp[c[0]] != null ? sp[c[0]] : null; }));
     for (let i = 1; i <= cols.length; i++) {
       const cell = row.getCell(i);
@@ -70,7 +78,7 @@ async function buildSonTemplate() {
   gd.columns = [{ width: 5 }, { width: 26 }, { width: 104 }];
   gd.mergeCells('A1:C1');
   const t = gd.getCell('A1');
-  t.value = 'HƯỚNG DẪN NHẬP HÀNG LOẠT — SƠN NƯỚC — DEZON QS PRO';
+  t.value = 'HƯỚNG DẪN NHẬP HÀNG LOẠT — SƠN NƯỚC' + (hm ? (' · ' + hm.toUpperCase()) : '') + ' — DEZON QS PRO';
   t.font = { bold: true, color: { argb: OPT }, size: 14, name: 'Calibri' };
   gd.getRow(1).height = 28;
   gd.addRow([]);
@@ -84,9 +92,12 @@ async function buildSonTemplate() {
     r.getCell(3).font = { color: { argb: 'FF4A5563' }, size: 10, name: 'Calibri' };
     r.getCell(3).alignment = { vertical: 'top', wrapText: true };
   }
-  const soVD = dongMau().length;
+  const soVD = dongMau(hm).length;
   line('Điền vào sheet "San pham"', 'Mỗi dòng = 1 sản phẩm. Tiêu đề XANH SÁNG là bắt buộc, xanh đậm là tuỳ chọn. ' + soVD + ' dòng ví dụ (chữ nghiêng, tên bắt đầu "' + SON.VD + '") được hệ thống TỰ BỎ QUA khi nhập — có thể xoá hoặc để nguyên.', 46);
-  line('Hạng mục (quan trọng)', 'Cột HẠNG MỤC phải là 1 trong: ' + SON.HANG_MUC.join(' / ') + '. Hạng mục quyết định thông số nào được nhận — mỗi dòng CHỈ điền thông số của hạng mục đó (bảng cuối sheet); cột của hạng mục khác để trống, có điền cũng bị bỏ qua.');
+  line('Hạng mục (quan trọng)', hm
+    ? ('File này dành RIÊNG cho hạng mục "' + hm + '" — các cột đúng bằng bộ thông số của hạng mục đó. '
+       + 'Giữ nguyên cột HẠNG MỤC là "' + hm + '"; muốn nhập hạng mục khác thì tải file mẫu của hạng mục đó (chọn hạng mục ở form Nhập dữ liệu rồi bấm Tải file mẫu).')
+    : ('Cột HẠNG MỤC phải là 1 trong: ' + SON.HANG_MUC.join(' / ') + '. Hạng mục quyết định thông số nào được nhận — mỗi dòng CHỈ điền thông số của hạng mục đó (bảng cuối sheet); cột của hạng mục khác để trống, có điền cũng bị bỏ qua.'));
   line('Thông số bắt buộc', 'Cột thông số tô xanh sáng là bắt buộc với MỘT SỐ hạng mục (dấu * ở bảng cuối sheet). Dòng thiếu thông số bắt buộc của hạng mục mình sẽ KHÔNG được nhập và bị báo lỗi kèm tên sản phẩm.');
   line('Giá & chiết khấu', 'GIÁ BÁN LẺ nhập số (vd 12500000). Giá đại lý hệ thống TỰ TÍNH = Giá bán lẻ × (1 − Chiết khấu %). Không cần nhập cột Giá đại lý.');
   line('BIẾN THỂ (quy cách)', 'Cùng MÃ SẢN PHẨM nhưng khác QUY CÁCH / MÀU SẮC = các SẢN PHẨM RIÊNG. Mỗi quy cách viết 1 DÒNG (xem 2 dòng ví dụ cùng mã: 18L và 5L).');
@@ -105,7 +116,7 @@ async function buildSonTemplate() {
   h2.getCell(2).font = { bold: true, color: { argb: OPT }, size: 12, name: 'Calibri' };
   h2.getCell(3).font = { italic: true, color: { argb: VD_FONT }, size: 10, name: 'Calibri' };
   h2.getCell(3).alignment = { vertical: 'middle' };
-  SON.HANG_MUC.forEach(function (hm) {
+  dsHM(hm).forEach(function (hm) {
     const h = SON.HM[hm];
     const ten = function (lb) {
       const o = h.opt[lb];

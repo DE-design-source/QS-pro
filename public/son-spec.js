@@ -50,9 +50,12 @@
   var OPT_CHUNG = { 'BỀ MẶT HOÀN THIỆN': BE_MAT, 'KÍCH THƯỚC': QUY_CACH, 'SỐ LỚP': SO_LOP,
     'TRẠNG THÁI VẬT LÝ': TRANG_THAI_VL };
 
+  function bo(ds, thua) { return ds.filter(function (x) { return (thua || []).indexOf(x) < 0; }); }
   function hm(mau, them) {
-    return { kem: (them && them.kem) || [], chinh: CHINH.slice(), tk: LY_HOA.slice(),
-      req: (them && them.req) || ['MÀU SẮC', 'ĐỘ PHỦ', 'KÍCH THƯỚC'],
+    them = them || {};
+    return { kem: them.kem || [],
+      chinh: bo(CHINH, them.boChinh), tk: bo(LY_HOA, them.boTk),
+      req: them.req || ['MÀU SẮC', 'ĐỘ PHỦ', 'KÍCH THƯỚC'],
       opt: OPT_CHUNG, mau: mau };
   }
   /* Mỗi hạng mục: chinh = khối "Key Product Info (Thông tin chính)", tk = "Thông số thiết kế"
@@ -78,7 +81,9 @@
     'Bả matit': hm({ 'DÒNG SẢN PHẨM': 'Bả matit', 'TÊN SẢN PHẨM': 'Bột bả nội thất',
       'MÃ SẢN PHẨM': 'Dulux Skimcoat', 'MÀU SẮC': 'Màu trắng', 'ĐỘ PHỦ': 'Lên đến 2 m²/kg/lớp',
       'THỜI GIAN KHÔ': '2 giờ', 'SỐ LỚP': '2', 'KÍCH THƯỚC': '40kg', 'TRẠNG THÁI VẬT LÝ': 'Bột',
-      'GIÁ BÁN LẺ': 320000, 'ĐƠN VỊ TÍNH': 'Bao' }, { req: ['MÀU SẮC', 'KÍCH THƯỚC'] }),
+      'GIÁ BÁN LẺ': 320000, 'ĐƠN VỊ TÍNH': 'Bao' },
+      // bột bả không có độ bóng bề mặt
+      { req: ['MÀU SẮC', 'KÍCH THƯỚC'], boChinh: ['BỀ MẶT HOÀN THIỆN'] }),
     'Sơn hiệu ứng': hm({ 'DÒNG SẢN PHẨM': 'Sơn hiệu ứng', 'TÊN SẢN PHẨM': 'Sơn hiệu ứng bê tông',
       'MÃ SẢN PHẨM': 'Effect Concrete', 'MÀU SẮC': 'Xám bê tông', 'BỀ MẶT HOÀN THIỆN': 'Siêu mờ',
       'ĐỘ PHỦ': 'Lên đến 5 m²/lít/lớp', 'THỜI GIAN KHÔ': '1 giờ', 'SỐ LỚP': '2', 'KÍCH THƯỚC': '5L',
@@ -89,7 +94,9 @@
       'GIÁ BÁN LẺ': 4200000, 'ĐƠN VỊ TÍNH': 'Bộ' }),
     'Dung môi & phụ gia': hm({ 'DÒNG SẢN PHẨM': 'Dung môi', 'TÊN SẢN PHẨM': 'Dung môi pha sơn epoxy',
       'MÃ SẢN PHẨM': 'Thinner EP', 'MÀU SẮC': 'Trong suốt', 'KÍCH THƯỚC': '5L', 'TRẠNG THÁI VẬT LÝ': 'Chất lỏng',
-      'GIÁ BÁN LẺ': 450000, 'ĐƠN VỊ TÍNH': 'Thùng' }, { req: ['KÍCH THƯỚC'] })
+      'GIÁ BÁN LẺ': 450000, 'ĐƠN VỊ TÍNH': 'Thùng' },
+      // dung môi / phụ gia không phải lớp sơn: bỏ độ phủ · thời gian khô · số lớp · bề mặt
+      { req: ['KÍCH THƯỚC'], boChinh: ['BỀ MẶT HOÀN THIỆN', 'ĐỘ PHỦ', 'THỜI GIAN KHÔ', 'SỐ LỚP'] })
   };
   var HANG_MUC = Object.keys(HM);
   // Trường CHUNG của mọi SP sơn nước — cột nào ngoài CHUNG + thông số của hạng mục đều bị bỏ khi nhập

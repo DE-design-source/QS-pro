@@ -733,9 +733,12 @@ app.get('/mau-nhap-thiet-bi-ve-sinh.xlsx', async function (req, res) {
 // File mẫu nhập hàng loạt SƠN NƯỚC — tạo động từ public/son-spec.js (1 sheet "San pham" như mẫu đèn)
 app.get('/mau-nhap-son-nuoc.xlsx', async function (req, res) {
   try {
-    const buf = await require('./son-template').buildSonTemplate();
+    const hm = String((req.query && req.query.hm) || '').trim();
+    const buf = await require('./son-template').buildSonTemplate(hm);
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', "attachment; filename=\"Mau-nhap-son-nuoc-DezonQS.xlsx\"");
+    const SON = require('../public/son-spec.js');
+    const ten = SON.chuanHM(hm) ? ('Mau-nhap-' + SON.chuanHM(hm).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/gi,'d').replace(/[^\w]+/g,'-')) : 'Mau-nhap-son-nuoc';
+    res.setHeader('Content-Disposition', 'attachment; filename="' + ten + '-DezonQS.xlsx"');
     res.setHeader('Cache-Control', 'no-cache');
     res.send(Buffer.from(buf));
   } catch (e) { res.status(500).send('Lỗi tạo file mẫu: ' + (e && e.message)); }
