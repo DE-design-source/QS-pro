@@ -543,6 +543,8 @@ function renderCard(){
   document.getElementById('cbStatus').textContent=(p.trangThai||'Bản nháp');
   document.getElementById('pcCode').textContent=p.maDA||'—';
   document.getElementById('pcName').textContent=(p.ten||'Chưa chọn dự án');
+  var dz=document.getElementById('pcDezon');
+  if(dz) dz.innerHTML=S.cur?dezonChip_(S.cur):'';      // link bài dự án trên dezon.vn
   document.getElementById('pcKH').textContent=p.khachHang||'—';
   document.getElementById('pcSDT').textContent=p.sdt||'—';
   document.getElementById('pcAddr').textContent=p.diaChi||'—';
@@ -1365,6 +1367,7 @@ function renderSpProjPanel_(){
   var el=document.getElementById('spProjPanel'); if(!el) return;
   var head='<div class="spp-head"><span class="spp-ic">'+icon('layers',16)+'</span><h3>Sản phẩm trong dự án</h3>'
     +'<span class="spp-count">'+((S.cur?S.lines:[])||[]).length+'</span>'
+    +(S.cur?dezonChip_(S.cur,'sm'):'')
     +'<button class="spp-hide" title="Thu gọn panel (mở rộng bảng)" onclick="spPanelToggle()">'+icon('left',14)+'</button></div>';
   // dropdown chọn/tạo dự án ngay trong panel (bám mockup)
   var projSel='<select class="spp-projsel" onchange="spSwitchProject(this.value)">'
@@ -5558,6 +5561,36 @@ async function removeProject(maDA, ev){
 function card(t,n){ return '<div class="scard"><div class="n">'+n+'</div><div class="t">'+t+'</div></div>'; }
 function dezonHost_(u){ try{ return new URL(u).hostname; }catch(e){ return ''; } }
 function dezonUrl_(u){ u=String(u||'').trim(); return /^https?:\/\//i.test(u)?u:('https://'+u); }
+/* ═══ CHIP LINK BÀI DỰ ÁN TRÊN DEZON.VN — dùng chung mọi nơi có dự án ═══
+   LUÔN hiện để biết dự án này có chỗ gắn link: đã gắn -> chip xanh, bấm mở bài;
+   chưa gắn -> chip nhạt nét đứt, bấm để dán link (lưu thẳng vào dự án).            */
+function dezonChip_(p, them){
+  p=p||{}; var u=String(p.linkDezon||'').trim(), ma=esc(String(p.maDA||'')), cls='dz-chip'+(them?' '+them:'');
+  if(u) return '<a class="'+cls+' on" href="'+esc(dezonUrl_(u))+'" target="_blank" rel="noopener"'
+    +' title="Mở bài dự án trên dezon.vn — '+esc(dezonUrl_(u))+'" onclick="event.stopPropagation()">'
+    +icon('link',12)+'<span>Dezon</span></a>';
+  return '<button class="'+cls+'" title="Chưa gắn link bài dự án trên dezon.vn — bấm để dán link"'
+    +' onclick="event.stopPropagation();dezonSet_(\''+ma+'\')">'+icon('link',12)+'<span>Gắn link</span></button>';
+}
+async function dezonSet_(maDA){
+  maDA=String(maDA||'');
+  var p=(S.projects||[]).filter(function(x){ return x.maDA===maDA; })[0] || ((S.cur&&S.cur.maDA===maDA)?S.cur:null);
+  if(!p){ toast('Không tìm thấy dự án'); return; }
+  var v=prompt('Dán link bài dự án trên dezon.vn (để trống = bỏ link):', p.linkDezon||'https://dezon.vn/');
+  if(v==null) return;
+  v=String(v).trim();
+  if(v && !/^https?:\/\//i.test(v)) v='https://'+v;
+  if(v && !/(^|\.)dezon\.vn$/i.test(dezonHost_(v)) && !confirm('Link này không thuộc dezon.vn:\n'+v+'\n\nVẫn lưu?')) return;
+  try{
+    var r=await api('updateProject', maDA, {linkDezon:v});
+    var i=(S.projects||[]).map(function(x){ return x.maDA; }).indexOf(maDA);
+    if(i>=0) S.projects[i]=r||Object.assign(S.projects[i],{linkDezon:v});
+    if(S.cur&&S.cur.maDA===maDA){ if(r) syncProj(r); else S.cur.linkDezon=v; }
+    renderCard&&renderCard(); renderSpProjPanel_&&renderSpProjPanel_();
+    if(viewOn_('v-dash')) renderDash&&renderDash();
+    toast(v?'Đã gắn link Dezon cho dự án':'Đã bỏ link Dezon');
+  }catch(e){ toast('Lỗi lưu link: '+e.message); }
+}
 // Gom bản nháp theo Dự án (cùng tên dự án = cùng 1 dự án)
 function projectGroups(){
   var groups={}, order=[];
@@ -5765,7 +5798,7 @@ function dashProjCard_(g){
   return '<div class="dh-proj">'
     +'<div class="dh-proj-h" onclick="projInfoModal(\''+esc(g.drafts[0].maDA)+'\')" title="Xem thông tin dự án"><span class="dh-proj-ic">'+icon('building',16)+'</span>'
       +'<div class="dh-proj-t"><div class="dh-proj-n">'+esc(g.name)+'</div><div class="dh-proj-m">'+esc(g.khachHang||'Chưa có khách hàng')+(g.sdt?' · '+esc(g.sdt):'')+'</div></div>'
-      +(g.linkDezon?'<a class="dh-dezon" href="'+esc(dezonUrl_(g.linkDezon))+'" target="_blank" rel="noopener" title="Mở bài dự án trên dezon.vn" onclick="event.stopPropagation()">'+icon('link',12)+'<span>Dezon</span></a>':'')
+      +dezonChip_({linkDezon:g.linkDezon, maDA:g.drafts[0].maDA}, 'dh-dezon')
       +'<span class="dh-proj-c">'+g.drafts.length+' bản</span></div>'
     +'<button class="proj-del" title="Xoá cả dự án này (mọi bản nháp)" onclick="removeProjectGroup(\''+esc(g.drafts[0].maDA)+'\',event)">'+icon('trash',13)+'</button>'
     +'<div class="dh-drafts">'+drafts+'</div>'

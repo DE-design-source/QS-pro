@@ -788,7 +788,23 @@ table.tk .pick:hover{background:var(--blue);color:#fff}
 .cb-sug-h{padding:7px 10px 5px;font-size:11px;font-weight:600;color:#1d4ed8;background:#f2f7ff;border-bottom:1px solid #e3ecfb}
 .pf-link{grid-column:1/-1}   /* ô Link Dezon */
 .pf-link-row{display:flex;gap:8px;align-items:center}.pf-link-row input{flex:1}
-.dh-dezon{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:7px;border:1px solid #cfe0ff;background:#f2f7ff;color:#1d4ed8;font-size:11px;font-weight:600;text-decoration:none;white-space:nowrap;margin-right:6px}
+/* ═══ Chip link bài dự án trên dezon.vn — dùng chung Bảng điều khiển · băng dự án · panel SP ═══
+   Luôn hiện: CHƯA gắn = nét đứt xám nhạt (mời bấm để dán link), ĐÃ gắn = xanh Dezon nổi hẳn lên. */
+.dz-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:7px;font:inherit;
+  font-size:11px;font-weight:600;text-decoration:none;white-space:nowrap;margin-right:6px;cursor:pointer;
+  border:1px dashed var(--hair-2);background:transparent;color:var(--c3);transition:all .14s ease}
+.dz-chip:hover{border-style:solid;border-color:#cfe0ff;background:#f2f7ff;color:#1d4ed8}
+.dz-chip.on{border:1px solid #cfe0ff;background:#f2f7ff;color:#1d4ed8}
+.dz-chip.on:hover{background:#e3edff;border-color:#9dc0ff}
+.dz-chip.sm{padding:2px 7px;font-size:10.5px;margin-right:0}
+/* trên băng dự án nền navy: đảo màu cho đọc được */
+.pcard .dz-chip{border-color:#ffffff40;color:#c7d6e6}
+.pcard .dz-chip:hover{background:#ffffff1f;border-color:#ffffff80;color:#fff}
+/* đã gắn link: chip xanh ĐẶC, nổi hẳn trên nền navy để liếc là thấy */
+.pcard .dz-chip.on{border-color:transparent;background:var(--blue,#2563eb);color:#fff;
+  box-shadow:0 1px 6px rgba(37,99,235,.45)}
+.pcard .dz-chip.on:hover{background:#1d4ed8;color:#fff}
+.dh-dezon{margin-right:6px}
 .dh-dezon:hover{background:#e3edff}
 .dh-proj{container-type:inline-size}
 @container (max-width:340px){.dh-dezon span{display:none}.dh-dezon{padding:4px 6px}}   /* thẻ hẹp: chỉ còn icon, nhường chỗ cho tên dự án */
@@ -5828,7 +5844,7 @@ tr.qb-flash td{animation:qbFlash 1.8s ease}
   <!-- project card (gọn) -->
   <div class="pcard" id="pcard" onclick="S.cur&&projInfoModal(S.cur.maDA)" title="Bấm để sửa thông tin dự án">
     <div class="pc-main">
-      <div class="pc-top"><h1 id="pcName">Chưa chọn dự án</h1><span class="status" id="pcStatus">Bản nháp</span><span class="pc-edit">Bấm để sửa ›</span></div>
+      <div class="pc-top"><h1 id="pcName">Chưa chọn dự án</h1><span class="status" id="pcStatus">Bản nháp</span><span id="pcDezon"></span><span class="pc-edit">Bấm để sửa ›</span></div>
       <div class="macode">Mã: <span id="pcCode">—</span></div>
     </div>
     <div class="pc-info">
