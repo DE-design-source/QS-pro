@@ -769,8 +769,10 @@ async function importParse(base64, ext, nganh) {
   /* Thiết bị đèn: chỉ đọc sheet đầu (như cũ).
      Thiết bị vệ sinh: đọc MỌI sheet (trừ "Hướng dẫn") — file mẫu hiện là 1 sheet "San pham",
      vẫn nhận file kiểu cũ 1 sheet / hạng mục (ô HẠNG MỤC trống thì lấy theo tên sheet). */
-  const vs = nganh === 'vs';
-  const VS = vs ? require('../public/vs-spec.js') : null;
+  // Ngành có bộ thông số theo hạng mục: 'vs' (thiết bị vệ sinh) · 'son' (sơn nước)
+  const VS = nganh === 'vs' ? require('../public/vs-spec.js')
+    : (nganh === 'son' ? require('../public/son-spec.js') : null);
+  const vs = !!VS;
   const sheets = vs ? wb.worksheets.filter(function (w) { return normalize_(w.name) !== 'HUONG DAN'; }) : [wb.worksheets[0]];
   const products = [], headerList = [], seenH = {}, mapped = {};
   let found = false;
@@ -806,7 +808,7 @@ async function importParse(base64, ext, nganh) {
         ncc: pick2_(row, map.ncc), ma: pick2_(row, map.ma), kichThuoc: pick2_(row, map.kichThuoc),
         dvt: pick2_(row, map.dvt) || 'Cái', gia: round0_(toNumber_(pick2_(row, map.gia))),
         moTa: pick2_(row, map.moTa), hinhAnh: pick2_(row, map.hinhAnh), _raw: raw,
-        _sheet: ws.name, _nganh: vs ? 'vs' : undefined
+        _sheet: ws.name, _nganh: vs ? nganh : undefined
       });
       if (products.length >= 2000) break;
     }

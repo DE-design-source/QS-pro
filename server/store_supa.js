@@ -7,6 +7,17 @@ const supa = require('./supa');
 const tenant = require('./tenant');
 const larkStore = require('./store');   // tái dùng hàm thuần: importParse, cover template, export helpers
 const VS = require('../public/vs-spec.js');  // thông số thiết bị vệ sinh theo từng hạng mục (nguồn chung)
+const SON = require('../public/son-spec.js'); // thông số sơn nước theo từng hạng mục (nguồn chung)
+/* NGÀNH HÀNG của 1 sản phẩm: 'den' (mặc định) · 'vs' (thiết bị vệ sinh) · 'son' (sơn nước).
+   Chưa đóng dấu ngành thì đoán theo tên HẠNG MỤC — mỗi ngành có danh sách hạng mục riêng. */
+function nganhCua_(nganh, hangMuc) {
+  const n = String(nganh == null ? '' : nganh).trim();
+  if (n) return n;
+  if (SON.chuanHM(hangMuc)) return 'son';
+  return VS.chuanHM(hangMuc) ? 'vs' : 'den';
+}
+function specNganh_(ng) { return ng === 'vs' ? VS : (ng === 'son' ? SON : null); }
+const MUC_NGANH = { vs: 'Thiết bị vệ sinh', son: 'Sơn nước', den: 'Thiết bị đèn' };
 
 /*** ===== HELPERS ===== ***/
 function n(v) { if (v == null || v === '') return 0; var x = Number(v); return isNaN(x) ? 0 : x; }
@@ -54,17 +65,18 @@ function prodToObj(r) {
      Thiết bị vệ sinh ghép 2 cột gộp theo thông số của HẠNG MỤC (public/vs-spec.js):
        THÔNG TIN CHÍNH  = thông số khối chinh + Dòng SP · Hạng mục · Bảo hành
        THÔNG SỐ THIẾT KẾ = thông số khối tk                                      */
-  const nganh = VS.nganhOf(r.nganh, r.hang_muc);
+  const nganh = nganhCua_(r.nganh, r.hang_muc);
   const bh = r.bao_hanh_nam ? (r.bao_hanh_nam + ' năm') : '';
-  if (nganh === 'vs') {
+  const SPEC = specNganh_(nganh);
+  if (SPEC) {
     // Mỗi hạng mục có bộ thông số riêng (public/vs-spec.js): chinh -> THÔNG TIN CHÍNH, tk -> THÔNG SỐ THIẾT KẾ.
     // Hạng mục lạ / chưa chọn -> in mọi thông số có giá trị.
-    const h = VS.hmOf(r.hang_muc);
-    const line = function (lb) { const m = VS.METRIC[lb], v = s(r[m[0]]); return v ? (m[1] + ': ' + v) : ''; };
-    const chinh = h ? h.chinh : VS.CHINH_ALL, tk = h ? h.tk : VS.TK_ALL;   // cùng cách chia với panel chi tiết
+    const h = SPEC.hmOf(r.hang_muc);
+    const line = function (lb) { const m = SPEC.METRIC[lb], v = s(r[m[0]]); return v ? (m[1] + ': ' + v) : ''; };
+    const chinh = h ? h.chinh : SPEC.CHINH_ALL, tk = h ? h.tk : SPEC.TK_ALL;   // cùng cách chia với panel chi tiết
     const a = chinh.map(line).filter(Boolean);
     if (dong) a.push('Dòng SP: ' + dong);
-    if (s(r.hang_muc)) a.push('Hạng mục: ' + (VS.chuanHM(r.hang_muc) || s(r.hang_muc)));
+    if (s(r.hang_muc)) a.push('Hạng mục: ' + (SPEC.chuanHM(r.hang_muc) || s(r.hang_muc)));
     if (bh) a.push('Bảo hành: ' + bh);
     moTa = a.join('\n'); if (s(r.ghi_chu)) moTa += (moTa ? '\n' : '') + s(r.ghi_chu);
     thongSoTK = tk.map(line).filter(Boolean).join('\n');
@@ -72,8 +84,8 @@ function prodToObj(r) {
   return {
     ma: s(r.ma_sp), ten: s(r.ten_sp), dongSanPham: dong, hangMuc: s(r.hang_muc),
     nhom: s(r.nhom_sp) || dong,
-    nganh: nganh,                                   // ngành hàng: 'den' | 'vs'
-    muc: (nganh === 'vs') ? 'Thiết bị vệ sinh' : 'Thiết bị đèn',   // -> đề mục 3.2.5 / 3.2.6.1 trên cây
+    nganh: nganh,                                   // ngành hàng: 'den' | 'vs' | 'son'
+    muc: MUC_NGANH[nganh] || 'Thiết bị đèn',        // -> đề mục 3.2.5 / 3.2.2 / 3.2.6.1 trên cây
     // --- trường riêng của Thiết bị vệ sinh (hiện ở panel chi tiết) ---
     kichThuocVS: s(r.kich_thuoc), heThongXa: s(r.he_thong_xa), luongNuocXa: s(r.luong_nuoc_xa),
     thietKe: s(r.thiet_ke), tamXa: s(r.tam_xa), apLucNuoc: s(r.ap_luc_nuoc),
@@ -402,6 +414,8 @@ const DB_LABEL2COL = {
 Object.assign(DB_LABEL2COL, { 'THÔNG SỐ KỸ THUẬT': 'thong_so_file', 'HƯỚNG DẪN CÀI ĐẶT': 'huong_dan_lap_dat', 'FILE BẢN VẼ': 'file_ban_ve' });
 // Thông số RIÊNG từng hạng mục vệ sinh (public/vs-spec.js — nguồn chung với form & file mẫu)
 Object.keys(VS.METRIC).forEach(function (lb) { if (!DB_LABEL2COL[lb]) DB_LABEL2COL[lb] = VS.METRIC[lb][0]; });
+// Thông số RIÊNG từng hạng mục sơn nước (public/son-spec.js — nguồn chung với form & file mẫu)
+Object.keys(SON.METRIC).forEach(function (lb) { if (!DB_LABEL2COL[lb]) DB_LABEL2COL[lb] = SON.METRIC[lb][0]; });
 // Migration chạy tay -> nếu DB chưa có cột thì đổi lỗi kỹ thuật thành hướng dẫn cụ thể
 const COL_SQL = { ten_chip_led: 'db/chip_name.sql', gia_ban_bo_nguon: 'db/gia_bo_nguon.sql', da_duyet: 'db/sp_duyet_status.sql',
   nguoi_duyet: 'db/sp_duyet_status.sql', ngay_duyet: 'db/sp_duyet_status.sql',
@@ -412,6 +426,7 @@ const COL_SQL = { ten_chip_led: 'db/chip_name.sql', gia_ban_bo_nguon: 'db/gia_bo
 ['thong_so_file', 'huong_dan_lap_dat', 'file_ban_ve'].forEach(function (c) { COL_SQL[c] = 'db/tai_lieu_sp.sql'; });
 // Mọi cột thông số vệ sinh chưa có trong bảng trên -> trỏ về migration v2 (thêm metric mới thì nhớ thêm SQL)
 Object.keys(VS.METRIC).forEach(function (lb) { const c = VS.METRIC[lb][0]; if (!COL_SQL[c]) COL_SQL[c] = 'db/thiet_bi_ve_sinh_v2.sql'; });
+Object.keys(SON.METRIC).forEach(function (lb) { const c = SON.METRIC[lb][0]; if (!COL_SQL[c]) COL_SQL[c] = 'db/son_nuoc.sql'; });
 function colErr_(e) {
   const m = (e && e.message) || '';
   for (const col in COL_SQL) {
@@ -452,7 +467,7 @@ async function saveDbProduct(actor, data, opts) {
     else if (DB_NUM.indexOf(label) >= 0) v = n(v);
     row[col] = v;
   });
-  if (!row.nganh && VS.nganhOf('', row.hang_muc) === 'vs') row.nganh = 'vs';
+  if (!row.nganh) { const ng0 = nganhCua_('', row.hang_muc); if (ng0 !== 'den') row.nganh = ng0; }
   const ma = s(data['MÃ SẢN PHẨM']).trim();
   // Khoá trùng = MÃ SP + các trục BIẾN THỂ (nhiệt độ màu / công suất / góc chiếu).
   // Nhờ vậy cùng mã nhưng khác nhiệt độ màu sẽ là 2 SẢN PHẨM RIÊNG (biến thể), không ghi đè nhau.
@@ -462,7 +477,7 @@ async function saveDbProduct(actor, data, opts) {
     // Chỉ thêm với ngành vệ sinh — SP đèn không có cột này nên giữ khoá cũ, và nếu DB
     // chưa chạy migration thì lưu SP đèn vẫn không bị lỗi thiếu cột.
     const keyCols = ['nhiet_do_mau_k', 'cong_suat_w', 'goc_chieu_deg', 'mau_sac'];
-    if (row.nganh === 'vs' || row.kich_thuoc) keyCols.push('kich_thuoc');
+    if (row.nganh === 'vs' || row.nganh === 'son' || row.kich_thuoc) keyCols.push('kich_thuoc');
     keyCols.forEach(function (col) {
       const v = row[col];
       filter += '&' + (v == null || v === '' ? col + '=is.null' : supa.eq(col, v));
@@ -942,18 +957,21 @@ async function importCommit(actor, products) {
     if (!s(data['TRẠNG THÁI']).trim()) data['TRẠNG THÁI'] = 'Đang kinh doanh';
     if (!s(data['TÊN SẢN PHẨM']).trim()) continue;
     if (s(data['TÊN SẢN PHẨM']).trim().indexOf(VS.VD) === 0) continue;   // dòng ví dụ của file mẫu
-    const laVS = p._nganh === 'vs' || VS.nganhOf(data['NGÀNH HÀNG'], data['HẠNG MỤC']) === 'vs';   // hạng mục vệ sinh -> tự nhận ngành
-    if (laVS) {
-      // THIẾT BỊ VỆ SINH: đóng dấu ngành (-> SP về đề mục 3.2.5), chuẩn hoá tên hạng mục và
-      // CHỈ giữ thông số thuộc hạng mục đó — cột của hạng mục khác trong file bị bỏ qua.
-      data['NGÀNH HÀNG'] = 'vs';
-      const hm = VS.chuanHM(data['HẠNG MỤC']);
-      if (!hm) { errors.push({ i: i, ten: s(data['TÊN SẢN PHẨM']), error: 'Hạng mục "' + s(data['HẠNG MỤC']) + '" không thuộc danh sách: ' + VS.HANG_MUC.join(', ') }); continue; }
+    // Ngành có bộ thông số theo hạng mục: vệ sinh ('vs') · sơn nước ('son') -> tự nhận theo hạng mục
+    const ngRow = (p._nganh === 'vs' || p._nganh === 'son') ? p._nganh
+      : nganhCua_(data['NGÀNH HÀNG'], data['HẠNG MỤC']);
+    const SPEC = specNganh_(ngRow);
+    if (SPEC) {
+      // Đóng dấu ngành (-> SP về đúng đề mục), chuẩn hoá tên hạng mục và CHỈ giữ thông số
+      // thuộc hạng mục đó — cột của hạng mục khác trong file bị bỏ qua.
+      data['NGÀNH HÀNG'] = ngRow;
+      const hm = SPEC.chuanHM(data['HẠNG MỤC']);
+      if (!hm) { errors.push({ i: i, ten: s(data['TÊN SẢN PHẨM']), error: 'Hạng mục "' + s(data['HẠNG MỤC']) + '" không thuộc danh sách: ' + SPEC.HANG_MUC.join(', ') }); continue; }
       data['HẠNG MỤC'] = hm;
-      const cho = VS.CHUNG.concat(VS.labelsOf(hm));     // chỉ giữ trường chung + thông số của đúng hạng mục
+      const cho = SPEC.CHUNG.concat(SPEC.labelsOf(hm));     // chỉ giữ trường chung + thông số của đúng hạng mục
       Object.keys(data).forEach(function (lb) { if (cho.indexOf(lb) < 0) delete data[lb]; });
-      const thieu = VS.HM[hm].req.filter(function (lb) { return !s(data[lb]).trim(); });
-      if (thieu.length) { errors.push({ i: i, ten: s(data['TÊN SẢN PHẨM']), error: hm + ' thiếu: ' + thieu.map(function (lb) { return VS.METRIC[lb][1]; }).join(', ') }); continue; }
+      const thieu = SPEC.HM[hm].req.filter(function (lb) { return !s(data[lb]).trim(); });
+      if (thieu.length) { errors.push({ i: i, ten: s(data['TÊN SẢN PHẨM']), error: hm + ' thiếu: ' + thieu.map(function (lb) { return SPEC.METRIC[lb][1]; }).join(', ') }); continue; }
     }
     try { const r = await saveDbProduct(actor, data, { noAudit: true }); if (r && r.updated) updated++; else inserted++; }
     catch (e) { errors.push({ i: i, ten: s(data['TÊN SẢN PHẨM']), error: e && e.message }); }

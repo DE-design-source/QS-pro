@@ -68,5 +68,38 @@ const VS=require(R('public/vs-spec.js')), st=require(R('server/store_supa')), st
   const u=await st.saveDbProduct(null,{'TÊN SẢN PHẨM':'B2','MÃ SẢN PHẨM':'B1','HẠNG MỤC':'Bồn cầu','MÀU SẮC':'Trắng','KÍCH THƯỚC':'A'});
   ok(db.length===2 && u.updated && db.every(x=>x.nganh==='vs'),'biến thể theo màu, cập nhật khi trùng '+db.length);
 
+  console.log('7. Sơn nước (public/son-spec.js)');
+  const SON=require(R('public/son-spec.js')), tplS=require(R('server/son-template'));
+  const cS=Object.values(SON.METRIC).map(m=>m[0]); ok(new Set(cS).size===cS.length,'trùng cột DB trong METRIC sơn');
+  for(const hm of SON.HANG_MUC){ const h=SON.HM[hm];
+    [...h.chinh,...h.tk,...h.req,...Object.keys(h.opt)].forEach(lb=>ok(SON.METRIC[lb],hm+': nhãn lạ '+lb));
+    h.req.forEach(lb=>ok(h.chinh.concat(h.tk).includes(lb),hm+': req không nằm trong chinh/tk '+lb));
+    const thieu=h.req.filter(lb=>!h.mau[lb]); ok(!thieu.length, hm+': dòng mẫu thiếu bắt buộc '+thieu); }
+  ok(SON.chuanHM('son ngoai that')==='Sơn ngoại thất' && SON.chuanHM('Bồn cầu')==='','chuanHM sơn');
+  // nhãn trùng vs-spec phải trỏ CÙNG một cột DB (nhãn là khoá duy nhất toàn hệ thống)
+  Object.keys(SON.METRIC).forEach(lb=>{ if(VS.METRIC[lb]) ok(VS.METRIC[lb][0]===SON.METRIC[lb][0],'nhãn "'+lb+'" trỏ 2 cột khác nhau'); });
+  const sqlS=require('fs').readFileSync(R('db/son_nuoc.sql'),'utf8')+require('fs').readFileSync(R('db/thiet_bi_ve_sinh_v2.sql'),'utf8')
+    +require('fs').readFileSync(R('db/thiet_bi_ve_sinh.sql'),'utf8')+require('fs').readFileSync(R('db/schema.sql'),'utf8');
+  cS.forEach(c=>ok(new RegExp('\\b'+c+'\\b').test(sqlS),'cột sơn '+c+' không có trong migration'));
+  // file mẫu -> đọc lại: dòng ví dụ tự bỏ qua
+  const bufS=Buffer.from(await tplS.buildSonTemplate());
+  let rS=await store.importParse(bufS.toString('base64'),'xlsx','son'); ok(rS.count===0,'dòng ví dụ sơn phải tự bỏ qua, thực tế '+rS.count);
+  ok(rS.mapped.ten==='TÊN SẢN PHẨM' && rS.mapped.gia==='GIÁ BÁN LẺ','map cột cơ bản sơn '+JSON.stringify(rS.mapped));
+  // nhập thật: đóng dấu ngành son, bỏ cột của ngành khác, chặn thiếu bắt buộc
+  db=[]; let cS2=await st.importCommit(null,[
+    {ten:'Sơn NT',_nganh:'son',_raw:{'TÊN SẢN PHẨM':'Sơn NT','MÃ SẢN PHẨM':'WS1','HẠNG MỤC':'sơn ngoại thất','MÀU SẮC':'Màu trắng','ĐỘ PHỦ':'13 m²/lít','KÍCH THƯỚC':'18L','CÔNG SUẤT (W)':'12','HỆ THỐNG XẢ':'Tornado'}},
+    {ten:'Thiếu',_nganh:'son',_raw:{'TÊN SẢN PHẨM':'Thiếu','MÃ SẢN PHẨM':'SL1','HẠNG MỤC':'Sơn lót'}}]);
+  ok(cS2.inserted===1 && cS2.errors && cS2.errors.length===1 && cS2.errors[0].i===1,'commit sơn '+JSON.stringify(cS2));
+  ok(db[0].nganh==='son' && db[0].hang_muc==='Sơn ngoại thất','đóng dấu ngành + chuẩn hoá hạng mục '+JSON.stringify(db[0]));
+  ok(!db[0].cong_suat_w && !db[0].he_thong_xa,'bỏ cột của ngành khác');
+  // quên chọn ngành -> tự nhận theo hạng mục sơn
+  db=[]; await st.importCommit(null,[{ten:'Sơn lót A',_raw:{'TÊN SẢN PHẨM':'Sơn lót A','MÃ SẢN PHẨM':'SLA','HẠNG MỤC':'sơn lót','MÀU SẮC':'Trắng','ĐỘ PHỦ':'12','KÍCH THƯỚC':'18L'}}]);
+  ok(db.length===1 && db[0].nganh==='son','tự nhận ngành sơn theo hạng mục '+JSON.stringify(db[0]));
+  // prodToObj: về đề mục Sơn nước, chỉ in thông số của hạng mục
+  db=[{id:7,ma_sp:'S',ten_sp:'Sơn',nganh:null,hang_muc:'Sơn ngoại thất',mau_sac:'Màu trắng',do_phu:'13 m²/lít',kich_thuoc:'18L',do_ph:'9'}];
+  const pS=(await st.getProducts())[0];
+  ok(pS.nganh==='son' && pS.muc==='Sơn nước','prodToObj sơn '+pS.nganh+'/'+pS.muc);
+  ok(/Độ phủ: 13/.test(pS.moTa) && /Độ pH: 9/.test(pS.kichThuoc),'ghép cột hiển thị sơn '+pS.moTa+' | '+pS.kichThuoc);
+
   console.log('\nKẾT QUẢ: '+pass+' đạt, '+fail+' lỗi'); if(fail) process.exitCode=1;
 })().catch(e=>{console.error('CRASH',e);process.exit(1);});

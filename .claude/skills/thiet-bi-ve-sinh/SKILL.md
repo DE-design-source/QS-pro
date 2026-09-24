@@ -35,6 +35,17 @@ Module UMD (`window.VS_SPEC` ở trình duyệt, `require('../public/vs-spec.js'
 4. **User phải chạy SQL trên Supabase** (không chạy được từ máy này — không có psql/connection string). Nhắc rõ trong câu trả lời.
 5. Kiểm tra: `node --check public/app.js` và **`npm run test:vs`** (test hồi quy, DB giả — thêm ca test khi thêm logic mới).
 
+## Ngành SƠN NƯỚC — cùng khuôn, khác spec
+`public/son-spec.js` (`SON_SPEC`) là bản song song của vs-spec cho đề mục **3.2.2 Sơn nước**: cùng API (`METRIC`/`HM`/`HANG_MUC`/`CHUNG`/`chuanHM`/`labelsOf`/`optsOf`/`isReq`/`CHINH_ALL`/`TK_ALL`/`VD`), hạng mục = dòng sơn (Sơn nội thất · ngoại thất · lót · chống thấm · Bả matit · hiệu ứng · sàn epoxy · Dung môi), `chinh` = Key Product Info, `tk` = mục IX tính chất lý hoá. File mẫu `server/son-template.js` → `GET /mau-nhap-son-nuoc.xlsx`; migration `db/son_nuoc.sql`.
+
+Chỗ chọn spec theo ngành (thêm ngành mới thì sửa đúng mấy chỗ này):
+| Nơi | Hàm |
+|---|---|
+| Client | `specNganh_(ng)`, `nganhCuaSP_(p)`, `impGroups_`/`impFlat_`, `DB_GROUPS_SON`, `vsApplyHM_(box,hm,hienHet,ng)`, `impSpec_`, `spSpec_(p)` |
+| Server | `nganhCua_`, `specNganh_`, `MUC_NGANH` (store_supa) và tham số `nganh` của `importParse` (store.js) |
+
+Nhãn TRÙNG giữa 2 spec phải trỏ **cùng một cột DB** (MÀU SẮC · KÍCH THƯỚC · BỀ MẶT HOÀN THIỆN · LƯU Ý) — `npm run test:vs` có kiểm.
+
 ## Lưu ý / bẫy
 - Nhãn phải DUY NHẤT toàn hệ thống (đèn + vệ sinh dùng chung `DB_LABEL2COL`); dùng lại nhãn đèn đã có (vd `CHẤT LIỆU`, `MÀU SẮC`) thì trùng cột là đúng ý.
 - Tránh tiêu đề cột chứa chuỗi alias của `IMPORT_ALIAS` (`store.js`) đứng TRƯỚC cột gốc (vd "PRODUCT", "TÊN") — dò header theo chuỗi con.
