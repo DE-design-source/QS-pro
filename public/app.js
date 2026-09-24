@@ -118,6 +118,9 @@ var ICONS={
 };
 function icon(name,size){ size=size||16; var p=ICONS[name]; if(!p) return ''; return '<svg class="ico" width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'; }
 // Độ rộng mặc định + cấu hình cột (thứ tự, rộng, lọc) lưu localStorage
+/* Sàn bề rộng khi bật "Vừa 1 màn hình" — hẹp hơn mức này chữ vỡ thành từng ký tự */
+var TK_MINW_={stt:54,khuVuc:88,maBanVe:74,maSP:88,ten:150,thuongHieu:92,ncc:92,moTa:130,kichThuoc:120,
+  hinhAnh:70,taiLieu:70,dvt:58,soLuong:62,trangThai:86,ghiChu:110};
 var DEFW={taiLieu:92,stt:66,khuVuc:120,maBanVe:92,nganh:120,maSP:110,ten:190,thuongHieu:110,ncc:120,moTa:186,kichThuoc:150,hinhAnh:104,dvt:84,soLuong:84,giaNCC:104,chietKhau:120,giaDaiLy:104,lnPct:96,donGia:104,ckKhach:130,donGiaCK:104,markup:130,margin:130,lnVnd:120,thanhTien:112,trangThai:104,ghiChu:150};
 S.colOrder=null; S.colW={}; S.colFilter={}; S.collapsed={};
 // Công cụ kiểu bảng tính cho Bóc tách: sắp xếp / cố định cột / tô màu điều kiện
@@ -348,7 +351,7 @@ async function boot(){
     if(S.cur) splashStep_('Đang tải bảng bóc tách “'+(S.cur.ten||S.cur.maDA)+'”…');
     S.lines = S.cur ? (await api('getLines',S.cur.maDA)||[]) : [];
     splashStep_('Đang dựng giao diện…');
-    renderAll(); bocBoot_(); hmInit_(); sideApply_();      // hạng mục dùng chung: khôi phục lựa chọn lần trước
+    renderAll(); bocBoot_(); hmInit_(); sideApply_(); tkViewInit_();   // hạng mục dùng chung + chế độ xem bảng (vừa màn hình / toàn màn hình)
     splashDone_();
     ctLoad_(true).then(function(){ if(S.node==='3.1'||spPTMode_()) ctReload_(); });
   }catch(e){ splashDone_(); toast('Lỗi tải: '+e.message); }
@@ -3916,7 +3919,9 @@ var QB_IC={
   zen:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>',
   hist:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>',
   repl:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6"/><path d="M20 20l-5.6-5.6M8 10h4"/></svg>',
-  gia:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v5h-5"/><path d="M12 8v8M9.5 10.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/></svg>'
+  gia:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v5h-5"/><path d="M12 8v8M9.5 10.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/></svg>',
+  fit:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7v10M20 7v10"/><path d="M8 12h8M8 12l2.5-2.5M8 12l2.5 2.5M16 12l-2.5-2.5M16 12l-2.5 2.5"/></svg>',
+  full:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V4h5M21 9V4h-5M3 15v5h5M21 15v5h-5"/></svg>'
 };
 function giaLechN_(){ try{ var n=giaLechList_().length; return n?String(n):''; }catch(e){ return ''; } }
 function giaSyncTitle_(){
@@ -4155,6 +4160,8 @@ function qbRightSync_(){
     +'<span class="qb-sep"></span>'
     +qbBtn_('qbGia',QB_IC.gia,giaSyncTitle_(),'giaSyncRun_()',false,giaLechN_())
     +qbBtn_('qbSide',QB_IC.panel,side?'Hiện panel sản phẩm bên trái':'Ẩn panel sản phẩm — bảng rộng hơn','sideToggle_();qbRightSync_()',side)
+    +qbBtn_('qbFit',QB_IC.fit,tkFitOn_()?'Trả bảng về bề rộng cột đã đặt (có kéo ngang)':'Vừa 1 màn hình — co cột cho hết kéo ngang, chỉ kéo dọc','tkFitToggle_()',tkFitOn_())
+    +qbBtn_('qbFull',QB_IC.full,tkFullOn_()?'Thoát toàn màn hình (Esc)':'Toàn màn hình — chỉ còn bảng','tkFullToggle_()',tkFullOn_())
     +qbBtn_('qbZen',QB_IC.zen,zen?'Mở lại các khối đầu trang':'Mở rộng bảng — thu gọn băng dự án và chip cột','foldAll_()',zen)
     +'<button class="qb-exp" onclick="showTab(\'export\')" title="Sang tab Xuất báo giá">'+icon('download',14)+' Xuất báo giá</button>';
 }
@@ -4634,7 +4641,26 @@ function renderTable(){
   var order=floorsList().slice();
   Object.keys(groups).forEach(function(g){ if(order.indexOf(g)<0) order.push(g); });
   var totalW=cols.reduce(function(s,c){ return s+colW(c[0]); },0);
-  var colg='<colgroup>'+cols.map(function(c){ return '<col style="width:'+colW(c[0])+'px">'; }).join('')+'</colgroup>';
+  /* "Vừa 1 màn hình": co cột theo tỉ lệ cho khít bề ngang khung -> hết kéo ngang, chỉ kéo dọc.
+     Có SÀN bề rộng từng cột: bật quá nhiều cột thì co nữa chữ sẽ vỡ thành từng ký tự, nên
+     khi tổng sàn vẫn vượt khung thì giữ px như cũ và nhắc người dùng ẩn bớt cột.        */
+  var tkFit=(typeof tkFitOn_==='function') && tkFitOn_(), fitPc=null;
+  if(tkFit){
+    var wrapEl=document.querySelector('#tkNormal .tbl-wrap');
+    var rong=(wrapEl?wrapEl.clientWidth:0)-2;
+    if(rong>200){
+      var san=cols.map(function(c){ return TK_MINW_[c[0]]||74; });
+      var tongSan=san.reduce(function(a,b){ return a+b; },0);
+      if(tongSan<=rong){                       // còn đủ chỗ cho mọi cột ở mức hẹp nhất
+        var ty=rong/totalW;
+        var w2=cols.map(function(c,i){ return Math.max(san[i], colW(c[0])*ty); });
+        var t2=w2.reduce(function(a,b){ return a+b; },0);
+        fitPc=w2.map(function(w){ return (w/t2*100).toFixed(3)+'%'; });   // chuẩn hoá -> luôn khít 100%
+      } else { S._fitChat=cols.length; }        // quá nhiều cột -> báo 1 lần ở cuối hàm
+    }
+  }
+  var colg='<colgroup>'+cols.map(function(c,i){
+      return '<col style="width:'+(fitPc?fitPc[i]:(colW(c[0])+'px'))+'">'; }).join('')+'</colgroup>';
   var head='<tr>'+cols.map(function(c){ var cls=numK.indexOf(c[0])>=0?'num':(ctK.indexOf(c[0])>=0?'ct':'');
     var lbl=c[1], on=S.sortKey===c[0];
     return '<th class="thk '+cls+(flt[c[0]]?' fltOn':'')+(on?' sortOn':'')+'" data-k="'+c[0]+'" draggable="true"><span class="thl" onclick="toggleSort(\''+c[0]+'\')" title="Bấm để sắp xếp">'+esc(lbl)+(on?(S.sortDir==='desc'?' ▼':' ▲'):'')+'</span>'
@@ -4672,7 +4698,14 @@ function renderTable(){
     +'<button class="addbtn item" onclick="addBlankItem()" title="Thêm 1 hạng mục trống vào tầng đang chọn">'+icon('plus',15)+'Thêm hạng mục'
       +(selF?'<span class="addbtn-sub">vào '+esc(selF)+'</span>':'')+'</button>'
     +'</td></tr>';
-  t.style.width=totalW+'px';
+  t.style.width=fitPc?'100%':(totalW+'px');
+  t.classList.toggle('tkfit-on', !!fitPc);
+  S._fitOk=!!fitPc;
+  if(tkFit && !fitPc && S._fitChat && S._fitChat!==S._fitChatBao){
+    S._fitChatBao=S._fitChat;
+    toast('Đang bật '+S._fitChat+' cột — nhiều quá nên chưa vừa 1 màn hình. Bấm "Cột hiển thị" tắt bớt cột (hoặc chọn bộ "Tối giản").');
+  }
+  if(fitPc) S._fitChatBao=null;
   var frzN=Math.min(S.freezeN||0,cols.length);
   t.className='tk'+(frzN?(' frz'+frzN):'');
   t.style.setProperty('--frz1w', colW(cols[0][0])+'px');
@@ -11865,6 +11898,54 @@ function tkFreezeRows_(){
 
 /* ---------- thu gọn khối đầu bảng ---------- */
 function tkZenGet_(){ try{ return localStorage.getItem('qs_tkzen')==='1'; }catch(e){ return false; } }
+/* ═══ TOÀN MÀN HÌNH · VỪA 1 MÀN HÌNH cho bảng bóc tách / dự toán ═══
+   · Toàn màn hình: ẩn thanh trên · băng dự án · panel trái, bảng chiếm trọn màn hình.
+     Dùng luôn Fullscreen API của trình duyệt nếu cho phép (ẩn cả thanh tab).
+   · Vừa 1 màn hình: cột co theo tỉ lệ cho vừa bề ngang -> HẾT kéo ngang, chỉ kéo dọc.
+   Cả hai nhớ theo máy.                                                              */
+function tkFullOn_(){ return document.body.classList.contains('tkfull'); }
+function tkFitOn_(){ return document.body.classList.contains('tkfit'); }
+function tkFullToggle_(on){
+  on=(on==null)?!tkFullOn_():!!on;
+  document.body.classList.toggle('tkfull', on);
+  try{ localStorage.setItem('qs_tkfull', on?'1':'0'); }catch(e){}
+  if(on){ try{ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }catch(e){} }
+  else { try{ if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen(); }catch(e){} }
+  tkFullBtn_();
+  try{ renderTable&&renderTable(); }catch(e){}
+  setTimeout(function(){ try{ syncActGutter&&syncActGutter(); }catch(e){} },30);
+  qbRightSync_&&qbRightSync_();
+}
+function tkFitToggle_(on){
+  on=(on==null)?!tkFitOn_():!!on;
+  document.body.classList.toggle('tkfit', on);
+  try{ localStorage.setItem('qs_tkfit', on?'1':'0'); }catch(e){}
+  try{ renderTable&&renderTable(); }catch(e){}
+  setTimeout(function(){ try{ syncActGutter&&syncActGutter(); }catch(e){} },30);
+  qbRightSync_&&qbRightSync_();
+  // không vừa được (bật quá nhiều cột) thì renderTable đã tự nhắc ẩn bớt cột -> đừng báo nhầm là đã vừa
+  if(!on) toast('Bảng trở lại bề rộng cột đã đặt');
+  else if(S._fitOk) toast('Bảng co vừa bề ngang màn hình — chỉ còn kéo dọc');
+}
+// nút thoát nổi khi đang toàn màn hình
+function tkFullBtn_(){
+  var b=document.getElementById('tkFullX');
+  if(!b){ b=document.createElement('button'); b.id='tkFullX'; b.className='tkfull-x';
+    b.innerHTML=icon('close',14)+'<span>Thoát toàn màn hình (Esc)</span>';
+    b.onclick=function(){ tkFullToggle_(false); }; document.body.appendChild(b); }
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape' && tkFullOn_() && !document.querySelector('.sp-modal-ov,.fltpop')) tkFullToggle_(false);
+});
+document.addEventListener('fullscreenchange',function(){    // thoát bằng F11 / nút của trình duyệt
+  if(!document.fullscreenElement && tkFullOn_()) tkFullToggle_(false);
+});
+function tkViewInit_(){
+  try{
+    if(localStorage.getItem('qs_tkfit')==='1') document.body.classList.add('tkfit');
+  }catch(e){}
+  tkFullBtn_();
+}
 function tkZenToggle(){ foldAll_(); }
 /* ═══ THU GỌN TỪNG KHỐI ĐỂ MỞ RỘNG BẢNG ═══
    Khối nào phía trên bảng cũng gập được: băng dự án · tổng tiền · chip cột. Nhớ theo máy (qs_fold).

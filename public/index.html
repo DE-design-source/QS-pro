@@ -5775,6 +5775,55 @@ body.fold-cols .pg-cols .colchips{display:none}
 /* dòng được nhảy tới từ Tìm nhanh / Vừa thêm */
 tr.qb-flash td{animation:qbFlash 1.8s ease}
 @keyframes qbFlash{0%,35%{background:#fff4c2}100%{background:inherit}}
+
+/* ══════════════════════════════════════════════════════════════════════
+   19. NÉT CHỮ DÀY HƠN
+   Montserrat ở 400 nhìn mảnh trên màn hình lớn, đọc bảng số lâu bị mỏi mắt.
+   Nâng nền lên 500 và đẩy các chỗ vốn nhạt (nhãn, ghi chú, ô nhập) lên 1 bậc.
+   ══════════════════════════════════════════════════════════════════════ */
+body,button,input,select,textarea{font-weight:500}
+html,body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+table.tk td,table.tk td .cin,.cin,.pt-in,.spin,.sp-table td{font-weight:500}
+table.tk th,.sp-table thead th{font-weight:700}
+/* nhãn · ghi chú · chữ phụ: từ 400 lên 500-600 cho rõ nét */
+label,.k,.lb,.lbl,.hint,.muted,.dbnote,.c2note,.pd .spec .k,.gsx-sub,.spp-sub,.imp-sub,
+.tkt-i i,.pgh-lbl,.cp-hint,.sp-code,.macode,.draft-code{font-weight:500}
+.chip,.qb-chip,.bgchip,.dz-chip,.pc-top .status,.count,.tkt-i b{font-weight:600}
+b,strong,.btn,.rbtn,.nav a.active,.nav a{font-weight:600}
+h1,h2,h3,h4,.sechd h2,.dh-title,.pc-top h1{font-weight:700}
+.sp-name b,.gsx-nm,.pc-info .v,.dh-proj-n{font-weight:600}
+/* số tiền / số liệu: đậm hơn 1 bậc để liếc là thấy */
+table.tk td.num,.kpi-n,.dh-kpi-v,.cp-kpi-v,.sp-price,.tkt-i b,.gsx-v .moi{font-weight:600}
+
+/* ══════════════════════════════════════════════════════════════════════
+   20. BẢNG BÓC TÁCH: TOÀN MÀN HÌNH · VỪA 1 MÀN HÌNH
+   · body.tkfull  = toàn màn hình: ẩn thanh trên, băng dự án, panel trái…,
+     bảng chiếm trọn màn hình, Esc để thoát.
+   · body.tkfit   = vừa bề ngang: cột co theo tỉ lệ, HẾT kéo ngang, chỉ kéo dọc.
+   ══════════════════════════════════════════════════════════════════════ */
+body.tkfull{overflow:hidden}
+body.tkfull .topnav,body.tkfull .pcard,body.tkfull .crumb,body.tkfull .qbar,
+body.tkfull .view:not(.on),body.tkfull #leftCat,body.tkfull .tk-frame-cols,
+body.tkfull .floorhint,body.tkfull #actGutter{display:none!important}
+body.tkfull > .wrap{position:fixed;inset:0;max-width:none;width:100vw;height:100vh;
+  margin:0;padding:6px 10px 0;overflow:hidden;z-index:120;background:var(--bg,#f4f6f8);zoom:1}
+body.tkfull .boc{grid-template-columns:1fr!important;gap:0}
+body.tkfull .tk-panel{position:static;max-height:none;height:calc(100vh - 12px);overflow:hidden}
+body.tkfull #tkNormal .tbl-wrap{max-height:none;height:100%}
+body.tkfull .toolbar{margin-bottom:4px}
+/* nút thoát nổi ở góc phải */
+.tkfull-x{display:none}
+body.tkfull .tkfull-x{display:inline-flex;align-items:center;gap:6px;position:fixed;right:14px;top:10px;z-index:130;
+  height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--ln);background:#fff;color:var(--c2);
+  font:inherit;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 4px 14px rgba(18,50,76,.14)}
+body.tkfull .tkfull-x:hover{border-color:var(--blue);color:var(--blue)}
+/* Vừa 1 màn hình: bảng co đúng bề ngang khung, chữ tự xuống dòng, không còn thanh kéo ngang */
+body.tkfit #tkNormal .tbl-wrap{width:100%;max-width:100%;overflow-x:hidden}
+body.tkfit #tkNormal table.tk.tkfit-on{width:100%!important;min-width:0!important;table-layout:fixed}
+body.tkfit #tkNormal table.tk.tkfit-on td,body.tkfit #tkNormal table.tk.tkfit-on th{white-space:normal;overflow-wrap:break-word}
+body.tkfit #tkNormal table.tk.tkfit-on td .cin{min-width:0}
+body.tkfit #tkNormal table.tk.tkfit-on th{padding:9px 6px;font-size:10.5px;letter-spacing:.02em}
+body.tkfit #tkNormal table.tk.tkfit-on td{padding-left:6px;padding-right:6px}
 </style>
 
 <!-- ===== TOP NAV ===== -->
