@@ -606,6 +606,21 @@ table.tk textarea.cin{min-height:34px;resize:vertical;line-height:1.3;white-spac
    cho thanh kéo dọc tự vẽ — thanh cuộn gốc của trình duyệt bị ẩn toàn app. */
 .cp-card .tbl-wrap{max-height:calc(100vh - 168px);overflow:auto}
 .pg-tblhost{position:relative}
+/* ═══ Khung xem trước báo giá: thanh công cụ đứng yên, trang giấy cuộn bên trong, kéo mép dưới để chỉnh cao ═══ */
+.bgvp-hd{display:flex;align-items:center;gap:10px;margin:2px 0 0;padding:8px 12px;
+  background:var(--bg2);border:1px solid var(--ln);border-bottom:none;border-radius:var(--rk) var(--rk) 0 0}
+.bgvp-t{font-size:12px;font-weight:700;color:var(--c1);letter-spacing:-.01em}
+.bgvp-n{font-size:11px;font-weight:600;color:var(--blue);background:#f2f7ff;border:1px solid #cfe0ff;
+  border-radius:999px;padding:1px 9px}
+.bgvp-tien{font-size:11.5px;font-weight:700;color:var(--c1);font-variant-numeric:tabular-nums}
+.bgvp-p{font-size:11px;color:var(--c3);font-weight:600}
+.bgvp{position:relative;border:1px solid var(--ln);border-radius:0 0 var(--rk) var(--rk);
+  background:#eef1f5;overflow:auto;padding:12px 0 18px}
+.bgvp .qs-doc{margin:0 auto}
+.bgvp-grip{position:sticky;bottom:0;left:0;height:12px;cursor:ns-resize;display:flex;align-items:center;
+  justify-content:center;background:linear-gradient(to top,#eef1f5,#eef1f500)}
+.bgvp-grip::before{content:'';width:46px;height:4px;border-radius:99px;background:#c3ccd8}
+.bgvp-grip:hover::before{background:var(--blue)}
 /* ═══ Hộp xác nhận dùng chung (thay confirm/alert của trình duyệt) ═══ */
 .sp-modal.xn{width:460px;padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:calc(100vh - 120px)}
 .xn-h{display:flex;align-items:center;gap:10px;padding:16px 18px 12px}
