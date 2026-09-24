@@ -276,16 +276,35 @@ function ctxShowAllCols(){ closePop(); S.cols=S.cols||{};
   renderColChips&&renderColChips(); renderTable(); toast('Đã hiện lại tất cả cột'); }
 function colKeyOfCell_(td){ var tr=td.parentNode; var idx=[].indexOf.call(tr.children,td); var cols=visCols(); return cols[idx]?cols[idx][0]:''; }
 // ---- Tìm & thay thế ----
-function openFindReplace(){ var ex=document.getElementById('frPanel'); if(ex){ ex.remove(); return; }
+/* Thanh Tìm & thay thế: một hàng gọn, đặt NGAY TRÊN bảng (canh mép phải bảng) thay vì
+   khối 3 hàng nổi đè lên mấy dòng đầu — trước đây che mất dữ liệu đang cần xem để thay. */
+function openFindReplace(){ var ex=document.getElementById('frPanel'); if(ex){ frClose(); return; }
   var p=document.createElement('div'); p.id='frPanel'; p.className='fr-panel';
-  p.innerHTML='<div class="fr-row"><input id="frFind" placeholder="Tìm…" oninput="frFind()"><span class="fr-cnt" id="frCnt"></span></div>'
-    +'<div class="fr-row"><input id="frRep" placeholder="Thay bằng…"><button class="btn blue xs" onclick="frReplaceAll()">Thay tất cả</button></div>'
-    +'<div class="fr-row" style="justify-content:flex-end"><button class="btn ghost xs" onclick="frClose()">Đóng</button></div>';
+  p.innerHTML='<span class="fr-ic">'+icon('search',14)+'</span>'
+    +'<input id="frFind" placeholder="Tìm trong bảng…" oninput="frFind()">'
+    +'<span class="fr-cnt" id="frCnt"></span>'
+    +'<span class="fr-ar">→</span>'
+    +'<input id="frRep" placeholder="Thay bằng…" onkeydown="if(event.key===\'Enter\')frReplaceAll()">'
+    +'<button class="btn blue xs" onclick="frReplaceAll()">Thay tất cả</button>'
+    +'<button class="fr-x" title="Đóng (Esc)" onclick="frClose()">✕</button>';
   document.body.appendChild(p);
-  var w=document.querySelector('#v-boc .tbl-wrap')||document.body; var r=w.getBoundingClientRect();
-  p.style.right='24px'; p.style.top=(Math.max(90,r.top)+8)+'px';
+  frPlace_();
+  if(!S._frBind){ S._frBind=1; window.addEventListener('resize',frPlace_); window.addEventListener('scroll',frPlace_,{passive:true}); }
   document.getElementById('frFind').focus();
 }
+// đặt thanh ngay phía TRÊN bảng, canh mép phải bảng, không lọt ra ngoài màn hình
+function frPlace_(){
+  var p=document.getElementById('frPanel'); if(!p) return;
+  var w=document.querySelector('#v-boc .tbl-wrap'); var r=w?w.getBoundingClientRect():null;
+  var rong=p.offsetWidth||520, h=p.offsetHeight||44;
+  var trai=r? (r.right-rong) : (window.innerWidth-rong-24);
+  var tren=r? (r.top-h-6) : 90;
+  if(tren<74) tren=r? (r.top+6) : 90;                  // bảng sát đỉnh -> đành nằm trong bảng
+  p.style.left=Math.max(10, Math.min(trai, window.innerWidth-rong-10))+'px';
+  p.style.top=Math.max(74, tren)+'px';
+  p.style.right='auto';
+}
+document.addEventListener('keydown',function(e){ if(e.key==='Escape' && document.getElementById('frPanel')) frClose(); });
 // Phím tắt kiểu Excel: Ctrl/Cmd + F (tìm) và + H (thay) khi đang ở Bóc tách
 document.addEventListener('keydown',function(e){
   if(!(e.ctrlKey||e.metaKey)) return;
@@ -631,7 +650,7 @@ function sideApply_(){
   var g=document.getElementById('bocGrid'), off=sideGet_(); if(g) g.classList.toggle('nocat', off);
   var b=document.getElementById('sideTog');
   if(b){ b.classList.toggle('on', off); b.title=off?'Hiện panel sản phẩm':'Ẩn panel sản phẩm — bảng rộng hơn'; }
-  if(typeof tkHBarSync_==='function') try{ tkHBarSync_(); }catch(e){}
+  tkBarsSync_();                      // bề ngang bảng vừa đổi -> kéo thanh & nút xoá về đúng mép
 }
 function sideToggle_(){ try{ localStorage.setItem('qs_sideOff', sideGet_()?'0':'1'); }catch(e){} sideApply_(); }
 function toggleFsec(key){
@@ -5088,7 +5107,7 @@ function renderActGutter(){
   if(!S._agBound){ var wrap=document.querySelector('#tkNormal .tbl-wrap'); if(wrap){ wrap.addEventListener('scroll',syncActGutter,{passive:true}); window.addEventListener('resize',syncActGutter); S._agBound=1; } }
   bindActGutterHover_();
   syncActGutter();
-  tkHBarInit_(); tkHBarSync_();
+  tkHBarInit_(); tkHBarSync_(); tkBarsWatch_(); tkBarsSync_();
 }
 // ✕ chỉ hiện ở DÒNG đang rê chuột (nút nằm ngoài bảng nên phải gắn bằng JS)
 function bindActGutterHover_(){
@@ -5163,6 +5182,25 @@ function hbarBind_(sel, barId, thId){
   sync();
 }
 function tkHBarSync_(){ hbarSync_('#tkNormal .tbl-wrap','tkHBar','tkHThumb'); }
+/* ═══ ĐỒNG BỘ LẠI 3 THỨ BÁM MÉP BẢNG: thanh kéo ngang · thanh kéo dọc · nút xoá dòng ═══
+   Ba thứ này định vị bằng JS theo bề ngang thật của bảng. Bề ngang đổi vì ĐỔI LỚP CSS
+   (ẩn panel trái, gập khối đầu trang, vừa màn hình, toàn màn hình) thì trình duyệt KHÔNG
+   bắn sự kiện resize -> trước đây chúng đứng nguyên chỗ cũ, thanh dọc nằm chình ình giữa
+   bảng. Nay mọi thay đổi bố cục đều gọi hàm này, kèm ResizeObserver cho chắc.          */
+function tkBarsSync_(){
+  requestAnimationFrame(function(){
+    try{ tkHBarSync_(); }catch(e){}
+    try{ tkVBarSync_&&tkVBarSync_(); }catch(e){}
+    try{ syncActGutter&&syncActGutter(); }catch(e){}
+  });
+}
+function tkBarsWatch_(){
+  if(S._barsRO || typeof ResizeObserver==='undefined') return;
+  var w=document.querySelector('#tkNormal .tbl-wrap'), n=document.getElementById('tkNormal');
+  if(!w||!n) return;
+  S._barsRO=new ResizeObserver(function(){ tkBarsSync_(); });
+  S._barsRO.observe(w); S._barsRO.observe(n);
+}
 function tkHBarInit_(){ hbarBind_('#tkNormal .tbl-wrap','tkHBar','tkHThumb'); tkVBarInit_&&tkVBarInit_(); }
 function spHBarSync_(){ hbarSync_('.sp-card .tbl-wrap','spHBar','spHThumb'); }
 function spHBarInit_(){ hbarBind_('.sp-card .tbl-wrap','spHBar','spHThumb'); }
@@ -12156,7 +12194,7 @@ function tkFullToggle_(on){
   else { try{ if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen(); }catch(e){} }
   tkFullBtn_();
   try{ renderTable&&renderTable(); }catch(e){}
-  setTimeout(function(){ try{ syncActGutter&&syncActGutter(); }catch(e){} },30);
+  tkBarsSync_(); setTimeout(tkBarsSync_,60);
   qbRightSync_&&qbRightSync_();
 }
 function tkFitToggle_(on){
@@ -12164,7 +12202,7 @@ function tkFitToggle_(on){
   document.body.classList.toggle('tkfit', on);
   try{ localStorage.setItem('qs_tkfit', on?'1':'0'); }catch(e){}
   try{ renderTable&&renderTable(); }catch(e){}
-  setTimeout(function(){ try{ syncActGutter&&syncActGutter(); }catch(e){} },30);
+  tkBarsSync_(); setTimeout(tkBarsSync_,60);
   qbRightSync_&&qbRightSync_();
   // không vừa được (bật quá nhiều cột) thì renderTable đã tự nhắc ẩn bớt cột -> đừng báo nhầm là đã vừa
   if(!on) toast('Bảng trở lại bề rộng cột đã đặt');
@@ -12213,7 +12251,7 @@ function foldApply_(){
   var z=document.getElementById('tkZenBtn'), all=foldAllOn_();
   if(z){ z.classList.toggle('on',all); z.title=all?'Mở lại các khối đầu trang':'Thu gọn đầu trang cho bảng rộng hơn'; }
   if(typeof qbRightSync_==='function') qbRightSync_();
-  setTimeout(function(){ try{ tkHBarSync_&&tkHBarSync_(); syncActGutter&&syncActGutter(); }catch(e){} },30);
+  tkBarsSync_(); setTimeout(tkBarsSync_,60);      // gập/mở khối đầu trang -> bảng đổi bề ngang & cao
 }
 function tkZenApply_(){
   foldApply_();                                          // cơ chế cũ (qs_tkzen) thay bằng gập từng khối
