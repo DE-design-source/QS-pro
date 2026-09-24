@@ -5577,7 +5577,7 @@ function askInput_(o){
       }).join('')
       +'<div class="ask-err" style="display:none"></div>'
       +'<div class="ask-f-btn"><button class="btn ghost sm" data-ask="cancel">Huỷ</button>'
-      +'<button class="btn blue" data-ask="ok">'+esc(o.confirmText||'Xác nhận')+'</button></div></div>';
+      +'<button class="btn blue" data-ask="ok">'+esc(o.confirmText||o.ok||'Xác nhận')+'</button></div></div>';
     document.body.appendChild(ov);
     function submit(){
       var out={}, ok=true;
