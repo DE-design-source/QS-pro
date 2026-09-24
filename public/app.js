@@ -2928,11 +2928,22 @@ function spClearSel(){ S._spSel={}; spFilter(); }
      [số đã chọn ✕] | hành động chính | Sửa hàng loạt ▾ | ⋯
    "Sửa hàng loạt" và các thao tác phụ nằm trong bảng thả xuống nên thanh luôn gọn,
    không bị chen chúc / đè lên nhau như trước.                                      */
-var SP_BULK_F=[['CHIẾT KHẤU ĐẠI LÝ (%)','Chiết khấu (%)'],['GIÁ BÁN LẺ','Giá bán lẻ'],['THƯƠNG HIỆU','Thương hiệu'],
-  ['NHÀ CUNG CẤP','Nhà cung cấp'],['HẠNG MỤC','Hạng mục SP'],['DÒNG SẢN PHẨM','Dòng sản phẩm'],
-  ['BẢO HÀNH (năm)','Bảo hành (năm)'],['TRẠNG THÁI','Trạng thái'],['ĐƠN VỊ TÍNH','Đơn vị tính']];
+/* Trường hay sửa hàng loạt nhất — cho lên đầu danh sách; phía sau là MỌI trường còn lại
+   của ngành đang xem (trước đây chỉ cố định 9 trường, muốn sửa thông số phải mở từng SP). */
+var SP_BULK_TOP=['CHIẾT KHẤU ĐẠI LÝ (%)','GIÁ BÁN LẺ','THƯƠNG HIỆU','NHÀ CUNG CẤP','HẠNG MỤC',
+  'DÒNG SẢN PHẨM','BẢO HÀNH (năm)','TRẠNG THÁI','ĐƠN VỊ TÍNH'];
+var SP_BULK_BO={'TÊN SẢN PHẨM':1,'MÃ SẢN PHẨM':1,'GIÁ ĐẠI LÝ':1,'ẢNH SẢN PHẨM':1};   // khoá tra cứu / cột tự tính
 function spBulkFields_(){
-  return spPTMode_() ? CT_BULK_F.map(function(x){ return [x[0],x[1]]; }) : SP_BULK_F;
+  if(spPTMode_()) return CT_BULK_F.map(function(x){ return [x[0],x[1]]; });
+  var nhan={}; spColFlat_().forEach(function(f){ if(!nhan[f[0]]) nhan[f[0]]=f[1]; });
+  var out=[];
+  SP_BULK_TOP.forEach(function(lb){ if(!SP_BULK_BO[lb]) out.push([lb, nhan[lb]||lb]); });
+  Object.keys(nhan).forEach(function(lb){
+    if(SP_BULK_BO[lb] || SP_BULK_TOP.indexOf(lb)>=0) return;
+    if(!DB_LABEL2COL_[lb]) return;                              // không có cột DB thì không sửa được
+    out.push([lb, nhan[lb]]);
+  });
+  return out;
 }
 function spBulkBar_(){
   var wrap=document.getElementById('spBulkWrap'); if(!wrap) return;
@@ -6032,6 +6043,13 @@ function cpKpi_(ic,label,val,cls){ return '<div class="cp-kpi '+(cls||'')+'"><sp
 var CP_KEYS=['ten','dvt','soLuong','giaNCC','chietKhau','giaDaiLy','lnPct','donGia','ckKhach','donGiaCK','markup','margin','lnVnd','thanhTien'];
 function cpLabel_(k){ var c=COLS.filter(function(x){return x[0]===k;})[0]; return c?c[1]:k; }
 // Ô tab Chi phí: giống cellInput của Bóc tách, RIÊNG cột Tên bỏ nút ⌕ chọn/tạo SP
+/* Ô chọn dòng ở cột STT của bảng Chi phí / Dự án — dùng CHUNG bộ chọn với Bóc tách
+   nên thanh "Sửa hàng loạt" chạy được ở cả ba tab. */
+function cpSttCell_(l, so){
+  return '<td class="ct" data-k="stt"><input type="checkbox" class="tkck" '+(tkSelHas_(l.lineId)?'checked':'')
+    +' onclick="tkSelClick_(event,\''+escJs_(l.lineId)+'\')" title="Chọn dòng (giữ Shift để chọn cả vùng)">'
+    +'<span class="sttn">'+so+'</span></td>';
+}
 function cpCell_(l,k){
   if(k==='ten') return '<td class="td-ten" data-k="ten"><div style="display:flex;gap:4px;align-items:center">'
     +'<input class="cin" value="'+esc(l.ten||'')+'" onchange="editLine(\''+l.lineId+'\',{ten:this.value})">'+lnDiffChip_(l)+'</div></td>';
@@ -6068,7 +6086,7 @@ function renderChiphi(){
     +cpToolbar_(rows, scope)
     +pgTblHost_('cp', cpTableHtml_(keys,rows));
   markBlocks_('#v-chiphi table.cpflat');
-  pgBarsBind_('cp');
+  pgBarsBind_('cp'); tkSelBar_();
   // dòng tiêu đề nhóm dính NGAY DƯỚI hàng tiêu đề cột (chiều cao hàng này thay đổi theo số cột)
   var tb=document.querySelector('#v-chiphi table.cpflat'), th0=tb&&tb.querySelector('th');
   if(tb&&th0) tb.style.setProperty('--cpTh', th0.offsetHeight+'px');
@@ -6278,7 +6296,7 @@ function cpTableHtml_(keys,rows){
 function cpRowHtml_(l,keys,stt){
   var ln=ttBan_(l)-ttVon_(l);
   var cls=(ln<0?' cp-rowneg':'')+(Number(l.donGiaBan)>0?'':' cp-rownogia');
-  return '<tr class="drow'+cls+'" data-id="'+l.lineId+'"><td class="ct">'+stt+'</td>'
+  return '<tr class="drow'+cls+(tkSelHas_(l.lineId)?' rowsel':'')+'" data-id="'+l.lineId+'">'+cpSttCell_(l,stt)
     +keys.map(function(k){ return cpCell_(l,k); }).join('')+'</tr>';
 }
 
@@ -6341,7 +6359,8 @@ function renderDuAn(){
     var gsum=(groups[g]||[]).reduce(function(s,l){ return s+ttBan_(l); },0);
     body+='<tr class="grp"><td colspan="'+ncol+'"><span class="gname">'+roman+'. '+esc(g)+'</span><span class="gsum">Tổng tầng: <b>'+money(gsum)+' đ</b></span></td></tr>'+spacer;
     (groups[g]||[]).forEach(function(l,ri){
-      body+='<tr class="drow'+(ri%2===0?' alt':'')+'" data-id="'+l.lineId+'"><td class="ct">'+(gi+1)+'.'+(ri+1)+'</td>'
+      body+='<tr class="drow'+(ri%2===0?' alt':'')+(tkSelHas_(l.lineId)?' rowsel':'')+'" data-id="'+l.lineId+'">'
+        +cpSttCell_(l,(gi+1)+'.'+(ri+1))
         +keys.map(function(k){ return cpCell_(l,k); }).join('')+'</tr>';
     });
     body+=spacer;
@@ -6358,7 +6377,7 @@ function renderDuAn(){
     +stat+hmPTNote_()+hmSaiNote_()+hmLacNote_(daLines_.length)+colbar
     +pgTblHost_('da','<div class="tbl-wrap"><table class="tk cpflat" style="min-width:'+totalW+'px;width:100%">'+colg+head+body+foot+'</table></div>');
   markBlocks_('#v-duan table.cpflat');
-  pgBarsBind_('da');
+  pgBarsBind_('da'); tkSelBar_();
 }
 
 /* ===== MUA HÀNG (gom theo Nhà cung cấp) ===== */
@@ -10196,8 +10215,55 @@ function ptSelBar_(){
       +'<button class="bb-x" title="Bỏ chọn" onclick="ptClearSel_()">✕</button></div>'
     +'<div class="bb-sep"></div>'
     +'<button class="bb-b" onclick="ptSelAllVisible_()" title="Chọn tất cả dòng đang hiện">'+icon('list',15)+' Chọn tất cả</button>'
+    +'<button class="bb-b" id="ptbEditBtn" onclick="ptBulkEditPop_(event)" title="Đổi một cột cho mọi dòng đã chọn">'
+      +icon('edit',15)+' Sửa hàng loạt <i class="bb-car">▾</i></button>'
     +'<button class="bb-b" onclick="ptSelDel_()" title="Xoá các dòng đã chọn">'+icon('trash',15)+' Xoá dòng</button>'
   +'</div>';
+}
+/* ═══ SỬA HÀNG LOẠT CHO BẢNG PHẦN THÔ ═══
+   Cùng cách dùng với bảng Bóc tách: tích nhiều dòng -> chọn 1 cột -> đặt chung một giá trị.
+   Chỉ cho sửa các cột NHẬP ĐƯỢC (cột tính toán như Thành tiền, Markup thì không). */
+var PT_BULK_F=[['noidung','Nội dung công việc'],['dvt','Đơn vị tính'],['dientich','Diện tích'],
+  ['heso','Hệ số'],['khoiluong','Khối lượng'],['dgnt','Đơn giá (nhà thầu)'],
+  ['margin','% Lợi nhuận / giá bán'],['dg','Đơn giá bán'],['ghichu','Ghi chú']];
+function ptBulkEditPop_(e){
+  if(e&&e.stopPropagation) e.stopPropagation();
+  if(document.getElementById('ptbEditPop')){ ptBulkPopClose_(); return; }
+  var n=ptSelIds_().length;
+  var pop=document.createElement('div'); pop.className='bb-pop'; pop.id='ptbEditPop';
+  pop.innerHTML='<div class="bb-pop-h">Sửa hàng loạt <span>'+n+' dòng</span></div>'
+    +'<div class="bb-pop-b"><label>Cột cần đổi</label>'
+      +'<select id="ptbField">'+PT_BULK_F.map(function(f){ return '<option value="'+esc(f[0])+'">'+esc(f[1])+'</option>'; }).join('')+'</select>'
+      +'<label>Giá trị mới</label>'
+      +'<input id="ptbValue" placeholder="Nhập giá trị…" onkeydown="if(event.key===\'Enter\')ptBulkEditRun_()">'
+    +'</div>'
+    +'<div class="bb-pop-f"><button class="btn ghost sm" onclick="ptBulkPopClose_()">Huỷ</button>'
+      +'<button class="btn blue sm" onclick="ptBulkEditRun_()">'+icon('check',14)+' Áp dụng</button></div>';
+  document.body.appendChild(pop);
+  var b=document.getElementById('ptbEditBtn');
+  if(b){ var r=b.getBoundingClientRect(), w=pop.offsetWidth||280;
+    pop.style.left=Math.max(10,Math.min(r.left+r.width/2-w/2, window.innerWidth-w-10))+'px';
+    pop.style.top=Math.max(10,r.top-pop.offsetHeight-10)+'px'; }
+  setTimeout(function(){ document.addEventListener('mousedown',ptBulkPopOutside_); var v=document.getElementById('ptbValue'); if(v) v.focus(); },0);
+}
+function ptBulkPopClose_(){ var e=document.getElementById('ptbEditPop'); if(e) e.remove();
+  document.removeEventListener('mousedown',ptBulkPopOutside_); }
+function ptBulkPopOutside_(e){ if(e.target.closest('#ptbEditPop')||e.target.closest('#ptBulkBar')) return; ptBulkPopClose_(); }
+function ptBulkEditRun_(){
+  var f=document.getElementById('ptbField'), v=document.getElementById('ptbValue'); if(!f||!v) return;
+  var key=f.value, val=v.value, nhan=f.options[f.selectedIndex].text;
+  if(String(val).trim()==='' && key!=='ghichu'){ toast('Chưa nhập giá trị mới'); v.focus(); return; }
+  var fld=PT_CELL_F[key]; if(!fld){ toast('Cột này không sửa được'); return; }
+  ptBulkPopClose_();
+  var ids=ptSelIds_(), ok=0;
+  ids.forEach(function(k){
+    var a=k.split('|'), si=+a[0], ii=+a[1];
+    if(!ptCellEditable_(si,key)) return;                       // cột không áp dụng cho kiểu tính của nhóm
+    ptEdit(si,ii,fld,val,1); ok++;
+  });
+  if(!ok){ toast('Không dòng nào sửa được cột "'+nhan+'"'); return; }
+  ptPersist(); renderPhanTho();
+  toast('Đã đặt '+nhan+' cho '+ok+' dòng');
 }
 var PT_CELL_F={ noidung:'n', dvt:'dvt', dientich:'dt', heso:'hs', khoiluong:'kl',
                 dgnt:'dgnt', margin:'lnPct', dg:'dg', ghichu:'gc' };
@@ -10858,7 +10924,8 @@ function ptDgTuLn_(dgnt,lnPct){
   return ptMround_(dgnt/(1-m),1000);
 }
 function ptLnTuDg_(dgnt,dg){ dg=ptN(dg); return dg?((dg-ptN(dgnt))/dg*100):0; }
-function ptEdit(si,ii,f,val){
+// imLang = đang sửa hàng loạt: chưa lưu / chưa vẽ lại, người gọi tự làm 1 lần ở cuối
+function ptEdit(si,ii,f,val,imLang){
   var sec=S.phanTho[si]; if(!sec) return;
   var numF={dt:1,hs:1,kl:1,dg:1,dgnt:1,up:1,lnPct:1}, moneyF={dg:1,dgnt:1,up:1};
   var v = moneyF[f]?ptMoneyN_(val):(numF[f]?ptN(val):val);
@@ -10873,6 +10940,7 @@ function ptEdit(si,ii,f,val){
     else if(f==='dg')    it.lnPct=ptR2(ptLnTuDg_(it.dgnt,v));
     else if(f==='dgnt'){ if(ptN(it.lnPct)) it.dg=ptDgTuLn_(v,it.lnPct); else it.lnPct=ptR2(ptLnTuDg_(v,it.dg)); }
   }
+  if(imLang) return;                 // sửa hàng loạt: người gọi tự lưu + vẽ lại 1 lần ở cuối
   ptPersist(); renderPhanTho();
 }
 /* VAT của bảng phần thô = VAT của DỰ ÁN (một dự án chỉ một con số VAT) — sửa ở đây là
@@ -11781,7 +11849,12 @@ function lineOf_(id){ return (S.lines||[]).filter(function(x){ return x.lineId==
 function tkSelHas_(id){ return !!(S._tkSel && S._tkSel[id]); }
 function tkSelIds_(){ return Object.keys(S._tkSel||{}); }
 function tkSelLines_(){ return tkSelIds_().map(lineOf_).filter(Boolean); }
-function tkRowIdsOnScreen_(){ return [].map.call(document.querySelectorAll('#tkTable tr.drow'),function(tr){ return tr.dataset.id; }); }
+function tkRowIdsOnScreen_(){
+  var sel = bocVisible_() ? '#tkTable tr.drow'
+    : (viewOn_('v-chiphi') ? '#v-chiphi table.cpflat tr.drow'
+    : (viewOn_('v-duan') ? '#v-duan table.cpflat tr.drow' : '#tkTable tr.drow'));
+  return [].map.call(document.querySelectorAll(sel),function(tr){ return tr.dataset.id; }).filter(Boolean);
+}
 function tkSelPrune_(){
   if(!S._tkSel) return; var on={}; tkRowIdsOnScreen_().forEach(function(id){ on[id]=1; });
   Object.keys(S._tkSel).forEach(function(id){ if(!on[id]) delete S._tkSel[id]; });
@@ -11798,10 +11871,17 @@ function tkSelClick_(e,id){
     if(S._tkSel[id]) delete S._tkSel[id]; else S._tkSel[id]=1;
     S._tkAnchor=id;
   }
+  tkVeLaiBang_();
+}
+function tkClearSel(){ S._tkSel={}; S._tkAnchor=null; tkVeLaiBang_(); }
+// Vẽ lại ĐÚNG bảng đang xem (Bóc tách / Chi phí / Dự án)
+function tkVeLaiBang_(){
+  if(bocVisible_()){ renderTable(); return; }
+  if(viewOn_('v-chiphi')){ renderChiphi(); return; }
+  if(viewOn_('v-duan')){ renderDuAn(); return; }
   renderTable();
 }
-function tkClearSel(){ S._tkSel={}; S._tkAnchor=null; renderTable(); }
-function tkSelAllVisible_(){ S._tkSel=S._tkSel||{}; tkRowIdsOnScreen_().forEach(function(id){ S._tkSel[id]=1; }); renderTable(); }
+function tkSelAllVisible_(){ S._tkSel=S._tkSel||{}; tkRowIdsOnScreen_().forEach(function(id){ S._tkSel[id]=1; }); tkVeLaiBang_(); }
 function tkSelFloor_(g){ S._tkSel=S._tkSel||{};
   (S.lines||[]).forEach(function(l){ var t=(l.tang||'').trim()||'CHƯA PHÂN TẦNG';
     if(t===g && (l.nhom===S.node||String(l.nhom||'').indexOf(S.node+'.')===0)) S._tkSel[l.lineId]=1; });
@@ -11857,9 +11937,12 @@ async function tkApplyEdits_(edits, nhan){
 /* ---------- thanh thao tác hàng loạt của bảng bóc tách ---------- */
 function tkBulkWrap_(){ var w=document.getElementById('tkBulkWrap');
   if(!w){ w=document.createElement('div'); w.id='tkBulkWrap'; document.body.appendChild(w); } return w; }
+/* Bảng nào đang xem dòng của dự án thì thanh chọn dòng dùng được ở đó:
+   Bóc tách · Chi phí · Dự án đều sửa chung S.lines nên dùng chung một thanh. */
+function tkBangDong_(){ return bocVisible_() || viewOn_('v-chiphi') || viewOn_('v-duan'); }
 function tkSelBar_(){
   var w=tkBulkWrap_(), n=tkSelIds_().length;
-  if(!n || !bocVisible_()){ w.innerHTML=''; tkPopClose_(); return; }
+  if(!n || !tkBangDong_()){ w.innerHTML=''; tkPopClose_(); return; }
   var tien=tkSelLines_().reduce(function(s,l){ return s+(Number(l.thanhTienBan)||0); },0);
   w.innerHTML='<div class="bbar" id="tkBulkBar">'
     +'<div class="bb-count"><b>'+n+'</b><span>dòng đã chọn · '+money(tien)+' đ</span>'
