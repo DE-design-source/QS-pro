@@ -4961,7 +4961,9 @@ function renderActGutter(){
   var inner=document.getElementById('actGutterInner'); if(!inner) return;
   var rows=document.querySelectorAll('#tkTable tr.drow');
   inner.innerHTML=[].map.call(rows,function(tr){ var id=tr.getAttribute('data-id');
-    return '<button class="agx" data-id="'+id+'" title="Xoá hạng mục này" onclick="delLine(\''+id+'\')"></button>'; }).join('');
+    return '<button class="agx" data-id="'+id+'" title="Xoá dòng này" aria-label="Xoá dòng này" onclick="delLine(\''+id+'\')">'
+      +'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+      +'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>'; }).join('');
   if(!S._agBound){ var wrap=document.querySelector('#tkNormal .tbl-wrap'); if(wrap){ wrap.addEventListener('scroll',syncActGutter,{passive:true}); window.addEventListener('resize',syncActGutter); S._agBound=1; } }
   bindActGutterHover_();
   syncActGutter();
@@ -5050,9 +5052,13 @@ function syncActGutter(){
   var wrap=norm.querySelector('.tbl-wrap'), t=document.getElementById('tkTable'); if(!wrap||!t) return;
   var nb=norm.getBoundingClientRect(), wr=wrap.getBoundingClientRect();
   var headH=(document.querySelector('#tkTable tr:first-child th')||{}).offsetHeight||46;
-  // Thanh cuộn dọc là OVERLAY (không chiếm chỗ) -> nút bám sát mép nội dung/bảng, không hở, không đè.
-  var edge = Math.min(t.getBoundingClientRect().right, wr.left + wrap.clientWidth);
   var hsb = wrap.offsetHeight - wrap.clientHeight;   // chiều cao thanh cuộn ngang (đáy)
+  /* Chỗ đứng của nút xoá:
+     - bảng HẸP hơn khung  -> bám ngay mép phải của bảng (không hở một khoảng trống);
+     - bảng RỘNG hơn khung -> ra hẳn NGOÀI khung (lề đã chừa sẵn), vì đứng ở mép trong
+       là đè lên cột cuối cùng và chen với thanh cuộn dọc — chính chỗ nhìn rất xấu. */
+  var tRight=t.getBoundingClientRect().right, trong=wr.left+wrap.clientWidth;
+  var edge = (tRight <= trong-2) ? tRight : (wr.left + wrap.offsetWidth);
   g.style.left=(edge - nb.left + 2)+'px'; g.style.right='auto';
   // gutter bắt đầu DƯỚI header dính, kết thúc TRÊN thanh cuộn ngang -> overflow:hidden che phần thừa
   g.style.top=(wr.top - nb.top + headH)+'px'; g.style.height=Math.max(0, wr.height - headH - hsb)+'px';

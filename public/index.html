@@ -622,7 +622,7 @@ table.tk textarea.cin{min-height:34px;resize:vertical;line-height:1.3;white-spac
 .lnu-v i{color:#b9c2cd;font-style:normal}
 .lnu-img{max-width:48px;max-height:34px;object-fit:contain;border:1px solid var(--ln);border-radius:5px;background:#fff}
 .lnu-f{display:flex;gap:8px;justify-content:flex-end;padding:10px 14px;border-top:1px solid var(--ln);background:var(--bg2)}
-.cp-card .tbl-wrap.pad-vb{padding-right:15px}
+.cp-card .tbl-wrap.pad-vb,#tkNormal .tbl-wrap.pad-vb{padding-right:15px}
 .pg-tblhost .tk-hbar{margin:8px 0 2px}
 @media(max-width:1120px){ .cp-card .tbl-wrap{max-height:72vh} }
 /* bảng Chi phí = y hệt Bóc tách (.tk) + header dính + hàng TỔNG */
@@ -2333,23 +2333,23 @@ html,body,.catpanel,.catpanel-top,.cat-list,#pdPanel,.fltpop,.tree-pop,.spe-hist
   box-shadow:0 0 0 3px rgba(37,99,235,.10)}
 .sp-projpanel.drop-over .spp-empty{color:var(--blue)}
 
-/* ═══ 16i. CỘT NÚT XOÁ (gutter phải bảng Bóc tách) — tinh, sang ═══ */
+/* ═══ 16i. CỘT NÚT XOÁ (gutter phải bảng Bóc tách) — nhẹ, không đè lên bảng ═══
+   Nút nằm ngoài mép bảng, mặc định mờ; rê vào dòng mới hiện; rê thẳng vào nút mới
+   chuyển đỏ. Không phóng to, không xoay, không quầng đỏ — bảng đang nhập liệu thì
+   một nút đỏ to nhảy lên giữa bảng rất chói và dễ bấm nhầm.                       */
 #tkNormal .tbl-wrap{margin-right:30px}
 .actgutter{width:30px}
-.agx{left:3px;width:22px;height:22px;border-radius:50%;
-  background:#fff;border:1px solid var(--hair);color:#c3cbd4;font-size:0;
-  opacity:0;transform:scale(.8);transition:all .2s cubic-bezier(.34,1.35,.5,1);
-  box-shadow:0 1px 3px rgba(18,50,76,.07)}
-/* vẽ dấu ✕ bằng 2 gạch mảnh -> nét sắc, cân đối hơn ký tự */
-.agx::before,.agx::after{content:'';position:absolute;left:50%;top:50%;width:8px;height:1.2px;
-  background:currentColor;border-radius:1px;transition:all .2s}
-.agx::before{transform:translate(-50%,-50%) rotate(45deg)}
-.agx::after{transform:translate(-50%,-50%) rotate(-45deg)}
-/* GIỮ CHỖ sẵn, chỉ hiện ✕ khi rê đúng dòng đó (JS gắn .on) */
-.agx.on{opacity:.8;transform:scale(1);border-color:var(--hair-2);color:#9aa5b1}
-.agx:hover{opacity:1;border-color:#e5484d;background:#e5484d;color:#fff;
-  transform:scale(1.15) rotate(90deg);box-shadow:0 4px 14px rgba(229,72,77,.32)}
-.agx:active{transform:scale(1.02) rotate(90deg)}
+.agx{left:3px;width:24px;height:24px;border-radius:8px;
+  background:#fff;border:1px solid var(--hair);color:#b5bfca;
+  opacity:0;transform:scale(.92);transition:opacity .14s ease,color .14s ease,background .14s ease,border-color .14s ease,transform .14s ease;
+  box-shadow:0 1px 2px rgba(18,50,76,.06)}
+.agx svg{display:block}
+/* GIỮ CHỖ sẵn, chỉ hiện khi rê đúng dòng đó (JS gắn .on) */
+.agx.on{opacity:1;transform:scale(1);border-color:var(--hair-2);color:#98a3af}
+.agx:hover{opacity:1;transform:scale(1);color:#dc2626;background:#fff1f1;border-color:#f3b4b4;
+  box-shadow:0 2px 6px rgba(220,38,38,.14)}
+.agx:active{transform:scale(.94)}
+.agx:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 
 /* ═══ 16j. Nút xoá không bị cắt + THANH KÉO NGANG cho bảng ═══ */
 /* chừa chỗ cho gutter, panel không cắt nút */
