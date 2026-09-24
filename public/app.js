@@ -4048,13 +4048,56 @@ function giaLechList_(){
     return {l:l, von:g.von, cu:Math.round(Number(l.donGiaVon)||0)};
   }).filter(Boolean);
 }
-async function giaSyncRun_(){
+/* Bảng xác nhận cập nhật giá — thay hộp thoại confirm() của trình duyệt: xem được ĐẦY ĐỦ
+   danh sách dòng lệch, giá cũ → giá mới, bỏ tích dòng nào thì dòng đó giữ nguyên. */
+function giaSyncRun_(){
   if(!S.cur){ toast('Chưa chọn dự án'); return; }
+  if(document.getElementById('giaSyncOv')) return;
   var ds=giaLechList_();
   if(!ds.length){ toast('Mọi dòng trong dự án đã khớp giá danh mục'); return; }
-  var vd=ds.slice(0,6).map(function(x){ return '• '+(x.l.ten||'')+': '+money(x.cu)+' → '+money(x.von); }).join('\n');
-  if(!confirm('Cập nhật giá vốn cho '+ds.length+' dòng theo Danh sách sản phẩm?\n(%Lợi nhuận của từng dòng giữ nguyên, giá bán tính lại theo đó.)\n\n'
-    +vd+(ds.length>6?('\n… và '+(ds.length-6)+' dòng nữa'):''))) return;
+  S._giaSyncDs=ds;
+  var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='giaSyncOv';
+  ov.onclick=function(e){ if(e.target===ov) giaSyncClose_(); };
+  ov.innerHTML='<div class="sp-modal gsx">'
+    +'<div class="pd-head"><h3>Cập nhật giá theo Danh sách sản phẩm</h3>'
+      +'<span class="gsx-n">'+ds.length+' dòng lệch giá</span>'
+      +'<button class="pd-x" onclick="giaSyncClose_()">✕</button></div>'
+    +'<div class="gsx-note">'+icon('clock',14)+'<span>Dòng trong bảng là <b>bản chụp giá lúc thêm</b>. '
+      +'Cập nhật sẽ lấy giá vốn mới từ danh mục, <b>giữ nguyên %lợi nhuận</b> của từng dòng nên giá bán tính lại theo đó.</span></div>'
+    +'<div class="gsx-b">'+ds.map(function(x,i){
+        var phu=[x.l.tang, x.l.khuVuc, x.l.maSP].map(function(t){ return String(t||'').trim(); }).filter(Boolean).join(' · ');
+        return '<label class="gsx-i"><input type="checkbox" checked data-i="'+i+'" onchange="giaSyncSync_()">'
+          +'<div class="gsx-c"><div class="gsx-nm">'+esc(x.l.ten||'(không tên)')+'</div>'
+          +(phu?'<div class="gsx-sub">'+esc(phu)+'</div>':'')+'</div>'
+          +'<div class="gsx-v"><span class="cu">'+money(x.cu)+'</span><span class="ar">→</span>'
+          +'<span class="moi">'+money(x.von)+'</span></div></label>';
+      }).join('')+'</div>'
+    +'<div class="gsx-f">'
+      +'<button class="btn ghost sm" onclick="giaSyncAll_(1)">Chọn tất cả</button>'
+      +'<button class="btn ghost sm" onclick="giaSyncAll_(0)">Bỏ chọn</button>'
+      +'<span style="flex:1"></span>'
+      +'<button class="btn ghost sm" onclick="giaSyncClose_()">Giữ nguyên</button>'
+      +'<button class="btn blue" id="gsxOk" onclick="giaSyncApply_(this)">'+icon('check',15)+' Cập nhật '+ds.length+' dòng</button>'
+    +'</div></div>';
+  document.body.appendChild(ov);
+  document.addEventListener('keydown', giaSyncKey_);
+}
+function giaSyncClose_(){ var e=document.getElementById('giaSyncOv'); if(e) e.remove();
+  S._giaSyncDs=null; document.removeEventListener('keydown', giaSyncKey_); }
+function giaSyncKey_(e){ if(e.key==='Escape') giaSyncClose_(); }
+function giaSyncChon_(){ return [].slice.call(document.querySelectorAll('#giaSyncOv input[type=checkbox]:checked'))
+  .map(function(c){ return (S._giaSyncDs||[])[+c.getAttribute('data-i')]; }).filter(Boolean); }
+function giaSyncSync_(){
+  var n=giaSyncChon_().length, b=document.getElementById('gsxOk'); if(!b) return;
+  b.disabled=!n; b.innerHTML=icon('check',15)+' Cập nhật '+n+' dòng';
+}
+function giaSyncAll_(on){
+  document.querySelectorAll('#giaSyncOv input[type=checkbox]').forEach(function(c){ c.checked=!!on; });
+  giaSyncSync_();
+}
+async function giaSyncApply_(btn){
+  var ds=giaSyncChon_(); if(!ds.length){ toast('Chưa chọn dòng nào'); return; }
+  if(btn){ btn.disabled=true; btn.textContent='Đang cập nhật 0/'+ds.length+'…'; }
   var ok=0, loi=0;
   for(var i=0;i<ds.length;i++){
     try{
@@ -4063,7 +4106,9 @@ async function giaSyncRun_(){
       if(r&&j>=0) S.lines[j]=r; else ds[i].l.donGiaVon=ds[i].von;
       ok++;
     }catch(e){ loi++; }
+    if(btn) btn.textContent='Đang cập nhật '+(i+1)+'/'+ds.length+'…';
   }
+  giaSyncClose_();
   refreshActiveTab_();
   try{ renderTable&&renderTable(); renderCard&&renderCard(); }catch(e){}
   toast('Đã cập nhật giá '+ok+' dòng'+(loi?(' · '+loi+' dòng lỗi'):''));
