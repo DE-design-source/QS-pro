@@ -7314,10 +7314,22 @@ function bgExportCols_(){
 }
 async function doExport(fmt,btn){
   if(!S.cur){ toast('Chưa chọn dự án'); return; }
+  /* File xuất lấy giá ĐANG LƯU TRÊN DÒNG (bản chụp lúc thêm). Nếu danh mục đã đổi giá mà
+     dòng chưa cập nhật thì file ra giá cũ — hỏi trước thay vì để người dùng gửi nhầm. */
+  var lech=(typeof giaLechList_==='function')?giaLechList_():[];
+  if(lech.length){
+    var tl=await xacNhan_({ title:lech.length+' dòng đang dùng giá cũ', ok:'Vẫn xuất', huy:'Để tôi cập nhật trước',
+      note:'Danh mục sản phẩm đã đổi giá nhưng các dòng dưới đây trong dự án vẫn giữ giá lúc thêm. Xuất bây giờ thì file ra GIÁ CŨ.',
+      dong:lech.slice(0,30).map(function(x){ return (x.l.ten||'')+': '+money(x.cu)+' → '+money(x.von); }) });
+    if(!tl){ giaSyncRun_(); return; }
+  }
   var cols=bgExportCols_(), nodes=bgSelCodes_();
   var o=btn.textContent; btn.disabled=true; btn.textContent='Đang xuất…';
   try{
-    if(fmt==='pdf'){ toast('Đang mở bản in…'); await printQuote(cols); }
+    // PDF dùng CHUNG bản tài liệu với "Xem trước & Xuất" (printDoc): đúng tờ bìa, đúng bộ
+    // cột đang chọn, đúng khổ ngang. Bản in cũ printQuote() chỉ có 7 cột cứng, khác hẳn
+    // bản xem trước nên in ra là sai bố cục.
+    if(fmt==='pdf'){ toast('Đang mở bản in…'); printDoc(); }
     else{
       // Phần thô nằm ở máy người dùng (không có trong DB) -> gửi kèm để file Excel có sheet "3.1 Phần thô"
       var pt=bgPTSecs_();

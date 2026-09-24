@@ -440,7 +440,11 @@ async function exportBaoGia(maDA, cols, format, nodes, phanTho) {
   const chosen = (cols && cols.length) ? cols : Object.keys(EXPORT_STY).map(function (k) { return { key: k }; });
   const EXCOLS = chosen.map(function (c) {
     const s = EXPORT_STY[c.key] || { label: c.label || c.key, w: 90, al: 'left' };
-    return { k: c.key, label: s.label, w: s.w, al: s.al, wrap: s.wrap, bold: s.bold, num: s.num, img: s.img };
+    // NHÃN lấy theo đúng tên cột đang hiện trên màn hình (client gửi lên); EXPORT_STY chỉ
+    // còn lo bề rộng / căn lề / định dạng số. Trước đây nhãn của file đè lên nhãn màn hình
+    // nên "Thông tin chính" ra file thành "MÔ TẢ", "Thông số thiết kế" thành "KÍCH THƯỚC"
+    // -> người dùng tưởng file xuất thiếu cột.
+    return { k: c.key, label: (c.label || s.label), w: s.w, al: s.al, wrap: s.wrap, bold: s.bold, num: s.num, img: s.img };
   });
 
   const wb = new ExcelJS.Workbook();
