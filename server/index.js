@@ -29,11 +29,8 @@ app.use(express.static(path.join(__dirname, '..', 'public'), {
 // Whitelist các hàm client được phép gọi (đúng API surface của index.html)
 const REGISTRY = {
   bootstrap: store.bootstrap,
-  buildCatalog: store.buildCatalog,
   getProducts: store.getProducts,
-  getCatalogSheets: store.getCatalogSheets,
   getProjects: store.getProjects,
-  getProject: store.getProject,
   createProject: store.createProject,
   updateProject: store.updateProject,
   deleteProject: store.deleteProject,
@@ -66,17 +63,16 @@ const REGISTRY = {
   setBienThe: auth.setBienTheGated,
   spMyPerms: auth.spMyPerms,
   getProductHistory: store.getProductHistory,
-  getCover: store.getCover,
   saveCover: store.saveCover,
   buildCoverFromTemplate: store.buildCoverFromTemplate,
   getCoverOrInit: store.getCoverOrInit,
-  getDashboard: store.getDashboard,
   getQuote: store.getQuote,
   importParse: store.importParse,
   importCommit: auth.importGated,
   exportBaoGia: exportBaoGia,
+  getProjData: store.getProjData,
+  setProjData: store.setProjData,
   sendPurchaseRequest: sendPurchaseRequest,
-  getPurchaseOrders: store.getPurchaseOrders,
   getDeXuatList: store.getDeXuatList,
   ctHistory: store.ctGetHistory,
   sendDeXuat: sendDeXuat,
@@ -108,7 +104,6 @@ const REGISTRY = {
   deleteCongTy: auth.deleteCongTy,
   listCongTyUsers: auth.listCongTyUsers,
   createCongTyUser: auth.createCongTyUser,
-  baoCaoNhapSP: baoCaoNhapSP,
   resolvePurchaseRequest: auth.resolvePurchaseRequest,
   listDeXuat: auth.listDeXuat,
   getDeXuat: auth.getDeXuat,
@@ -117,7 +112,7 @@ const REGISTRY = {
 // Hàm không cần đăng nhập
 const PUBLIC_FNS = new Set(['login']);
 // Hàm cần đưa "actor" (người thao tác) làm tham số đầu
-const ACTOR_FNS = new Set(['me', 'setMyPref', 'logout', 'changePassword',
+const ACTOR_FNS = new Set(['me', 'setMyPref', 'logout', 'changePassword', 'setProjData',
   'adminListUsers', 'adminCreateUser', 'adminUpdateUser', 'adminSetPassword', 'adminSetActive', 'adminDeleteUser',
   'notifCount', 'notifList', 'notifRead', 'notifReadAll',
   'requestDeleteProducts', 'listDeleteRequests', 'resolveDeleteRequest',

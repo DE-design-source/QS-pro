@@ -131,6 +131,14 @@ function rawCols_(r) {
    đăng nhập và còn đóng dấu yêu thích / combo của chính công ty đó. Dùng chung một
    ô nhớ cho mọi công ty sẽ khiến công ty B nhận danh mục của công ty A. */
 let _cache = {}, _cacheAt = {};
+/* Truy vấn nào cũng có giới hạn dòng. Chạm đúng giới hạn = RẤT CÓ THỂ còn dữ liệu chưa lấy
+   về — trước đây cắt âm thầm, bảng thiếu dòng mà không ai biết. Nay ghi cảnh báo rõ ràng. */
+const LIM = 20000;
+function chamTran_(rows, limit, ten) {
+  if (rows && rows.length >= (limit || LIM))
+    console.warn('[QS PRO] ' + ten + ': chạm giới hạn ' + (limit || LIM) + ' dòng — có thể còn dữ liệu chưa lấy về, cần phân trang.');
+  return rows;
+}
 function _ckey_() { try { return String(tenant.tenantId() || '_all'); } catch (e) { return '_all'; } }
 function _cacheClear_() { _cache = {}; _cacheAt = {}; }
 // Công ty có được dùng kho SP chung của Dezon không? -> trả id công ty Dezon
@@ -143,14 +151,14 @@ async function spChungId_() {
   return dz.id;
 }
 async function getProducts() {
-  const rows = await supa.select('db_san_pham', { select: '*', order: 'ten_sp.asc', limit: 5000 });
+  const rows = chamTran_(await supa.select('db_san_pham', { select: '*', order: 'ten_sp.asc', limit: LIM }), LIM, 'Danh mục sản phẩm');
   const out = rows.map(prodToObj);
   // Kèm KHO CHUNG của Dezon (chỉ đọc) nếu công ty được bật quyền dùng
   try {
     const dzId = await spChungId_();
     if (dzId) {
       const shared = await supa.select('db_san_pham', {
-        select: '*', filter: supa.eq('cong_ty_id', dzId), order: 'ten_sp.asc', limit: 5000, noScope: true });
+        select: '*', filter: supa.eq('cong_ty_id', dzId), order: 'ten_sp.asc', limit: LIM, noScope: true });
       const has = {}; out.forEach(function (p) { has[p.ma + '|' + p.congSuat + '|' + p.nhietDo + '|' + p.gocChieu + '|' + p.mauSac] = 1; });
       shared.forEach(function (r) {
         const o = prodToObj(r);
@@ -249,7 +257,7 @@ async function duplicateProject(maDA, opts) {
   const proj = (await supa.insert('du_an', projRow))[0];
   // copy dòng bóc tách (tuỳ chọn)
   if (cpBoc) {
-    const lines = await supa.select('db_bao_gia', { select: '*', filter: supa.eq('ma_du_an', maDA), order: 'sort_no.asc', limit: 5000 });
+    const lines = await supa.select('db_bao_gia', { select: '*', filter: supa.eq('ma_du_an', maDA), order: 'sort_no.asc', limit: LIM });
     if (lines.length) {
       const rows = lines.map(function (r) { const o = Object.assign({}, r); delete o.id; delete o.created_at; o.ma_du_an = newMa; return o; });
       await supa.insert('db_bao_gia', rows);
@@ -284,7 +292,7 @@ function lineToObj(r) {
   };
 }
 async function getLines(maDA) {
-  const rows = await supa.select('db_bao_gia', { filter: supa.eq('ma_du_an', maDA), order: 'sort_no.asc', limit: 5000 });
+  const rows = chamTran_(await supa.select('db_bao_gia', { filter: supa.eq('ma_du_an', maDA), order: 'sort_no.asc', limit: LIM }), LIM, 'Dòng bóc tách của dự án');
   return rows.map(lineToObj);
 }
 // tính các cột dẫn xuất giống bản Lark
@@ -302,10 +310,12 @@ async function addLine(maDA, product, soLuong) {
   const sl = Number(soLuong) || 1;
   const von = n(product.donGiaVon);
   const ln = von > 0 && product.donGiaBan ? Math.round((n(product.donGiaBan) - von) / von * 100) : (Number(product.lnPct) || 0);
-  const existing = await supa.select('db_bao_gia', { select: 'id', filter: supa.eq('ma_du_an', maDA), limit: 5000 });
+  // Lấy sort_no LỚN NHẤT đang có, không đếm số dòng: xoá dòng giữa rồi thêm mới là trùng STT
+  const existing = await supa.select('db_bao_gia', { select: 'sort_no', filter: supa.eq('ma_du_an', maDA), order: 'sort_no.desc', limit: 1 });
+  const stt = (existing && existing[0] ? (Number(existing[0].sort_no) || 0) : 0) + 1;
   const c = calc_(von, Number(product.chietKhau) || 0, ln, product.donGiaBan != null ? n(product.donGiaBan) : null, Number(product.ckKhach) || 0, sl);
   const row = {
-    ma_du_an: maDA, sort_no: existing.length + 1, stt: String(existing.length + 1),
+    ma_du_an: maDA, sort_no: stt, stt: String(stt),
     nhom: product.nhom || '', loai: product.hangMuc || product.loai || '', tang: product.tang || '',
     ma_sp: product.ma || '', ten_sp: product.ten || '', thuong_hieu: product.thuongHieu || '', nha_cung_cap: product.ncc || '',
     mo_ta: product.moTa || '', kich_thuoc: product.kichThuoc || '', hinh_anh: product.hinhAnh || '', dvt: product.dvt || 'Cái',
@@ -651,7 +661,7 @@ async function setSpDuyet(actor, keys, approve) {
  công ty khác không được ghi vào dòng sản phẩm đó.                                    ***/
 async function ytIds_() {
   try {
-    const rows = await supa.select('sp_yeu_thich', { select: 'sp_id', limit: 5000 });
+    const rows = await supa.select('sp_yeu_thich', { select: 'sp_id', limit: LIM });
     const set = {}; rows.forEach(function (r) { set[String(r.sp_id)] = 1; });
     return set;
   } catch (e) { return null; }          // bảng chưa tạo -> coi như chưa có SP yêu thích nào
@@ -660,7 +670,7 @@ async function ytIds_() {
 // mà không phải mở từng sản phẩm ra xem.
 async function stampCombo_(list) {
   let rows = [];
-  try { rows = await supa.select('sp_combo', { select: 'sp_id,sp_kem_id', limit: 5000, noScope: true }); }
+  try { rows = await supa.select('sp_combo', { select: 'sp_id,sp_kem_id', limit: LIM, noScope: true }); }
   catch (e) { return list; }                       // chưa có bảng sp_combo -> bỏ qua
   // đếm CẢ HAI CHIỀU: A kèm B thì cả A lẫn B đều được tính là có combo
   const cnt = {};
@@ -984,6 +994,46 @@ async function importCommit(actor, products) {
   return out;
 }
 
+/*** ===== DỮ LIỆU RỜI CỦA DỰ ÁN (du_an_data) =====
+ * Bảng ước tính PHẦN THÔ, bảng DIỆN TÍCH và thông tin công tác người dùng tự nhập trước
+ * đây chỉ nằm trong localStorage của MÁY người dùng: người khác mở cùng dự án thấy trống,
+ * xoá cache trình duyệt là mất sạch. Nay lưu trên server theo từng dự án.
+ * khoa: 'phanTho' | 'area' | 'ptInfo' (ptInfo dùng chung công ty -> ma_da = '__cty')
+ * Chưa chạy db/du_an_data.sql thì các hàm này trả rỗng / nuốt lỗi, app vẫn chạy như cũ
+ * (bản localStorage vẫn còn ở client).                                              ***/
+function daDataThieuBang_(e) {
+  const m = String((e && e.message) || '');
+  return /du_an_data/.test(m) && /(does not exist|not find the table|42P01|PGRST205|404)/i.test(m);
+}
+async function getProjData(maDA) {
+  maDA = s(maDA).trim(); if (!maDA) return {};
+  const out = {};
+  async function lay(ma) {
+    try { return await supa.select('du_an_data', { select: 'khoa,gia_tri', filter: supa.eq('ma_da', ma), limit: 50 }) || []; }
+    catch (e) { if (daDataThieuBang_(e)) return []; throw e; }
+  }
+  (await lay('__cty')).forEach(function (r) { out[s(r.khoa)] = r.gia_tri; });   // dùng chung công ty (ptInfo)
+  (await lay(maDA)).forEach(function (r) { out[s(r.khoa)] = r.gia_tri; });      // của riêng dự án -> đè lên
+  return out;
+}
+async function setProjData(actor, maDA, khoa, giaTri) {
+  maDA = s(maDA).trim(); khoa = s(khoa).trim();
+  if (!maDA || !khoa) throw new Error('Thiếu mã dự án hoặc khoá dữ liệu');
+  if (['phanTho', 'area', 'ptInfo', 'ptVat'].indexOf(khoa) < 0) throw new Error('Khoá dữ liệu không hợp lệ: ' + khoa);
+  const row = { ma_da: maDA, khoa: khoa, gia_tri: (giaTri === undefined ? null : giaTri),
+    cap_nhat: new Date().toISOString(), nguoi_sua: (actor && actor.u) || '' };
+  try { row.cong_ty_id = tenant.tenantId() || null; } catch (e) {}
+  try {
+    const cu = await supa.select('du_an_data', { select: 'ma_da', filter: supa.eq('ma_da', maDA) + '&' + supa.eq('khoa', khoa), limit: 1 });
+    if (cu && cu.length) await supa.update('du_an_data', supa.eq('ma_da', maDA) + '&' + supa.eq('khoa', khoa), row);
+    else await supa.insert('du_an_data', row);
+  } catch (e) {
+    if (daDataThieuBang_(e)) throw new Error('Chưa có bảng du_an_data trong Supabase — vào SQL Editor chạy file db/du_an_data.sql rồi thử lại.');
+    throw e;
+  }
+  return { ok: true };
+}
+
 /*** ===== MUA HÀNG ===== ***/
 function genMaDon_() { return 'MH-' + Date.now().toString(36).toUpperCase() + '-' + Math.floor(Math.random() * 1e4); }
 // Lưu đơn mua hàng vào DB (mỗi nhà cung cấp = 1 đơn). Payload giống sendPurchaseRequest.
@@ -1177,7 +1227,7 @@ function ctErr_(e) {
 }
 async function ctList() {
   try {
-    const rows = await supa.select('cong_tac', { order: 'loai.asc,thu_tu.asc,ngay_tao.asc', limit: 5000 });
+    const rows = chamTran_(await supa.select('cong_tac', { order: 'loai.asc,thu_tu.asc,ngay_tao.asc', limit: LIM }), LIM, 'Thư viện công tác');
     return (rows || []).map(ctToObj);
   } catch (e) {
     const m = (e && e.message) || '';
@@ -1431,7 +1481,7 @@ module.exports = {
   getBienThe, setBienThe,
   DB_LABEL2COL,
   getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, getDashboard, getQuote, importParse, importCommit, uploadFile,
-  savePurchaseOrder, getPurchaseOrders,
+  savePurchaseOrder, getPurchaseOrders, getProjData, setProjData,
   saveDeXuat, getDeXuatList, dxHead_, dxItem_,
   ctGetHistory
 };
