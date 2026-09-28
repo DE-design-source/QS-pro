@@ -3772,15 +3772,25 @@ function renderTree(){
   customGroups().forEach(function(n){ nodes.push({code:n,name:n,lvl:1,custom:true}); });
   S._tree=nodes;
   // Ô Hạng mục trên đầu bảng dùng CÙNG bộ chọn kiểu mind map với ô đề mục ở panel trái (renderMM_)
-  pop.classList.add('mm-pop');
+  pop.classList.remove('mm-pop');
   pop.innerHTML=mmHtml_(true);
+  tnScroll_(pop);
   var sel=nodes.filter(function(t){return t.code===S.node;})[0];
   document.getElementById('treeLabel').textContent=sel?(sel.code+'.'+sel.name):'Chọn hạng mục';
   document.getElementById('treeCnt').textContent='['+pad2(nodeCount(S.node))+']';
 }
 function toggleTree(){ var p=document.getElementById('treePop'); var mo=(p.style.display==='none');
-  if(mo){ S._mmBrowse=null; p.innerHTML=mmHtml_(true); }          // mở ra luôn bắt đầu từ đường đang chọn
-  p.style.display=mo?'block':'none'; }
+  if(mo){ S._mmBrowse=null; p.innerHTML=mmHtml_(true); }
+  p.style.display=mo?'block':'none';
+  if(mo) tnScroll_(p); }
+/* mở ra là thấy ngay hạng mục đang chọn, khỏi cuộn tìm */
+function tnScroll_(box){
+  if(!box) return; var on=box.querySelector('.tnode.on'); if(!on) return;
+  var sc=box.querySelector('.tn-list');                       // panel trái cuộn ở .tn-list, ô trên bảng cuộn ở chính popup
+  if(sc && sc.scrollHeight>sc.clientHeight+2) box=sc;
+  var d=on.getBoundingClientRect().top-box.getBoundingClientRect().top;
+  box.scrollTop=Math.max(0, box.scrollTop+d-Math.round(box.clientHeight/2));
+}
 /* ═══════════ HẠNG MỤC DÙNG CHUNG CHO MỌI TAB ═══════════
    Trước đây mỗi tab giữ một lựa chọn riêng: Bóc tách có "Hạng mục đã bóc", Danh sách
    sản phẩm có ô lọc hạng mục, Xuất báo giá có bảng tích chọn -> chọn ở tab này sang
@@ -3938,57 +3948,34 @@ document.addEventListener('mousedown',function(e){
 function renderMM_(){
   mmSelSync_();
   if(S._mmBrowse!=null && S._mmAt!==S.node) S._mmBrowse=null;   // đề mục đổi từ nơi khác -> thôi duyệt dở
-  var el=document.getElementById('mmNav'); if(el) el.innerHTML=mmHtml_(false);
+  var el=document.getElementById('mmNav'); if(el){ el.innerHTML=mmHtml_(false); if(S._mmUI) tnScroll_(el); }
   var tp=document.getElementById('treePop'); if(tp && tp.style.display!=='none') tp.innerHTML=mmHtml_(true);   // ô Hạng mục trên bảng
 }
-/* HTML bộ chọn mind map — dùng cho ô đề mục panel trái (forTree=false) và ô Hạng mục đầu bảng (true).
-   Bản trên bảng có thêm số dòng đã bóc, nút thêm / xoá hạng mục tự tạo. */
+/* Ô chọn hạng mục — DANH SÁCH PHẲNG như bản cũ: xổ ra thấy hết mọi hạng mục,
+   thụt lề theo cấp, bấm 1 lần là chọn xong (không phải bấm lần lượt từng cấp).
+   Dùng cho ô đề mục panel trái (forTree=false) và ô Hạng mục đầu bảng (true).
+   Bản trên bảng có thêm nút thêm / xoá hạng mục tự tạo.                          */
 function mmHtml_(forTree){
-  var dangDuyet=(S._mmBrowse!=null);
-  var cur=dangDuyet?S._mmBrowse:(S.node||'');
-  var path=mmPath_(cur), st=[], parent='#';
-  // --- các nút ĐÃ CHỌN trên đường đi: viên thuốc gọn, bấm để đổi nhánh ở cấp đó ---
-  path.forEach(function(code,i){
-    var laLa=(!dangDuyet && i===path.length-1 && !mmKids_(code).length);
-    st.push('<div class="mm-step path'+(laLa?' leaf':'')+'">'
-      +'<button class="mm-pill" onclick="mmOpen_(\''+escJs_(parent)+'\')" title="Bấm để đổi sang nhánh khác ở cấp này">'
-        +(mmCode_(code)?'<span class="mm-code">'+esc(mmCode_(code))+'</span>':'')
-        +'<span class="mm-t">'+esc(mmName_(code))+'</span>'+mmNum_(code)
-        +'<span class="mm-ic">'+(laLa?'✓':'⌄')+'</span></button></div>');
-    parent=code;
-  });
-  // --- cấp đang mở: danh sách nhánh con ---
-  var kids=mmKids_(parent);
-  if(kids.length){
-    st.push('<div class="mm-step pick"><div class="mm-cap">'+(parent==='#'?'Chọn hạng mục':'Chọn tiếp')+'</div>'
-      +'<div class="mm-list">'+kids.map(function(k){
-        var coCon=mmKids_(k.c).length>0;
-        return '<button class="mm-item" onclick="mmPick_(\''+escJs_(k.c)+'\')">'
-          +(mmCode_(k.c)?'<span class="mm-code">'+esc(mmCode_(k.c))+'</span>':'')
-          +'<span class="mm-t">'+esc(k.t)+'</span>'+mmNum_(k.c)
-          +(coCon?'<span class="mm-go">›</span>':'')+'</button>';
-      }).join('')+'</div></div>');
-  } else if(!dangDuyet){                              // tới lá: các cấp phụ của đề mục đó
-    if(S.node==='3.1'){
-      var lo=ptLoai_(), top=(lo.indexOf('dt_')===0)?'dt':lo;
-      var nhom=(lo.indexOf('dt_')===0)?'dt':'kt';
-      st.push(mmPick2_('Loại báo giá',PT_LOAI_NHOM.map(function(g){ return [g[0],g[1],g[2]]; }),nhom,'mmLoai_'));
-      var g=PT_LOAI_NHOM.filter(function(x){ return x[0]===nhom; })[0];
-      st.push(mmPick2_(g[2],g[3].map(function(x){ return [x[0],x[1],x[2].replace(/^Khái toán (\S)/,function(m,c){ return c.toUpperCase(); })]; }),lo,'mmLoai_'));
-    } else if(typeof tkSheetCo_==='function' && tkSheetCo_(S.node)){
-      st.push(mmPick2_('Phân loại',[['','','Tất cả'],['nc','1','Nhân công'],['vt','2','Vật tư']],S.sheet||'','mmSheet_'));
-    }
+  var cur=S.node||'', ns=mmNodes_(), st=[];
+  st.push('<div class="tn-list">'+ns.map(function(n,i){
+    var cnt=(typeof nodeCount==='function')?nodeCount(n.c):0;
+    return '<div class="tnode lvl'+n.l+(n.c===cur?' on':'')+'" onclick="mmPick_(\''+escJs_(n.c)+'\')">'
+      +'<span class="rd"></span>'
+      +'<span class="nm">'+esc(n.custom?n.t:(n.c+'. '+n.t))+'</span>'
+      +'<span class="cn">['+pad2(cnt)+']</span>'
+      +((n.custom&&forTree)?('<b class="tn-x" title="Xoá hạng mục tự tạo" onclick="event.stopPropagation();delCustomGroup('+i+')">✕</b>'):'')
+      +'</div>';
+  }).join('')+'</div>');
+  // cấp phụ của đề mục đang chọn (loại báo giá của Phần thô, Nhân công / Vật tư)
+  if(S.node==='3.1'){
+    var lo=ptLoai_(), nhom=(lo.indexOf('dt_')===0)?'dt':'kt';
+    st.push(mmPick2_('Loại báo giá',PT_LOAI_NHOM.map(function(g){ return [g[0],g[1],g[2]]; }),nhom,'mmLoai_'));
+    var g=PT_LOAI_NHOM.filter(function(x){ return x[0]===nhom; })[0];
+    st.push(mmPick2_(g[2],g[3].map(function(x){ return [x[0],x[1],x[2].replace(/^Khái toán (\S)/,function(m,c){ return c.toUpperCase(); })]; }),lo,'mmLoai_'));
+  } else if(typeof tkSheetCo_==='function' && tkSheetCo_(S.node)){
+    st.push(mmPick2_('Phân loại',[['','','Tất cả'],['nc','1','Nhân công'],['vt','2','Vật tư']],S.sheet||'','mmSheet_'));
   }
-  var them='';
-  if(forTree && parent==='#'){          // đang ở cấp gốc: quản lý hạng mục tự tạo của dự án
-    var tu=customGroups();
-    them=(tu.length?'<div class="mm-cust">'+tu.map(function(n){ var i=(S._tree||[]).map(function(t){ return t.code; }).indexOf(n);
-        return '<span class="mm-cust-i">'+esc(n)+'<b title="Xoá hạng mục tự tạo" onclick="event.stopPropagation();delCustomGroup('+i+')">✕</b></span>'; }).join('')+'</div>':'')
-      +'<button class="mm-add" onclick="addCustomGroup()">＋ Thêm hạng mục</button>';
-  } else if(forTree) them='<button class="mm-add" onclick="addCustomGroup()">＋ Thêm hạng mục</button>';
-  return '<div class="mm-rail">'+st.join('')+'</div>'
-    +(dangDuyet?'<button class="mm-reset" onclick="mmCancel_()">← Về hạng mục đang bóc</button>':'')
-    +them;
+  return st.join('')+(forTree?'<button class="mm-add" onclick="addCustomGroup()">＋ Thêm hạng mục</button>':'');
 }
 // cấp phụ (loại báo giá / nhân công - vật tư): chọn 1 trong vài mục
 function mmPick2_(cap, opts, sel, fn){
@@ -4002,7 +3989,6 @@ function mmPick2_(cap, opts, sel, fn){
 function mmTreeOpen_(){ var tp=document.getElementById('treePop'); return !!(tp && tp.style.display!=='none'); }
 function mmTreeClose_(){ var tp=document.getElementById('treePop'); if(tp) tp.style.display='none'; }
 function mmPick_(code){
-  if(mmKids_(code).length){ S._mmBrowse=code; S._mmAt=S.node; renderMM_(); return; }   // còn cấp con -> mở tiếp
   var tuTren=mmTreeOpen_();                      // đang chọn từ ô Hạng mục đầu bảng
   S._mmBrowse=null; pickNode(code);
   var coPhu=(code==='3.1')||(typeof tkSheetCo_==='function'&&tkSheetCo_(code));

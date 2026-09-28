@@ -5263,6 +5263,13 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
 /* ═══ CHỌN HẠNG MỤC KIỂU MIND MAP (panel trái Bóc tách) — tối giản ═══
    Ray mảnh 1px, chấm nhỏ, không khung/không bóng; phân cấp bằng màu chữ và khoảng trắng. */
 .mm-nav{margin:4px 0 8px}
+/* Ô chọn hạng mục kiểu cũ: danh sách phẳng, cuộn trong khung */
+.mm-nav .tn-list{max-height:46vh;overflow:auto;margin:2px 0 6px}
+.mm-nav .tnode{font-size:12px}
+.tree-pop .tn-list{margin:2px 0}
+.tnode .tn-x{margin-left:6px;flex:none;color:#b6bfca;font-weight:400;font-size:11px;cursor:pointer}
+.tnode .tn-x:hover{color:#c33}
+.mm-nav .mm-step.pick,.tree-pop .mm-step.pick{margin-top:6px;padding-top:6px;border-top:1px solid var(--ln,#e8ecf1)}
 .mm-rail{display:flex;flex-direction:column}
 .mm-step{position:relative;padding:0 0 6px 18px}
 .mm-step:last-child{padding-bottom:0}
@@ -5401,7 +5408,7 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
 .tkmine-n{flex-basis:100%;font-size:11px;color:#8b96a5;line-height:1.4}
 /* ô Hạng mục đầu bảng bóc tách: cùng bộ chọn mind map với panel trái */
 .tree-pop.mm-pop{width:340px;padding:12px 14px 10px}
-.tree-pop.mm-pop .mm-add{display:block;width:100%;margin:10px 0 0;padding:8px 0 0;border:none;border-top:1px solid var(--ln,#e8ecf1);background:none;
+.tree-pop .mm-add,.tree-pop.mm-pop .mm-add{display:block;width:100%;margin:10px 0 0;padding:8px 6px 4px;border:none;border-top:1px solid var(--ln,#e8ecf1);background:none;
   text-align:left;font:inherit;font-size:12.5px;font-weight:600;color:var(--blue);cursor:pointer}
 .mm-cust{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0;padding-top:10px;border-top:1px solid var(--ln,#e8ecf1)}
 .mm-cust-i{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:7px;background:#f3f5f8;font-size:12px}
