@@ -732,7 +732,9 @@ function renderVsFilters_(){
   Object.keys(S.fVs).forEach(function(c){ if(cols.indexOf(c)<0) delete S.fVs[c]; });
   var ps=vsProds_(), hmSel=Object.keys(S.fNhomSet||{}).filter(function(k){ return S.fNhomSet[k]; });
   var trongHM=hmSel.length?ps.filter(function(p){ return hmSel.indexOf(prodHmuc_(p))>=0; }):ps;
+  var fltOffSet=fltOff_();
   function sec(key, title, chips, n){
+    if(fltOffSet.indexOf('vs_'+key)>=0) return '';          // đang tắt trong bảng Bộ lọc
     var open=(S.fsecOpen['vs_'+key]!==false);
     return '<div class="fsec'+(open?' open':'')+'"><div class="fsec-h" onclick="vsFltFold_(\''+escJs_(key)+'\')">'
       +'<span class="fsec-t">'+esc(title)+'</span>'+(n?'<span class="fsec-n">'+n+' đã chọn</span>':'')+'<span class="fsec-c">▾</span></div>'
@@ -1065,6 +1067,26 @@ function positionFiltPop_(){
    lọc cũ vẫn chạy nguyên, không phải viết lại từng bộ lọc. */
 var FLT_REG=[['watt','Công suất'],['kelvin','Nhiệt độ màu'],['angle','Góc chiếu sáng'],
   ['yeuthich','Yêu thích'],['combo','Combo'],['brand','Thương hiệu'],['price','Khoảng giá']];
+/* Ngành có spec riêng (vệ sinh / sơn): các khối lọc là ĐỘNG theo hạng mục nên không nằm
+   trong FLT_REG. Ở đây liệt kê ra để bảng "Bộ lọc" bật/tắt được như các khối cố định.
+   Mặc định HIỆN hết, chỉ nhớ những khối bị TẮT (qs_fltoff).                              */
+function vsFltSecs_(){
+  if(!vsFltOn_()) return [];
+  var SP=vsFltSpec_(), out=[['vs_hm','Hạng mục']];
+  vsFltKeys_().forEach(function(lb){ var m=SP.METRIC[lb]; if(m) out.push(['vs_'+m[0], m[1]]); });
+  return out;
+}
+function fltOff_(){
+  try{ var v=JSON.parse(localStorage.getItem('qs_fltoff')||'null'); if(Array.isArray(v)) return v; }catch(e){}
+  return [];
+}
+function fltToggleOff_(k){
+  var off=fltOff_(), i=off.indexOf(k);
+  if(i>=0) off.splice(i,1); else off.push(k);
+  try{ localStorage.setItem('qs_fltoff', JSON.stringify(off)); }catch(e){}
+  renderVsFilters_(); fltNamesRender_();
+  if(S._filtOpen && typeof positionFiltPop_==='function') positionFiltPop_();
+}
 function fltPins_(){
   try{ var v=JSON.parse(localStorage.getItem('qs_pinflt')||'null'); if(Array.isArray(v)) return v; }catch(e){}
   return ['watt','kelvin'];
@@ -1087,12 +1109,27 @@ function fltNamesRender_(){
   var el=document.getElementById('filtNames'); if(!el) return;
   var pin=fltPins_();
   var denOnly={watt:1,kelvin:1,angle:1};
-  el.innerHTML=FLT_REG.filter(function(f){ return !(vsFltOn_()&&denOnly[f[0]]); }).map(function(f){
-    var on=pin.indexOf(f[0])>=0, n=fltActiveN_(f[0]);
-    return '<button class="fn-row'+(on?' on':'')+'" onclick="fltTogglePin_(\''+f[0]+'\')" title="'+(on?'Đang hiện trên panel — bấm để ẩn':'Bấm để hiện trên panel')+'">'
-      +'<span class="fn-t">'+esc(f[1])+'</span>'+(n?'<span class="fn-n">'+n+'</span>':'')
+  function row(k,lb,on,n,fn){
+    return '<button class="fn-row'+(on?' on':'')+'" onclick="'+fn+'(\''+escJs_(k)+'\')" title="'+(on?'Đang hiện trên panel — bấm để ẩn':'Bấm để hiện trên panel')+'">'
+      +'<span class="fn-t">'+esc(lb)+'</span>'+(n?'<span class="fn-n">'+n+'</span>':'')
       +'<span class="fn-sw"></span></button>';
+  }
+  var html=FLT_REG.filter(function(f){ return !(vsFltOn_()&&denOnly[f[0]]); }).map(function(f){
+    return row(f[0], f[1], pin.indexOf(f[0])>=0, fltActiveN_(f[0]), 'fltTogglePin_');
   }).join('');
+  // khối lọc theo hạng mục / thông số của ngành đang chọn (vệ sinh · sơn nước)
+  var vs=vsFltSecs_();
+  if(vs.length){
+    var off=fltOff_(), f=S.fVs||{};
+    html+='<div class="fn-cap">Theo hạng mục '+esc(vsFltNganh_()==='son'?'sơn nước':'thiết bị vệ sinh')+'</div>'
+      +vs.map(function(x){
+        var col=x[0].slice(3);
+        var n=(x[0]==='vs_hm')?Object.keys(S.fNhomSet||{}).filter(function(k){ return S.fNhomSet[k]; }).length
+                              :Object.keys(f[col]||{}).filter(function(v){ return f[col][v]; }).length;
+        return row(x[0], x[1], off.indexOf(x[0])<0, n, 'fltToggleOff_');
+      }).join('');
+  }
+  el.innerHTML=html;
 }
 function fltTogglePin_(k){
   var pin=fltPins_(), i=pin.indexOf(k);
