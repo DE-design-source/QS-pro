@@ -4159,8 +4159,10 @@ function lnDiff_(l){
 function lnDiffChip_(l){
   var d=lnDiff_(l); if(!d) return '';
   var coGia=d.ds.some(function(x){ return x.k==='donGiaVon'; });
-  return '<button class="ln-upd'+(coGia?' gia':'')+'" title="Sản phẩm này đã được cập nhật trong danh mục ('
-      +esc(d.ds.map(function(x){ return x.lb; }).join(', '))+') — bấm để cập nhật dòng"'
+  // ĐỎ = giá vốn đã đổi (ảnh hưởng tiền) · VÀNG = chỉ đổi thông tin (tên, thông số, ảnh…)
+  var tip=(coGia?'GIÁ VỐN đã đổi trong danh mục':'Thông tin sản phẩm đã đổi trong danh mục')
+    +' ('+d.ds.map(function(x){ return x.lb; }).join(', ')+') — bấm để xem và cập nhật dòng này';
+  return '<button class="ln-upd'+(coGia?' gia':'')+'" title="'+esc(tip)+'"'
     +' onclick="event.stopPropagation();lnUpdPop_(event,\''+l.lineId+'\')">'
     +'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v5h-5"/></svg>'
     +'</button>';                                  // chỉ icon cho gọn — nội dung đã ghi đủ trong tooltip
