@@ -4291,12 +4291,26 @@ function tkToolsSync_(){
     +qbBtn_('qbHist',QB_IC.hist,'Vừa thêm vào bảng — xem lại / thêm lại','qbHistPop_(event)',false)
     +qbBtn_('qbRepl',QB_IC.repl,'Tìm & thay trong bảng (Ctrl+F)','openFindReplace()',false)
     +qbBtn_('qbGia',QB_IC.gia,giaSyncTitle_(),'giaSyncRun_()',false,giaLechN_())
-    +'</span><span class="tk-tsep"></span><span class="tk-tgrp">'   // nhóm 2: cách hiển thị bảng
-    +qbBtn_('qbSide',QB_IC.panel,side?'Hiện panel sản phẩm bên trái':'Ẩn panel sản phẩm — bảng rộng hơn','sideToggle_();qbRightSync_()',side)
-    +qbBtn_('qbFit',QB_IC.fit,tkFitOn_()?'Trả bảng về bề rộng cột đã đặt (có kéo ngang)':'Vừa 1 màn hình — co cột cho hết kéo ngang, chỉ kéo dọc','tkFitToggle_()',tkFitOn_())
-    +qbBtn_('qbFull',QB_IC.full,tkFullOn_()?'Thoát toàn màn hình (Esc)':'Toàn màn hình — chỉ còn bảng','tkFullToggle_()',tkFullOn_())
-    +qbBtn_('qbZen',QB_IC.zen,zen?'Mở lại các khối đầu trang':'Mở rộng bảng — thu gọn băng dự án và chip cột','foldAll_()',zen)
+    +'</span><span class="tk-tsep"></span><span class="tk-tgrp">'   // nhóm 2: cách hiển thị bảng — ghi rõ chữ, 3 nút không trùng nghĩa
+    +tkTBtn_('qbSide',QB_IC.panel,'Panel SP',side?'Hiện lại panel sản phẩm bên trái':'Ẩn panel sản phẩm — bảng rộng hơn','sideToggle_();qbRightSync_()',!side)
+    +tkTBtn_('qbFit',QB_IC.fit,'Vừa khung',tkFitOn_()?'Đang co cột vừa khung — bấm để trả về bề rộng đã đặt (có kéo ngang)':'Co cột cho vừa bề ngang khung, hết kéo ngang','tkFitToggle_()',tkFitOn_())
+    +tkTBtn_('qbFull',QB_IC.full,'Toàn màn hình',tkFullOn_()?'Thoát toàn màn hình (Esc)':'Chỉ còn bảng, chiếm cả màn hình','tkFullToggle_()',tkFullOn_())
     +'</span>';
+}
+/* nút có chữ — nhóm hiển thị chỉ nhìn icon thì đoán không ra */
+function tkTBtn_(id, ic, nhan, tip, js, on){
+  return '<button class="tk-tbtn'+(on?' on':'')+'" id="'+id+'" title="'+esc(tip)+'" onclick="'+js+'">'+ic+'<span>'+esc(nhan)+'</span></button>';
+}
+/* ═══ CHIP BẬT / TẮT TỪNG KHỐI — thu gọn thêm khi cần chỗ cho bảng ═══ */
+var FOLD_CHIPS=[['pcard','Dự án'],['totals','Tổng tiền'],['tools','Công cụ'],['cols','Chip cột']];
+function foldChipsSync_(){
+  var box=document.getElementById('tkFoldChips'); if(!box) return;
+  var v=foldGet_();
+  box.innerHTML='<span class="fchip-lbl">Hiện</span>'+FOLD_CHIPS.map(function(c){
+    var on=!v[c[0]];
+    return '<button class="fchip'+(on?' on':'')+'" onclick="foldToggle_(\''+c[0]+'\')"'
+      +' title="'+(on?'Đang hiện — bấm để ẩn cho gọn':'Đang ẩn — bấm để hiện lại')+'">'+esc(c[1])+'</button>';
+  }).join('');
 }
 function qbGoNode_(code){
   if(qbTab_()==='boc'){ if(code!==S.node) pickNode(code); return; }
@@ -12409,7 +12423,7 @@ function tkZenToggle(){ foldAll_(); }
 /* ═══ THU GỌN TỪNG KHỐI ĐỂ MỞ RỘNG BẢNG ═══
    Khối nào phía trên bảng cũng gập được: băng dự án · tổng tiền · chip cột. Nhớ theo máy (qs_fold).
    Nút ⤢ "Mở rộng bảng" (thanh công cụ nhanh / đầu bảng) gập tất cả một lần; bấm lại mở lại như trước. */
-var FOLD_KEYS=['pcard','cols'];                       // tổng tiền giờ nằm gọn trên hàng Hạng mục — không cần gập
+var FOLD_KEYS=['pcard','totals','tools','cols'];       // các khối bật/tắt được bằng chip ở hàng Hạng mục
 function foldGet_(){ try{ var v=JSON.parse(localStorage.getItem('qs_fold')||'null'); if(v&&typeof v==='object') return v; }catch(e){}
   return {cols:true};                                    // mặc định: chip cột gọn 1 dòng (bấm mới bung)
 }
@@ -12429,6 +12443,7 @@ function foldApply_(){
   var z=document.getElementById('tkZenBtn'), all=foldAllOn_();
   if(z){ z.classList.toggle('on',all); z.title=all?'Mở lại các khối đầu trang':'Thu gọn đầu trang cho bảng rộng hơn'; }
   if(typeof qbRightSync_==='function') qbRightSync_();
+  foldChipsSync_();
   tkBarsSync_(); setTimeout(tkBarsSync_,60);      // gập/mở khối đầu trang -> bảng đổi bề ngang & cao
 }
 function tkZenApply_(){

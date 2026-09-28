@@ -5929,6 +5929,25 @@ body.tkfit #tkNormal table.tk.tkfit-on td{padding-left:6px;padding-right:6px}
 #v-boc #tkNormal .tk-hbar{margin:6px 40px 2px 10px}
 #v-boc #tkNormal .floorhint:not(:empty){padding:8px 14px 0}
 #v-boc .tk-panel>#ptWrap{padding:10px 12px}
+/* chip bật/tắt từng khối — thu gọn thêm khi cần chỗ cho bảng */
+.tk-fchips{display:inline-flex;align-items:center;gap:5px;flex-wrap:wrap}
+.tk-fchips .fchip-lbl{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#a3aebb;margin-right:1px}
+.fchip{height:23px;padding:0 9px;border:1px solid #e3e8ee;border-radius:999px;background:#fff;font:inherit;font-size:11.5px;
+  font-weight:600;color:#a3aebb;cursor:pointer;white-space:nowrap;transition:border-color .12s,color .12s,background .12s}
+.fchip:hover{border-color:#c9d2dc;color:#6b7684}
+.fchip.on{border-color:#cfe0ff;background:#f2f7ff;color:#1d4ed8}
+.fchip.on:hover{border-color:#9dc0ff}
+body.fold-tools #tkToolBox .tk-toolhr{display:none}
+body.fold-tools #tkToolBox #tkColsHr{border-bottom:none}
+body.fold-tools.fold-cols #v-boc #tkToolBox{display:none}      /* tắt cả hai -> bỏ hẳn khối 2 */
+body.fold-totals #v-boc .tk-panel .tk-totals{display:none}
+/* nhóm "hiển thị": nút có chữ cho dễ hiểu (icon không thôi hay bị đoán nhầm) */
+.tk-tbtn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border:1px solid #e3e8ee;border-radius:8px;background:#fff;
+  font:inherit;font-size:11.5px;font-weight:600;color:#6b7684;cursor:pointer;white-space:nowrap}
+.tk-tbtn svg{width:15px;height:15px;flex:none}
+.tk-tbtn:hover{border-color:#c9d2dc;color:var(--ink,#1c2735)}
+.tk-tbtn.on{border-color:#cfe0ff;background:#f2f7ff;color:#1d4ed8}
+@media(max-width:1280px){ .tk-tbtn span{display:none} .tk-tbtn{padding:0 8px} }
 /* toàn màn hình: vẫn giữ hàng công cụ (tìm & thay, vừa 1 màn hình, thoát…), chỉ bỏ hàng chọn cột */
 body.tkfull #tkToolBox{display:block!important;margin:0 0 6px}
 body.tkfull #tkToolBox #tkColsHr,body.tkfull #tkToolBox .colchips{display:none}
@@ -6122,6 +6141,7 @@ body.tkfull #tkToolBox .tk-toolhr{border-bottom:none;padding:6px 12px}
             <div class="tree-pop" id="treePop" style="display:none"></div>
           </div>
           <div class="sheets" id="tkSheets"></div>
+          <div class="tk-fchips" id="tkFoldChips"></div>
           <div class="sp" style="flex:1"></div>
           <div class="tk-totals" id="tkTotals"></div>
           <span class="tk-mini" id="tkMini"></span>
