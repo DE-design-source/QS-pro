@@ -10321,7 +10321,6 @@ function renderPTLibrary(){
         return '<div class="ptlib-item'+(on?' on':'')+(da?' da':'')+'" title="Bấm để xem thông tin công tác · kéo để thả vào bảng"'
           +' draggable="true" ondragstart="ptLibDragStart_(event,'+si+','+ii+')" ondragend="ptLibDragEnd_()"'
           +' onclick="ptShowDetail_('+si+','+ii+')">'
-          +(ctr?'<button class="ptlib-fav'+(ctr.yeuThich?' on':'')+'" title="'+(ctr.yeuThich?'Bỏ khỏi công tác yêu thích':'Thêm vào công tác yêu thích')+'" onclick="event.stopPropagation();ctFav_(\''+ctr.id+'\','+(ctr.yeuThich?0:1)+')">'+icon('heart',13)+'</button>':'')
           +'<div class="ptlib-nm" title="'+esc(String(a[0]).replace(/\n/g,' ')+(gc?(' — '+gc):''))+'">'+esc(String(a[0]).split('\n')[0])
             +(coTL?'<span class="ptlib-info" title="Đã có ảnh / thông số kỹ thuật">'+icon('doc',11)+'</span>':'')+'</div>'
           +'<div class="ptlib-meta">'
@@ -10329,7 +10328,10 @@ function renderPTLibrary(){
             +'<span class="ptlib-dg">'+(dg?(money(dg)+' đ'):'—')+'</span>'
             +(da?'<span class="ptlib-da" title="Công tác này đã có trong bảng">✓ đã thêm</span>':'')
           +'</div>'
-          +'<button class="ptlib-add" title="Thêm vào bảng ước tính" onclick="event.stopPropagation();ptAddFromLib('+si+','+ii+')">'+icon('plus',14)+'</button></div>';
+          +'<div class="ptlib-act">'
+            +(ctr?'<button class="ptlib-fav'+(ctr.yeuThich?' on':'')+'" title="'+(ctr.yeuThich?'Bỏ khỏi công tác yêu thích':'Thêm vào công tác yêu thích')+'" onclick="event.stopPropagation();ctFav_(\''+ctr.id+'\','+(ctr.yeuThich?0:1)+')">'+icon('heart',13)+'</button>':'')
+            +'<button class="ptlib-add" title="Thêm vào bảng ước tính" onclick="event.stopPropagation();ptAddFromLib('+si+','+ii+')">'+icon('plus',14)+'</button>'
+          +'</div></div>';
       }).join('')+'</div>')+'</div>';
   }).join('')+'</div>';
 }
@@ -11162,13 +11164,26 @@ function projDataSet_(khoa, val){
   clearTimeout(S._pdTimer);
   S._pdTimer=setTimeout(projDataFlush_, 1200);
 }
+/* Lỗi từ Supabase trả về nguyên cục JSON, cắt ngang 90 ký tự thì ra chuỗi khó hiểu.
+   Dịch vài mã hay gặp thành câu ngắn, chi tiết đầy đủ vẫn ghi ở console.        */
+function loiServer_(e){
+  var m=String((e&&e.message)||e||'');
+  if(/42501|permission denied|row-level security/i.test(m)) return 'Bảng du_an_data trên Supabase chưa được cấp quyền ghi (chạy lại db/du_an_data.sql)';
+  if(/42P01/.test(m)) return 'Chưa có bảng du_an_data trên Supabase (chạy db/du_an_data.sql)';
+  if(/PGRST(20[0-9]|116)/.test(m)) return 'Máy chủ chưa nhận ra bảng du_an_data (chạy lại db/du_an_data.sql)';
+  if(/\b401\b|JWT|apikey/i.test(m)) return 'Máy chủ từ chối quyền ghi (401)';
+  if(/Failed to fetch|NetworkError|timeout/i.test(m)) return 'Mất kết nối tới máy chủ';
+  m=m.replace(/\s+/g,' ').trim();
+  return 'Chưa lưu được lên máy chủ: '+(m.length>70?m.slice(0,70)+'…':m);
+}
 async function projDataFlush_(){
   var maDA=S.cur&&S.cur.maDA; if(!maDA) return;
   var ds=Object.keys(S._pdQueue||{}); S._pdQueue={};
   for(var i=0;i<ds.length;i++){
     var k=ds[i], ma=(k==='ptInfo')?'__cty':maDA;
     try{ await api('setProjData', ma, k, (S._projData||{})[k]); }
-    catch(e){ if(!S._pdLoi){ S._pdLoi=1; toast('Chưa lưu được lên máy chủ: '+e.message.slice(0,90)+' — dữ liệu vẫn còn trên máy này'); } }
+    catch(e){ if(!S._pdLoi){ S._pdLoi=1; try{ console.error('setProjData',k,e); }catch(x){}
+      toast(loiServer_(e)+' — dữ liệu vẫn còn trên máy này'); } }
   }
 }
 async function projDataLoad_(maDA){

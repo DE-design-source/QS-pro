@@ -1005,12 +1005,18 @@ function daDataThieuBang_(e) {
   const m = String((e && e.message) || '');
   return /du_an_data/.test(m) && /(does not exist|not find the table|42P01|PGRST205|404)/i.test(m);
 }
+// Bảng đã có nhưng còn bật RLS / chưa grant -> Supabase trả 401 mã 42501
+function daDataCamQuyen_(e) {
+  const m = String((e && e.message) || '');
+  return /42501|permission denied|row-level security/i.test(m);
+}
+const DA_DATA_HD = 'Bảng du_an_data chưa được cấp quyền ghi — vào Supabase SQL Editor chạy lại db/du_an_data.sql (tắt RLS + grant) rồi thử lại.';
 async function getProjData(maDA) {
   maDA = s(maDA).trim(); if (!maDA) return {};
   const out = {};
   async function lay(ma) {
     try { return await supa.select('du_an_data', { select: 'khoa,gia_tri', filter: supa.eq('ma_da', ma), limit: 50 }) || []; }
-    catch (e) { if (daDataThieuBang_(e)) return []; throw e; }
+    catch (e) { if (daDataThieuBang_(e) || daDataCamQuyen_(e)) return []; throw e; }   // chưa cài xong bảng -> coi như chưa có dữ liệu, app vẫn chạy
   }
   (await lay('__cty')).forEach(function (r) { out[s(r.khoa)] = r.gia_tri; });   // dùng chung công ty (ptInfo)
   (await lay(maDA)).forEach(function (r) { out[s(r.khoa)] = r.gia_tri; });      // của riêng dự án -> đè lên
@@ -1029,6 +1035,7 @@ async function setProjData(actor, maDA, khoa, giaTri) {
     else await supa.insert('du_an_data', row);
   } catch (e) {
     if (daDataThieuBang_(e)) throw new Error('Chưa có bảng du_an_data trong Supabase — vào SQL Editor chạy file db/du_an_data.sql rồi thử lại.');
+    if (daDataCamQuyen_(e)) throw new Error(DA_DATA_HD);
     throw e;
   }
   return { ok: true };
