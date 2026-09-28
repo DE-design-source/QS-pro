@@ -732,9 +732,8 @@ function renderVsFilters_(){
   Object.keys(S.fVs).forEach(function(c){ if(cols.indexOf(c)<0) delete S.fVs[c]; });
   var ps=vsProds_(), hmSel=Object.keys(S.fNhomSet||{}).filter(function(k){ return S.fNhomSet[k]; });
   var trongHM=hmSel.length?ps.filter(function(p){ return hmSel.indexOf(prodHmuc_(p))>=0; }):ps;
-  var fltOffSet=fltOff_();
   function sec(key, title, chips, n){
-    if(fltOffSet.indexOf('vs_'+key)>=0) return '';          // đang tắt trong bảng Bộ lọc
+    if(!fltHien_('vs_'+key)) return '';                     // đang tắt trong bảng Bộ lọc
     var open=(S.fsecOpen['vs_'+key]!==false);
     return '<div class="fsec'+(open?' open':'')+'"><div class="fsec-h" onclick="vsFltFold_(\''+escJs_(key)+'\')">'
       +'<span class="fsec-t">'+esc(title)+'</span>'+(n?'<span class="fsec-n">'+n+' đã chọn</span>':'')+'<span class="fsec-c">▾</span></div>'
@@ -1068,35 +1067,54 @@ function positionFiltPop_(){
 var FLT_REG=[['watt','Công suất'],['kelvin','Nhiệt độ màu'],['angle','Góc chiếu sáng'],
   ['yeuthich','Yêu thích'],['combo','Combo'],['brand','Thương hiệu'],['price','Khoảng giá']];
 /* Ngành có spec riêng (vệ sinh / sơn): các khối lọc là ĐỘNG theo hạng mục nên không nằm
-   trong FLT_REG. Ở đây liệt kê ra để bảng "Bộ lọc" bật/tắt được như các khối cố định.
-   Mặc định HIỆN hết, chỉ nhớ những khối bị TẮT (qs_fltoff).                              */
+   trong FLT_REG — liệt kê ra đây để bảng "Bộ lọc" bật/tắt được y như khối cố định. */
 function vsFltSecs_(){
   if(!vsFltOn_()) return [];
   var SP=vsFltSpec_(), out=[['vs_hm','Hạng mục']];
   vsFltKeys_().forEach(function(lb){ var m=SP.METRIC[lb]; if(m) out.push(['vs_'+m[0], m[1]]); });
   return out;
 }
-function fltOff_(){
-  try{ var v=JSON.parse(localStorage.getItem('qs_fltoff')||'null'); if(Array.isArray(v)) return v; }catch(e){}
-  return [];
+/* ═══ MỘT CÁCH HIỂN THỊ DUY NHẤT CHO MỌI KHỐI LỌC ═══
+   Trước đây khối cố định (Công suất, Thương hiệu…) chạy theo danh sách "pin" còn khối
+   theo ngành (vệ sinh / sơn) chạy theo danh sách "tắt" -> cùng một bảng mà hai kiểu mặc
+   định, panel và bảng Bộ lọc không khớp nhau. Nay tất cả dùng chung:
+     · fltSecs_()  : đúng những khối ÁP DỤNG cho ngành đang chọn (thứ tự = thứ tự trên panel)
+     · fltHien_(k) : khối đó có hiện trên panel không — nhớ chung ở qs_fltshow
+   Mặc định: khối thông số của ngành đang chọn = HIỆN, 4 khối chung = ẩn (bật khi cần).      */
+var FLT_DEN=[['watt','Công suất'],['kelvin','Nhiệt độ màu'],['angle','Góc chiếu sáng']];
+var FLT_CHUNG=[['yeuthich','Yêu thích'],['combo','Combo'],['brand','Thương hiệu'],['price','Khoảng giá']];
+function fltSecs_(){ return (vsFltOn_()?vsFltSecs_():FLT_DEN).concat(FLT_CHUNG); }
+function fltDefShow_(k){ return (k==='watt'||k==='kelvin'||String(k).indexOf('vs_')===0); }
+function fltShowMap_(){
+  if(S._fltShow) return S._fltShow;
+  var m=null; try{ m=JSON.parse(localStorage.getItem('qs_fltshow')||'null'); }catch(e){}
+  if(!m||typeof m!=='object'){                       // lần đầu: lấy lại cài đặt của cách cũ
+    m={};
+    var pin=null; try{ pin=JSON.parse(localStorage.getItem('qs_pinflt')||'null'); }catch(e){}
+    if(Array.isArray(pin)) FLT_REG.forEach(function(f){ m[f[0]]=pin.indexOf(f[0])>=0; });
+    var off=null; try{ off=JSON.parse(localStorage.getItem('qs_fltoff')||'null'); }catch(e){}
+    if(Array.isArray(off)) off.forEach(function(k){ m[k]=false; });
+  }
+  S._fltShow=m; return m;
 }
-function fltToggleOff_(k){
-  var off=fltOff_(), i=off.indexOf(k);
-  if(i>=0) off.splice(i,1); else off.push(k);
-  try{ localStorage.setItem('qs_fltoff', JSON.stringify(off)); }catch(e){}
-  renderVsFilters_(); fltNamesRender_();
+function fltHien_(k){ var m=fltShowMap_(); return (k in m)?!!m[k]:fltDefShow_(k); }
+function fltToggle_(k){
+  var m=fltShowMap_(); m[k]=!fltHien_(k);
+  try{ localStorage.setItem('qs_fltshow', JSON.stringify(m)); }catch(e){}
+  fltApplyPins_(); if(typeof renderVsFilters_==='function') renderVsFilters_(); fltNamesRender_();
   if(S._filtOpen && typeof positionFiltPop_==='function') positionFiltPop_();
 }
-function fltPins_(){
-  try{ var v=JSON.parse(localStorage.getItem('qs_pinflt')||'null'); if(Array.isArray(v)) return v; }catch(e){}
-  return ['watt','kelvin'];
-}
 function fltApplyPins_(){
-  var pin=fltPins_(), box=document.getElementById('pinFilters'), store=document.getElementById('filtStore');
+  var box=document.getElementById('pinFilters'), store=document.getElementById('filtStore');
   if(!box||!store) return;
-  pin.forEach(function(k){ var el=document.getElementById('sec_'+k); if(el && el.parentNode!==box) box.appendChild(el); });
-  FLT_REG.forEach(function(f){ if(pin.indexOf(f[0])>=0) return;
-    var el=document.getElementById('sec_'+f[0]); if(el && el.parentNode!==store) store.appendChild(el); });
+  var denOnly={watt:1,kelvin:1,angle:1}, laDen=!vsFltOn_();
+  FLT_REG.forEach(function(f){                        // theo đúng thứ tự khai báo -> panel xếp như bảng Bộ lọc
+    var el=document.getElementById('sec_'+f[0]); if(!el) return;
+    var hien=(denOnly[f[0]]&&!laDen) ? false : fltHien_(f[0]);   // khối của đèn không áp dụng cho ngành khác
+    var dich=hien?box:store;
+    if(el.parentNode!==dich) dich.appendChild(el);
+    else if(hien) box.appendChild(el);
+  });
 }
 function fltActiveN_(k){
   function n(o){ return Object.keys(o||{}).filter(function(x){ return o[x]; }).length; }
@@ -1107,37 +1125,19 @@ function fltActiveN_(k){
 }
 function fltNamesRender_(){
   var el=document.getElementById('filtNames'); if(!el) return;
-  var pin=fltPins_();
-  var denOnly={watt:1,kelvin:1,angle:1};
-  function row(k,lb,on,n,fn){
-    return '<button class="fn-row'+(on?' on':'')+'" onclick="'+fn+'(\''+escJs_(k)+'\')" title="'+(on?'Đang hiện trên panel — bấm để ẩn':'Bấm để hiện trên panel')+'">'
-      +'<span class="fn-t">'+esc(lb)+'</span>'+(n?'<span class="fn-n">'+n+'</span>':'')
+  var f=S.fVs||{};
+  el.innerHTML=fltSecs_().map(function(x){
+    var k=x[0], on=fltHien_(k), n;
+    if(k==='vs_hm') n=Object.keys(S.fNhomSet||{}).filter(function(v){ return S.fNhomSet[v]; }).length;
+    else if(k.indexOf('vs_')===0){ var col=k.slice(3); n=Object.keys(f[col]||{}).filter(function(v){ return f[col][v]; }).length; }
+    else n=fltActiveN_(k);
+    return '<button class="fn-row'+(on?' on':'')+'" onclick="fltToggle_(\''+escJs_(k)+'\')"'
+      +' title="'+(on?'Đang hiện trên panel — bấm để ẩn':'Bấm để hiện trên panel')+'">'
+      +'<span class="fn-t">'+esc(x[1])+'</span>'+(n?'<span class="fn-n">'+n+'</span>':'')
       +'<span class="fn-sw"></span></button>';
-  }
-  var html=FLT_REG.filter(function(f){ return !(vsFltOn_()&&denOnly[f[0]]); }).map(function(f){
-    return row(f[0], f[1], pin.indexOf(f[0])>=0, fltActiveN_(f[0]), 'fltTogglePin_');
   }).join('');
-  // khối lọc theo hạng mục / thông số của ngành đang chọn (vệ sinh · sơn nước)
-  var vs=vsFltSecs_();
-  if(vs.length){
-    var off=fltOff_(), f=S.fVs||{};
-    html+='<div class="fn-cap">Theo hạng mục '+esc(vsFltNganh_()==='son'?'sơn nước':'thiết bị vệ sinh')+'</div>'
-      +vs.map(function(x){
-        var col=x[0].slice(3);
-        var n=(x[0]==='vs_hm')?Object.keys(S.fNhomSet||{}).filter(function(k){ return S.fNhomSet[k]; }).length
-                              :Object.keys(f[col]||{}).filter(function(v){ return f[col][v]; }).length;
-        return row(x[0], x[1], off.indexOf(x[0])<0, n, 'fltToggleOff_');
-      }).join('');
-  }
-  el.innerHTML=html;
 }
-function fltTogglePin_(k){
-  var pin=fltPins_(), i=pin.indexOf(k);
-  if(i>=0) pin.splice(i,1); else pin.push(k);          // bật mới -> nằm cuối panel
-  try{ localStorage.setItem('qs_pinflt', JSON.stringify(pin)); }catch(e){}
-  fltApplyPins_(); fltNamesRender_();
-  if(S._filtOpen && typeof positionFiltPop_==='function') positionFiltPop_();
-}
+function fltTogglePin_(k){ fltToggle_(k); }          // tên cũ — mọi nơi đều đi về một hàm
 function applyFiltDrop(){
   var isPT=(S.node==='3.1');
   fltApplyPins_(); fltNamesRender_();
