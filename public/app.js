@@ -1769,6 +1769,22 @@ function spViewTabs_(){
    Dấu yêu thích thuộc về CÔNG TY, lưu ở bảng riêng sp_yeu_thich nên đánh dấu được
    cả sản phẩm trong kho chung của Dezon (những SP đó không sửa được). */
 function spKey_(p){ return String((p&&(p.recordId||p.ma))||''); }
+/* Nhóm API "làm hàng loạt" (duyệt · yêu thích · xoá công tác…) trả {ok, errors} chứ KHÔNG
+   ném lỗi. Gọi xong mà không kiểm thì màn hình báo "đã xong" trong khi máy chủ không đổi
+   được gì — hoặc ngược lại, coi "không có gì để đổi" là lỗi. Mọi nơi dùng chung hàm này. */
+/* Lưu ngầm bị lỗi mà nuốt luôn thì người dùng tưởng đã lưu — mở lại mới biết mất.
+   Báo gọn 1 lần cho mỗi đợt (sửa hàng loạt bắn nhiều request cùng lúc).          */
+function luuLoi_(e, viec){
+  var now=Date.now(); if(S._luuLoiAt && now-S._luuLoiAt<4000) return; S._luuLoiAt=now;
+  try{ console.error('[lưu lỗi] '+viec, e); }catch(x){}
+  toast('Chưa lưu được '+viec+': '+String((e&&e.message)||e||'').slice(0,80));
+}
+function batKq_(r, n, viec){
+  if(r && r.errors && r.errors.length) throw new Error(String(r.errors[0].error||('Không '+viec+' được')));
+  var ok=Number(r&&r.ok)||0, daDung=Number(r&&r.daDung)||0;
+  if(n>0 && !ok && !daDung) throw new Error('Máy chủ không '+viec+' được dòng nào');
+  return ok;
+}
 // server trả {ok, errors} chứ không ném lỗi -> phải tự kiểm để còn hoàn tác dấu sao
 function spFavChk_(r){
   if(r && r.ok===0 && r.errors && r.errors.length) throw new Error(r.errors[0].error);
@@ -1871,6 +1887,11 @@ async function spDuyet(i,approve){
     if(r && r.errors && r.errors.length){       // máy chủ nuốt lỗi từng dòng -> phải nói ra
       await baoLoi_({ title:'Không đổi được trạng thái duyệt', ok:'Đã hiểu',
         note:'Sản phẩm "'+(p.ten||p.ma)+'":\n'+String(r.errors[0].error||'').slice(0,160) });
+      return;
+    }
+    if(!(r&&((Number(r.ok)||0)+(Number(r.daDung)||0)))){   // không lỗi mà cũng không đổi được dòng nào
+      await baoLoi_({ title:'Không đổi được trạng thái duyệt', ok:'Đã hiểu',
+        note:'Máy chủ không tìm thấy dòng nào để đổi cho sản phẩm "'+(p.ten||p.ma)+'". Thử tải lại trang rồi làm lại.' });
       return;
     }
     nhom.forEach(function(x){ x.daDuyet=!!approve; x.nguoiDuyet=approve?((S.me||{}).username||''):''; x.ngayDuyet=approve?new Date().toISOString():''; });
@@ -4958,7 +4979,8 @@ function renderTable(){
 function setVat(v){
   v=Number(v)||0; if(!S.cur) return;
   S.cur.vat=v; veLaiSauSua_();
-  api('updateProject', S.cur.maDA, {vat:v}).then(function(p){ if(p){ p.vat=v; S.cur=p; var i=S.projects.findIndex(function(x){return x.maDA===p.maDA;}); if(i>=0)S.projects[i]=p; } }).catch(function(){});
+  api('updateProject', S.cur.maDA, {vat:v}).then(function(p){ if(p){ p.vat=v; S.cur=p; var i=S.projects.findIndex(function(x){return x.maDA===p.maDA;}); if(i>=0)S.projects[i]=p; } })
+    .catch(function(e){ luuLoi_(e,'VAT của dự án'); });
 }
 // textarea tự cao theo nội dung (xuống dòng hiện đủ, không cắt)
 function autoGrow(t){ if(!t) return; t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; t.style.overflowY='hidden'; }
@@ -6605,9 +6627,9 @@ function mhSub_(items){ return items.reduce(function(a,l){ return a+(Number(l.so
 function mhTot_(items,vatPct){ var s=mhSub_(items); return s+Math.round(s*vatPct/100); }
 function mhSetDisc(lineId,v){ var l=(S.lines||[]).filter(function(x){return x.lineId===lineId;})[0]; if(!l) return;
   var p=Math.max(0,Math.min(100,Number(v)||0)); l.giamGiaNcc=p; renderMuahang();
-  api('updateLine',lineId,{giamGiaNcc:p}).catch(function(){}); }
+  api('updateLine',lineId,{giamGiaNcc:p}).catch(function(e){ luuLoi_(e,'giảm giá NCC'); }); }
 function mhSetDiscAll(gi,v){ var g=(S._mhGroups||[])[gi]; if(!g) return; var p=Math.max(0,Math.min(100,Number(v)||0));
-  g.items.forEach(function(l){ l.giamGiaNcc=p; api('updateLine',l.lineId,{giamGiaNcc:p}).catch(function(){}); }); renderMuahang(); }
+  g.items.forEach(function(l){ l.giamGiaNcc=p; api('updateLine',l.lineId,{giamGiaNcc:p}).catch(function(e){ luuLoi_(e,'giảm giá NCC'); }); }); renderMuahang(); }
 function mhOn_(ncc){ return !(S._mhSel&&S._mhSel[ncc]===false); }
 /* Thẻ NCC — dùng lại frontend thẻ của trang Nhập dữ liệu (.dbcard + icon chip) */
 function muahangCard(g, gi, vatPct){
@@ -9702,28 +9724,28 @@ async function ctFav_(id, on){
   var c=(S.congTac||[]).filter(function(x){ return x.id===id; })[0];
   if(c) c.yeuThich=!!on;                       // đổi trước cho nhanh tay
   ctSyncTemplate_(); if(spPTMode_()) spFilter(); if(S.node==='3.1') renderPTLibrary();
-  try{ await api('ctFav',[id],!!on); toast(on?'Đã thêm vào công tác yêu thích':'Đã bỏ khỏi công tác yêu thích'); }
+  try{ batKq_(await api('ctFav',[id],!!on), 1, 'đánh dấu yêu thích'); toast(on?'Đã thêm vào công tác yêu thích':'Đã bỏ khỏi công tác yêu thích'); }
   catch(e){ if(c) c.yeuThich=!on; ctSyncTemplate_(); if(spPTMode_()) spFilter(); toast('Lỗi: '+e.message); }
 }
 async function ctFavBulk_(on){
   var ids=ptSelRows_().map(function(r){ var c=ctOf_(r.a); return c&&c.id; }).filter(Boolean);
   if(!ids.length){ toast('Chỉ đánh dấu được công tác đã lưu trong cơ sở dữ liệu'); return; }
-  try{ await api('ctFav',ids,!!on); S._spSel={}; await ctReload_(); toast((on?'Đã thêm ':'Đã bỏ ')+ids.length+' công tác yêu thích'); }
+  try{ batKq_(await api('ctFav',ids,!!on), ids.length, 'đánh dấu yêu thích'); S._spSel={}; await ctReload_(); toast((on?'Đã thêm ':'Đã bỏ ')+ids.length+' công tác yêu thích'); }
   catch(e){ toast('Lỗi: '+e.message); }
 }
 async function ctDuyet_(id, on){
-  try{ await api('ctDuyet',[id], !!on); await ctReload_(); toast(on?'Đã duyệt công tác':'Đã bỏ duyệt'); }
+  try{ batKq_(await api('ctDuyet',[id], !!on), 1, 'đổi trạng thái duyệt'); await ctReload_(); toast(on?'Đã duyệt công tác':'Đã bỏ duyệt'); }
   catch(e){ toast('Lỗi: '+e.message); }
 }
 async function ctDelete_(id, ten){
   if(!await xacNhan_('Xoá công tác "'+ten+'" khỏi cơ sở dữ liệu?')) return;
-  try{ await api('ctDelete',[id]); await ctReload_(); toast('Đã xoá công tác'); }
+  try{ batKq_(await api('ctDelete',[id]), 1, 'xoá'); await ctReload_(); toast('Đã xoá công tác'); }
   catch(e){ toast('Lỗi: '+e.message); }
 }
 async function ctDuyetBulk_(on){
   var ids=ptSelRows_().map(function(r){ var c=ctOf_(r.a); return c&&c.id; }).filter(Boolean);
   if(!ids.length){ toast('Chỉ duyệt được công tác đã lưu trong cơ sở dữ liệu'); return; }
-  try{ await api('ctDuyet',ids,!!on); S._spSel={}; await ctReload_(); toast((on?'Đã duyệt ':'Đã bỏ duyệt ')+ids.length+' công tác'); }
+  try{ var nD=batKq_(await api('ctDuyet',ids,!!on), ids.length, 'đổi trạng thái duyệt'); S._spSel={}; await ctReload_(); toast((on?'Đã duyệt ':'Đã bỏ duyệt ')+(nD||ids.length)+' công tác'); }
   catch(e){ toast('Lỗi: '+e.message); }
 }
 // Sửa hàng loạt: đổi 1 trường cho mọi công tác đang chọn (giống bảng sản phẩm)
@@ -9756,7 +9778,7 @@ async function ctDeleteBulk_(){
   var ids=ptSelRows_().map(function(r){ var c=ctOf_(r.a); return c&&c.id; }).filter(Boolean);
   if(!ids.length){ toast('Chỉ xoá được công tác đã lưu trong cơ sở dữ liệu'); return; }
   if(!await xacNhan_('Xoá '+ids.length+' công tác khỏi cơ sở dữ liệu?')) return;
-  try{ await api('ctDelete',ids); S._spSel={}; await ctReload_(); toast('Đã xoá '+ids.length+' công tác'); }
+  try{ var nX=batKq_(await api('ctDelete',ids), ids.length, 'xoá'); S._spSel={}; await ctReload_(); toast('Đã xoá '+(nX||ids.length)+' công tác'); }
   catch(e){ toast('Lỗi: '+e.message); }
 }
 /* ═══ FORM NHẬP / SỬA CÔNG TÁC (dùng chung cho popup Sửa và tab Nhập dữ liệu) ═══ */
@@ -12944,7 +12966,7 @@ function mhSetDxAll(gi,v){
   var p=Math.max(0,Math.min(100,Number(v)||0));
   g.items.forEach(function(l){
     var ex=Object.assign({}, l.extra||{}); if(p) ex.dxGiam=p; else delete ex.dxGiam;
-    l.extra=ex; api('updateLine',l.lineId,{extra:ex}).catch(function(){});
+    l.extra=ex; api('updateLine',l.lineId,{extra:ex}).catch(function(e){ luuLoi_(e,'đề xuất giảm giá'); });
   });
   renderMuahang();
 }
