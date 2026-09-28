@@ -649,7 +649,8 @@ function sideGet_(){ try{ return localStorage.getItem('qs_sideOff')==='1'; }catc
 function sideApply_(){
   var g=document.getElementById('bocGrid'), off=sideGet_(); if(g) g.classList.toggle('nocat', off);
   var b=document.getElementById('sideTog');
-  if(b){ b.classList.toggle('on', off); b.title=off?'Hiện panel sản phẩm':'Ẩn panel sản phẩm — bảng rộng hơn'; }
+  if(b){ b.classList.toggle('on', off); b.title=off?'Hiện lại panel sản phẩm bên trái':'Thu gọn panel sản phẩm — bảng rộng hơn'; }
+  if(typeof qbRightSync_==='function') qbRightSync_();   // panel ẩn -> hàng công cụ thêm nút Bộ lọc / Yêu thích
   tkBarsSync_();                      // bề ngang bảng vừa đổi -> kéo thanh & nút xoá về đúng mép
 }
 function sideToggle_(){ try{ localStorage.setItem('qs_sideOff', sideGet_()?'0':'1'); }catch(e){} sideApply_(); }
@@ -4291,15 +4292,10 @@ function tkToolsSync_(){
     +qbBtn_('qbHist',QB_IC.hist,'Vừa thêm vào bảng — xem lại / thêm lại','qbHistPop_(event)',false)
     +qbBtn_('qbRepl',QB_IC.repl,'Tìm & thay trong bảng (Ctrl+F)','openFindReplace()',false)
     +qbBtn_('qbGia',QB_IC.gia,giaSyncTitle_(),'giaSyncRun_()',false,giaLechN_())
-    +'</span><span class="tk-tsep"></span><span class="tk-tgrp">'   // nhóm 2: cách hiển thị bảng — ghi rõ chữ, 3 nút không trùng nghĩa
-    +tkTBtn_('qbSide',QB_IC.panel,'Panel SP',side?'Hiện lại panel sản phẩm bên trái':'Ẩn panel sản phẩm — bảng rộng hơn','sideToggle_();qbRightSync_()',!side)
-    +tkTBtn_('qbFit',QB_IC.fit,'Vừa khung',tkFitOn_()?'Đang co cột vừa khung — bấm để trả về bề rộng đã đặt (có kéo ngang)':'Co cột cho vừa bề ngang khung, hết kéo ngang','tkFitToggle_()',tkFitOn_())
-    +tkTBtn_('qbFull',QB_IC.full,'Toàn màn hình',tkFullOn_()?'Thoát toàn màn hình (Esc)':'Chỉ còn bảng, chiếm cả màn hình','tkFullToggle_()',tkFullOn_())
+    +'</span><span class="tk-tsep"></span><span class="tk-tgrp">'   // nhóm 2: cách hiển thị bảng
+    +qbBtn_('qbFit',QB_IC.fit,tkFitOn_()?'Đang co cột vừa khung — bấm để trả về bề rộng đã đặt (có kéo ngang)':'Co cột cho vừa bề ngang khung, hết kéo ngang','tkFitToggle_()',tkFitOn_())
+    +qbBtn_('qbFull',QB_IC.full,tkFullOn_()?'Thoát toàn màn hình (Esc)':'Chỉ còn bảng, chiếm cả màn hình','tkFullToggle_()',tkFullOn_())
     +'</span>';
-}
-/* nút có chữ — nhóm hiển thị chỉ nhìn icon thì đoán không ra */
-function tkTBtn_(id, ic, nhan, tip, js, on){
-  return '<button class="tk-tbtn'+(on?' on':'')+'" id="'+id+'" title="'+esc(tip)+'" onclick="'+js+'">'+ic+'<span>'+esc(nhan)+'</span></button>';
 }
 /* ═══ CHIP BẬT / TẮT TỪNG KHỐI — thu gọn thêm khi cần chỗ cho bảng ═══ */
 var FOLD_CHIPS=[['pcard','Dự án'],['totals','Tổng tiền'],['tools','Công cụ'],['cols','Chip cột']];

@@ -5941,13 +5941,9 @@ body.fold-tools #tkToolBox .tk-toolhr{display:none}
 body.fold-tools #tkToolBox #tkColsHr{border-bottom:none}
 body.fold-tools.fold-cols #v-boc #tkToolBox{display:none}      /* tắt cả hai -> bỏ hẳn khối 2 */
 body.fold-totals #v-boc .tk-panel .tk-totals{display:none}
-/* nhóm "hiển thị": nút có chữ cho dễ hiểu (icon không thôi hay bị đoán nhầm) */
-.tk-tbtn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border:1px solid #e3e8ee;border-radius:8px;background:#fff;
-  font:inherit;font-size:11.5px;font-weight:600;color:#6b7684;cursor:pointer;white-space:nowrap}
-.tk-tbtn svg{width:15px;height:15px;flex:none}
-.tk-tbtn:hover{border-color:#c9d2dc;color:var(--ink,#1c2735)}
-.tk-tbtn.on{border-color:#cfe0ff;background:#f2f7ff;color:#1d4ed8}
-@media(max-width:1280px){ .tk-tbtn span{display:none} .tk-tbtn{padding:0 8px} }
+/* nút thu gọn panel sản phẩm ở GÓC TRÁI khối Hạng mục — to và rõ hơn, đang ẩn thì sáng xanh */
+#v-boc .side-tog{width:32px;height:32px;border:1px solid #d7dde4;border-radius:8px;background:#fff}
+#v-boc .side-tog:hover{border-color:var(--blue);color:var(--blue);background:#f7faff}
 /* toàn màn hình: vẫn giữ hàng công cụ (tìm & thay, vừa 1 màn hình, thoát…), chỉ bỏ hàng chọn cột */
 body.tkfull #tkToolBox{display:block!important;margin:0 0 6px}
 body.tkfull #tkToolBox #tkColsHr,body.tkfull #tkToolBox .colchips{display:none}
