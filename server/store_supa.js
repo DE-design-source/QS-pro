@@ -1482,6 +1482,7 @@ module.exports = {
   DB_LABEL2COL,
   getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, getDashboard, getQuote, importParse, importCommit, uploadFile,
   savePurchaseOrder, getPurchaseOrders, getProjData, setProjData,
+  nganhCua_, MUC_NGANH,
   saveDeXuat, getDeXuatList, dxHead_, dxItem_,
   ctGetHistory
 };

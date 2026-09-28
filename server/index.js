@@ -338,6 +338,14 @@ const BAO_CAO_ACTION = 'bao_cao_nhap_sp';
       đặt vào biến REPORT_WEBHOOK. Chưa đặt thì vẫn dùng chung webhook cũ như trước. */
 const REPORT_WEBHOOK = process.env.REPORT_WEBHOOK || PURCHASE_WEBHOOK;
 function s_(v) { return String(v == null ? '' : v).trim(); }
+/* Ngành hàng của 1 sản phẩm — dùng CHUNG cách nhận diện với app (cột nganh, không có thì
+   đoán theo tên hạng mục): 'den' | 'vs' | 'son'. */
+function tenNganh_(r) {
+  try {
+    const ng = store.nganhCua_ ? store.nganhCua_(r.nganh, r.hang_muc) : 'den';
+    return (store.MUC_NGANH && store.MUC_NGANH[ng]) || 'Thiết bị đèn';
+  } catch (e) { return 'Thiết bị đèn'; }
+}
 
 // Mốc bắt đầu của kỳ này = 8h sáng của ngày gửi TRƯỚC đó trong lịch
 function moBaoCaoTruoc_(vnNow) {
@@ -355,7 +363,7 @@ function ddmm_(vnDate) {
 }
 /* Thẻ báo cáo cho MỘT công ty. Bám đúng ngôn ngữ thẻ Lark app đang dùng ở
    yêu cầu mua hàng: khối div/fields cho số liệu, column_set cho bảng.        */
-function buildSpReportCard(tenCongTy, bang, tk, tuVN, denVN, khuyet) {
+function buildSpReportCard(tenCongTy, bang, tk, tuVN, denVN, khuyet, nganh) {
   const el = [];
   const md = function (t, align) { const e = { tag: 'markdown', content: t }; if (align) e.text_align = align; return e; };
   const col = function (t, w, align) {
@@ -377,6 +385,22 @@ function buildSpReportCard(tenCongTy, bang, tk, tuVN, denVN, khuyet) {
     fld('Kỳ báo cáo', ddmm_(tuVN) + ' → ' + ddmm_(denVN))
   ] });
   el.push({ tag: 'hr' });
+  // ── Bảng: NGÀNH HÀNG · SP · NCC ── (nhập của kỳ này rơi vào ngành nào)
+  if (nganh && nganh.length) {
+    el.push(rowset([
+      col('**NGÀNH HÀNG**', 6),
+      col('**SP**', 2, 'right'),
+      col('**NCC**', 2, 'right')
+    ], 'grey'));
+    nganh.forEach(function (n) {
+      el.push(rowset([
+        col(n.ten, 6),
+        col('**' + n.soSP + '**', 2, 'right'),
+        col(String(n.soNCC), 2, 'right')
+      ]));
+    });
+    el.push({ tag: 'hr' });
+  }
   // ── Bảng: người nhập · phòng ban · ngày · SP · NCC ──
   el.push(rowset([
     col('**NGƯỜI NHẬP**', 5),
@@ -432,7 +456,7 @@ async function baoCaoNhapSP(actor, opts) {
   const tuIso = vnToUtcIso_(tuVN);
   let rows = [];
   try {
-    rows = await supa.select('db_san_pham', { select: 'id,ma_sp,ten_sp,nha_cung_cap,nguoi_tao,ngay_tao,cong_ty_id',
+    rows = await supa.select('db_san_pham', { select: 'id,ma_sp,ten_sp,nha_cung_cap,nguoi_tao,ngay_tao,cong_ty_id,nganh,hang_muc',
       filter: 'ngay_tao=gte.' + encodeURIComponent(tuIso), order: 'ngay_tao.desc', limit: 5000, noScope: true });
   } catch (e) { return { sent: false, count: 0, message: 'Không đọc được danh sách sản phẩm: ' + e.message }; }
   if (!rows.length) return { sent: false, count: 0, message: 'Kỳ này chưa có sản phẩm mới' };
@@ -464,7 +488,7 @@ async function baoCaoNhapSP(actor, opts) {
   for (const ctKey of Object.keys(theoCT)) {
     const ds = theoCT[ctKey];
     const ten = ctKey ? (tenCty[ctKey] || 'Công ty khác') : 'Chưa gắn công ty';
-    const bag = {}, nccAll = {};
+    const bag = {}, nccAll = {}, bagNg = {};
     ds.forEach(function (r) {
       const key = s_(r.nguoi_tao), ncc = s_(r.nha_cung_cap), ngay = ngayVN_(r.ngay_tao);
       if (ncc) nccAll[ncc] = 1;
@@ -472,7 +496,15 @@ async function baoCaoNhapSP(actor, opts) {
       bag[key].ngay[ngay] = bag[key].ngay[ngay] || { soSP: 0, ncc: {} };
       bag[key].ngay[ngay].soSP++;
       if (ncc) { bag[key].ngay[ngay].ncc[ncc] = 1; bag[key].ncc[ncc] = 1; }
+      // ── theo NGÀNH HÀNG (anh Hưng xin thêm): đèn / vệ sinh / sơn nước ──
+      const ngTen = tenNganh_(r);
+      bagNg[ngTen] = bagNg[ngTen] || { soSP: 0, ncc: {} };
+      bagNg[ngTen].soSP++;
+      if (ncc) bagNg[ngTen].ncc[ncc] = 1;
     });
+    const theoNganh = Object.keys(bagNg).map(function (k) {
+      return { ten: k, soSP: bagNg[k].soSP, soNCC: Object.keys(bagNg[k].ncc).length };
+    }).sort(function (a, b) { return b.soSP - a.soSP; });
     const bang = Object.keys(bag).map(function (k) {
       const b = bag[k], info = uInfo[k.toLowerCase()] || {};
       const ngay = Object.keys(b.ngay).map(function (d) {
@@ -488,7 +520,7 @@ async function baoCaoNhapSP(actor, opts) {
     };
     // SP cũ không rõ người nhập: chỉ cảnh báo trên thẻ của đúng công ty đó
     const khuyet = khuyetAll.filter(function (r) { return String(r.cong_ty_id || '') === ctKey; }).length;
-    ketQua.push({ congTy: ten, ctKey: ctKey, bang: bang, tk: tk, khuyet: khuyet });
+    ketQua.push({ congTy: ten, ctKey: ctKey, bang: bang, tk: tk, khuyet: khuyet, nganh: theoNganh });
   }
   ketQua.sort(function (a, b) { return b.tk.tongSP - a.tk.tongSP; });
 
@@ -500,7 +532,7 @@ async function baoCaoNhapSP(actor, opts) {
     try {
       const r = await fetch(REPORT_WEBHOOK, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(buildSpReportCard(q.congTy, q.bang, q.tk, tuVN, vn, q.khuyet))
+        body: JSON.stringify(buildSpReportCard(q.congTy, q.bang, q.tk, tuVN, vn, q.khuyet, q.nganh))
       });
       let d = null; try { d = await r.json(); } catch (e) { d = null; }
       ok = !!(d && (d.code === 0 || d.StatusCode === 0 || d.msg === 'success'));
