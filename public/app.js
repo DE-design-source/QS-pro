@@ -4261,12 +4261,9 @@ function qbRightSync_(){
   var box=document.getElementById('qbRight'); if(!box) return;
   var nf=(typeof activeFiltCount_==='function')?activeFiltCount_():0;
   var side=(typeof sideGet_==='function')&&sideGet_(), zen=(typeof foldAllOn_==='function')&&foldAllOn_();
-  if(qbTab_()!=='boc'){                 // Chi phí / Dự án: vừa thêm · mở rộng bảng · xuất báo giá
-    box.innerHTML=qbBtn_('qbHist',QB_IC.hist,'Vừa thêm vào bảng — xem lại / thêm lại','qbHistPop_(event)',false)
-      +'<span class="qb-sep"></span>'
-      +qbBtn_('qbGia',QB_IC.gia,giaSyncTitle_(),'giaSyncRun_()',false,giaLechN_())
-      +qbBtn_('qbZen',QB_IC.zen,zen?'Mở lại các khối đầu trang':'Mở rộng bảng — thu gọn băng dự án và chip cột','foldAll_()',zen)
-      +'<button class="qb-exp" onclick="showTab(\'export\')" title="Sang tab Xuất báo giá">'+icon('download',14)+' Xuất báo giá</button>';
+  if(qbTab_()!=='boc'){                 // Chi phí / Dự án / Mua hàng: nút công cụ đã nằm trong khối "Công cụ bảng"
+    box.innerHTML='<button class="qb-exp" onclick="showTab(\'export\')" title="Sang tab Xuất báo giá">'+icon('download',14)+' Xuất báo giá</button>';
+    foldChipsSync_();
     return;
   }
   // Bóc tách: các nút công cụ đã gom xuống khối "Công cụ bảng" ngay trên bảng -> thanh trên chỉ còn ô tìm + Xuất báo giá
@@ -4300,14 +4297,17 @@ function tkToolsSync_(){
 /* ═══ NÚT TRÒN THU GỌN Ở GÓC PHẢI TỪNG KHỐI ═══
    Khối Hạng mục gập dải tổng tiền, khối Công cụ gập cả hàng nút + chọn cột.
    Nhớ theo máy (qs_fold) như các khối gập khác.                                  */
-var FOLD_BTNS=[['totals','foldTotalsBtn','dải tổng tiền'],['tools','foldToolsBtn','khối công cụ']];
+function blkFold_(key, ten, id){
+  return '<button class="blk-fold" data-fold="'+key+'" data-ten="'+esc(ten)+'"'+(id?(' id="'+id+'"'):'')
+    +' onclick="foldToggle_(\''+key+'\')" title="Thu gọn '+esc(ten)+'">'
+    +'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>';
+}
 function foldChipsSync_(){
   var v=foldGet_();
-  FOLD_BTNS.forEach(function(b){
-    var el=document.getElementById(b[1]); if(!el) return;
-    var gap=!!v[b[0]];
+  document.querySelectorAll('.blk-fold[data-fold]').forEach(function(el){
+    var gap=!!v[el.dataset.fold];
     el.classList.toggle('on', gap);
-    el.title=(gap?'Mở lại ':'Thu gọn ')+b[2];
+    el.title=(gap?'Mở lại ':'Thu gọn ')+(el.dataset.ten||'khối này');
   });
 }
 function qbGoNode_(code){
@@ -4429,9 +4429,12 @@ function qbHistPop_(e){
         +'<button class="qb-plus" title="Thêm 1 số lượng" onclick="qbHistPlus_(\''+escJs_(l.lineId)+'\')">+1</button></div>';
     }).join(''):'<div class="qb-none">Bảng chưa có dòng nào.</div>');
   document.body.appendChild(pop);
-  var b=document.getElementById('qbHist'); if(b){ var r=b.getBoundingClientRect(), w=pop.offsetWidth||320;
+  // neo vào ĐÚNG nút vừa bấm (thanh công cụ Bóc tách: #qbHist · Chi phí / Dự án: #pgHist)
+  var b=(e&&e.currentTarget&&e.currentTarget.getBoundingClientRect)?e.currentTarget
+        :(document.getElementById('qbHist')||document.getElementById('pgHist'));
+  if(b){ var r=b.getBoundingClientRect(), w=pop.offsetWidth||320;
     pop.style.top=(r.bottom+6)+'px'; pop.style.left=Math.max(8,Math.min(r.right-w, window.innerWidth-w-10))+'px'; }
-  setTimeout(function(){ document.addEventListener('mousedown',function h(ev){ if(ev.target.closest('#qbHistPop')||ev.target.closest('#qbHist')) return;
+  setTimeout(function(){ document.addEventListener('mousedown',function h(ev){ if(ev.target.closest('#qbHistPop')||ev.target.closest('#qbHist')||ev.target.closest('#pgHist')) return;
     var p=document.getElementById('qbHistPop'); if(p) p.remove(); document.removeEventListener('mousedown',h); }); },0);
 }
 function qbHistGo_(id){ var p=document.getElementById('qbHistPop'); if(p) p.remove(); qbGotoRow_(id); }
@@ -6137,10 +6140,10 @@ function colPopOutside_(e){
     colPopClose_(id);
   });
 }
-function cpColBar_(){
+function cpColBar_(loc){
   var on=CP_KEYS.filter(function(k){ return S.cpCols[k]; }).length;
   return pgColFrame_(on, CP_KEYS.length, '<div class="colchips cp-colchips">'
-    +CP_KEYS.map(function(k){ return '<span class="chip'+(S.cpCols[k]?' on':'')+'" onclick="cpToggle(\''+k+'\')">'+esc(cpLabel_(k))+'</span>'; }).join('')+'</div>', 'cpColAll_', 'cp', 'cpPresetBtn');
+    +CP_KEYS.map(function(k){ return '<span class="chip'+(S.cpCols[k]?' on':'')+'" onclick="cpToggle(\''+k+'\')">'+esc(cpLabel_(k))+'</span>'; }).join('')+'</div>', 'cpColAll_', 'cp', 'cpPresetBtn', loc);
 }
 function cpColPop_(e){ if(e&&e.stopPropagation) e.stopPropagation();
   colPopMake_('cpColPop','cpColBtn','Cột hiển thị',CP_KEYS,function(k){ return !!S.cpCols[k]; },'cpToggle','cpColAll_'); }
@@ -6167,7 +6170,8 @@ function pgHeadRow_(id, n, stats){
   return '<div class="pgh"><span class="pgh-lbl">Hạng mục đã bóc</span><span class="count">['+pad2(n)+']</span>'
     +'<button class="tree-btn hm-open pgh-pill'+(hm?' on':'')+'" id="'+id+'" onclick="hmPop_(event,\''+id+'\')" title="Chọn hạng mục">'
       +'<span class="hm-name">'+esc(hm?(hm+'.'+(nodeName(hm)||hm)):'Tất cả hạng mục')+'</span><span class="cnt">['+pad2(n)+']</span></button>'
-    +'<div class="tkt-row pgh-tot">'+stats+'</div></div>';
+    +'<span class="pgh-sp"></span>'
+    +'<div class="tkt-row pgh-tot">'+stats+'</div>'+blkFold_('totals','dải tổng tiền')+'</div>';
 }
 /* Khung bảng + 2 thanh kéo (ngang · dọc) tự vẽ — dùng chung cho Chi phí và Dự án.
    Thanh cuộn gốc của trình duyệt bị ẩn toàn app, không có 2 thanh này là bảng rộng
@@ -6182,14 +6186,27 @@ function pgTblHost_(id, inner){
 function pgBarsBind_(id){
   hbarBind_('#'+id+'Host .tbl-wrap', id+'HBar', id+'HThumb');
   vbarBind_('#'+id+'Host','.tbl-wrap', id+'VBar', id+'VThumb');
+  foldChipsSync_();                 // nút thu gọn vừa được vẽ lại -> trả đúng trạng thái đang nhớ
 }
 function pgStat_(lb,val,cls){ return '<span class="tkt-i '+(cls||'')+'"><i>'+lb+'</i><b>'+val+'</b></span>'; }
 function pgVat_(){ var v=Number(S.cur&&S.cur.vat)||0;
   return '<i>VAT <input class="tkt-vat" type="number" step="any" min="0" value="'+v+'" onchange="pgSetVat_(this.value)" title="Thuế VAT (%)">%</i>'; }
 function pgSetVat_(v){ setVat(v); refreshActiveTab_(); }
 // Khung "Cột hiển thị" gập / mở (chung trạng thái với Bóc tách) + bật nhanh tất cả / cơ bản
-function pgColFrame_(on,total,chips,fnAll,csKey,btnId){
-  return '<div class="pg-cols"><div class="tk-frame-hr">'
+/* Nút công cụ của bảng — Chi phí / Dự án dùng chung, giống khối "Công cụ bảng" bên Bóc tách */
+function pgToolsHtml_(){
+  return '<div class="tk-toolrow"><span class="tk-tgrp">'
+    +qbBtn_('pgHist',QB_IC.hist,'Vừa thêm vào bảng — xem lại / thêm lại','qbHistPop_(event)',false)
+    +qbBtn_('pgGia',QB_IC.gia,giaSyncTitle_(),'giaSyncRun_()',false,giaLechN_())
+    +'</span></div>';
+}
+/* Khối 2 của Chi phí / Dự án: hàng công cụ · hàng lọc-tìm riêng của tab (loc) · hàng chọn cột.
+   Cả khối gập lại bằng nút tròn ở góc phải, y như bên Bóc tách.                        */
+function pgColFrame_(on,total,chips,fnAll,csKey,btnId,loc){
+  return '<div class="pg-cols">'
+    +'<div class="tk-frame-hr tk-toolhr"><span class="tk-frame-h">Công cụ bảng</span>'+pgToolsHtml_()+blkFold_('tools','khối công cụ')+'</div>'
+    +(loc||'')
+    +'<div class="tk-frame-hr">'
       +'<button class="tk-frame-h fold-h" onclick="foldToggle_(\'cols\')" title="Ẩn / hiện các chip cột">Cột hiển thị <b>'+on+'/'+total+'</b><i class="fold-ic"></i></button>'
       +(csKey?csQuickBtn_(csKey,btnId):'')
       +'<button class="pg-q" onclick="'+fnAll+'(1)">Hiện tất cả</button><button class="pg-q" onclick="'+fnAll+'(0)">Cột cơ bản</button></div>'
@@ -6383,12 +6400,12 @@ function cpToolbar_(rows, scope){
     +'<input id="cpQ" value="'+esc(S._cpQ||'')+'" placeholder="Tìm tên · mã · thương hiệu · phòng…" oninput="cpSetQ(this.value)">'
     +((S._cpQ||'')?'<button class="cp-x" title="Xoá tìm kiếm" onclick="cpSetQ(\'\')">✕</button>':'')+'</div>';
   var ket=(S._cpQ||S._cpFlt)?('<span class="cp-found">'+rows.length+' / '+scope.length+' dòng</span>'):'';
-  return '<div class="cp-bar">'+tim+loc+ket+'<span style="flex:1"></span>'
+  // hàng tìm / lọc nằm GỌN TRONG khối "Công cụ bảng" -> tab chỉ còn 3 khối rõ ràng
+  var bar='<div class="cp-bar">'+tim+loc+ket+'<span style="flex:1"></span>'
     +'<button class="btn ghost sm'+(S._cpGroup?' on':'')+'" onclick="cpToggleGroup()" title="Gom các dòng theo hạng mục và cộng tổng từng nhóm">'
       +icon('layers',14)+' Gom theo hạng mục</button>'
-    +'</div>'
-    +cpColBar_()
-    +(cpLnBulkHien_()?cpLnQuick_():'');
+    +'</div>';
+  return cpColBar_(bar)+(cpLnBulkHien_()?cpLnQuick_():'');
 }
 /* ---------- bảng ---------- */
 function cpAlign_(k){
@@ -6658,6 +6675,7 @@ function renderMuahang(){
   box.innerHTML=statbar+hmPTNote_()+hmLacNote_(lines.length)+'<div class="imp-layout"><div class="mhcol">'+cards+'</div>'
     +'<div class="mhside">'+mhSummary(S._mhGroups,vatPct,grand)+mhDxPanel_()+'</div></div>';
   if(S._mhDxDA!==S.cur.maDA) mhLoadDx_();
+  foldChipsSync_();
 }
 function mhToggle(gi){ var g=(S._mhGroups||[])[gi]; if(!g) return; S._mhSel=S._mhSel||{}; S._mhSel[g.ncc]=!(S._mhSel[g.ncc]!==false); renderMuahang(); }
 function mhOrderOf(g){

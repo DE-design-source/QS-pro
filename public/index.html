@@ -5948,6 +5948,28 @@ body.tkfull #tkToolBox{display:block!important;margin:0 0 6px}
 body.tkfull #tkToolBox #tkColsHr,body.tkfull #tkToolBox .colchips{display:none}
 body.tkfull #tkToolBox .tk-toolhr{border-bottom:none;padding:6px 12px}
 @media(max-width:1120px){ #v-boc .tk-panel{gap:8px} }
+
+/* ════════ 22. CHI PHÍ · DỰ ÁN · MUA HÀNG — cùng 3 khối như Bóc tách ════════ */
+.pgh .blk-fold{margin-left:10px}
+.pgh-sp{flex:1}                       /* khoảng đệm cố định -> nút thu gọn luôn sát góc phải kể cả khi đã gập tổng tiền */
+.pgh .pgh-tot{margin-left:0}
+body.fold-totals .pgh-tot{display:none}
+.pg-cols{padding:0}
+.pg-cols>.tk-frame-hr{padding:9px 14px;border-bottom:1px solid #eef1f4}
+.pg-cols>.tk-frame-hr:last-of-type{border-bottom:none}
+.pg-cols .tk-toolhr .tk-frame-h{flex:1;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6b7684}
+.pg-cols .cp-bar{margin:0;padding:9px 14px;border-bottom:1px solid #eef1f4}
+.pg-cols .colchips{margin:0!important;padding:0 14px 10px}
+body.fold-tools .pg-cols .tk-toolrow,
+body.fold-tools .pg-cols .cp-bar,
+body.fold-tools .pg-cols>.tk-frame-hr:not(.tk-toolhr),
+body.fold-tools .pg-cols .colchips{display:none}
+body.fold-tools .pg-cols .tk-toolhr{border-bottom:none}
+/* khối 3: khung quanh bảng */
+#v-chiphi .pg-tblhost,#v-duan .pg-tblhost{margin-top:10px;padding:0 0 4px;border:1px solid #dfe5ec;border-radius:12px;background:#fff}
+#v-chiphi .pg-tblhost .dbcard,#v-duan .pg-tblhost .dbcard{border:none;border-radius:12px 12px 0 0;box-shadow:none;background:none}
+#v-chiphi .pg-tblhost .tk-hbar,#v-duan .pg-tblhost .tk-hbar{margin:6px 40px 2px 10px}
+.pgh,.pg-cols{border-color:#dfe5ec;box-shadow:0 1px 2px rgba(16,40,70,.04)}
 </style>
 
 <!-- ===== TOP NAV ===== -->
