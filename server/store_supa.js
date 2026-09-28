@@ -240,6 +240,8 @@ async function updateProject(maDA, fields) {
 async function deleteProject(maDA) {
   await supa.remove('db_bao_gia', supa.eq('ma_du_an', maDA));
   await supa.remove('khai_toan', supa.eq('ma_da', maDA));
+  // dữ liệu rời của dự án (phần thô · diện tích · VAT) — trước đây bỏ quên nên nằm lại vĩnh viễn
+  try { await supa.remove('du_an_data', supa.eq('ma_da', maDA)); } catch (e) { /* chưa có bảng */ }
   await supa.remove('du_an', supa.eq('ma_da', maDA));
   return { ok: true };
 }
@@ -271,6 +273,14 @@ async function duplicateProject(maDA, opts) {
       await supa.insert('khai_toan', crows);
     }
   } catch (e) { /* best-effort */ }
+  // copy dữ liệu rời của dự án (bảng phần thô · diện tích · VAT phần thô)
+  try {
+    const ds = await supa.select('du_an_data', { select: '*', filter: supa.eq('ma_da', maDA), limit: 50 });
+    if (ds.length) {
+      const rows = ds.map(function (r) { const o = Object.assign({}, r); o.ma_da = newMa; o.cap_nhat = nowIso(); return o; });
+      await supa.insert('du_an_data', rows);
+    }
+  } catch (e) { /* chưa có bảng du_an_data -> bỏ qua */ }
   return projToObj(proj);
 }
 
@@ -525,6 +535,11 @@ async function deleteDbProduct(actor, key) {
   // Xoá ĐÚNG dòng đã tra được. Trước đây key là mã thì xoá theo ma_sp -> mất CẢ NHÓM
   // biến thể dùng chung mã, dù người dùng chỉ bấm xoá một biến thể.
   await supa.remove('db_san_pham', supa.eq('id', cur.id)); _cacheClear_();
+  // Dọn liên kết trỏ tới sản phẩm vừa xoá — trước đây để lại nên combo còn hiện
+  // "sản phẩm đi kèm" đã biến mất, và mục yêu thích vẫn đếm nó.
+  try { await supa.remove('sp_combo', supa.eq('sp_id', cur.id)); } catch (e) {}
+  try { await supa.remove('sp_combo', supa.eq('sp_kem_id', cur.id)); } catch (e) {}
+  try { await supa.remove('sp_yeu_thich', supa.eq('sp_id', cur.id)); } catch (e) {}
   if (cur) {
     try {
       await supa.insert('db_san_pham_history', { ma_sp: s(cur.ma_sp), field: 'XOÁ SẢN PHẨM',
@@ -1011,6 +1026,9 @@ function daDataCamQuyen_(e) {
   return /42501|permission denied|row-level security/i.test(m);
 }
 const DA_DATA_HD = 'Bảng du_an_data chưa được cấp quyền ghi — vào Supabase SQL Editor chạy lại db/du_an_data.sql (tắt RLS + grant) rồi thử lại.';
+// Khoá "dùng chung cả công ty" (ptInfo) phải kèm id công ty: khoá chính của bảng là
+// (ma_da, khoa) nên nếu mọi công ty cùng ghi '__cty' thì công ty này ghi đè công ty kia.
+function ctyKey_() { try { return '__cty:' + (tenant.tenantId() || '0'); } catch (e) { return '__cty:0'; } }
 async function getProjData(maDA) {
   maDA = s(maDA).trim(); if (!maDA) return {};
   const out = {};
@@ -1018,12 +1036,14 @@ async function getProjData(maDA) {
     try { return await supa.select('du_an_data', { select: 'khoa,gia_tri', filter: supa.eq('ma_da', ma), limit: 50 }) || []; }
     catch (e) { if (daDataThieuBang_(e) || daDataCamQuyen_(e)) return []; throw e; }   // chưa cài xong bảng -> coi như chưa có dữ liệu, app vẫn chạy
   }
-  (await lay('__cty')).forEach(function (r) { out[s(r.khoa)] = r.gia_tri; });   // dùng chung công ty (ptInfo)
-  (await lay(maDA)).forEach(function (r) { out[s(r.khoa)] = r.gia_tri; });      // của riêng dự án -> đè lên
+  (await lay('__cty')).forEach(function (r) { out[s(r.khoa)] = r.gia_tri; });     // bản cũ chưa tách công ty
+  (await lay(ctyKey_())).forEach(function (r) { out[s(r.khoa)] = r.gia_tri; });   // dùng chung trong công ty (ptInfo)
+  (await lay(maDA)).forEach(function (r) { out[s(r.khoa)] = r.gia_tri; });        // của riêng dự án -> đè lên
   return out;
 }
 async function setProjData(actor, maDA, khoa, giaTri) {
   maDA = s(maDA).trim(); khoa = s(khoa).trim();
+  if (maDA === '__cty') maDA = ctyKey_();        // dùng chung trong công ty -> tách theo công ty
   if (!maDA || !khoa) throw new Error('Thiếu mã dự án hoặc khoá dữ liệu');
   if (['phanTho', 'area', 'ptInfo', 'ptVat'].indexOf(khoa) < 0) throw new Error('Khoá dữ liệu không hợp lệ: ' + khoa);
   const row = { ma_da: maDA, khoa: khoa, gia_tri: (giaTri === undefined ? null : giaTri),

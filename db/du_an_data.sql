@@ -3,7 +3,8 @@
 --   · phanTho : bảng ước tính chi phí xây dựng thô + VAT của nó
 --   · area    : bảng diện tích ở tab Xuất báo giá
 --   · ptInfo  : ảnh / thông số / link tài liệu công tác do người dùng nhập
---               (dùng chung cả công ty -> lưu với ma_da = '__cty')
+--               (dùng chung TRONG MỘT CÔNG TY -> lưu với ma_da = '__cty:<id công ty>';
+--                bản đầu dùng '__cty' chung cho mọi công ty nên công ty này ghi đè công ty kia)
 --  Mỗi dòng là 1 khoá của 1 dự án. Chạy lại nhiều lần vẫn an toàn.
 -- ════════════════════════════════════════════════════════════════
 create table if not exists public.du_an_data (
