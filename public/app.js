@@ -827,8 +827,18 @@ function spGroupVariants_(list){
   });
   return out;
 }
+/* Gõ tìm trong danh mục bên trái — ô #catQ. (#fSearch là ô ẩn đời cũ, giữ để không vỡ
+   những chỗ còn đọc nó.) */
+function catTim_(v){
+  var e=document.getElementById('catQ'); if(e && e.value!==v) e.value=v;
+  var x=document.getElementById('catQX'); if(x) x.style.display=String(v||'').trim()?'':'none';
+  var h=document.getElementById('fSearch'); if(h) h.value=v||'';
+  renderCatalog();
+  if(v===''){ var e2=document.getElementById('catQ'); if(e2) e2.focus(); }
+}
 function filteredProducts(){
-  var q=(document.getElementById('fSearch').value||'').toLowerCase();
+  var qe=document.getElementById('catQ')||document.getElementById('fSearch');
+  var q=((qe&&qe.value)||'').toLowerCase().trim();
   var mn=Number(document.getElementById('fMin').value)||0, mx=Number(document.getElementById('fMax').value)||0;
   var watts=Object.keys(S.fWatt).filter(function(k){return S.fWatt[k];});
   var kels=Object.keys(S.fKelvin).filter(function(k){return S.fKelvin[k];});
@@ -849,7 +859,7 @@ function filteredProducts(){
     if(hmucSel.length && hmucSel.indexOf(prodHmuc_(p))<0) return false;
     if(usedKeys){ var uk=String(p.ma||p.ten||'').toLowerCase().trim(); if(!usedKeys[uk]) return false; }
     if(S.fBrand && p.thuongHieu!==S.fBrand) return false;
-    if(q && (p.ten+' '+p.ma+' '+p.thuongHieu).toLowerCase().indexOf(q)<0) return false;
+    if(q && (p.ten+' '+p.ma+' '+p.thuongHieu+' '+(p.ncc||'')+' '+(p.nhom||'')).toLowerCase().indexOf(q)<0) return false;
     if(dk){ var muc=String(p.muc||'').toLowerCase().trim(); if(muc.indexOf(dk)<0) return false; }   // lọc theo cột "Mục" của Lark
     var pr=Number(p.donGiaBan)||0; if(mn&&pr<mn) return false; if(mx&&pr>mx) return false;
     if(isVS) return vsFltMatch_(p);   // đề mục vệ sinh: lọc theo thông số vệ sinh, KHÔNG áp bộ lọc đèn còn sót
@@ -1796,25 +1806,48 @@ async function spExportXlsx(){
 }
 function spSetView(v){ S._spView=v; S._spPage=1; spViewTabs_(); spFilter(); }
 // Duyệt / bỏ duyệt 1 sản phẩm
+/* Dòng đại diện của một NHÓM BIẾN THỂ (cùng mã, khác màu/kích thước) đứng cho cả nhóm:
+   duyệt dòng đó phải duyệt CẢ NHÓM. Trước đây chỉ duyệt đúng 1 biến thể nên bảng vẫn hiện
+   "Chưa duyệt" — bấm mấy lần cũng không thấy đổi. */
+function spNhomBienThe_(p){
+  var k=spVarKey_(p); if(!k) return [p];
+  var ds=(S.products||[]).filter(function(x){ return spVarKey_(x)===k; });
+  return ds.length?ds:[p];
+}
 async function spDuyet(i,approve){
   var p=(S._spList||[])[i]; if(!p) return;
+  var nhom=spNhomBienThe_(p).filter(function(x){ return !x.spChung; });
+  if(!nhom.length){ toast('Sản phẩm kho chung Dezon — không đổi được trạng thái duyệt'); return; }
   try{
-    await api('setSpDuyet',[String(p.recordId||p.ma)],!!approve);
-    p.daDuyet=!!approve; p.nguoiDuyet=approve?((S.me||{}).username||''):''; p.ngayDuyet=approve?new Date().toISOString():'';
+    var r=await api('setSpDuyet', nhom.map(function(x){ return String(x.recordId||x.ma); }), !!approve);
+    if(r && r.errors && r.errors.length){       // máy chủ nuốt lỗi từng dòng -> phải nói ra
+      await baoLoi_({ title:'Không đổi được trạng thái duyệt', ok:'Đã hiểu',
+        note:'Sản phẩm "'+(p.ten||p.ma)+'":\n'+String(r.errors[0].error||'').slice(0,160) });
+      return;
+    }
+    nhom.forEach(function(x){ x.daDuyet=!!approve; x.nguoiDuyet=approve?((S.me||{}).username||''):''; x.ngayDuyet=approve?new Date().toISOString():''; });
     spViewTabs_(); spFilter();
-    toast(approve?'Đã duyệt "'+(p.ten||p.ma)+'"':'Đã bỏ duyệt "'+(p.ten||p.ma)+'"');
+    toast((approve?'Đã duyệt "':'Đã bỏ duyệt "')+(p.ten||p.ma)+'"'+(nhom.length>1?(' · '+nhom.length+' biến thể'):''));
   }catch(e){ toast('Lỗi: '+e.message.slice(0,110)); }
 }
 // Duyệt hàng loạt các sản phẩm đang chọn
 async function spDuyetBulk(approve){
-  var prods=spSelProds_().filter(function(p){ return !p.spChung; });
+  var chon=spSelProds_(), ds=[], da={};
+  chon.forEach(function(p){ spNhomBienThe_(p).forEach(function(x){      // chọn dòng đại diện = chọn cả nhóm biến thể
+    var k=String(x.recordId||x.ma||''); if(k && !da[k]){ da[k]=1; ds.push(x); } }); });
+  var prods=ds.filter(function(p){ return !p.spChung; });
   if(!prods.length){ toast('Chưa chọn sản phẩm nào'); return; }
   try{
     var r=await api('setSpDuyet',prods.map(function(p){ return String(p.recordId||p.ma); }),!!approve);
     prods.forEach(function(p){ p.daDuyet=!!approve; });
     S.products=await api('getProducts')||S.products;
     spViewTabs_(); spFilter();
-    toast((approve?'Đã duyệt ':'Đã bỏ duyệt ')+(r.ok||0)+' sản phẩm');
+    if(r && r.errors && r.errors.length){
+      await baoLoi_({ title:(r.errors.length)+' sản phẩm không đổi được trạng thái', ok:'Đã hiểu',
+        note:(approve?'Đã duyệt ':'Đã bỏ duyệt ')+(r.ok||0)+' sản phẩm. Các sản phẩm dưới đây thì không:',
+        dong:r.errors.map(function(e){ return e.key+' — '+e.error; }) });
+    } else toast((approve?'Đã duyệt ':'Đã bỏ duyệt ')+(r.ok||0)+' sản phẩm'
+      +((r.ok===0)?' (các sản phẩm chọn đã ở đúng trạng thái)':''));
   }catch(e){ toast('Lỗi: '+e.message.slice(0,110)); }
 }
 function spEditBtnSync_(){
@@ -2344,6 +2377,7 @@ function spFltOutside(e){ var p=document.getElementById('spFltPop'), b=document.
 function spBoLocPop_(){
   if(spPTMode_()) return ptFltPop_();
   var f=S._spFilters=S._spFilters||{}; f.watt=f.watt||{}; f.kelvin=f.kelvin||{}; f.angle=f.angle||{}; f.cri=f.cri||{};
+  f.brands=f.brands||{}; f.nccs=f.nccs||{};
   var old=document.getElementById('spFltPop'); if(old) old.remove();
   function esq(s){ return esc(s).replace(/'/g,"\\'"); }
   function single(title,key,field){ var m=spSingleVals_(field||key); var keys=Object.keys(m); if(keys.length<2) return '';
@@ -2358,9 +2392,29 @@ function spBoLocPop_(){
       +keys.map(function(k){ var on=!!f[fkey][k]; var dot=opt.dot?'<i class="cdot" style="background:'+opt.dot(k)+'"></i>':'';
         return '<span class="spchip sm'+(on?' on':'')+'" onclick="spFltSpec(\''+fkey+'\',\''+esq(k)+'\')">'+dot+esc(k)+'</span>'; }).join('')
       +'</div></div>'; }
+  /* Chọn NHIỀU thương hiệu / NHIỀU nhà cung cấp cùng lúc, có ô gõ để lọc nhanh khi danh
+     sách dài (trước đây thương hiệu chỉ chọn được 1, nhà cung cấp thì không lọc được). */
+  function nhieu(title,field,fkey,ph){
+    var m=spSingleVals_(field), keys=Object.keys(m); if(!keys.length) return '';
+    keys.sort(function(a,b){ return a.localeCompare(b,'vi'); });
+    var o=f[fkey]||{}, daChon=keys.filter(function(k){ return o[k]; }).length;
+    return '<div class="fgrp"><div class="fgt">'+title
+        +(daChon?('<span class="fgt-n">'+daChon+' đã chọn</span>'
+          +'<button class="fgt-x" onclick="spFltNhieuXoa_(\''+fkey+'\')">Bỏ chọn</button>'):'')+'</div>'
+      +(keys.length>8?('<input class="fsearch" id="fs_'+fkey+'" placeholder="'+esc(ph||'Gõ để tìm…')+'"'
+          +' value="'+esc((S._fltQ||{})[fkey]||'')+'" oninput="spFltTim_(\''+fkey+'\',this.value)">'):'')
+      +'<div class="fchips">'
+      +keys.filter(function(k){ var q=spNorm_((S._fltQ||{})[fkey]||''); return !q || spNorm_(k).indexOf(q)>=0; })
+        .slice(0,60)
+        .map(function(k){ return '<span class="spchip sm'+(o[k]?' on':'')+'" onclick="spFltSpec(\''+fkey+'\',\''+escJs_(k)+'\')">'
+          +esc(k)+'<i>'+m[k]+'</i></span>'; }).join('')
+      +'</div></div>';
+  }
   var pop=document.createElement('div'); pop.className='fltpop spfltpop'; pop.id='spFltPop';
   pop.innerHTML='<div class="fhdr">Bộ lọc</div>'
     +'<div class="fgrp fgrp-sel">'+(S._spFselHtml||'')+'</div>'
+    +nhieu('Thương hiệu','thuongHieu','brands','Gõ tên thương hiệu…')
+    +nhieu('Nhà cung cấp / nhà phân phối','ncc','nccs','Gõ tên nhà cung cấp…')
     +multi('Công suất','congSuat','watt')
     +multi('Nhiệt độ màu','nhietDo','kelvin',{dot:ctColor})
     +multi('Góc chiếu','gocChieu','angle')
@@ -2380,7 +2434,13 @@ function spFltSet(key,val){ S._spFilters=S._spFilters||{}; if(!val) delete S._sp
 function spFltSpec(fkey,val){ S._spFilters=S._spFilters||{}; var o=S._spFilters[fkey]=S._spFilters[fkey]||{}; if(o[val]) delete o[val]; else o[val]=1; spAfterFlt_(); spBoLocPop_(); }
 function spFltPrice(){ var f=S._spFilters=S._spFilters||{}; var mn=document.getElementById('spFMin'), mx=document.getElementById('spFMax');
   f.min=mn?(Number(mn.value)||0):0; f.max=mx?(Number(mx.value)||0):0; spAfterFlt_(); }
-function spFltReset(){ S._spFilters={watt:{},kelvin:{},angle:{},cri:{}}; spAfterFlt_(); spBoLocPop_(); }
+function spFltReset(){ S._spFilters={watt:{},kelvin:{},angle:{},cri:{},brands:{},nccs:{}}; S._fltQ={}; spAfterFlt_(); spBoLocPop_(); }
+function spFltNhieuXoa_(fkey){ S._spFilters=S._spFilters||{}; S._spFilters[fkey]={}; spAfterFlt_(); spBoLocPop_(); }
+function spFltTim_(fkey,v){
+  S._fltQ=S._fltQ||{}; S._fltQ[fkey]=v;
+  spBoLocPop_();
+  var e=document.getElementById('fs_'+fkey); if(e){ e.focus(); e.setSelectionRange(e.value.length,e.value.length); }
+}
 function spSpecs_(p){ var out=[];
   if(nganhCuaSP_(p)==='vs'){                       // thiết bị vệ sinh: chip theo thông số của ngành
     vsChip_(p).forEach(function(x,k){ out.push('<span class="spec'+(k===2?' k':'')+'">'+esc(x[1])+'</span>'); });
@@ -2807,7 +2867,11 @@ function spDataList_(){
     if(S._spView==='fav' && !p.yeuThich) return false;
     if(S._spView==='chua' && p.daDuyet) return false;
     if(S._spView==='da' && !p.daDuyet) return false;
-    if(f.brand && p.thuongHieu!==f.brand) return false;
+    if(f.brand && p.thuongHieu!==f.brand) return false;              // lọc 1 thương hiệu (chip cũ ở thanh trên)
+    var bs=f.brands||{}, bk=Object.keys(bs).filter(function(k){ return bs[k]; });
+    if(bk.length && bk.indexOf(String(p.thuongHieu||''))<0) return false;
+    var ns=f.nccs||{}, nk=Object.keys(ns).filter(function(k){ return ns[k]; });
+    if(nk.length && nk.indexOf(String(p.ncc||''))<0) return false;
     if(f.hangMuc && p.hangMuc!==f.hangMuc) return false;
     var pr=Number(p.donGiaBan)||0; if(mn&&pr<mn) return false; if(mx&&pr>mx) return false;
     if(watts.length){ var pw=splitVals(p.congSuat); if(!pw.some(function(x){return watts.indexOf(x)>=0;})) return false; }
@@ -3529,12 +3593,26 @@ async function spEditSave(luuVaDuyet){
     catch(e){ toast('Lưu sản phẩm đi kèm lỗi: '+e.message.slice(0,90)); }
     try{ await api('setBienThe', S._spEditMa, (S._bt||[]).map(function(x){ return {id:x.recordId}; })); }
     catch(e){ toast('Lưu nhóm biến thể lỗi: '+e.message.slice(0,90)); }
-    if(r&&r.updated){
-      if(luuVaDuyet){ try{ await api('setSpDuyet',[String(S._spEditMa)],true); }catch(e){ toast('Lưu xong nhưng duyệt lỗi: '+e.message.slice(0,80)); } }
-      toast('Đã cập nhật '+r.changes+' trường'+(luuVaDuyet?' và duyệt':(r.daDuyet===false?' — sản phẩm chuyển về Chưa duyệt':'')));
-      S.products=await api('getProducts')||S.products; spViewTabs_(); spFilter(); if(typeof renderCatalog==='function') renderCatalog();
-      impSyncSession_(S._spEditMa); spEditClose(); }
-    else { toast('Đã lưu sản phẩm đi kèm'); S.products=await api('getProducts')||S.products; spEditClose(); }
+    /* BẤM "Lưu và duyệt" thì PHẢI duyệt, kể cả khi không có trường nào đổi.
+       Trước đây bước duyệt nằm trong nhánh r.updated: mở sản phẩm ra, không sửa gì (hoặc chỉ
+       đổi combo / biến thể) rồi bấm Lưu và duyệt -> máy chủ trả updated:false -> nhảy sang
+       nhánh "Đã lưu sản phẩm đi kèm" và KHÔNG duyệt. Bấm mấy lần cũng vậy. */
+    var duyetLoi='';
+    if(luuVaDuyet){
+      try{
+        var rd=await api('setSpDuyet',[String(S._spEditMa)],true);
+        if(rd && rd.errors && rd.errors.length) duyetLoi=String(rd.errors[0].error||'').slice(0,120);
+        else if(rd && !rd.ok) duyetLoi='Máy chủ không đổi được trạng thái duyệt';
+      }catch(e){ duyetLoi=e.message.slice(0,120); }
+    }
+    if(duyetLoi) await baoLoi_({ title:'Chưa duyệt được sản phẩm', ok:'Đã hiểu',
+      note:(r&&r.updated?('Đã lưu '+r.changes+' trường nhưng bước duyệt lỗi:\n'):'Không lưu được trạng thái duyệt:\n')+duyetLoi });
+    else toast((r&&r.updated)
+      ? ('Đã cập nhật '+r.changes+' trường'+(luuVaDuyet?' và duyệt':(r.daDuyet===false?' — sản phẩm chuyển về Chưa duyệt':'')))
+      : (luuVaDuyet?'Đã duyệt sản phẩm':'Không có trường nào thay đổi'));
+    S.products=await api('getProducts')||S.products; spViewTabs_(); spFilter();
+    if(typeof renderCatalog==='function') renderCatalog();
+    impSyncSession_(S._spEditMa); spEditClose();
   }catch(e){ toast('Lỗi lưu: '+e.message); lai(); }
 }
 async function spDelete(i){
@@ -7785,15 +7863,25 @@ function upMainInner(){
     +'<div class="up-paste">'+icon('copy',11)+' hoặc dán ảnh bằng Ctrl+V</div>';
 }
 // Ảnh đại diện hiện thành THUMBNAIL Ở GÓC — cùng kiểu, cùng vị trí với ảnh chi tiết
+/* Ảnh VỪA TẢI LÊN cũng bấm xem lớn được (khung xem ảnh đã có sẵn, trước chỉ dùng ở bảng
+   bóc tách và panel chi tiết) — tải xong là kiểm tra lại được ngay, lật qua lại các ảnh. */
+function upXemAnh_(k){
+  var ds=[S._imgMain].concat(S._imgList||[]).filter(Boolean).map(imgUrlOf);
+  if(!ds.length) return;
+  S._pdImgs=ds; imgPop_(ds[Math.max(0,Math.min(ds.length-1, Number(k)||0))]);
+}
 function upMainGridInner_(){
   if(!S._imgMain) return '';
   return '<div class="upthumb is-main"><img src="'+esc(imgUrlOf(S._imgMain))+'" onerror="upImgErr_(this)" onload="upImgOk_(this)">'
+    +'<button class="upzoom" title="Xem ảnh lớn" onclick="event.stopPropagation();upXemAnh_(0)">'+icon('search',12)+'</button>'
     +'<button class="upx" title="Xoá ảnh" onclick="event.stopPropagation();upRemove(\'main\')">✕</button>'
     +'<span class="upnum main">'+icon('star',10)+'</span></div>';
 }
 function upGridInner(){
+  var coMain=S._imgMain?1:0;
   return (S._imgList||[]).map(function(v,i){
     return '<div class="upthumb"><img src="'+esc(imgUrlOf(v))+'" onerror="this.style.visibility=\'hidden\'">'
+      +'<button class="upzoom" title="Xem ảnh lớn" onclick="event.stopPropagation();upXemAnh_('+(i+coMain)+')">'+icon('search',12)+'</button>'
       +'<button class="upx" title="Xoá" onclick="event.stopPropagation();upRemove(\'more\','+i+')">✕</button>'
       +'<button class="upstar" title="Đặt làm hình đại diện" onclick="event.stopPropagation();upMakeMain_('+i+')">'+icon('star',11)+'</button>'
       +'<span class="upnum">'+(i+1)+'</span></div>';
