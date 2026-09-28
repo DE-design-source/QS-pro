@@ -516,9 +516,8 @@ function showTab(tab){
   ['boc','project','dash','chiphi','export','import','sanpham','muahang','duan','admin','congty'].forEach(function(v){
     var el=document.getElementById('v-'+v); if(el) el.classList.toggle('on',v===tab);
   });
-  // Ẩn breadcrumb + banner dự án ở các trang KHÔNG thuộc 1 dự án cụ thể
+  // Ẩn banner dự án ở các trang KHÔNG thuộc 1 dự án cụ thể
   var noProj = (tab==='admin' || tab==='sanpham' || tab==='import' || tab==='congty');
-  var crumb=document.querySelector('.crumb'); if(crumb) crumb.style.display = noProj?'none':'';
   // Dashboard đã có banner "Đang làm việc" + KPI riêng -> ẩn banner #pcard để khỏi TRÙNG LẶP
   var pcard=document.getElementById('pcard'); if(pcard) pcard.style.display = (noProj||tab==='dash')?'none':'';
   // Bóc tách không có hàm render riêng trong showTab nên trước đây đổi dự án ở tab khác
@@ -569,7 +568,7 @@ function refreshActiveTab_(){
   else if(tab==='sanpham'){ renderSpProjPanel_&&renderSpProjPanel_(); }
 }
 async function renderProjSel(){
-  var s=document.getElementById('projSel');
+  var s=document.getElementById('projSel'); if(!s) return;
   s.innerHTML = S.projects.length ? S.projects.map(function(p){
     return '<option value="'+esc(p.maDA)+'"'+(S.cur&&S.cur.maDA===p.maDA?' selected':'')+'>'+esc(p.ten)+'</option>';
   }).join('') : '<option>— Chưa có dự án —</option>';
@@ -583,8 +582,6 @@ async function renderProjSel(){
 }
 function renderCard(){
   var p=S.cur||{};
-  document.getElementById('cbName').textContent=p.ten||'—';
-  document.getElementById('cbStatus').textContent=(p.trangThai||'Bản nháp');
   document.getElementById('pcCode').textContent=p.maDA||'—';
   document.getElementById('pcName').textContent=(p.ten||'Chưa chọn dự án');
   var dz=document.getElementById('pcDezon');
@@ -5382,7 +5379,9 @@ function syncActGutter(){
        là đè lên cột cuối cùng và chen với thanh cuộn dọc — chính chỗ nhìn rất xấu. */
   var tRight=t.getBoundingClientRect().right, trong=wr.left+wrap.clientWidth;
   var edge = (tRight <= trong-2) ? tRight : (wr.left + wrap.offsetWidth);
-  g.style.left=(edge - nb.left + 2)+'px'; g.style.right='auto';
+  // không để dãy nút tràn ra ngoài màn hình (màn hẹp: lề phải không đủ chỗ -> sinh thanh cuộn ngang cả trang)
+  var gw=g.offsetWidth||30, xMax=window.innerWidth-gw-4;
+  g.style.left=(Math.min(edge+2, xMax) - nb.left)+'px'; g.style.right='auto';
   // gutter bắt đầu DƯỚI header dính, kết thúc TRÊN thanh cuộn ngang -> overflow:hidden che phần thừa
   g.style.top=(wr.top - nb.top + headH)+'px'; g.style.height=Math.max(0, wr.height - headH - hsb)+'px';
   var rows=document.querySelectorAll('#tkTable tr.drow');

@@ -158,6 +158,14 @@ a{color:inherit}
 .pcard .pc-edit{font-size:11px;color:#9fc0e3;font-weight:600;opacity:0;transition:.12s}
 .pcard:hover .pc-edit{opacity:1}
 .pcard .pc-kpi{display:flex;gap:20px;flex-wrap:wrap}
+/* ô đổi dự án + Tạo dự án — trước nằm ở hàng breadcrumb riêng, nay gộp vào băng dự án cho gọn */
+.pcard .pc-proj{display:flex;align-items:center;gap:8px;margin-left:auto;cursor:default}
+.pcard .pc-proj .select{height:32px;max-width:230px;border-radius:9px;border:1px solid #ffffff33;background:#ffffff14;color:#fff;
+  font:inherit;font-size:12.5px;font-weight:600;padding:0 8px}
+.pcard .pc-proj .select option{color:#1c2735}
+.pcard .pc-proj .select:hover{border-color:#ffffff66}
+body.fold-pcard .pcard .pc-proj .select{height:28px;max-width:190px}   /* băng thu gọn: ô chọn dự án vẫn còn, chỉ nhỏ lại */
+@media(max-width:1100px){ .pcard .pc-proj{margin-left:0} .pcard .pc-proj .select{max-width:160px} }
 .pcard .pck{display:flex;flex-direction:column;gap:1px;padding-left:20px;border-left:1px solid #ffffff26}
 .pcard .pck-v{font-size:15px;font-weight:800;letter-spacing:-.2px}
 .pcard .pck-l{font-size:10.5px;color:#a9c2dd;text-transform:uppercase;letter-spacing:.3px}
@@ -6058,14 +6066,6 @@ body.fold-tools .pg-cols.pg-tools .tk-toolhr{border-bottom:none}
 
 <div class="wrap">
   <!-- breadcrumb -->
-  <div class="crumb">
-    <div class="path">Dự án/ <b id="cbName">—</b></div>
-    <span class="tag" id="cbStatus">Bản nháp</span>
-    <div class="sp"></div>
-    <span style="color:var(--muted)">Đang bóc</span>
-    <select class="select" id="projSel"></select>
-    <button class="btn blue" onclick="openCreate()">Tạo dự án +</button>
-  </div>
 
   <!-- project card (gọn) -->
   <div class="pcard" id="pcard" onclick="S.cur&&projInfoModal(S.cur.maDA)" title="Bấm để sửa thông tin dự án">
@@ -6081,6 +6081,10 @@ body.fold-tools .pg-cols.pg-tools .tk-toolhr{border-bottom:none}
     </div>
     <div class="pc-kpi" id="pcKpi"></div>
     <div class="pc-prog"><div class="pct" id="pcPct">0%</div><div class="bar"><i id="pcBar"></i></div></div>
+    <div class="pc-proj" onclick="event.stopPropagation()" title="Đổi dự án đang làm việc">
+      <select class="select" id="projSel"></select>
+      <button class="btn blue sm" onclick="openCreate()">Tạo dự án +</button>
+    </div>
     <button class="fold-btn pc-fold" onclick="event.stopPropagation();foldToggle_('pcard')" title="Thu gọn / mở băng thông tin dự án" aria-label="Thu gọn băng dự án"><i class="fold-ic"></i></button>
   </div>
 
