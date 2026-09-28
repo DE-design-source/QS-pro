@@ -2232,7 +2232,7 @@ function spColPopRender_(){
         var lock=c[0]==='ten'||c[0]==='stt', act=spColOn_(c[0]);
         return '<label class="colpop-i'+(lock?' lock':'')+'">'
           +'<input type="checkbox" '+(act?'checked':'')+(lock?' disabled':'')+' onchange="spColToggle(\''+c[0]+'\')">'
-          +'<span>'+esc(c[1])+'</span>'+(lock?'<i>luôn hiện</i>':'')+'</label>';
+          +'<span>'+esc(c[1])+'</span>'+(lock?'<i>Luôn hiện</i>':'')+'</label>';
       }).join(''):'<div class="colpop-empty">Không có cột nào khớp</div>')+'</div>'
     +'<div class="colpop-f"><button class="btn ghost xs" onclick="spResetCols_()">Đặt lại thứ tự & độ rộng</button>'
       +'<button class="btn ghost xs" onclick="spColAll_(1)">Hiện tất cả</button>'
@@ -2494,7 +2494,7 @@ function spPTCols_(){
     ['ten','Nội dung công việc','sp-name',function(r){
       var da=ptDaCo_(r.sec,r.a);
       return '<b>'+esc(r.ten)+'</b>'+(da?'<span class="ptl-da" title="Đã có trong bảng khái toán của dự án đang chọn">✓ đã thêm</span>':'')
-        +'<span class="sp-code">'+esc((r.r?r.r+'. ':'')+r.nhom)+(r.daSua?'<span class="ptl-sua" title="Đơn giá / thông số đã được sửa lại">đã sửa</span>':'')+'</span>'; }],
+        +'<span class="sp-code">'+esc((r.r?r.r+'. ':'')+r.nhom)+(r.daSua?'<span class="ptl-sua" title="Đơn giá / thông số đã được sửa lại">Đã sửa</span>':'')+'</span>'; }],
     ['loai','Loại báo giá','ct',function(r){
       return '<span class="ptl-tag '+esc(r.loai)+'" title="'+esc(ptLoaiLabel_(r.loai))+'">'+esc(ptLoaiNgan_(r.loai))+'</span>'; }],
     ['nhom','Hạng mục','',function(r){
@@ -4095,8 +4095,8 @@ function lnDiffChip_(l){
   return '<button class="ln-upd'+(coGia?' gia':'')+'" title="Sản phẩm này đã được cập nhật trong danh mục ('
       +esc(d.ds.map(function(x){ return x.lb; }).join(', '))+') — bấm để cập nhật dòng"'
     +' onclick="event.stopPropagation();lnUpdPop_(event,\''+l.lineId+'\')">'
-    +'<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v5h-5"/></svg>'
-    +'<span>'+(coGia?'giá mới':'bản mới')+'</span></button>';
+    +'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v5h-5"/></svg>'
+    +'</button>';                                  // chỉ icon cho gọn — nội dung đã ghi đủ trong tooltip
 }
 function lnUpdClose_(){ var e=document.getElementById('lnUpdPop'); if(e) e.remove();
   document.removeEventListener('mousedown',lnUpdOutside_); }
@@ -4278,12 +4278,11 @@ function tkToolsSync_(){
   var box=document.getElementById('tkToolRow'); if(!box) return;
   var nf=(typeof activeFiltCount_==='function')?activeFiltCount_():0;
   var side=(typeof sideGet_==='function')&&sideGet_(), zen=(typeof foldAllOn_==='function')&&foldAllOn_();
-  // Lọc / yêu thích là việc của DANH MỤC bên trái (đã có nút ở đầu panel đó) -> chỉ đưa vào đây
-  // khi panel trái đang ẩn, để không có 2 nút giống nhau trên cùng màn hình.
-  var g1 = side ? ('<span class="tk-tgrp">'
+  // Bộ lọc / yêu thích LUÔN có trên thanh công cụ (panel trái đang mở hay đã thu gọn đều bấm được)
+  var g1 = '<span class="tk-tgrp">'
       +qbBtn_('qbFilt',QB_IC.filter,'Bộ lọc sản phẩm'+(nf?(' — đang lọc '+nf):''),'qbFilter_(event)',nf>0,nf||'')
       +qbBtn_('qbFav',icon('heart',16),S.fFav?'Đang chỉ hiện sản phẩm yêu thích — bấm để bỏ':'Chỉ hiện sản phẩm yêu thích','catFavToggle();qbRightSync_()',!!S.fFav)
-    +'</span><span class="tk-tsep"></span>') : '';
+    +'</span><span class="tk-tsep"></span>';
   box.innerHTML=g1
     +'<span class="tk-tgrp">'                                  // nhóm 1: nội dung bảng
     +qbBtn_('qbHist',QB_IC.hist,'Vừa thêm vào bảng — xem lại / thêm lại','qbHistPop_(event)',false)
@@ -6203,7 +6202,7 @@ function pgToolsHtml_(){
 /* Khối 2 của Chi phí / Dự án: hàng công cụ · hàng lọc-tìm riêng của tab (loc) · hàng chọn cột.
    Cả khối gập lại bằng nút tròn ở góc phải, y như bên Bóc tách.                        */
 function pgColFrame_(on,total,chips,fnAll,csKey,btnId,loc){
-  return '<div class="pg-cols">'
+  return '<div class="pg-cols pg-tools">'
     +'<div class="tk-frame-hr tk-toolhr"><span class="tk-frame-h">Công cụ bảng</span>'+pgToolsHtml_()+blkFold_('tools','khối công cụ')+'</div>'
     +(loc||'')
     +'<div class="tk-frame-hr">'
@@ -7516,7 +7515,7 @@ function drawBaogia(){
     +'<div class="dbcard-b">'+coverInner+'</div></div>';
   // ---- Card 4: bảng báo giá chi tiết ----
   var card4='<div class="dbcard"><div class="dbcard-h"><span class="dbcard-ic">'+icon('list',18)+'</span><h3>Bảng báo giá chi tiết</h3>'
-    +'<span class="hint" style="margin-left:2px">đồng bộ Bóc tách</span><span style="flex:1"></span>'
+    +'<span class="hint" style="margin-left:2px">Đồng bộ Bóc tách</span><span style="flex:1"></span>'
     +bgNodeBtn_('bgNodeBtn2')
     +'<button class="btn green sm" onclick="doExport(\'xlsx\',this)">'+icon('download',14)+' Excel</button>'
     +'<button class="btn red sm" onclick="printDoc()">'+icon('download',14)+' PDF / In</button></div>'
@@ -9795,7 +9794,7 @@ function ctFormHtml_(c, pre){
 
     /* ── Bước 3 ── */
     +'<section class="ctf-step"><header><span class="ctf-no">3</span>'
-      +'<div><h4>Mô tả thêm <span class="opt">không bắt buộc</span></h4><p>Ghi chú, thông số, ảnh — hiện ở panel thông tin công tác</p></div></header>'
+      +'<div><h4>Mô tả thêm <span class="opt">Không bắt buộc</span></h4><p>Ghi chú, thông số, ảnh — hiện ở panel thông tin công tác</p></div></header>'
       +'<div class="ctf-grid">'
         +ta(6,'Gc','Ghi chú · điều kiện áp dụng',c.gc,'VD: Đơn giá cho trên 20m/tim cọc (tùy địa chất khu vực)',3)
         +ta(6,'PhamVi','Phạm vi ứng dụng — mỗi dòng 1 ý',c.phamVi,'Nhà phố, biệt thự có tầng hầm\nMặt bằng đủ rộng cho xe cẩu',3)
@@ -10037,11 +10036,11 @@ function ctPrev_(pre){
   var m=v('Mode')||'item', dvt=v('Dvt')||'—';
   var dg=ptMoneyN_(v('Dg')), nt=ptMoneyN_(v('Dgnt'));
   var kl = m==='item' ? (ptN(v('Kl'))||0) : (ptN(v('Dt'))*(ptN(v('Hs'))||0));
-  if(m==='none'){ box.innerHTML='<span class="pv-l">Dòng trong bảng</span><b>chỉ liệt kê, không tính tiền</b>'; return; }
+  if(m==='none'){ box.innerHTML='<span class="pv-l">Dòng trong bảng</span><b>Chỉ liệt kê, không tính tiền</b>'; return; }
   var tt=Math.round(kl*dg), ln=Math.round(kl*(dg-nt)), pct=dg?((dg-nt)/dg*100):0;
   box.innerHTML='<span class="pv-l">Dòng trong bảng</span>'
     +'<b>'+ptQty(kl||0)+' '+esc(dvt)+' × '+money(dg)+' đ = '+money(tt)+' đ</b>'
-    +(nt?'<i class="'+(ln<0?'neg':'')+'">lợi nhuận '+money(ln)+' đ · '+pct.toFixed(1)+'%</i>':'<i>chưa nhập giá vốn</i>');
+    +(nt?'<i class="'+(ln<0?'neg':'')+'">Lợi nhuận '+money(ln)+' đ · '+pct.toFixed(1)+'%</i>':'<i>Chưa nhập giá vốn</i>');
 }
 function ctFormInit_(pre){
   ctImgRender_(pre); ctGrpRender_(pre); ctModeSync_(pre); ctGiaSync_(pre,'');
@@ -12849,9 +12848,13 @@ function bgCtlBar_(){
     +'<button class="btn green sm" onclick="doExport(\'xlsx\',this)">'+icon('download',15)+' Xuất Excel</button>'
     +'<button class="btn red sm" onclick="printDoc()">'+icon('download',15)+' Xuất PDF / In</button>'
   +'</div>'
-  +'<div class="colchips bg-colchips"><span class="cp-collbl">Cột xuất</span>'
-    +csQuickBtn_('tk','bgPresetBtn')
-    +COLS.map(function(c){ return '<span class="chip'+(S.cols[c[0]]?' on':'')+'" onclick="toggleCol(\''+c[0]+'\')">'+esc(c[1])+'</span>'; }).join('')
+  // khối "Cột xuất" đóng khung giống Bóc tách / Chi phí / Dự án cho cả app đồng bộ
+  +'<div class="pg-cols bg-cols">'
+    +'<div class="tk-frame-hr"><span class="tk-frame-h">Cột xuất <b>'+COLS.filter(function(c){ return S.cols[c[0]]; }).length+'/'+COLS.length+'</b></span>'
+      +csQuickBtn_('tk','bgPresetBtn')+blkFold_('cols','chip cột xuất')+'</div>'
+    +'<div class="colchips bg-colchips">'
+      +COLS.map(function(c){ return '<span class="chip'+(S.cols[c[0]]?' on':'')+'" onclick="toggleCol(\''+c[0]+'\')">'+esc(c[1])+'</span>'; }).join('')
+    +'</div>'
   +'</div>';
 }
 

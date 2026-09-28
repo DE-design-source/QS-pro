@@ -690,9 +690,8 @@ table.tk textarea.cin{min-height:34px;resize:vertical;line-height:1.3;white-spac
 .gsx-v .moi{font-weight:700;color:var(--c1)}
 .gsx-f{display:flex;gap:8px;align-items:center;padding:12px 18px;border-top:1px solid var(--ln);background:var(--bg2)}
 /* ═══ Dấu "sản phẩm đã được cập nhật trong danh mục" trên từng dòng bảng ═══ */
-.ln-upd{flex:none;display:inline-flex;align-items:center;gap:3px;height:20px;padding:0 7px;cursor:pointer;
-  border:1px solid #f0c98a;background:#fff7e9;color:#a8620a;border-radius:999px;
-  font:inherit;font-size:10px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+.ln-upd{flex:none;display:inline-grid;place-items:center;width:20px;height:20px;padding:0;cursor:pointer;
+  border:1px solid #f0c98a;background:#fff7e9;color:#a8620a;border-radius:50%;font:inherit}
 .ln-upd:hover{background:#ffedd0;border-color:#e0a950}
 .ln-upd.gia{border-color:#f3b4b4;background:#fff1f1;color:#b8323b}
 .ln-upd.gia:hover{background:#ffe3e3;border-color:#e08a8a}
@@ -5960,16 +5959,21 @@ body.fold-totals .pgh-tot{display:none}
 .pg-cols .tk-toolhr .tk-frame-h{flex:1;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6b7684}
 .pg-cols .cp-bar{margin:0;padding:9px 14px;border-bottom:1px solid #eef1f4}
 .pg-cols .colchips{margin:0!important;padding:0 14px 10px}
-body.fold-tools .pg-cols .tk-toolrow,
-body.fold-tools .pg-cols .cp-bar,
-body.fold-tools .pg-cols>.tk-frame-hr:not(.tk-toolhr),
-body.fold-tools .pg-cols .colchips{display:none}
-body.fold-tools .pg-cols .tk-toolhr{border-bottom:none}
+body.fold-tools .pg-cols.pg-tools .tk-toolrow,
+body.fold-tools .pg-cols.pg-tools .cp-bar,
+body.fold-tools .pg-cols.pg-tools>.tk-frame-hr:not(.tk-toolhr),
+body.fold-tools .pg-cols.pg-tools .colchips{display:none}
+body.fold-tools .pg-cols.pg-tools .tk-toolhr{border-bottom:none}
 /* khối 3: khung quanh bảng */
 #v-chiphi .pg-tblhost,#v-duan .pg-tblhost{margin-top:10px;padding:0 0 4px;border:1px solid #dfe5ec;border-radius:12px;background:#fff}
 #v-chiphi .pg-tblhost .dbcard,#v-duan .pg-tblhost .dbcard{border:none;border-radius:12px 12px 0 0;box-shadow:none;background:none}
 #v-chiphi .pg-tblhost .tk-hbar,#v-duan .pg-tblhost .tk-hbar{margin:6px 40px 2px 10px}
 .pgh,.pg-cols{border-color:#dfe5ec;box-shadow:0 1px 2px rgba(16,40,70,.04)}
+/* Xuất báo giá: khối "Cột xuất" cùng kiểu khung với các tab khác */
+.bg-cols{margin:2px 0 10px}
+.bg-cols .tk-frame-h{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6b7684}
+.bg-cols .tk-frame-h b{font-weight:600;color:#9aa4b0;letter-spacing:0}
+.bg-cols .tk-frame-hr .blk-fold{margin-left:auto}
 </style>
 
 <!-- ===== TOP NAV ===== -->
