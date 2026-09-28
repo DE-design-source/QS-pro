@@ -247,13 +247,13 @@ async function ctxDupRow(lineId){ closePop();
   var l=S.lines.filter(function(x){return x.lineId===lineId;})[0]; if(!l||!S.cur) return;
   var prod=Object.assign({},l); delete prod.lineId; delete prod.recordId;
   try{ var nl=await api('addLine', S.cur.maDA, prod, Number(l.soLuong)||1);
-    S.lines.push(nl); renderTable(); renderCard(); renderActGutter&&renderActGutter(); toast('Đã nhân bản dòng'); }
+    S.lines.push(nl); veLaiSauSua_(); renderActGutter&&renderActGutter(); toast('Đã nhân bản dòng'); }
   catch(e){ toast('Lỗi nhân bản: '+e.message); } }
 async function ctxInsertRow(lineId){ closePop();
   if(!S.cur) return;
   var l=S.lines.filter(function(x){return x.lineId===lineId;})[0];
   try{ var nl=await api('addBlankLine', S.cur.maDA, S.node, l?(l.tang||''):'');
-    S.lines.push(nl); renderTable(); renderCard(); renderActGutter&&renderActGutter(); toast('Đã chèn dòng trống'); }
+    S.lines.push(nl); veLaiSauSua_(); renderActGutter&&renderActGutter(); toast('Đã chèn dòng trống'); }
   catch(e){ toast('Lỗi chèn dòng: '+e.message); } }
 async function ctxFillDown(){ var c=S._ctxCell; closePop(); if(!c||!c.key) return;
   var rows=S.lines.filter(function(l){ return l.nhom===S.node && l.lineId!==c.lineId; });
@@ -521,6 +521,9 @@ function showTab(tab){
   var crumb=document.querySelector('.crumb'); if(crumb) crumb.style.display = noProj?'none':'';
   // Dashboard đã có banner "Đang làm việc" + KPI riêng -> ẩn banner #pcard để khỏi TRÙNG LẶP
   var pcard=document.getElementById('pcard'); if(pcard) pcard.style.display = (noProj||tab==='dash')?'none':'';
+  // Bóc tách không có hàm render riêng trong showTab nên trước đây đổi dự án ở tab khác
+  // (Danh sách sản phẩm) rồi quay lại thì bảng vẫn là dòng của dự án cũ.
+  if(tab==='boc'){ try{ renderTree(); renderFloors(); renderTable(); }catch(e){} }
   if(tab==='project') renderProjects();
   if(tab==='congty') renderCongTy();
   if(tab==='dash') renderDash();
@@ -546,6 +549,15 @@ function qbMount_(tab){
 
 /* ===== PROJECT ===== */
 // Render lại tab đang mở (dùng sau khi đổi dự án/bản nháp -> UI cập nhật tức thì, không cần bấm lại tab)
+/* Sau khi DỮ LIỆU DÒNG thay đổi: vẽ lại bảng bóc tách + đúng tab đang mở.
+   Trước đây mỗi chỗ sửa tự nhớ vài tab (chỗ thì Chi phí + Bảng điều khiển, chỗ thì
+   Chi phí + Dự án) nên đứng ở tab Dự án / Mua hàng sửa hoặc xoá dòng thì bảng đang
+   xem vẫn giữ số cũ cho tới khi đổi tab. Nay mọi chỗ gọi chung một hàm.            */
+function veLaiSauSua_(){
+  try{ renderTable(); renderCard(); }catch(e){}
+  if(typeof bgVis==='function' && bgVis()){ drawBaogia(); return; }   // tab Xuất báo giá: vẽ lại tài liệu là đủ
+  refreshActiveTab_();
+}
 function refreshActiveTab_(){
   var on=[].slice.call(document.querySelectorAll('.view')).filter(function(v){ return v.classList.contains('on'); })[0];
   var tab=on?on.id.replace('v-',''):'';
@@ -1482,6 +1494,7 @@ async function spSwitchProject(maDA){
   await projDataLoad_(maDA);
   if(typeof renderProjSel==='function') renderProjSel();
   renderCard&&renderCard();
+  try{ renderTree(); renderFloors(); renderTable(); }catch(e){}   // các tab khác lấy dữ liệu dự án mới
   renderSpProjPanel_(); renderSpChips_(); spFilter();
 }
 /* ===== Thu gọn / hiện panel "Sản phẩm trong dự án" ===== */
@@ -3757,9 +3770,7 @@ async function addProdObj(p,floor,sl,node){
   return api('addLine', S.cur.maDA, prod, sl).then(function(l){
     var i=S.lines.indexOf(temp); if(i>=0) S.lines[i]=l; else S.lines.push(l);
     if(S._newLid===temp.lineId) S._newLid=l.lineId;   // dòng tạm -> dòng thật: nháy chạy tiếp, không giật
-    renderTree(); renderTable(); renderCard();
-    if(document.getElementById('v-dash').classList.contains('on')) renderDash();
-    if(bgVis()) drawBaogia();
+    renderTree(); veLaiSauSua_();
   }).catch(function(e){
     var i=S.lines.indexOf(temp); if(i>=0) S.lines.splice(i,1);
     renderTree(); renderFloors(); renderTable(); renderCard(); toast('Lỗi thêm: '+e.message);
@@ -4948,7 +4959,7 @@ function renderTable(){
 }
 function setVat(v){
   v=Number(v)||0; if(!S.cur) return;
-  S.cur.vat=v; renderTable();
+  S.cur.vat=v; veLaiSauSua_();
   api('updateProject', S.cur.maDA, {vat:v}).then(function(p){ if(p){ p.vat=v; S.cur=p; var i=S.projects.findIndex(function(x){return x.maDA===p.maDA;}); if(i>=0)S.projects[i]=p; } }).catch(function(){});
 }
 // textarea tự cao theo nội dung (xuống dòng hiện đủ, không cắt)
@@ -4985,21 +4996,16 @@ function editLine(id,fields){
   if(l){
     Object.keys(fields).forEach(function(k){ l[k]=fields[k]; });
     recalcLine_(l, fields);   // mirror calc_() ở server -> optimistic khớp, không nhảy số / không lag
-    renderTable(); renderCard();
-    if(document.getElementById('v-chiphi').classList.contains('on')) renderChiphi();
-    if(bgVis()) drawBaogia();
+    veLaiSauSua_();
   }
   api('updateLine',id,fields).then(function(u){
-    if(u){ var i=S.lines.findIndex(function(x){return x.lineId===id;}); if(i>=0) S.lines[i]=u; renderTable(); renderCard(); }
+    if(u){ var i=S.lines.findIndex(function(x){return x.lineId===id;}); if(i>=0) S.lines[i]=u; veLaiSauSua_(); }
     else {
       // Server không tìm thấy dòng (đã bị xoá ở nơi khác) -> trước đây mất im lặng, nay báo + đồng bộ lại
       S.lines=S.lines.filter(function(x){ return x.lineId!==id; });
-      renderTable(); renderCard(); renderActGutter&&renderActGutter();
+      veLaiSauSua_(); renderActGutter&&renderActGutter();
       toast('Dòng này không còn tồn tại (đã bị xoá) — đã cập nhật lại bảng');
     }
-    if(document.getElementById('v-chiphi').classList.contains('on')) renderChiphi();
-    if(document.getElementById('v-dash').classList.contains('on')) renderDash();
-    if(bgVis()) drawBaogia();
   }).catch(function(e){ toast('Lỗi sửa: '+e.message); });
 }
 
@@ -6227,7 +6233,7 @@ function pgBarsBind_(id){
 function pgStat_(lb,val,cls){ return '<span class="tkt-i '+(cls||'')+'"><i>'+lb+'</i><b>'+val+'</b></span>'; }
 function pgVat_(){ var v=Number(S.cur&&S.cur.vat)||0;
   return '<i>VAT <input class="tkt-vat" type="number" step="any" min="0" value="'+v+'" onchange="pgSetVat_(this.value)" title="Thuế VAT (%)">%</i>'; }
-function pgSetVat_(v){ setVat(v); refreshActiveTab_(); }
+function pgSetVat_(v){ setVat(v); }                 // setVat đã vẽ lại tab đang mở
 // Khung "Cột hiển thị" gập / mở (chung trạng thái với Bóc tách) + bật nhanh tất cả / cơ bản
 /* Nút công cụ của bảng — Chi phí / Dự án dùng chung, giống khối "Công cụ bảng" bên Bóc tách */
 function pgToolsHtml_(){
@@ -7524,7 +7530,7 @@ function drawBaogia(){
     box.innerHTML=sechd
       +bgCtlBar_()
       +bgDocHTML();
-    bgVpApply_(); bgVpBind_(); bgZoomApply_();
+    bgVpApply_(); bgVpBind_(); bgZoomApply_(); foldChipsSync_();   // nút thu gọn vừa vẽ lại -> trả đúng trạng thái
     return;
   }
   var comp=coverCosts(), p=S.cur||{}, q=computeQuoteLocal();
@@ -12237,10 +12243,7 @@ async function tkApplyEdits_(edits, nhan){
   if(ids.length>60 && !await xacNhan_('Thao tác này sửa '+ids.length+' dòng. Tiếp tục?')) return 0;
   ids.forEach(function(id){ var l=lineOf_(id); if(!l) return;
     Object.keys(byId[id]).forEach(function(k){ l[k]=byId[id][k]; }); recalcLine_(l,byId[id]); });
-  renderTable(); renderCard();
-  if(document.getElementById('v-chiphi').classList.contains('on')) renderChiphi();
-  if(document.getElementById('v-duan').classList.contains('on')) renderDuAn();
-  if(bgVis()) drawBaogia();
+  veLaiSauSua_();
   var loi=0;
   for(var i=0;i<ids.length;i+=6){
     await Promise.all(ids.slice(i,i+6).map(function(id){
@@ -12382,7 +12385,7 @@ async function tkBulkDup_(){
     try{ var nl=await api('addLine', S.cur.maDA, prod, Number(ls[i].soLuong)||1); S.lines.push(nl); }
     catch(e){ loi++; }
   }
-  tkClearSel(); renderTable(); renderCard();
+  tkClearSel(); veLaiSauSua_();
   toast('Đã nhân bản '+(ls.length-loi)+' dòng'+(loi?(' · '+loi+' lỗi'):''));
 }
 async function tkBulkDel_(){
@@ -12394,7 +12397,7 @@ async function tkBulkDel_(){
       return api('deleteLine',id).catch(function(){ loi++; }); }));
   }
   S.lines=S.lines.filter(function(l){ return ids.indexOf(l.lineId)<0; });
-  S._tkSel={}; renderTable(); renderCard(); renderActGutter&&renderActGutter();
+  S._tkSel={}; veLaiSauSua_(); renderActGutter&&renderActGutter();
   toast('Đã xoá '+(ids.length-loi)+' dòng'+(loi?(' · '+loi+' lỗi'):''));
 }
 
