@@ -4297,16 +4297,18 @@ function tkToolsSync_(){
     +qbBtn_('qbFull',QB_IC.full,tkFullOn_()?'Thoát toàn màn hình (Esc)':'Chỉ còn bảng, chiếm cả màn hình','tkFullToggle_()',tkFullOn_())
     +'</span>';
 }
-/* ═══ CHIP BẬT / TẮT TỪNG KHỐI — thu gọn thêm khi cần chỗ cho bảng ═══ */
-var FOLD_CHIPS=[['pcard','Dự án'],['totals','Tổng tiền'],['tools','Công cụ'],['cols','Chip cột']];
+/* ═══ NÚT TRÒN THU GỌN Ở GÓC PHẢI TỪNG KHỐI ═══
+   Khối Hạng mục gập dải tổng tiền, khối Công cụ gập cả hàng nút + chọn cột.
+   Nhớ theo máy (qs_fold) như các khối gập khác.                                  */
+var FOLD_BTNS=[['totals','foldTotalsBtn','dải tổng tiền'],['tools','foldToolsBtn','khối công cụ']];
 function foldChipsSync_(){
-  var box=document.getElementById('tkFoldChips'); if(!box) return;
   var v=foldGet_();
-  box.innerHTML='<span class="fchip-lbl">Hiện</span>'+FOLD_CHIPS.map(function(c){
-    var on=!v[c[0]];
-    return '<button class="fchip'+(on?' on':'')+'" onclick="foldToggle_(\''+c[0]+'\')"'
-      +' title="'+(on?'Đang hiện — bấm để ẩn cho gọn':'Đang ẩn — bấm để hiện lại')+'">'+esc(c[1])+'</button>';
-  }).join('');
+  FOLD_BTNS.forEach(function(b){
+    var el=document.getElementById(b[1]); if(!el) return;
+    var gap=!!v[b[0]];
+    el.classList.toggle('on', gap);
+    el.title=(gap?'Mở lại ':'Thu gọn ')+b[2];
+  });
 }
 function qbGoNode_(code){
   if(qbTab_()==='boc'){ if(code!==S.node) pickNode(code); return; }

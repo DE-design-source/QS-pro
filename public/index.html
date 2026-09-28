@@ -5929,17 +5929,15 @@ body.tkfit #tkNormal table.tk.tkfit-on td{padding-left:6px;padding-right:6px}
 #v-boc #tkNormal .tk-hbar{margin:6px 40px 2px 10px}
 #v-boc #tkNormal .floorhint:not(:empty){padding:8px 14px 0}
 #v-boc .tk-panel>#ptWrap{padding:10px 12px}
-/* chip bật/tắt từng khối — thu gọn thêm khi cần chỗ cho bảng */
-.tk-fchips{display:inline-flex;align-items:center;gap:5px;flex-wrap:wrap}
-.tk-fchips .fchip-lbl{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#a3aebb;margin-right:1px}
-.fchip{height:23px;padding:0 9px;border:1px solid #e3e8ee;border-radius:999px;background:#fff;font:inherit;font-size:11.5px;
-  font-weight:600;color:#a3aebb;cursor:pointer;white-space:nowrap;transition:border-color .12s,color .12s,background .12s}
-.fchip:hover{border-color:#c9d2dc;color:#6b7684}
-.fchip.on{border-color:#cfe0ff;background:#f2f7ff;color:#1d4ed8}
-.fchip.on:hover{border-color:#9dc0ff}
-body.fold-tools #tkToolBox .tk-toolhr{display:none}
-body.fold-tools #tkToolBox #tkColsHr{border-bottom:none}
-body.fold-tools.fold-cols #v-boc #tkToolBox{display:none}      /* tắt cả hai -> bỏ hẳn khối 2 */
+/* nút tròn thu gọn ở GÓC PHẢI mỗi khối — bấm là gập khối đó lại cho gọn */
+.blk-fold{flex:none;width:24px;height:24px;margin-left:10px;display:inline-grid;place-items:center;border:1px solid #e3e8ee;border-radius:50%;
+  background:#fff;color:#a3aebb;cursor:pointer;padding:0;transition:border-color .12s,color .12s,background .12s}
+.blk-fold svg{transform:rotate(180deg);transition:transform .16s}     /* đang mở: mũi lên = bấm để gập */
+.blk-fold:hover{border-color:#c9d2dc;color:#6b7684;background:#f7f9fb}
+.blk-fold.on{border-color:#cfe0ff;background:#f2f7ff;color:#1d4ed8}
+.blk-fold.on svg{transform:rotate(0deg)}                              /* đã gập: mũi xuống = bấm để bung */
+body.fold-tools #tkToolRow,body.fold-tools #tkColsHr,body.fold-tools #tkToolBox .colchips{display:none}
+body.fold-tools #tkToolBox .tk-toolhr{border-bottom:none}
 body.fold-totals #v-boc .tk-panel .tk-totals{display:none}
 /* nút thu gọn panel sản phẩm ở GÓC TRÁI khối Hạng mục — to và rõ hơn, đang ẩn thì sáng xanh */
 #v-boc .side-tog{width:32px;height:32px;border:1px solid #d7dde4;border-radius:8px;background:#fff}
@@ -6137,16 +6135,17 @@ body.tkfull #tkToolBox .tk-toolhr{border-bottom:none;padding:6px 12px}
             <div class="tree-pop" id="treePop" style="display:none"></div>
           </div>
           <div class="sheets" id="tkSheets"></div>
-          <div class="tk-fchips" id="tkFoldChips"></div>
           <div class="sp" style="flex:1"></div>
           <div class="tk-totals" id="tkTotals"></div>
           <span class="tk-mini" id="tkMini"></span>
+          <button class="blk-fold" id="foldTotalsBtn" onclick="foldToggle_('totals')" title="Thu gọn dải tổng tiền"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
           <button class="tk-zen" id="tkZenBtn" onclick="tkZenToggle()" title="Thu gọn khối đầu bảng cho màn hình rộng hơn" aria-label="Thu gọn khối đầu bảng"><i></i></button>
         </div>
         <!-- KHỐI 2: công cụ của bảng + chọn cột (nằm ngoài #tkNormal để Phần thô cũng dùng được) -->
         <div class="tk-frame tk-frame-cols" id="tkToolBox">
           <div class="tk-frame-hr tk-toolhr"><span class="tk-frame-h">Công cụ bảng</span>
-            <div class="tk-toolrow" id="tkToolRow"></div></div>
+            <div class="tk-toolrow" id="tkToolRow"></div>
+            <button class="blk-fold" id="foldToolsBtn" onclick="foldToggle_('tools')" title="Thu gọn khối công cụ"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button></div>
           <div class="tk-frame-hr" id="tkColsHr"><button class="tk-frame-h fold-h" onclick="foldToggle_('cols')" title="Ẩn / hiện các chip cột">Cột hiển thị <b id="tkColsN"></b><i class="fold-ic"></i></button>
             <span id="tkPresetSlot"></span></div>
           <div class="colchips" id="colChips"></div></div>
