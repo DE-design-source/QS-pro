@@ -4268,17 +4268,35 @@ function qbRightSync_(){
       +'<button class="qb-exp" onclick="showTab(\'export\')" title="Sang tab Xuất báo giá">'+icon('download',14)+' Xuất báo giá</button>';
     return;
   }
-  box.innerHTML=qbBtn_('qbFilt',QB_IC.filter,'Bộ lọc sản phẩm'+(nf?(' — đang lọc '+nf):''),'qbFilter_(event)',nf>0,nf||'')
-    +qbBtn_('qbFav',icon('heart',16),S.fFav?'Đang chỉ hiện sản phẩm yêu thích — bấm để bỏ':'Chỉ hiện sản phẩm yêu thích','catFavToggle();qbRightSync_()',!!S.fFav)
+  // Bóc tách: các nút công cụ đã gom xuống khối "Công cụ bảng" ngay trên bảng -> thanh trên chỉ còn ô tìm + Xuất báo giá
+  box.innerHTML='<button class="qb-exp" onclick="showTab(\'export\')" title="Sang tab Xuất báo giá">'+icon('download',14)+' Xuất báo giá</button>';
+  tkToolsSync_();
+}
+/* ═══ KHỐI "CÔNG CỤ BẢNG" (tab Bóc tách) ═══
+   Trước đây các nút lọc / tìm / hiển thị nằm rải trên thanh công cụ chung và trùng với
+   nút bên panel trái. Nay gom vào 1 khối ngay trên bảng, chia 3 nhóm rõ ràng:
+   LỌC SẢN PHẨM · SỬA BẢNG · HIỂN THỊ.                                            */
+function tkToolsSync_(){
+  var box=document.getElementById('tkToolRow'); if(!box) return;
+  var nf=(typeof activeFiltCount_==='function')?activeFiltCount_():0;
+  var side=(typeof sideGet_==='function')&&sideGet_(), zen=(typeof foldAllOn_==='function')&&foldAllOn_();
+  // Lọc / yêu thích là việc của DANH MỤC bên trái (đã có nút ở đầu panel đó) -> chỉ đưa vào đây
+  // khi panel trái đang ẩn, để không có 2 nút giống nhau trên cùng màn hình.
+  var g1 = side ? ('<span class="tk-tgrp">'
+      +qbBtn_('qbFilt',QB_IC.filter,'Bộ lọc sản phẩm'+(nf?(' — đang lọc '+nf):''),'qbFilter_(event)',nf>0,nf||'')
+      +qbBtn_('qbFav',icon('heart',16),S.fFav?'Đang chỉ hiện sản phẩm yêu thích — bấm để bỏ':'Chỉ hiện sản phẩm yêu thích','catFavToggle();qbRightSync_()',!!S.fFav)
+    +'</span><span class="tk-tsep"></span>') : '';
+  box.innerHTML=g1
+    +'<span class="tk-tgrp">'                                  // nhóm 1: nội dung bảng
     +qbBtn_('qbHist',QB_IC.hist,'Vừa thêm vào bảng — xem lại / thêm lại','qbHistPop_(event)',false)
     +qbBtn_('qbRepl',QB_IC.repl,'Tìm & thay trong bảng (Ctrl+F)','openFindReplace()',false)
-    +'<span class="qb-sep"></span>'
     +qbBtn_('qbGia',QB_IC.gia,giaSyncTitle_(),'giaSyncRun_()',false,giaLechN_())
+    +'</span><span class="tk-tsep"></span><span class="tk-tgrp">'   // nhóm 2: cách hiển thị bảng
     +qbBtn_('qbSide',QB_IC.panel,side?'Hiện panel sản phẩm bên trái':'Ẩn panel sản phẩm — bảng rộng hơn','sideToggle_();qbRightSync_()',side)
     +qbBtn_('qbFit',QB_IC.fit,tkFitOn_()?'Trả bảng về bề rộng cột đã đặt (có kéo ngang)':'Vừa 1 màn hình — co cột cho hết kéo ngang, chỉ kéo dọc','tkFitToggle_()',tkFitOn_())
     +qbBtn_('qbFull',QB_IC.full,tkFullOn_()?'Thoát toàn màn hình (Esc)':'Toàn màn hình — chỉ còn bảng','tkFullToggle_()',tkFullOn_())
     +qbBtn_('qbZen',QB_IC.zen,zen?'Mở lại các khối đầu trang':'Mở rộng bảng — thu gọn băng dự án và chip cột','foldAll_()',zen)
-    +'<button class="qb-exp" onclick="showTab(\'export\')" title="Sang tab Xuất báo giá">'+icon('download',14)+' Xuất báo giá</button>';
+    +'</span>';
 }
 function qbGoNode_(code){
   if(qbTab_()==='boc'){ if(code!==S.node) pickNode(code); return; }
@@ -4760,6 +4778,8 @@ function renderTable(){
   // vẫn giữ nguyên khung chọn sản phẩm bên trái + bố cục 2 cột.
   if(tkN) tkN.style.display = isPT?'none':'';
   if(pw) pw.style.display = isPT?'':'none';
+  var tbx=document.getElementById('tkToolBox');
+  if(tbx) tbx.classList.toggle('pt', isPT);      // Phần thô: vẫn giữ hàng công cụ, ẩn hàng chọn cột của bảng bóc tách
   // panel chi tiết dùng chung: rời đề mục thì đóng panel của đề mục cũ
   if(isPT && S._detailIdx!=null) hideDetail();
   if(!isPT && S._ptDetail) ptHideDetail_();

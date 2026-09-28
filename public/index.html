@@ -5901,6 +5901,39 @@ body.tkfit #tkNormal table.tk.tkfit-on td,body.tkfit #tkNormal table.tk.tkfit-on
 body.tkfit #tkNormal table.tk.tkfit-on td .cin{min-width:0}
 body.tkfit #tkNormal table.tk.tkfit-on th{padding:9px 6px;font-size:10.5px;letter-spacing:.02em}
 body.tkfit #tkNormal table.tk.tkfit-on td{padding-left:6px;padding-right:6px}
+
+/* ════════ 21. BÓC TÁCH — 3 KHỐI CÓ KHUNG RÕ RÀNG ════════
+   Khối 1: hạng mục đang bóc + tổng tiền · Khối 2: công cụ bảng + chọn cột · Khối 3: bảng.
+   Mỗi khối là 1 khung riêng, không còn các hàng dính liền nhau nhìn không ra đâu là đâu. */
+#v-boc .tk-panel{padding:0;background:none;border:none;box-shadow:none;overflow:visible;gap:10px}
+#v-boc .tk-panel>.tk-frame,#v-boc .tk-panel>#tkNormal,#v-boc .tk-panel>#ptWrap{
+  border:1px solid #dfe5ec;border-radius:12px;background:#fff;box-shadow:0 1px 2px rgba(16,40,70,.04)}
+#v-boc .tk-panel .toolbar.tk-frame-hm{padding:10px 14px;margin:0;border-bottom:none;gap:10px;flex-wrap:wrap}
+#v-boc .tk-panel .tk-frame-cols{padding:0;margin:0}
+#v-boc .tk-panel .tk-frame-cols .tk-frame-hr{padding:9px 14px;border-bottom:1px solid #eef1f4}
+#v-boc .tk-panel .tk-frame-cols .tk-frame-hr:last-of-type{border-bottom:none}
+#v-boc .tk-panel .tk-frame-cols .colchips{margin:0;padding:0 14px 10px}
+#v-boc #tkToolBox.pt #tkColsHr,#v-boc #tkToolBox.pt .colchips{display:none}
+#v-boc #tkToolBox.pt .tk-toolhr{border-bottom:none}
+/* hàng công cụ: 3 nhóm (lọc SP · sửa bảng · hiển thị) ngăn bằng vạch mảnh */
+.tk-toolhr{gap:12px;flex-wrap:wrap}
+.tk-toolrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:auto}
+.tk-tgrp{display:inline-flex;align-items:center;gap:4px}
+.tk-tsep{width:1px;height:20px;background:#e3e8ee;margin:0 4px;flex:none}
+.tk-toolrow .qb-ib{position:relative}
+#v-boc .tk-panel .tk-frame-cols .tk-frame-h{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6b7684}
+/* khối 3: bảng — khung bao cả bảng và thanh kéo, bỏ viền kép của .tbl-wrap */
+/* để overflow VISIBLE: dãy nút xoá dòng (#actGutter) nằm sát ngoài mép bảng, cắt đi là mất nút */
+#v-boc .tk-panel>#tkNormal{padding:0 0 4px;overflow:visible}
+#v-boc #tkNormal .tbl-wrap{border:none;border-radius:11px 11px 0 0}
+#v-boc #tkNormal .tk-hbar{margin:6px 40px 2px 10px}
+#v-boc #tkNormal .floorhint:not(:empty){padding:8px 14px 0}
+#v-boc .tk-panel>#ptWrap{padding:10px 12px}
+/* toàn màn hình: vẫn giữ hàng công cụ (tìm & thay, vừa 1 màn hình, thoát…), chỉ bỏ hàng chọn cột */
+body.tkfull #tkToolBox{display:block!important;margin:0 0 6px}
+body.tkfull #tkToolBox #tkColsHr,body.tkfull #tkToolBox .colchips{display:none}
+body.tkfull #tkToolBox .tk-toolhr{border-bottom:none;padding:6px 12px}
+@media(max-width:1120px){ #v-boc .tk-panel{gap:8px} }
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -6094,12 +6127,15 @@ body.tkfit #tkNormal table.tk.tkfit-on td{padding-left:6px;padding-right:6px}
           <span class="tk-mini" id="tkMini"></span>
           <button class="tk-zen" id="tkZenBtn" onclick="tkZenToggle()" title="Thu gọn khối đầu bảng cho màn hình rộng hơn" aria-label="Thu gọn khối đầu bảng"><i></i></button>
         </div>
+        <!-- KHỐI 2: công cụ của bảng + chọn cột (nằm ngoài #tkNormal để Phần thô cũng dùng được) -->
+        <div class="tk-frame tk-frame-cols" id="tkToolBox">
+          <div class="tk-frame-hr tk-toolhr"><span class="tk-frame-h">Công cụ bảng</span>
+            <div class="tk-toolrow" id="tkToolRow"></div></div>
+          <div class="tk-frame-hr" id="tkColsHr"><button class="tk-frame-h fold-h" onclick="foldToggle_('cols')" title="Ẩn / hiện các chip cột">Cột hiển thị <b id="tkColsN"></b><i class="fold-ic"></i></button>
+            <span id="tkPresetSlot"></span></div>
+          <div class="colchips" id="colChips"></div></div>
         <div id="tkNormal">
           <div class="floorhint" id="floorHint"></div>
-          <div class="tk-frame tk-frame-cols">
-            <div class="tk-frame-hr"><button class="tk-frame-h fold-h" onclick="foldToggle_('cols')" title="Ẩn / hiện các chip cột">Cột hiển thị <b id="tkColsN"></b><i class="fold-ic"></i></button>
-              <span id="tkPresetSlot"></span></div>
-            <div class="colchips" id="colChips"></div></div>
           <div class="tbl-wrap"><table class="tk" id="tkTable" oncontextmenu="tkCtx(event)"></table></div>
           <div class="actgutter" id="actGutter"><div id="actGutterInner"></div></div>
           <div class="tk-hbar" id="tkHBar" style="display:none"><div class="tk-hthumb" id="tkHThumb"></div></div>
