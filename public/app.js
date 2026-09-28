@@ -11192,12 +11192,26 @@ async function projDataLoad_(maDA){
   try{
     var d=await api('getProjData', maDA)||{};
     S._projData=d;
-    // lần đầu chuyển từ localStorage lên server: máy nào còn dữ liệu cũ thì đẩy lên
-    var loc=null; try{ loc=JSON.parse(localStorage.getItem('pt_'+maDA)||'null'); }catch(e){}
+    // Lần đầu chuyển từ localStorage lên server: máy nào còn dữ liệu cũ thì đẩy lên.
+    // Đẩy CẢ 4 khoá (trước chỉ đẩy bảng phần thô) -> diện tích, VAT phần thô và thông tin
+    // công tác tự nhập cũng hết cảnh chỉ có trên một máy.
+    function doc_(k){ try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch(e){ return null; } }
+    var day=[];
+    var loc=doc_('pt_'+maDA);
     if(!Array.isArray(d.phanTho) && Array.isArray(loc) && loc.length){
-      S._projData.phanTho=loc; projDataSet_('phanTho', loc);
-      toast('Đã đưa bảng phần thô của dự án này lên máy chủ — từ giờ máy khác cũng xem được');
+      S._projData.phanTho=loc; projDataSet_('phanTho', loc); day.push('bảng phần thô');
     }
+    var vat=Number(localStorage.getItem('pt_'+maDA+'_vat'));
+    if(d.ptVat==null && isFinite(vat) && vat){ S._projData.ptVat=vat; projDataSet_('ptVat', vat); }
+    var ar=doc_('qs_area_'+maDA);
+    if((d.area==null) && ar && typeof ar==='object' && Object.keys(ar).length){
+      S._projData.area=ar; projDataSet_('area', ar); day.push('bảng diện tích');
+    }
+    var inf=doc_('qs_ptinfo');
+    if((d.ptInfo==null) && inf && typeof inf==='object' && Object.keys(inf).length){
+      S._projData.ptInfo=inf; projDataSet_('ptInfo', inf); day.push('thông tin công tác');
+    }
+    if(day.length) toast('Đã đưa '+day.join(' · ')+' lên máy chủ — từ giờ máy khác cũng xem được');
   }catch(e){ /* chưa chạy db/du_an_data.sql -> dùng bản trong máy như cũ */ }
 }
 // Dòng 'item' nhập được Diện tích + Hệ số: có diện tích là Khối lượng = DT × HS (khoá ô khối lượng).
