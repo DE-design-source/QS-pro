@@ -636,12 +636,25 @@ async function setSpDuyet(actor, keys, approve) {
   keys = Array.isArray(keys) ? keys : [keys];
   const who = (actor && actor.u) || 'ẩn danh';
   const now = new Date().toISOString();
-  let ok = 0; const errs = []; const hist = [];
+  let ok = 0, daDung = 0; const errs = []; const hist = [];
+  // Khoá là MÃ (không phải id dòng) -> mã dùng chung cho cả nhóm biến thể, phải duyệt HẾT nhóm,
+  // trước đây getDbProduct chỉ lấy dòng đầu nên bấm duyệt xong các biến thể sau vẫn "chưa duyệt".
+  const ids = [];
   for (const k of keys) {
+    if (/^\d+$/.test(String(k).trim())) { ids.push(String(k).trim()); continue; }
+    try {
+      const rows = await supa.select('db_san_pham', { select: 'id', filter: supa.eq('ma_sp', String(k).trim()), order: 'id.asc', limit: 200 });
+      if (rows.length) rows.forEach(function (r) { ids.push(String(r.id)); });
+      else ids.push(String(k));
+    } catch (e) { ids.push(String(k)); }
+  }
+  for (const k of ids) {
     try {
       const cur = await getDbProduct(k);
       if (!cur) { errs.push({ key: k, error: 'Không tìm thấy sản phẩm' }); continue; }
-      if ((cur.da_duyet === true) === !!approve) continue;              // đã đúng trạng thái rồi
+      // Đã đúng trạng thái rồi thì coi như XONG (trước đây bỏ qua lặng lẽ -> ok=0 nên
+      // màn hình báo "Chưa duyệt được sản phẩm" dù sản phẩm đang ở đúng trạng thái).
+      if ((cur.da_duyet === true) === !!approve) { daDung++; continue; }
       await guardSpChung_(k);
       try {
         await supa.update('db_san_pham', supa.eq('id', cur.id), approve
@@ -666,7 +679,7 @@ async function setSpDuyet(actor, keys, approve) {
       hist.slice(0, 8).map(function (h) { return h.ma_sp || h.ten; }).join(', ') + (hist.length > 8 ? '…' : ''));
   }
   _cacheClear_();
-  const out = { ok: ok };
+  const out = { ok: ok, daDung: daDung };
   if (errs.length) out.errors = errs;
   return out;
 }

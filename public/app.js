@@ -3649,8 +3649,9 @@ async function spEditSave(luuVaDuyet){
     if(luuVaDuyet){
       try{
         var rd=await api('setSpDuyet',[String(S._spEditMa)],true);
+        // ok=0 kèm daDung>0 nghĩa là SP đã ở trạng thái đã duyệt -> KHÔNG phải lỗi
         if(rd && rd.errors && rd.errors.length) duyetLoi=String(rd.errors[0].error||'').slice(0,120);
-        else if(rd && !rd.ok) duyetLoi='Máy chủ không đổi được trạng thái duyệt';
+        else if(rd && !rd.ok && !rd.daDung) duyetLoi='Máy chủ không đổi được trạng thái duyệt';
       }catch(e){ duyetLoi=e.message.slice(0,120); }
     }
     if(duyetLoi) await baoLoi_({ title:'Chưa duyệt được sản phẩm', ok:'Đã hiểu',
