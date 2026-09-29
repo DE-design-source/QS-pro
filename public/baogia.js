@@ -121,7 +121,7 @@ function bgBuildPages(){
      xem trước hay xuất PDF đều đọc được ngay trang này có bao nhiêu record, bao nhiêu tiền. */
   var inners=[], metas=[];
   function themTrang(html, meta){ inners.push(html); metas.push(meta||{}); }
-  var hangMuc = bgNodeLabel_();
+  var hangMuc = 'TỔNG HỢP CHI PHÍ';                // trang 1 luôn là tờ bìa của cả dự án
   var org=bgOrg_(), opt=bgOpt_(), ver=bgVerInfo_();
   var decoxHead='<div class="qx-head"><div class="qx-brandbox">'
       +(org.logo?'<img class="qx-logo" src="'+esc(safeUrl_(org.logo))+'" alt="">':'')
@@ -136,9 +136,9 @@ function bgBuildPages(){
     +'<tr>'+ip('DT sử dụng',p.tongDT?p.tongDT+' m²':'')+ip('Nhu cầu',p.nhuCau)+'</tr>'
     +'<tr>'+ip('Phong cách',p.phanKhuc)+ip('DT báo giá [nhân hệ số]',p.dtBaoGia?p.dtBaoGia+' m²':'')+'</tr>'
     +'</table>';
-  // ===== TRANG 1 = TỜ BÌA (Mẫu 1 hoặc Mẫu 2, do người dùng chọn) =====
-  themTrang(decoxHead+infoBlock+(bgCoverSel_()||bgCoverPage_(comp)), {ten:'Tờ bìa'});
-  // ===== Các trang sau: bảng chi tiết THEO ĐÚNG CHIP CỘT đang bật =====
+  // ===== TRANG 1 = TỜ BÌA (Mẫu 1 hoặc Mẫu 2) — luôn có, không phụ thuộc hạng mục đã chọn =====
+  themTrang(decoxHead+infoBlock+bgCoverPage_(comp), {ten:'Tờ bìa'});
+  // ===== Từ trang 2: bảng chi tiết các hạng mục đã bóc được chọn, THEO ĐÚNG CHIP CỘT đang bật =====
   var lines=bgLines_();
   var cols=bgDocCols_();
   var coAnh=cols.some(function(c){ return c[0]==='hinhAnh'; });
@@ -232,35 +232,6 @@ function bgMetaTrang_(ten, tienDs){
   return {ten:ten, dong:n, tien:t};
 }
 /* ---- Tờ bìa cho TRANG 1 (bản chỉ đọc, theo Mẫu 1 / Mẫu 2) ---- */
-/* ═══ Tờ bìa khi ĐÃ TÍCH hạng mục ═══
-   Trước đây tờ bìa luôn in nguyên bảng mẫu (đủ 27 mục, phần lớn 0 đ) dù người dùng
-   chỉ tích vài hạng mục -> "bấm cái gì" không "hiện cái đó".
-   Nay: tích mục nào thì bảng tổng hợp ở tờ bìa chỉ liệt kê đúng mục đó, số tiền lấy
-   thẳng từ các dòng đã bóc. Không tích gì -> giữ nguyên bảng mẫu tờ bìa như cũ.
-   Tờ bìa thì LUÔN là trang 1 trong mọi trường hợp.                                  */
-function bgCoverSel_(){
-  var sel=bgSelCodes_(); if(!sel.length) return '';
-  var rows=sel.map(function(code){
-    var its=(S.lines||[]).filter(function(l){ var c=String(l.nhom||'');
-      return c===code || c.indexOf(code+'.')===0; });
-    return { code:code, ten:nodeName(code)||code, n:its.length,
-             tien:its.reduce(function(a,l){ return a+ttBan_(l); },0) };
-  }).sort(function(a,b){ return String(a.code).localeCompare(String(b.code),'vi',{numeric:true}); });
-  var tong=rows.reduce(function(a,r){ return a+r.tien; },0);
-  var body=rows.map(function(r){
-    var pct=tong>0?(r.tien/tong*100):0;
-    return '<tr class="lv1"><td class="ct">'+esc(r.code)+'</td>'
-      +'<td>'+esc(r.ten)+'</td>'
-      +'<td class="num">'+money(r.tien)+'</td>'
-      +'<td class="num">'+pct.toFixed(2)+'%</td>'
-      +'<td class="it">'+(r.n?(pad2(r.n)+' dòng — xem bảng chi tiết ở trang sau'):'Chưa có dòng nào trong hạng mục này')+'</td></tr>';
-  }).join('');
-  return '<div class="qx-secttl">CHI TIẾT CÁC HẠNG MỤC</div>'
-    +'<table class="qx-tbl qx-cover"><tr class="qx-h"><th class="ct">NO</th><th>HẠNG MỤC</th>'
-    +'<th class="num">CHI PHÍ DỰ KIẾN</th><th class="num">TỶ TRỌNG</th><th>MÔ TẢ</th></tr>'
-    +body+'<tr class="sec"><td colspan="2" style="text-align:right"><b>TỔNG CHI PHÍ DỰ KIẾN</b></td>'
-    +'<td class="num"><b>'+money(tong)+'</b></td><td class="num"><b>'+(tong?'100%':'0%')+'</b></td><td></td></tr></table>';
-}
 function bgCoverPage_(comp){
   var cost=comp.cost, total=comp.total;
   var rows=(S.cover||[]).filter(function(c){ return !bgHidden(c.stt); }).slice().sort(coverSortFn);
@@ -876,7 +847,8 @@ function dl(res){ var b=atob(res.base64),a=new Uint8Array(b.length); for(var i=0
 
 /* ═══════════ XUẤT BÁO GIÁ — chọn hạng mục cần xuất + chọn cột xuất + phân trang ═══════════ */
 function bgSelSet_(){ S.bgNodes=S.bgNodes||{}; return S.bgNodes; }
-function bgSelCodes_(){ var o=bgSelSet_(); return Object.keys(o).filter(function(k){ return o[k]; }); }
+// chỉ tính hạng mục ĐÃ BÓC của dự án đang mở (mục tích ở dự án khác mà dự án này không có -> bỏ qua)
+function bgSelCodes_(){ var o=bgSelSet_(); return Object.keys(o).filter(function(k){ return o[k] && bgNodeCnt_(k)>0; }); }
 function bgNodeCnt_(code){
   // Phần thô đếm theo bảng ước tính riêng của nó (không nằm trong S.lines)
   if(code==='3.1'){ try{ ptEnsure(); }catch(e){ return 0; }
@@ -897,9 +869,9 @@ function bgNodeLabel_(){
 }
 function bgNodeBtn_(id){
   var sel=bgSelCodes_(), n=bgLines_().length+bgPTRows_();   // kèm số dòng phần thô sẽ xuất
-  var lbl=sel.length?(sel.length===1?((sel[0]+'.'+(nodeName(sel[0])||''))):(sel.length+' hạng mục')):'Tất cả hạng mục';
+  var lbl=sel.length?(sel.length===1?((sel[0]+'.'+(nodeName(sel[0])||''))):(sel.length+' hạng mục')):'Tất cả hạng mục đã bóc';
   return '<button class="btn ghost sm bg-nodebtn'+(sel.length?' on':'')+'" id="'+id+'" onclick="bgTreePop_(event,\''+id+'\')" '
-    +'title="Tích chọn hạng mục sẽ đưa vào file báo giá">'+icon('layers',14)+' '+esc(lbl)+' <b class="tbn">['+pad2(n)+']</b> ▾</button>';
+    +'title="Chọn hạng mục đã bóc sẽ in từ trang 2 (tờ bìa trang 1 luôn có)">'+icon('layers',14)+' '+esc(lbl)+' <b class="tbn">['+pad2(n)+']</b> ▾</button>';
 }
 function bgTreeNodes_(){
   var out=TREE.filter(function(t){ return t[0]!=='X'; }).map(function(t){ return {code:t[0],name:t[1],lvl:t[2]}; });
@@ -925,13 +897,11 @@ function bgTreeClose_(){ var p=document.getElementById('bgTreePop'); if(p) p.rem
 function bgTreeRender_(){
   var pop=document.getElementById('bgTreePop'); if(!pop) return;
   var sel=bgSelSet_(), nodes=bgTreeNodes_(), co=bgSelCodes_().length;
-  var chiCo=!!S._bgOnlyUsed;
-  var list=nodes.filter(function(t){ return !chiCo || bgNodeCnt_(t.code)>0; });
-  pop.innerHTML='<div class="bgt-h"><b>Chọn hạng mục xuất báo giá</b>'
-      +'<span>'+(co?co+' mục đã tích':'chưa tích = xuất tất cả')+'</span>'
+  var list=nodes.filter(function(t){ return bgNodeCnt_(t.code)>0; });   // chỉ hạng mục đã bóc
+  pop.innerHTML='<div class="bgt-h"><b>Trang 2 trở đi: hạng mục đã bóc</b>'
+      +'<span>'+(co?co+' mục đã tích':'chưa tích = in tất cả')+'</span>'
       +'<button class="colpop-x" onclick="bgTreeClose_()">✕</button></div>'
-    +'<div class="bgt-tools">'
-      +'<label class="bgt-only"><input type="checkbox" '+(chiCo?'checked':'')+' onchange="bgOnlyUsed_(this.checked)"> Chỉ hạng mục đã có dòng</label>'
+    +'<div class="bgt-tools"><span class="hint">Trang 1 luôn là tờ bìa (Mẫu 1 / Mẫu 2)</span>'
       +'<span style="flex:1"></span>'
       +'<button class="btn ghost xs" onclick="bgSelAll_(1)">Chọn tất cả</button>'
       +'<button class="btn ghost xs" onclick="bgSelAll_(0)">Bỏ chọn</button>'
@@ -942,11 +912,10 @@ function bgTreeRender_(){
           +'<span class="nm">'+esc(t.code+'.'+t.name)+'</span>'
           +'<span class="cn">['+pad2(n)+']</span>'
           +'<span class="rd'+(on?' on':'')+'"></span></div>';
-      }).join(''):'<div class="colpop-empty">Không có hạng mục nào có dòng.</div>')+'</div>'
+      }).join(''):'<div class="colpop-empty">Chưa bóc hạng mục nào — báo giá chỉ có tờ bìa.</div>')+'</div>'
     +'<div class="bgt-f"><span class="hint">'+pad2(bgLines_().length)+' dòng sẽ lên báo giá</span>'
       +'<button class="btn blue sm" onclick="bgTreeClose_()">Xong</button></div>';
 }
-function bgOnlyUsed_(on){ S._bgOnlyUsed=!!on; bgTreeRender_(); }
 function bgSelToggle_(code){
   var sel=bgSelSet_(); if(sel[code]) delete sel[code]; else sel[code]=1;
   S.bgDeMuc=bgSelCodes_().length===1?bgSelCodes_()[0]:'__all__';
@@ -965,12 +934,12 @@ function bgTogglePerSec_(){ S.bgPerSec=!bgPerSec_(); S.bgPage=1; drawBaogia(); }
 function bgCtlBar_(){
   var pages=bgBuildPages().length;
   return '<div class="bgctl">'
-    +bgNodeBtn_('bgNodeBtn1')
-    +'<span class="bgctl-mau" title="Kiểu tờ bìa ở trang 1">'
-      +'<label>Tờ bìa</label>'
+    +'<span class="bgctl-mau" title="Trang 1 luôn là tờ bìa — chọn kiểu">'
+      +'<label>Trang 1 · Tờ bìa</label>'
       +'<button class="'+(S.coverMau==='m1'?'on':'')+'" onclick="setCoverMau(\'m1\')">Mẫu 1</button>'
       +'<button class="'+(S.coverMau==='m1'?'':'on')+'" onclick="setCoverMau(\'m2\')">Mẫu 2</button>'
     +'</span>'
+    +'<span class="bgctl-lbl">Trang 2+</span>'+bgNodeBtn_('bgNodeBtn1')
     +'<button class="btn ghost sm'+(bgPerSec_()?' on':'')+'" onclick="bgTogglePerSec_()" '
       +'title="Mỗi hạng mục bắt đầu ở một trang mới">'+icon('doc',14)+' Mỗi phần 1 trang</button>'
     +'<span class="bgctl-sel" title="Số dòng tối đa trên mỗi trang giấy"><label>Dòng/trang</label>'
