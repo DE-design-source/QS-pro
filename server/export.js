@@ -226,7 +226,7 @@ function buildSection32(ws, p, cover) {
 async function buildDetailSheet(wb, ws, items, p, EXCOLS, catName) {
   const ncol = EXCOLS.length;
   function colIdx(key) { for (var i = 0; i < EXCOLS.length; i++) if (EXCOLS[i].k === key) return i + 1; return 0; }
-  const ttCol = colIdx('thanhTienBan') || ncol;
+  const ttCol = colIdx('thanhTienBan') || colIdx('thanhTien') || ncol;   // client gửi khoá 'thanhTien'
   const imgCol = colIdx('hinhAnh');
   const nameCol = colIdx('khuVuc') || (ncol >= 2 ? 2 : 1);
 
@@ -331,7 +331,8 @@ async function fetchImage(url) {
       if (buffer.length > IMG_MAX) return null;
       contentType = res.headers.get('content-type') || '';
     } else return null;
-    const ext = contentType.indexOf('png') > -1 ? 'png' : (contentType.indexOf('webp') > -1 ? 'png' : 'jpeg');
+    if (/webp|gif|svg/i.test(contentType)) return null;      // ExcelJS chỉ nhúng được png/jpeg — nhúng webp là file báo hỏng
+    const ext = contentType.indexOf('png') > -1 ? 'png' : 'jpeg';
     return { buffer: buffer, ext: ext };
   } catch (e) { return null; }
 }

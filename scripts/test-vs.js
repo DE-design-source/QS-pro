@@ -7,7 +7,7 @@ const path=require('path'), R=p=>path.join(__dirname,'..',p);
 let db=[], hist=[], fail=0, pass=0;
 const ok=(c,m)=>{ if(c){pass++;} else {fail++; console.log('  ✗ FAIL:',m);} };
 const fake={ eq:(c,v)=>c+'=eq.'+encodeURIComponent(v),
-  select:async(t,o)=>{ if(t!=='db_san_pham') return []; if(o&&o.filter&&/ma_sp=eq/.test(o.filter)){ return db.filter(r=>o.filter.indexOf('ma_sp=eq.'+encodeURIComponent(r.ma_sp))>=0 && ['mau_sac','kich_thuoc'].every(c=>{const v=r[c]; return (v==null||v==='')? o.filter.indexOf(c+'=is.null')>=0 : o.filter.indexOf(c+'=eq.'+encodeURIComponent(v))>=0;})).slice(0,1); } return db.map(r=>Object.assign({},r)); },
+  select:async(t,o)=>{ if(t!=='db_san_pham') return []; if(o&&o.filter&&/ma_sp=eq/.test(o.filter)){ return db.filter(r=>o.filter.indexOf('ma_sp=eq.'+encodeURIComponent(r.ma_sp))>=0 && ['mau_sac','kich_thuoc'].every(c=>{const v=r[c], f=decodeURIComponent(o.filter); return (v==null||v==='')? f.indexOf('or('+c+'.is.null,'+c+'.eq.)')>=0 : f.indexOf(c+'.eq."'+v+'"')>=0;})).slice(0,1); } return db.map(r=>Object.assign({},r)); },
   insert:async(t,r)=>{ if(t==='db_san_pham'){ const row=Object.assign({id:db.length+1},r); db.push(row); return [row]; } if(t==='db_san_pham_history') hist.push(r); return [{}]; },
   update:async(t,f,p)=>{ if(t==='db_san_pham'){ const id=+String(f).split('eq.')[1]; const r=db.find(x=>x.id===id); Object.assign(r,p); return [r]; } return [{}]; },
   remove:async()=>{} };

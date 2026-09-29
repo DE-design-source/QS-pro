@@ -1759,7 +1759,7 @@ async function spBulkDelete(){
 async function spBulkRequest(){
   // khoá chọn = spKey_ (recordId hoặc mã) -> tra lại đúng sản phẩm để gửi MÃ + tên cho Admin
   var sel=S._spSel||{}; var byKey={}; (S.products||[]).forEach(function(p){ byKey[spKey_(p)]=p; });
-  var items=Object.keys(sel).filter(function(k){ return sel[k]; }).map(function(k){ var p=byKey[k]||{}; return {maSP:p.ma||k, ten:p.ten||''}; });
+  var items=Object.keys(sel).filter(function(k){ return sel[k]; }).map(function(k){ var p=byKey[k]||{}; return {maSP:p.ma||k, id:p.recordId||'', ten:p.ten||''}; });
   if(!items.length) return;
   try{ var r=await api('requestDeleteProducts', items); S._spSel={}; spFilter(); refreshNotifCount_(); toast('Đã gửi yêu cầu xóa '+r.count+' sản phẩm tới Admin'); }
   catch(e){ toast('Lỗi: '+e.message); }

@@ -20,7 +20,8 @@ function specNganh_(ng) { return ng === 'vs' ? VS : (ng === 'son' ? SON : null);
 const MUC_NGANH = { vs: 'Thiết bị vệ sinh', son: 'Sơn nước', den: 'Thiết bị đèn' };
 
 /*** ===== HELPERS ===== ***/
-function n(v) { if (v == null || v === '') return 0; var x = Number(v); return isNaN(x) ? 0 : x; }
+// Số từ client / file nhập: số giữ nguyên; chuỗi đọc kiểu VN ("12.500.000", "12,5", "30%") — Number() cho 0
+function n(v) { if (v == null || v === '') return 0; return typeof v === 'number' ? (isFinite(v) ? v : 0) : shared.toNumber_(v); }
 function round0_(v) { return Math.round(n(v)); }
 function s(v) { return v == null ? '' : String(v); }
 function nowIso() { return new Date().toISOString(); }
@@ -168,7 +169,7 @@ async function getProducts() {
       });
       out.sort(function (a, b) { return String(a.ten).localeCompare(String(b.ten), 'vi'); });
     }
-  } catch (e) { /* chưa có cột dung_sp_dezon -> bỏ qua */ }
+  } catch (e) { if (!/dung_sp_dezon/.test((e && e.message) || '')) throw e; }   // chỉ bỏ qua khi chưa có cột dung_sp_dezon
   await stampYeuThich_(out);         // đánh dấu sản phẩm yêu thích của công ty
   await stampCombo_(out);            // đếm số SP đi kèm (combo)
   _cache[_ckey_()] = out; _cacheAt[_ckey_()] = Date.now();
@@ -214,10 +215,10 @@ async function getProject(maDA) {
   return rows[0] ? projToObj(rows[0]) : null;
 }
 function genMaDA_() {
-  const d = new Date();
+  const d = new Date(Date.now() + 7 * 3600e3);          // giờ Việt Nam (server chạy UTC) -> đọc bằng getUTC*
   const pad = function (x) { return String(x).padStart(2, '0'); };
   // + 2 ký tự ngẫu nhiên: ma_da duy nhất toàn hệ thống, 2 lần tạo cùng 1 giây (khác công ty) từng trùng khoá
-  return 'DA-' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds())
+  return 'DA-' + d.getUTCFullYear() + pad(d.getUTCMonth() + 1) + pad(d.getUTCDate()) + '-' + pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + pad(d.getUTCSeconds())
     + Math.random().toString(36).slice(2, 4).toUpperCase();
 }
 async function createProject(data) {
@@ -259,6 +260,7 @@ async function duplicateProject(maDA, opts) {
   delete projRow.id;
   projRow.ma_da = newMa; projRow.ngay_tao = nowIso(); projRow.cap_nhat = nowIso();
   const proj = (await supa.insert('du_an', projRow))[0];
+  try {                                   // hỏng giữa chừng -> xoá bản nháp dở, không để lại bản sao thiếu dữ liệu
   // copy dòng bóc tách (tuỳ chọn)
   if (cpBoc) {
     const lines = await supa.select('db_bao_gia', { select: '*', filter: supa.eq('ma_du_an', maDA), order: 'sort_no.asc', limit: LIM });
@@ -268,21 +270,21 @@ async function duplicateProject(maDA, opts) {
     }
   }
   // copy tờ bìa (khái toán) nếu có (tuỳ chọn)
-  if (cpCover) try {
+  if (cpCover) {
     const cover = await supa.select('khai_toan', { select: '*', filter: supa.eq('ma_da', maDA), limit: 2000 });
     if (cover.length) {
       const crows = cover.map(function (r) { const o = Object.assign({}, r); delete o.id; delete o.created_at; o.ma_da = newMa; return o; });
       await supa.insert('khai_toan', crows);
     }
-  } catch (e) { /* best-effort */ }
-  // copy dữ liệu rời của dự án (bảng phần thô · diện tích · VAT phần thô)
-  try {
-    const ds = await supa.select('du_an_data', { select: '*', filter: supa.eq('ma_da', maDA), limit: 50 });
-    if (ds.length) {
-      const rows = ds.map(function (r) { const o = Object.assign({}, r); o.ma_da = newMa; o.cap_nhat = nowIso(); return o; });
-      await supa.insert('du_an_data', rows);
-    }
-  } catch (e) { /* chưa có bảng du_an_data -> bỏ qua */ }
+  }
+  // copy dữ liệu rời của dự án (phần thô · diện tích · cài đặt báo giá). KHÔNG chép lịch sử phiên bản báo giá;
+  // bỏ tick "Phần thô" (opts.pt === false) thì không chép bảng phần thô.
+  let ds = [];
+  try { ds = await supa.select('du_an_data', { select: '*', filter: supa.eq('ma_da', maDA), limit: 50 }); }
+  catch (e) { if (!daDataThieuBang_(e)) throw e; }        // chưa có bảng du_an_data -> bỏ qua
+  ds = ds.filter(function (r) { return r.khoa !== 'bgHist' && (opts.pt !== false || ['phanTho', 'ptVat'].indexOf(r.khoa) < 0); });
+  if (ds.length) await supa.insert('du_an_data', ds.map(function (r) { const o = Object.assign({}, r); o.ma_da = newMa; o.cap_nhat = nowIso(); return o; }));
+  } catch (e) { try { await deleteProject(newMa); } catch (x) {} throw e; }
   return projToObj(proj);
 }
 
@@ -500,10 +502,11 @@ async function saveDbProduct(actor, data, opts) {
     // chưa chạy migration thì lưu SP đèn vẫn không bị lỗi thiếu cột.
     const keyCols = ['nhiet_do_mau_k', 'cong_suat_w', 'goc_chieu_deg', 'mau_sac'];
     if (row.nganh === 'vs' || row.nganh === 'son' || row.kich_thuoc) keyCols.push('kich_thuoc');
-    keyCols.forEach(function (col) {
+    // '' và null coi là một (khớp unique index coalesce(col,'')) — trước chỉ tìm is.null, gặp '' thì chèn trùng -> lỗi duplicate key
+    filter += '&and=(' + keyCols.map(function (col) {
       const v = row[col];
-      filter += '&' + (v == null || v === '' ? col + '=is.null' : supa.eq(col, v));
-    });
+      return (v == null || v === '') ? 'or(' + col + '.is.null,' + col + '.eq.)' : col + '.eq.' + encodeURIComponent('"' + String(v).replace(/["\\]/g, '\\$&') + '"');
+    }).join(',') + ')';
     const ex = await supa.select('db_san_pham', { select: 'id', filter: filter, limit: 1 });
     if (ex.length) {
       if (who && _hasWhoCol !== false) { row.nguoi_sua = who; row.ngay_cap_nhat = new Date().toISOString(); }
@@ -841,10 +844,12 @@ async function setCombo(actor, key, items) {
     // 2) liên kết do bên kia đặt và vẫn giữ -> để nguyên, không ghi đè
     const giuLai = {}; bw.forEach(function (r) { if (keep[String(r.sp_id)]) giuLai[String(r.sp_id)] = 1; });
     // 3) phần mình sở hữu -> ghi lại từ đầu
-    await supa.remove('sp_combo', supa.eq('sp_id', cur.id));
+    // ghi bản mới TRƯỚC rồi mới xoá bản cũ: ghi lỗi thì combo cũ vẫn còn
+    const cu = await supa.select('sp_combo', { select: 'id', filter: supa.eq('sp_id', cur.id), limit: 200 });
     const rows = items.filter(function (x) { return !giuLai[String(x.id)]; })
       .map(function (x, i) { return { sp_id: cur.id, sp_kem_id: Number(x.id), so_luong: n(x.soLuong) || 1, ghi_chu: s(x.ghiChu), sort_no: i }; });
     if (rows.length) await supa.insert('sp_combo', rows);
+    if (cu.length) await supa.remove('sp_combo', 'id=in.(' + cu.map(function (r) { return r.id; }).join(',') + ')');
   } catch (e) { throw tblErr_(e, 'sp_combo', 'db/sp_combo.sql'); }
   await spHistory_(actor, s(cur.ma_sp), [{ field: 'SẢN PHẨM ĐI KÈM', old: '', new: items.length ? (items.length + ' sản phẩm') : 'Bỏ hết' }]);
   await logAudit_(actor, 'sua_combo', 'Đặt ' + items.length + ' sản phẩm đi kèm cho ' + s(cur.ma_sp) + ' (' + s(cur.ten_sp) + ')');
@@ -1098,8 +1103,10 @@ async function savePurchaseOrder(order) {
   order = order || {};
   const orders = Array.isArray(order.orders) ? order.orders : [];
   const saved = [];
+  let dang = '';
+  try {
   for (const od of orders) {
-    const maDon = genMaDon_();
+    const maDon = dang = genMaDon_();
     const items = Array.isArray(od.items) ? od.items : [];
     const total = n(od.total), vat = n(od.vat);
     await supa.insert('don_mua_hang', {
@@ -1117,6 +1124,12 @@ async function savePurchaseOrder(order) {
       }));
     }
     saved.push(maDon);
+  }
+  } catch (e) {        // lỗi giữa chừng -> gỡ các phiếu của lần gửi này (không để phiếu thiếu dòng hàng / gửi lại bị trùng)
+    for (const m of saved.concat(saved.indexOf(dang) < 0 && dang ? [dang] : [])) {
+      try { await supa.remove('chi_tiet_mua_hang', supa.eq('ma_don', m)); await supa.remove('don_mua_hang', supa.eq('ma_don', m)); } catch (x) {}
+    }
+    throw e;
   }
   return { saved: saved };
 }
@@ -1179,6 +1192,7 @@ async function saveDeXuat(dx) {
     if (dxThieuBang_(e)) throw new Error('Chưa có bảng "de_xuat" trong CSDL — mở Supabase → SQL Editor và chạy file db/de_xuat.sql một lần, rồi gửi lại.');
     throw e;
   }
+  try {
   if (loai === 'ck' && items.length) {
     await supa.insert('chi_tiet_de_xuat', items.map(function (it, i) {
       const sl = n(it.sl), dg = n(it.donGia);
@@ -1193,6 +1207,7 @@ async function saveDeXuat(dx) {
         thanh_tien: round0_(n(d.tien)), ngay_du_kien: d.ngay || null, ghi_chu: s(d.gc) };
     }));
   }
+  } catch (e) { try { await supa.remove('de_xuat', supa.eq('ma_de_xuat', ma)); } catch (x) {} throw e; }   // không để phiếu rỗng
   return { ma: ma, loai: loai, total: round0_(tongDx + vat) };
 }
 function dxHead_(h) {
@@ -1387,7 +1402,9 @@ async function ctDelete(actor, ids) {
   for (const id of ids) {
     try {
       const cu = (await supa.select('cong_tac', { filter: supa.eq('id', id), limit: 1 }))[0];
-      await supa.remove('cong_tac', supa.eq('id', id)); ok++;
+      const xoa = await supa.remove('cong_tac', supa.eq('id', id));
+      if (!xoa || !xoa.length) throw new Error('Không tìm thấy công tác');
+      ok++;
       await ctHistory_(actor, id, [{ field: 'XOÁ CÔNG TÁC', old: cu ? s(cu.ten) : '', new: 'đã xoá' }]);
     }
     catch (e) { if (errs.length < 5) errs.push({ id: id, error: (ctErr_(e)).message }); }
@@ -1451,12 +1468,7 @@ const CT_ALIAS = {
   phamVi: ['phạm vi ứng dụng', 'pham vi ung dung', 'phạm vi', 'pham vi'],
   hinhAnh: ['ảnh', 'anh', 'hình ảnh', 'hinh anh', 'link ảnh']
 };
-function toNumber_(v) {
-  if (v == null || v === '') return 0;
-  if (typeof v === 'number') return v;
-  const t = String(v).replace(/[^\d,.-]/g, '').replace(/\.(?=\d{3}\b)/g, '').replace(',', '.');
-  const x = parseFloat(t); return isNaN(x) ? 0 : x;
-}
+const toNumber_ = shared.toNumber_;        // 1 cách đọc số VN cho cả server
 function ctNorm_(v) {
   return String(v == null ? '' : v).trim().toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd')
@@ -1502,6 +1514,8 @@ async function ctImportParse(base64, ext) {
   }
   if (hr < 0) throw new Error('Không tìm thấy cột "Nội dung công việc" trong file — tải file mẫu để xem đúng tiêu đề cột');
   function cell(row, i) { return i === undefined ? '' : String(row[i] == null ? '' : row[i]).trim(); }
+  // ô Excel kiểu số giữ nguyên (0.125 không bị đọc thành 125 như khi đổi sang chuỗi trước)
+  function num(row, i) { return i === undefined ? 0 : toNumber_(row[i]); }
   const rows = [];
   for (let r = hr + 1; r < grid.length; r++) {
     const row = grid[r]; const ten = cell(row, map.ten); if (!ten) continue;
@@ -1515,8 +1529,8 @@ async function ctImportParse(base64, ext) {
       loai: CT_LOAI_ALIAS[loaiTxt] || (/^(kt_|dt_)/.test(loaiTxt) ? loaiTxt : 'kt_chitiet'),
       mode: CT_MODE_ALIAS[modeTxt] || 'item',
       dvt: cell(row, map.dvt), ncc: cell(row, map.ncc),
-      kl: toNumber_(cell(row, map.kl)), dt: toNumber_(cell(row, map.dt)), hs: toNumber_(cell(row, map.hs)),
-      dgnt: round0_(toNumber_(cell(row, map.dgnt))), dg: round0_(toNumber_(cell(row, map.dg))),
+      kl: num(row, map.kl), dt: num(row, map.dt), hs: num(row, map.hs),
+      dgnt: round0_(num(row, map.dgnt)), dg: round0_(num(row, map.dg)),
       gc: cell(row, map.gc), thongSo: cell(row, map.thongSo), phamVi: cell(row, map.phamVi),
       hinhAnh: cell(row, map.hinhAnh)
     });

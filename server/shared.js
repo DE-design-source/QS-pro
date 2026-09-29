@@ -63,6 +63,7 @@ function toNumber_(v) {
   if (s.indexOf(',') > -1 && s.indexOf('.') > -1) s = s.replace(/\./g, '').replace(',', '.');
   else if ((s.match(/\./g) || []).length > 1) s = s.replace(/\./g, '');
   else if (/\.\d{3}$/.test(s)) s = s.replace(/\./g, '');
+  s = s.replace(',', '.');                     // "12,5" -> 12.5 (cùng luật với tkNum_ ở client)
   var n = parseFloat(s);
   return isNaN(n) ? 0 : n;
 }

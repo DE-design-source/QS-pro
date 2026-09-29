@@ -148,7 +148,7 @@ function admReqCard_(reqs){
 async function drqResolve(id,approve){
   if(!approve && !await xacNhan_('Từ chối yêu cầu xóa này?')) return;
   api('resolveDeleteRequest',id,approve).then(function(r){
-    toast(approve?('Đã duyệt & xóa '+(r.deleted||0)+' sản phẩm'):'Đã từ chối yêu cầu');
+    toast(approve?('Đã duyệt & xóa '+(r.deleted||0)+' sản phẩm'+(r.loi?(' — có sản phẩm không xoá được: '+r.loi):'')):'Đã từ chối yêu cầu');
     renderAdmin(); refreshNotifCount_();
     if(approve){ api('getProducts').then(function(ps){ if(ps) S.products=ps; }).catch(function(){}); }
   }).catch(function(e){ toast('Lỗi: '+e.message); });

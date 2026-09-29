@@ -37,6 +37,9 @@ function verifyToken(token) {
 const _sess = new Map();
 const SESSION_CACHE_MS = 30 * 1000;
 function forgetSession_(uid) { _sess.delete(String(uid)); }
+// Hôm nay theo giờ Việt Nam 'YYYY-MM-DD' (server chạy UTC: trước đây hết hạn 30/9 vẫn dùng được tới 7h sáng 1/10)
+function todayVN_() { return new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10); }
+function hetHan_(ct) { return !!(ct && ct.hanDung && String(ct.hanDung).slice(0, 10) < todayVN_()); }
 async function sessionActor(token) {
   const p = verifyToken(token);
   if (!p) return null;
@@ -46,7 +49,7 @@ async function sessionActor(token) {
   let u = rows[0] && rows[0].active !== false ? { r: rows[0].role, ct: rows[0].cong_ty_id || null, u: rows[0].username } : null;
   if (u && u.r !== 'super') {
     const ct = u.ct ? await getCongTy(u.ct) : null;
-    if (!ct || !ct.active || (ct.hanDung && new Date(ct.hanDung) < new Date(new Date().toDateString()))) u = null;
+    if (!ct || !ct.active || hetHan_(ct)) u = null;
   }
   _sess.set(String(p.uid), { at: Date.now(), u: u });
   return u ? Object.assign({}, p, u) : null;
@@ -244,7 +247,7 @@ async function login(username, password) {
     ct = await getCongTy(u.cong_ty_id);
     if (!ct) throw new Error('Tài khoản chưa được gán công ty — liên hệ quản trị hệ thống');
     if (!ct.active) throw new Error('Công ty "' + ct.ten + '" đang bị tạm khoá');
-    if (ct.hanDung && new Date(ct.hanDung) < new Date(new Date().toDateString()))
+    if (hetHan_(ct))
       throw new Error('Gói dịch vụ của "' + ct.ten + '" đã hết hạn ngày ' + ct.hanDung);
   } else if (u.cong_ty_id) { ct = await getCongTy(u.cong_ty_id); }
   await supa.update('users', supa.eq('id', u.id), patch, { noScope: true });
@@ -460,7 +463,7 @@ async function notifReadAll(actor) { await supa.update('notifications', supa.eq(
 /* ---------- Yêu cầu xóa sản phẩm (duyệt bởi admin) ---------- */
 function parseItems_(s) { try { return JSON.parse(s || '[]') || []; } catch (e) { return []; } }
 async function requestDeleteProducts(actor, items) {
-  items = (Array.isArray(items) ? items : []).map(function (it) { return { maSP: String(it.maSP || it.ma || ''), ten: String(it.ten || '') }; }).filter(function (it) { return it.maSP; });
+  items = (Array.isArray(items) ? items : []).map(function (it) { return { maSP: String(it.maSP || it.ma || ''), id: it.id ? String(it.id) : '', ten: String(it.ten || '') }; }).filter(function (it) { return it.maSP; });
   if (!items.length) throw new Error('Chưa chọn sản phẩm hợp lệ');
   const me = await getUserById(actor.uid);
   const who = me ? (me.ho_ten || me.username) : actor.u;
@@ -487,10 +490,12 @@ async function resolveDeleteRequest(actor, id, approve) {
   if (!claim || !claim.length) throw new Error('Yêu cầu đã được xử lý');
   if (approve) {
     var deleted = 0;
-    for (var i = 0; i < items.length; i++) { try { await store.deleteDbProduct(actor, items[i].maSP); deleted++; } catch (e) { } }
+    var loiXoa = '';
+    // xoá theo id dòng = đúng biến thể người gửi chọn (theo mã thì xoá nhầm biến thể có id nhỏ nhất)
+    for (var i = 0; i < items.length; i++) { try { await store.deleteDbProduct(actor, items[i].id || items[i].maSP); deleted++; } catch (e) { loiXoa = loiXoa || (e && e.message) || ''; } }
     await notify_(r.requester_id, 'delete_approved', 'Yêu cầu xóa đã được duyệt', 'Đã xóa ' + deleted + '/' + items.length + ' sản phẩm bạn yêu cầu', r.id);
     await audit(actor, 'approve_delete', 'Duyệt xóa ' + deleted + ' SP (yêu cầu #' + id + ' của ' + r.requester_name + ')');
-    return { ok: true, deleted: deleted };
+    return { ok: true, deleted: deleted, loi: loiXoa };
   } else {
     await notify_(r.requester_id, 'delete_rejected', 'Yêu cầu xóa bị từ chối', 'Yêu cầu xóa ' + items.length + ' sản phẩm không được duyệt', r.id);
     await audit(actor, 'reject_delete', 'Từ chối yêu cầu xóa #' + id);

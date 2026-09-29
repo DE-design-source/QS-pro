@@ -13,6 +13,9 @@ const C = new Function(['esc', 'escJs_', 'safeUrl_', 'tkNum_', 'pctIn_'].map(pic
 // số kiểu VN
 [['1.234.567', 1234567], ['12,5', 12.5], ['1.234,5', 1234.5], ['1.500', 1500], ['450.5', 450.5], ['', 0], ['abc', 0], ['-2,5', -2.5]]
   .forEach(([v, want]) => assert.strictEqual(C.tkNum_(v), want, 'tkNum_(' + v + ')'));
+// server đọc số giống hệt client (giá / diện tích từ file nhập, ô sửa)
+['1.234.567', '12,5', '1.234,5', '1.500', '450.5', '30%', '-2,5', '', 'abc', '12.500.000 đ']
+  .forEach(v => assert.strictEqual(shared.toNumber_(v), C.tkNum_(v), 'toNumber_ vs tkNum_ (' + v + ')'));
 // ô % trống không được thành 0
 assert.strictEqual(C.pctIn_(''), null); assert.strictEqual(C.pctIn_('  '), null);
 assert.strictEqual(C.pctIn_('12,5'), 12.5); assert.strictEqual(C.pctIn_('0'), 0); assert.strictEqual(C.pctIn_('x'), null);
