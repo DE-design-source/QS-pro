@@ -431,7 +431,7 @@ function buildPhanThoSheet(ws, p, pt) {
 }
 
 /*** ===== ENTRY: exportBaoGia(maDA, cols, format) ===== ***/
-async function exportBaoGia(maDA, cols, format, nodes, phanTho) {
+async function exportBaoGia(maDA, cols, format, nodes, phanTho, anMuc) {
   const q = await dataStore.getQuote(maDA);
   const p = q.project || {};
   // chỉ xuất các hạng mục được tích ở tab Xuất báo giá (rỗng = xuất hết)
@@ -452,7 +452,9 @@ async function exportBaoGia(maDA, cols, format, nodes, phanTho) {
   });
 
   const wb = new ExcelJS.Workbook();
-  const cover = await dataStore.getCoverOrInit(maDA);
+  // mục lớn người dùng đã ẩn khỏi tờ bìa (chip ở tab Xuất báo giá) -> file Excel cũng bỏ, khớp bản PDF
+  const an = {}; (Array.isArray(anMuc) ? anMuc : []).forEach(function (k) { an[String(k)] = 1; });
+  const cover = (await dataStore.getCoverOrInit(maDA)).filter(function (c) { return !an[String(c.stt).split('.')[0]]; });
   buildCoverSheet(wb.addWorksheet('Tờ bìa'), p, cover);
   buildSection32(wb.addWorksheet('3.2 Phần hoàn thiện'), p, cover);
   if (Array.isArray(phanTho) && phanTho.length) buildPhanThoSheet(wb.addWorksheet('3.1 Phần thô'), p, phanTho);

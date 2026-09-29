@@ -167,7 +167,7 @@ function tlPop_(e,lineId){
   pop.style.top=top+'px'; pop.style.left=Math.max(8,Math.min(r.left,window.innerWidth-w-10))+'px';
   setTimeout(function(){ document.addEventListener('mousedown',popOutside); },0);
 }
-/* ═══ Ô TÀI LIỆU: tải file lên kho (uploadFile) HOẶC dán link — dùng ở form Nhập & modal Sửa ═══ */
+/* ═══ Ô TÀI LIỆU: tải file lên kho (/upload/file) HOẶC dán link — dùng ở form Nhập & modal Sửa ═══ */
 function docName_(u){ u=String(u||'').trim(); if(!u) return '';
   var t=u.split('?')[0].split('/').pop()||u; try{ t=decodeURIComponent(t); }catch(e){}
   return t.replace(/^\d{10,}-/,''); }                    // bỏ tiền tố thời gian của file đã tải lên

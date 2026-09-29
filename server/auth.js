@@ -591,11 +591,6 @@ async function ctDuyetGated(actor, ids, approve) {
 async function ctFavGated(actor, ids, on) {
   return store.ctFav(actor, ids, on !== false);   // yêu thích = dấu trang của công ty, ai cũng bật/tắt được
 }
-async function ctSeedGated(actor, rows) {
-  const p = await spPerms_(actor);
-  if (!p.edit) throw new Error('Tài khoản không có quyền thêm dữ liệu');
-  return store.ctSeed(actor, rows);
-}
 
 /* Yêu thích: chỉ là dấu trang của công ty, không đụng vào dữ liệu sản phẩm
    -> mọi tài khoản đăng nhập đều được bật/tắt, không cần quyền sp_edit. */
@@ -702,7 +697,7 @@ async function resolveDeXuat(actor, ma, approve) {
 module.exports = {
   updateProductGated, createProductGated, importGated, saveLineAsProductGated, setSpDuyet, setComboGated, setBienTheGated, spMyPerms,
   setYeuThich,
-  ctSaveGated, ctUpdateGated, ctDeleteGated, ctDuyetGated, ctSeedGated, ctFavGated,
+  ctSaveGated, ctUpdateGated, ctDeleteGated, ctDuyetGated, ctFavGated,
   listCongTyUsers, createCongTyUser,
   listCongTy, createCongTy, updateCongTy, deleteCongTy, getCongTy,
   getPurchaseOrder,

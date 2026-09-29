@@ -838,7 +838,8 @@ async function doExport(fmt,btn){
         S.cover=await api('saveCover',S.cur.maDA,S.cover)||S.cover;
       }
       bgChot_('excel'); drawBaogia();
-      var r=await api('exportBaoGia',S.cur.maDA,cols,'xlsx',nodes,pt);
+      var an=Object.keys(S.bgHide||{}).filter(function(k){ return S.bgHide[k]; });   // mục đã ẩn khỏi tờ bìa
+      var r=await api('exportBaoGia',S.cur.maDA,cols,'xlsx',nodes,pt,an);
       dl(r); toast('Đã xuất Excel · '+cols.length+' cột'+(nodes.length?(' · '+nodes.length+' hạng mục'):'')+(pt.length?(' · kèm phần thô'):''));
     }
   }catch(e){ toast('Lỗi: '+e.message); } btn.disabled=false; btn.textContent=o;

@@ -700,15 +700,16 @@ function spColW_(k){ if(spPTMode_()) return (S._ptW2&&S._ptW2[k])||PT_SPDEFW[k]|
 function spColsDefault_(ng){
   var b={thumb:1,ten:1,duyet:1,sku:1,thuong_hieu:1,hang_muc:1,giaDaiLy:1};
   if(ng==='vs'){ b.kich_thuoc=1; b.mau_sac=1; b.kieu_lap_dat=1; b.he_thong_xa=1; return b; }
+  if(ng==='son'){ b.mau_sac=1; b.be_mat=1; b.do_phu=1; b.kich_thuoc=1; return b; }      // sơn nước: không có công suất / K / CRI
   b.cong_suat_w=1; b.nhiet_do_mau_k=1; b.cri=1; b.goc_chieu_deg=1; return b;
 }
 function spColsSync_(){
   if(spPTMode_()) return;
-  var ng=(spNganhCur_()==='vs')?'vs':'den';
+  var ng=spNganhCur_(); if(ng!=='vs'&&ng!=='son') ng='den';     // mỗi ngành 1 bộ cột riêng
   if(S._spColsNganh===ng && S._spCols) return;
   S._spColsNganh=ng;
   var luu=null;
-  try{ var j=JSON.parse(localStorage.getItem('qs_spcolcfg')||'{}'); luu=(ng==='vs')?j.onVs:j.on; }catch(e){}
+  try{ var j=JSON.parse(localStorage.getItem('qs_spcolcfg')||'{}'); luu=(ng==='vs')?j.onVs:(ng==='son'?j.onSon:j.on); }catch(e){}
   S._spCols=(luu&&Object.keys(luu).length)?luu:spColsDefault_(ng);
 }
 function spOrder_(){
@@ -729,11 +730,12 @@ function spOrder_(){
 }
 function spSaveCols_(){
   try{
-    if(spPTMode_()) localStorage.setItem('qs_ptcolcfg',JSON.stringify({order:S._ptOrder2,w:S._ptW2||{},on:S._ptColsOn||{}}));
+    if(spPTMode_()) localStorage.setItem('qs_ptcolcfg',JSON.stringify({order:S._ptOrder2,w:S._ptW2||{},on:(S._spEdit&&S._ptColsOnBak)||S._ptColsOn||{}}));
     else {
       var j={}; try{ j=JSON.parse(localStorage.getItem('qs_spcolcfg')||'{}')||{}; }catch(e2){}
       j.order=S._spOrder; j.w=S._spW||{};
-      if(S._spColsNganh==='vs') j.onVs=S._spCols||{}; else j.on=S._spCols||{};
+      var on=(S._spEdit&&S._spColsBak)||S._spCols||{};   // đang Edit (bật hết cột) -> lưu bộ cột thật của người dùng
+      if(S._spColsNganh==='vs') j.onVs=on; else if(S._spColsNganh==='son') j.onSon=on; else j.on=on;
       localStorage.setItem('qs_spcolcfg',JSON.stringify(j));
     }
   }catch(e){}

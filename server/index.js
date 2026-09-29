@@ -41,7 +41,6 @@ const REGISTRY = {
   saveLineAsProduct: auth.saveLineAsProductGated,
   saveDbProduct: auth.createProductGated,   // cửa ngõ: cần quyền sửa + đóng dấu người tạo
   uploadImage: store.uploadImage,
-  uploadFile: store.uploadFile,
   deleteDbProduct: store.deleteDbProduct,
   getDbProduct: store.getDbProduct,
   updateDbProductTracked: auth.updateProductGated,   // cửa ngõ: chỉ 'sp_edit' -> tạo phiếu chờ duyệt
@@ -52,9 +51,7 @@ const REGISTRY = {
   ctUpdate: auth.ctUpdateGated,
   ctDelete: auth.ctDeleteGated,
   ctDuyet: auth.ctDuyetGated,
-  ctSeed: auth.ctSeedGated,
   ctFav: auth.ctFavGated,
-  ctImportParse: store.ctImportParse,
   getCombo: store.getCombo,
   setCombo: auth.setComboGated,
   getBienThe: store.getBienThe,
@@ -64,7 +61,6 @@ const REGISTRY = {
   saveCover: store.saveCover,
   buildCoverFromTemplate: store.buildCoverFromTemplate,
   getCoverOrInit: store.getCoverOrInit,
-  getQuote: store.getQuote,
   importParse: store.importParse,
   importCommit: auth.importGated,
   exportBaoGia: exportBaoGia,
@@ -120,7 +116,7 @@ const ACTOR_FNS = new Set(['me', 'setMyPref', 'logClientError', 'logout', 'chang
   'sendDeXuat', 'listDeXuat', 'getDeXuat', 'resolveDeXuat',
   'listCongTy', 'createCongTy', 'updateCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'baoCaoNhapSP',
   'updateDbProductTracked', 'setSpDuyet', 'setYeuThich', 'setCombo', 'setBienThe', 'spMyPerms',
-  'ctSave', 'ctUpdate', 'ctDelete', 'ctDuyet', 'ctSeed', 'ctFav',
+  'ctSave', 'ctUpdate', 'ctDelete', 'ctDuyet', 'ctFav',
   'deleteDbProduct', 'importCommit', 'saveDbProduct', 'saveLineAsProduct']);
 // Hàm chỉ Admin được gọi
 const SUPER_FNS = new Set(['listCongTy', 'createCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'baoCaoNhapSP']);

@@ -938,11 +938,6 @@ async function uploadImage(base64, fileName) {
 // Tải FILE tài liệu (PDF, bản vẽ DWG/DXF, ảnh, ZIP…) lên kho — giữ đuôi & tên gốc để người xem nhận ra
 const DOC_EXT = /^(pdf|png|jpe?g|webp|gif|dwg|dxf|skp|zip|rar|7z|docx?|xlsx?|pptx?)$/i;
 const DOC_MAX_MB = 50;                      // = giới hạn 1 file của Supabase Storage (gói free)
-async function uploadFile(base64, fileName) {
-  const m = /^data:([^;]*);base64,/.exec(s(base64));
-  const buf = Buffer.from(s(base64).replace(/^data:[^;]*;base64,/, ''), 'base64');
-  return uploadFileBuf(buf, fileName, m && m[1]);
-}
 // Nhận file NHỊ PHÂN (route /upload/file) — không qua base64 nên file lớn không bị phình 33%
 async function uploadFileBuf(buf, fileName, contentType) {
   if (!buf || !buf.length) throw new Error('File rỗng.');
@@ -965,10 +960,6 @@ async function uploadFileBuf(buf, fileName, contentType) {
 }
 
 /*** ===== DASHBOARD / QUOTE / BOOTSTRAP ===== ***/
-async function getDashboard() {
-  const projects = await getProjects();
-  return { projects: projects, count: projects.length };
-}
 async function getQuote(maDA) {
   const lines = await getLines(maDA);
   const proj = await getProject(maDA);
@@ -1448,104 +1439,6 @@ async function ctFav(actor, ids, on) {
   }
   const out = { ok: ok }; if (errs.length) out.errors = errs; return out;
 }
-/* Nhập hàng loạt công tác từ Excel/CSV — đọc file rồi trả về danh sách để xem trước.
-   Cột nhận diện theo tiêu đề (không phân biệt hoa thường, bỏ dấu).                */
-const CT_ALIAS = {
-  ten: ['nội dung công việc', 'noi dung cong viec', 'tên công việc', 'ten cong viec', 'công việc', 'cong viec', 'tên công tác', 'ten cong tac', 'hạng mục công việc'],
-  hangMuc: ['hạng mục', 'hang muc', 'nhóm', 'nhom'],
-  maNhom: ['số hạng mục', 'so hang muc', 'stt hạng mục', 'mã nhóm', 'ma nhom'],
-  loai: ['loại báo giá', 'loai bao gia', 'loại', 'loai'],
-  mode: ['cách tính', 'cach tinh', 'kiểu tính', 'kieu tinh'],
-  dvt: ['đvt', 'dvt', 'đơn vị tính', 'don vi tinh'],
-  kl: ['khối lượng', 'khoi luong', 'khối lượng mẫu', 'kl'],
-  dt: ['diện tích', 'dien tich', 'diện tích mẫu'],
-  hs: ['hệ số', 'he so'],
-  dgnt: ['đơn giá nhà thầu', 'don gia nha thau', 'giá đại lý', 'gia dai ly', 'giá vốn', 'gia von'],
-  dg: ['đơn giá', 'don gia', 'giá bán lẻ', 'gia ban le', 'đơn giá bán', 'don gia ban', 'giá bán', 'gia ban'],
-  ncc: ['nhà thầu', 'nha thau', 'nhà cung cấp', 'nha cung cap'],
-  gc: ['ghi chú', 'ghi chu'],
-  thongSo: ['thông số kỹ thuật', 'thong so ky thuat', 'thông số', 'thong so'],
-  phamVi: ['phạm vi ứng dụng', 'pham vi ung dung', 'phạm vi', 'pham vi'],
-  hinhAnh: ['ảnh', 'anh', 'hình ảnh', 'hinh anh', 'link ảnh']
-};
-const toNumber_ = shared.toNumber_;        // 1 cách đọc số VN cho cả server
-function ctNorm_(v) {
-  return String(v == null ? '' : v).trim().toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd')
-    .replace(/[×✕✖]/g, 'x').replace(/[·•]/g, ' ')      // "Diện tích × hệ số", "Dự toán · Vật tư"
-    .replace(/\s+/g, ' ').trim();
-}
-function ctMatchAlias_(h) {
-  const t = ctNorm_(h); if (!t) return '';
-  for (const k of Object.keys(CT_ALIAS)) {
-    if (CT_ALIAS[k].some(function (a) { return ctNorm_(a) === t; })) return k;
-  }
-  return '';
-}
-const CT_LOAI_ALIAS = { 'khai toan': 'kt_chitiet', 'khai toan nhan cong + vat tu': 'kt_chitiet', 'khai toan chi tiet': 'kt_chitiet', 'khai toan so bo': 'kt_sobo',
-  'du toan nhan cong': 'dt_nhancong', 'du toan vat tu': 'dt_vattu' };
-const CT_MODE_ALIAS = { 'khoi luong x don gia': 'item', 'khoi luong': 'item', 'item': 'item',
-  'dien tich x he so': 'area', 'dien tich': 'area', 'area': 'area',
-  'chi tinh khoi luong': 'area0', 'area0': 'area0', 'chi liet ke': 'none', 'none': 'none' };
-async function ctImportParse(base64, ext) {
-  const ExcelJS = require('exceljs');
-  const buf = Buffer.from(String(base64 || ''), 'base64');
-  const wb = new ExcelJS.Workbook();
-  if (String(ext || '').toLowerCase().indexOf('csv') >= 0) {
-    const Readable = require('stream').Readable;
-    await wb.csv.read(Readable.from(buf.toString('utf8')));
-  } else { await wb.xlsx.load(buf); }
-  const ws = wb.worksheets[0];
-  if (!ws) throw new Error('File không có sheet dữ liệu');
-  const grid = [];
-  ws.eachRow({ includeEmpty: false }, function (row) {
-    const arr = []; row.eachCell({ includeEmpty: true }, function (cell, col) {
-      let v = cell.value;
-      if (v && typeof v === 'object') v = v.text || v.result || v.richText && v.richText.map(function (x) { return x.text; }).join('') || '';
-      arr[col - 1] = v == null ? '' : v;
-    });
-    grid.push(arr);
-  });
-  if (!grid.length) throw new Error('File rỗng');
-  let hr = -1, map = null;
-  for (let i = 0; i < Math.min(grid.length, 15); i++) {
-    const m = {}; grid[i].forEach(function (h, ci) { const k = ctMatchAlias_(h); if (k && m[k] === undefined) m[k] = ci; });
-    if (m.ten !== undefined) { hr = i; map = m; break; }
-  }
-  if (hr < 0) throw new Error('Không tìm thấy cột "Nội dung công việc" trong file — tải file mẫu để xem đúng tiêu đề cột');
-  function cell(row, i) { return i === undefined ? '' : String(row[i] == null ? '' : row[i]).trim(); }
-  // ô Excel kiểu số giữ nguyên (0.125 không bị đọc thành 125 như khi đổi sang chuỗi trước)
-  function num(row, i) { return i === undefined ? 0 : toNumber_(row[i]); }
-  const rows = [];
-  for (let r = hr + 1; r < grid.length; r++) {
-    const row = grid[r]; const ten = cell(row, map.ten); if (!ten) continue;
-    // Bỏ qua dòng chú thích cuối file: chỉ có ô đầu, dài như một câu
-    const coCotKhac = ['hangMuc', 'loai', 'mode', 'dvt', 'kl', 'dt', 'hs', 'dg', 'dgnt', 'ncc']
-      .some(function (k) { return cell(row, map[k]); });
-    if (!coCotKhac && (ten.length > 80 || /^(ghi chu|luu y|note|chu thich)/i.test(ctNorm_(ten)))) continue;
-    const loaiTxt = ctNorm_(cell(row, map.loai)), modeTxt = ctNorm_(cell(row, map.mode));
-    rows.push({
-      ten: ten, hangMuc: cell(row, map.hangMuc), maNhom: cell(row, map.maNhom),
-      loai: CT_LOAI_ALIAS[loaiTxt] || (/^(kt_|dt_)/.test(loaiTxt) ? loaiTxt : 'kt_chitiet'),
-      mode: CT_MODE_ALIAS[modeTxt] || 'item',
-      dvt: cell(row, map.dvt), ncc: cell(row, map.ncc),
-      kl: num(row, map.kl), dt: num(row, map.dt), hs: num(row, map.hs),
-      dgnt: round0_(num(row, map.dgnt)), dg: round0_(num(row, map.dg)),
-      gc: cell(row, map.gc), thongSo: cell(row, map.thongSo), phamVi: cell(row, map.phamVi),
-      hinhAnh: cell(row, map.hinhAnh)
-    });
-    if (rows.length >= 2000) break;
-  }
-  if (!rows.length) throw new Error('Không đọc được dòng nào có "Nội dung công việc"');
-  return { rows: rows, count: rows.length };
-}
-// Nạp thư viện mẫu (PT_TEMPLATE ở client gửi lên) — chỉ chạy khi công ty CHƯA có công tác nào
-async function ctSeed(actor, rows) {
-  const cur = await ctList();
-  if (cur.length) return { ok: 0, daCo: cur.length };
-  const r = await ctSave(actor, rows || []);
-  return { ok: r.ok, daCo: 0 };
-}
 
 module.exports = {
   bootstrap, buildCatalog, getProducts, getCatalogSheets, getProjects, getProject, createProject, updateProject, deleteProject, duplicateProject,
@@ -1553,11 +1446,11 @@ module.exports = {
   getLines, addLine, addBlankLine, updateLine, deleteLine, saveLineAsProduct, saveDbProduct, deleteDbProduct, uploadImage,
   getDbProduct, updateDbProductTracked, getProductHistory, diffDbProduct, dataToRow_, logAudit_, setSpDuyet,
   setYeuThich,
-  ctList, ctSave, ctUpdate, ctDelete, ctDuyet, ctSeed, ctFav, ctImportParse,
+  ctList, ctSave, ctUpdate, ctDelete, ctDuyet, ctFav,
   getCombo, setCombo,
   getBienThe, setBienThe,
   DB_LABEL2COL,
-  getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, getDashboard, getQuote, importParse, importCommit, uploadFile,
+  getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, getQuote, importParse, importCommit,
   savePurchaseOrder, getPurchaseOrders, getProjData, setProjData,
   nganhCua_, MUC_NGANH,
   saveDeXuat, getDeXuatList, dxHead_, dxItem_,
