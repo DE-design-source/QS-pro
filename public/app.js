@@ -2250,11 +2250,13 @@ async function removeProject(maDA, ev){
    Bảng phần thô · bảng diện tích · thông tin công tác tự nhập trước đây chỉ nằm trong
    localStorage của MỘT máy: người khác mở cùng dự án thấy trống, xoá cache là mất sạch.
    Nay nạp từ server khi mở dự án và ghi lên server (gộp 1,2 giây để không spam API).   */
+// Khoá dùng chung cả công ty (server tách theo công ty đang đăng nhập); còn lại lưu theo dự án
+var PD_CTY_KEYS={ptInfo:1, bgOrg:1};
 function projDataSet_(khoa, val){
   S._projData=S._projData||{}; S._projData[khoa]=val;
   if(!S.cur||!S.cur.maDA) return;
   // Nhớ dự án + giá trị NGAY LÚC SỬA: đổi dự án trong 1.2s trước đây làm flush ghi undefined vào dự án mới
-  S._pdQueue=S._pdQueue||{}; S._pdQueue[khoa]={ma:(khoa==='ptInfo')?'__cty':S.cur.maDA, val:val};
+  S._pdQueue=S._pdQueue||{}; S._pdQueue[khoa]={ma:PD_CTY_KEYS[khoa]?'__cty':S.cur.maDA, val:val};
   clearTimeout(S._pdTimer);
   S._pdTimer=setTimeout(projDataFlush_, 1200);
 }

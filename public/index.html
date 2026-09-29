@@ -4709,6 +4709,40 @@ tr.cp-rowlow td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
 .cpcmp-t td.best{color:var(--ok);font-weight:700}
 .cpcmp-cur{font-size:10.5px;font-weight:600;color:var(--blue);background:#eaf2ff;border-radius:99px;padding:1px 7px;margin-left:4px}
 .cpcmp-note{font-size:11.5px;color:var(--c3);margin-top:10px}
+/* xuất báo giá: phiên bản · tổng kết & điều khoản */
+.bgver-chip{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 11px;border-radius:99px;background:var(--bg2);border:1px solid var(--ln);font-size:12px;color:var(--c2);white-space:nowrap}
+.bgver-chip b{color:var(--c1)}
+.bgtk{border:1px solid var(--ln);border-radius:var(--rk);background:#fff;margin:0 0 12px}
+.bgtk-h{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;flex-wrap:wrap}
+.bgtk-h svg{color:var(--blue)}
+.bgtk-sum{font-size:12px;color:var(--c3)} .bgtk-sum b{color:var(--c1);font-variant-numeric:tabular-nums} .bgtk-sum b.g{color:var(--navy);font-size:13px}
+.bgtk-car{color:var(--c3);font-size:12px;width:14px;text-align:center}
+.bgtk-b{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr) minmax(0,1.2fr);gap:14px;padding:4px 14px 14px;border-top:1px solid var(--ln)}
+.bgtk-c{display:flex;flex-direction:column;gap:6px;padding-top:10px;min-width:0}
+.bgtk-c label{font-size:11.5px;font-weight:600;color:var(--c2);margin-top:4px}
+.bgtk-c label small{font-weight:400;color:var(--c3)}
+.bgtk-c label .ok{color:var(--ok);font-weight:600;margin-left:6px} .bgtk-c label .bad{color:#c0392b;font-weight:600;margin-left:6px}
+.bgtk-c input,.bgtk-c select,.bgtk-c textarea{height:32px;border:1px solid var(--ln2);border-radius:7px;padding:0 9px;font:inherit;font-size:12.5px;background:#fff;min-width:0}
+.bgtk-c textarea{height:auto;padding:8px 9px;resize:vertical;line-height:1.5}
+.bgtk-ck{display:flex;gap:6px} .bgtk-ck input{flex:1;text-align:right} .bgtk-ck select{width:58px}
+.bgtk-chu{font-size:11.5px;color:var(--c3);font-style:italic;line-height:1.45;margin-top:4px}
+.bgtk-dot{display:grid;grid-template-columns:20px minmax(0,1fr) 62px 12px 104px 22px;gap:6px;align-items:center}
+.bgtk-dot .n{font-size:11.5px;color:var(--c3);text-align:center} .bgtk-dot .pc{text-align:right} .bgtk-dot i{font-style:normal;font-size:11.5px;color:var(--c3)}
+.bgtk-dot .tien{font-size:12px;text-align:right;font-variant-numeric:tabular-nums;color:var(--c2)}
+.bgtk-dot .x{border:none;background:transparent;color:var(--c3);cursor:pointer}
+.bgtk-dot .x:hover{color:#c0392b}
+.bgtk-c .btn.xs{align-self:flex-start}
+@media (max-width:1100px){ .bgtk-b{grid-template-columns:1fr} }
+.cv-tag{display:inline-block;margin-left:6px;font-size:10px;font-weight:600;border-radius:99px;padding:1px 7px;vertical-align:1px;white-space:nowrap}
+.cv-tag.auto{background:#eaf2ff;color:var(--blue)}
+.cv-tag.tay{background:#fff4e0;color:#b45309;border:none;cursor:pointer;font-family:inherit}
+.cv-tag.tay:hover{background:#ffe8c2}
+.bghist{max-width:980px}
+.bghist-b{padding:14px 18px 18px;overflow:auto}
+.bgver{max-width:1240px;width:96vw}
+.bgver .pd-head .btn{margin-left:auto;margin-right:8px}
+.bgver-b{max-height:78vh;overflow:auto;background:#eef1f5;padding:16px}
+.bgver-b .qs-page{margin:0 auto 16px}
 /* hàng đặt nhanh lợi nhuận */
 .cp-lnq{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px;padding:9px 12px;
   border:1px solid var(--ln);border-radius:var(--rk);background:var(--bg2)}

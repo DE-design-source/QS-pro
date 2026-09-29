@@ -1056,11 +1056,14 @@ async function getProjData(maDA) {
   (await lay(maDA)).forEach(function (r) { out[s(r.khoa)] = r.gia_tri; });        // của riêng dự án -> đè lên
   return out;
 }
+const PROJ_DATA_KEYS = ['phanTho', 'area', 'ptInfo', 'ptVat', 'cpCfg', 'bgCfg', 'bgHist', 'bgOrg'];
 async function setProjData(actor, maDA, khoa, giaTri) {
   maDA = s(maDA).trim(); khoa = s(khoa).trim();
   if (maDA === '__cty') maDA = ctyKey_();        // dùng chung trong công ty -> tách theo công ty
   if (!maDA || !khoa) throw new Error('Thiếu mã dự án hoặc khoá dữ liệu');
-  if (['phanTho', 'area', 'ptInfo', 'ptVat'].indexOf(khoa) < 0) throw new Error('Khoá dữ liệu không hợp lệ: ' + khoa);
+  // cpCfg: cài đặt tab Chi phí · bgCfg: tổng kết & điều khoản báo giá · bgHist: các phiên bản báo giá đã chốt
+  // bgOrg: thông tin công ty in trên báo giá (lưu theo công ty, ma '__cty')
+  if (PROJ_DATA_KEYS.indexOf(khoa) < 0) throw new Error('Khoá dữ liệu không hợp lệ: ' + khoa);
   const row = { ma_da: maDA, khoa: khoa, gia_tri: (giaTri === undefined ? null : giaTri),
     cap_nhat: new Date().toISOString(), nguoi_sua: (actor && actor.u) || '' };
   try { row.cong_ty_id = tenant.tenantId() || null; } catch (e) {}

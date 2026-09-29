@@ -28,6 +28,15 @@ assert.strictEqual(C.safeUrl_(' JAVASCRIPT:x'), '#');
 assert.strictEqual(C.safeUrl_('https://x.vn/a.pdf'), 'https://x.vn/a.pdf');
 assert.strictEqual(C.safeUrl_('/media?token=1'), '/media?token=1');
 
+// tiền bằng chữ trên báo giá
+const bg = fs.readFileSync(path.join(__dirname, '..', 'public', 'baogia.js'), 'utf8');
+const docSoVN_ = new Function(bg.match(/^function docSoVN_\([^]*?\n}\n/m)[0] + 'return docSoVN_;')();
+[[0, 'Không đồng'], [15, 'Mười lăm đồng'], [21, 'Hai mươi mốt đồng'], [105, 'Một trăm lẻ năm đồng'], [1000000, 'Một triệu đồng'],
+ [1005000, 'Một triệu không trăm lẻ năm nghìn đồng'], [2000000000, 'Hai tỷ đồng'],
+ [239769720, 'Hai trăm ba mươi chín triệu bảy trăm sáu mươi chín nghìn bảy trăm hai mươi đồng'],
+ [1250300, 'Một triệu hai trăm năm mươi nghìn ba trăm đồng']]
+  .forEach(([n, want]) => assert.strictEqual(docSoVN_(n), want, 'docSoVN_(' + n + ')'));
+
 // tờ bìa: mục cha = tổng mục lá bên dưới, tổng = cộng cấp 1
 const cv = [{ stt: '1', chiPhi: 10 }, { stt: '3', chiPhi: 999 }, { stt: '3.2', chiPhi: 999 },
   { stt: '3.2.1', chiPhi: 5 }, { stt: '3.2.6', chiPhi: 7 }, { stt: '3.1', chiPhi: 3 }];
