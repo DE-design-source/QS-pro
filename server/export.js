@@ -485,4 +485,48 @@ async function exportBaoGia(maDA, cols, format, nodes, phanTho) {
 }
 
 exportBaoGia.buildPhanThoSheet = buildPhanThoSheet;   // để test riêng sheet Phần thô
+// 1 bảng do client dựng sẵn -> Excel: {ten, sheet, cols:[{label,num}], rows:[{cells:[]}|{group:''}], tong:[[nhãn,số]]}
+async function buildBangXlsx(b) {
+  const cols = (Array.isArray(b.cols) ? b.cols : []).slice(0, 60), rows = (Array.isArray(b.rows) ? b.rows : []).slice(0, 20000);
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet(String(b.sheet || 'Bang').replace(/[:\\/?*\[\]]/g, ' ').slice(0, 30) || 'Bang');
+  const n = cols.length, NAVY = 'FF12324C';
+  let r = 1;
+  if (b.ten) { ws.getCell(r, 1).value = String(b.ten); ws.getCell(r, 1).font = { bold: true, size: 14, color: { argb: NAVY } }; r += 2; }
+  cols.forEach(function (c, i) {
+    const cell = ws.getCell(r, i + 1);
+    cell.value = String(c.label || '');
+    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } };
+    cell.alignment = { vertical: 'middle', wrapText: true, horizontal: c.num ? 'right' : 'left' };
+    ws.getColumn(i + 1).width = i === 0 ? 8 : (c.num ? 16 : 34);
+  });
+  ws.getRow(r).height = 30; ws.views = [{ state: 'frozen', ySplit: r }]; r++;
+  rows.forEach(function (row) {
+    if (row && row.group != null) {
+      const c = ws.getCell(r, 1); c.value = String(row.group); c.font = { bold: true, color: { argb: NAVY } };
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEEF2F7' } };
+      if (n > 1) ws.mergeCells(r, 1, r, n);
+      r++; return;
+    }
+    (row && Array.isArray(row.cells) ? row.cells : []).slice(0, n).forEach(function (v, i) {
+      const cell = ws.getCell(r, i + 1);
+      cell.value = (typeof v === 'number' && isFinite(v)) || typeof v === 'string' ? v : '';
+      if (typeof v === 'number') cell.numFmt = '#,##0.##';
+      cell.alignment = { vertical: 'top', wrapText: !cols[i].num };
+    });
+    r++;
+  });
+  if (Array.isArray(b.tong) && n >= 2) {
+    r++;
+    b.tong.slice(0, 20).forEach(function (t) {
+      ws.getCell(r, n - 1).value = String(t[0] || ''); ws.getCell(r, n - 1).font = { bold: true };
+      const c = ws.getCell(r, n); c.value = Number(t[1]) || 0; c.numFmt = '#,##0'; c.font = { bold: true };
+      r++;
+    });
+  }
+  return wb.xlsx.writeBuffer();
+}
+
+exportBaoGia.buildBangXlsx = buildBangXlsx;
 module.exports = exportBaoGia;

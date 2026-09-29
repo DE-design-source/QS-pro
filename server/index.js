@@ -752,6 +752,23 @@ app.post('/export/san-pham', async function (req, res) {
   }
 });
 
+// Xuất 1 bảng do client dựng sẵn ra Excel: {ten, sheet, cols:[{label,num}], rows:[{cells}|{group}], tong:[[nhãn,số]]}
+app.post('/export/bang', async function (req, res) {
+  const actor = await actorOf_(req);
+  if (!actor) return res.status(401).json({ error: 'Chưa đăng nhập' });
+  try {
+    const b = req.body || {};
+    if (!Array.isArray(b.cols) || !b.cols.length) return res.status(400).json({ error: 'Không có cột nào để xuất' });
+    const buf = await exportBaoGia.buildBangXlsx(b);
+    res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.set('Content-Disposition', 'attachment; filename="bang.xlsx"');
+    res.send(Buffer.from(buf));
+  } catch (e) {
+    console.error('[export bảng] lỗi:', e && e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // File mẫu nhập hàng loạt THIẾT BỊ VỆ SINH — tạo động từ public/vs-spec.js (1 sheet "San pham" như mẫu đèn)
 app.get('/mau-nhap-thiet-bi-ve-sinh.xlsx', async function (req, res) {
   try {

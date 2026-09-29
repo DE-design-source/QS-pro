@@ -41,4 +41,18 @@ shared.COVER_TEMPLATE.filter(t => t[0][0] !== '5').forEach(t => assert(tree.incl
 Object.keys(shared.S32_SUPPLIERS).forEach(k => assert(tree.includes(k), 'NCC ' + k + ' không có trong TREE'));
 assert(shared.inCode('3.2.6.1', '3.2.6') && shared.inCode('3.2.6', '3.2.6') && !shared.inCode('3.2.60', '3.2.6'));
 
-console.log('test-core: tất cả đạt');
+// xuất bảng Excel (tab Chi phí): nhóm gộp ô, số giữ kiểu số, dòng tổng ở 2 cột cuối
+(async () => {
+  const ExcelJS = require('exceljs');
+  const buf = await require('../server/export').buildBangXlsx({ ten: 'BẢNG CHI PHÍ', sheet: 'Chi phi',
+    cols: [{ label: 'STT' }, { label: 'Tên' }, { label: 'Thành tiền', num: true }],
+    rows: [{ group: 'I. Thiết bị đèn' }, { cells: ['1.1', 'Đèn 9W', 7680000] }], tong: [['Tổng', 7680000]] });
+  const wb = new ExcelJS.Workbook(); await wb.xlsx.load(buf);
+  const ws = wb.getWorksheet('Chi phi');
+  assert.strictEqual(ws.getCell('A1').value, 'BẢNG CHI PHÍ');
+  assert.strictEqual(ws.getCell('C3').value, 'Thành tiền');
+  assert.strictEqual(ws.getCell('A4').value, 'I. Thiết bị đèn'); assert(ws.getCell('C4').isMerged);
+  assert.strictEqual(ws.getCell('C5').value, 7680000);
+  assert.strictEqual(ws.getCell('B7').value, 'Tổng'); assert.strictEqual(ws.getCell('C7').value, 7680000);
+  console.log('test-core: tất cả đạt');
+})().catch(e => { console.error(e); process.exit(1); });

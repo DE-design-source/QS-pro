@@ -78,7 +78,7 @@ function renderChiphi(){
     +'<div class="cp-empty">'+icon('money',30)+'<b>Chưa chọn dự án</b>'
     +'<span>Vào <b>Bảng điều khiển</b> chọn hoặc tạo một dự án để xem bảng chi phí.</span></div>'; return; }
   if(!S.cpCols) S.cpCols={ten:1,dvt:1,soLuong:1,giaNCC:1,chietKhau:1,giaDaiLy:1,lnPct:1,donGia:1,thanhTien:1,lnVnd:1};
-  if(S._cpGroup===undefined) S._cpGroup=true;
+  if(S._cpOvHide===undefined){ try{ S._cpOvHide=localStorage.getItem('qs_cpOvHide')==='1'; }catch(e){ S._cpOvHide=false; } }
   var keys=CP_KEYS.filter(function(k){ return S.cpCols[k]; });
   var rows=cpRows_();
 
@@ -100,6 +100,7 @@ function renderChiphi(){
       +'<span class="sp" style="flex:1"></span>'
       +'<span class="cp-hint">'+icon('sliders',13)+' Bấm thẳng vào ô để sửa giá NCC · CK · %LN · giá bán — số tính lại ngay</span></div>'
     +stat+hmPTNote_()+hmLacNote_(scope.length)
+    +cpOverview_(scope)
     +cpToolbar_(rows, scope)
     +pgTblHost_('cp', cpTableHtml_(keys,rows));
   markBlocks_('#v-chiphi table.cpflat');
@@ -114,7 +115,8 @@ function cpRows_(){
   var out=(S.lines||[]).filter(function(l){
     if(hm){ var c=String(l.nhom||''); if(!(c===hm || c.indexOf(hm+'.')===0)) return false; }   // hạng mục dùng chung
     if(q && spNorm_([l.ten,l.maSP,l.thuongHieu,l.ncc,l.khuVuc].join(' ')).indexOf(q)<0) return false;
-    if(f==='lo'  && (ttBan_(l)-ttVon_(l))>=0) return false;
+    if(f==='lo'  && cpWarn_(l)!=='lo') return false;     // chưa có giá bán không tính là lỗ (có chip riêng)
+    if(f==='thap' && cpWarn_(l)!=='thap') return false;
     if(f==='chuaGia' && Number(l.donGiaBan)>0) return false;
     if(f==='chuaVon' && Number(l.donGiaVon)>0) return false;
     return true;
@@ -153,7 +155,9 @@ function cpSort(k){
 function cpSetQ(v){ S._cpQ=v; renderChiphi();
   var i=document.getElementById('cpQ'); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } }
 function cpSetFlt(v){ S._cpFlt=(S._cpFlt===v)?'':v; renderChiphi(); }
-function cpToggleGroup(){ S._cpGroup=!S._cpGroup; renderChiphi(); }
+// Gom bảng theo: 'hm' hạng mục · 'tang' tầng · 'ncc' nhà cung cấp · '' không gom
+function cpBy_(){ if(S._cpBy===undefined){ try{ var v=localStorage.getItem('qs_cpBy'); S._cpBy=(v==null?'hm':v); }catch(e){ S._cpBy='hm'; } } return S._cpBy; }
+function cpSetBy(v){ S._cpBy=v; try{ localStorage.setItem('qs_cpBy',v); }catch(e){} renderChiphi(); }
 /* ---------- thanh công cụ ---------- */
 /* Phần thô (3.1) có bảng riêng, số liệu nằm ở tab Bóc tách chứ không nằm trong
    danh sách dòng của dự án -> các trang đọc S.lines sẽ trống. Báo rõ cho người dùng
@@ -225,9 +229,10 @@ function cpToolbar_(rows, scope){
   // Đếm trên ĐÚNG phạm vi hạng mục đang xem — trước đây đếm cả dự án nên chip ghi
   // "Tất cả 3" trong khi bảng chỉ có 2 dòng, bấm "Đang lỗ 1" lại ra bảng rỗng.
   scope=scope||(S.lines||[]);
-  var soLo=scope.filter(function(l){ return (ttBan_(l)-ttVon_(l))<0; }).length;
+  var soLo=scope.filter(function(l){ return cpWarn_(l)==='lo'; }).length;
   var soChuaGia=scope.filter(function(l){ return !(Number(l.donGiaBan)>0); }).length;
   var soChuaVon=scope.filter(function(l){ return !(Number(l.donGiaVon)>0); }).length;
+  var soThap=scope.filter(function(l){ return cpWarn_(l)==='thap'; }).length;
   function chip(k,nhan,n,cls){
     if(!n && k) return '';
     return '<button class="cpchip'+(S._cpFlt===k?' on':'')+(cls?' '+cls:'')+'" onclick="cpSetFlt(\'' +k+ '\')">'
@@ -236,6 +241,7 @@ function cpToolbar_(rows, scope){
   var loc='<div class="cp-flt">'
     +'<button class="cpchip'+(!S._cpFlt?' on':'')+'" onclick="cpSetFlt(\'\')">Tất cả<i>'+scope.length+'</i></button>'
     +chip('lo','Đang lỗ',soLo,'warn')
+    +chip('thap','Biên < '+cpMinBien_()+'%',soThap,'warn')
     +chip('chuaGia','Chưa có giá bán',soChuaGia)
     +chip('chuaVon','Chưa có giá vốn',soChuaVon)
     +'</div>';
@@ -245,8 +251,15 @@ function cpToolbar_(rows, scope){
   var ket=(S._cpQ||S._cpFlt)?('<span class="cp-found">'+rows.length+' / '+scope.length+' dòng</span>'):'';
   // hàng tìm / lọc nằm GỌN TRONG khối "Công cụ bảng" -> tab chỉ còn 3 khối rõ ràng
   var bar='<div class="cp-bar">'+tim+loc+ket+'<span style="flex:1"></span>'
-    +'<button class="btn ghost sm'+(S._cpGroup?' on':'')+'" onclick="cpToggleGroup()" title="Gom các dòng theo hạng mục và cộng tổng từng nhóm">'
-      +icon('layers',14)+' Gom theo hạng mục</button>'
+    +'<div class="cp-seg" title="Gom các dòng và cộng tổng từng nhóm"><span>Gom theo</span>'
+      +[['hm','Hạng mục'],['tang','Tầng'],['ncc','NCC'],['','Không gom']].map(function(x){
+        return '<button class="'+(cpBy_()===x[0]?'on':'')+'" onclick="cpSetBy(\''+x[0]+'\')">'+x[1]+'</button>'; }).join('')+'</div>'
+    +'</div>'
+    +'<div class="cp-bar cp-acts">'
+      +'<button class="btn ghost sm" onclick="cpBienMucTieu_()" title="Tính lại giá bán để đạt biên lợi nhuận mong muốn">'+icon('gauge',14)+' Biên mục tiêu…</button>'
+      +(cpSoNhap_()>1?'<button class="btn ghost sm" onclick="cpSoSanh_()" title="So tổng tiền các bản nháp của dự án này">'+icon('layers',14)+' So sánh '+cpSoNhap_()+' bản nháp</button>':'')
+      +'<span style="flex:1"></span>'
+      +'<button class="btn ghost sm" id="cpXlsBtn" onclick="cpXuatExcel_(this)" title="Bảng đang xem (đúng cột, lọc, cách gom) ra file Excel">'+icon('download',14)+' Xuất Excel</button>'
     +'</div>';
   return cpColBar_(bar)+(cpLnBulkHien_()?cpLnQuick_():'');
 }
@@ -283,11 +296,10 @@ function cpTableHtml_(keys,rows){
   } else if(!rows.length){
     body='<tr><td class="empty" colspan="'+ncol+'">Không có dòng nào khớp bộ lọc. '
       +'<button class="btn ghost xs" onclick="S._cpQ=\'\';S._cpFlt=\'\';renderChiphi()">Xoá lọc</button></td></tr>';
-  } else if(S._cpGroup){
-    var by={}, ord=[];
-    rows.forEach(function(l){ var c=(l.nhom||'').trim()||'__k'; if(!by[c]){ by[c]=[]; ord.push(c); } by[c].push(l); });
-    ord.forEach(function(code,gi){
-      var list=by[code], t=cpTotOf_(list), ten=(code==='__k'?'Chưa xếp hạng mục':(nodeName(code)||code));
+  } else if(cpBy_()){
+    var gs=cpGroupsOf_(rows,cpBy_()), ord=gs;
+    gs.forEach(function(g,gi){
+      var list=g.list, t=g.t, ten=g.ten;
       body+='<tr class="grp cp-grp"><td colspan="'+ncol+'">'
         +'<span class="gname">'+(ROMAN_[gi]||(gi+1))+'. '+esc(ten)+'</span>'
         +'<span class="cp-gn">'+list.length+' dòng</span>'
@@ -312,7 +324,7 @@ function cpTableHtml_(keys,rows){
 }
 function cpRowHtml_(l,keys,stt){
   var ln=ttBan_(l)-ttVon_(l);
-  var cls=(ln<0?' cp-rowneg':'')+(Number(l.donGiaBan)>0?'':' cp-rownogia');
+  var cls=(ln<0?' cp-rowneg':'')+(Number(l.donGiaBan)>0?'':' cp-rownogia')+(cpWarn_(l)==='thap'?' cp-rowlow':'');
   return '<tr class="drow'+cls+(tkSelHas_(l.lineId)?' rowsel':'')+'" data-id="'+l.lineId+'">'+cpSttCell_(l,stt)
     +keys.map(function(k){ return cpCell_(l,k); }).join('')+'</tr>';
 }
@@ -359,4 +371,145 @@ async function cpQuickLnAsk_(){
   if(v==null) return; v=(v&&v.v!=null)?v.v:v;
   v=pctIn_(v); if(v==null){ toast('% không hợp lệ'); return; }
   cpQuickLn_(v);
+}
+
+/* ═══ TỔNG QUAN + CẢNH BÁO + GOM NHÓM ═══
+   Cài đặt theo dự án (lưu du_an_data 'cpCfg'): minBien = biên tối thiểu (%), bienMT = biên mục tiêu dùng gần nhất. */
+function cpCfg_(){ return (S._projData&&S._projData.cpCfg)||{}; }
+function cpCfgSet_(k,v){ var c=Object.assign({},cpCfg_()); c[k]=v; projDataSet_('cpCfg',c); }
+function cpMinBien_(){ var v=cpCfg_().minBien; return (v==null||!isFinite(Number(v)))?15:Number(v); }
+function cpSetMinBien(v){
+  v=pctIn_(v); if(v==null||v<0||v>=100){ toast('Biên tối thiểu phải từ 0 đến dưới 100%'); renderChiphi(); return; }
+  cpCfgSet_('minBien',v); renderChiphi(); }
+// Cảnh báo của 1 dòng: 'chuaGia' · 'chuaVon' · 'lo' (lợi nhuận âm) · 'thap' (biên trên giá bán < mức tối thiểu) · ''
+function cpWarn_(l){
+  if(!(Number(l.donGiaBan)>0)) return 'chuaGia';
+  if(!(Number(l.donGiaVon)>0)) return 'chuaVon';
+  if(lnVnd_(l)<0) return 'lo';
+  return margin_(l)<cpMinBien_() ? 'thap' : '';
+}
+function cpKeyOf_(l,by){ var v=String((by==='tang'?l.tang:(by==='ncc'?l.ncc:l.nhom))||'').trim(); return v||'__k'; }
+function cpKeyName_(k,by){
+  if(k==='__k') return by==='ncc'?'Chưa có nhà cung cấp':(by==='tang'?'Chưa phân tầng':'Chưa xếp hạng mục');
+  return by==='hm'?(nodeName(k)||k):k; }
+// Gom dòng theo hạng mục / tầng / NCC, giữ thứ tự xuất hiện; mỗi nhóm kèm tổng
+function cpGroupsOf_(list,by){
+  var m={}, ord=[];
+  list.forEach(function(l){ var k=cpKeyOf_(l,by); if(!m[k]){ m[k]=[]; ord.push(k); } m[k].push(l); });
+  return ord.map(function(k){ return {k:k, ten:cpKeyName_(k,by), list:m[k], t:cpTotOf_(m[k])}; });
+}
+function cpOvToggle_(){ S._cpOvHide=!S._cpOvHide; try{ localStorage.setItem('qs_cpOvHide',S._cpOvHide?'1':''); }catch(e){} renderChiphi(); }
+function cpOverview_(scope){
+  if(S._cpOvHide) return '<div class="cpov-min"><button class="btn ghost sm" onclick="cpOvToggle_()">'+icon('gauge',14)+' Hiện tổng quan chi phí</button></div>';
+  var T=cpTotOf_(scope), vatPct=Number(S.cur.vat)||0, vat=Math.round(T.ban*vatPct/100), bien=T.ban>0?T.ln/T.ban*100:0, min=cpMinBien_();
+  var w={lo:0,thap:0,chuaGia:0,chuaVon:0}; scope.forEach(function(l){ var k=cpWarn_(l); if(k) w[k]++; });
+  function card(lb,val,sub,cls){ return '<div class="cpk'+(cls?' '+cls:'')+'"><span class="cpk-l">'+lb+'</span><b class="cpk-v">'+val+'</b>'+(sub?'<span class="cpk-s">'+sub+'</span>':'')+'</div>'; }
+  var ws=[['lo','đang lỗ'],['thap','biên dưới '+min+'%'],['chuaGia','chưa có giá bán'],['chuaVon','chưa có giá vốn']].filter(function(x){ return w[x[0]]; });
+  var kpis=card('Giá vốn',money(T.von)+' đ',T.n+' dòng')
+    +card('Giá bán',money(T.ban)+' đ','chưa gồm VAT')
+    +card('Lợi nhuận',money(T.ln)+' đ','biên '+bien.toFixed(1)+'% trên giá bán',T.ln<0?'neg':(bien<min?'low':'pos'))
+    +card('VAT '+vatPct+'%',money(vat)+' đ')
+    +card('Tổng thanh toán',money(T.ban+vat)+' đ','','grand')
+    +'<div class="cpk cpk-warn'+(ws.length?'':' ok')+'"><span class="cpk-l">Cảnh báo</span>'
+      +(ws.length ? ws.map(function(x){ return '<button class="cpk-w" onclick="cpSetFlt(\''+x[0]+'\')" title="Lọc các dòng này"><b>'+w[x[0]]+'</b> '+x[1]+'</button>'; }).join('')
+                  : '<b class="cpk-v sm">Không có dòng nào cần xem lại</b>')
+      +'<label class="cpk-min" title="Dòng có biên lợi nhuận (trên giá bán) thấp hơn mức này bị tô vàng">Biên tối thiểu'
+        +'<input type="number" min="0" max="99" step="any" value="'+min+'" onchange="cpSetMinBien(this.value)">%</label></div>';
+  if(!scope.length) return '<div class="dbcard cpov">'+cpOvHead_()+'<div class="cpk-row">'+kpis+'</div></div>';
+  // biểu đồ theo hạng mục: thanh sáng = giá bán, thanh đậm = giá vốn -> phần lộ ra là lợi nhuận
+  var gs=cpGroupsOf_(scope,'hm').sort(function(a,b){ return b.t.ban-a.t.ban; });
+  var max=Math.max.apply(null,[1].concat(gs.map(function(g){ return Math.max(g.t.ban,g.t.von); })));
+  var bars=gs.slice(0,8).map(function(g){
+    var b=g.t.ban>0?g.t.ln/g.t.ban*100:0, cls=g.t.ln<0?' neg':(b<min?' low':'');
+    return '<div class="cpb" onclick="hmSet_(\''+escJs_(g.k==='__k'?'':g.k)+'\')" title="'+esc(g.ten)+' — vốn '+money(g.t.von)+' · bán '+money(g.t.ban)+' · bấm để xem riêng">'
+      +'<span class="cpb-n">'+esc(g.ten)+'</span>'
+      +'<span class="cpb-bar"><i class="b" style="width:'+(g.t.ban/max*100).toFixed(1)+'%"></i><i class="v" style="width:'+(g.t.von/max*100).toFixed(1)+'%"></i></span>'
+      +'<span class="cpb-val">'+money(g.t.ban)+'</span><span class="cpb-pct'+cls+'">'+b.toFixed(1)+'%</span></div>'; }).join('')
+    +(gs.length>8?'<div class="cpn more">+ '+(gs.length-8)+' hạng mục khác</div>':'');
+  var ns=cpGroupsOf_(scope,'ncc').sort(function(a,b){ return b.t.von-a.t.von; }), tv=T.von||1;
+  var ncc=ns.slice(0,6).map(function(g){ var p=g.t.von/tv*100;
+      return '<div class="cpn" title="'+esc(g.ten)+': '+money(g.t.von)+' đ giá vốn"><span class="cpn-n">'+esc(g.ten)+'</span>'
+        +'<span class="cpn-bar"><i style="width:'+p.toFixed(1)+'%"></i></span><span class="cpn-p">'+p.toFixed(1)+'%</span></div>'; }).join('')
+    +(ns.length>6?'<div class="cpn more">+ '+(ns.length-6)+' nhà cung cấp khác</div>':'');
+  return '<div class="dbcard cpov">'+cpOvHead_()
+    +'<div class="cpk-row">'+kpis+'</div>'
+    +'<div class="cpov-g">'
+      +'<div class="cpov-c"><div class="cpov-t">Theo hạng mục <small><i class="lg b"></i>giá bán <i class="lg v"></i>giá vốn · % = biên</small></div>'+bars+'</div>'
+      +'<div class="cpov-c"><div class="cpov-t">Tỷ trọng giá vốn theo nhà cung cấp</div>'+ncc+'</div>'
+    +'</div></div>';
+}
+function cpOvHead_(){ return '<div class="cpov-h"><span class="tk-frame-h">Tổng quan chi phí</span><span style="flex:1"></span>'
+  +'<button class="pg-q" onclick="cpOvToggle_()">Thu gọn</button></div>'; }
+
+/* ═══ BIÊN MỤC TIÊU · SO SÁNH BẢN NHÁP · XUẤT EXCEL ═══ */
+// Tính lại giá bán các dòng đang áp (vùng chọn > dòng tick > dòng đang hiện) để biên trên giá bán = v%
+async function cpBienMucTieu_(){
+  var rows=cpLnRows_(), co=rows.filter(function(l){ return giaDaiLy_(l)>0; });
+  if(!co.length){ toast('Các dòng đang chọn chưa có giá vốn — nhập giá vốn trước'); return; }
+  var v=await askInput_({ title:'Biên lợi nhuận mục tiêu', label:'Biên % trên giá bán — '+cpLnScopeLbl_(),
+    value:String(cpCfg_().bienMT==null?'':cpCfg_().bienMT), placeholder:'VD: 25', ok:'Tính giá bán' });
+  if(v==null) return; v=(v&&v.v!=null)?v.v:v; v=pctIn_(v);
+  if(v==null||v<0||v>=100){ toast('Biên phải từ 0 đến dưới 100%'); return; }
+  cpCfgSet_('bienMT',v);
+  var edits=co.map(function(l){ return {id:l.lineId, fields:tkFieldsFor_(l,'margin',v)}; }).filter(function(e){ return e.fields; });
+  if(!edits.length){ toast('Không tính được giá bán cho dòng nào'); return; }
+  if(edits.length>1 && !await xacNhan_({ title:'Đặt biên '+v+'% cho '+edits.length+' dòng?',
+      note:'Giá bán từng dòng được tính lại để lợi nhuận bằng '+v+'% giá bán (sau chiết khấu khách).'
+        +(rows.length>co.length?'\n'+(rows.length-co.length)+' dòng chưa có giá vốn được bỏ qua.':'') })) return;
+  tkApplyEdits_(edits,'Đã đặt biên '+v+'%');
+}
+function cpSoNhap_(){ var g=currentGroup(); return g?g.drafts.length:0; }
+async function cpSoSanh_(){
+  var gr=currentGroup(); if(!gr||gr.drafts.length<2){ toast('Dự án này mới có 1 bản nháp'); return; }
+  var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='cpCmpOv';
+  var dong=function(){ ov.remove(); };
+  ov.onclick=function(e){ if(e.target===ov) dong(); };
+  ov.innerHTML='<div class="sp-modal cpcmp pd"><div class="pd-head"><h3>'+icon('layers',16)+' So sánh bản nháp — '+esc(gr.name)+'</h3>'
+    +'<button class="pd-x" onclick="document.getElementById(\'cpCmpOv\').remove()">✕</button></div>'
+    +'<div class="cpcmp-b"><div class="empty" style="padding:24px">Đang tải các bản nháp…</div></div></div>';
+  document.body.appendChild(ov);
+  var ma=S.cur.maDA;
+  var ds=await Promise.all(gr.drafts.map(function(d){
+    return d.maDA===ma ? Promise.resolve(S.lines) : api('getLines',d.maDA).catch(function(){ return null; }); }));
+  if(!ov.isConnected) return;
+  var R=gr.drafts.map(function(d,i){
+    if(!ds[i]) return {d:d,i:i,loi:1};
+    var t=cpTotOf_(ds[i]), vat=Math.round(t.ban*(Number(d.vat)||0)/100);
+    return {d:d,i:i,t:t,tong:t.ban+vat,bien:t.ban>0?t.ln/t.ban*100:0}; });
+  var ok=R.filter(function(r){ return !r.loi; });
+  var minT=Math.min.apply(null,ok.map(function(r){ return r.tong; })), maxB=Math.max.apply(null,ok.map(function(r){ return r.bien; }));
+  var nhieu=ok.length>1;
+  ov.querySelector('.cpcmp-b').innerHTML='<table class="cpcmp-t"><tr><th>Bản nháp</th><th class="num">Số dòng</th><th class="num">Giá vốn</th>'
+      +'<th class="num">Giá bán</th><th class="num">Lợi nhuận</th><th class="num">Biên</th><th class="num">Tổng gồm VAT</th><th></th></tr>'
+    +R.map(function(r){ var cur=r.d.maDA===ma;
+      if(r.loi) return '<tr><td>'+esc(draftName_(r.d,r.i))+'</td><td colspan="7" class="muted">Không tải được bản nháp này</td></tr>';
+      return '<tr class="'+(cur?'on':'')+'"><td><b>'+esc(draftName_(r.d,r.i))+'</b>'+(cur?' <span class="cpcmp-cur">đang mở</span>':'')+'</td>'
+        +'<td class="num">'+r.t.n+'</td><td class="num">'+money(r.t.von)+'</td><td class="num">'+money(r.t.ban)+'</td>'
+        +'<td class="num">'+cpSigned_(r.t.ln)+'</td><td class="num'+(nhieu&&r.bien===maxB?' best':'')+'">'+r.bien.toFixed(1)+'%</td>'
+        +'<td class="num'+(nhieu&&r.tong===minT?' best':'')+'"><b>'+money(r.tong)+'</b></td>'
+        +'<td>'+(cur?'':'<button class="btn ghost xs" onclick="document.getElementById(\'cpCmpOv\').remove();openDraft(\''+escJs_(r.d.maDA)+'\')">Mở</button>')+'</td></tr>'; }).join('')
+    +'</table><div class="cpcmp-note">Tô xanh: tổng thấp nhất và biên cao nhất giữa các bản nháp.</div>';
+}
+// Xuất đúng bảng đang xem: cột đang bật, bộ lọc/tìm kiếm, cách gom
+async function cpXuatExcel_(btn){
+  if(!S.cur) return;
+  var keys=CP_KEYS.filter(function(k){ return S.cpCols[k]; }), rows=cpRows_(), by=cpBy_();
+  if(!rows.length){ toast('Không có dòng nào để xuất'); return; }
+  var cols=[{label:'STT'}].concat(keys.map(function(k){ return {label:cpLabel_(k), num:cpAlign_(k)==='num'||cpAlign_(k)==='ct'&&k!=='dvt'}; }));
+  function val(l,k){ if(k==='ten'||k==='dvt') return String(l[k]||''); var v=cellSortVal_(l,k); return typeof v==='number'?v:(Number(v)||0); }
+  var out=[];
+  function them(list,pre){ list.forEach(function(l,i){ out.push({cells:[pre+(i+1)].concat(keys.map(function(k){ return val(l,k); }))}); }); }
+  if(by) cpGroupsOf_(rows,by).forEach(function(g,gi){
+      out.push({group:(ROMAN_[gi]||(gi+1))+'. '+g.ten+'   —   vốn '+money(g.t.von)+' · bán '+money(g.t.ban)+' · lợi nhuận '+money(g.t.ln)});
+      them(g.list,(gi+1)+'.'); });
+  else them(rows,'');
+  var T=cpTotOf_(rows), vp=Number(S.cur.vat)||0, vat=Math.round(T.ban*vp/100);
+  if(btn){ btn.disabled=true; }
+  try{
+    await taiFile_('/export/bang',{ ten:'BẢNG CHI PHÍ — '+(S.cur.ten||S.cur.maDA)+(hmGet_()?(' · '+nodeName(hmGet_())):''), sheet:'Chi phi', cols:cols, rows:out,
+      tong:[['Tổng giá vốn',T.von],['Tổng giá bán',T.ban],['Lợi nhuận',T.ln],['VAT '+vp+'%',vat],['Tổng thanh toán',T.ban+vat]] },
+      'chi-phi-'+S.cur.maDA+'.xlsx');
+    toast('Đã xuất '+rows.length+' dòng ra Excel');
+  }catch(e){ toast('Lỗi xuất Excel: '+e.message); }
+  if(btn){ btn.disabled=false; }
 }

@@ -19,6 +19,14 @@ function apiHeaders_(){
   if(S._viewAs) h['x-view-company']=S._viewAs;
   return h;
 }
+// POST body lên 1 route xuất file (/export/...) rồi tải file về máy
+async function taiFile_(url, body, ten){
+  var r=await fetch(url,{ method:'POST', headers:apiHeaders_(), body:JSON.stringify(body||{}) });
+  if(!r.ok){ var e=await r.json().catch(function(){ return {}; }); throw new Error(e.error||('HTTP '+r.status)); }
+  var blob=await r.blob(), u=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=u; a.download=ten; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(u); },4000);
+}
 function api(fn){
   var args = Array.prototype.slice.call(arguments,1);
   var h=apiHeaders_();
@@ -390,7 +398,7 @@ function renderCard(){
   // KPI nhanh về dự án (bản nháp đang mở)
   var kp=document.getElementById('pcKpi');
   if(kp){
-    var von=0,ban=0; (S.lines||[]).forEach(function(l){ von+=Number(l.thanhTienVon)||0; ban+=Number(l.thanhTienBan)||0; });
+    var von=0,ban=0; (S.lines||[]).forEach(function(l){ von+=ttVon_(l); ban+=ttBan_(l); });   // cùng công thức tab Chi phí
     function kpi(l,v){ return '<div class="pck"><span class="pck-v">'+v+'</span><span class="pck-l">'+l+'</span></div>'; }
     kp.innerHTML = S.cur ? (kpi('Hạng mục',(S.lines||[]).length)+kpi('Tổng giá bán',money(ban)+'đ')+kpi('Lợi nhuận',money(ban-von)+'đ')) : '';
   }
@@ -1834,8 +1842,8 @@ function cellInput(l,key){
     var ttl = key==='markup' ? 'Lợi nhuận trên giá vốn — gõ % để tính ra giá bán'
             : (key==='margin' ? 'Lợi nhuận trên giá bán — gõ % để tính ra giá bán'
                               : 'Lợi nhuận cả dòng (VND) — gõ số để tính ra giá bán');
-    return '<td class="num"><input class="cin num ln-in" type="number" step="any" title="'+ttl+'"'
-      +' value="'+cur+'" onchange="editProfit_(\''+l.lineId+'\',\''+key+'\',this.value)">'
+    return '<td class="num"><input class="cin num ln-in" '+(key==='lnVnd'?'inputmode="numeric"':'type="number" step="any"')+' title="'+ttl+'"'
+      +' value="'+(key==='lnVnd'?money(cur):cur)+'" onchange="editProfit_(\''+l.lineId+'\',\''+key+'\',this.value)">'
       +(key==='lnVnd'?'':'<i class="ln-pc">%</i>')+'</td>';
   }
   var cls=(['giaDaiLy','donGiaCK','thanhTien'].indexOf(key)>=0)?'num':(['hinhAnh','nganh','taiLieu'].indexOf(key)>=0?'ct':'');
@@ -1858,7 +1866,7 @@ function autoGrow(t){ if(!t) return; t.style.height='auto'; t.style.height=(t.sc
 function editProfit_(id, key, val){
   var l=S.lines.filter(function(x){return x.lineId===id;})[0]; if(!l) return;
   var von=giaDaiLy_(l), sl=Number(l.soLuong)||0, ckK=(Number(l.ckKhach)||0)/100;
-  var v=Number(String(val).replace(',','.'))||0;
+  var v=tkNum_(val);
   if(!von){ toast('Nhập "Giá bán lẻ" (giá vốn nhà cung cấp) trước — chưa có giá vốn thì không tính ngược được lợi nhuận'); renderTable(); return; }
   var dgCK;
   if(key==='markup') dgCK = von*(1+v/100);
