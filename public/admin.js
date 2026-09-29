@@ -1,7 +1,7 @@
 /* ═══ TAB ADMIN — tài khoản trong công ty, phân quyền, duyệt yêu cầu xoá SP / đơn mua hàng, nhật ký. ═══ */
 'use strict';
 
-function admActionLabel_(a){ var m={login:'Đăng nhập',logout:'Đăng xuất',login_fail:'ĐN lỗi',create_user:'Tạo TK',update_user:'Sửa TK',delete_user:'Xóa TK',reset_password:'Đặt lại MK',change_password:'Đổi MK',lock_user:'Khóa TK',unlock_user:'Mở khóa'}; return m[a]||a; }
+function admActionLabel_(a){ var m={loi_giao_dien:'Lỗi giao diện',login:'Đăng nhập',logout:'Đăng xuất',login_fail:'ĐN lỗi',create_user:'Tạo TK',update_user:'Sửa TK',delete_user:'Xóa TK',reset_password:'Đặt lại MK',change_password:'Đổi MK',lock_user:'Khóa TK',unlock_user:'Mở khóa'}; return m[a]||a; }
 async function renderAdmin(){
   var box=document.getElementById('v-admin'); if(!box) return;
   if(!isAdminRole_()){ box.innerHTML='<div class="sechd"><h2>Quản trị</h2></div><div class="empty">Bạn không có quyền truy cập.</div>'; return; }

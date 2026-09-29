@@ -56,6 +56,8 @@ async function rest(method, path, { body, prefer } = {}) {
   if (res.status >= 400) throw new Error('Supabase ' + method + ' ' + path + ' -> ' + res.status + ' ' + (txt || '').slice(0, 300));
   return data;
 }
+// Supabase (PostgREST) trả TỐI ĐA 1000 dòng / truy vấn dù xin limit lớn hơn -> tự lấy từng trang.
+const PAGE = 1000;
 // SELECT: table, {select, filter(chuỗi PostgREST vd 'ma_du_an=eq.X'), order, limit}
 async function select(table, opt) {
   opt = opt || {};
@@ -63,9 +65,22 @@ async function select(table, opt) {
   qs.push('select=' + encodeURIComponent(opt.select || '*'));
   const f = withScope_(table, opt.filter, opt);
   if (f) qs.push(f);
-  if (opt.order) qs.push('order=' + encodeURIComponent(opt.order));
-  if (opt.limit) qs.push('limit=' + opt.limit);
-  return rest('GET', table + '?' + qs.join('&')) || [];
+  const lim = Number(opt.limit) || 0;
+  if (lim <= PAGE) {
+    if (opt.order) qs.push('order=' + encodeURIComponent(opt.order));
+    if (lim) qs.push('limit=' + lim);
+    return rest('GET', table + '?' + qs.join('&')) || [];
+  }
+  // nhiều hơn 1 trang: thêm id làm khoá phụ để thứ tự ổn định giữa các trang (không trùng / sót dòng)
+  const order = opt.order ? (/(^|,)id\./.test(opt.order) ? opt.order : opt.order + ',id.asc') : 'id.asc';
+  qs.push('order=' + encodeURIComponent(order));
+  let out = [];
+  for (let off = 0; off < lim; off += PAGE) {
+    const page = await rest('GET', table + '?' + qs.join('&') + '&limit=' + Math.min(PAGE, lim - off) + '&offset=' + off) || [];
+    out = out.concat(page);
+    if (page.length < Math.min(PAGE, lim - off)) break;
+  }
+  return out;
 }
 async function insert(table, rows, opt) {
   let arr = Array.isArray(rows) ? rows : [rows];

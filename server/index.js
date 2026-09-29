@@ -106,12 +106,13 @@ const REGISTRY = {
   listDeXuat: auth.listDeXuat,
   getDeXuat: auth.getDeXuat,
   resolveDeXuat: auth.resolveDeXuat,
-  baoCaoNhapSP: baoCaoNhapSP   // super chạy tay / dryRun báo cáo nhập SP
+  baoCaoNhapSP: baoCaoNhapSP,   // super chạy tay / dryRun báo cáo nhập SP
+  logClientError: auth.logClientError
 };
 // Hàm không cần đăng nhập
 const PUBLIC_FNS = new Set(['login']);
 // Hàm cần đưa "actor" (người thao tác) làm tham số đầu
-const ACTOR_FNS = new Set(['me', 'setMyPref', 'logout', 'changePassword', 'setProjData',
+const ACTOR_FNS = new Set(['me', 'setMyPref', 'logClientError', 'logout', 'changePassword', 'setProjData',
   'adminListUsers', 'adminCreateUser', 'adminUpdateUser', 'adminSetPassword', 'adminSetActive', 'adminDeleteUser',
   'notifCount', 'notifList', 'notifRead', 'notifReadAll',
   'requestDeleteProducts', 'listDeleteRequests', 'resolveDeleteRequest',

@@ -426,6 +426,15 @@ async function adminDeleteUser(actor, id) {
   await audit(actor, 'delete_user', 'Xóa tài khoản ' + u.username);
   return { ok: true };
 }
+// Lỗi JS phía trình duyệt người dùng: ghi lại để thấy được lỗi vặt thay vì chỉ nằm trong console máy họ
+async function logClientError(actor, info) {
+  info = info || {};
+  const d = ['[' + String(info.tab || '').slice(0, 20) + ']', String(info.msg || '').slice(0, 300),
+    info.src ? '@ ' + String(info.src).replace(/^https?:\/\/[^/]+\//, '').slice(0, 120) : ''].filter(Boolean).join(' ');
+  console.warn('[lỗi giao diện] ' + ((actor && actor.u) || '?') + ' ' + d);
+  await audit(actor, 'loi_giao_dien', d);
+  return { ok: true };
+}
 async function getAuditLog(limit) {
   const rows = await supa.select('audit_log', { order: 'created_at.desc', limit: Math.min(Number(limit) || 200, 1000) });
   return rows.map(function (r) { return { id: r.id, username: r.username, action: r.action, detail: r.detail, at: r.created_at }; });
@@ -693,7 +702,7 @@ module.exports = {
   listCongTy, createCongTy, updateCongTy, deleteCongTy, getCongTy,
   getPurchaseOrder,
   verifyToken, sessionActor, login, me, logout, changePassword, setMyPref,
-  adminListUsers, adminCreateUser, adminUpdateUser, adminSetPassword, adminSetActive, adminDeleteUser, getAuditLog,
+  adminListUsers, adminCreateUser, adminUpdateUser, adminSetPassword, adminSetActive, adminDeleteUser, getAuditLog, logClientError,
   notifCount, notifList, notifRead, notifReadAll,
   requestDeleteProducts, listDeleteRequests, resolveDeleteRequest,
   notifyPurchaseAdmins, listPurchaseRequests, resolvePurchaseRequest,

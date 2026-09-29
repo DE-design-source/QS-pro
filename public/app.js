@@ -11,6 +11,21 @@ function authLogout_(){
 }
 
 /* ===== API ===== */
+/* Lỗi JS chưa được bắt trên máy người dùng -> gửi về nhật ký hệ thống (tab Admin) để sửa được lỗi vặt.
+   Bỏ trùng theo nội dung, tối đa 20 lỗi / phiên; chưa đăng nhập thì thôi. */
+(function(){
+  var gui={}, n=0;
+  function bao(msg, src){
+    msg=String(msg||'').slice(0,300); if(!msg || gui[msg] || n>=20 || !authToken()) return;
+    gui[msg]=1; n++;
+    var tab=(document.querySelector('.nav a.active')||{}).textContent||'';
+    try{ api('logClientError',{msg:msg, src:src||'', tab:String(tab).trim()}).catch(function(){}); }catch(e){}
+  }
+  window.addEventListener('error',function(e){ bao(e.message, e.filename?(e.filename+':'+e.lineno):''); });
+  window.addEventListener('unhandledrejection',function(e){ var r=e.reason;
+    if(r && /Chưa đăng nhập/.test(r.message||'')) return;
+    bao('Promise: '+((r&&r.message)||r), (r&&r.stack||'').split('\n')[1]||''); });
+})();
 // Header chung cho MỌI request lên server (api + tải file xuất Excel)
 function apiHeaders_(){
   var h={'Content-Type':'application/json'}; var t=authToken(); if(t) h['Authorization']='Bearer '+t;
