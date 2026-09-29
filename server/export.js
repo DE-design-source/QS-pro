@@ -314,6 +314,7 @@ async function buildDetailSheet(wb, ws, items, p, EXCOLS, catName) {
   }
 }
 
+const IMG_MAX = 5 * 1024 * 1024;
 // Lấy buffer ảnh: hỗ trợ /media?token=... (qua Lark) và URL http trực tiếp
 async function fetchImage(url) {
   try {
@@ -323,9 +324,11 @@ async function fetchImage(url) {
       const dl = await lark.mediaDownload(decodeURIComponent(m[1]));
       buffer = dl.buffer; contentType = dl.contentType;
     } else if (url.indexOf('http') === 0) {
-      const res = await fetch(url);
-      if (!res.ok) return null;
+      // URL ảnh do người dùng nhập: giới hạn thời gian + dung lượng để 1 link treo/khổng lồ không chặn cả file xuất
+      const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (!res.ok || Number(res.headers.get('content-length') || 0) > IMG_MAX) return null;
       buffer = Buffer.from(await res.arrayBuffer());
+      if (buffer.length > IMG_MAX) return null;
       contentType = res.headers.get('content-type') || '';
     } else return null;
     const ext = contentType.indexOf('png') > -1 ? 'png' : (contentType.indexOf('webp') > -1 ? 'png' : 'jpeg');

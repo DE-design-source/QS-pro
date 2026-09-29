@@ -9,7 +9,8 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
-    "test:vs": "node scripts/test-vs.js"
+    "test:vs": "node scripts/test-vs.js",
+    "test": "node scripts/test-core.js && node scripts/test-vs.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

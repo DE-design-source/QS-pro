@@ -23,8 +23,15 @@ const TENANT_TABLES = {
   de_xuat: 1, chi_tiet_de_xuat: 1, cong_tac_history: 1,
   du_an_data: 1
 };
+// Người đăng nhập KHÔNG phải super mà không có công ty (token cũ / tài khoản bị gỡ công ty)
+// -> chặn, KHÔNG được rơi về "xem toàn hệ thống" như trước.
+function assertTenant_() {
+  const role = tenant.ctx().role;
+  if (role && role !== 'super' && !tenant.scoped()) throw new Error('Tài khoản chưa gắn với công ty nào');
+}
 function tenantFilter_(table, opt) {
   if ((opt && opt.noScope) || !TENANT_TABLES[table]) return '';
+  assertTenant_();
   if (!tenant.scoped()) return '';                       // login / super admin xem toàn hệ thống
   return 'cong_ty_id=eq.' + encodeURIComponent(tenant.tenantId());
 }
@@ -64,6 +71,7 @@ async function insert(table, rows, opt) {
   let arr = Array.isArray(rows) ? rows : [rows];
   if (!arr.length) return [];
   // Tự gắn công ty cho dòng mới (nếu bảng thuộc công ty và đang có ngữ cảnh)
+  if (TENANT_TABLES[table] && !(opt && opt.noScope)) assertTenant_();
   if (TENANT_TABLES[table] && !(opt && opt.noScope) && tenant.scoped()) {
     const ct = tenant.tenantId();
     arr = arr.map(function (r) { return r.cong_ty_id ? r : Object.assign({}, r, { cong_ty_id: ct }); });
