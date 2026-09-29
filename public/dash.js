@@ -20,7 +20,7 @@ async function dezonSet_(maDA){
   maDA=String(maDA||'');
   var p=(S.projects||[]).filter(function(x){ return x.maDA===maDA; })[0] || ((S.cur&&S.cur.maDA===maDA)?S.cur:null);
   if(!p){ toast('Không tìm thấy dự án'); return; }
-  var v=await askInput_({ title:'Link bài dự án trên dezon.vn', label:'Dán link (để trống = bỏ link)',
+  var v=await askInput_({ title:'Link bài dự án trên dezon.vn', label:'Dán link (để trống = bỏ link)', required:false,
     value:p.linkDezon||'https://dezon.vn/', placeholder:'https://dezon.vn/du-an/…', ok:'Lưu link' });
   if(v==null) return;
   v=String(v&&v.v!=null?v.v:v).trim();
@@ -116,7 +116,7 @@ function duplicateDraft(maDA){
     +'<div class="dup-list">'
       +'<label class="dup-ck"><input type="checkbox" id="dupBoc" checked><span><b>Bóc tách</b> — sản phẩm đã bóc (Chi phí · Mua hàng đi theo phần này)</span></label>'
       +'<label class="dup-ck"><input type="checkbox" id="dupCover" checked><span><b>Xuất báo giá</b> — tờ bìa / ước tính chi phí</span></label>'
-      +(hasPT?'<label class="dup-ck"><input type="checkbox" id="dupPT" checked><span><b>Phần thô</b> — bảng ước tính xây thô</span></label>':'')
+      +'<label class="dup-ck"><input type="checkbox" id="dupPT" checked><span><b>Phần thô</b> — bảng ước tính xây thô</span></label>'
     +'</div>'
     +'<div class="dup-f"><button class="btn ghost sm" onclick="dupClose_()">Huỷ</button><button class="btn blue" onclick="dupDo_(\''+escJs_(maDA)+'\',this)">'+icon('copy',14)+' Nhân bản</button></div></div>';
   document.body.appendChild(ov);
@@ -124,7 +124,7 @@ function duplicateDraft(maDA){
 function dupClose_(){ var o=document.getElementById('dupOv'); if(o)o.remove(); }
 async function dupDo_(maDA, btn){
   var g=function(id){var e=document.getElementById(id);return e?e.checked:false;};
-  var opts={boc:g('dupBoc'), cover:g('dupCover')}, cpPT=g('dupPT');
+  var cpPT=g('dupPT'), opts={boc:g('dupBoc'), cover:g('dupCover'), pt:cpPT};
   if(btn){ btn.disabled=true; btn.textContent='Đang nhân bản…'; }
   try{
     var p=await api('duplicateProject',maDA,opts);

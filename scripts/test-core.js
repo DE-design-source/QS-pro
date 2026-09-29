@@ -53,6 +53,14 @@ shared.COVER_TEMPLATE.filter(t => t[0][0] !== '5').forEach(t => assert(tree.incl
 Object.keys(shared.S32_SUPPLIERS).forEach(k => assert(tree.includes(k), 'NCC ' + k + ' không có trong TREE'));
 assert(shared.inCode('3.2.6.1', '3.2.6') && shared.inCode('3.2.6', '3.2.6') && !shared.inCode('3.2.60', '3.2.6'));
 
+// mọi khoá client lưu bằng projDataSet_ phải có trong danh sách server cho phép (thiếu -> server từ chối, dữ liệu mất khi F5)
+const srv = fs.readFileSync(path.join(__dirname, '..', 'server', 'store_supa.js'), 'utf8');
+const choPhep = eval(srv.match(/const PROJ_DATA_KEYS = (\[[^\]]*\]);/)[1]);
+fs.readdirSync(path.join(__dirname, '..', 'public')).filter(f => f.endsWith('.js')).forEach(f => {
+  const t = fs.readFileSync(path.join(__dirname, '..', 'public', f), 'utf8');
+  [...t.matchAll(/projDataSet_\('([A-Za-z]+)'/g)].forEach(m => assert(choPhep.includes(m[1]), f + ': khoá "' + m[1] + '" chưa có trong PROJ_DATA_KEYS (server/store_supa.js)'));
+});
+
 // xuất bảng Excel (tab Chi phí): nhóm gộp ô, số giữ kiểu số, dòng tổng ở 2 cột cuối
 (async () => {
   const ExcelJS = require('exceljs');

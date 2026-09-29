@@ -475,12 +475,14 @@ async function spDuyet(i,approve){
     toast((approve?'Đã duyệt "':'Đã bỏ duyệt "')+(p.ten||p.ma)+'"'+(nhom.length>1?(' · '+nhom.length+' biến thể'):''));
   }catch(e){ toast('Lỗi: '+e.message.slice(0,110)); }
 }
+// SP đã chọn, dòng đại diện của nhóm biến thể = cả nhóm (Duyệt + Sửa hàng loạt dùng chung)
+function spSelNhom_(){ var ds=[], da={};
+  spSelProds_().forEach(function(p){ spNhomBienThe_(p).forEach(function(x){
+    var k=String(x.recordId||x.ma||''); if(k && !da[k]){ da[k]=1; ds.push(x); } }); });
+  return ds; }
 // Duyệt hàng loạt các sản phẩm đang chọn
 async function spDuyetBulk(approve){
-  var chon=spSelProds_(), ds=[], da={};
-  chon.forEach(function(p){ spNhomBienThe_(p).forEach(function(x){      // chọn dòng đại diện = chọn cả nhóm biến thể
-    var k=String(x.recordId||x.ma||''); if(k && !da[k]){ da[k]=1; ds.push(x); } }); });
-  var prods=ds.filter(function(p){ return !p.spChung; });
+  var prods=spSelNhom_().filter(function(p){ return !p.spChung; });
   if(!prods.length){ toast('Chưa chọn sản phẩm nào'); return; }
   try{
     var r=await api('setSpDuyet',prods.map(function(p){ return String(p.recordId||p.ma); }),!!approve);
@@ -595,8 +597,8 @@ function spPatchLocal_(p,lark,col,v){
   if(prop) p[prop]=SP_DISPUNIT[col]?spAddUnit_(v,SP_DISPUNIT[col]):v;
   if(col==='ten_sp') p.ten=v;
   else if(col==='ma_sp') p.ma=v;
-  else if(col==='gia_ban_le') p.giaBanLe=Number(v)||0;
-  else if(col==='ck_dai_ly_pct') p.ckDaiLy=Number(v)||0;
+  else if(col==='gia_ban_le') p.giaBanLe=tkNum_(v);
+  else if(col==='ck_dai_ly_pct') p.ckDaiLy=tkNum_(v);
   // GIÁ ĐẠI LÝ là cột generated trong DB: round(giá bán lẻ × (1 − CK/100)) — tính lại y hệt để hiện ngay
   p.donGiaBan=Math.round((Number(p.giaBanLe)||0)*(1-(Number(p.ckDaiLy)||0)/100));
   p.donGiaVon=p.donGiaBan;
@@ -1465,12 +1467,12 @@ function spDataList_(){
     if(S._spView==='fav' && !p.yeuThich) return false;
     if(S._spView==='chua' && p.daDuyet) return false;
     if(S._spView==='da' && !p.daDuyet) return false;
-    if(f.brand && p.thuongHieu!==f.brand) return false;              // lọc 1 thương hiệu (chip cũ ở thanh trên)
+    if(f.brand && spNorm_(p.thuongHieu)!==spNorm_(f.brand)) return false;              // lọc 1 thương hiệu (chip cũ ở thanh trên)
     var bs=f.brands||{}, bk=Object.keys(bs).filter(function(k){ return bs[k]; });
     if(bk.length && bk.indexOf(String(p.thuongHieu||''))<0) return false;
     var ns=f.nccs||{}, nk=Object.keys(ns).filter(function(k){ return ns[k]; });
     if(nk.length && nk.indexOf(String(p.ncc||''))<0) return false;
-    if(f.hangMuc && p.hangMuc!==f.hangMuc) return false;
+    if(f.hangMuc && spNorm_(p.hangMuc)!==spNorm_(f.hangMuc)) return false;
     var pr=Number(p.donGiaBan)||0; if(mn&&pr<mn) return false; if(mx&&pr>mx) return false;
     if(watts.length){ var pw=splitVals(p.congSuat); if(!pw.some(function(x){return watts.indexOf(x)>=0;})) return false; }
     if(kels.length){ var pk=splitVals(p.nhietDo); if(!pk.some(function(x){return kels.indexOf(x)>=0;})) return false; }
@@ -1593,13 +1595,16 @@ function spSelAll(on){
   S._spSel={};
   if(on){
     if(spPTMode_()) (S._ptRows||[]).forEach(function(r){ S._spSel[ptSelKey_(r)]=1; });
-    else (S._spList||[]).forEach(function(p){ var k=String(p.recordId||p.ma||''); if(k) S._spSel[k]=1; });
+    else (S._spList||[]).forEach(function(p,i){ var m=(S._rowMeta||[])[i]; if(m&&m.k==='cb') return;   // dòng đi kèm của combo đang mở
+      var k=String(p.recordId||p.ma||''); if(k) S._spSel[k]=1; });
   }
   spFilter();
 }
 // đổi khoá đã chọn -> danh sách sản phẩm tương ứng
+// SP đã tick VÀ đang khớp bộ lọc/tìm kiếm: tick 5 dòng rồi tìm còn 2 dòng -> thao tác chỉ áp 2 dòng đang thấy
+// (trước đây gộp cả S.products nên xoá / sửa luôn dòng đã bị lọc khuất)
 function spSelProds_(){ var sel=S._spSel||{};
-  return (S._spList||[]).concat(S.products||[]).filter(function(p,i,arr){
+  return (S._spList||[]).concat(S._spFull||[]).filter(function(p,i,arr){
     var k=String(p.recordId||p.ma||''); if(!sel[k]) return false;
     return arr.findIndex(function(q){return String(q.recordId||q.ma||'')===k;})===i;   // bỏ trùng
   }); }
@@ -1723,7 +1728,7 @@ async function spBulkApply(larkIn, valIn, labelIn){
   var label= labelIn || (f&&f.options.length?f.options[f.selectedIndex].text:lark);
   if(!lark) return;
   if(val===''){ toast('Chưa nhập giá trị mới'); if(v) v.focus(); return; }
-  var all=spSelProds_(); if(!all.length) return;
+  var all=spSelNhom_(); if(!all.length) return;          // dòng "biến thể n" = sửa cả n biến thể
   var prods=all.filter(function(p){return !p.spChung;}), bo=all.length-prods.length;
   if(!prods.length){ toast('Các sản phẩm đã chọn đều thuộc kho chung của Dezon — không sửa được'); return; }
   if(!await xacNhan_('Đặt "'+label+'" = "'+val+'" cho '+prods.length+' sản phẩm đã chọn?'
@@ -1912,7 +1917,7 @@ function speField_(f, raw){
   var lark=f[0], label=f[1], type=f[2], req=f[3], opts=f[4]||[], ph=f[5]||label;
   var col=DB_LABEL2COL_[lark]; if(!col) return '';
   var val=raw[col]==null?'':String(raw[col]);
-  if(lark==='LẮP NGUỒN RỜI') val=(val===true||val==='true')?'Có':(val?'Có':'');
+  if(lark==='LẮP NGUỒN RỜI') val=(val===true||val==='true')?'Có':((val===false||val==='false')?'Không':(val?'Có':''));
   var star=req?' <span class="spe-req">*</span>':'';
   var inner;
   if(type==='doc') return '<div class="spe-f wide docfield"><label>'+esc(label)+'</label>'+docInput_('data-col="'+col+'"',val)+'</div>';
@@ -2133,6 +2138,7 @@ async function spEditModal(i, nhanBan){
   S._spEditMa=editKey;
   // tách anh_sp: ảnh đầu = đại diện, còn lại = ảnh chi tiết/mô tả (dùng chung bộ upload với trang Nhập dữ liệu)
   var imgsRaw=String(raw.anh_sp||'').split('\n').map(function(s){return s.trim();}).filter(Boolean);
+  if(!S._imgBak) S._imgBak=[S._imgMain,S._imgList];   // giữ ảnh đang nhập dở ở tab Nhập, đóng modal thì trả lại
   S._imgMain=imgsRaw[0]||''; S._imgList=imgsRaw.slice(1);
   // ĐẦY ĐỦ trường, chia nhóm y hệt form Nhập dữ liệu
   var fields=groupsCuaSP_(p).map(function(gr){
@@ -2206,6 +2212,7 @@ async function spEditClose(epBo){
   }
   S._speSnap=null; document.removeEventListener('mousedown',cbOutside_);
   o=document.getElementById('spEditOv'); if(o)o.remove();
+  if(S._imgBak){ S._imgMain=S._imgBak[0]; S._imgList=S._imgBak[1]||[]; S._imgBak=null; }
 }
 async function spEditSave(luuVaDuyet){
   var ov=document.getElementById('spEditOv'); if(!ov) return;

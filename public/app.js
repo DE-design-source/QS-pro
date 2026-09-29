@@ -62,6 +62,7 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(m){retur
 function fmtDate(v){
   if(!v) return '—';
   var s=String(v).trim();
+  if(/^\d{4}-\d{2}-\d{2}T/.test(s)){ var d=new Date(s); if(!isNaN(d)) return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear(); }
   var m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m) return m[3]+'/'+m[2]+'/'+m[1];
   m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/); if(m) return s.slice(0,10);
   var d=new Date(s); if(!isNaN(d.getTime())) return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear();
@@ -371,10 +372,22 @@ function qbMount_(tab){
    Trước đây mỗi chỗ sửa tự nhớ vài tab (chỗ thì Chi phí + Bảng điều khiển, chỗ thì
    Chi phí + Dự án) nên đứng ở tab Dự án / Mua hàng sửa hoặc xoá dòng thì bảng đang
    xem vẫn giữ số cũ cho tới khi đổi tab. Nay mọi chỗ gọi chung một hàm.            */
-function veLaiSauSua_(){
+function veLaiSauSua_(){ giuO_(function(){
   try{ renderTable(); renderCard(); }catch(e){}
   if(typeof bgVis==='function' && bgVis()){ drawBaogia(); return; }   // tab Xuất báo giá: vẽ lại tài liệu là đủ
   refreshActiveTab_();
+}); }
+/* Server trả lời lần sửa trước -> bảng vẽ lại TRONG LÚC người dùng đang gõ ô khác: trước đây mất chữ đang gõ
+   + mất con trỏ. Giữ lại đúng ô (theo dòng + thứ tự ô trong dòng), giá trị đang gõ và vị trí con trỏ. */
+function giuO_(ve){
+  var a=document.activeElement, tr=a&&a.closest&&a.closest('tr[data-id]'), k=null;
+  if(tr && (a.tagName==='TEXTAREA' || (a.tagName==='INPUT' && !/checkbox|radio|file/.test(a.type)))){
+    k={id:tr.getAttribute('data-id'), i:[].indexOf.call(tr.querySelectorAll('input,textarea'),a), v:a.value, s:a.selectionStart, e:a.selectionEnd, view:a.closest('.view')}; }
+  ve();
+  if(!k||k.i<0||document.activeElement===a) return;
+  var tr2=[].filter.call((k.view||document).querySelectorAll('tr[data-id]'),function(t){ return t.getAttribute('data-id')===k.id; })[0];
+  var b=tr2&&tr2.querySelectorAll('input,textarea')[k.i]; if(!b) return;
+  b.value=k.v; b.focus(); try{ b.setSelectionRange(k.s,k.e); }catch(x){}
 }
 function refreshActiveTab_(){
   var on=[].slice.call(document.querySelectorAll('.view')).filter(function(v){ return v.classList.contains('on'); })[0];
@@ -820,7 +833,8 @@ function catActiveChips_(){
   function setVals(k){ return Object.keys(S[k]||{}).filter(function(x){ return S[k][x]; }); }
   var nhom=Object.keys(S.fNhomSet||{}).filter(function(k){ return S.fNhomSet[k]; });
   if(nhom.length) tag('Hạng mục', nhom.length>1?(nhom.length+' mục'):nhom[0], 'catClearF_(\'nhom\')');
-  if(S._inProjMa) tag('Trong dự án', S._inProjLabel||'đang lọc', 'catClearF_(\'inproj\')');
+  if(S._inProjMa){ var pp=(S.projects||[]).filter(function(x){ return x.maDA===S._inProjMa; })[0];
+    tag('Trong dự án', pp?(pp.ten||pp.maDA):S._inProjMa, 'catClearF_(\'inproj\')'); }
   if(vsFltOn_()){
     Object.keys(S.fVs||{}).forEach(function(col){ var v=Object.keys(S.fVs[col]).filter(function(x){ return S.fVs[col][x]; });
       var m=vsFltSpec_().METRIC[SP_COL2LABEL_[col]]||VS_SPEC.METRIC[SP_COL2LABEL_[col]];
@@ -1881,6 +1895,7 @@ function autoGrow(t){ if(!t) return; t.style.height='auto'; t.style.height=(t.sc
 function editProfit_(id, key, val){
   var l=S.lines.filter(function(x){return x.lineId===id;})[0]; if(!l) return;
   var von=giaDaiLy_(l), sl=Number(l.soLuong)||0, ckK=(Number(l.ckKhach)||0)/100;
+  if(String(val==null?'':val).trim()===''){ renderTable(); return; }   // xoá trắng để gõ lại: KHÔNG đặt giá bán = giá vốn
   var v=tkNum_(val);
   if(!von){ toast('Nhập "Giá bán lẻ" (giá vốn nhà cung cấp) trước — chưa có giá vốn thì không tính ngược được lợi nhuận'); renderTable(); return; }
   var dgCK;
@@ -1906,6 +1921,8 @@ function editLine(id,fields){
     recalcLine_(l, fields);   // mirror calc_() ở server -> optimistic khớp, không nhảy số / không lag
     veLaiSauSua_();
   }
+  // Dòng vừa thêm, server chưa trả id thật -> gom thay đổi lại, addProdObj gửi sau khi có id (trước đây gửi 'tmp_..' -> mất)
+  if(String(id).indexOf('tmp_')===0){ if(l) l._q=Object.assign(l._q||{},fields); return Promise.resolve(); }
   // Sửa 2 ô cùng dòng thật nhanh: chỉ phản hồi của lần sửa MỚI NHẤT được ghi đè dòng (không nhảy ngược số)
   S._editSeq=S._editSeq||{}; var seq=S._editSeq[id]=(S._editSeq[id]||0)+1;
   return api('updateLine',id,fields).then(function(u){
@@ -1917,7 +1934,8 @@ function editLine(id,fields){
       veLaiSauSua_(); renderActGutter&&renderActGutter();
       toast('Dòng này không còn tồn tại (đã bị xoá) — đã cập nhật lại bảng');
     }
-  }).catch(function(e){ toast('Lỗi sửa: '+e.message); });
+  }).catch(function(e){ toast('Lỗi sửa: '+e.message+' — đã nạp lại số đang lưu');
+    var ma=S.cur&&S.cur.maDA; if(ma) api('getLines',ma).then(function(ls){ if(ls&&S.cur&&S.cur.maDA===ma){ S.lines=ls; veLaiSauSua_(); } }).catch(function(){}); });
 }
 
 function filterPop(q){ q=(q||'').toLowerCase().trim(); document.querySelectorAll('#fpItems .fi').forEach(function(el){ if(el.classList.contains('all')) return; el.style.display=(!q||(el.dataset.t||'').indexOf(q)>=0)?'':'none'; }); }
@@ -2244,7 +2262,7 @@ async function openProject_(maDA){
   try{ lines=await api('getLines',maDA)||[]; }
   catch(e){ if(seq===S._openSeq) toast('Không tải được dự án: '+e.message); return false; }
   if(seq!==S._openSeq) return false;
-  S.cur=p; S.lines=lines; S._coverDA=null;
+  S.cur=p; S.lines=lines; S._coverDA=null; S.colFilter={};   // lọc cột của dự án trước không áp sang (trước làm bảng trống bí ẩn)
   await projDataLoad_(maDA);
   return seq===S._openSeq;
 }
@@ -2299,12 +2317,12 @@ async function projDataFlush_(){
 }
 async function projDataLoad_(maDA){
   projDataFlush_();   // đẩy nốt thay đổi đang chờ của dự án cũ (đã nhớ đúng dự án)
-  S._projData={}; S._ptKey=null; S._areaDA=null; S._ptInfoU=null;   // buộc nạp lại theo dự án mới
+  S._projData={}; S._ptKey=null; S._areaDA=null; S._ptInfoU=null; S._dtIn=null;   // buộc nạp lại theo dự án mới
   if(!maDA) return;
   try{
     var d=await api('getProjData', maDA)||{};
     if(!S.cur||S.cur.maDA!==maDA) return;             // đã đổi sang dự án khác trong lúc chờ
-    S._projData=d; S._ptKey=null; S._areaDA=null;     // bỏ bản đã dựng tạm trong lúc chờ
+    S._projData=d; S._ptKey=null; S._areaDA=null; S._ptInfoU=null;   // bỏ bản đã dựng tạm trong lúc chờ (kể cả thông tin công tác dùng chung)
     // Lần đầu chuyển từ localStorage lên server: máy nào còn dữ liệu cũ thì đẩy lên.
     // Đẩy CẢ 4 khoá (trước chỉ đẩy bảng phần thô) -> diện tích, VAT phần thô và thông tin
     // công tác tự nhập cũng hết cảnh chỉ có trên một máy.

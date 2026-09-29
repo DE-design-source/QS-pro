@@ -1073,7 +1073,7 @@ async function getProjData(maDA) {
   (await lay(maDA)).forEach(function (r) { out[s(r.khoa)] = r.gia_tri; });        // của riêng dự án -> đè lên
   return out;
 }
-const PROJ_DATA_KEYS = ['phanTho', 'area', 'ptInfo', 'ptVat', 'cpCfg', 'bgCfg', 'bgHist', 'bgOrg'];
+const PROJ_DATA_KEYS = ['phanTho', 'area', 'ptInfo', 'ptVat', 'cpCfg', 'bgCfg', 'bgHist', 'bgOrg', 'mhPay'];
 async function setProjData(actor, maDA, khoa, giaTri) {
   maDA = s(maDA).trim(); khoa = s(khoa).trim();
   if (maDA === '__cty') maDA = ctyKey_();        // dùng chung trong công ty -> tách theo công ty

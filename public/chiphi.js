@@ -246,7 +246,7 @@ function cpToolbar_(rows, scope){
     +chip('chuaVon','Chưa có giá vốn',soChuaVon)
     +'</div>';
   var tim='<div class="cp-search">'+icon('search',14)
-    +'<input id="cpQ" value="'+esc(S._cpQ||'')+'" placeholder="Tìm tên · mã · thương hiệu · phòng…" oninput="cpSetQ(this.value)">'
+    +'<input id="cpQ" value="'+esc(S._cpQ||'')+'" placeholder="Tìm tên · mã · thương hiệu · phòng…" oninput="if(!event.isComposing)cpSetQ(this.value)" oncompositionend="cpSetQ(this.value)">'
     +((S._cpQ||'')?'<button class="cp-x" title="Xoá tìm kiếm" onclick="cpSetQ(\'\')">✕</button>':'')+'</div>';
   var ket=(S._cpQ||S._cpFlt)?('<span class="cp-found">'+rows.length+' / '+scope.length+' dòng</span>'):'';
   // hàng tìm / lọc nằm GỌN TRONG khối "Công cụ bảng" -> tab chỉ còn 3 khối rõ ràng

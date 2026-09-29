@@ -365,7 +365,7 @@ var DT_BO=[{
       'Giá cọc theo báo giá nhà cung cấp thực tế']
   ]
 }];
-function dtKey_(id){ return 'qs_dt_'+id; }
+function dtKey_(id){ return 'qs_dt_'+((S.cur&&S.cur.maDA)||'')+'_'+id; }   // theo dự án (trước dùng chung mọi dự án)
 function dtVals_(bo){
   S._dtIn=S._dtIn||{};
   if(!S._dtIn[bo.id]){

@@ -13,9 +13,9 @@ var DB_GROUPS=[
     ['GIÁ BÁN LẺ','Giá bán lẻ','num',1],['CHIẾT KHẤU ĐẠI LÝ (%)','%Chiết khấu','num',1],['GIÁ ĐẠI LÝ','Giá đại lý','calc',1] ]},
   {g:'Key Product Info (Thông tin chính)', f:[
     ['CÔNG SUẤT (W)','Công suất','text',1,null,'VD: 7  ·  2×5  ·  9/18'],['NHIỆT ĐỘ MÀU (K)','Nhiệt độ màu','sel',1,['2700','3000','4000','5000','6500']],
-    ['GÓC CHIẾU (°)','Góc chiếu','num',1],['MÀU SẮC','Màu sắc','text',1],['CHẤT LIỆU','Chất liệu','text',1] ]},
+    ['GÓC CHIẾU (°)','Góc chiếu','text',1],['MÀU SẮC','Màu sắc','text',1],['CHẤT LIỆU','Chất liệu','text',1] ]},
   {g:'Thông số thiết kế', f:[
-    ['GÓC NGHIÊNG (°)','Góc nghiêng','num',0],['CHIỀU CAO (mm)','Chiều cao','num',0],['ĐƯỜNG KÍNH (mm)','Đường kính','num',1] ]},
+    ['GÓC NGHIÊNG (°)','Góc nghiêng','text',0],['CHIỀU CAO (mm)','Chiều cao','num',0],['ĐƯỜNG KÍNH (mm)','Đường kính','num',1] ]},
   {g:'Performance Specifications (Thông số hiệu suất)', f:[
     ['QUANG THÔNG (lm)','Quang thông','num',1],['CHỈ SỐ IP','Chỉ số IP (Chống bụi, nước)','sel',1,['IP20','IP44','IP54','IP65']],['CRI','CRI','text',1],
     ['HIỆU SUẤT PHÁT QUANG (lm/W)','Hiệu suất phát quang (lm/W)','num',0],['UGR','UGR','text',0],['SDCM','SDCM','text',0],
@@ -376,11 +376,15 @@ function upMakeMain_(i){
   if(old) list[i]=old; else list.splice(i,1);
   upRefresh(); toast('Đã đặt làm hình đại diện');
 }
+/* Khối ảnh có ở 2 nơi cùng id: form Nhập (tab vẫn nằm trong DOM khi ẩn) và modal Sửa SP.
+   Modal đang mở -> chỉ làm việc trong modal (trước đây getElementById trúng form Nhập đang ẩn). */
+function upRoot_(){ return document.getElementById('spEditOv')||document; }
+function upEl_(id){ return upRoot_().querySelector('#'+id); }
 function upRefresh(){
-  var a=document.getElementById('upMain'); if(a)a.innerHTML=upMainInner();
-  var g=document.getElementById('upMainGrid'); if(g)g.innerHTML=upMainGridInner_();
-  var b=document.getElementById('upGrid'); if(b)b.innerHTML=upGridInner();
-  var bs=document.querySelectorAll('.imgup .upbadge');
+  var a=upEl_('upMain'); if(a)a.innerHTML=upMainInner();
+  var g=upEl_('upMainGrid'); if(g)g.innerHTML=upMainGridInner_();
+  var b=upEl_('upGrid'); if(b)b.innerHTML=upGridInner();
+  var bs=upRoot_().querySelectorAll('.imgup .upbadge');
   if(bs[0]) bs[0].textContent=S._imgMain?'1 ảnh':(impLoai_()==='pt'?'tuỳ chọn':'bắt buộc');
   if(bs[1]) bs[1].textContent=(S._imgList||[]).length?((S._imgList||[]).length+' ảnh'):'tuỳ chọn';
 }
@@ -526,6 +530,7 @@ function pendFillForm_(it){
   impFlat_().forEach(function(f){
     var el=document.getElementById(dbIdOf(f[0])); if(!el) return;
     var v=d[f[0]]; if(f[0]==='HẠNG MỤC' && S._impLoai==='vs') v=VS_SPEC.chuanHM(v)||v;
+    if(v!=null && v!=='' && f[2]==='num') v=tkNum_(v);   // "1.200.000" / "12,5" -> ô kiểu số nhận được
     if(v!=null && v!=='') el.value=String(v);
   });
   if(S._impLoai==='vs'||S._impLoai==='son') vsApplyHM_(box, d['HẠNG MỤC'], 0, S._impLoai);
@@ -976,7 +981,7 @@ async function ctPendCommitRun_(ds, btn){
     if(document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName)
        && !document.activeElement.closest('.upzone')) return;   // đang gõ chữ -> bỏ qua
     e.preventDefault();
-    var main=document.getElementById('upMain');
+    var main=upEl_('upMain');
     var zone = (main && main.classList.contains('focus')) ? 'main'
              : (!S._imgMain ? 'main' : 'more');                  // chưa có ảnh đại diện -> ưu tiên
     upFilesSeq_(zone, files);
@@ -1079,7 +1084,7 @@ async function upFile(zone,file){
   });
 }
 function upAddUrl(zone){
-  var id=zone==='main'?'upMainUrl':'upMoreUrl'; var el=document.getElementById(id); var u=(el&&el.value||'').trim();
+  var id=zone==='main'?'upMainUrl':'upMoreUrl'; var el=upEl_(id); var u=(el&&el.value||'').trim();
   if(!u){ toast('Nhập URL ảnh'); return; }
   if(zone==='main') S._imgMain=u; else S._imgList.push(u);
   if(el)el.value=''; upRefresh();

@@ -111,8 +111,8 @@ function renderMuahang(){
   // Tổng cộng CHỈ tính các NCC đang được chọn (mhOn_) — khớp với "Gửi N đơn đã chọn"
   var grand=order.reduce(function(sum,k){ return mhOn_(k) ? sum+mhTot_(groups[k],vatPct) : sum; },0);
   // Hàng đầu bảng dùng CHUNG kiểu với Chi phí / Dự án (trước đây còn ô chọn hạng mục + KPI kiểu cũ)
-  var chuaCK=lines.reduce(function(a,l){ return a+(Number(l.soLuong)||0)*mhPrice(l); },0);
-  var sauCK=order.reduce(function(a,k){ return a+mhSub_(groups[k]); },0);
+  var chuaCK=order.reduce(function(a,k){ return mhOn_(k) ? a+groups[k].reduce(function(b,l){ return b+(Number(l.soLuong)||0)*mhPrice(l); },0) : a; },0);
+  var sauCK=order.reduce(function(a,k){ return mhOn_(k) ? a+mhSub_(groups[k]) : a; },0);
   var statbar=pgHeadRow_('mhHmBtn', lines.length,
       pgStat_('Nhà cung cấp',pad2(order.length))+pgStat_('Sản phẩm',pad2(lines.length))
      +pgStat_('Trước giảm',money(chuaCK)+' đ')+pgStat_('Sau giảm NCC',money(sauCK)+' đ')
@@ -206,12 +206,14 @@ async function mhSendDx(gi,btn){
 function mhPayKey_(){ return 'qs_mhtt_'+((S.cur&&S.cur.maDA)||''); }
 function mhPayAll_(){
   if(S._mhPayDA!==((S.cur&&S.cur.maDA)||'')){
-    var d={}; try{ d=JSON.parse(localStorage.getItem(mhPayKey_())||'{}')||{}; }catch(e){ d={}; }
+    // lưu trên server theo dự án (du_an_data 'mhPay'); bản cũ chỉ có trong trình duyệt vẫn đọc được
+    var d=(S._projData&&S._projData.mhPay)||null;
+    if(!d){ try{ d=JSON.parse(localStorage.getItem(mhPayKey_())||'{}')||{}; }catch(e){ d={}; } }
     S._mhPay=d; S._mhPayDA=(S.cur&&S.cur.maDA)||'';
   }
   return S._mhPay=S._mhPay||{};
 }
-function mhPaySave_(){ try{ localStorage.setItem(mhPayKey_(), JSON.stringify(mhPayAll_())); }catch(e){} }
+function mhPaySave_(){ projDataSet_('mhPay', mhPayAll_()); try{ localStorage.setItem(mhPayKey_(), JSON.stringify(mhPayAll_())); }catch(e){} }
 function mhPayOf_(ncc){ var a=mhPayAll_(); if(!a[ncc]) a[ncc]=[{pct:100,tien:0,ngay:'',gc:''}]; return a[ncc]; }
 function mhPayOpen_(ncc){ return !!(S._mhPayOpen&&S._mhPayOpen[ncc]); }
 function mhPayToggle(gi){
@@ -363,7 +365,8 @@ async function dxDetail(ma){
   ov.innerHTML='<div class="sp-modal pur-modal pd"><div class="pd-head"><h3>'+icon('gauge',16)+' Chi tiết đề xuất</h3>'
     +'<button class="pd-x" onclick="dxClose()">✕</button></div><div class="pur-body"><div class="empty" style="padding:26px">Đang tải…</div></div></div>';
   document.body.appendChild(ov);
-  try{ var o=await api('getDeXuat', ma); ov.querySelector('.pur-body').innerHTML=dxDetailHtml_(o); }
+  try{ var o=(S._mhDx||[]).filter(function(r){ return r.ma===ma; })[0] || await api('getDeXuat', ma);   // getDeXuat chỉ Admin
+    ov.querySelector('.pur-body').innerHTML=dxDetailHtml_(o); }
   catch(e){ ov.querySelector('.pur-body').innerHTML='<div class="empty" style="padding:26px">Lỗi tải phiếu: '+esc(e.message)+'</div>'; }
 }
 function dxClose(){ var o=document.getElementById('dxOv'); if(o)o.remove(); }

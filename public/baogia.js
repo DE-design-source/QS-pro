@@ -23,7 +23,7 @@ function coverCosts(){
     if(coverHasChild(c.stt)){ var s=0; cover.forEach(function(d){ if(d.stt!==c.stt && String(d.stt).indexOf(c.stt+'.')===0 && !coverHasChild(d.stt)) s+=coverLeafVal_(d); }); cost[c.stt]=s; }
     else cost[c.stt]=coverLeafVal_(c);
   });
-  var total=0; cover.forEach(function(c){ if(coverDepth(c.stt)===1) total+=cost[c.stt]; });
+  var total=0; cover.forEach(function(c){ if(coverDepth(c.stt)===1 && !bgHidden(c.stt)) total+=cost[c.stt]; });
   return {cost:cost,total:total};
 }
 function bgHidden(stt){ var root=String(stt).split('.')[0]; return !!(S.bgHide && S.bgHide[root]); }
@@ -32,7 +32,8 @@ function setCoverMau(m){ S.coverMau=m; try{localStorage.setItem('qs_covermau',m)
 function coverInfo(field,value){ if(!S.cur)return; var f={}; f[field]=value; api('updateProject',S.cur.maDA,f).then(syncProj).catch(function(e){toast('Lỗi: '+e.message);}); }
 function ic(field){ var v=(S.cur&&S.cur[field])||''; return '<td><input class="cin" value="'+esc(v)+'" onchange="coverInfo(\''+field+'\',this.value)"></td>'; }
 function coverEdit(i,field,value){ var c=S.cover[i]; if(!c)return;
-  if(field==='chiPhi'){ c.chiPhi=tkNum_(value); coverTaySet_(c.stt,true); }
+  if(field==='chiPhi'){ c.chiPhi=tkNum_(value); coverTaySet_(c.stt,true);
+    var ma=S.cur&&S.cur.maDA; if(ma) api('saveCover',ma,S.cover).catch(function(e){ toast('Lỗi lưu tờ bìa: '+e.message); }); }
   else if(field==='stt') c.stt=String(value).replace(/[^\d.]/g,'');
   else c[field]=value; drawBaogia(); }
 function coverDel(i){ S.cover.splice(i,1); drawBaogia(); }
@@ -985,13 +986,15 @@ var BG_DOT_MAC=[['Tạm ứng khi ký hợp đồng',50],['Khi giao hàng / thi 
 function bgOpt_(){
   var c=(S._projData&&S._projData.bgCfg)||{};
   return { ck:Math.max(0,Number(c.ck)||0), ckKieu:c.ckKieu==='vnd'?'vnd':'pct',
-    ngay:c.ngay||new Date().toISOString().slice(0,10), hieuLuc:c.hieuLuc==null?30:Math.max(0,Number(c.hieuLuc)||0),
+    ngay:c.ngay||new Date().toLocaleDateString('sv-SE'),     // YYYY-MM-DD theo giờ máy (VN), không phải UTC hieuLuc:c.hieuLuc==null?30:Math.max(0,Number(c.hieuLuc)||0),
     dot:Array.isArray(c.dot)?c.dot:BG_DOT_MAC, ghiChu:c.ghiChu==null?null:String(c.ghiChu), tay:c.tay||{} };
 }
 function bgOptSet_(k,v){ var c=Object.assign({},(S._projData&&S._projData.bgCfg)||{}); c[k]=v; projDataSet_('bgCfg',c); drawBaogia(); }
 // Giá trị 1 mục LÁ của tờ bìa: có dòng bóc tách thuộc mục -> tự cộng; đã sửa tay hoặc không có dòng -> số đang ghi
 function coverAutoOf_(stt){ var n=0, t=0;
   (S.lines||[]).forEach(function(l){ var c=String(l.nhom||'').trim(); if(c===stt||c.indexOf(stt+'.')===0){ n++; t+=ttBan_(l); } });
+  // Phần thô (3.1) nằm ở bảng ước tính riêng -> trước đây tờ bìa ghi 0 trong khi hộp tổng cuối vẫn cộng
+  if(stt==='3.1'||stt==='3'){ try{ ptEnsure(); var g=ptComputeAll().grand; if(g){ n++; t+=g; } }catch(e){} }
   return {n:n, tien:Math.round(t)}; }
 function coverLeafVal_(c){ var a=coverAutoOf_(c.stt); return (a.n && !bgOpt_().tay[c.stt]) ? a.tien : (Number(c.chiPhi)||0); }
 function coverTaySet_(stt,on){ var t=Object.assign({},bgOpt_().tay); if(on) t[stt]=1; else delete t[stt]; bgOptSet_('tay',t); }
@@ -1117,10 +1120,11 @@ function bgSnap_(){
   var cc=coverCosts();
   return { lines:(S.lines||[]).map(function(l){ var o={}; BG_SNAP_F.forEach(function(k){ if(l[k]!=null&&l[k]!=='') o[k]=l[k]; }); return o; }),
     cover:(S.cover||[]).map(function(c){ return {stt:c.stt, hangMuc:c.hangMuc, moTa:c.moTa, chiPhi:coverHasChild(c.stt)?0:cc.cost[c.stt]}; }),
-    opt:Object.assign({},(S._projData&&S._projData.bgCfg)||{}), nodes:bgSelCodes_(),
+    opt:Object.assign({ngay:bgOpt_().ngay},(S._projData&&S._projData.bgCfg)||{}), nodes:bgSelCodes_(),
+    pt:(function(){ try{ ptEnsure(); return S.phanTho||[]; }catch(e){ return []; } })(),
     proj:{vat:S.cur.vat, khachHang:S.cur.khachHang, ten:S.cur.ten} };
 }
-function bgSnapKey_(sn){ return JSON.stringify([sn.lines,sn.cover,sn.opt,sn.nodes,sn.proj]); }
+function bgSnapKey_(sn){ return JSON.stringify([sn.lines,sn.cover,sn.opt,sn.nodes,sn.proj,sn.pt]); }
 function bgVerInfo_(){
   if(S._bgVerXem) return {ma:S._bgVerXem.ma, ver:S._bgVerXem.ver, nhan:'v'+S._bgVerXem.ver+' (đã chốt)', trung:true};
   var h=bgHist_(), last=h[h.length-1], ma=bgMa_();
@@ -1163,11 +1167,11 @@ function bgHistOpen_(){
 }
 // Dựng trang tài liệu từ 1 bản chụp: tạm thay dữ liệu đang mở rồi trả lại nguyên trạng
 function bgWithSnap_(sn, fn){
-  var L=S.lines, C=S.cover, P=S.cur, D=S._projData, N=S.bgNodes;
-  S.lines=sn.lines; S.cover=sn.cover; S.cur=Object.assign({},P,sn.proj||{});
+  var L=S.lines, C=S.cover, P=S.cur, D=S._projData, N=S.bgNodes, T=S.phanTho;
+  S.lines=sn.lines; S.cover=sn.cover; S.cur=Object.assign({},P,sn.proj||{}); if(sn.pt) S.phanTho=sn.pt;
   S._projData=Object.assign({},D,{bgCfg:sn.opt||{}});
   S.bgNodes={}; (sn.nodes||[]).forEach(function(k){ S.bgNodes[k]=1; });
-  try{ return fn(); } finally{ S.lines=L; S.cover=C; S.cur=P; S._projData=D; S.bgNodes=N; }
+  try{ return fn(); } finally{ S.lines=L; S.cover=C; S.cur=P; S._projData=D; S.bgNodes=N; S.phanTho=T; }
 }
 function bgHistGet_(ver){ return bgHist_().filter(function(v){ return v.ver===ver; })[0]; }
 function bgHistView_(ver){
