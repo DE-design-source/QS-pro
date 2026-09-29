@@ -1315,3 +1315,419 @@ function rngFill_(val){
   if(!edits.length){ toast('Vùng chọn không có ô nào sửa được'); return; }
   tkApplyEdits_(edits, val===''?'Đã xoá nội dung':'Đã điền “'+String(val).slice(0,24)+'”');
 }
+
+/* ═══════════ THANH CÔNG CỤ NHANH (trang Bóc tách) ═══════════
+   Nằm giữa băng thông tin dự án và 2 panel. 3 cụm:
+     · ⏱ Hạng mục gần đây — chip các hạng mục vừa làm, bấm để chuyển qua lại (nhớ theo máy)
+     · 🔍 Tìm nhanh (Ctrl/⌘+K) — một ô cho tất cả: dòng trong bảng (nhảy tới), sản phẩm /
+          công tác (thêm vào hạng mục đang bóc), hạng mục (chuyển sang). ↑ ↓ Enter · Esc
+     · Nút nhanh — Bộ lọc · Yêu thích · Vừa thêm · Tìm & thay · Ẩn panel trái · Thu gọn đầu bảng · Xuất báo giá */
+var QB_RECENT_N=6;
+function qbRecent_(){ try{ var v=JSON.parse(localStorage.getItem('qs_hmRecent')||'[]'); return Array.isArray(v)?v:[]; }catch(e){ return []; } }
+function qbRecentPush_(code){
+  code=String(code||''); if(!code||code==='X') return;
+  var v=qbRecent_().filter(function(c){ return c!==code; }); v.unshift(code); v=v.slice(0,QB_RECENT_N);
+  try{ localStorage.setItem('qs_hmRecent', JSON.stringify(v)); }catch(e){}
+}
+function qbBtn_(id, ic, tip, js, on, badge){
+  return '<button class="qb-ib'+(on?' on':'')+'" id="'+id+'" title="'+esc(tip)+'" aria-label="'+esc(tip)+'" onclick="'+js+'">'+ic
+    +(badge?'<b class="qb-badge">'+badge+'</b>':'')+'</button>';
+}
+var QB_IC={
+  filter:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>',
+  panel:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>',
+  zen:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>',
+  hist:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>',
+  repl:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6"/><path d="M20 20l-5.6-5.6M8 10h4"/></svg>',
+  gia:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v5h-5"/><path d="M12 8v8M9.5 10.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/></svg>',
+  fit:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7v10M20 7v10"/><path d="M8 12h8M8 12l2.5-2.5M8 12l2.5 2.5M16 12l-2.5-2.5M16 12l-2.5 2.5"/></svg>',
+  full:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V4h5M21 9V4h-5M3 15v5h5M21 15v5h-5"/></svg>'
+};
+function giaLechN_(){ try{ var n=giaLechList_().length; return n?String(n):''; }catch(e){ return ''; } }
+function giaSyncTitle_(){
+  var n=giaLechN_();
+  return n?(n+' dòng đang lệch giá so với Danh sách sản phẩm — bấm để cập nhật')
+          :'Cập nhật giá dòng theo Danh sách sản phẩm (đang khớp hết)';
+}
+/* ═══ DÒNG ĐANG DÙNG BẢN CŨ CỦA SẢN PHẨM ═══
+   Dòng trong bảng là BẢN CHỤP lúc thêm (giá, tên, mô tả, ảnh…), sửa sản phẩm trong
+   Danh sách SP không tự đổi dòng đã bóc — đúng ý đồ để báo giá đã chốt không tự nhảy số.
+   Nhưng phải cho người dùng BIẾT và bấm cập nhật được: mỗi dòng lệch có dấu ⟳ ngay ở
+   cột Tên sản phẩm, bấm vào ra bảng so sánh cũ → mới, tích trường nào thì cập nhật nấy. */
+var _spMaMap=null, _spMaMapSrc=null;
+function spMaMap_(){
+  if(_spMaMap && _spMaMapSrc===S.products) return _spMaMap;
+  var m={}; (S.products||[]).forEach(function(p){
+    var k=String(p.ma||'').trim().toLowerCase(); if(!k) return;
+    (m[k]=m[k]||[]).push(p);
+  });
+  _spMaMap=m; _spMaMapSrc=S.products; return m;
+}
+function spOfLine_(l){
+  var ds=spMaMap_()[String((l&&l.maSP)||'').trim().toLowerCase()];
+  if(!ds||!ds.length) return null;
+  if(ds.length===1) return ds[0];
+  var ten=spNorm_(l.ten||'');
+  return ds.filter(function(p){ return spNorm_(p.ten||'')===ten; })[0] || ds[0];
+}
+/* Trường so sánh giữa dòng và sản phẩm trong danh mục: [khoá dòng, nhãn, lấy từ SP, kiểu] */
+var LN_SYNC_F=[
+  ['donGiaVon','Giá vốn', function(p){ return Math.round(Number(p.donGiaVon)||0); }, 'money'],
+  ['ten','Tên sản phẩm', function(p){ return String(p.ten||''); }, 'text'],
+  ['thuongHieu','Thương hiệu', function(p){ return String(p.thuongHieu||''); }, 'text'],
+  ['ncc','Nhà cung cấp', function(p){ return String(p.ncc||''); }, 'text'],
+  ['moTa','Thông tin chính', function(p){ return String(p.moTa||''); }, 'text'],
+  ['kichThuoc','Thông số thiết kế', function(p){ return String(p.kichThuoc||''); }, 'text'],
+  ['dvt','Đơn vị tính', function(p){ return String(p.dvt||''); }, 'text'],
+  ['hinhAnh','Hình ảnh', function(p){ return String(p.hinhAnh||''); }, 'img']
+];
+function lnDiff_(l){
+  var p=spOfLine_(l); if(!p) return null;
+  var ds=[];
+  LN_SYNC_F.forEach(function(f){
+    var moi=f[2](p);
+    var cu=(f[3]==='money')?Math.round(Number(l[f[0]])||0):String(l[f[0]]==null?'':l[f[0]]);
+    if(f[3]==='money'){ if(!moi || cu===moi) return; }
+    else { if(String(cu).trim()===String(moi).trim()) return; if(!String(moi).trim()) return; }  // SP để trống thì không ghi đè
+    ds.push({k:f[0], lb:f[1], cu:cu, moi:moi, kieu:f[3]});
+  });
+  return ds.length?{p:p, ds:ds}:null;
+}
+function lnDiffChip_(l){
+  var d=lnDiff_(l); if(!d) return '';
+  var coGia=d.ds.some(function(x){ return x.k==='donGiaVon'; });
+  // ĐỎ = giá vốn đã đổi (ảnh hưởng tiền) · VÀNG = chỉ đổi thông tin (tên, thông số, ảnh…)
+  var tip=(coGia?'GIÁ VỐN đã đổi trong danh mục':'Thông tin sản phẩm đã đổi trong danh mục')
+    +' ('+d.ds.map(function(x){ return x.lb; }).join(', ')+') — bấm để xem và cập nhật dòng này';
+  return '<button class="ln-upd" title="'+esc(tip)+'"'    // một màu vàng cho mọi thay đổi; tooltip nói rõ có phải giá vốn không
+    +' onclick="event.stopPropagation();lnUpdPop_(event,\''+l.lineId+'\')">'
+    +'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v5h-5"/></svg>'
+    +'</button>';                                  // chỉ icon cho gọn — nội dung đã ghi đủ trong tooltip
+}
+function lnUpdClose_(){ var e=document.getElementById('lnUpdPop'); if(e) e.remove();
+  document.removeEventListener('mousedown',lnUpdOutside_); }
+function lnUpdOutside_(e){ if(e.target.closest&&e.target.closest('#lnUpdPop')) return; lnUpdClose_(); }
+function lnUpdPop_(e, lineId){
+  if(e&&e.stopPropagation) e.stopPropagation();
+  if(document.getElementById('lnUpdPop')){ lnUpdClose_(); return; }
+  var l=(S.lines||[]).filter(function(x){ return String(x.lineId)===String(lineId); })[0]; if(!l) return;
+  var d=lnDiff_(l); if(!d){ toast('Dòng này đã khớp với danh mục'); return; }
+  function ve(v,kieu){
+    if(kieu==='money') return money(v)+' đ';
+    if(kieu==='img') return v?('<img class="lnu-img" src="'+esc(imgSrc1_(v))+'" onerror="this.style.visibility=\'hidden\'">'):'<i>—</i>';
+    var t=String(v||'').trim(); return t?esc(t).replace(/\n/g,'<br>'):'<i>—</i>';
+  }
+  var pop=document.createElement('div'); pop.className='fltpop lnupd'; pop.id='lnUpdPop';
+  pop.innerHTML='<div class="bgt-h"><b>Sản phẩm đã được cập nhật</b>'
+      +'<button class="colpop-x" onclick="lnUpdClose_()">✕</button></div>'
+    +'<div class="lnu-sub">'+esc(d.p.ten||'')+(d.p.ma?(' · '+esc(d.p.ma)):'')+' — chọn phần muốn đưa vào dòng đang bóc</div>'
+    +'<div class="lnu-b">'+d.ds.map(function(x,i){
+        return '<label class="lnu-i"><input type="checkbox" checked data-k="'+esc(x.k)+'">'
+          +'<div class="lnu-c"><div class="lnu-lb">'+esc(x.lb)+'</div>'
+          +'<div class="lnu-v"><span class="cu">'+ve(x.cu,x.kieu)+'</span>'
+          +'<span class="ar">→</span><span class="moi">'+ve(x.moi,x.kieu)+'</span></div></div></label>';
+      }).join('')+'</div>'
+    +'<div class="lnu-f"><button class="btn ghost sm" onclick="lnUpdClose_()">Giữ nguyên</button>'
+      +'<button class="btn blue sm" onclick="lnUpdApply_(\''+escJs_(String(lineId))+'\')">'+icon('check',14)+' Cập nhật dòng này</button></div>';
+  document.body.appendChild(pop);
+  var b=e&&e.currentTarget;
+  if(b&&b.getBoundingClientRect){ var r=b.getBoundingClientRect(), w=pop.offsetWidth||360, h=pop.offsetHeight;
+    var top=r.bottom+6; if(top+h>window.innerHeight-10) top=Math.max(10, r.top-h-6);
+    pop.style.top=top+'px'; pop.style.left=Math.max(8,Math.min(r.left, window.innerWidth-w-10))+'px'; }
+  setTimeout(function(){ document.addEventListener('mousedown',lnUpdOutside_); },0);
+}
+async function lnUpdApply_(lineId){
+  var pop=document.getElementById('lnUpdPop'); if(!pop) return;
+  var l=(S.lines||[]).filter(function(x){ return String(x.lineId)===String(lineId); })[0]; if(!l) return;
+  var d=lnDiff_(l); if(!d){ lnUpdClose_(); return; }
+  var chon={}; pop.querySelectorAll('input[type=checkbox]').forEach(function(c){ if(c.checked) chon[c.getAttribute('data-k')]=1; });
+  var patch={}; d.ds.forEach(function(x){ if(chon[x.k]) patch[x.k]=x.moi; });
+  if(!Object.keys(patch).length){ toast('Chưa chọn phần nào để cập nhật'); return; }
+  lnUpdClose_();
+  try{
+    var r=await api('updateLine', lineId, patch);
+    var j=S.lines.indexOf(l);
+    if(r&&j>=0) S.lines[j]=r; else Object.assign(l, patch);
+    refreshActiveTab_();
+    try{ renderTable&&renderTable(); renderCard&&renderCard(); }catch(e){}
+    toast('Đã cập nhật '+Object.keys(patch).length+' mục cho dòng "'+(patch.ten||l.ten||'')+'"');
+  }catch(e){ toast('Lỗi cập nhật: '+e.message); }
+}
+/* ═══ CẬP NHẬT GIÁ DÒNG THEO DANH MỤC ═══
+   Dòng trong bảng bóc tách là BẢN CHỤP giá lúc thêm — sửa giá ở Danh sách SP không tự
+   đổi dòng đã bóc (để báo giá đã chốt không tự nhảy số). Nút này đối chiếu theo mã SP
+   rồi cập nhật những dòng lệch giá, giữ nguyên %lợi nhuận đang đặt của từng dòng.   */
+function giaSpCuaDong_(l){
+  var ma=String(l.maSP||'').trim().toLowerCase(); if(!ma) return null;
+  var ds=(S.products||[]).filter(function(p){ return String(p.ma||'').trim().toLowerCase()===ma; });
+  if(!ds.length) return null;
+  if(ds.length>1){                                   // nhiều biến thể cùng mã -> khớp thêm theo tên
+    var ten=spNorm_(l.ten||'');
+    ds = ds.filter(function(p){ return spNorm_(p.ten||'')===ten; }).concat(ds);
+  }
+  var von=Math.round(Number(ds[0].donGiaVon)||0);
+  return von?{p:ds[0], von:von}:null;
+}
+function giaLechList_(){
+  return (S.lines||[]).map(function(l){
+    var g=giaSpCuaDong_(l); if(!g) return null;
+    if(Math.round(Number(l.donGiaVon)||0)===g.von) return null;
+    return {l:l, von:g.von, cu:Math.round(Number(l.donGiaVon)||0)};
+  }).filter(Boolean);
+}
+/* Bảng xác nhận cập nhật giá — thay hộp thoại confirm() của trình duyệt: xem được ĐẦY ĐỦ
+   danh sách dòng lệch, giá cũ → giá mới, bỏ tích dòng nào thì dòng đó giữ nguyên. */
+function giaSyncRun_(){
+  if(!S.cur){ toast('Chưa chọn dự án'); return; }
+  if(document.getElementById('giaSyncOv')) return;
+  var ds=giaLechList_();
+  if(!ds.length){ toast('Mọi dòng trong dự án đã khớp giá danh mục'); return; }
+  S._giaSyncDs=ds;
+  var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='giaSyncOv';
+  ov.onclick=function(e){ if(e.target===ov) giaSyncClose_(); };
+  ov.innerHTML='<div class="sp-modal gsx">'
+    +'<div class="pd-head"><h3>Cập nhật giá theo Danh sách sản phẩm</h3>'
+      +'<span class="gsx-n">'+ds.length+' dòng lệch giá</span>'
+      +'<button class="pd-x" onclick="giaSyncClose_()">✕</button></div>'
+    +'<div class="gsx-note">'+icon('clock',14)+'<span>Dòng trong bảng là <b>bản chụp giá lúc thêm</b>. '
+      +'Cập nhật sẽ lấy giá vốn mới từ danh mục, <b>giữ nguyên %lợi nhuận</b> của từng dòng nên giá bán tính lại theo đó.</span></div>'
+    +'<div class="gsx-b">'+ds.map(function(x,i){
+        var phu=[x.l.tang, x.l.khuVuc, x.l.maSP].map(function(t){ return String(t||'').trim(); }).filter(Boolean).join(' · ');
+        return '<label class="gsx-i"><input type="checkbox" checked data-i="'+i+'" onchange="giaSyncSync_()">'
+          +'<div class="gsx-c"><div class="gsx-nm">'+esc(x.l.ten||'(không tên)')+'</div>'
+          +(phu?'<div class="gsx-sub">'+esc(phu)+'</div>':'')+'</div>'
+          +'<div class="gsx-v"><span class="cu">'+money(x.cu)+'</span><span class="ar">→</span>'
+          +'<span class="moi">'+money(x.von)+'</span></div></label>';
+      }).join('')+'</div>'
+    +'<div class="gsx-f">'
+      +'<button class="btn ghost sm" onclick="giaSyncAll_(1)">Chọn tất cả</button>'
+      +'<button class="btn ghost sm" onclick="giaSyncAll_(0)">Bỏ chọn</button>'
+      +'<span style="flex:1"></span>'
+      +'<button class="btn ghost sm" onclick="giaSyncClose_()">Giữ nguyên</button>'
+      +'<button class="btn blue" id="gsxOk" onclick="giaSyncApply_(this)">'+icon('check',15)+' Cập nhật '+ds.length+' dòng</button>'
+    +'</div></div>';
+  document.body.appendChild(ov);
+  document.addEventListener('keydown', giaSyncKey_);
+}
+function giaSyncClose_(){ var e=document.getElementById('giaSyncOv'); if(e) e.remove();
+  S._giaSyncDs=null; document.removeEventListener('keydown', giaSyncKey_); }
+function giaSyncKey_(e){ if(e.key==='Escape') giaSyncClose_(); }
+function giaSyncChon_(){ return [].slice.call(document.querySelectorAll('#giaSyncOv input[type=checkbox]:checked'))
+  .map(function(c){ return (S._giaSyncDs||[])[+c.getAttribute('data-i')]; }).filter(Boolean); }
+function giaSyncSync_(){
+  var n=giaSyncChon_().length, b=document.getElementById('gsxOk'); if(!b) return;
+  b.disabled=!n; b.innerHTML=icon('check',15)+' Cập nhật '+n+' dòng';
+}
+function giaSyncAll_(on){
+  document.querySelectorAll('#giaSyncOv input[type=checkbox]').forEach(function(c){ c.checked=!!on; });
+  giaSyncSync_();
+}
+async function giaSyncApply_(btn){
+  var ds=giaSyncChon_(); if(!ds.length){ toast('Chưa chọn dòng nào'); return; }
+  if(btn){ btn.disabled=true; btn.textContent='Đang cập nhật 0/'+ds.length+'…'; }
+  var ok=0, loi=0;
+  for(var i=0;i<ds.length;i++){
+    try{
+      var r=await api('updateLine', ds[i].l.lineId, { donGiaVon: ds[i].von });
+      var j=S.lines.indexOf(ds[i].l);
+      if(r&&j>=0) S.lines[j]=r; else ds[i].l.donGiaVon=ds[i].von;
+      ok++;
+    }catch(e){ loi++; }
+    if(btn) btn.textContent='Đang cập nhật '+(i+1)+'/'+ds.length+'…';
+  }
+  giaSyncClose_();
+  refreshActiveTab_();
+  try{ renderTable&&renderTable(); renderCard&&renderCard(); }catch(e){}
+  toast('Đã cập nhật giá '+ok+' dòng'+(loi?(' · '+loi+' dòng lỗi'):''));
+}
+function qbRender_(){
+  var el=document.getElementById('qbar'); if(!el) return;
+  if(document.activeElement && document.activeElement.id==='qbQ') { qbRightSync_(); qbRecentSync_(); return; }   // đang gõ: không vẽ lại ô tìm
+  el.innerHTML='<div class="qb-recent" id="qbRecent"></div>'
+    +'<div class="qb-find">'+icon('search',15)
+      +'<input id="qbQ" placeholder="Tìm sản phẩm, công tác, dòng trong bảng, hạng mục…" autocomplete="off" spellcheck="false"'
+      +' oninput="qbSearch_(this.value)" onfocus="qbSearch_(this.value)" onkeydown="qbKey_(event)">'
+      +'<kbd>'+(/Mac/i.test(navigator.platform||'')?'⌘':'Ctrl')+' K</kbd></div>'
+    +'<div class="qb-right" id="qbRight"></div>';
+  qbRecentSync_(); qbRightSync_();
+}
+function qbRecentSync_(){
+  var box=document.getElementById('qbRecent'); if(!box) return;
+  var v=qbRecent_().filter(function(c){ return TREE.some(function(t){ return t[0]===c; }) || customGroups().indexOf(c)>=0; });
+  var cur=(qbTab_()==='boc')?S.node:hmGet_();
+  if(cur && v.indexOf(cur)<0) v.unshift(cur);
+  box.innerHTML='<span class="qb-lbl" title="Hạng mục gần đây — bấm để chuyển">'+icon('clock',14)+'</span>'
+    +(v.length?v.slice(0,QB_RECENT_N).map(function(c){
+      var on=(c===cur), n=(typeof nodeCount==='function')?nodeCount(c):0;
+      return '<button class="qb-chip'+(on?' on':'')+'" title="'+esc(c+'. '+nodeName(c))+'" onclick="qbGoNode_(\''+escJs_(c)+'\')">'
+        +'<span class="qb-cc">'+esc(c)+'</span>'+esc(nodeName(c))+(n?'<i>'+n+'</i>':'')+'</button>';
+    }).join(''):'<span class="qb-empty">Chưa có hạng mục gần đây</span>');
+}
+function qbRightSync_(){
+  var box=document.getElementById('qbRight'); if(!box) return;
+  var nf=(typeof activeFiltCount_==='function')?activeFiltCount_():0;
+  var side=(typeof sideGet_==='function')&&sideGet_(), zen=(typeof foldAllOn_==='function')&&foldAllOn_();
+  if(qbTab_()!=='boc'){                 // Chi phí / Dự án / Mua hàng: nút công cụ đã nằm trong khối "Công cụ bảng"
+    box.innerHTML='<button class="qb-exp" onclick="showTab(\'export\')" title="Sang tab Xuất báo giá">'+icon('download',14)+' Xuất báo giá</button>';
+    foldChipsSync_();
+    return;
+  }
+  // Bóc tách: các nút công cụ đã gom xuống khối "Công cụ bảng" ngay trên bảng -> thanh trên chỉ còn ô tìm + Xuất báo giá
+  box.innerHTML='<button class="qb-exp" onclick="showTab(\'export\')" title="Sang tab Xuất báo giá">'+icon('download',14)+' Xuất báo giá</button>';
+  tkToolsSync_();
+}
+/* ═══ KHỐI "CÔNG CỤ BẢNG" (tab Bóc tách) ═══
+   Trước đây các nút lọc / tìm / hiển thị nằm rải trên thanh công cụ chung và trùng với
+   nút bên panel trái. Nay gom vào 1 khối ngay trên bảng, chia 3 nhóm rõ ràng:
+   LỌC SẢN PHẨM · SỬA BẢNG · HIỂN THỊ.                                            */
+function tkToolsSync_(){
+  var box=document.getElementById('tkToolRow'); if(!box) return;
+  var nf=(typeof activeFiltCount_==='function')?activeFiltCount_():0;
+  var side=(typeof sideGet_==='function')&&sideGet_(), zen=(typeof foldAllOn_==='function')&&foldAllOn_();
+  // Bộ lọc / yêu thích LUÔN có trên thanh công cụ (panel trái đang mở hay đã thu gọn đều bấm được)
+  var g1 = '<span class="tk-tgrp">'
+      +qbBtn_('qbFilt',QB_IC.filter,'Bộ lọc sản phẩm'+(nf?(' — đang lọc '+nf):''),'qbFilter_(event)',nf>0,nf||'')
+      +qbBtn_('qbFav',icon('heart',16),S.fFav?'Đang chỉ hiện sản phẩm yêu thích — bấm để bỏ':'Chỉ hiện sản phẩm yêu thích','catFavToggle();qbRightSync_()',!!S.fFav)
+    +'</span><span class="tk-tsep"></span>';
+  box.innerHTML=g1
+    +'<span class="tk-tgrp">'                                  // nhóm 1: nội dung bảng
+    +qbBtn_('qbHist',QB_IC.hist,'Vừa thêm vào bảng — xem lại / thêm lại','qbHistPop_(event)',false)
+    +qbBtn_('qbRepl',QB_IC.repl,'Tìm & thay trong bảng (Ctrl+F)','openFindReplace()',false)
+    +qbBtn_('qbGia',QB_IC.gia,giaSyncTitle_(),'giaSyncRun_()',false,giaLechN_())
+    +'</span><span class="tk-tsep"></span><span class="tk-tgrp">'   // nhóm 2: cách hiển thị bảng
+    +qbBtn_('qbFit',QB_IC.fit,tkFitOn_()?'Đang co cột vừa khung — bấm để trả về bề rộng đã đặt (có kéo ngang)':'Co cột cho vừa bề ngang khung, hết kéo ngang','tkFitToggle_()',tkFitOn_())
+    +qbBtn_('qbFull',QB_IC.full,tkFullOn_()?'Thoát toàn màn hình (Esc)':'Chỉ còn bảng, chiếm cả màn hình','tkFullToggle_()',tkFullOn_())
+    +'</span>';
+}
+
+/* Lọc nhanh "★ Yêu thích" ở thư viện Bóc tách — chính là chỗ lấy lại SP hay dùng cho dự án mới */
+/* ═══ MỞ COMBO NGAY TRÊN THẺ SP (thư viện Bóc tách) ═══
+   Bấm ▸ là bung danh sách thành phần combo ngay dưới thẻ, khỏi phải mở chi tiết.
+   Dữ liệu nạp 1 lần rồi giữ lại trong S._catCb để lần sau mở tức thì.            */
+function catCbKey_(p){ return String((p&&(p.recordId||p.ma))||''); }
+function catCbMo_(p){ return !!(S._catCbOpen && S._catCbOpen[catCbKey_(p)]); }
+function catComboHtml_(p, idx){
+  var ds=(S._catCb||{})[catCbKey_(p)];
+  if(!ds) return '<div class="cc-note">Đang tải sản phẩm đi kèm…</div>';
+  if(!ds.length) return '<div class="cc-note">Không có sản phẩm đi kèm.</div>';
+  S._catCbIdx=S._catCbIdx||{}; S._catCbIdx[catCbKey_(p)]=ds;
+  var pk=esc(catCbKey_(p));
+  var rows=ds.map(function(x,k){
+    var sl=Number(x.comboSL)||1;
+    var phu=[x.thuongHieu, (sl>1?('×'+ptQty(sl)):''), ccSpecTxt_(x)].map(function(t){ return String(t||'').trim(); }).filter(Boolean).join(' · ');
+    return ccRow_((idx+1)+'.'+(k+1), x, phu,
+      'catChildDetail_(\''+pk+'\','+k+')', 'catAddChild_(\''+pk+'\','+k+')', '');
+  }).join('');
+  return ccBox_('Sản phẩm đi kèm', ds.length, rows, '');
+}
+/* Khối sản phẩm con — GỘP THÀNH MỘT KHUNG (combo: xanh · biến thể: cam) */
+function ccBox_(ten, n, rows, cls){
+  return '<div class="ccbox '+(cls||'')+'">'
+    +'<div class="ccbox-h">'+esc(ten)+'<i>'+n+'</i></div>'
+    +'<div class="ccbox-b">'+rows+'</div></div>';
+}
+function ccSpecTxt_(x){
+  return [x.congSuat,x.nhietDo,x.cri?('CRI '+x.cri):'',x.gocChieu].map(function(v){ return String(v==null?'':v).trim(); })
+    .filter(Boolean).join(' · ');
+}
+function ccRow_(stt, x, phu, moJs, themJs, dragAttr){
+  var img=x.hinhAnh
+    ? '<img class="ccr-th" src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">'
+    : '<span class="ccr-th"></span>';
+  return '<div class="ccrow"'+(dragAttr||'')+' title="'+esc(String(x.ten||'')+(phu?' — '+phu:''))+'" onclick="'+moJs+'">'
+    +'<span class="ccr-no">'+esc(stt)+'</span>'+img
+    +'<span class="ccr-m">'
+      +'<b>'+esc(x.ten||'')+'</b>'
+      +'<span class="ccr-r">'+(phu?'<i>'+esc(phu)+'</i>':'<i></i>')
+        +'<em class="ccr-gia">'+money(x.donGiaBan)+' đ</em></span>'
+    +'</span>'
+    +'<button class="ccr-add" title="Thêm vào bóc tách" onclick="event.stopPropagation();'+themJs+'">+</button>'
+  +'</div>';
+}
+// Thêm 1 thành phần combo vào bóc tách, đúng số lượng đi kèm
+async function catAddChild_(pk, k){
+  var ds=(S._catCbIdx||{})[pk]||(S._catCb||{})[pk]||[];
+  var x=ds[k]; if(!x) return;
+  await addProdObj(x, S.selFloor||'', Number(x.comboSL)||1);
+  toast('Đã thêm: '+String(x.ten||'').split('\n')[0]);
+}
+async function catComboToggle_(i){
+  var p=(S._filtered||[])[i]; if(!p) return;
+  var k=catCbKey_(p); if(!k) return;
+  S._catCbOpen=S._catCbOpen||{}; S._catCb=S._catCb||{};
+  var mo=!S._catCbOpen[k];
+  if(mo) S._catCbOpen[k]=1; else delete S._catCbOpen[k];
+  var sc=document.getElementById('catList'), top=sc?sc.scrollTop:0;      // giữ nguyên chỗ đang xem
+  renderCatalog(); if(sc) sc.scrollTop=top;
+  if(mo && !S._catCb[k]){
+    try{ S._catCb[k]=await api('getCombo',k)||[]; }catch(e){ S._catCb[k]=[]; }
+    if(S._catCbOpen[k]){ var s2=document.getElementById('catList'), t2=s2?s2.scrollTop:0; renderCatalog(); if(s2) s2.scrollTop=t2; }
+  }
+}
+function catFavToggle(){ S.fFav=!S.fFav; renderFilters(); renderCatalog(); updateCatUI&&updateCatUI(); }
+async function catFav(i,on){
+  var p=(S._filtered||[])[i]; if(!p) return;
+  var k=spKey_(p); if(!k) return;
+  spFavSet_([k],on); renderCatalog();
+  try{ spFavChk_(await api('setYeuThich',[k],!!on)); }
+  catch(e){ spFavSet_([k],!on); renderCatalog(); toast(e.message); return; }
+  toast(on?'Đã thêm vào sản phẩm yêu thích':'Đã bỏ khỏi sản phẩm yêu thích');
+}
+
+/* ═══ Sheet Nhân công / Vật tư trong một hạng mục ═══
+   Lưu trên dòng ở extra.sheet ('nc' | 'vt' | rỗng = để chung) nên đi theo dòng, không đụng cấu trúc hạng mục. */
+var TK_SHEETS=[['nc','Nhân công'],['vt','Vật tư']];
+/* Nhân công / Vật tư CHỈ có ở: Phần thô · Thạch cao · Xây tô · Ốp lát.
+   Các hạng mục khác (Thiết bị đèn…) không chia sheet. */
+var TK_SHEET_NODES=['3.1','3.2.1','3.2.3','3.2.4'];
+function tkSheetCo_(code){
+  var c=String(code||S.node||'');
+  return TK_SHEET_NODES.some(function(n){ return c===n || c.indexOf(n+'.')===0; });
+}
+function tkSheetOf_(l){ return String((l&&l.extra&&l.extra.sheet)||''); }
+function tkSheetLbl_(v){ var x=TK_SHEETS.filter(function(t){ return t[0]===v; })[0]; return x?x[1]:''; }
+function setSheet(v){
+  S.sheet=(S.sheet===v)?'':(v||''); S._mmDT=null;   // bấm lại chip đang bật = xem tất cả
+  try{ localStorage.setItem('qs_sheet', S.sheet||''); }catch(e){}
+  S._tkSel={}; renderTable(); renderCard&&renderCard();
+}
+var PT_SHEET_LOAI={nc:'dt_nhancong', vt:'dt_vattu'};
+function tkSheetChips_(lines){
+  if(typeof renderMM_==='function') renderMM_();          // mind map bên trái luôn khớp sheet / loại báo giá
+  var box=document.getElementById('tkSheets'); if(!box) return;
+  if(!lines || !tkSheetCo_()){ box.innerHTML=''; return; }
+  var code=S.node||'';
+  // Phần thô: Nhân công / Vật tư chính là 2 "Loại báo giá" dự toán bên panel trái
+  /* Cùng 1 cấu trúc cho Phần thô và Thạch cao / Xây tô / Ốp lát:
+       Khái toán (Nhân công + Vật tư)  |  Dự toán · Nhân công  |  Dự toán · Vật tư        */
+  function chip(on, js, so, ten, tip, n){ return '<button class="shchip'+(on?' on':'')+'" onclick="'+js+'" title="'+esc(tip)+'">'
+    +'<span class="shc-c">'+esc(so)+'</span>'+ten+(n!=null?'<i class="shc-n">['+pad2(n)+']</i>':'')+'</button>'; }
+  if(code==='3.1'){                  // Phần thô: 1. Khái toán (1.1 chi tiết · 1.2 sơ bộ) · 2. Dự toán (2.1 NC · 2.2 VT)
+    var cur=ptLoai_();
+    box.innerHTML=PT_LOAI_NHOM.map(function(g){
+      return '<span class="shc-sep">'+esc(g[1]+'. '+g[2])+'</span>'+g[3].map(function(x){
+        return chip(cur===x[0],'ptSheetPick_(\''+x[0]+'\')',x[1],esc(x[2].replace(/^Khái toán (\S)/,function(m,c){ return c.toUpperCase(); })),x[2]+' — '+x[3]); }).join('');
+    }).join('');
+    return;
+  }
+  // Thạch cao / Xây tô / Ốp lát: lọc dòng Nhân công / Vật tư (bấm lại = xem tất cả)
+  var dem={nc:0,vt:0,'':0};
+  (lines||[]).forEach(function(l){ dem[tkSheetOf_(l)]=(dem[tkSheetOf_(l)]||0)+1; });
+  box.innerHTML=TK_SHEETS.map(function(t,i){
+    return chip(S.sheet===t[0],'setSheet(\''+t[0]+'\')',(code?(code+'.'+(i+1)+'.'):''),t[1],'Chỉ hiện các dòng '+t[1]+' của hạng mục này',dem[t[0]]||0);
+  }).join('')
+  +(S.sheet?'<button class="shchip clr" onclick="setSheet(\''+S.sheet+'\')" title="Bỏ lọc, xem tất cả">✕ Tất cả</button>':'');
+}
+// Phần thô: bấm chip = đổi Loại báo giá; bấm lại chip đang bật = quay về khái toán trước đó
+function ptSheetPick_(v){
+  ptSetLoai(PT_SHEET_LOAI[v]||v||'kt_chitiet'); renderTable();   // nhận 'nc'/'vt' (cũ) hoặc mã loại báo giá
+}
+function tkBulkSheet_(v){
+  var ls=tkSelLines_(); if(!ls.length) return;
+  var edits=ls.map(function(l){
+    var ex=Object.assign({}, l.extra||{});
+    if(v) ex.sheet=v; else delete ex.sheet;
+    return {id:l.lineId, fields:{extra:ex}};
+  });
+  tkApplyEdits_(edits, v?('Đã đưa vào sheet '+tkSheetLbl_(v)):'Đã bỏ khỏi sheet');
+}
