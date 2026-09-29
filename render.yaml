@@ -14,16 +14,6 @@ services:
     envVars:
       - key: LARK_DOMAIN
         value: https://open.larksuite.com
-      - key: LARK_APP_TOKEN
-        value: GpCXbwtuvaOB0BsavQrlgS5ggXc
-      - key: LARK_TBL_PRODUCTS
-        value: tbloW9NkLk9lwV5V
-      - key: LARK_TBL_PROJECTS
-        value: tbl1JUceYBQ2gZ9Y
-      - key: LARK_TBL_LINES
-        value: tblI9uBLvTy4GcYx
-      - key: LARK_TBL_COVER
-        value: tblutEmDYQMZv9ni
       # Supabase (nguồn dữ liệu chính). Publishable key — Supabase ghi rõ an toàn công khai.
       - key: SUPABASE_URL
         value: https://xcjnpjpkmwhekkabpjzw.supabase.co
@@ -35,7 +25,7 @@ services:
       # "Yêu cầu mua hàng"). Bỏ trống -> dùng chung webhook yêu cầu mua hàng.
       - key: REPORT_WEBHOOK
         sync: false
-      # Nhập 2 giá trị dưới trên Dashboard (Environment) — bí mật, không commit:
+      # Lark: chỉ còn dùng tải ảnh cũ (/media). Nhập trên Dashboard, không commit:
       - key: LARK_APP_ID
         sync: false
       - key: LARK_APP_SECRET

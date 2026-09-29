@@ -1,7 +1,7 @@
 {
   "name": "qs-pro",
   "version": "1.0.0",
-  "description": "QS Pro – Hệ thống bóc tách khối lượng / báo giá (Decox), dữ liệu trên Lark Base",
+  "description": "QS Pro – Hệ thống bóc tách khối lượng / báo giá (Dezon), dữ liệu trên Supabase",
   "type": "commonjs",
   "engines": {
     "node": ">=18"
@@ -9,14 +9,12 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
-    "introspect": "node server/introspect.js",
     "test:vs": "node scripts/test-vs.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.5",
     "exceljs": "^4.4.0",
-    "express": "^4.19.2",
-    "pg": "^8.23.0"
+    "express": "^4.19.2"
   }
 }

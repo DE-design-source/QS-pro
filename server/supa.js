@@ -89,4 +89,4 @@ async function uploadToStorage(buffer, path, contentType) {
 // escape giá trị cho filter eq. (PostgREST)
 function eq(col, val) { return col + '=eq.' + encodeURIComponent(val); }
 
-module.exports = { ok, rest, select, insert, update, remove, uploadToStorage, eq, _url: URL, _bucket: BUCKET };
+module.exports = { ok, TENANT_TABLES, rest, select, insert, update, remove, uploadToStorage, eq, _url: URL, _bucket: BUCKET };

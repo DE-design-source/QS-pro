@@ -9,13 +9,11 @@ const path = require('path');
 const express = require('express');
 const config = require('./config');
 const supa = require('./supa');
-// Dùng Supabase nếu đã cấu hình (SUPABASE_URL/KEY), ngược lại dùng Lark.
-const store = supa.ok() ? require('./store_supa') : require('./store');
-const lark = require('./lark');
+const store = require('./store_supa');
+const lark = require('./lark');          // chỉ còn dùng cho /media (ảnh cũ lưu trên Lark)
 const auth = require('./auth');
 const tenant = require('./tenant');
 const exportBaoGia = require('./export');
-console.log('Nguồn dữ liệu:', supa.ok() ? 'Supabase' : 'Lark');
 
 const app = express();
 app.use(express.json({ limit: '30mb' }));
@@ -107,7 +105,8 @@ const REGISTRY = {
   resolvePurchaseRequest: auth.resolvePurchaseRequest,
   listDeXuat: auth.listDeXuat,
   getDeXuat: auth.getDeXuat,
-  resolveDeXuat: auth.resolveDeXuat
+  resolveDeXuat: auth.resolveDeXuat,
+  baoCaoNhapSP: baoCaoNhapSP   // super chạy tay / dryRun báo cáo nhập SP
 };
 // Hàm không cần đăng nhập
 const PUBLIC_FNS = new Set(['login']);
@@ -292,17 +291,15 @@ async function sendDeXuat(actor, dx) {
 async function sendPurchaseRequest(actor, order) {
   order = order || {};
   // 1) Lưu đơn + thông báo Admin duyệt — luồng duyệt TRONG APP, luôn chạy (không phụ thuộc webhook Lark)
-  let savedMa = [];
+  // Lưu lỗi thì báo lỗi cho người dùng (trước đây nuốt lỗi -> báo "đã gửi" mà không có đơn chờ duyệt)
+  const rs = await store.savePurchaseOrder(Object.assign({ kenh: 'Lark', ketQua: 'pending', requesterId: actor && actor.uid }, order));
+  const savedMa = (rs && rs.saved) || [];
   try {
-    if (typeof store.savePurchaseOrder === 'function') {
-      const rs = await store.savePurchaseOrder(Object.assign({ kenh: 'Lark', ketQua: 'pending', requesterId: actor && actor.uid }, order));
-      savedMa = (rs && rs.saved) || [];
-      if (savedMa.length) {
-        const ords = (Array.isArray(order.orders) ? order.orders : []);
-        await auth.notifyPurchaseAdmins(actor, savedMa.map(function (ma, i) { return { maDon: ma, supplier: ords[i] && ords[i].supplier }; }));
-      }
+    if (savedMa.length) {
+      const ords = (Array.isArray(order.orders) ? order.orders : []);
+      await auth.notifyPurchaseAdmins(actor, savedMa.map(function (ma, i) { return { maDon: ma, supplier: ords[i] && ords[i].supplier }; }));
     }
-  } catch (e) { console.warn('[mua hàng] lưu/notify lỗi:', e && e.message); }
+  } catch (e) { console.warn('[mua hàng] notify lỗi:', e && e.message); }
   // 2) Gửi thẻ qua Lark — best-effort, KHÔNG chặn duyệt trong app nếu webhook lỗi
   let larkOk = false;
   try {
@@ -591,6 +588,12 @@ setTimeout(function () {
   scheduleBaoCaoSP_();
 }, 70 * 1000);
 
+// Người đăng nhập của request: token hợp lệ + tài khoản còn mở/đúng vai trò trong DB
+async function actorOf_(req) {
+  const tok = (req.headers.authorization || '').replace(/^Bearer\s+/i, '') || (req.body && req.body.token) || '';
+  if (!tok) return null;
+  try { return await auth.sessionActor(tok); } catch (e) { console.error('[auth] kiểm tra phiên lỗi:', e && e.message); return null; }
+}
 app.post('/api/:fn', async function (req, res) {
   const fn = req.params.fn;
   const handler = REGISTRY[fn];
@@ -598,8 +601,7 @@ app.post('/api/:fn', async function (req, res) {
     return res.status(404).json({ error: 'Không hỗ trợ hàm: ' + fn });
   }
   // ---- Xác thực & phân quyền ----
-  const tok = (req.headers.authorization || '').replace(/^Bearer\s+/i, '') || (req.body && req.body.token) || '';
-  const actor = tok ? auth.verifyToken(tok) : null;
+  const actor = await actorOf_(req);
   if (!PUBLIC_FNS.has(fn)) {
     if (!actor) return res.status(401).json({ error: 'Chưa đăng nhập', code: 'NOAUTH' });
     // 'super' (quản trị hệ thống) có mọi quyền của admin
@@ -717,8 +719,7 @@ async function exportCongTacXlsx(rows) {
   return { buf, count: (rows || []).length, name: 'cong-tac-xay-dung.xlsx' };
 }
 app.post('/export/cong-tac', async function (req, res) {
-  const tok = (req.headers.authorization || '').replace(/^Bearer\s+/i, '') || (req.body && req.body.token) || '';
-  const actor = tok ? auth.verifyToken(tok) : null;
+  const actor = await actorOf_(req);
   if (!actor) return res.status(401).json({ error: 'Chưa đăng nhập' });
   try {
     const rows = (req.body && Array.isArray(req.body.rows)) ? req.body.rows.slice(0, 5000) : [];
@@ -734,8 +735,7 @@ app.post('/export/cong-tac', async function (req, res) {
   }
 });
 app.post('/export/san-pham', async function (req, res) {
-  const tok = (req.headers.authorization || '').replace(/^Bearer\s+/i, '') || (req.body && req.body.token) || '';
-  const actor = tok ? auth.verifyToken(tok) : null;
+  const actor = await actorOf_(req);
   if (!actor) return res.status(401).json({ error: 'Chưa đăng nhập' });
   const viewAs = actor.r === 'super' ? (req.headers['x-view-company'] || '') : '';
   const tctx = { uid: actor.uid, role: actor.r, congTyId: actor.ct || null, viewAs: viewAs || null };
@@ -779,12 +779,4 @@ app.get('/healthz', function (req, res) { res.json({ ok: true }); });
 
 app.listen(config.port, function () {
   console.log('QS Pro chạy tại http://localhost:' + config.port);
-  console.log('Lark domain:', config.domain, '| Base:', config.appToken);
-  // Khởi tạo bảng sớm (chỉ khi dùng Lark; Supabase đã có schema sẵn)
-  if (typeof store.setup === 'function') {
-    store.setup().then(function () {
-      console.log('Bảng Lark: products=' + config.tables.products + ' projects=' + config.tables.projects +
-        ' lines=' + config.tables.lines + ' cover=' + config.tables.cover);
-    }).catch(function (e) { console.warn('CẢNH BÁO setup Lark:', e.message); });
-  }
 });

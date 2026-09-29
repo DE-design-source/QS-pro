@@ -5,7 +5,7 @@
  ************************************************************/
 const supa = require('./supa');
 const tenant = require('./tenant');
-const larkStore = require('./store');   // tái dùng hàm thuần: importParse, cover template, export helpers
+const shared = require('./shared');     // hàm thuần: importParse, mẫu tờ bìa
 const VS = require('../public/vs-spec.js');  // thông số thiết bị vệ sinh theo từng hạng mục (nguồn chung)
 const SON = require('../public/son-spec.js'); // thông số sơn nước theo từng hạng mục (nguồn chung)
 /* NGÀNH HÀNG của 1 sản phẩm: 'den' (mặc định) · 'vs' (thiết bị vệ sinh) · 'son' (sơn nước).
@@ -216,7 +216,9 @@ async function getProject(maDA) {
 function genMaDA_() {
   const d = new Date();
   const pad = function (x) { return String(x).padStart(2, '0'); };
-  return 'DA-' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
+  // + 2 ký tự ngẫu nhiên: ma_da duy nhất toàn hệ thống, 2 lần tạo cùng 1 giây (khác công ty) từng trùng khoá
+  return 'DA-' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds())
+    + Math.random().toString(36).slice(2, 4).toUpperCase();
 }
 async function createProject(data) {
   data = data || {};
@@ -382,17 +384,15 @@ async function getCover(maDA) {
 }
 // Nạp mẫu tờ bìa + tự cộng chi phí theo nhóm (đọc dòng từ Supabase, KHÔNG gọi Lark)
 async function buildCoverFromTemplate(maDA) {
-  const tmpl = larkStore._COVER_TEMPLATE || [];
-  const norm = larkStore._normalize || function (x) { return String(x || '').toUpperCase(); };
-  const byNhom = {};
-  if (maDA) {
-    const lines = await getLines(maDA);
-    lines.forEach(function (l) { const k = norm(l.nhom); byNhom[k] = (byNhom[k] || 0) + n(l.thanhTienBan); });
-  }
+  // STT tờ bìa = mã hạng mục Bóc tách -> mục LÁ cộng thành tiền mọi dòng có nhom thuộc mục đó
+  // (mẫu cũ khớp theo tên nhóm kiểu Lark '3.2.5.THIẾT BỊ ...' nên luôn ra 0)
+  const tmpl = shared.COVER_TEMPLATE;
+  const lines = maDA ? await getLines(maDA) : [];
+  const isLeaf = function (st) { return !tmpl.some(function (t) { return t[0] !== st && t[0].indexOf(st + '.') === 0; }); };
   return tmpl.map(function (t) {
     let chiPhi = 0;
-    if (t[3]) String(t[3]).split(',').forEach(function (nm) { chiPhi += byNhom[norm(nm.trim())] || 0; });
-    return { stt: t[0], hangMuc: t[1], moTa: t[2], chiPhi: chiPhi };
+    if (isLeaf(t[0])) lines.forEach(function (l) { if (shared.inCode(l.nhom, t[0])) chiPhi += n(l.thanhTienBan); });
+    return { stt: t[0], hangMuc: t[1], moTa: t[2], chiPhi: Math.round(chiPhi) };
   });
 }
 async function getCoverOrInit(maDA) {
@@ -401,10 +401,12 @@ async function getCoverOrInit(maDA) {
   return buildCoverFromTemplate(maDA);
 }
 async function saveCover(maDA, rows) {
-  await supa.remove('khai_toan', supa.eq('ma_da', maDA));
+  // Ghi bản mới TRƯỚC rồi mới xoá bản cũ: ghi lỗi giữa chừng không làm mất tờ bìa
+  const old = await supa.select('khai_toan', { select: 'id', filter: supa.eq('ma_da', maDA), limit: 2000 });
   const arr = (rows || []).map(function (r, i) { return { ma_da: maDA, stt: s(r.stt), hang_muc: s(r.hangMuc), mo_ta: s(r.moTa), chi_phi: n(r.chiPhi), sort_no: i }; });
   if (arr.length) await supa.insert('khai_toan', arr);
-  return { ok: true, count: arr.length };
+  if (old.length) await supa.remove('khai_toan', 'id=in.(' + old.map(function (r) { return r.id; }).join(',') + ')');
+  return getCover(maDA);   // client gán thẳng S.cover = kết quả -> phải là mảng dòng
 }
 
 /*** ===== SP MỚI / ẢNH ===== ***/
@@ -975,7 +977,7 @@ function getCatalogSheetsFrom_(products) {
 }
 
 /*** ===== IMPORT (tái dùng parse của store.js) ===== ***/
-function importParse(base64, ext, nganh) { return larkStore.importParse(base64, ext, nganh); }
+function importParse(base64, ext, nganh) { return shared.importParse(base64, ext, nganh); }
 async function importCommit(actor, products) {
   if (products === undefined && Array.isArray(actor)) { products = actor; actor = null; }
   // Dùng lại saveDbProduct cho từng SP (đúng path đã hoạt động: tự check + INSERT/UPDATE,
@@ -1225,6 +1227,10 @@ function ctToObj(r) {
     thuTu: n(r.thu_tu)
   };
 }
+// cột DB -> khoá phía client (ctToRow_ dùng cùng bảng này)
+const CT_SRC = { loai: 'loai', che_do: 'mode', ma_nhom: 'maNhom', hang_muc: 'hangMuc', de_muc: 'deMuc', ten: 'ten', dvt: 'dvt',
+  nha_cung_cap: 'ncc', khoi_luong: 'kl', dien_tich: 'dt', he_so: 'hs', don_gia_nha_thau: 'dgnt', don_gia: 'dg',
+  ghi_chu: 'gc', hinh_anh: 'hinhAnh', thong_so: 'thongSo', pham_vi: 'phamVi', link_tai_lieu: 'linkTaiLieu', thu_tu: 'thuTu' };
 function ctToRow_(d) {
   function num(v) { return (v === '' || v == null) ? null : n(v); }
   const r = {
@@ -1347,16 +1353,17 @@ async function ctUpdate(actor, id, patch) {
   if (!id) throw new Error('Thiếu id công tác');
   const who = (actor && actor.u) || 'ẩn danh';
   // Sửa nội dung -> quay về "Chưa duyệt", đúng như sản phẩm đèn
-  const row = Object.assign(ctToRow_(patch),
-    { nguoi_sua: who, ngay_cap_nhat: nowIso(), da_duyet: false, nguoi_duyet: null, ngay_duyet: null });
-  Object.keys(row).forEach(function (k) { if (row[k] === undefined) delete row[k]; });
+  // Chỉ ghi các cột có trong patch: sửa 1 ô trước đây ghi '' đè Đề mục / NCC / ... của công tác
+  const full = ctToRow_(patch), row = {};
+  Object.keys(CT_SRC).forEach(function (col) { if (patch && Object.prototype.hasOwnProperty.call(patch, CT_SRC[col]) && col in full) row[col] = full[col]; });
+  Object.assign(row, { nguoi_sua: who, ngay_cap_nhat: nowIso(), da_duyet: false, nguoi_duyet: null, ngay_duyet: null });
   const truoc = (await supa.select('cong_tac', { filter: supa.eq('id', id), limit: 1 }))[0] || null;
   let out;
   try { out = await ctTry_(function (b) { return supa.update('cong_tac', supa.eq('id', id), b); }, row); }
   catch (e) { throw ctErr_(e); }
   if (!out || !out.length) throw new Error('Không tìm thấy công tác để sửa');
   await ctHistory_(actor, id, ctDiff_(truoc, row));
-  await logAudit_(actor, 'sua_cong_tac', 'Sửa công tác: ' + s(row.ten));
+  await logAudit_(actor, 'sua_cong_tac', 'Sửa công tác: ' + s(row.ten || (truoc && truoc.ten)));
   return ctToObj(out[0]);
 }
 async function ctDelete(actor, ids) {

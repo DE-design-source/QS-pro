@@ -12,7 +12,7 @@ const fake={ eq:(c,v)=>c+'=eq.'+encodeURIComponent(v),
   update:async(t,f,p)=>{ if(t==='db_san_pham'){ const id=+String(f).split('eq.')[1]; const r=db.find(x=>x.id===id); Object.assign(r,p); return [r]; } return [{}]; },
   remove:async()=>{} };
 require.cache[require.resolve(R('server/supa'))]={id:'x',filename:'x',loaded:true,exports:new Proxy(fake,{get:(o,k)=>o[k]||(async()=>[])})};
-const VS=require(R('public/vs-spec.js')), st=require(R('server/store_supa')), store=require(R('server/store')), tpl=require(R('server/vs-template'));
+const VS=require(R('public/vs-spec.js')), st=require(R('server/store_supa')), store=require(R('server/shared')), tpl=require(R('server/vs-template'));
 (async()=>{
   console.log('1. vs-spec nhất quán');
   const cols=Object.values(VS.METRIC).map(m=>m[0]); ok(new Set(cols).size===cols.length,'trùng cột DB trong METRIC');

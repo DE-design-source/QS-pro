@@ -6,9 +6,8 @@
  * (PDF được xử lý phía client bằng chức năng In của trình duyệt.)
  ************************************************************/
 const ExcelJS = require('exceljs');
-const store = require('./store');            // helper thuần (coverComputed_, _toNumber, _S32_SUPPLIERS...)
-const supa = require('./supa');
-const dataStore = supa.ok() ? require('./store_supa') : store;   // nguồn dữ liệu (Supabase nếu có)
+const shared = require('./shared');            // mẫu tờ bìa, NCC 3.2, đọc số
+const dataStore = require('./store_supa');
 const lark = require('./lark');
 
 const NAVY = 'FF1F3864';
@@ -88,7 +87,7 @@ function border(cell) {
 
 /*** ===== Tờ bìa ===== ***/
 function buildCoverSheet(ws, p, cover) {
-  const comp = store.coverComputed_(cover);
+  const comp = shared.coverComputed_(cover);
   const cost = comp.cost, total = comp.total;
   ws.columns = [{ width: px(52) }, { width: px(380) }, { width: px(190) }, { width: px(120) }];
   let r = 1;
@@ -176,10 +175,11 @@ function buildSection32(ws, p, cover) {
   const ncol = COL.length;
   ws.columns = COL.map(function (c) { return { width: px(c.w) }; });
   const byStt = {}, covBy = {};
-  cover.forEach(function (c) { byStt[c.stt] = Number(c.chiPhi) || 0; covBy[c.stt] = c; });
-  const subs = ['3.2.1', '3.2.2', '3.2.3', '3.2.4', '3.2.5', '3.2.6', '3.2.7'];
+  const cost = shared.coverComputed_(cover).cost;   // mục có con = tổng mục con (như màn hình)
+  cover.forEach(function (c) { byStt[c.stt] = cost[c.stt] || 0; covBy[c.stt] = c; });
+  const subs = shared.S32_SUBS;
   var total32 = 0; subs.forEach(function (s) { total32 += byStt[s] || 0; });
-  const kl = store._toNumber(p.dtBaoGia) || store._toNumber(p.tongDT) || 0;
+  const kl = shared.toNumber_(p.dtBaoGia) || shared.toNumber_(p.tongDT) || 0;
 
   let r = 1;
   ws.mergeCells(r, 1, r, ncol);
@@ -200,7 +200,7 @@ function buildSection32(ws, p, cover) {
   const data = [];
   data.push(['3.2', 'PHẦN HOÀN THIỆN CƠ BẢN', '', 'm2', kl, (kl > 0 ? total32 / kl : 0), total32, 1, '']);
   subs.forEach(function (s) {
-    const cov = covBy[s] || {}, chiPhi = byStt[s] || 0, sup = store._S32_SUPPLIERS[s] || [];
+    const cov = covBy[s] || {}, chiPhi = byStt[s] || 0, sup = shared.S32_SUPPLIERS[s] || [];
     const first = sup.length ? sup[0] : null;
     data.push([s, cov.hangMuc || s, cov.moTa || '', 'gói', 1, '', chiPhi, total32 > 0 ? chiPhi / total32 : 0,
       first ? (first[0] + ' — ' + first[1]) : '']);
@@ -464,9 +464,10 @@ async function exportBaoGia(maDA, cols, format, nodes, phanTho) {
   } else {
     const used = {};
     for (var i = 0; i < cats.length; i++) {
-      var nm = sheetName_(cats[i].name); var base = nm; var k = 2;
-      while (used[nm]) { nm = (base + ' ' + k).slice(0, 30); k++; }
-      used[nm] = 1;
+      // Excel so tên sheet không phân biệt hoa thường; cắt base để hậu tố " k" luôn vừa -> hết vòng lặp vô hạn
+      var nm = sheetName_(cats[i].name); var base = nm.slice(0, 26); var k = 2;
+      while (used[nm.toLowerCase()]) { nm = base + ' ' + k; k++; }
+      used[nm.toLowerCase()] = 1;
       await buildDetailSheet(wb, wb.addWorksheet(nm), cats[i].items, p, EXCOLS, cats[i].name);
     }
   }

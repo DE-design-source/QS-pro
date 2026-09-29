@@ -33,14 +33,35 @@ function verifyToken(token) {
   } catch (e) { return null; }
 }
 
+// Token sống 7 ngày -> khoá/đổi vai trò/đổi công ty phải có hiệu lực ngay: đối chiếu DB (cache 30s).
+const _sess = new Map();
+const SESSION_CACHE_MS = 30 * 1000;
+function forgetSession_(uid) { _sess.delete(String(uid)); }
+async function sessionActor(token) {
+  const p = verifyToken(token);
+  if (!p) return null;
+  const hit = _sess.get(String(p.uid));
+  if (hit && Date.now() - hit.at < SESSION_CACHE_MS) return hit.u ? Object.assign({}, p, hit.u) : null;
+  const rows = await supa.select('users', { select: 'id,username,role,active,cong_ty_id', filter: supa.eq('id', p.uid), limit: 1, noScope: true });
+  let u = rows[0] && rows[0].active !== false ? { r: rows[0].role, ct: rows[0].cong_ty_id || null, u: rows[0].username } : null;
+  if (u && u.r !== 'super') {
+    const ct = u.ct ? await getCongTy(u.ct) : null;
+    if (!ct || !ct.active || (ct.hanDung && new Date(ct.hanDung) < new Date(new Date().toDateString()))) u = null;
+  }
+  _sess.set(String(p.uid), { at: Date.now(), u: u });
+  return u ? Object.assign({}, p, u) : null;
+}
+
 /* ---------- audit ---------- */
-async function audit(actor, action, detail) {
+async function audit(actor, action, detail, congTyId) {
   try {
-    await supa.insert('audit_log', {
+    const row = {
       user_id: actor && actor.uid ? actor.uid : null,
       username: actor ? (actor.u || actor.username || '') : '',
       action: String(action || ''), detail: String(detail || '')
-    });
+    };
+    if (congTyId) row.cong_ty_id = congTyId;   // login chạy ngoài ngữ cảnh công ty
+    await supa.insert('audit_log', row);
   } catch (e) { /* nhật ký không được làm hỏng nghiệp vụ */ }
 }
 
@@ -59,15 +80,11 @@ async function getUsersByName_(username) {
   if (!key) return [];
   let rows = await supa.select('users', { filter: supa.eq('username', key.toLowerCase()), limit: 20, noScope: true });
   if (rows.length) return rows;
-  if (key.indexOf('@') > 0) {
-    try { rows = await supa.select('users', { filter: 'email=ilike.' + encodeURIComponent(key), limit: 20, noScope: true }); }
+  if (key.indexOf('@') > 0 && !/[*%\\]/.test(key)) {   // chặn ký tự đại diện: '%@%' từng khớp mọi tài khoản
+    try { rows = await supa.select('users', { filter: 'email=ilike.' + encodeURIComponent(key.replace(/_/g, '\\_')), limit: 20, noScope: true }); }
     catch (e) { rows = []; }
   }
   return rows || [];
-}
-async function getUserByName(username) {
-  const rows = await getUsersByName_(username);
-  return rows[0] || null;
 }
 /* ---------- CÔNG TY (multi-tenant) ---------- */
 let _shareCol = null;   // cột dung_sp_dezon có tồn tại chưa (chưa chạy db/share_catalog.sql thì chưa có)
@@ -118,16 +135,17 @@ async function createCongTy(actor, data) {
     if (!await hasShareCol_()) throw new Error('Chưa bật được kho SP chung: cơ sở dữ liệu thiếu cột dung_sp_dezon. Hãy chạy db/share_catalog.sql trong Supabase rồi thử lại.');
     row.dung_sp_dezon = true;
   }
+  const adminUser = String(data.adminUser || '').trim().toLowerCase();
+  if (adminUser && data.adminPass) {   // kiểm tra trước để không tạo công ty mồ côi
+    const dup = await supa.select('users', { select: 'id', filter: supa.eq('username', adminUser), limit: 1, noScope: true });
+    if (dup.length) throw new Error('Tên đăng nhập "' + adminUser + '" đã có người dùng — chọn tên khác');
+  }
   const res = await supa.insert('cong_ty', row, { noScope: true });
   const ct = ctOut_(res[0]);
-  // tạo luôn tài khoản chủ công ty (nếu có)
-  if (data.adminUser && data.adminPass) {
-    await supa.insert('users', {
-      username: String(data.adminUser).trim().toLowerCase(), ho_ten: String(data.adminHoTen || 'Quản trị ' + ten),
-      email: String(data.adminEmail || data.email || ''),
-      password_hash: bcrypt.hashSync(String(data.adminPass), 10), role: 'admin', perms: '',
-      active: true, cong_ty_id: ct.id
-    }, { noScope: true });
+  // tạo luôn tài khoản chủ công ty (nếu có) — cùng kiểm tra như tạo user thường
+  if (adminUser && data.adminPass) {
+    await adminCreateUser(actor, { username: adminUser, password: data.adminPass, role: 'admin', congTyId: ct.id,
+      hoTen: data.adminHoTen || 'Quản trị ' + ten, email: data.adminEmail || data.email || '' });
   }
   await audit(actor, 'create_company', 'Tạo công ty ' + ten);
   return ct;
@@ -180,8 +198,8 @@ async function deleteCongTy(actor, id) {
   const ct = await getCongTy(id);
   if (!ct) throw new Error('Không tìm thấy công ty');
   const f = 'cong_ty_id=eq.' + encodeURIComponent(id);
-  for (const t of ['db_bao_gia', 'khai_toan', 'du_an', 'chi_tiet_mua_hang', 'don_mua_hang',
-                   'db_san_pham_history', 'db_san_pham', 'notifications', 'delete_requests', 'users']) {
+  const tables = Object.keys(supa.TENANT_TABLES).filter(function (t) { return t !== 'users'; }).concat('users');
+  for (const t of tables) {
     try { await supa.remove(t, f, { noScope: true }); } catch (e) { /* bỏ qua bảng chưa có cột */ }
   }
   await supa.remove('cong_ty', supa.eq('id', id), { noScope: true });
@@ -213,7 +231,7 @@ async function login(username, password) {
   for (const r of rows) { const t = pwOk_(r, password); if (t.ok) { u = r; isBcrypt = t.isBcrypt; break; } }
   const ok = !!u;
   if (!ok) {
-    await audit({ u: username }, 'login_fail', 'Sai tài khoản hoặc mật khẩu');
+    await audit({ u: username }, 'login_fail', 'Sai tài khoản hoặc mật khẩu', rows[0] && rows[0].cong_ty_id);
     throw new Error('Sai tài khoản hoặc mật khẩu');
   }
   if (u.active === false) throw new Error('Tài khoản đã bị khóa');
@@ -230,7 +248,7 @@ async function login(username, password) {
       throw new Error('Gói dịch vụ của "' + ct.ten + '" đã hết hạn ngày ' + ct.hanDung);
   } else if (u.cong_ty_id) { ct = await getCongTy(u.cong_ty_id); }
   await supa.update('users', supa.eq('id', u.id), patch, { noScope: true });
-  await audit({ uid: u.id, u: u.username }, 'login', 'Đăng nhập' + (isBcrypt ? '' : ' (tự băm mật khẩu)'));
+  await audit({ uid: u.id, u: u.username }, 'login', 'Đăng nhập' + (isBcrypt ? '' : ' (tự băm mật khẩu)'), u.cong_ty_id);
   return { token: makeToken(u), user: Object.assign(userOut(u), { uiPrefs: prefsOf_(u) }), congTy: ct };
 }
 async function me(actor) {
@@ -269,7 +287,7 @@ async function changePassword(actor, oldPw, newPw) {
   const u = await getUserById(actor.uid);
   if (!u || !bcrypt.compareSync(String(oldPw || ''), u.password_hash || '')) throw new Error('Mật khẩu hiện tại không đúng');
   if (String(newPw || '').length < 4) throw new Error('Mật khẩu mới tối thiểu 4 ký tự');
-  await supa.update('users', supa.eq('id', u.id), { password_hash: bcrypt.hashSync(String(newPw), 10) });
+  await supa.update('users', supa.eq('id', u.id), { password_hash: bcrypt.hashSync(String(newPw), 10) }, { noScope: true });
   await audit(actor, 'change_password', 'Tự đổi mật khẩu');
   return { ok: true };
 }
@@ -339,11 +357,34 @@ async function adminCreateUser(actor, data) {
   await audit(actor, 'create_user', 'Tạo tài khoản ' + username + ' (' + role + ')');
   return userOut(res[0]);
 }
+// Tài khoản đích phải thuộc công ty đang quản lý; chỉ super đụng được tài khoản super.
+async function targetUser_(actor, id) {
+  const u = await getUserById(id);
+  if (!u) throw new Error('Không tìm thấy tài khoản');
+  if (actor.r !== 'super') {
+    if (u.role === 'super' || String(u.cong_ty_id || '') !== String(tenant.tenantId() || '')) throw new Error('Không tìm thấy tài khoản');
+  }
+  return u;
+}
+// Không để công ty mất admin đang hoạt động cuối cùng
+async function keepLastAdmin_(u) {
+  if (u.role !== 'admin' || u.active === false) return;
+  const admins = await supa.select('users', { select: 'id',
+    filter: 'role=eq.admin&active=eq.true&' + (u.cong_ty_id ? supa.eq('cong_ty_id', u.cong_ty_id) : 'cong_ty_id=is.null'),
+    limit: 2, noScope: true });
+  if (admins.length <= 1) throw new Error('Phải còn ít nhất 1 admin đang hoạt động');
+}
 async function adminUpdateUser(actor, id, fields) {
   fields = fields || {};
+  const u = await targetUser_(actor, id);
   const patch = {};
   if (fields.hasOwnProperty('hoTen')) patch.ho_ten = String(fields.hoTen || '');
-  if (fields.hasOwnProperty('role')) patch.role = fields.role === 'admin' ? 'admin' : 'staff';
+  if (fields.hasOwnProperty('role')) {
+    // 'super' chỉ super giữ/gán được; trước đây form gửi 'super' bị hạ thành 'staff'
+    patch.role = fields.role === 'super' ? (actor.r === 'super' ? 'super' : u.role)
+               : (fields.role === 'admin' ? 'admin' : 'staff');
+    if (patch.role !== 'admin' && patch.role !== 'super') await keepLastAdmin_(u);
+  }
   if (fields.hasOwnProperty('perms')) patch.perms = Array.isArray(fields.perms) ? fields.perms.join(',') : '';
   if (fields.hasOwnProperty('phongBan')) patch.phong_ban = String(fields.phongBan || '').trim();
   // Chỉ super được chuyển tài khoản sang công ty khác (dùng để sửa tài khoản chưa gán công ty)
@@ -352,39 +393,36 @@ async function adminUpdateUser(actor, id, fields) {
   if (patch.role === 'admin') patch.perms = '';
   if (!Object.keys(patch).length) return { ok: true };
   let res;
-  try { res = await supa.update('users', supa.eq('id', id), patch); }
+  try { res = await supa.update('users', supa.eq('id', id), patch, { noScope: true }); }
   catch (e) {
-    if (phongBanColErr_(e)) { delete patch.phong_ban; res = await supa.update('users', supa.eq('id', id), patch); }
+    if (phongBanColErr_(e)) { delete patch.phong_ban; res = await supa.update('users', supa.eq('id', id), patch, { noScope: true }); }
     else throw permsColErr_(e);
   }
+  forgetSession_(id);
   await audit(actor, 'update_user', 'Sửa tài khoản ' + (res[0] && res[0].username) + ' ' + JSON.stringify(patch));
   return res[0] ? userOut(res[0]) : { ok: true };
 }
 async function adminSetPassword(actor, id, newPassword) {
   if (String(newPassword || '').length < 4) throw new Error('Mật khẩu tối thiểu 4 ký tự');
-  const u = await getUserById(id); if (!u) throw new Error('Không tìm thấy tài khoản');
-  await supa.update('users', supa.eq('id', id), { password_hash: bcrypt.hashSync(String(newPassword), 10) });
+  const u = await targetUser_(actor, id);
+  await supa.update('users', supa.eq('id', id), { password_hash: bcrypt.hashSync(String(newPassword), 10) }, { noScope: true });
   await audit(actor, 'reset_password', 'Đặt lại mật khẩu cho ' + u.username);
   return { ok: true };
 }
 async function adminSetActive(actor, id, active) {
-  const u = await getUserById(id); if (!u) throw new Error('Không tìm thấy tài khoản');
-  if (u.role === 'admin' && !active) {
-    const admins = (await supa.select('users', { filter: supa.eq('role', 'admin') })).filter(function (x) { return x.active !== false; });
-    if (admins.length <= 1) throw new Error('Phải còn ít nhất 1 admin đang hoạt động');
-  }
-  await supa.update('users', supa.eq('id', id), { active: !!active });
+  const u = await targetUser_(actor, id);
+  if (!active) await keepLastAdmin_(u);
+  await supa.update('users', supa.eq('id', id), { active: !!active }, { noScope: true });
+  forgetSession_(id);
   await audit(actor, active ? 'unlock_user' : 'lock_user', (active ? 'Mở khóa ' : 'Khóa ') + u.username);
   return { ok: true };
 }
 async function adminDeleteUser(actor, id) {
-  const u = await getUserById(id); if (!u) throw new Error('Không tìm thấy tài khoản');
+  const u = await targetUser_(actor, id);
   if (u.id === actor.uid) throw new Error('Không thể tự xóa tài khoản đang đăng nhập');
-  if (u.role === 'admin') {
-    const admins = await supa.select('users', { filter: supa.eq('role', 'admin') });
-    if (admins.length <= 1) throw new Error('Phải còn ít nhất 1 admin');
-  }
-  await supa.remove('users', supa.eq('id', id));
+  await keepLastAdmin_(u);
+  await supa.remove('users', supa.eq('id', id), { noScope: true });
+  forgetSession_(id);
   await audit(actor, 'delete_user', 'Xóa tài khoản ' + u.username);
   return { ok: true };
 }
@@ -435,15 +473,16 @@ async function resolveDeleteRequest(actor, id, approve) {
   const me = await getUserById(actor.uid);
   const resolver = me ? (me.ho_ten || me.username) : actor.u;
   const now = new Date().toISOString();
+  const claim = await supa.update('delete_requests', supa.eq('id', id) + '&status=eq.pending',
+    { status: approve ? 'approved' : 'rejected', resolver_name: resolver, resolved_at: now });
+  if (!claim || !claim.length) throw new Error('Yêu cầu đã được xử lý');
   if (approve) {
     var deleted = 0;
     for (var i = 0; i < items.length; i++) { try { await store.deleteDbProduct(actor, items[i].maSP); deleted++; } catch (e) { } }
-    await supa.update('delete_requests', supa.eq('id', id), { status: 'approved', resolver_name: resolver, resolved_at: now });
     await notify_(r.requester_id, 'delete_approved', 'Yêu cầu xóa đã được duyệt', 'Đã xóa ' + deleted + '/' + items.length + ' sản phẩm bạn yêu cầu', r.id);
     await audit(actor, 'approve_delete', 'Duyệt xóa ' + deleted + ' SP (yêu cầu #' + id + ' của ' + r.requester_name + ')');
     return { ok: true, deleted: deleted };
   } else {
-    await supa.update('delete_requests', supa.eq('id', id), { status: 'rejected', resolver_name: resolver, resolved_at: now });
     await notify_(r.requester_id, 'delete_rejected', 'Yêu cầu xóa bị từ chối', 'Yêu cầu xóa ' + items.length + ' sản phẩm không được duyệt', r.id);
     await audit(actor, 'reject_delete', 'Từ chối yêu cầu xóa #' + id);
     return { ok: true };
@@ -592,10 +631,10 @@ async function getPurchaseOrder(actor, maDon) {
 async function resolvePurchaseRequest(actor, maDon, approve) {
   const r = (await supa.select('don_mua_hang', { filter: supa.eq('ma_don', maDon), limit: 1 }))[0];
   if (!r) throw new Error('Không tìm thấy đơn mua hàng');
-  const me = await getUserById(actor.uid);
-  const resolver = me ? (me.ho_ten || me.username) : actor.u;
   const status = approve ? 'Đã duyệt' : 'Từ chối';
-  await supa.update('don_mua_hang', supa.eq('ma_don', maDon), { trang_thai: status });
+  // Chỉ đổi khi còn "Chờ duyệt": bấm 2 lần / 2 admin cùng duyệt không lật được kết quả
+  const upd = await supa.update('don_mua_hang', supa.eq('ma_don', maDon) + '&trang_thai=eq.' + encodeURIComponent('Chờ duyệt'), { trang_thai: status });
+  if (!upd || !upd.length) throw new Error('Đơn đã được xử lý');
   if (r.requester_id) await notify_(r.requester_id, approve ? 'purchase_approved' : 'purchase_rejected',
     approve ? 'Đơn mua hàng đã được duyệt' : 'Đơn mua hàng bị từ chối',
     'Đơn ' + maDon + (r.nha_cung_cap ? ' (' + r.nha_cung_cap + ')' : ''), String(maDon));
@@ -635,8 +674,9 @@ async function resolveDeXuat(actor, ma, approve) {
   const me = await getUserById(actor.uid);
   const resolver = me ? (me.ho_ten || me.username) : actor.u;
   const status = approve ? 'Đã duyệt' : 'Từ chối';
-  await supa.update('de_xuat', supa.eq('ma_de_xuat', ma),
+  const upd = await supa.update('de_xuat', supa.eq('ma_de_xuat', ma) + '&trang_thai=eq.' + encodeURIComponent('Chờ duyệt'),
     { trang_thai: status, nguoi_duyet: resolver, ngay_duyet: new Date().toISOString() });
+  if (!upd || !upd.length) throw new Error('Đề xuất đã được xử lý');
   const ten = DX_TEN[r.loai] || 'đề xuất';
   if (r.requester_id) await notify_(r.requester_id, approve ? 'de_xuat_approved' : 'de_xuat_rejected',
     approve ? 'Đề xuất đã được duyệt' : 'Đề xuất bị từ chối',
@@ -652,7 +692,7 @@ module.exports = {
   listCongTyUsers, createCongTyUser,
   listCongTy, createCongTy, updateCongTy, deleteCongTy, getCongTy,
   getPurchaseOrder,
-  verifyToken, login, me, logout, changePassword, setMyPref,
+  verifyToken, sessionActor, login, me, logout, changePassword, setMyPref,
   adminListUsers, adminCreateUser, adminUpdateUser, adminSetPassword, adminSetActive, adminDeleteUser, getAuditLog,
   notifCount, notifList, notifRead, notifReadAll,
   requestDeleteProducts, listDeleteRequests, resolveDeleteRequest,
