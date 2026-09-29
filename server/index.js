@@ -752,6 +752,23 @@ app.post('/export/san-pham', async function (req, res) {
   }
 });
 
+// Tải FILE tài liệu dạng nhị phân (body = nội dung file, ?name=tên gốc). Không base64 -> file lớn không phình.
+app.post('/upload/file', express.raw({ type: function () { return true; }, limit: (store.DOC_MAX_MB + 1) + 'mb' }), async function (req, res) {
+  const actor = await actorOf_(req);
+  if (!actor) return res.status(401).json({ error: 'Chưa đăng nhập' });
+  try {
+    const out = await store.uploadFileBuf(req.body, String(req.query.name || ''), req.headers['content-type']);
+    res.json(out);
+  } catch (e) {
+    console.error('[upload file] lỗi:', e && e.message);
+    res.status(400).json({ error: e.message });
+  }
+});
+// file vượt giới hạn body của express.raw -> trả JSON dễ hiểu thay vì trang lỗi HTML
+app.use('/upload/file', function (err, req, res, next) {
+  if (err && err.type === 'entity.too.large') return res.status(413).json({ error: 'File quá lớn (tối đa ' + store.DOC_MAX_MB + 'MB) — hãy dán link thay vì tải lên.' });
+  next(err);
+});
 // Xuất 1 bảng do client dựng sẵn ra Excel: {ten, sheet, cols:[{label,num}], rows:[{cells}|{group}], tong:[[nhãn,số]]}
 app.post('/export/bang', async function (req, res) {
   const actor = await actorOf_(req);

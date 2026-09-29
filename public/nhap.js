@@ -194,6 +194,16 @@ function docDel_(btn,i){ var w=docWrap_(btn), ds=docList_(w.querySelector('.docf
 function docAddUrl_(inp){ var w=docWrap_(inp), u=String(inp.value||'').trim(); if(!u) return;
   if(!/^https?:\/\//i.test(u)) u='https://'+u;
   var ds=docList_(w.querySelector('.docf-v').value); if(ds.indexOf(u)<0) ds.push(u); inp.value=''; docSet_(w,ds); }
+/* Tải 1 file tài liệu lên kho: gửi NGUYÊN FILE (nhị phân) tới /upload/file — trước đây đọc thành base64
+   trong JSON, file lớn phình thêm 33% và bị chặn ở 20MB. */
+var DOC_MAX_MB=50;
+async function upDoc_(file){
+  var h=apiHeaders_(); h['Content-Type']=file.type||'application/octet-stream';
+  var r=await fetch('/upload/file?name='+encodeURIComponent(file.name),{ method:'POST', headers:h, body:file });
+  var d=await r.json().catch(function(){ return {}; });
+  if(!r.ok||d.error) throw new Error(d.error||('HTTP '+r.status+' ('+(file.size/1048576).toFixed(1)+'MB)'));
+  return d;
+}
 async function docPick_(btn){
   var w=docWrap_(btn), f=document.createElement('input'); f.type='file'; f.multiple=true;
   f.accept='.pdf,.png,.jpg,.jpeg,.webp,.dwg,.dxf,.skp,.zip,.rar,.7z,.doc,.docx,.xls,.xlsx,.ppt,.pptx';
@@ -203,8 +213,8 @@ async function docPick_(btn){
     try{
       for(var k=0;k<fs.length;k++){
         var file=fs[k]; btn.textContent='Đang tải '+(k+1)+'/'+fs.length+'…';
-        if(file.size>20*1024*1024){ toast('"'+file.name+'" quá lớn (tối đa 20MB) — hãy dán link'); continue; }
-        try{ var r=await api('uploadFile', await readB64_(file), file.name);
+        if(file.size>DOC_MAX_MB*1024*1024){ toast('"'+file.name+'" nặng '+(file.size/1048576).toFixed(1)+'MB — quá giới hạn '+DOC_MAX_MB+'MB, hãy dán link'); continue; }
+        try{ var r=await upDoc_(file);
           if(r&&r.url){ var ds=docList_(w.querySelector('.docf-v').value); ds.push(r.url); docSet_(w,ds); } }
         catch(e){ toast('Tải "'+file.name+'" lỗi: '+e.message); }
       }
