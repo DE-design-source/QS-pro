@@ -3622,6 +3622,16 @@ async function spEditModal(i){
   ov.querySelectorAll('.docf').forEach(docRender_);
   cbRender_(); btRender_(); cbTab_((S._bt||[]).length&&!(S._combo||[]).length?'bt':'combo');
   document.addEventListener('mousedown',cbOutside_);
+  S._speSnap=speSnap_(ov);            // mốc so sánh -> đóng modal mà còn thay đổi thì hỏi lại
+}
+/* Toàn bộ nội dung đang nhập trong modal (ô nhập + ảnh + file + combo + biến thể).
+   Dùng để biết người dùng có thay đổi gì chưa lưu hay không.                      */
+function speSnap_(ov){
+  if(!ov) return '';
+  var v=[].map.call(ov.querySelectorAll('[data-col]'), function(e){ return e.getAttribute('data-col')+'='+(e.value||''); }).join('|');
+  return v+'||img:'+(S._imgMain||'')+','+((S._imgList||[]).join(','))
+         +'||cb:'+((S._combo||[]).map(function(x){ return x.recordId+'x'+(x.comboSL||1); }).join(','))
+         +'||bt:'+((S._bt||[]).map(function(x){ return x.recordId; }).join(','));
 }
 // bấm ra ngoài thì đóng gợi ý tìm sản phẩm
 function cbOutside_(e){
@@ -3638,7 +3648,18 @@ function speCalcDaiLy_(){
   var g=v('gia_ban_le'), ck=v('ck_dai_ly_pct');
   out.value = g? Math.round(g*(1-ck/100)) : '';
 }
-function spEditClose(){ document.removeEventListener('mousedown',cbOutside_); var o=document.getElementById('spEditOv'); if(o)o.remove(); }
+async function spEditClose(epBo){
+  var o=document.getElementById('spEditOv');
+  // Tải file / thêm ảnh xong mà đóng modal là MẤT — trước đây đóng lặng lẽ nên người dùng
+  // tưởng file đã vào sản phẩm (toast chỉ báo "đã tải lên kho").
+  if(o && !epBo && S._speSnap!=null && speSnap_(o)!==S._speSnap){
+    if(!await xacNhan_({ title:'Thoát mà chưa lưu?',
+      note:'Có thay đổi chưa lưu (kể cả ảnh / file vừa tải lên). Thoát bây giờ là mất những thay đổi đó.',
+      ok:'Thoát, không lưu', huy:'Ở lại' })) return;
+  }
+  S._speSnap=null; document.removeEventListener('mousedown',cbOutside_);
+  o=document.getElementById('spEditOv'); if(o)o.remove();
+}
 async function spEditSave(luuVaDuyet){
   var ov=document.getElementById('spEditOv'); if(!ov) return;
   var data={};
@@ -3682,7 +3703,7 @@ async function spEditSave(luuVaDuyet){
       : (luuVaDuyet?'Đã duyệt sản phẩm':'Không có trường nào thay đổi'));
     S.products=await api('getProducts')||S.products; spViewTabs_(); spFilter();
     if(typeof renderCatalog==='function') renderCatalog();
-    impSyncSession_(S._spEditMa); spEditClose();
+    impSyncSession_(S._spEditMa); spEditClose(1);
   }catch(e){ toast('Lỗi lưu: '+e.message); lai(); }
 }
 async function spDelete(i){
@@ -7861,7 +7882,7 @@ async function docPick_(btn){
           if(r&&r.url){ var ds=docList_(w.querySelector('.docf-v').value); ds.push(r.url); docSet_(w,ds); } }
         catch(e){ toast('Tải "'+file.name+'" lỗi: '+e.message); }
       }
-      toast('Đã tải lên '+fs.length+' file');
+      toast('Đã tải lên '+fs.length+' file — bấm "Lưu cập nhật" để gắn vào sản phẩm');
     } finally { btn.disabled=false; btn.innerHTML=goc; upBusy_(-1); }
   };
   f.click();
