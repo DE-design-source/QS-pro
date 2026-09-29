@@ -4558,10 +4558,10 @@ function qbHistPop_(e){
   document.body.appendChild(pop);
   // neo vào ĐÚNG nút vừa bấm (thanh công cụ Bóc tách: #qbHist · Chi phí / Dự án: #pgHist)
   var b=(e&&e.currentTarget&&e.currentTarget.getBoundingClientRect)?e.currentTarget
-        :(document.getElementById('qbHist')||document.getElementById('pgHist'));
+        :(document.getElementById('qbHist')||document.querySelector('.view.on [id^="pgHist"]'));
   if(b){ var r=b.getBoundingClientRect(), w=pop.offsetWidth||320;
     pop.style.top=(r.bottom+6)+'px'; pop.style.left=Math.max(8,Math.min(r.right-w, window.innerWidth-w-10))+'px'; }
-  setTimeout(function(){ document.addEventListener('mousedown',function h(ev){ if(ev.target.closest('#qbHistPop')||ev.target.closest('#qbHist')||ev.target.closest('#pgHist')) return;
+  setTimeout(function(){ document.addEventListener('mousedown',function h(ev){ if(ev.target.closest('#qbHistPop')||ev.target.closest('#qbHist')||ev.target.closest('[id^="pgHist"]')) return;
     var p=document.getElementById('qbHistPop'); if(p) p.remove(); document.removeEventListener('mousedown',h); }); },0);
 }
 function qbHistGo_(id){ var p=document.getElementById('qbHistPop'); if(p) p.remove(); qbGotoRow_(id); }
@@ -6319,17 +6319,20 @@ function pgVat_(){ var v=Number(S.cur&&S.cur.vat)||0;
 function pgSetVat_(v){ setVat(v); }                 // setVat đã vẽ lại tab đang mở
 // Khung "Cột hiển thị" gập / mở (chung trạng thái với Bóc tách) + bật nhanh tất cả / cơ bản
 /* Nút công cụ của bảng — Chi phí / Dự án dùng chung, giống khối "Công cụ bảng" bên Bóc tách */
-function pgToolsHtml_(){
+/* id phải KHÁC NHAU giữa các tab: view của tab cũ không bị xoá khỏi DOM, để trùng id thì
+   getElementById lấy nhầm nút của tab đang ẩn (popup nhảy ra góc màn hình).            */
+function pgToolsHtml_(k){
+  k=k||'pg';
   return '<div class="tk-toolrow"><span class="tk-tgrp">'
-    +qbBtn_('pgHist',QB_IC.hist,'Vừa thêm vào bảng — xem lại / thêm lại','qbHistPop_(event)',false)
-    +qbBtn_('pgGia',QB_IC.gia,giaSyncTitle_(),'giaSyncRun_()',false,giaLechN_())
+    +qbBtn_('pgHist_'+k,QB_IC.hist,'Vừa thêm vào bảng — xem lại / thêm lại','qbHistPop_(event)',false)
+    +qbBtn_('pgGia_'+k,QB_IC.gia,giaSyncTitle_(),'giaSyncRun_()',false,giaLechN_())
     +'</span></div>';
 }
 /* Khối 2 của Chi phí / Dự án: hàng công cụ · hàng lọc-tìm riêng của tab (loc) · hàng chọn cột.
    Cả khối gập lại bằng nút tròn ở góc phải, y như bên Bóc tách.                        */
 function pgColFrame_(on,total,chips,fnAll,csKey,btnId,loc){
   return '<div class="pg-cols pg-tools">'
-    +'<div class="tk-frame-hr tk-toolhr"><span class="tk-frame-h">Công cụ bảng</span>'+pgToolsHtml_()+blkFold_('tools','khối công cụ')+'</div>'
+    +'<div class="tk-frame-hr tk-toolhr"><span class="tk-frame-h">Công cụ bảng</span>'+pgToolsHtml_(csKey||'pg')+blkFold_('tools','khối công cụ')+'</div>'
     +(loc||'')
     +'<div class="tk-frame-hr">'
       +'<button class="tk-frame-h fold-h" onclick="foldToggle_(\'cols\')" title="Ẩn / hiện các chip cột">Cột hiển thị <b>'+on+'/'+total+'</b><i class="fold-ic"></i></button>'
