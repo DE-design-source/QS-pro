@@ -5,6 +5,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300..800;1,400..600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/vendor/jsuites/jsuites.css">
+<link rel="stylesheet" href="/vendor/jspreadsheet/jspreadsheet.css">
 <style>
 :root{
   --navy:#12324c; --navy2:#0d2740; --blue:#2563eb; --blue-d:#1d4fd7;
@@ -4646,6 +4648,18 @@ td.rsel input,td.rsel textarea{background:transparent}
 .cp-found{font-size:12px;color:var(--c3);white-space:nowrap}
 .cp-bar .btn.ghost.on{border-color:var(--blue);color:var(--blue);background:#f2f7ff}
 .cp-bar .colchips{margin:0}
+/* chế độ bảng tính (Jspreadsheet) — thanh công cụ + khung, hợp tông app */
+.bt-bar{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:8px 0;padding:6px 8px;border:1px solid var(--ln);border-radius:var(--rk);background:#f8fafc}
+.bt-b{min-width:30px;height:30px;padding:0 8px;border:none;border-radius:6px;background:transparent;font:inherit;font-size:15px;color:var(--c2);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.bt-b:hover{background:#e8eef7;color:var(--navy)}
+.bt-sep{width:1px;height:20px;background:var(--ln2);margin:0 4px}
+.bt-z{font-size:12px;color:var(--c2);min-width:38px;text-align:center}
+.bt-sum{display:inline-flex;gap:12px;margin-left:10px;font-size:12px;color:var(--c3)} .bt-sum b{color:var(--c1);font-variant-numeric:tabular-nums}
+.bt-host{border:1px solid var(--ln);border-radius:var(--rk);overflow:hidden;background:#fff}
+.bt-host .jss_worksheet{font-family:inherit;font-size:12.5px}
+.bt-host .jss_worksheet thead td{background:#f1f3f4;color:#3c4043;font-weight:600}
+.bt-host .jss_worksheet thead tr:last-child td{background:var(--navy);color:#fff;white-space:normal;line-height:1.25}
+.bt-host .jss_worksheet td.readonly{color:#3c4043}
 /* nhắc tải lại khi có bản mới */
 .banmoi{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:10px;
   background:var(--navy);color:#fff;padding:10px 12px 10px 16px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.25);font-size:13px}
@@ -6358,11 +6372,15 @@ body.fold-cols .bg-cols .colchips{display:flex}
 
 <script src="vs-spec.js"></script>
 <script src="son-spec.js"></script>
+<script src="/vendor/jsuites/jsuites.js"></script>             <!-- thư viện bảng tính (MIT) -->
+<script src="/vendor/formula/index.js"></script>
+<script src="/vendor/jspreadsheet/index.js"></script>
 <script src="app.js"></script>        <!-- lõi dùng chung -->
 <script src="boc.js"></script>        <!-- tab Bóc tách -->
 <script src="sanpham.js"></script>  <!-- Danh sách sản phẩm -->
 <script src="nhap.js"></script>     <!-- Nhập dữ liệu -->
 <script src="phantho.js"></script>  <!-- Phần thô + công tác -->
+<script src="bangtinh.js"></script>  <!-- chế độ bảng tính (Jspreadsheet) -->
 <script src="chiphi.js"></script>   <!-- Chi phí -->
 <script src="duan.js"></script>     <!-- Dự án -->
 <script src="muahang.js"></script>  <!-- Mua hàng -->

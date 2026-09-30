@@ -2282,21 +2282,31 @@ function renderPhanTho(){
     +PT_COLS.map(function(c){ return '<span class="chip'+(S._ptCols[c[0]]?' on':'')+'" onclick="ptColToggle(\''+c[0]+'\')">'+esc(c[1])+'</span>'; }).join('')
     +'</div>';
 
-  // Thanh tổng dùng chung (giống các hạng mục SP khác) — hiện cho cả Phần thô
-  var teP=document.getElementById('tkTotals');
-  if(teP){ teP.innerHTML='<div class="tkt-row">'           // cùng kiểu dòng số liệu gọn với bảng bóc tách
-    +'<span class="tkt-i"><i>Chưa VAT</i><b>'+money(comp.grand)+' đ</b></span>'
-    +'<span class="tkt-i"><i>VAT <input class="tkt-vat" type="number" step="any" min="0" value="'+comp.vatPct+'" onchange="ptSetVat(this.value)" title="Thuế VAT (%)">%</i><b>'+money(comp.vat)+' đ</b></span>'
-    +'<span class="tkt-i grand"><i>Tổng</i><b>'+money(comp.afterTax)+' đ</b></span>'
-    +'</div>'; }
+  ptTotalsBar_(comp);
   var tcP=document.getElementById('tkCount'); if(tcP){ var nItems=(S.phanTho||[]).reduce(function(s,se){return s+((se.items||[]).length);},0); tcP.textContent='['+pad2(nItems)+']'; }
   // giữ nguyên vị trí đang cuộn (thêm/sửa dòng không được nhảy về đầu bảng)
   var _sc=pw.querySelector('.pt-scroll'), _sT=_sc?_sc.scrollTop:0, _sL=_sc?_sc.scrollLeft:0;
   var _winY=window.pageYOffset||document.documentElement.scrollTop||0;
+  var ptHead='<div class="pt-toolbar">'
+      + '<div class="pt-tt">Bảng ước tính chi phí — <b>Xây dựng thô</b></div>'
+      + '<div class="sp"></div>'
+      + (btSan_()&&!btOn_('pt')&&S.phanTho.length?'<button class="btn ghost sm" onclick="ptSheetToggle_()" title="Xem dạng bảng tính (như Google Sheets)">'+icon('layers',14)+' Bảng tính</button>':'')
+      + '<button class="btn ghost sm" onclick="ptReset()">'+icon('trash',14)+' Xoá hết</button>'
+      + '<button class="btn blue sm" onclick="ptAddSection()">'+icon('plus',14)+' Thêm hạng mục</button>'
+    + '</div>';
+  // Chế độ BẢNG TÍNH (mặc định khi thư viện nạp được và bảng có dữ liệu); bảng cũ ở dưới là dự phòng
+  if(btSan_() && btOn_('pt') && S.phanTho.length){
+    pw.innerHTML=ptHead+ptChips+ptSheetToolbar_()+'<div id="ptSheet" class="bt-host"></div>';
+    try{ renderPTSheet_(document.getElementById('ptSheet'), ptVis, comp); }
+    catch(e){ console.error('bảng tính', e); btSet_('pt',false); toast('Chế độ bảng tính lỗi — đã chuyển về bảng cũ'); renderPhanTho(); }
+    if(_winY) window.scrollTo(0,_winY);
+    return;
+  }
   pw.innerHTML =
     '<div class="pt-toolbar">'
       + '<div class="pt-tt">Bảng ước tính chi phí — <b>Xây dựng thô</b></div>'
       + '<div class="sp"></div>'
+      + (btSan_()&&S.phanTho.length?'<button class="btn ghost sm" onclick="ptSheetToggle_()" title="Xem dạng bảng tính (như Google Sheets)">'+icon('layers',14)+' Bảng tính</button>':'')
       + '<button class="btn ghost sm" onclick="ptReset()">'+icon('trash',14)+' Xoá hết</button>'
       + '<button class="btn blue sm" onclick="ptAddSection()">'+icon('plus',14)+' Thêm hạng mục</button>'
     + '</div>'
@@ -2318,6 +2328,15 @@ function renderPhanTho(){
   ptGotoNewRow_();                       // giữ vệt nháy dòng vừa thêm qua các lần vẽ lại
 }
 
+// Thanh tổng dùng chung (giống các hạng mục SP khác) — hiện cho cả Phần thô (bảng cũ lẫn bảng tính)
+function ptTotalsBar_(comp){
+  var teP=document.getElementById('tkTotals');
+  if(teP){ teP.innerHTML='<div class="tkt-row">'           // cùng kiểu dòng số liệu gọn với bảng bóc tách
+    +'<span class="tkt-i"><i>Chưa VAT</i><b>'+money(comp.grand)+' đ</b></span>'
+    +'<span class="tkt-i"><i>VAT <input class="tkt-vat" type="number" step="any" min="0" value="'+comp.vatPct+'" onchange="ptSetVat(this.value)" title="Thuế VAT (%)">%</i><b>'+money(comp.vat)+' đ</b></span>'
+    +'<span class="tkt-i grand"><i>Tổng</i><b>'+money(comp.afterTax)+' đ</b></span>'
+    +'</div>'; }
+}
 /* ===== Sửa tên hạng mục + KÉO DÒNG giữa các hạng mục (giống bảng Bóc tách) ===== */
 function ptEditSec_(si,f,val){
   var sec=S.phanTho[si]; if(!sec) return;

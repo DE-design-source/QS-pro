@@ -17,6 +17,10 @@ const exportBaoGia = require('./export');
 
 const app = express();
 app.use(express.json({ limit: '30mb' }));
+// Thư viện bảng tính (MIT) lấy từ node_modules — không phụ thuộc CDN bên ngoài
+app.use('/vendor/jspreadsheet', express.static(path.join(__dirname, '..', 'node_modules', 'jspreadsheet-ce', 'dist'), { maxAge: '7d' }));
+app.use('/vendor/formula', express.static(path.join(__dirname, '..', 'node_modules', '@jspreadsheet', 'formula', 'dist'), { maxAge: '7d' }));
+app.use('/vendor/jsuites', express.static(path.join(__dirname, '..', 'node_modules', 'jsuites', 'dist'), { maxAge: '7d' }));
 app.use(express.static(path.join(__dirname, '..', 'public'), {
   setHeaders: function (res, filePath) {
     // HTML/JS/CSS luôn revalidate -> deploy mới là trình duyệt lấy ngay (không kẹt cache cũ)
