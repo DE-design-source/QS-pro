@@ -68,7 +68,7 @@ function renderPTSheet_(host, cols, comp){
     tabs:false, toolbar:false,
     worksheets:[{
       data:g.rows, style:st, wordWrap:true, tableOverflow:true, tableHeight:'calc(100vh - 290px)', tableWidth:'100%',
-      freezeColumns:Math.min(2,cols.length), allowInsertRow:false, allowInsertColumn:false, allowDeleteRow:false,
+      freezeColumns:S._ptSheetFrz===false?0:Math.min(2,cols.length), allowInsertRow:false, allowInsertColumn:false, allowDeleteRow:false,
       allowDeleteColumn:false, allowRenameColumn:false, columnSorting:false, filters:!!S._ptSheetLoc,
       nestedHeaders:[cols.map(function(c,i){ return {title:btColLetter_(i)}; })],
       columns:cols.map(function(c){ return {title:c[1], width:c[3]||100, type:'text',
@@ -110,31 +110,46 @@ function ptSheetRefresh_(){
   finally{ S._ptSheetBusy=false; ws.ignoreHistory=ih; }
   S._ptSheetMeta=g.meta; ptTotalsBar_(comp);
 }
-// Σ vùng đang chọn — như thanh trạng thái Google Sheets
+// Khung KIỂU EXCEL: ribbon (nhóm có nhãn) · ô địa chỉ + thanh công thức fx · lưới · tab sheet + thanh trạng thái
+function ptSheetFrame_(){
+  var z=S._ptZoom||100;
+  function nut(ic,t,tip,fn,on){ return '<button class="xl-btn'+(on?' on':'')+'" title="'+tip+'" onclick="'+fn+'"><span class="xl-ic">'+ic+'</span><span class="xl-t">'+t+'</span></button>'; }
+  function nhom(ten,html){ return '<div class="xl-grp"><div class="xl-grp-b">'+html+'</div><div class="xl-grp-n">'+ten+'</div></div>'; }
+  return '<div class="xl">'
+    +'<div class="xl-ribbon">'
+      +nhom('Hoàn tác', nut('↶','Hoàn tác','Hoàn tác (Ctrl+Z)','S._ptSheet&&S._ptSheet.undo()')+nut('↷','Làm lại','Làm lại (Ctrl+Y)','S._ptSheet&&S._ptSheet.redo()'))
+      +nhom('Dữ liệu', nut('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 4h18l-7 8.5V19l-4 2v-8.5z"/></svg>','Lọc','Bật / tắt ô lọc dưới tên cột','ptSheetFilter_()',S._ptSheetLoc)
+        +nut(icon('lock',18),'Cố định','Cố định cột STT + Nội dung khi cuộn ngang','ptSheetFreeze_()',S._ptSheetFrz!==false))
+      +nhom('Xuất', nut(icon('download',18),'Excel','Tải bảng ra file Excel','ptExportXlsx()'))
+      +'<div class="xl-sp"></div>'
+      +nhom('Chế độ', nut(icon('layers',18),'Bảng cũ','Quay lại bảng cũ','ptSheetToggle_()'))
+    +'</div>'
+    +'<div class="xl-fbar"><div class="xl-name" id="xlName">A1</div><div class="xl-fx">fx</div>'
+      +'<input id="xlFx" class="xl-fxin" spellcheck="false" onkeydown="if(event.key===\'Enter\'){event.preventDefault();ptSheetFx_(this.value)}" onchange="ptSheetFx_(this.value)"></div>'
+    +'<div id="ptSheet" class="xl-grid"></div>'
+    +'<div class="xl-foot"><div class="xl-tabs"><span class="xl-tab on">Phần thô</span></div>'
+      +'<div class="xl-status" id="ptSheetSum"></div>'
+      +'<div class="xl-zoom"><button onclick="ptSheetZoom_(-10)" title="Thu nhỏ">−</button><span class="bt-z">'+z+'%</span><button onclick="ptSheetZoom_(10)" title="Phóng to">+</button></div></div>'
+  +'</div>';
+}
+// Chọn ô: ô địa chỉ + thanh công thức (như Excel) và thanh trạng thái Trung bình · Đếm · Tổng
 function ptSheetSum_(inst,x1,y1,x2,y2){
+  S._ptSel=[Math.min(x1,x2),Math.min(y1,y2)];
+  var nm=document.getElementById('xlName'), fx=document.getElementById('xlFx');
+  var a=btColLetter_(Math.min(x1,x2))+(Math.min(y1,y2)+1), b=btColLetter_(Math.max(x1,x2))+(Math.max(y1,y2)+1);
+  if(nm) nm.textContent=(a===b)?a:(a+':'+b);
+  if(fx){ fx.value=String(inst.getValueFromCoords(S._ptSel[0],S._ptSel[1])||''); fx.disabled=inst.isReadOnly(S._ptSel[0],S._ptSel[1]); }
   var el=document.getElementById('ptSheetSum'); if(!el) return;
   var s=0, n=0, so=0;
   for(var y=Math.min(y1,y2); y<=Math.max(y1,y2); y++) for(var x=Math.min(x1,x2); x<=Math.max(x1,x2); x++){
     var v=String(inst.getValueFromCoords(x,y)||'').trim(); if(!v) continue; n++;
     if(/^-?[\d.,]+%?$/.test(v)){ s+=tkNum_(v); so++; } }
-  el.innerHTML = n<2 ? '' : ('<span>Đếm <b>'+n+'</b></span>'+(so?('<span>Tổng <b>'+money(s)+'</b></span><span>TB <b>'+money(s/so)+'</b></span>'):''));
+  el.innerHTML = n<2 ? '' : ((so?('<span>Trung bình: <b>'+money(s/so)+'</b></span>'):'')+'<span>Đếm: <b>'+n+'</b></span>'+(so?('<span>Tổng: <b>'+money(s)+'</b></span>'):''));
 }
-// Thanh công cụ của chế độ bảng tính: hoàn tác · làm lại · phóng to · lọc · in · Excel · về bảng cũ
-function ptSheetToolbar_(){
-  var z=S._ptZoom||100;
-  function b(ic,t,fn,ex){ return '<button class="bt-b'+(ex||'')+'" title="'+t+'" onclick="'+fn+'">'+ic+'</button>'; }
-  return '<div class="bt-bar">'
-    +b('↶','Hoàn tác (Ctrl+Z)','S._ptSheet&&S._ptSheet.undo()')+b('↷','Làm lại (Ctrl+Y)','S._ptSheet&&S._ptSheet.redo()')
-    +'<span class="bt-sep"></span>'
-    +b('−','Thu nhỏ','ptSheetZoom_(-10)')+'<span class="bt-z">'+z+'%</span>'+b('+','Phóng to','ptSheetZoom_(10)')
-    +'<span class="bt-sep"></span>'
-    +b(icon('filter',15),'Bật / tắt ô lọc cột','ptSheetFilter_()')
-    +b(icon('download',15),'Xuất Excel','ptExportXlsx()')
-    +'<span class="bt-sum" id="ptSheetSum"></span>'
-    +'<span style="flex:1"></span>'
-    +'<button class="btn ghost sm" onclick="ptSheetToggle_()" title="Quay lại bảng cũ">Bảng cũ</button>'
-  +'</div>';
-}
+// Gõ ở thanh công thức rồi Enter = sửa ô đang chọn (đi qua onchange như gõ trong ô, có hoàn tác)
+function ptSheetFx_(v){ var ws=S._ptSheet, c=S._ptSel; if(!ws||!c||ws.isReadOnly(c[0],c[1])) return;
+  if(String(ws.getValueFromCoords(c[0],c[1]))!==String(v)) ws.setValueFromCoords(c[0],c[1],v); }
+function ptSheetFreeze_(){ S._ptSheetFrz=(S._ptSheetFrz===false); renderPhanTho(); }
 function ptSheetZoom_(d){ S._ptZoom=Math.max(50,Math.min(200,(S._ptZoom||100)+d)); var h=document.getElementById('ptSheet');
   if(h) h.style.zoom=(S._ptZoom/100); var z=document.querySelector('.bt-z'); if(z) z.textContent=S._ptZoom+'%'; }
 // Bật/tắt hàng lọc dưới tiêu đề cột (dựng lại lưới; dữ liệu không đổi)

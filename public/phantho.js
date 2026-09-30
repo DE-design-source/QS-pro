@@ -2296,7 +2296,7 @@ function renderPhanTho(){
     + '</div>';
   // Chế độ BẢNG TÍNH (mặc định khi thư viện nạp được và bảng có dữ liệu); bảng cũ ở dưới là dự phòng
   if(btSan_() && btOn_('pt') && S.phanTho.length){
-    pw.innerHTML=ptHead+ptChips+ptSheetToolbar_()+'<div id="ptSheet" class="bt-host"></div>';
+    pw.innerHTML=ptHead+ptChips+ptSheetFrame_();
     try{ renderPTSheet_(document.getElementById('ptSheet'), ptVis, comp); }
     catch(e){ console.error('bảng tính', e); btSet_('pt',false); toast('Chế độ bảng tính lỗi — đã chuyển về bảng cũ'); renderPhanTho(); }
     if(_winY) window.scrollTo(0,_winY);

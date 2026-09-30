@@ -4648,18 +4648,66 @@ td.rsel input,td.rsel textarea{background:transparent}
 .cp-found{font-size:12px;color:var(--c3);white-space:nowrap}
 .cp-bar .btn.ghost.on{border-color:var(--blue);color:var(--blue);background:#f2f7ff}
 .cp-bar .colchips{margin:0}
-/* chế độ bảng tính (Jspreadsheet) — thanh công cụ + khung, hợp tông app */
-.bt-bar{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:8px 0;padding:6px 8px;border:1px solid var(--ln);border-radius:var(--rk);background:#f8fafc}
-.bt-b{min-width:30px;height:30px;padding:0 8px;border:none;border-radius:6px;background:transparent;font:inherit;font-size:15px;color:var(--c2);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
-.bt-b:hover{background:#e8eef7;color:var(--navy)}
-.bt-sep{width:1px;height:20px;background:var(--ln2);margin:0 4px}
-.bt-z{font-size:12px;color:var(--c2);min-width:38px;text-align:center}
-.bt-sum{display:inline-flex;gap:12px;margin-left:10px;font-size:12px;color:var(--c3)} .bt-sum b{color:var(--c1);font-variant-numeric:tabular-nums}
-.bt-host{border:1px solid var(--ln);border-radius:var(--rk);overflow:hidden;background:#fff}
-.bt-host .jss_worksheet{font-family:inherit;font-size:12.5px}
-.bt-host .jss_worksheet thead td{background:#f1f3f4;color:#3c4043;font-weight:600}
-.bt-host .jss_worksheet thead tr:last-child td{background:var(--navy);color:#fff;white-space:normal;line-height:1.25}
-.bt-host .jss_worksheet td.readonly{color:#3c4043}
+/* ═══ CHẾ ĐỘ BẢNG TÍNH — KIỂU EXCEL (Jspreadsheet CE) ═══ */
+.xl{--xg:#217346;--xgl:#e9f3ed;--xline:#d4d4d4;--xhead:#f3f3f3;border:1px solid #c6c6c6;border-radius:6px;overflow:hidden;background:#fff;margin-top:8px;
+  font-family:Calibri,'Segoe UI',Carlito,Arial,sans-serif}
+/* ribbon */
+.xl-ribbon{display:flex;align-items:stretch;gap:0;background:#f8f8f8;border-bottom:1px solid #dadada;padding:4px 6px 0}
+.xl-grp{display:flex;flex-direction:column;align-items:center;padding:0 8px;border-right:1px solid #e1e1e1}
+.xl-grp:last-child{border-right:none}
+.xl-grp-b{display:flex;gap:2px}
+.xl-grp-n{font-size:11px;color:#666;padding:2px 0 4px;white-space:nowrap}
+.xl-sp{flex:1}
+.xl-btn{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:48px;padding:4px 6px 3px;border:1px solid transparent;border-radius:3px;
+  background:transparent;color:#333;font:inherit;font-size:12px;cursor:pointer}
+.xl-btn:hover{background:#e3e3e3;border-color:#c8c8c8}
+.xl-btn.on{background:#d6e9dd;border-color:#9fc7ae}
+.xl-ic{height:22px;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;color:#2b5797}
+.xl-ic svg{color:#2b5797}
+.xl-t{font-size:11.5px;white-space:nowrap}
+/* ô địa chỉ + thanh công thức */
+.xl-fbar{display:flex;align-items:stretch;height:28px;border-bottom:1px solid #dadada;background:#fff}
+.xl-name{width:96px;flex:none;display:flex;align-items:center;padding:0 8px;border-right:1px solid #dadada;font-size:13px;color:#222}
+.xl-fx{width:34px;flex:none;display:flex;align-items:center;justify-content:center;border-right:1px solid #dadada;color:#777;font-style:italic;font-family:Georgia,serif;font-size:14px}
+.xl-fxin{flex:1;min-width:0;border:none;outline:none;padding:0 8px;font:inherit;font-size:14px;color:#222;background:#fff}
+.xl-fxin:disabled{color:#666;background:#fff}
+/* lưới */
+.xl-grid .jss_content{max-height:calc(100vh - 330px)}
+.xl-grid .jss_worksheet{font-family:inherit;font-size:14px;color:#222;border-color:var(--xline)}
+.xl-grid .jss_worksheet td{border-color:var(--xline)!important}
+.xl-grid .jss_worksheet > tbody > tr > td{padding:3px 6px;line-height:20px;border-top:1px solid transparent;border-left:1px solid transparent;
+  border-right:1px solid var(--xline);border-bottom:1px solid var(--xline)}
+.xl-grid .jss_worksheet > tbody > tr > td.readonly{color:#222}
+/* tiêu đề cột A,B,C + số dòng: xám Excel, ô được chọn tô xanh lá */
+.xl-grid .jss_worksheet > thead > tr > td{background:var(--xhead);color:#444;font-weight:400;font-size:12.5px;text-align:center;
+  border-right:1px solid #cfcfcf;border-bottom:1px solid #cfcfcf;padding:2px 4px}
+.xl-grid .jss_worksheet > thead > tr > td.selected{background:#d2d2d2;color:#1e5e3a;border-bottom:2px solid var(--xg)}
+.xl-grid .jss_worksheet > tbody > tr > td:first-child{background:var(--xhead);color:#444;font-size:12.5px;text-align:center;border-right:1px solid #cfcfcf}
+.xl-grid .jss_worksheet > tbody > tr.selected > td:first-child{background:#d2d2d2;color:#1e5e3a;box-shadow:inset -2px 0 0 var(--xg)}
+/* hàng tên cột (dưới A,B,C): như header bảng Excel — đậm, nền xanh nhạt, xuống dòng */
+.xl-grid .jss_worksheet > thead > tr:last-child > td{background:#dde7f1;color:#1f3b57;font-weight:700;font-size:12.5px;white-space:normal;line-height:1.25;
+  padding:5px 4px;border-bottom:1px solid #9fb3c8}
+.xl-grid .jss_worksheet > thead > tr:last-child > td.selected{background:#c6dbe9;border-bottom:2px solid var(--xg)}
+/* ô đang chọn: khung xanh lá 2px + nút kéo góc vuông như Excel */
+.xl-grid .jss_worksheet .highlight{background-color:rgba(33,115,70,.08)}
+.xl-grid .jss_worksheet .highlight-selected{background-color:#fff}
+.xl-grid .jss_worksheet .highlight-top{border-top:2px solid var(--xg)!important;box-shadow:none}
+.xl-grid .jss_worksheet .highlight-bottom{border-bottom:2px solid var(--xg)!important}
+.xl-grid .jss_worksheet .highlight-left{border-left:2px solid var(--xg)!important;box-shadow:none}
+.xl-grid .jss_worksheet .highlight-right{border-right:2px solid var(--xg)!important}
+.xl-grid .jss_corner{background:var(--xg);width:5px;height:5px;border:1px solid #fff}
+.xl-grid .jss_worksheet .editor, .xl-grid .jss_worksheet td.edition{box-shadow:inset 0 0 0 2px var(--xg)}
+/* đáy: tab sheet + thanh trạng thái + thu phóng */
+.xl-foot{display:flex;align-items:center;height:30px;border-top:1px solid #dadada;background:#f3f3f3;font-size:12.5px;color:#444}
+.xl-tabs{display:flex;align-items:stretch;height:100%;padding-left:10px}
+.xl-tab{display:flex;align-items:center;padding:0 16px;color:#333;border-right:1px solid #d4d4d4}
+.xl-tab.on{background:#fff;color:var(--xg);font-weight:700;box-shadow:inset 0 -3px 0 var(--xg)}
+.xl-status{flex:1;display:flex;justify-content:flex-end;gap:22px;padding-right:18px}
+.xl-status b{font-weight:600;color:#222;font-variant-numeric:tabular-nums}
+.xl-zoom{display:flex;align-items:center;gap:6px;padding-right:10px}
+.xl-zoom button{width:22px;height:22px;border:none;border-radius:3px;background:transparent;font-size:16px;color:#444;cursor:pointer}
+.xl-zoom button:hover{background:#e0e0e0}
+.bt-z{font-size:12px;min-width:36px;text-align:center}
 /* nhắc tải lại khi có bản mới */
 .banmoi{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:10px;
   background:var(--navy);color:#fff;padding:10px 12px 10px 16px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.25);font-size:13px}
