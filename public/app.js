@@ -1703,16 +1703,6 @@ function csPresetList_(t){ var da={};
   return TK_PRESETS.filter(function(ps){
     var sig=csPresetKeys_(t,ps).slice().sort().join('|');
     if(da[sig]) return false; da[sig]=1; return true; }); }
-/* Các bộ cột hiện sẵn thành chip — bấm 1 lần là đổi, khỏi mở popup */
-function csPresetChips_(t){
-  var mine=csMyCols_(t);
-  return '<span class="cs-pchips">'
-    +(mine?'<button class="cs-pchip'+(csMyOn_(t)?' on':'')+'" onclick="csMyUse_(\''+t+'\')">Của tôi</button>':'')
-    +csPresetList_(t).map(function(ps){
-      return '<button class="cs-pchip'+(csPresetOn_(t,ps)?' on':'')+'" onclick="csPresetApply_(\''+t+'\',\''+ps[0]+'\')"'
-        +' title="'+csPresetKeys_(t,ps).length+' cột">'+esc(ps[1])+'</button>';
-    }).join('')+'</span>';
-}
 function csPresetPop_(e,t,btnId){
   if(e&&e.stopPropagation) e.stopPropagation();
   t=t||'tk'; btnId=btnId||'tkPresetBtn';

@@ -965,7 +965,7 @@ function bgCtlBar_(){
   // khối "Cột xuất" đóng khung giống Bóc tách / Chi phí / Dự án cho cả app đồng bộ
   +'<div class="pg-cols bg-cols">'
     +'<div class="tk-frame-hr"><span class="tk-frame-h">Cột xuất <b>'+COLS.filter(function(c){ return S.cols[c[0]]; }).length+'/'+COLS.length+'</b></span>'
-      +csQuickBtn_('tk','bgPresetBtn')+csPresetChips_('tk')+blkFold_('cols','chip cột xuất')+'</div>'
+      +csQuickBtn_('tk','bgPresetBtn')+'</div>'
     +'<div class="colchips bg-colchips">'
       +COLS.map(function(c){ return '<span class="chip'+(S.cols[c[0]]?' on':'')+'" onclick="toggleCol(\''+c[0]+'\')">'+esc(c[1])+'</span>'; }).join('')
     +'</div>'
