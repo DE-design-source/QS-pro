@@ -938,6 +938,11 @@ async function uploadImage(base64, fileName) {
 // Tải FILE tài liệu (PDF, bản vẽ DWG/DXF, ảnh, ZIP…) lên kho — giữ đuôi & tên gốc để người xem nhận ra
 const DOC_EXT = /^(pdf|png|jpe?g|webp|gif|dwg|dxf|skp|zip|rar|7z|docx?|xlsx?|pptx?)$/i;
 const DOC_MAX_MB = 50;                      // = giới hạn 1 file của Supabase Storage (gói free)
+// Bản cũ (base64 qua /api/uploadFile) — GIỮ cho tab mở từ trước khi deploy vẫn chạy (xoá là tab cũ báo lỗi)
+async function uploadFile(base64, fileName) {
+  const m = /^data:([^;]*);base64,/.exec(s(base64));
+  return uploadFileBuf(Buffer.from(s(base64).replace(/^data:[^;]*;base64,/, ''), 'base64'), fileName, m && m[1]);
+}
 // Nhận file NHỊ PHÂN (route /upload/file) — không qua base64 nên file lớn không bị phình 33%
 async function uploadFileBuf(buf, fileName, contentType) {
   if (!buf || !buf.length) throw new Error('File rỗng.');
@@ -1442,7 +1447,7 @@ async function ctFav(actor, ids, on) {
 
 module.exports = {
   bootstrap, buildCatalog, getProducts, getCatalogSheets, getProjects, getProject, createProject, updateProject, deleteProject, duplicateProject,
-  uploadFileBuf, DOC_MAX_MB,
+  uploadFileBuf, uploadFile, DOC_MAX_MB,
   getLines, addLine, addBlankLine, updateLine, deleteLine, saveLineAsProduct, saveDbProduct, deleteDbProduct, uploadImage,
   getDbProduct, updateDbProductTracked, getProductHistory, diffDbProduct, dataToRow_, logAudit_, setSpDuyet,
   setYeuThich,

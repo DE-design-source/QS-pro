@@ -26,6 +26,16 @@ function authLogout_(){
     if(r && /Chưa đăng nhập/.test(r.message||'')) return;
     bao('Promise: '+((r&&r.message)||r), (r&&r.stack||'').split('\n')[1]||''); });
 })();
+/* Server vừa deploy bản mới trong lúc trang đang mở -> nhắc tải lại (trang cũ gọi API đã đổi sẽ lỗi vặt) */
+function banMoi_(v){
+  if(!v) return;
+  if(!S._appVer){ S._appVer=v; return; }
+  if(v===S._appVer || document.getElementById('banMoi')) return;
+  var d=document.createElement('div'); d.id='banMoi'; d.className='banmoi';
+  d.innerHTML='<span>Đã có bản cập nhật mới của Dezon Pro.</span><button onclick="location.reload()">Tải lại</button>'
+    +'<button class="x" onclick="this.parentNode.remove()" title="Để sau">✕</button>';
+  document.body.appendChild(d);
+}
 // Header chung cho MỌI request lên server (api + tải file xuất Excel)
 function apiHeaders_(){
   var h={'Content-Type':'application/json'}; var t=authToken(); if(t) h['Authorization']='Bearer '+t;
@@ -46,7 +56,7 @@ function api(fn){
   var args = Array.prototype.slice.call(arguments,1);
   var h=apiHeaders_();
   return fetch('/api/'+encodeURIComponent(fn),{method:'POST',headers:h, body:JSON.stringify({args:args})})
-    .then(function(r){ return r.json().catch(function(){ return {error:'HTTP '+r.status}; }).then(function(d){ d=d||{}; d._status=r.status; return d; }); })
+    .then(function(r){ banMoi_(r.headers.get('x-app-ver')); return r.json().catch(function(){ return {error:'HTTP '+r.status}; }).then(function(d){ d=d||{}; d._status=r.status; return d; }); })
     .then(function(d){ if(d && d.code==='NOAUTH'){ setAuthToken(''); if(typeof showLogin_==='function') showLogin_('Phiên đã hết, mời đăng nhập lại.'); throw new Error('Chưa đăng nhập'); }
       if(d&&d.error) throw new Error(d.error); return d?d.result:null; });
 }

@@ -4646,6 +4646,11 @@ td.rsel input,td.rsel textarea{background:transparent}
 .cp-found{font-size:12px;color:var(--c3);white-space:nowrap}
 .cp-bar .btn.ghost.on{border-color:var(--blue);color:var(--blue);background:#f2f7ff}
 .cp-bar .colchips{margin:0}
+/* nhắc tải lại khi có bản mới */
+.banmoi{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:10px;
+  background:var(--navy);color:#fff;padding:10px 12px 10px 16px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.25);font-size:13px}
+.banmoi button{border:none;border-radius:8px;background:#fff;color:var(--navy);font:inherit;font-weight:600;padding:6px 12px;cursor:pointer}
+.banmoi button.x{background:transparent;color:rgba(255,255,255,.7);padding:6px 8px}
 /* gom theo · hàng thao tác */
 .cp-seg{display:inline-flex;align-items:center;gap:2px;padding:2px;border:1px solid var(--ln2);border-radius:99px;background:#fff}
 .cp-seg span{font-size:11.5px;color:var(--c3);padding:0 6px 0 8px}

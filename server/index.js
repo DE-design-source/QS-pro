@@ -41,6 +41,7 @@ const REGISTRY = {
   saveLineAsProduct: auth.saveLineAsProductGated,
   saveDbProduct: auth.createProductGated,   // cửa ngõ: cần quyền sửa + đóng dấu người tạo
   uploadImage: store.uploadImage,
+  uploadFile: store.uploadFile,        // bản cũ, giữ cho tab chưa tải lại
   deleteDbProduct: store.deleteDbProduct,
   getDbProduct: store.getDbProduct,
   updateDbProductTracked: auth.updateProductGated,   // cửa ngõ: chỉ 'sp_edit' -> tạo phiếu chờ duyệt
@@ -591,7 +592,10 @@ async function actorOf_(req) {
   if (!tok) return null;
   try { return await auth.sessionActor(tok); } catch (e) { console.error('[auth] kiểm tra phiên lỗi:', e && e.message); return null; }
 }
+// Mã phiên bản đang chạy: đổi sau mỗi lần deploy -> trang đang mở biết mà nhắc tải lại (không chạy mã cũ)
+const APP_VER = process.env.RENDER_GIT_COMMIT || String(Date.now());
 app.post('/api/:fn', async function (req, res) {
+  res.set('x-app-ver', APP_VER);
   const fn = req.params.fn;
   const handler = REGISTRY[fn];
   if (typeof handler !== 'function') {
