@@ -5876,7 +5876,10 @@ body > :not(.topnav):not(.wrap):not(script):not(#loginScreen) > *{zoom:var(--uiz
 #v-boc .pt-colchips .chip.fltchip.on{background:#eaf1ff!important;border-color:#cfe0ff!important;color:#1d4ed8!important}
 
 /* ô Tài liệu: nhiều file — danh sách + dán link + tải file */
-.docf{display:flex;flex-direction:column;gap:6px}
+.docf{display:flex;flex-direction:column;gap:6px;min-width:0}
+/* Ô trong lưới form mặc định không co nhỏ hơn nội dung -> tên file dài đẩy cột "File bản vẽ" ra khỏi khung.
+   Cho co lại: tên dài tự cắt "…" (di chuột vào tên để xem đủ), mọi cột luôn nằm trong khung. */
+.dbgrid>*,.spe-fields>*{min-width:0}
 .docf-list{display:flex;flex-direction:column;gap:4px}
 .docf-list:empty{display:none}
 .docf-it{display:flex;align-items:center;gap:8px;padding:5px 6px 5px 8px;border:1px solid #e6eaef;border-radius:8px;background:#fbfcfd;min-width:0}

@@ -185,7 +185,7 @@ function docRender_(w){
   if(!w) return; var v=w.querySelector('.docf-v'), ds=docList_(v&&v.value), box=w.querySelector('.docf-list');
   if(box) box.innerHTML=ds.map(function(u,i){ var ext=docExt_(u);
     return '<div class="docf-it"><span class="tl-ext e-'+esc(ext)+'">'+esc(ext==='link'?'LINK':ext.toUpperCase())+'</span>'
-      +'<a href="'+esc(safeUrl_(u))+'" target="_blank" rel="noopener" title="Mở">'+esc(docName_(u))+'</a>'
+      +'<a href="'+esc(safeUrl_(u))+'" target="_blank" rel="noopener" title="Mở: '+esc(docName_(u))+'">'+esc(docName_(u))+'</a>'
       +'<button type="button" title="Bỏ file này" onclick="docDel_(this,'+i+')">✕</button></div>'; }).join('');
 }
 function docSet_(w,ds){ var v=w.querySelector('.docf-v'); if(!v) return; v.value=ds.join('\n'); docRender_(w);
