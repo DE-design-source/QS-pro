@@ -1698,6 +1698,21 @@ function csQuickBtn_(t,btnId){
     +' title="Bật cả một bộ cột theo mục đích / bộ cột của tôi">'
     +icon('sliders',13)+'<span>'+esc(nhan)+'</span><b>'+on+'/'+ks.length+'</b><i>▾</i></button>';
 }
+// Bảng ít cột hơn Bóc tách có thể khiến 2 bộ ra CÙNG một danh sách -> chỉ giữ bộ đầu tiên
+function csPresetList_(t){ var da={};
+  return TK_PRESETS.filter(function(ps){
+    var sig=csPresetKeys_(t,ps).slice().sort().join('|');
+    if(da[sig]) return false; da[sig]=1; return true; }); }
+/* Các bộ cột hiện sẵn thành chip — bấm 1 lần là đổi, khỏi mở popup */
+function csPresetChips_(t){
+  var mine=csMyCols_(t);
+  return '<span class="cs-pchips">'
+    +(mine?'<button class="cs-pchip'+(csMyOn_(t)?' on':'')+'" onclick="csMyUse_(\''+t+'\')">Của tôi</button>':'')
+    +csPresetList_(t).map(function(ps){
+      return '<button class="cs-pchip'+(csPresetOn_(t,ps)?' on':'')+'" onclick="csPresetApply_(\''+t+'\',\''+ps[0]+'\')"'
+        +' title="'+csPresetKeys_(t,ps).length+' cột">'+esc(ps[1])+'</button>';
+    }).join('')+'</span>';
+}
 function csPresetPop_(e,t,btnId){
   if(e&&e.stopPropagation) e.stopPropagation();
   t=t||'tk'; btnId=btnId||'tkPresetBtn';
@@ -1712,11 +1727,8 @@ function csPresetPop_(e,t,btnId){
           +'<span class="rd'+(mineOn?' on':'')+'"></span></div>'):'')
       // Bảng ít cột hơn Bóc tách (Dự án, Chi phí) có thể khiến 2 bộ ra CÙNG một danh sách
       // (vd "Mặc định" và "Báo giá cho khách") -> chỉ giữ bộ đầu tiên, tránh 2 dòng y hệt nhau.
-      +(function(){ var da={};
-        return TK_PRESETS.filter(function(ps){
-          var sig=csPresetKeys_(t,ps).slice().sort().join('|');
-          if(da[sig]) return false; da[sig]=1; return true;
-        }).map(function(ps){
+      +(function(){
+        return csPresetList_(t).map(function(ps){
           var on=csPresetOn_(t,ps), n=csPresetKeys_(t,ps).length;
           return '<div class="bgt-i lvl1'+(on?' on':'')+'" onclick="csPresetApply_(\''+t+'\',\''+ps[0]+'\')">'
             +'<span class="nm">'+esc(ps[1])+'</span><span class="cn">'+n+' cột</span>'
