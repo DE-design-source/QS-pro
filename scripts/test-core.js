@@ -16,6 +16,11 @@ const C = new Function(['esc', 'escJs_', 'safeUrl_', 'tkNum_', 'pctIn_'].map(pic
 // server đọc số giống hệt client (giá / diện tích từ file nhập, ô sửa)
 ['1.234.567', '12,5', '1.234,5', '1.500', '450.5', '30%', '-2,5', '', 'abc', '12.500.000 đ']
   .forEach(v => assert.strictEqual(shared.toNumber_(v), C.tkNum_(v), 'toNumber_ vs tkNum_ (' + v + ')'));
+// SP danh mục -> dòng bóc tách: cột Giá bán lẻ = giá niêm yết + CK đại lý của SP (không phải giá đại lý + CK 0)
+{ const G = new Function('S', pick('giaDongTuSP_') + '\nreturn giaDongTuSP_;')({ products: [{ recordId: 7, giaBanLe: 50000000, ckDaiLy: 35 }] });
+  assert.deepStrictEqual(G({ giaBanLe: 50000000, ckDaiLy: 35, donGiaVon: 32500000, donGiaBan: 32500000 }), { donGiaVon: 50000000, chietKhau: 35, donGiaBan: 50000000 });
+  assert.deepStrictEqual(G({ recordId: 7, donGiaBan: 32500000 }), { donGiaVon: 50000000, chietKhau: 35, donGiaBan: 50000000 });   // SP đi kèm rút gọn
+  assert.deepStrictEqual(G({ donGiaVon: 900000, donGiaBan: 900000 }), { donGiaVon: 900000, chietKhau: 0, donGiaBan: 900000 }); }  // chưa có giá niêm yết
 // ô % trống không được thành 0
 assert.strictEqual(C.pctIn_(''), null); assert.strictEqual(C.pctIn_('  '), null);
 assert.strictEqual(C.pctIn_('12,5'), 12.5); assert.strictEqual(C.pctIn_('0'), 0); assert.strictEqual(C.pctIn_('x'), null);

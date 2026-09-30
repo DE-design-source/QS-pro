@@ -303,14 +303,15 @@ async function addProdObj(p,floor,sl,node){
   })[0];
   if(same){ editLine(same.lineId,{soLuong:(Number(same.soLuong)||0)+sl}); toast('+'+sl+' số lượng: '+p.ten);
     tkGotoNewRow_(same.lineId); return; }
-  var prod=Object.assign({},p,{ nhom:nd, hangMuc:nodeName(nd), loai:nodeName(nd), tang:floor,
+  var gia=giaDongTuSP_(p);
+  var prod=Object.assign({},p,gia,{ nhom:nd, hangMuc:nodeName(nd), loai:nodeName(nd), tang:floor,
     extra:Object.assign({nganh:p.nhom||''}, (S.sheet&&tkSheetCo_())?{sheet:S.sheet}:{}) });
   // ---- Optimistic: hiện dòng NGAY, đồng bộ server chạy nền ----
-  var dgVon=Number(p.donGiaVon)||0, dgBan=Number(p.donGiaBan)||0;
+  var dgVon=gia.donGiaVon, dgBan=gia.donGiaBan;
   var temp={ lineId:'tmp_'+(S._tmpN=(S._tmpN||0)+1), _pending:true,
     khuVuc:'', maBanVe:'', maSP:p.ma||'', ten:p.ten||'', thuongHieu:p.thuongHieu||'', ncc:p.ncc||'',
     moTa:p.moTa||'', kichThuoc:p.kichThuoc||p.size||'', dvt:p.dvt||'Cái', hinhAnh:p.hinhAnh||'',
-    soLuong:sl, donGiaVon:dgVon, donGiaBan:dgBan, thanhTienVon:dgVon*sl, thanhTienBan:dgBan*sl, lnPct:0,
+    soLuong:sl, donGiaVon:dgVon, chietKhau:gia.chietKhau, donGiaBan:dgBan, thanhTienVon:Math.round(dgVon*(1-gia.chietKhau/100))*sl, thanhTienBan:dgBan*sl, lnPct:0,
     nhom:nd, hangMuc:nodeName(nd), tang:floor };
   var gKey=floor||'CHƯA PHÂN TẦNG';
   if(S.collapsed[gKey]) S.collapsed[gKey]=false;      // tầng đang gập -> mở ra để thấy dòng vừa thêm
@@ -708,7 +709,7 @@ function drawPick(lineId,q){
 
 async function pickProduct(lineId,pi){
   var p=S.products[pi]; if(!p)return; closePop();
-  await editLine(lineId,{ten:p.ten,thuongHieu:p.thuongHieu,ncc:p.ncc,maSP:p.ma,kichThuoc:p.kichThuoc,moTa:p.moTa,dvt:p.dvt||'Cái',donGiaVon:p.donGiaVon,donGiaBan:p.donGiaBan,hinhAnh:p.hinhAnh,loai:p.hangMuc,chietKhau:Number(p.chietKhau)||0});   // CK đại lý của SP mới — không giữ CK của SP cũ
+  await editLine(lineId,{ten:p.ten,thuongHieu:p.thuongHieu,ncc:p.ncc,maSP:p.ma,kichThuoc:p.kichThuoc,moTa:p.moTa,dvt:p.dvt||'Cái',donGiaVon:giaDongTuSP_(p).donGiaVon,donGiaBan:giaDongTuSP_(p).donGiaBan,hinhAnh:p.hinhAnh,loai:p.hangMuc,chietKhau:giaDongTuSP_(p).chietKhau});   // CK đại lý của SP mới — không giữ CK của SP cũ
   toast('Đã chọn: '+p.ten);
 }
 /* ＋ Tạo sản phẩm mới: nhập tay -> lưu vào Danh mục SP + điền ngược vào dòng bóc tách */
@@ -1384,7 +1385,8 @@ function spOfLine_(l){
 }
 /* Trường so sánh giữa dòng và sản phẩm trong danh mục: [khoá dòng, nhãn, lấy từ SP, kiểu] */
 var LN_SYNC_F=[
-  ['donGiaVon','Giá vốn', function(p){ return Math.round(Number(p.donGiaVon)||0); }, 'money'],
+  ['donGiaVon','Giá bán lẻ (niêm yết)', function(p){ return Math.round(giaDongTuSP_(p).donGiaVon); }, 'money'],
+  ['chietKhau','CK đại lý (%)', function(p){ return giaDongTuSP_(p).chietKhau; }, 'pct'],
   ['ten','Tên sản phẩm', function(p){ return String(p.ten||''); }, 'text'],
   ['thuongHieu','Thương hiệu', function(p){ return String(p.thuongHieu||''); }, 'text'],
   ['ncc','Nhà cung cấp', function(p){ return String(p.ncc||''); }, 'text'],
@@ -1398,8 +1400,9 @@ function lnDiff_(l){
   var ds=[];
   LN_SYNC_F.forEach(function(f){
     var moi=f[2](p);
-    var cu=(f[3]==='money')?Math.round(Number(l[f[0]])||0):String(l[f[0]]==null?'':l[f[0]]);
+    var cu=(f[3]==='money')?Math.round(Number(l[f[0]])||0):(f[3]==='pct'?(Number(l[f[0]])||0):String(l[f[0]]==null?'':l[f[0]]));
     if(f[3]==='money'){ if(!moi || cu===moi) return; }
+    else if(f[3]==='pct'){ if(cu===moi) return; }
     else { if(String(cu).trim()===String(moi).trim()) return; if(!String(moi).trim()) return; }  // SP để trống thì không ghi đè
     ds.push({k:f[0], lb:f[1], cu:cu, moi:moi, kieu:f[3]});
   });
@@ -1426,6 +1429,7 @@ function lnUpdPop_(e, lineId){
   var d=lnDiff_(l); if(!d){ toast('Dòng này đã khớp với danh mục'); return; }
   function ve(v,kieu){
     if(kieu==='money') return money(v)+' đ';
+    if(kieu==='pct') return String(Number(v)||0).replace('.',',')+'%';
     if(kieu==='img') return v?('<img class="lnu-img" src="'+esc(imgSrc1_(v))+'" onerror="this.style.visibility=\'hidden\'">'):'<i>—</i>';
     var t=String(v||'').trim(); return t?esc(t).replace(/\n/g,'<br>'):'<i>—</i>';
   }
@@ -1477,14 +1481,14 @@ function giaSpCuaDong_(l){
     var ten=spNorm_(l.ten||'');
     ds = ds.filter(function(p){ return spNorm_(p.ten||'')===ten; }).concat(ds);
   }
-  var von=Math.round(Number(ds[0].donGiaVon)||0);
-  return von?{p:ds[0], von:von}:null;
+  var g=giaDongTuSP_(ds[0]), von=Math.round(g.donGiaVon);
+  return von?{p:ds[0], von:von, ck:g.chietKhau}:null;
 }
 function giaLechList_(){
   return (S.lines||[]).map(function(l){
     var g=giaSpCuaDong_(l); if(!g) return null;
-    if(Math.round(Number(l.donGiaVon)||0)===g.von) return null;
-    return {l:l, von:g.von, cu:Math.round(Number(l.donGiaVon)||0)};
+    if(Math.round(Number(l.donGiaVon)||0)===g.von && (Number(l.chietKhau)||0)===g.ck) return null;
+    return {l:l, von:g.von, ck:g.ck, cu:Math.round(Number(l.donGiaVon)||0)};
   }).filter(Boolean);
 }
 /* Bảng xác nhận cập nhật giá — thay hộp thoại confirm() của trình duyệt: xem được ĐẦY ĐỦ
@@ -1540,9 +1544,9 @@ async function giaSyncApply_(btn){
   var ok=0, loi=0;
   for(var i=0;i<ds.length;i++){
     try{
-      var r=await api('updateLine', ds[i].l.lineId, { donGiaVon: ds[i].von });
+      var r=await api('updateLine', ds[i].l.lineId, { donGiaVon: ds[i].von, chietKhau: ds[i].ck });
       var j=S.lines.indexOf(ds[i].l);
-      if(r&&j>=0) S.lines[j]=r; else ds[i].l.donGiaVon=ds[i].von;
+      if(r&&j>=0) S.lines[j]=r; else { ds[i].l.donGiaVon=ds[i].von; ds[i].l.chietKhau=ds[i].ck; }
       ok++;
     }catch(e){ loi++; }
     if(btn) btn.textContent='Đang cập nhật '+(i+1)+'/'+ds.length+'…';

@@ -1803,6 +1803,18 @@ function toggleCol(k){ S.cols[k]=!S.cols[k]; renderColChips(); renderTable(); if
 function visCols(){ var byK={}; COLS.forEach(function(c){ byK[c[0]]=c; });
   return (S.colOrder||COLS.map(function(c){return c[0];})).map(function(k){ return byK[k]; }).filter(function(c){ return c && S.cols[c[0]]; }); }
 // giá đại lý = giá bán lẻ (giá vốn NCC) sau chiết khấu đại lý  |  đơn giá = giá bán sau chiết khấu khách
+/* Giá SP trong danh mục -> giá trên DÒNG bóc tách, đúng mô hình giá của dòng (recalcLine_ / calc_ ở server):
+     Giá bán lẻ (donGiaVon) = GIÁ NIÊM YẾT · CK đại lý (chietKhau) = CK của SP  -> giá đại lý = niêm yết × (1 − CK)
+     Giá bán mặc định = giá niêm yết (LN 0%).
+   Trước đây lấy GIÁ ĐẠI LÝ đặt vào cột "Giá bán lẻ" + CK 0%. SP chưa nhập giá niêm yết thì giữ cách cũ. */
+function giaDongTuSP_(p){
+  var q=p;
+  if(!(Number(p.giaBanLe)>0) && p.recordId!=null){      // đối tượng rút gọn (vd SP đi kèm combo) -> tra SP đầy đủ
+    q=(S.products||[]).filter(function(x){ return String(x.recordId)===String(p.recordId); })[0]||p; }
+  var le=Number(q.giaBanLe)||0;
+  if(le>0) return {donGiaVon:le, chietKhau:Number(q.ckDaiLy)||0, donGiaBan:le};
+  var v=Number(p.donGiaVon)||0; return {donGiaVon:v, chietKhau:0, donGiaBan:Number(p.donGiaBan)||v};
+}
 function giaDaiLy_(l){ return Math.round((Number(l.donGiaVon)||0)*(1-(Number(l.chietKhau)||0)/100)); }
 function donGiaCK_(l){ return Math.round((Number(l.donGiaBan)||0)*(1-(Number(l.ckKhach)||0)/100)); }
 // các cột dẫn xuất — tính trực tiếp từ dòng để luôn nhất quán với server (không phụ thuộc field đã lưu)
