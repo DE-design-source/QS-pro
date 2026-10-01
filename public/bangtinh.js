@@ -382,6 +382,20 @@ function tkSheetNhanTha_(){
     if(d.g) S.selFloor=d.g; addProdObj(p, d.g, sl); });
   document.addEventListener('dragend',clr);
 }
+/* Nhảy tới 1 dòng trên lưới (dòng vừa thêm / vừa tìm): bung tầng nếu đang thu gọn, cuộn tới, chọn ô Tên
+   (gõ là sửa luôn), nháy vàng. Trả false khi không đang xem bảng tính -> người gọi dùng cách của bảng cũ. */
+function tkSheetDen_(id){
+  if(!btSong_('tk') || !btCtx_('tk').ws.element.offsetParent) return false;
+  var l=lineOf_(id), g=l&&((l.tang||'').trim()||'CHƯA PHÂN TẦNG');
+  if(g && S.collapsed && S.collapsed[g]){ S.collapsed[g]=false; renderTable(); }
+  var B=btCtx_('tk'), y=B.meta.findIndex(function(m){ return m.k==='it' && m.id===id; }); if(y<0) return true;
+  var x=Math.max(0, B.cols.findIndex(function(c){ return c[0]==='ten'; }));
+  B.ws.updateSelectionFromCoords(x,y,x,y);
+  var td=B.ws.getCellFromCoords(x,y), tr=td&&td.parentNode;
+  if(td) try{ td.scrollIntoView({block:'nearest', inline:'nearest'}); }catch(e){}
+  if(tr){ tr.classList.remove('gs-moi'); void tr.offsetWidth; tr.classList.add('gs-moi'); setTimeout(function(){ tr.classList.remove('gs-moi'); },1600); }
+  return true;
+}
 // Xoá các dòng sản phẩm nằm trong vùng đang chọn (dùng đúng luồng xoá hàng loạt của bảng cũ, có hỏi lại)
 function tkSheetDel_(){
   var B=btCtx_('tk'), r=B.selR; if(!r){ toast('Chọn ô ở các dòng cần xoá trước'); return; }

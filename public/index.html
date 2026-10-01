@@ -4702,6 +4702,9 @@ body.gs-keo,body.gs-keo *{cursor:grabbing!important;user-select:none}
 .gs-grid .jss_worksheet td.gs-frz.highlight-selected{background-color:#fff}
 .gs-grid .jss_content{scroll-behavior:auto;overscroll-behavior-x:contain}
 .gs-grid.jtabs{max-width:none}   /* thư viện đặt max-width:100vw — trong .wrap zoom .9 thành hụt 10% bề ngang */
+/* dòng vừa thêm / vừa nhảy tới: nháy vàng */
+@keyframes gsMoi{0%,40%{background-color:#fff3b0}100%{background-color:transparent}}
+.gs-grid tr.gs-moi > td{animation:gsMoi 1.5s ease-out}
 .gs-foot{display:flex;align-items:center;padding:10px 12px;border-top:1px solid #dadce0;background:#fbfcfe}
 .gs-txt{font-size:12.5px;font-weight:500;gap:5px;padding:0 8px;white-space:nowrap}
 .gs-img{max-width:64px;max-height:64px;object-fit:contain;cursor:zoom-in;display:block;margin:0 auto}

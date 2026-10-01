@@ -218,6 +218,7 @@ async function addItemToFloor(tang){
 }
 // đưa dòng vừa thêm vào tầm nhìn + focus ô Tên + nhấp nháy cho dễ thấy
 function focusNewLine(id){
+  if(typeof tkSheetDen_==='function' && tkSheetDen_(id)) return;      // đang xem dạng bảng tính
   setTimeout(function(){
     var tr=document.querySelector('#tkTable tr.drow[data-id="'+id+'"]'); if(!tr) return;
     try{ tr.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){}
@@ -254,6 +255,7 @@ function tkRowNewPaint_(){                               // gọi ở cuối ren
 }
 function tkGotoNewRow_(id){
   S._newLid=id; S._newT0=Date.now();
+  if(typeof tkSheetDen_==='function' && tkSheetDen_(id)) return;      // đang xem dạng bảng tính
   var tr=tkRowEl_(id); if(!tr) return;
   tr.style.setProperty('--fdl','0s'); tr.classList.remove('rownew'); void tr.offsetWidth; tr.classList.add('rownew');
   clearTimeout(S._newTmr);
