@@ -193,7 +193,7 @@ function tkSheetGrid_(cols, order, groups){
 function tkSheetVe_(host, cols, order, groups){
   var B=btCtx_('tk'), g=tkSheetGrid_(cols, order, groups);
   tkSheetGop_(true);
-  tkSheetFoot_();
+  tkSheetFoot_(); tkSheetNhanTha_();
   var cb=document.getElementById('tkColBtn'); if(cb) cb.innerHTML=icon('sliders',15)+' Cột '+cols.length+'/'+COLS.length;
   var sig=cols.map(function(c){ return c[0]; }).join()+'|'+g.meta.map(function(m){ return m.k==='sec'?('#'+m.g):m.id; }).join();
   if(btSong_('tk') && B.sig===sig && host.contains(B.ws.element)){ btGhiLuoi_('tk', g.rows); return; }
@@ -316,6 +316,25 @@ function tkSheetFoot_(){
   el.innerHTML='<button class="addbtn floor" onclick="openAddFloor(event)">'+icon('plus',15)+'Thêm tầng / phòng</button>'
     +'<button class="addbtn item" onclick="addBlankItem()" title="Thêm 1 hạng mục trống vào tầng đang chọn">'+icon('plus',15)+'Thêm hạng mục'
       +(f?'<span class="addbtn-sub">vào '+esc(f)+'</span>':'')+'</button>';
+}
+/* Kéo SẢN PHẨM từ danh mục bên trái thả vào lưới (cùng luồng addProdObj của bảng cũ):
+   thả lên dòng SP -> vào tầng của dòng đó · lên dòng tầng -> vào tầng đó · chỗ khác -> tầng đang chọn */
+function tkSheetNhanTha_(){
+  var w=document.getElementById('tkSheetWrap'); if(!w || w._nhanTha) return; w._nhanTha=1;
+  function dich(e){ var B=btCtx_('tk'), tr=e.target.closest&&e.target.closest('#tkSheet tbody tr'), m=tr&&B.meta[tr.sectionRowIndex];
+    var g=(S.selFloor||'').trim();
+    if(m&&m.k==='sec') g=m.g==='CHƯA PHÂN TẦNG'?'':m.g; else if(m&&m.k==='it'){ var l=lineOf_(m.id); g=(l&&l.tang)||''; }
+    return {tr:tr, g:g}; }
+  function clr(){ w.classList.remove('gs-tha'); w.querySelectorAll('.gs-dz-b').forEach(function(r){ r.classList.remove('gs-dz-b'); }); }
+  w.addEventListener('dragover',function(e){ if(!S._dragProd) return; e.preventDefault(); try{ e.dataTransfer.dropEffect='copy'; }catch(x){}
+    var d=dich(e); w.querySelectorAll('.gs-dz-b').forEach(function(r){ if(r!==d.tr) r.classList.remove('gs-dz-b'); });
+    if(d.tr) d.tr.classList.add('gs-dz-b');
+    w.classList.add('gs-tha'); w.setAttribute('data-tha','Thả để thêm vào '+(d.g||'CHƯA PHÂN TẦNG')); });
+  w.addEventListener('dragleave',function(e){ if(!w.contains(e.relatedTarget)) clr(); });
+  w.addEventListener('drop',function(e){ if(!S._dragProd) return; e.preventDefault();
+    var p=S._dragProd, d=dich(e), sl=S._dragSL||1; S._dragProd=null; S._dragSL=1; clr();
+    if(d.g) S.selFloor=d.g; addProdObj(p, d.g, sl); });
+  document.addEventListener('dragend',clr);
 }
 // Xoá các dòng sản phẩm nằm trong vùng đang chọn (dùng đúng luồng xoá hàng loạt của bảng cũ, có hỏi lại)
 function tkSheetDel_(){

@@ -4678,6 +4678,11 @@ body.gs-keo,body.gs-keo *{cursor:grabbing!important;user-select:none}
 .gs-grid.gs-gon .jss_worksheet > tbody > tr > td{white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;max-width:0;padding-top:5px;padding-bottom:5px}
 .gs-grid.gs-gon .gs-img{max-height:34px;max-width:46px}
 .gs-gonb svg{flex:none}
+/* đang kéo sản phẩm từ danh mục vào bảng tính */
+#tkSheetWrap{position:relative}
+#tkSheetWrap.gs-tha .gs{outline:2px dashed #1a73e8;outline-offset:2px}
+#tkSheetWrap.gs-tha::after{content:attr(data-tha);position:absolute;left:50%;bottom:64px;transform:translateX(-50%);z-index:30;pointer-events:none;
+  background:#1a73e8;color:#fff;font-size:13px;font-weight:600;padding:8px 14px;border-radius:99px;box-shadow:0 6px 20px rgba(26,115,232,.35);white-space:nowrap}
 .gs-foot{display:flex;align-items:center;padding:10px 12px;border-top:1px solid #dadce0;background:#fbfcfe}
 .gs-txt{font-size:12.5px;font-weight:500;gap:5px;padding:0 8px;white-space:nowrap}
 .gs-img{max-width:64px;max-height:64px;object-fit:contain;cursor:zoom-in;display:block;margin:0 auto}
