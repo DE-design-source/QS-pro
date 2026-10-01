@@ -4,12 +4,11 @@
    Bảng cũ vẫn còn (nút "Bảng cũ") để dự phòng. ═══ */
 'use strict';
 
-function btOn_(k){ try{ return localStorage.getItem('qs_bt_'+k)!=='0'; }catch(e){ return true; } }
-function btSet_(k,on){ try{ localStorage.setItem('qs_bt_'+k,on?'1':'0'); }catch(e){} }
+// Luôn dùng bảng tính. Bảng cũ chỉ còn làm dự phòng khi lưới lỗi (tới lúc tải lại trang) — không còn nút chuyển.
+function btOn_(k){ return !(S._btLoi && S._btLoi[k]); }
+function btSet_(k,on){ S._btLoi=S._btLoi||{}; S._btLoi[k]=!on; }
 function btSan_(){ return typeof jspreadsheet==='function'; }            // thư viện nạp được chưa
 function btVeLai_(k){ if(k==='pt') renderPhanTho(); else { btCtx_(k).ws=null; renderTable(); } }   // dựng lại hẳn lưới
-function btToggle_(k){ btSet_(k,!btOn_(k)); btVeLai_(k); }
-function ptSheetToggle_(){ btToggle_('pt'); }
 
 // Số hiển thị trong ô: 1.234.567 (kiểu VN, như cả app) · % một số lẻ · trống khi 0
 function btMoney_(v){ v=Math.round(Number(v)||0); return v?money(v):''; }
@@ -318,7 +317,6 @@ function btFrame_(k){
       +sep+'<span class="gs-sumic" title="Chọn nhiều ô để xem tổng">'+btI_('sum')+'</span><span class="gs-sum" id="'+k+'SheetSum"></span>'
       +'<span style="flex:1"></span>'
       +(k==='tk'?'<button class="gs-b gs-txt" id="tkColBtn" onclick="tkColPop_(event)" title="Chọn cột hiển thị"></button><span class="gs-tools" id="tkSheetTools"></span>':'')
-      +'<button class="btn ghost sm" onclick="btToggle_(\''+k+'\')" title="Quay lại bảng cũ">Bảng cũ</button>'
     +'</div>'
     +'<div id="'+k+'Sheet" class="gs-grid" style="--gsfs:'+fs+'px'+(z!==100?';zoom:'+(z/100):'')+'"></div>'
     +(k==='tk'?'<div class="gs-foot" id="tkSheetFoot"></div>':'')

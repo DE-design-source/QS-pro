@@ -1629,7 +1629,6 @@ function tkToolsSync_(){
     +'</span><span class="tk-tsep"></span><span class="tk-tgrp">'   // nhóm 2: cách hiển thị bảng
     +qbBtn_('qbFit',QB_IC.fit,tkFitOn_()?'Đang co cột vừa khung — bấm để trả về bề rộng đã đặt (có kéo ngang)':'Co cột cho vừa bề ngang khung, hết kéo ngang','tkFitToggle_()',tkFitOn_())
     +qbBtn_('qbFull',QB_IC.full,tkFullOn_()?'Thoát toàn màn hình (Esc)':'Chỉ còn bảng, chiếm cả màn hình','tkFullToggle_()',tkFullOn_())
-    +(btSan_()&&!btOn_('tk')?qbBtn_('qbSheet',icon('layers',16),btOn_('tk')?'Đang xem dạng bảng tính — bấm để về bảng cũ':'Xem dạng bảng tính (như Google Sheets)','btToggle_(\'tk\');tkToolsSync_()',btOn_('tk')):'')
     +'</span>';
 }
 

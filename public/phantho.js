@@ -2290,7 +2290,6 @@ function renderPhanTho(){
   var ptHead='<div class="pt-toolbar">'
       + '<div class="pt-tt">Bảng ước tính chi phí — <b>Xây dựng thô</b></div>'
       + '<div class="sp"></div>'
-      + (btSan_()&&!btOn_('pt')&&S.phanTho.length?'<button class="btn ghost sm" onclick="ptSheetToggle_()" title="Xem dạng bảng tính (như Google Sheets)">'+icon('layers',14)+' Bảng tính</button>':'')
       + '<button class="btn ghost sm" onclick="ptReset()">'+icon('trash',14)+' Xoá hết</button>'
       + '<button class="btn blue sm" onclick="ptAddSection()">'+icon('plus',14)+' Thêm hạng mục</button>'
     + '</div>';
@@ -2306,7 +2305,6 @@ function renderPhanTho(){
     '<div class="pt-toolbar">'
       + '<div class="pt-tt">Bảng ước tính chi phí — <b>Xây dựng thô</b></div>'
       + '<div class="sp"></div>'
-      + (btSan_()&&S.phanTho.length?'<button class="btn ghost sm" onclick="ptSheetToggle_()" title="Xem dạng bảng tính (như Google Sheets)">'+icon('layers',14)+' Bảng tính</button>':'')
       + '<button class="btn ghost sm" onclick="ptReset()">'+icon('trash',14)+' Xoá hết</button>'
       + '<button class="btn blue sm" onclick="ptAddSection()">'+icon('plus',14)+' Thêm hạng mục</button>'
     + '</div>'
