@@ -1,7 +1,8 @@
-/* ═══ CHẾ ĐỘ BẢNG TÍNH (Jspreadsheet CE, MIT) — giao diện kiểu Google Sheets cho bảng Phần thô ('pt')
-   và bảng sản phẩm Bóc tách ('tk'). Chỉ là LỚP HIỂN THỊ: đọc dữ liệu đang có, ghi bằng đúng hàm sửa
+/* ═══ CHẾ ĐỘ BẢNG TÍNH (Jspreadsheet CE, MIT) — giao diện kiểu Google Sheets cho Phần thô ('pt'), bảng sản phẩm
+   Bóc tách ('tk'), Chi phí ('cp'), Dự án ('da'). Chỉ là LỚP HIỂN THỊ: đọc dữ liệu đang có, ghi bằng đúng hàm sửa
    của bảng cũ (ptEdit / editLine / tkApplyEdits_), nên mọi quy tắc tính & lưu giữ nguyên.
-   Bảng cũ vẫn còn (nút "Bảng cũ") để dự phòng. ═══ */
+   Bảng cũ chỉ còn làm dự phòng khi lưới lỗi.
+   Lưu ý: khung #{k}Sheet giữ nguyên qua các lần dựng lại lưới -> sự kiện gắn vào khung chỉ gắn 1 lần (cờ _btNghe/_tkKeo). ═══ */
 'use strict';
 
 // Luôn dùng bảng tính. Bảng cũ chỉ còn làm dự phòng khi lưới lỗi (tới lúc tải lại trang) — không còn nút chuyển.
@@ -29,8 +30,10 @@ function btSong_(k){ var B=btCtx_(k); return !!(B.ws && document.body.contains(B
 function btTao_(k, host, cols, meta, al, opt, ghi, ro, noiBo){
   var B=btCtx_(k); host.innerHTML='';
   B.cols=cols; B.meta=meta; B.al=al; B.ghi=ghi;
+  B.sel=B.selR=null;              // lưới mới chưa chọn ô nào — giữ vùng chọn cũ thì "Xoá dòng" xoá nhầm dòng ở vị trí cũ
   var ws=jspreadsheet(host,{
     tabs:false, toolbar:false,
+    parseFormulas:false,          // app lưu chữ thô, không lưu công thức -> ô bắt đầu bằng "=" hiện đúng chữ, không ra #ERROR
     worksheets:[{
       data:opt.data, style:opt.style, mergeCells:opt.merge||{}, wordWrap:true, tableOverflow:true, tableHeight:opt.h||'calc(100vh - 290px)', tableWidth:'100%',
       freezeColumns:0, allowInsertRow:false, allowInsertColumn:false, allowDeleteRow:false,
@@ -53,15 +56,18 @@ function btTao_(k, host, cols, meta, al, opt, ghi, ro, noiBo){
   // ít cột -> giãn đều cho kín bề ngang khung (khỏi khoảng trắng bên phải); đo THẬT sau khi dựng, cột STT giữ nguyên
   var ct=host.querySelector('.jss_content'), tb=host.querySelector('table.jss_worksheet'), du=ct&&tb?ct.clientWidth-tb.offsetWidth-2:0;
   if(du>4){ var tc=0; cols.forEach(function(c,i){ if(c[0]!=='stt') tc+=opt.columns[i].width||100; });
-    var them=0; cols.forEach(function(c,i){ if(c[0]==='stt') return; var w=opt.columns[i].width||100, d=Math.floor(w*du/tc); them+=d;
+    cols.forEach(function(c,i){ if(c[0]==='stt') return; var w=opt.columns[i].width||100, d=Math.floor(w*du/tc);
       try{ ws.setWidth(i, w+d); }catch(e){} }); }
   if(B.frz) btCoDinh_(host, Math.min(opt.frz,cols.length));
-  // chế độ Gọn: ô bị cắt chữ -> rê chuột hiện đủ nội dung
-  host.addEventListener('mouseover',function(e){ var td=e.target.closest&&e.target.closest('tbody td[data-x]');
-    if(!td||!B.gon) return; td.title=(td.scrollWidth>td.clientWidth+1||td.scrollHeight>td.clientHeight+1)?td.innerText:''; });
-  if(opt.menu){ ws.options.contextMenu=function(){ return false; };      // tắt menu của thư viện, dùng menu của app
-    host.addEventListener('contextmenu',function(e){ var td=e.target.closest('td[data-x]'); if(!td) return;
-      e.preventDefault(); e.stopPropagation(); opt.menu(e, +td.dataset.x, td.dataset.y==null?-1:+td.dataset.y, td); }, true); }
+  if(opt.menu) ws.options.contextMenu=function(){ return false; };      // tắt menu của thư viện, dùng menu của app
+  B.menu=opt.menu;
+  // Khung (host) giữ nguyên qua các lần dựng lại lưới -> chỉ gắn sự kiện 1 LẦN (gắn mỗi lần dựng = 1 cú bấm chạy 2-3 lần)
+  if(!host._btNghe){ host._btNghe=1;
+    // chế độ Gọn: ô bị cắt chữ -> rê chuột hiện đủ nội dung
+    host.addEventListener('mouseover',function(e){ var td=e.target.closest&&e.target.closest('tbody td[data-x]');
+      if(!td||!B.gon) return; td.title=(td.scrollWidth>td.clientWidth+1||td.scrollHeight>td.clientHeight+1)?td.innerText:''; });
+    host.addEventListener('contextmenu',function(e){ var td=e.target.closest('td[data-x]'); if(!td||!B.menu) return;
+      e.preventDefault(); e.stopPropagation(); B.menu(e, +td.dataset.x, td.dataset.y==null?-1:+td.dataset.y, td); }, true); }
   ro.forEach(function(ten){ try{ ws.setReadOnly(ten,true); }catch(e){} });
   // cột nội bộ (giá vốn, lợi nhuận) tiêu đề xám đậm — tách khỏi cột báo khách (navy), như mẫu
   cols.forEach(function(c,x){ if(noiBo[c[0]] && ws.headers && ws.headers[x]) ws.headers[x].classList.add('gs-int'); });
@@ -264,12 +270,14 @@ function tkSheetCao_(){
 }
 /* Kéo ô số thứ tự dòng (cột xám bên trái) để đổi chỗ dòng / chuyển sang tầng khác — lưu bằng tkMoveLine_ như bảng cũ */
 function tkSheetKeo_(host){
-  var B=btCtx_('tk'), tb=host.querySelector('tbody'); if(!tb) return;
-  [].forEach.call(tb.rows,function(tr,y){ var m=B.meta[y], td=tr.cells[0];
+  var B=btCtx_('tk'), tb0=host.querySelector('tbody'); if(!tb0) return;
+  [].forEach.call(tb0.rows,function(tr,y){ var m=B.meta[y], td=tr.cells[0];
     if(m && m.k==='it'){ td.classList.add('gs-drag'); td.title='Kéo để đổi chỗ dòng · bấm để chọn cả dòng'; } });
+  if(host._tkKeo) return; host._tkKeo=1;                  // sự kiện gắn 1 lần cho khung; tbody lấy lại mỗi lần dùng (lưới dựng lại thì tbody mới)
+  var tb={ querySelectorAll:function(q){ var t=host.querySelector('tbody'); return t?t.querySelectorAll(q):[]; } };
   function clr(){ tb.querySelectorAll('.gs-dz-t,.gs-dz-b,.gs-dragging').forEach(function(r){ r.classList.remove('gs-dz-t','gs-dz-b','gs-dragging'); }); }
   function dich(e){ var el=document.elementFromPoint(e.clientX,e.clientY), tr=el&&el.closest&&el.closest('tr');
-    if(!tr||tr.parentNode!==tb) return null; var r=tr.getBoundingClientRect(); return {tr:tr, tren:(e.clientY-r.top)<r.height/2}; }
+    if(!tr||tr.parentNode!==host.querySelector('tbody')) return null; var r=tr.getBoundingClientRect(); return {tr:tr, tren:(e.clientY-r.top)<r.height/2}; }
   // bắt chuột ở pha capture: thư viện không nhận cú bấm này (không kéo vùng chọn theo); bấm không kéo = chọn cả dòng
   // bấm ô ▾/▸ đầu dòng tầng = thu gọn / mở tầng (như bảng cũ)
   host.addEventListener('click',function(e){ var td=e.target.closest&&e.target.closest('tbody td[data-x="0"]'); if(!td) return;
@@ -583,6 +591,7 @@ function btThay_(k,q,rep){
   toast(n?('Đã thay '+n+' ô'):('Không có ô sửa được nào chứa "'+q+'"'));
 }
 function btChu_(v){ v=String(v==null?'':v); return v.indexOf('<')>=0?v.replace(/<[^>]*>/g,'').trim():v; }   // ô html (ảnh, tài liệu) -> chữ
+function btBoMui_(v){ return String(v==null?'':v).replace(/^[▾▸]\s*/,''); }   // bỏ ▾/▸ (nút thu gọn tầng) khi in / xuất
 function btTen_(k){ return k==='pt'?'Phần thô':(k==='cp'?'Chi phí':(k==='da'?'Sản phẩm trong dự án':(nodeName(S.node)||'Bóc tách'))); }
 // In: dựng bảng HTML gọn từ đúng dữ liệu đang hiện (tên cột + nhóm + dòng); ảnh in ra ảnh
 function btPrint_(k){
@@ -591,7 +600,7 @@ function btPrint_(k){
   var th='<tr>'+B.cols.map(function(c){ return '<th>'+esc(c[1])+'</th>'; }).join('')+'</tr>';
   var tb=d.map(function(r,y){ return '<tr'+(B.meta[y]&&B.meta[y].k==='sec'?' class="s"':'')+'>'+r.map(function(v,x){
       v=String(v==null?'':v);
-      return '<td class="'+B.al[x]+'">'+(/^<img /.test(v)?v.replace(/ on\w+="[^"]*"/g,''):esc(btChu_(v)))+'</td>'; }).join('')+'</tr>'; }).join('');
+      return '<td class="'+B.al[x]+'">'+(/^<img /.test(v)?v.replace(/ on\w+="[^"]*"/g,''):esc(btBoMui_(btChu_(v))))+'</td>'; }).join('')+'</tr>'; }).join('');
   var w=window.open('','_blank'); if(!w){ toast('Cho phép popup để in'); return; }
   w.document.write('<!doctype html><title>'+esc(btTen_(k))+' — '+esc((S.cur&&S.cur.ten)||'')+'</title><style>@page{size:A4 landscape;margin:10mm}'
     +'body{font:11px Montserrat,Arial,sans-serif}table{border-collapse:collapse;width:100%}th{background:#1f3a5f;color:#fff;font-size:10px;padding:6px 4px;border:1px solid #2d4a6e}'
@@ -604,11 +613,12 @@ async function btXlsx_(k){
   var B=btCtx_(k), ws=B.ws; if(!ws||!S.cur) return;
   var giu=[]; B.cols.forEach(function(c,x){ if(c[0]!=='hinhAnh'&&c[0]!=='taiLieu') giu.push(x); });
   var d=ws.getData(), rows=d.map(function(r,y){
-    if(B.meta[y].k==='sec') return {group:r[0]+'. '+btChu_(r[1])};
+    if(B.meta[y].k==='sec') return {group:btBoMui_(r[0])+'. '+btChu_(r[1])};
     return {cells:giu.map(function(x){ var v=btChu_(r[x]); return (B.al[x]==='n'&&v)?tkNum_(v):v; })}; });
-  try{ await taiFile_('/export/bang',{ ten:'BÓC TÁCH — '+btTen_(k)+' — '+(S.cur.ten||S.cur.maDA), sheet:'Boc tach',
+  var ten=(k==='tk'?'BÓC TÁCH — ':'')+btTen_(k).toUpperCase()+' — '+(S.cur.ten||S.cur.maDA);
+  try{ await taiFile_('/export/bang',{ ten:ten, sheet:k==='da'?'Du an':'Boc tach',
       cols:giu.map(function(x){ return {label:B.cols[x][1], num:B.al[x]==='n'}; }), rows:rows },
-      'boc-tach-'+S.cur.maDA+'.xlsx'); }
+      (k==='da'?'du-an-':'boc-tach-')+S.cur.maDA+'.xlsx'); }
   catch(e){ toast('Lỗi xuất Excel: '+e.message); }
 }
 // Bật/tắt hàng lọc dưới tiêu đề cột (dựng lại lưới; dữ liệu không đổi)
