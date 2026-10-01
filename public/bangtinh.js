@@ -50,6 +50,7 @@ function ptSheetSua_(m,key){
   if(f==='lnPct') return sec.mode==='item'?f:null;
   return ptCanEditF_(sec,f)?f:null;
 }
+var PT_NOI_BO={dgnt:1, ttnt:1, lnvnd:1, margin:1, markup:1};
 function btColLetter_(i){ var s=''; i++; while(i>0){ var r=(i-1)%26; s=String.fromCharCode(65+r)+s; i=Math.floor((i-1)/26); } return s; }
 
 function renderPTSheet_(host, cols, comp){
@@ -59,6 +60,7 @@ function renderPTSheet_(host, cols, comp){
     cols.forEach(function(c,x){
       var ten=btColLetter_(x)+(y+1);
       if(m.k==='sec') st[ten]='background-color:#e8eaed;font-weight:700;';
+      else if(c[0]==='dvt'||c[0]==='ghichu') st[ten]='font-style:italic;';      // như mẫu: ĐVT, Ghi chú in nghiêng
       if(!ptSheetSua_(m,c[0])) ro.push(ten);
     });
   });
@@ -85,6 +87,8 @@ function renderPTSheet_(host, cols, comp){
   })[0];
   S._ptSheet=ws;
   ro.forEach(function(ten){ try{ ws.setReadOnly(ten,true); }catch(e){} });
+  // cột nội bộ (giá nhà thầu, lợi nhuận) tiêu đề xám đậm — tách khỏi cột báo khách (navy), như mẫu
+  cols.forEach(function(c,x){ if(PT_NOI_BO[c[0]] && ws.headers && ws.headers[x]) ws.headers[x].classList.add('gs-int'); });
   return ws;
 }
 // Ghi 1 ô người dùng sửa vào S.phanTho (đúng hàm của bảng cũ), gom nhiều ô liền nhau -> tính + lưu + vẽ lại 1 lần
@@ -110,47 +114,80 @@ function ptSheetRefresh_(){
   finally{ S._ptSheetBusy=false; ws.ignoreHistory=ih; }
   S._ptSheetMeta=g.meta; ptTotalsBar_(comp);
 }
-// Khung KIỂU EXCEL: ribbon (nhóm có nhãn) · ô địa chỉ + thanh công thức fx · lưới · tab sheet + thanh trạng thái
+// Khung kiểu GOOGLE SHEETS (theo mẫu): 1 hàng công cụ gọn · lưới · dòng trạng thái Σ. Chỉ đặt nút CHẠY THẬT.
+var BT_SVG={
+  undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>',
+  redo:'<path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/>',
+  print:'<path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="8" rx="1"/><path d="M7 14h10v7H7z"/>',
+  filter:'<path d="M3 4h18l-7 8.5V19l-4 2v-8.5z"/>',
+  freeze:'<rect x="3" y="3" width="18" height="18" rx="1"/><path d="M9 3v18M3 9h18"/>',
+  sum:'<path d="M18 4H6l6 8-6 8h12"/>'
+};
+function btI_(k){ return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+BT_SVG[k]+'</svg>'; }
 function ptSheetFrame_(){
-  var z=S._ptZoom||100;
-  function nut(ic,t,tip,fn,on){ return '<button class="xl-btn'+(on?' on':'')+'" title="'+tip+'" onclick="'+fn+'"><span class="xl-ic">'+ic+'</span><span class="xl-t">'+t+'</span></button>'; }
-  function nhom(ten,html){ return '<div class="xl-grp"><div class="xl-grp-b">'+html+'</div><div class="xl-grp-n">'+ten+'</div></div>'; }
-  return '<div class="xl">'
-    +'<div class="xl-ribbon">'
-      +nhom('Hoàn tác', nut('↶','Hoàn tác','Hoàn tác (Ctrl+Z)','S._ptSheet&&S._ptSheet.undo()')+nut('↷','Làm lại','Làm lại (Ctrl+Y)','S._ptSheet&&S._ptSheet.redo()'))
-      +nhom('Dữ liệu', nut('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 4h18l-7 8.5V19l-4 2v-8.5z"/></svg>','Lọc','Bật / tắt ô lọc dưới tên cột','ptSheetFilter_()',S._ptSheetLoc)
-        +nut(icon('lock',18),'Cố định','Cố định cột STT + Nội dung khi cuộn ngang','ptSheetFreeze_()',S._ptSheetFrz!==false))
-      +nhom('Xuất', nut(icon('download',18),'Excel','Tải bảng ra file Excel','ptExportXlsx()'))
-      +'<div class="xl-sp"></div>'
-      +nhom('Chế độ', nut(icon('layers',18),'Bảng cũ','Quay lại bảng cũ','ptSheetToggle_()'))
+  var z=S._ptZoom||100, fs=S._ptFont||13;
+  function b(html,tip,fn,on){ return '<button class="gs-b'+(on?' on':'')+'" title="'+tip+'" onclick="'+fn+'">'+html+'</button>'; }
+  var sep='<span class="gs-sep"></span>';
+  return '<div class="gs">'
+    +'<div class="gs-bar">'
+      +b(icon('search',17),'Tìm trong bảng','ptSheetFind_()')
+      +b(btI_('undo'),'Hoàn tác (Ctrl+Z)','S._ptSheet&&S._ptSheet.undo()')+b(btI_('redo'),'Làm lại (Ctrl+Y)','S._ptSheet&&S._ptSheet.redo()')
+      +b(btI_('print'),'In bảng','ptSheetPrint_()')
+      +'<select class="gs-zoom" title="Thu phóng" onchange="ptSheetZoom_(0,this.value)">'
+        +[50,75,90,100,125,150,200].map(function(v){ return '<option value="'+v+'"'+(v===z?' selected':'')+'>'+v+'%</option>'; }).join('')+'</select>'
+      +sep+'<span class="gs-font">Montserrat</span>'+sep
+      +b('−','Giảm cỡ chữ','ptSheetFont_(-1)')+'<span class="gs-fs">'+fs+'</span>'+b('+','Tăng cỡ chữ','ptSheetFont_(1)')
+      +sep+b(btI_('filter'),'Bật / tắt ô lọc cột','ptSheetFilter_()',S._ptSheetLoc)
+      +b(btI_('freeze'),'Cố định cột STT + Nội dung khi cuộn ngang','ptSheetFreeze_()',S._ptSheetFrz!==false)
+      +b(icon('download',17),'Xuất Excel','ptExportXlsx()')
+      +sep+'<span class="gs-sumic" title="Chọn nhiều ô để xem tổng">'+btI_('sum')+'</span><span class="gs-sum" id="ptSheetSum"></span>'
+      +'<span style="flex:1"></span>'
+      +'<button class="btn ghost sm" onclick="ptSheetToggle_()" title="Quay lại bảng cũ">Bảng cũ</button>'
     +'</div>'
-    +'<div class="xl-fbar"><div class="xl-name" id="xlName">A1</div><div class="xl-fx">fx</div>'
-      +'<input id="xlFx" class="xl-fxin" spellcheck="false" onkeydown="if(event.key===\'Enter\'){event.preventDefault();ptSheetFx_(this.value)}" onchange="ptSheetFx_(this.value)"></div>'
-    +'<div id="ptSheet" class="xl-grid"></div>'
-    +'<div class="xl-foot"><div class="xl-tabs"><span class="xl-tab on">Phần thô</span></div>'
-      +'<div class="xl-status" id="ptSheetSum"></div>'
-      +'<div class="xl-zoom"><button onclick="ptSheetZoom_(-10)" title="Thu nhỏ">−</button><span class="bt-z">'+z+'%</span><button onclick="ptSheetZoom_(10)" title="Phóng to">+</button></div></div>'
+    +'<div id="ptSheet" class="gs-grid" style="--gsfs:'+fs+'px'+(z!==100?';zoom:'+(z/100):'')+'"></div>'
   +'</div>';
 }
-// Chọn ô: ô địa chỉ + thanh công thức (như Excel) và thanh trạng thái Trung bình · Đếm · Tổng
+// Chọn vùng ô: Σ Tổng · TB · Đếm ngay trên hàng công cụ
 function ptSheetSum_(inst,x1,y1,x2,y2){
   S._ptSel=[Math.min(x1,x2),Math.min(y1,y2)];
-  var nm=document.getElementById('xlName'), fx=document.getElementById('xlFx');
-  var a=btColLetter_(Math.min(x1,x2))+(Math.min(y1,y2)+1), b=btColLetter_(Math.max(x1,x2))+(Math.max(y1,y2)+1);
-  if(nm) nm.textContent=(a===b)?a:(a+':'+b);
-  if(fx){ fx.value=String(inst.getValueFromCoords(S._ptSel[0],S._ptSel[1])||''); fx.disabled=inst.isReadOnly(S._ptSel[0],S._ptSel[1]); }
   var el=document.getElementById('ptSheetSum'); if(!el) return;
   var s=0, n=0, so=0;
   for(var y=Math.min(y1,y2); y<=Math.max(y1,y2); y++) for(var x=Math.min(x1,x2); x<=Math.max(x1,x2); x++){
     var v=String(inst.getValueFromCoords(x,y)||'').trim(); if(!v) continue; n++;
     if(/^-?[\d.,]+%?$/.test(v)){ s+=tkNum_(v); so++; } }
-  el.innerHTML = n<2 ? '' : ((so?('<span>Trung bình: <b>'+money(s/so)+'</b></span>'):'')+'<span>Đếm: <b>'+n+'</b></span>'+(so?('<span>Tổng: <b>'+money(s)+'</b></span>'):''));
+  function f(v){ return v.toLocaleString('vi-VN',{maximumFractionDigits:2}); }   // giữ số lẻ (khối lượng 3,5)
+  el.innerHTML = n<2 ? '' : ((so?('<span>Tổng: <b>'+f(s)+'</b></span><span>TB: <b>'+f(s/so)+'</b></span>'):'')+'<span>Đếm: <b>'+n+'</b></span>');
 }
-// Gõ ở thanh công thức rồi Enter = sửa ô đang chọn (đi qua onchange như gõ trong ô, có hoàn tác)
-function ptSheetFx_(v){ var ws=S._ptSheet, c=S._ptSel; if(!ws||!c||ws.isReadOnly(c[0],c[1])) return;
-  if(String(ws.getValueFromCoords(c[0],c[1]))!==String(v)) ws.setValueFromCoords(c[0],c[1],v); }
 function ptSheetFreeze_(){ S._ptSheetFrz=(S._ptSheetFrz===false); renderPhanTho(); }
-function ptSheetZoom_(d){ S._ptZoom=Math.max(50,Math.min(200,(S._ptZoom||100)+d)); var h=document.getElementById('ptSheet');
-  if(h) h.style.zoom=(S._ptZoom/100); var z=document.querySelector('.bt-z'); if(z) z.textContent=S._ptZoom+'%'; }
+function ptSheetZoom_(d,v){ S._ptZoom=v?Number(v):Math.max(50,Math.min(200,(S._ptZoom||100)+d));
+  var h=document.getElementById('ptSheet'); if(h) h.style.zoom=(S._ptZoom/100); }
+function ptSheetFont_(d){ S._ptFont=Math.max(10,Math.min(20,(S._ptFont||13)+d));
+  var h=document.getElementById('ptSheet'); if(h) h.style.setProperty('--gsfs',S._ptFont+'px');
+  var f=document.querySelector('.gs-fs'); if(f) f.textContent=S._ptFont; }
+// Tìm: ô kế tiếp (sau ô đang chọn) có chứa chữ cần tìm -> chọn + cuộn tới
+async function ptSheetFind_(){
+  var ws=S._ptSheet; if(!ws) return;
+  var q=await askInput_({ title:'Tìm trong bảng', label:'Chữ cần tìm', value:S._ptFindQ||'', ok:'Tìm' }); if(q==null) return;
+  q=String(q).trim(); S._ptFindQ=q; if(!q) return;
+  var d=ws.getData(), nx=(d[0]||[]).length, cur=S._ptSel?(S._ptSel[1]*nx+S._ptSel[0]):-1, k=spNorm_(q);
+  for(var i=1;i<=d.length*nx;i++){ var p=(cur+i)%(d.length*nx), y=Math.floor(p/nx), x=p%nx;
+    if(spNorm_(String(d[y][x]||'')).indexOf(k)>=0){ ws.updateSelectionFromCoords(x,y,x,y);
+      var c=ws.getCellFromCoords(x,y); if(c&&c.scrollIntoView) c.scrollIntoView({block:'center',inline:'nearest'}); return; } }
+  toast('Không thấy "'+q+'" trong bảng');
+}
+// In: dựng bảng HTML gọn từ đúng dữ liệu đang hiện (tên cột + nhóm + dòng)
+function ptSheetPrint_(){
+  var ws=S._ptSheet; if(!ws) return;
+  var cols=S._ptSheetCols, meta=S._ptSheetMeta, d=ws.getData();
+  var th='<tr>'+cols.map(function(c){ return '<th>'+esc(c[1])+'</th>'; }).join('')+'</tr>';
+  var tb=d.map(function(r,y){ return '<tr'+(meta[y]&&meta[y].k==='sec'?' class="s"':'')+'>'+r.map(function(v,x){
+      return '<td class="'+(cols[x][2]==='n'?'n':(cols[x][2]==='c'?'c':''))+'">'+esc(v)+'</td>'; }).join('')+'</tr>'; }).join('');
+  var w=window.open('','_blank'); if(!w){ toast('Cho phép popup để in'); return; }
+  w.document.write('<!doctype html><title>Phần thô — '+esc((S.cur&&S.cur.ten)||'')+'</title><style>@page{size:A4 landscape;margin:10mm}'
+    +'body{font:11px Montserrat,Arial,sans-serif}table{border-collapse:collapse;width:100%}th{background:#1f3a5f;color:#fff;font-size:10px;padding:6px 4px;border:1px solid #2d4a6e}'
+    +'td{padding:4px;border:1px solid #dadce0;vertical-align:top}td.n{text-align:right}td.c{text-align:center}tr.s td{background:#e8eaed;font-weight:700}</style>'
+    +'<h3>'+esc((S.cur&&S.cur.ten)||'')+' — Phần thô</h3><table>'+th+tb+'</table>');
+  w.document.close(); setTimeout(function(){ w.focus(); w.print(); },300);
+}
 // Bật/tắt hàng lọc dưới tiêu đề cột (dựng lại lưới; dữ liệu không đổi)
 function ptSheetFilter_(){ S._ptSheetLoc=!S._ptSheetLoc; renderPhanTho(); if(S._ptSheetLoc) toast('Bấm vào ô dưới tên cột để lọc'); }
