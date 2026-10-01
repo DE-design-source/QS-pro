@@ -4671,7 +4671,8 @@ td.rsel input,td.rsel textarea{background:transparent}
 body.bt-tk #v-boc #tkToolBox .tk-toolhr{display:none}           /* giữ hàng "Cột hiển thị" + chip (thu gọn được) */
 body.bt-tk #v-boc #tkToolBox{margin-bottom:-4px}   /* khung cha đã có gap 10px -> còn 6px tới bảng */
 #tkSheetWrap > .gs{margin-top:0}
-body.bt-tk #v-boc{padding-bottom:12px}
+body.bt-tk #v-boc{padding-bottom:0}
+body.bt-tk:has(#v-boc.on) #bocGrid{margin-bottom:0}
 /* đang ở tab Bóc tách dạng bảng tính: bỏ giới hạn bề ngang -> trang trải hết 2 mép màn hình, bảng thấy nhiều cột hơn */
 body.bt-tk:has(#v-boc.on) .wrap, body:has(#v-duan.on #daSheet) .wrap{max-width:none;padding-left:14px;padding-right:14px}   /* bảng tính vừa khít màn hình (tkSheetCao_): bỏ khoảng đệm đáy để trang không cuộn */
 .gs-tools{display:inline-flex;align-items:center}

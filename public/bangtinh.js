@@ -252,16 +252,13 @@ function tkSheetCao_(){
   var c=document.querySelector('#tkSheet .jss_content'); if(!c || !c.offsetParent) return;
   // đáy mục tiêu = đáy cửa sổ; panel danh mục bên trái kéo dài tới đúng đáy đó -> 2 cột bằng nhau, trang không cuộn
   var y0=window.pageYOffset||0, grid=document.getElementById('bocGrid'), left=document.getElementById('leftCat');
-  var gTop=grid?grid.getBoundingClientRect().top+y0:0, day=Math.max(gTop+420, window.innerHeight-16-(S._tkCaoBu||0));
+  var gTop=grid?grid.getBoundingClientRect().top+y0:0, day=Math.max(gTop+420, window.innerHeight-14);
   // số đo màn hình (getBoundingClientRect) đã nhân zoom của app (.wrap zoom .9 …), còn CSS height chưa -> chia lại
   if(left){ var lh=Math.round((day-(left.getBoundingClientRect().top+y0))/btZf_(left))+'px';
     if(left.style.height!==lh){ left.style.height=lh; left.style.maxHeight=lh; } }
   var gs=c.closest('.gs'), h=parseFloat(c.style.height)||c.offsetHeight;
   h=Math.max(260, Math.floor(h+(day-(gs.getBoundingClientRect().bottom+y0))/btZf_(c)));   // dời đúng phần chênh của đáy khung
   if(c.style.height!==h+'px'){ c.style.height=h+'px'; c.style.maxHeight=h+'px'; }
-  // zoom của app làm trang vẫn dư vài chục px (trình duyệt tính cao trang theo cỡ chưa zoom) -> bù dần, tối đa 120px
-  var du=document.documentElement.scrollHeight-window.innerHeight;
-  if(du>0 && (S._tkCaoBu||0)<120){ S._tkCaoBu=(S._tkCaoBu||0)+du; requestAnimationFrame(tkSheetCao_); }
   if(!S._tkCaoObs && window.ResizeObserver){                  // khối phía trên đổi cao -> tính lại (1 lần / khung hình)
     var hen=0; S._tkCaoObs=new ResizeObserver(function(){ if(!hen) hen=requestAnimationFrame(function(){ hen=0; tkSheetCao_(); }); });
     S._tkCaoObs.observe(document.body);
