@@ -4665,7 +4665,8 @@ td.rsel input,td.rsel textarea{background:transparent}
 .gs-sum span{margin-left:12px}
 /* bảng tính Bóc tách: khối "Công cụ bảng" + "Cột hiển thị" gộp vào hàng công cụ của lưới */
 body.bt-tk #v-boc #tkToolBox .tk-toolhr{display:none}           /* giữ hàng "Cột hiển thị" + chip (thu gọn được) */
-body.bt-tk #v-boc #tkToolBox{margin-bottom:8px}
+body.bt-tk #v-boc #tkToolBox{margin-bottom:-4px}   /* khung cha đã có gap 10px -> còn 6px tới bảng */
+#tkSheetWrap > .gs{margin-top:0}
 .gs-tools{display:inline-flex;align-items:center}
 .gs-tools .tk-toolrow{display:flex;align-items:center;gap:2px;margin:0;padding:0;border:none}
 .gs-grid td.gs-drag{cursor:grab}
@@ -4683,6 +4684,15 @@ body.gs-keo,body.gs-keo *{cursor:grabbing!important;user-select:none}
 #tkSheetWrap.gs-tha .gs{outline:2px dashed #1a73e8;outline-offset:2px}
 #tkSheetWrap.gs-tha::after{content:attr(data-tha);position:absolute;left:50%;bottom:64px;transform:translateX(-50%);z-index:30;pointer-events:none;
   background:#1a73e8;color:#fff;font-size:13px;font-weight:600;padding:8px 14px;border-radius:99px;box-shadow:0 6px 20px rgba(26,115,232,.35);white-space:nowrap}
+/* cột cố định (sticky) — nền đặc để chữ cột khác cuộn qua bên dưới không lộ ra */
+.gs-grid .jss_worksheet td.gs-frz{position:sticky;z-index:2;background-color:#fff}
+.gs-grid .jss_worksheet > thead > tr > td.gs-frz{z-index:6;background-color:var(--gh)}
+.gs-grid .jss_worksheet > thead > tr:last-child > td.gs-frz{background-color:#1f3a5f}
+.gs-grid .jss_worksheet > tbody > tr > td.gs-frz:first-child{background-color:var(--gh)}
+.gs-grid .jss_worksheet td.gs-frz-cuoi{box-shadow:3px 0 4px -2px rgba(60,64,67,.25)}
+.gs-grid .jss_worksheet td.gs-frz.highlight{background-color:#e8f0fe}
+.gs-grid .jss_worksheet td.gs-frz.highlight-selected{background-color:#fff}
+.gs-grid .jss_content{scroll-behavior:auto;overscroll-behavior-x:contain}
 .gs-foot{display:flex;align-items:center;padding:10px 12px;border-top:1px solid #dadce0;background:#fbfcfe}
 .gs-txt{font-size:12.5px;font-weight:500;gap:5px;padding:0 8px;white-space:nowrap}
 .gs-img{max-width:64px;max-height:64px;object-fit:contain;cursor:zoom-in;display:block;margin:0 auto}

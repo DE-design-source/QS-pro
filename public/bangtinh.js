@@ -33,7 +33,7 @@ function btTao_(k, host, cols, meta, al, opt, ghi, ro, noiBo){
     tabs:false, toolbar:false,
     worksheets:[{
       data:opt.data, style:opt.style, mergeCells:opt.merge||{}, wordWrap:true, tableOverflow:true, tableHeight:opt.h||'calc(100vh - 290px)', tableWidth:'100%',
-      freezeColumns:B.frz?Math.min(opt.frz,cols.length):0, allowInsertRow:false, allowInsertColumn:false, allowDeleteRow:false,
+      freezeColumns:0, allowInsertRow:false, allowInsertColumn:false, allowDeleteRow:false,
       allowDeleteColumn:false, allowRenameColumn:false, columnSorting:false, filters:!!B.loc,
       nestedHeaders:[cols.map(function(c,i){ return {title:btColLetter_(i)}; })],
       columns:opt.columns
@@ -50,6 +50,7 @@ function btTao_(k, host, cols, meta, al, opt, ghi, ro, noiBo){
       if(k==='tk' && m && m.k==='sec'){ S.selFloor=m.g==='CHƯA PHÂN TẦNG'?'':m.g; tkSheetFoot_(); } }
   })[0];
   B.ws=ws;
+  if(B.frz) btCoDinh_(host, Math.min(opt.frz,cols.length));
   // chế độ Gọn: ô bị cắt chữ -> rê chuột hiện đủ nội dung
   host.addEventListener('mouseover',function(e){ var td=e.target.closest&&e.target.closest('tbody td[data-x]');
     if(!td||!B.gon) return; td.title=(td.scrollWidth>td.clientWidth+1||td.scrollHeight>td.clientHeight+1)?td.innerText:''; });
@@ -60,6 +61,17 @@ function btTao_(k, host, cols, meta, al, opt, ghi, ro, noiBo){
   // cột nội bộ (giá vốn, lợi nhuận) tiêu đề xám đậm — tách khỏi cột báo khách (navy), như mẫu
   cols.forEach(function(c,x){ if(noiBo[c[0]] && ws.headers && ws.headers[x]) ws.headers[x].classList.add('gs-int'); });
   return ws;
+}
+/* Cố định N cột đầu (+ cột số dòng) bằng position:sticky của trình duyệt. Không dùng freezeColumns của thư viện:
+   nó dời từng ô bằng JS mỗi lần cuộn -> kéo ngang giật, và hàng chữ A/B/C không dính theo. */
+function btCoDinh_(host, n){
+  var t=host.querySelector('table.jss_worksheet'); if(!t||!n) return;
+  var hd=t.tHead.rows, ten=hd[hd.length-1], lefts=[0], x=0;
+  for(var i=0;i<=n;i++){ x+=ten.cells[i]?ten.cells[i].offsetWidth:0; lefts.push(x); }   // cells[0] = cột số dòng
+  function gan(td,i){ if(!td) return; td.classList.add('gs-frz'); td.style.left=lefts[i]+'px'; if(i===n) td.classList.add('gs-frz-cuoi'); }
+  [].forEach.call(hd,function(tr){ for(var i=0;i<=n;i++) gan(tr.cells[i],i); });
+  [].forEach.call(t.tBodies[0].rows,function(tr){ gan(tr.cells[0],0);
+    for(var i=1;i<=n;i++) gan(tr.querySelector('td[data-x="'+(i-1)+'"]'),i); });
 }
 // Ghi giá trị mới vào lưới (không dựng lại -> giữ ô đang chọn, vị trí cuộn). Ô tự tính KHÔNG vào lịch sử:
 // Ctrl+Z chỉ lùi thao tác của người dùng (lùi ô gõ -> ghi lại -> tính lại)
