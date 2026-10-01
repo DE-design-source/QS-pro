@@ -39,7 +39,9 @@ function btTao_(k, host, cols, meta, al, opt, ghi, ro, noiBo){
     // Hoàn tác / làm lại: thư viện đổi ô nhưng không gọi onchange -> tự ghi giá trị cũ / mới vào dữ liệu
     onundo:function(inst,h){ ((h&&h.records)||[]).forEach(function(r){ ghi(r.x,r.y,r.oldValue); }); },
     onredo:function(inst,h){ ((h&&h.records)||[]).forEach(function(r){ ghi(r.x,r.y,r.value); }); },
-    onselection:function(inst,x1,y1,x2,y2){ btSum_(k,inst,x1,y1,x2,y2); }
+    onselection:function(inst,x1,y1,x2,y2){ btSum_(k,inst,x1,y1,x2,y2);
+      var m=B.meta[Math.min(y1,y2)];                 // bảng Bóc tách: bấm dòng tầng = chọn tầng để thêm hạng mục vào
+      if(k==='tk' && m && m.k==='sec'){ S.selFloor=m.g==='CHƯA PHÂN TẦNG'?'':m.g; tkSheetFoot_(); } }
   })[0];
   B.ws=ws;
   if(opt.menu){ ws.options.contextMenu=function(){ return false; };      // tắt menu của thư viện, dùng menu của app
@@ -180,6 +182,7 @@ function tkSheetGrid_(cols, order, groups){
 function tkSheetVe_(host, cols, order, groups){
   var B=btCtx_('tk'), g=tkSheetGrid_(cols, order, groups);
   tkSheetGop_(true);
+  tkSheetFoot_();
   var cb=document.getElementById('tkColBtn'); if(cb) cb.innerHTML=icon('sliders',15)+' Cột '+cols.length+'/'+COLS.length;
   var sig=cols.map(function(c){ return c[0]; }).join()+'|'+g.meta.map(function(m){ return m.k==='sec'?('#'+m.g):m.id; }).join();
   if(btSong_('tk') && B.sig===sig && host.contains(B.ws.element)){ btGhiLuoi_('tk', g.rows); return; }
@@ -257,6 +260,14 @@ async function tkSheetDien_(x,y){
   if(!await xacNhan_('Điền "'+String(v).slice(0,30)+'" cho '+ids.length+' dòng còn lại trong cột "'+B.cols[x][1]+'"?')) return;
   tkApplyEdits_(ids.map(function(id){ var l=lineOf_(id); return {id:id, fields:l&&tkFieldsFor_(l,k,v)}; }),'Đã điền xuống');
 }
+// Nút thêm tầng / hạng mục ngay dưới lưới (như bảng cũ). Hạng mục mới vào tầng đang chọn (bấm 1 ô của dòng tầng để chọn)
+function tkSheetFoot_(){
+  var el=document.getElementById('tkSheetFoot'); if(!el) return;
+  var f=(S.selFloor||'').trim();
+  el.innerHTML='<button class="addbtn floor" onclick="openAddFloor(event)">'+icon('plus',15)+'Thêm tầng / phòng</button>'
+    +'<button class="addbtn item" onclick="addBlankItem()" title="Thêm 1 hạng mục trống vào tầng đang chọn">'+icon('plus',15)+'Thêm hạng mục'
+      +(f?'<span class="addbtn-sub">vào '+esc(f)+'</span>':'')+'</button>';
+}
 // Xoá các dòng sản phẩm nằm trong vùng đang chọn (dùng đúng luồng xoá hàng loạt của bảng cũ, có hỏi lại)
 function tkSheetDel_(){
   var B=btCtx_('tk'), r=B.selR; if(!r){ toast('Chọn ô ở các dòng cần xoá trước'); return; }
@@ -310,6 +321,7 @@ function btFrame_(k){
       +'<button class="btn ghost sm" onclick="btToggle_(\''+k+'\')" title="Quay lại bảng cũ">Bảng cũ</button>'
     +'</div>'
     +'<div id="'+k+'Sheet" class="gs-grid" style="--gsfs:'+fs+'px'+(z!==100?';zoom:'+(z/100):'')+'"></div>'
+    +(k==='tk'?'<div class="gs-foot" id="tkSheetFoot"></div>':'')
   +'</div>';
 }
 function ptSheetFrame_(){ return btFrame_('pt'); }
