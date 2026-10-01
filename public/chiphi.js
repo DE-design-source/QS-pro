@@ -97,7 +97,7 @@ function renderChiphi(){
      +'<span class="tkt-i">'+pgVat_()+'<b>'+money(vat)+' đ</b></span>'
      +pgStat_('Tổng',money(ban+vat)+' đ','grand'));
 
-  box.innerHTML='<div class="sechd"><h2>Chi phí</h2><span class="count">'+scope.length+'</span>'
+  box.innerHTML='<div class="sechd"><h2>Chi phí</h2><span class="count">'+scope.length+'</span>'+(btSan_()?btCheDoNut_():'')
       +'<span class="sp" style="flex:1"></span>'
       +'<span class="cp-hint">'+icon('sliders',13)+' Bấm thẳng vào ô để sửa giá NCC · CK · %LN · giá bán — số tính lại ngay</span></div>'
     +stat+hmPTNote_()+hmLacNote_(scope.length)

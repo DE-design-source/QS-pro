@@ -74,7 +74,7 @@ function renderDuAn(){
       if(k==='soLuong') return '<td class="num"><b>'+daLines_.reduce(function(s,l){return s+(Number(l.soLuong)||0);},0)+'</b></td>';
       return '<td class="'+alignCls(k)+'"></td>';
     }).join('')+'</tr>'; }
-  box.innerHTML='<div class="sechd"><h2>Sản phẩm trong dự án</h2><span class="count">'+daLines_.length+'</span><span class="sp" style="flex:1"></span>'
+  box.innerHTML='<div class="sechd"><h2>Sản phẩm trong dự án</h2><span class="count">'+daLines_.length+'</span>'+(btSan_()?btCheDoNut_():'')+'<span class="sp" style="flex:1"></span>'
       +'<span class="cp-hint">'+icon('building',13)+' '+esc(S.cur.ten||'')+' — bấm ô để sửa</span></div>'
     +stat+hmPTNote_()+hmSaiNote_()+hmLacNote_(daLines_.length)+colbar
     +(daBt?'<div id="daSheetSlot"></div>':pgTblHost_('da','<div class="tbl-wrap"><table class="tk cpflat" style="min-width:'+totalW+'px;width:100%">'+colg+head+body+foot+'</table></div>'));

@@ -4705,6 +4705,14 @@ body.gs-keo,body.gs-keo *{cursor:grabbing!important;user-select:none}
 /* dòng vừa thêm / vừa nhảy tới: nháy vàng */
 @keyframes gsMoi{0%,40%{background-color:#fff3b0}100%{background-color:transparent}}
 .gs-grid tr.gs-moi > td{animation:gsMoi 1.5s ease-out}
+.gs-trong{min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#5f6368;text-align:center;padding:30px;font-size:13px}
+.gs-trong svg{color:#9aa0a6} .gs-trong b{color:#1f1f1f;font-size:14px} .gs-trong span{max-width:420px;line-height:1.5}
+/* công tắc 2 chế độ bảng: Bảng tính | Bảng thường */
+.bt-mode{display:inline-flex;align-items:center;gap:2px;padding:2px;border:1px solid #dadce0;border-radius:99px;background:#fff;margin-left:10px;flex:none}
+.bt-mode button{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 11px;border:none;border-radius:99px;background:transparent;font:inherit;font-size:12px;font-weight:550;color:#5f6368;cursor:pointer;white-space:nowrap}
+.bt-mode button svg{width:14px;height:14px}
+.bt-mode button:hover{color:#1a73e8}
+.bt-mode button.on{background:#1f3a5f;color:#fff}
 .gs-foot{display:flex;align-items:center;padding:10px 12px;border-top:1px solid #dadce0;background:#fbfcfe}
 .gs-txt{font-size:12.5px;font-weight:500;gap:5px;padding:0 8px;white-space:nowrap}
 .gs-img{max-width:64px;max-height:64px;object-fit:contain;cursor:zoom-in;display:block;margin:0 auto}
@@ -6370,6 +6378,7 @@ body.fold-cols .bg-cols .colchips{display:flex}
           </div>
           <div class="sheets" id="tkSheets"></div>
           <div class="sp" style="flex:1"></div>
+          <span id="btModeSlot"></span>
           <div class="tk-totals" id="tkTotals"></div>
           <span class="tk-mini" id="tkMini"></span>
           <button class="blk-fold" id="foldTotalsBtn" onclick="foldToggle_('totals')" title="Thu gọn dải tổng tiền"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>

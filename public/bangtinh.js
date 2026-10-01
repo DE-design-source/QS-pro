@@ -5,8 +5,22 @@
    Lưu ý: khung #{k}Sheet giữ nguyên qua các lần dựng lại lưới -> sự kiện gắn vào khung chỉ gắn 1 lần (cờ _btNghe/_tkKeo). ═══ */
 'use strict';
 
-// Luôn dùng bảng tính. Bảng cũ chỉ còn làm dự phòng khi lưới lỗi (tới lúc tải lại trang) — không còn nút chuyển.
-function btOn_(k){ return !(S._btLoi && S._btLoi[k]); }
+/* 2 chế độ người dùng tự chọn (công tắc "Bảng tính | Bảng thường", nhớ theo máy, chung cho mọi bảng):
+   bảng tính (mặc định) hoặc bảng thường (bảng cũ). Lưới lỗi thì tự về bảng thường tới lúc tải lại trang. */
+function btCheDo_(){ try{ return localStorage.getItem('qs_bt_mode')==='cu'?'cu':'moi'; }catch(e){ return 'moi'; } }
+function btOn_(k){ return !(S._btLoi && S._btLoi[k]) && btCheDo_()!=='cu'; }
+function btCheDoNut_(){ var m=btCheDo_();
+  return '<div class="bt-mode" title="Chọn kiểu bảng — máy sẽ nhớ">'
+    +'<button class="'+(m==='moi'?'on':'')+'" onclick="btCheDoDat_(\'moi\')">'+btI_('freeze')+'Bảng tính</button>'
+    +'<button class="'+(m==='cu'?'on':'')+'" onclick="btCheDoDat_(\'cu\')">'+icon('list',15)+'Bảng thường</button></div>'; }
+function btCheDoDat_(v){
+  try{ localStorage.setItem('qs_bt_mode',v); }catch(e){}
+  S._btLoi={}; ['tk','cp','da','pt'].forEach(function(k){ var B=btCtx_(k); B.ws=null; B.frame=null; B.sig=''; });
+  tkSheetGop_(false);                       // trả hàng nút "Công cụ bảng" về chỗ cũ TRƯỚC khi xoá khung (nó đang nằm trong khung)
+  var tsw=document.getElementById('tkSheetWrap'); if(tsw) tsw.innerHTML='';
+  renderTable(); if(typeof refreshActiveTab_==='function') refreshActiveTab_();
+  toast(v==='cu'?'Đã chuyển sang Bảng thường':'Đã chuyển sang Bảng tính');
+}
 function btSet_(k,on){ S._btLoi=S._btLoi||{}; S._btLoi[k]=!on; }
 function btSan_(){ return typeof jspreadsheet==='function'; }            // thư viện nạp được chưa
 function btVeLai_(k){ var B=btCtx_(k); B.ws=null; if(k==='cp'||k==='da') B.frame=null; btVe_(k); }   // dựng lại hẳn lưới (+ khung)
@@ -395,6 +409,14 @@ function tkSheetDen_(id){
   if(td) try{ td.scrollIntoView({block:'nearest', inline:'nearest'}); }catch(e){}
   if(tr){ tr.classList.remove('gs-moi'); void tr.offsetWidth; tr.classList.add('gs-moi'); setTimeout(function(){ tr.classList.remove('gs-moi'); },1600); }
   return true;
+}
+// Hạng mục chưa có dòng nào: vẫn giữ khung bảng tính (không nhảy về bảng thường) + hướng dẫn + nút thêm ở dưới
+function tkSheetTrong_(){
+  var host=document.getElementById('tkSheet'), B=btCtx_('tk'); if(!host) return;
+  B.ws=null; B.sig=''; B.meta=[];
+  host.innerHTML='<div class="gs-trong">'+icon('layers',30)+'<b>Hạng mục này chưa có sản phẩm</b>'
+    +'<span>Kéo sản phẩm ở danh mục bên trái thả vào đây, bấm ＋ trên thẻ sản phẩm, hoặc bấm <b>Thêm hạng mục</b> bên dưới.</span></div>';
+  tkSheetGop_(true); tkSheetFoot_(); tkSheetNhanTha_();
 }
 // Xoá các dòng sản phẩm nằm trong vùng đang chọn (dùng đúng luồng xoá hàng loạt của bảng cũ, có hỏi lại)
 function tkSheetDel_(){

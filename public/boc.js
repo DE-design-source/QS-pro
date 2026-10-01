@@ -455,6 +455,7 @@ function renderTable(){
   var isPT = (code==='3.1');
   var tkN=document.getElementById('tkNormal'), pw=document.getElementById('ptWrap'), tsw=document.getElementById('tkSheetWrap');
   var tkBt=!isPT && !!S.cur && btSan_() && btOn_('tk');      // chế độ bảng tính (bangtinh.js) thay cho bảng cũ
+  var bms=document.getElementById('btModeSlot'); if(bms) bms.innerHTML=btSan_()?btCheDoNut_():'';   // công tắc Bảng tính | Bảng thường
   // Phần thô chỉ là 1 hạng mục: khi chọn thì hiện bảng của nó ở khu bên phải,
   // vẫn giữ nguyên khung chọn sản phẩm bên trái + bố cục 2 cột.
   if(tkN) tkN.style.display = (isPT||tkBt)?'none':'';
@@ -481,14 +482,14 @@ function renderTable(){
   lines.forEach(function(l){ var g=(l.tang||'').trim()||'CHƯA PHÂN TẦNG'; (groups[g]=groups[g]||[]).push(l); });
   var order=floorsList().slice();
   Object.keys(groups).forEach(function(g){ if(order.indexOf(g)<0) order.push(g); });
-  if(tkBt && !lines.length){ tkBt=false; tkN.style.display=''; tsw.style.display='none'; }
   if(!tkBt && typeof tkSheetGop_==='function') tkSheetGop_(false);   // bảng trống: dùng bảng cũ (có nút thêm tầng / hạng mục)
   if(tkBt){
     try{
       if(!document.getElementById('tkSheet')) tsw.innerHTML=btFrame_('tk');
+      if(!lines.length){ tkSheetTrong_(); tkTongTien_(lines); return; }    // hạng mục trống: vẫn khung bảng tính
       tkSheetVe_(document.getElementById('tkSheet'), cols, order.filter(function(g){ return (groups[g]||[]).length; }), groups);
       tkTongTien_(lines); return;
-    }catch(e){ console.error(e); btSet_('tk',false); tsw.innerHTML=''; toast('Bảng tính lỗi — chuyển về bảng cũ'); renderTable(); return; }
+    }catch(e){ console.error(e); btSet_('tk',false); tkSheetGop_(false); tsw.innerHTML=''; toast('Bảng tính lỗi — chuyển về bảng cũ'); renderTable(); return; }
   }
   var totalW=cols.reduce(function(s,c){ return s+colW(c[0]); },0);
   /* "Vừa 1 màn hình": co cột theo tỉ lệ cho khít bề ngang khung -> hết kéo ngang, chỉ kéo dọc.
