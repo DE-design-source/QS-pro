@@ -2136,6 +2136,10 @@ table.pt tr.pt-empty td{border:none;background:#fcfdfe;padding:0}
 .pd .spec .k{color:var(--ink-3);font-weight:400;flex:1;min-width:0;line-height:1.35}
 .pd .spec .v{font-weight:600;color:var(--ink);text-align:right;letter-spacing:-.008em;
   white-space:normal;overflow-wrap:anywhere;min-width:0}
+/* nhãn luôn giữ chỗ tối thiểu: giá trị dài (VD "30 phút (tùy thuộc vào nhiệt độ…)") không được ép nhãn
+   co về 0 rồi xuống dòng TỪNG KÝ TỰ; nhãn tự xuống dòng theo chữ khi hẹp */
+.pd .spec .k{flex:1 0 min(40%,9.5em);overflow-wrap:normal;word-break:normal}
+.pd .spec .v{flex:0 1 auto}
 .pd .pd-keys{gap:9px 14px;margin:10px 0 4px}
 .pd .pd-key{font-size:12.5px;font-weight:550;color:var(--ink)}
 .pd .pd-key .ic{width:21px;height:21px;border-radius:var(--r-sm);background:#f0f5ff}
