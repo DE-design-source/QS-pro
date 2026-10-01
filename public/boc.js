@@ -450,10 +450,12 @@ function renderTable(){
   var code=S.node;
   // Đề mục "Phần thô" (3.1) -> bảng ước tính chi phí xây dựng thô (theo mẫu Excel)
   var isPT = (code==='3.1');
-  var tkN=document.getElementById('tkNormal'), pw=document.getElementById('ptWrap');
+  var tkN=document.getElementById('tkNormal'), pw=document.getElementById('ptWrap'), tsw=document.getElementById('tkSheetWrap');
+  var tkBt=!isPT && !!S.cur && btSan_() && btOn_('tk');      // chế độ bảng tính (bangtinh.js) thay cho bảng cũ
   // Phần thô chỉ là 1 hạng mục: khi chọn thì hiện bảng của nó ở khu bên phải,
   // vẫn giữ nguyên khung chọn sản phẩm bên trái + bố cục 2 cột.
-  if(tkN) tkN.style.display = isPT?'none':'';
+  if(tkN) tkN.style.display = (isPT||tkBt)?'none':'';
+  if(tsw) tsw.style.display = tkBt?'':'none';
   if(pw) pw.style.display = isPT?'':'none';
   var tbx=document.getElementById('tkToolBox');
   if(tbx) tbx.classList.toggle('pt', isPT);      // Phần thô: vẫn giữ hàng công cụ, ẩn hàng chọn cột của bảng bóc tách
@@ -475,6 +477,14 @@ function renderTable(){
   lines.forEach(function(l){ var g=(l.tang||'').trim()||'CHƯA PHÂN TẦNG'; (groups[g]=groups[g]||[]).push(l); });
   var order=floorsList().slice();
   Object.keys(groups).forEach(function(g){ if(order.indexOf(g)<0) order.push(g); });
+  if(tkBt && !lines.length){ tkBt=false; tkN.style.display=''; tsw.style.display='none'; }   // bảng trống: dùng bảng cũ (có nút thêm tầng / hạng mục)
+  if(tkBt){
+    try{
+      if(!document.getElementById('tkSheet')) tsw.innerHTML=btFrame_('tk');
+      tkSheetVe_(document.getElementById('tkSheet'), cols, order.filter(function(g){ return (groups[g]||[]).length; }), groups);
+      tkTongTien_(lines); return;
+    }catch(e){ console.error(e); btSet_('tk',false); tsw.innerHTML=''; toast('Bảng tính lỗi — chuyển về bảng cũ'); renderTable(); return; }
+  }
   var totalW=cols.reduce(function(s,c){ return s+colW(c[0]); },0);
   /* "Vừa 1 màn hình": co cột theo tỉ lệ cho khít bề ngang khung -> hết kéo ngang, chỉ kéo dọc.
      Có SÀN bề rộng từng cột: bật quá nhiều cột thì co nữa chữ sẽ vỡ thành từng ký tự, nên
@@ -558,7 +568,10 @@ function renderTable(){
   if(_w && (_sT||_sL) && (_w.scrollTop!==_sT||_w.scrollLeft!==_sL)){ _w.scrollTop=_sT; _w.scrollLeft=_sL; }
   tkRowNewPaint_();    // giữ vệt nháy của dòng vừa thêm qua các lần render lại
   renderActGutter();   // nút xoá đặt NGOÀI bảng (gutter phải), đồng bộ cuộn
-  // ----- Tổng tiền (chưa VAT / VAT / tổng thành tiền) -----
+  tkTongTien_(lines);
+}
+// ----- Tổng tiền (chưa VAT / VAT / tổng thành tiền) -----
+function tkTongTien_(lines){
   var sub=lines.reduce(function(s,l){ return s+(Number(l.thanhTienBan)||0); },0);
   var vatPct=Number(S.cur&&S.cur.vat)||0;
   var vat=Math.round(sub*vatPct/100);
@@ -1613,6 +1626,7 @@ function tkToolsSync_(){
     +'</span><span class="tk-tsep"></span><span class="tk-tgrp">'   // nhóm 2: cách hiển thị bảng
     +qbBtn_('qbFit',QB_IC.fit,tkFitOn_()?'Đang co cột vừa khung — bấm để trả về bề rộng đã đặt (có kéo ngang)':'Co cột cho vừa bề ngang khung, hết kéo ngang','tkFitToggle_()',tkFitOn_())
     +qbBtn_('qbFull',QB_IC.full,tkFullOn_()?'Thoát toàn màn hình (Esc)':'Chỉ còn bảng, chiếm cả màn hình','tkFullToggle_()',tkFullOn_())
+    +(btSan_()?qbBtn_('qbSheet',icon('layers',16),btOn_('tk')?'Đang xem dạng bảng tính — bấm để về bảng cũ':'Xem dạng bảng tính (như Google Sheets)','btToggle_(\'tk\');tkToolsSync_()',btOn_('tk')):'')
     +'</span>';
 }
 
