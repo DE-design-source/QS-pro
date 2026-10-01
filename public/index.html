@@ -4664,7 +4664,8 @@ td.rsel input,td.rsel textarea{background:transparent}
 .gs-sum b{font-weight:600;color:#1f1f1f}
 .gs-sum span{margin-left:12px}
 /* bảng tính Bóc tách: khối "Công cụ bảng" + "Cột hiển thị" gộp vào hàng công cụ của lưới */
-body.bt-tk #v-boc #tkToolBox{display:none}
+body.bt-tk #v-boc #tkToolBox .tk-toolhr{display:none}           /* giữ hàng "Cột hiển thị" + chip (thu gọn được) */
+body.bt-tk #v-boc #tkToolBox{margin-bottom:8px}
 .gs-tools{display:inline-flex;align-items:center}
 .gs-tools .tk-toolrow{display:flex;align-items:center;gap:2px;margin:0;padding:0;border:none}
 .gs-grid td.gs-drag{cursor:grab}
@@ -4673,6 +4674,10 @@ body.bt-tk #v-boc #tkToolBox{display:none}
 body.gs-keo,body.gs-keo *{cursor:grabbing!important;user-select:none}
 .gs-grid tr.gs-dz-t>td{box-shadow:inset 0 2px 0 #1a73e8}
 .gs-grid tr.gs-dz-b>td{box-shadow:inset 0 -2px 0 #1a73e8}
+/* chế độ Gọn: 1 hàng chữ / dòng, chữ dài cắt bằng … */
+.gs-grid.gs-gon .jss_worksheet > tbody > tr > td{white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;max-width:0;padding-top:5px;padding-bottom:5px}
+.gs-grid.gs-gon .gs-img{max-height:34px;max-width:46px}
+.gs-gonb svg{flex:none}
 .gs-foot{display:flex;align-items:center;padding:10px 12px;border-top:1px solid #dadce0;background:#fbfcfe}
 .gs-txt{font-size:12.5px;font-weight:500;gap:5px;padding:0 8px;white-space:nowrap}
 .gs-img{max-width:64px;max-height:64px;object-fit:contain;cursor:zoom-in;display:block;margin:0 auto}
@@ -4699,7 +4704,7 @@ body.gs-keo,body.gs-keo *{cursor:grabbing!important;user-select:none}
 .gs-grid .jss_worksheet .highlight-bottom{border-bottom:2px solid var(--gb)!important}
 .gs-grid .jss_worksheet .highlight-left{border-left:2px solid var(--gb)!important;box-shadow:none}
 .gs-grid .jss_worksheet .highlight-right{border-right:2px solid var(--gb)!important}
-.gs-grid .jss_corner{background:var(--gb);width:6px;height:6px;border:1px solid #fff;border-radius:50%}
+.gs-grid .jss_corner{display:none}   /* nút kéo-điền ở góc ô: dễ bấm nhầm, đã có chuột phải → Điền xuống + Ctrl+C/V */
 .gs-grid .jss_worksheet .editor, .gs-grid .jss_worksheet td.edition{box-shadow:inset 0 0 0 2px var(--gb)}
 /* nhắc tải lại khi có bản mới */
 .banmoi{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:10px;
