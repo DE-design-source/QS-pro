@@ -203,6 +203,38 @@ function tkSheetVe_(host, cols, order, groups){
       return {title:c[1], width:Math.max(colW(k),TK_MINW_[k]||60), type:(k==='hinhAnh'||k==='taiLieu')?'html':'text',
         align:TK_SO[k]?'right':(TK_GIUA[k]?'center':'left'), wordWrap:k==='moTa'||k==='kichThuoc'||k==='ten'||k==='ghiChu'}; })
   }, tkSheetGhi_, ro, TK_NOI_BO);
+  tkSheetKeo_(host);
+}
+/* Kéo ô số thứ tự dòng (cột xám bên trái) để đổi chỗ dòng / chuyển sang tầng khác — lưu bằng tkMoveLine_ như bảng cũ */
+function tkSheetKeo_(host){
+  var B=btCtx_('tk'), tb=host.querySelector('tbody'); if(!tb) return;
+  [].forEach.call(tb.rows,function(tr,y){ var m=B.meta[y], td=tr.cells[0];
+    if(m && m.k==='it'){ td.classList.add('gs-drag'); td.title='Kéo để đổi chỗ dòng · bấm để chọn cả dòng'; } });
+  function clr(){ tb.querySelectorAll('.gs-dz-t,.gs-dz-b,.gs-dragging').forEach(function(r){ r.classList.remove('gs-dz-t','gs-dz-b','gs-dragging'); }); }
+  function dich(e){ var el=document.elementFromPoint(e.clientX,e.clientY), tr=el&&el.closest&&el.closest('tr');
+    if(!tr||tr.parentNode!==tb) return null; var r=tr.getBoundingClientRect(); return {tr:tr, tren:(e.clientY-r.top)<r.height/2}; }
+  // bắt chuột ở pha capture: thư viện không nhận cú bấm này (không kéo vùng chọn theo); bấm không kéo = chọn cả dòng
+  host.addEventListener('mousedown',function(e){
+    var td=e.target.closest&&e.target.closest('td.gs-drag'); if(!td||e.button!==0) return;
+    e.stopPropagation(); e.preventDefault();
+    var tr=td.parentNode, y=tr.sectionRowIndex, m=B.meta[y], x0=e.clientX, y0=e.clientY, keo=false;
+    function mv(ev){
+      if(!keo){ if(Math.abs(ev.clientX-x0)+Math.abs(ev.clientY-y0)<5) return;
+        if(S.sortKey){ toast('Đang sắp xếp theo cột — bỏ sắp xếp (chuột phải → Bỏ sắp xếp) rồi kéo'); return up(null); }
+        keo=true; document.body.classList.add('gs-keo'); }
+      tb.querySelectorAll('.gs-dz-t,.gs-dz-b').forEach(function(r){ r.classList.remove('gs-dz-t','gs-dz-b'); });
+      tr.classList.add('gs-dragging'); var d=dich(ev); if(d) d.tr.classList.add(d.tren?'gs-dz-t':'gs-dz-b');
+    }
+    function up(ev){
+      document.removeEventListener('mousemove',mv,true); document.removeEventListener('mouseup',up,true);
+      document.body.classList.remove('gs-keo'); clr(); if(!ev) return;
+      if(!keo){ B.ws.updateSelectionFromCoords(0,y,B.cols.length-1,y); return; }
+      var d=dich(ev); if(!d) return; var t=B.meta[d.tr.sectionRowIndex]; if(!t) return;
+      if(t.k==='sec') tkMoveLine_(m.id, t.g, null, false);                                // thả lên dòng tầng -> cuối tầng đó
+      else if(t.id!==m.id){ var l=lineOf_(t.id); tkMoveLine_(m.id, (l&&l.tang)||'', t.id, d.tren); }
+    }
+    document.addEventListener('mousemove',mv,true); document.addEventListener('mouseup',up,true);
+  },true);
 }
 /* Gộp khối "Công cụ bảng" + "Cột hiển thị" vào hàng công cụ của bảng tính (cùng nút, cùng hàm) -> bảng cao thêm.
    Tắt bảng tính thì trả các nút về chỗ cũ. */

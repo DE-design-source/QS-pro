@@ -790,10 +790,13 @@ async function submitCreateProduct(lineId){
   }
 }
 async function onRowDrop(dragId,targetTr,before){
+  if(targetTr.classList.contains('grp')) return tkMoveLine_(dragId, targetTr.querySelector('td').dataset.f, null, before);
+  return tkMoveLine_(dragId, targetTr.dataset.tang||'', targetTr.dataset.id, before);
+}
+// Chuyển 1 dòng tới trước/sau dòng targetId (hoặc cuối tầng floor khi targetId rỗng), lưu stt + tầng (bảng cũ & bảng tính dùng chung)
+async function tkMoveLine_(dragId,floor,targetId,before){
   var di=S.lines.findIndex(function(l){return l.lineId===dragId;}); if(di<0) return;
-  var dragged=S.lines[di], floor, targetId=null;
-  if(targetTr.classList.contains('grp')){ floor=targetTr.querySelector('td').dataset.f; }
-  else { floor=targetTr.dataset.tang||''; targetId=targetTr.dataset.id; }
+  var dragged=S.lines[di];
   if(floor==='CHƯA PHÂN TẦNG') floor='';
   if(targetId===dragId) return;
   var oldTang=dragged.tang||'';

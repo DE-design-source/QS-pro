@@ -4667,6 +4667,12 @@ td.rsel input,td.rsel textarea{background:transparent}
 body.bt-tk #v-boc #tkToolBox{display:none}
 .gs-tools{display:inline-flex;align-items:center}
 .gs-tools .tk-toolrow{display:flex;align-items:center;gap:2px;margin:0;padding:0;border:none}
+.gs-grid td.gs-drag{cursor:grab}
+.gs-grid td.gs-drag:hover::before{content:'⠿';margin-right:3px;color:#80868b}
+.gs-grid tr.gs-dragging>td{opacity:.45}
+body.gs-keo,body.gs-keo *{cursor:grabbing!important;user-select:none}
+.gs-grid tr.gs-dz-t>td{box-shadow:inset 0 2px 0 #1a73e8}
+.gs-grid tr.gs-dz-b>td{box-shadow:inset 0 -2px 0 #1a73e8}
 .gs-foot{display:flex;align-items:center;padding:10px 12px;border-top:1px solid #dadce0;background:#fbfcfe}
 .gs-txt{font-size:12.5px;font-weight:500;gap:5px;padding:0 8px;white-space:nowrap}
 .gs-img{max-width:64px;max-height:64px;object-fit:contain;cursor:zoom-in;display:block;margin:0 auto}
