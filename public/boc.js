@@ -67,7 +67,8 @@ function colKeyOfCell_(td){ var tr=td.parentNode; var idx=[].indexOf.call(tr.chi
 // ---- Tìm & thay thế ----
 /* Thanh Tìm & thay thế: một hàng gọn, đặt NGAY TRÊN bảng (canh mép phải bảng) thay vì
    khối 3 hàng nổi đè lên mấy dòng đầu — trước đây che mất dữ liệu đang cần xem để thay. */
-function openFindReplace(){ var ex=document.getElementById('frPanel'); if(ex){ frClose(); return; }
+function openFindReplace(){ var bk=typeof btDangXem_==='function'&&btDangXem_(); if(bk){ btFind_(bk); return; }   // đang xem dạng bảng tính
+  var ex=document.getElementById('frPanel'); if(ex){ frClose(); return; }
   var p=document.createElement('div'); p.id='frPanel'; p.className='fr-panel';
   p.innerHTML='<span class="fr-ic">'+icon('search',14)+'</span>'
     +'<input id="frFind" placeholder="Tìm trong bảng…" oninput="frFind()">'
@@ -456,6 +457,7 @@ function renderTable(){
   // vẫn giữ nguyên khung chọn sản phẩm bên trái + bố cục 2 cột.
   if(tkN) tkN.style.display = (isPT||tkBt)?'none':'';
   if(tsw) tsw.style.display = tkBt?'':'none';
+  if(!tkBt && typeof tkSheetGop_==='function') tkSheetGop_(false);     // trả khối "Công cụ bảng" về chỗ cũ
   if(pw) pw.style.display = isPT?'':'none';
   var tbx=document.getElementById('tkToolBox');
   if(tbx) tbx.classList.toggle('pt', isPT);      // Phần thô: vẫn giữ hàng công cụ, ẩn hàng chọn cột của bảng bóc tách
@@ -477,7 +479,8 @@ function renderTable(){
   lines.forEach(function(l){ var g=(l.tang||'').trim()||'CHƯA PHÂN TẦNG'; (groups[g]=groups[g]||[]).push(l); });
   var order=floorsList().slice();
   Object.keys(groups).forEach(function(g){ if(order.indexOf(g)<0) order.push(g); });
-  if(tkBt && !lines.length){ tkBt=false; tkN.style.display=''; tsw.style.display='none'; }   // bảng trống: dùng bảng cũ (có nút thêm tầng / hạng mục)
+  if(tkBt && !lines.length){ tkBt=false; tkN.style.display=''; tsw.style.display='none'; }
+  if(!tkBt && typeof tkSheetGop_==='function') tkSheetGop_(false);   // bảng trống: dùng bảng cũ (có nút thêm tầng / hạng mục)
   if(tkBt){
     try{
       if(!document.getElementById('tkSheet')) tsw.innerHTML=btFrame_('tk');
@@ -1626,7 +1629,7 @@ function tkToolsSync_(){
     +'</span><span class="tk-tsep"></span><span class="tk-tgrp">'   // nhóm 2: cách hiển thị bảng
     +qbBtn_('qbFit',QB_IC.fit,tkFitOn_()?'Đang co cột vừa khung — bấm để trả về bề rộng đã đặt (có kéo ngang)':'Co cột cho vừa bề ngang khung, hết kéo ngang','tkFitToggle_()',tkFitOn_())
     +qbBtn_('qbFull',QB_IC.full,tkFullOn_()?'Thoát toàn màn hình (Esc)':'Chỉ còn bảng, chiếm cả màn hình','tkFullToggle_()',tkFullOn_())
-    +(btSan_()?qbBtn_('qbSheet',icon('layers',16),btOn_('tk')?'Đang xem dạng bảng tính — bấm để về bảng cũ':'Xem dạng bảng tính (như Google Sheets)','btToggle_(\'tk\');tkToolsSync_()',btOn_('tk')):'')
+    +(btSan_()&&!btOn_('tk')?qbBtn_('qbSheet',icon('layers',16),btOn_('tk')?'Đang xem dạng bảng tính — bấm để về bảng cũ':'Xem dạng bảng tính (như Google Sheets)','btToggle_(\'tk\');tkToolsSync_()',btOn_('tk')):'')
     +'</span>';
 }
 
