@@ -66,6 +66,7 @@ function renderDuAn(){
     });
     body+=spacer;
   });
+  var daBt=btSan_() && btOn_('da') && daLines_.length>0;
   var foot='';
   if(daLines_.length){ foot='<tr class="cp-foot"><td class="ct"></td>'+keys.map(function(k,ki){
       if(ki===0) return '<td class="'+alignCls(k)+'"><b>TỔNG · '+daLines_.length+' SP</b></td>';
@@ -76,7 +77,9 @@ function renderDuAn(){
   box.innerHTML='<div class="sechd"><h2>Sản phẩm trong dự án</h2><span class="count">'+daLines_.length+'</span><span class="sp" style="flex:1"></span>'
       +'<span class="cp-hint">'+icon('building',13)+' '+esc(S.cur.ten||'')+' — bấm ô để sửa</span></div>'
     +stat+hmPTNote_()+hmSaiNote_()+hmLacNote_(daLines_.length)+colbar
-    +pgTblHost_('da','<div class="tbl-wrap"><table class="tk cpflat" style="min-width:'+totalW+'px;width:100%">'+colg+head+body+foot+'</table></div>');
+    +(daBt?'<div id="daSheetSlot"></div>':pgTblHost_('da','<div class="tbl-wrap"><table class="tk cpflat" style="min-width:'+totalW+'px;width:100%">'+colg+head+body+foot+'</table></div>'));
+  if(daBt){ try{ daSheetGan_(keys, order, groups, daLines_); }      // chế độ bảng tính (bangtinh.js)
+    catch(e){ console.error(e); btSet_('da',false); btCtx_('da').frame=null; toast('Bảng tính lỗi — chuyển về bảng cũ'); return renderDuAn(); } }
   markBlocks_('#v-duan table.cpflat');
   pgBarsBind_('da'); tkSelBar_();
 }

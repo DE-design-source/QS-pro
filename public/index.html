@@ -4669,7 +4669,7 @@ body.bt-tk #v-boc #tkToolBox{margin-bottom:-4px}   /* khung cha đã có gap 10p
 #tkSheetWrap > .gs{margin-top:0}
 body.bt-tk #v-boc{padding-bottom:12px}
 /* đang ở tab Bóc tách dạng bảng tính: bỏ giới hạn bề ngang -> trang trải hết 2 mép màn hình, bảng thấy nhiều cột hơn */
-body.bt-tk:has(#v-boc.on) .wrap{max-width:none;padding-left:14px;padding-right:14px}   /* bảng tính vừa khít màn hình (tkSheetCao_): bỏ khoảng đệm đáy để trang không cuộn */
+body.bt-tk:has(#v-boc.on) .wrap, body:has(#v-duan.on #daSheet) .wrap{max-width:none;padding-left:14px;padding-right:14px}   /* bảng tính vừa khít màn hình (tkSheetCao_): bỏ khoảng đệm đáy để trang không cuộn */
 .gs-tools{display:inline-flex;align-items:center}
 .gs-tools .tk-toolrow{display:flex;align-items:center;gap:2px;margin:0;padding:0;border:none}
 .gs-grid td.gs-drag{cursor:grab}
@@ -4696,6 +4696,7 @@ body.gs-keo,body.gs-keo *{cursor:grabbing!important;user-select:none}
 .gs-grid .jss_worksheet td.gs-frz.highlight{background-color:#e8f0fe}
 .gs-grid .jss_worksheet td.gs-frz.highlight-selected{background-color:#fff}
 .gs-grid .jss_content{scroll-behavior:auto;overscroll-behavior-x:contain}
+.gs-grid.jtabs{max-width:none}   /* thư viện đặt max-width:100vw — trong .wrap zoom .9 thành hụt 10% bề ngang */
 .gs-foot{display:flex;align-items:center;padding:10px 12px;border-top:1px solid #dadce0;background:#fbfcfe}
 .gs-txt{font-size:12.5px;font-weight:500;gap:5px;padding:0 8px;white-space:nowrap}
 .gs-img{max-width:64px;max-height:64px;object-fit:contain;cursor:zoom-in;display:block;margin:0 auto}

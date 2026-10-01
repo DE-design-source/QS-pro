@@ -8,8 +8,8 @@
 function btOn_(k){ return !(S._btLoi && S._btLoi[k]); }
 function btSet_(k,on){ S._btLoi=S._btLoi||{}; S._btLoi[k]=!on; }
 function btSan_(){ return typeof jspreadsheet==='function'; }            // thư viện nạp được chưa
-function btVeLai_(k){ var B=btCtx_(k); B.ws=null; if(k==='cp') B.frame=null; btVe_(k); }   // dựng lại hẳn lưới (+ khung)
-function btVe_(k){ if(k==='pt') renderPhanTho(); else if(k==='cp') renderChiphi(); else renderTable(); }   // vẽ lại bình thường
+function btVeLai_(k){ var B=btCtx_(k); B.ws=null; if(k==='cp'||k==='da') B.frame=null; btVe_(k); }   // dựng lại hẳn lưới (+ khung)
+function btVe_(k){ if(k==='pt') renderPhanTho(); else if(k==='cp') renderChiphi(); else if(k==='da') renderDuAn(); else renderTable(); }   // vẽ lại bình thường
 
 // Số hiển thị trong ô: 1.234.567 (kiểu VN, như cả app) · % một số lẻ · trống khi 0
 function btMoney_(v){ v=Math.round(Number(v)||0); return v?money(v):''; }
@@ -50,6 +50,11 @@ function btTao_(k, host, cols, meta, al, opt, ghi, ro, noiBo){
       if(k==='tk' && m && m.k==='sec'){ S.selFloor=m.g==='CHƯA PHÂN TẦNG'?'':m.g; tkSheetFoot_(); } }
   })[0];
   B.ws=ws;
+  // ít cột -> giãn đều cho kín bề ngang khung (khỏi khoảng trắng bên phải); đo THẬT sau khi dựng, cột STT giữ nguyên
+  var ct=host.querySelector('.jss_content'), tb=host.querySelector('table.jss_worksheet'), du=ct&&tb?ct.clientWidth-tb.offsetWidth-2:0;
+  if(du>4){ var tc=0; cols.forEach(function(c,i){ if(c[0]!=='stt') tc+=opt.columns[i].width||100; });
+    var them=0; cols.forEach(function(c,i){ if(c[0]==='stt') return; var w=opt.columns[i].width||100, d=Math.floor(w*du/tc); them+=d;
+      try{ ws.setWidth(i, w+d); }catch(e){} }); }
   if(B.frz) btCoDinh_(host, Math.min(opt.frz,cols.length));
   // chế độ Gọn: ô bị cắt chữ -> rê chuột hiện đủ nội dung
   host.addEventListener('mouseover',function(e){ var td=e.target.closest&&e.target.closest('tbody td[data-x]');
@@ -303,7 +308,7 @@ function tkSheetGop_(on){
 }
 // Bảng tính nào đang hiện (để Ctrl+F / Tìm & thay chạy trên lưới thay vì bảng cũ đang ẩn)
 function btDangXem_(){
-  return ['tk','cp','pt'].filter(function(k){ return btSong_(k) && btCtx_(k).ws.element.offsetParent; })[0]||'';
+  return ['tk','cp','da','pt'].filter(function(k){ return btSong_(k) && btCtx_(k).ws.element.offsetParent; })[0]||'';
 }
 /* Chuột phải trên lưới — menu kiểu Excel, gọi đúng các hàm của bảng cũ */
 function tkSheetMenu_(e, x, y, td){
@@ -413,19 +418,26 @@ function cpSheetGrid_(cols, rows){
 }
 // Gọi từ renderChiphi() sau khi trang vừa vẽ lại: gắn lại khung cũ vào #cpSheetSlot (hoặc tạo mới) rồi vẽ lưới
 function cpSheetGan_(keys, rows){
-  var B=btCtx_('cp'), slot=document.getElementById('cpSheetSlot'); if(!slot) return;
+  var cols=[['stt','STT']].concat(keys.map(function(k){ return [k,cpLabel_(k)]; }));
+  btGan_('cp', cols, function(){ return cpSheetGrid_(cols, rows); }, keys.join()+'|'+cpBy_(), cpSheetMenu_);
+}
+/* Gắn lưới vào #{k}SheetSlot cho tab vẽ lại cả trang mỗi lần sửa (Chi phí 'cp', Dự án 'da'):
+   giữ nguyên khung cũ (chuyển sang chỗ mới, giữ vị trí cuộn), cùng cột + cùng dòng -> chỉ ghi số mới. */
+function btGan_(k, cols, lamLuoi, sigX, menu){
+  var B=btCtx_(k), slot=document.getElementById(k+'SheetSlot'); if(!slot) return;
   if(B.frame){ var c=B.frame.querySelector('.jss_content'), sT=c?c.scrollTop:0, sL=c?c.scrollLeft:0;
     slot.parentNode.replaceChild(B.frame, slot); if(c){ c.scrollTop=sT; c.scrollLeft=sL; } }
-  else { slot.outerHTML=btFrame_('cp'); B.frame=document.getElementById('cpSheet').parentNode; B.ws=null; }
-  var cols=[['stt','STT']].concat(keys.map(function(k){ return [k,cpLabel_(k)]; }));
-  var g=cpSheetGrid_(cols, rows), host=document.getElementById('cpSheet');
-  var sig=keys.join()+'|'+cpBy_()+'|'+g.meta.map(function(m){ return m.k==='it'?(m.id+m.w):(m.k+(m.g||'')); }).join();
-  if(btSong_('cp') && B.sig===sig){ btGhiLuoi_('cp', g.rows); return; }
+  else { slot.outerHTML=btFrame_(k); B.frame=document.getElementById(k+'Sheet').parentNode; B.ws=null; }
+  var g=lamLuoi(), host=document.getElementById(k+'Sheet');
+  var sig=sigX+'|'+g.meta.map(function(m){ return m.k==='it'?(m.id+(m.w||'')):(m.k+(m.g||'')); }).join();
+  if(btSong_(k) && B.sig===sig){ btGhiLuoi_(k, g.rows); return; }
   B.sig=sig;
-  var st={}, ro=[], merge={};
+  var st={}, ro=[], merge={}, iTen=-1; cols.forEach(function(c,i){ if(c[0]==='ten') iTen=i; });
+  var frz=(iTen>0&&iTen<4)?iTen+1:2;
   g.meta.forEach(function(m,y){
-    if(m.k!=='it' && !B.frz){ var het=cols.length; for(var i=2;i<cols.length;i++) if(g.rows[y][i]!==''){ het=i; break; }
-      if(het>2) merge[btColLetter_(1)+(y+1)]=[het-1,1]; }   // cố định cột thì không gộp (lý do: xem tkSheetVe_)
+    // tên nhóm gộp ô tới trước ô có số đầu tiên; đang cố định cột thì chỉ gộp trong phần cố định (lý do: xem tkSheetVe_)
+    if(m.k!=='it'){ var het=cols.length; for(var i=2;i<cols.length;i++) if(g.rows[y][i]!==''){ het=i; break; }
+      if(B.frz) het=Math.min(het,frz); if(het>2) merge[btColLetter_(1)+(y+1)]=[het-1,1]; }
     cols.forEach(function(c,x){ var ten=btColLetter_(x)+(y+1);
       if(m.k==='sec') st[ten]='background-color:#e8eaed;font-weight:700;';
       else if(m.k==='tot') st[ten]='background-color:#e8f0fe;font-weight:700;border-top:2px solid #1f3a5f;';
@@ -434,12 +446,47 @@ function cpSheetGan_(keys, rows){
       if(m.k!=='it' || c[0]==='stt' || !tkSheetSua_(c[0])) ro.push(ten);
     });
   });
-  btTao_('cp', host, cols, g.meta, cols.map(function(c){ return TK_SO[c[0]]?'n':(TK_GIUA[c[0]]?'c':''); }), {
-    data:g.rows, style:st, merge:merge, frz:2, h:'calc(100vh - 140px)', menu:cpSheetMenu_,
-    columns:cols.map(function(c){ var k=c[0];
-      return {title:c[1], width:k==='stt'?58:Math.max(colW(k),TK_MINW_[k]||60), type:'text',
-        align:TK_SO[k]?'right':(TK_GIUA[k]?'center':'left'), wordWrap:k==='ten'}; })
-  }, btLineGhi_('cp'), ro, TK_NOI_BO);
+  btTao_(k, host, cols, g.meta, cols.map(function(c){ return TK_SO[c[0]]?'n':(TK_GIUA[c[0]]?'c':''); }), {
+    data:g.rows, style:st, merge:merge, frz:frz, h:'calc(100vh - 140px)', menu:menu,
+    columns:cols.map(function(c){ var kk=c[0];
+      return {title:c[1], width:kk==='stt'?58:Math.max(colW(kk),TK_MINW_[kk]||60), type:(kk==='hinhAnh'||kk==='taiLieu')?'html':'text',
+        align:TK_SO[kk]?'right':(TK_GIUA[kk]?'center':'left'), wordWrap:kk==='ten'||kk==='moTa'||kk==='kichThuoc'}; })
+  }, btLineGhi_(k), ro, TK_NOI_BO);
+}
+/* ═══ TAB DỰ ÁN ('da') — mọi dòng của dự án gom theo tầng, dòng tầng mang tổng tầng, dòng TỔNG cuối ═══ */
+function daSheetGrid_(cols, order, groups, lines){
+  var out=[], meta=[], iTT=-1;
+  cols.forEach(function(c,i){ if(c[0]==='thanhTien') iTT=i; });
+  order.forEach(function(g,gi){
+    var r=cols.map(function(){ return ''; }); r[0]=PT_ROMAN[gi]||String(gi+1); if(cols.length>1) r[1]=g;
+    if(iTT>1) r[iTT]=btMoney_(groups[g].reduce(function(s,l){ return s+ttBan_(l); },0));
+    out.push(r); meta.push({k:'sec', g:g});
+    groups[g].forEach(function(l,ri){ out.push(cols.map(function(c){ return tkSheetO_(l,c[0],(gi+1)+'.'+(ri+1)); })); meta.push({k:'it', id:l.lineId}); });
+  });
+  var t=cols.map(function(c,i){ if(i===1) return 'TỔNG · '+lines.length+' SP';
+    if(c[0]==='thanhTien') return btMoney_(lines.reduce(function(s,l){ return s+ttBan_(l); },0));
+    if(c[0]==='soLuong') return btSl_(lines.reduce(function(s,l){ return s+(Number(l.soLuong)||0); },0)); return ''; });
+  out.push(t); meta.push({k:'tot'});
+  return {rows:out, meta:meta};
+}
+function daSheetGan_(keys, order, groups, lines){
+  var cols=[['stt','STT']].concat(keys.map(function(k){ return [k,cpLabel_(k)]; }));
+  btGan_('da', cols, function(){ return daSheetGrid_(cols, order, groups, lines); }, keys.join(), daSheetMenu_);
+}
+function daSheetMenu_(e, x, y, td){
+  var B=btCtx_('da'), m=y>=0?B.meta[y]:null, c=B.cols[x], k=c&&c[0]; closePop();
+  if(y>=0 && !(B.selR && y>=B.selR[0] && y<=B.selR[1])) B.ws.updateSelectionFromCoords(x,y,x,y);
+  function mi(ic,label,fn,hint){ return '<div class="cmi" onclick="'+fn+'">'+icon(ic,14)+'<span>'+label+'</span>'+(hint?'<i class="cmi-k">'+hint+'</i>':'')+'</div>'; }
+  var h='';
+  if(k && k!=='stt'){ h+='<div class="cmh">Cột: '+esc(c[1])+'</div>'
+      +(m&&m.k==='it'&&tkSheetSua_(k)?mi('down','Điền giá trị ô này xuống cả cột','closePop();btDien_(\'da\','+x+','+y+')'):'')
+      +(k!=='ten'?mi('eye','Ẩn cột này','closePop();daColToggle(\''+k+'\')'):'')
+      +'<div class="cmsep"></div>'; }
+  h+=mi('search','Tìm & thay thế','closePop();btFind_(\'da\')','Ctrl+F');
+  var pop=document.createElement('div'); pop.className='fltpop ctxmenu'; pop.id='qs_pop'; pop.innerHTML=h; document.body.appendChild(pop);
+  pop.style.left=Math.max(8,Math.min(e.clientX, window.innerWidth-pop.offsetWidth-12))+'px';
+  pop.style.top=Math.max(8,Math.min(e.clientY, window.innerHeight-pop.offsetHeight-12))+'px';
+  setTimeout(function(){ document.addEventListener('mousedown',popOutside); },0);
 }
 function cpSheetMenu_(e, x, y, td){
   var B=btCtx_('cp'), m=y>=0?B.meta[y]:null, c=B.cols[x], k=c&&c[0]; closePop();
@@ -536,7 +583,7 @@ function btThay_(k,q,rep){
   toast(n?('Đã thay '+n+' ô'):('Không có ô sửa được nào chứa "'+q+'"'));
 }
 function btChu_(v){ v=String(v==null?'':v); return v.indexOf('<')>=0?v.replace(/<[^>]*>/g,'').trim():v; }   // ô html (ảnh, tài liệu) -> chữ
-function btTen_(k){ return k==='pt'?'Phần thô':(k==='cp'?'Chi phí':(nodeName(S.node)||'Bóc tách')); }
+function btTen_(k){ return k==='pt'?'Phần thô':(k==='cp'?'Chi phí':(k==='da'?'Sản phẩm trong dự án':(nodeName(S.node)||'Bóc tách'))); }
 // In: dựng bảng HTML gọn từ đúng dữ liệu đang hiện (tên cột + nhóm + dòng); ảnh in ra ảnh
 function btPrint_(k){
   var B=btCtx_(k), ws=B.ws; if(!ws) return;
