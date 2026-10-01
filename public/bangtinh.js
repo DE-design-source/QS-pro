@@ -205,7 +205,7 @@ function tkSheetGrid_(cols, order, groups){
 function tkSheetVe_(host, cols, order, groups){
   var B=btCtx_('tk'), g=tkSheetGrid_(cols, order, groups);
   tkSheetGop_(true);
-  tkSheetFoot_(); tkSheetNhanTha_();
+  tkSheetFoot_(); tkSheetNhanTha_(); setTimeout(tkSheetCao_,0);
   var cb=document.getElementById('tkColBtn'); if(cb) cb.innerHTML=icon('sliders',15)+' Cột '+cols.length+'/'+COLS.length;
   var sig=cols.map(function(c){ return c[0]; }).join()+'|'+g.meta.map(function(m){ return m.k==='sec'?('#'+m.g):m.id; }).join();
   if(btSong_('tk') && B.sig===sig && host.contains(B.ws.element)){ btGhiLuoi_('tk', g.rows); return; }
@@ -232,7 +232,30 @@ function tkSheetVe_(host, cols, order, groups){
       return {title:c[1], width:Math.max(colW(k),TK_MINW_[k]||60), type:(k==='hinhAnh'||k==='taiLieu')?'html':'text',
         align:TK_SO[k]?'right':(TK_GIUA[k]?'center':'left'), wordWrap:k==='moTa'||k==='kichThuoc'||k==='ten'||k==='ghiChu'}; })
   }, btLineGhi_('tk'), ro, TK_NOI_BO);
-  tkSheetKeo_(host);
+  tkSheetKeo_(host); tkSheetCao_();
+}
+/* Bảng vừa khít màn hình: đáy khung bảng = đáy cửa sổ (bằng panel trái), nhiều dòng thì cuộn TRONG bảng,
+   trang không dài ra. Tính lại khi đổi cỡ cửa sổ / khối phía trên đổi cao (gập chip, gập thẻ dự án…). */
+function btZf_(el){ var f=1; for(var e=el; e&&e.nodeType===1; e=e.parentElement){ var z=parseFloat(getComputedStyle(e).zoom); if(z>0) f*=z; } return f; }
+function tkSheetCao_(){
+  var c=document.querySelector('#tkSheet .jss_content'); if(!c || !c.offsetParent) return;
+  // đáy mục tiêu = đáy cửa sổ; panel danh mục bên trái kéo dài tới đúng đáy đó -> 2 cột bằng nhau, trang không cuộn
+  var y0=window.pageYOffset||0, grid=document.getElementById('bocGrid'), left=document.getElementById('leftCat');
+  var gTop=grid?grid.getBoundingClientRect().top+y0:0, day=Math.max(gTop+420, window.innerHeight-16-(S._tkCaoBu||0));
+  // số đo màn hình (getBoundingClientRect) đã nhân zoom của app (.wrap zoom .9 …), còn CSS height chưa -> chia lại
+  if(left){ var lh=Math.round((day-(left.getBoundingClientRect().top+y0))/btZf_(left))+'px';
+    if(left.style.height!==lh){ left.style.height=lh; left.style.maxHeight=lh; } }
+  var gs=c.closest('.gs'), h=parseFloat(c.style.height)||c.offsetHeight;
+  h=Math.max(260, Math.floor(h+(day-(gs.getBoundingClientRect().bottom+y0))/btZf_(c)));   // dời đúng phần chênh của đáy khung
+  if(c.style.height!==h+'px'){ c.style.height=h+'px'; c.style.maxHeight=h+'px'; }
+  // zoom của app làm trang vẫn dư vài chục px (trình duyệt tính cao trang theo cỡ chưa zoom) -> bù dần, tối đa 120px
+  var du=document.documentElement.scrollHeight-window.innerHeight;
+  if(du>0 && (S._tkCaoBu||0)<120){ S._tkCaoBu=(S._tkCaoBu||0)+du; requestAnimationFrame(tkSheetCao_); }
+  if(!S._tkCaoObs && window.ResizeObserver){                  // khối phía trên đổi cao -> tính lại (1 lần / khung hình)
+    var hen=0; S._tkCaoObs=new ResizeObserver(function(){ if(!hen) hen=requestAnimationFrame(function(){ hen=0; tkSheetCao_(); }); });
+    S._tkCaoObs.observe(document.body);
+    window.addEventListener('resize',function(){ tkSheetCao_(); });
+  }
 }
 /* Kéo ô số thứ tự dòng (cột xám bên trái) để đổi chỗ dòng / chuyển sang tầng khác — lưu bằng tkMoveLine_ như bảng cũ */
 function tkSheetKeo_(host){
@@ -276,6 +299,7 @@ function tkSheetGop_(on){
   if(!row) return;
   if(on && slot && row.parentNode!==slot) slot.appendChild(row);
   else if(!on && home && row.parentNode!==home) home.insertBefore(row, document.getElementById('foldToolsBtn'));
+  var left=document.getElementById('leftCat'); if(!on && left && left.style.height){ left.style.height=''; left.style.maxHeight=''; }   // trả panel trái về cỡ CSS
 }
 // Bảng tính nào đang hiện (để Ctrl+F / Tìm & thay chạy trên lưới thay vì bảng cũ đang ẩn)
 function btDangXem_(){
