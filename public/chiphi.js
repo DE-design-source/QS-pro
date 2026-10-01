@@ -81,6 +81,7 @@ function renderChiphi(){
   if(S._cpOvHide===undefined){ try{ S._cpOvHide=localStorage.getItem('qs_cpOvHide')==='1'; }catch(e){ S._cpOvHide=false; } }
   var keys=CP_KEYS.filter(function(k){ return S.cpCols[k]; });
   var rows=cpRows_();
+  var cpBt=btSan_() && btOn_('cp') && rows.length>0;      // chế độ bảng tính (bangtinh.js); không có dòng -> bảng cũ (có lời nhắc)
 
   /* ---- số liệu tổng: tính trên ĐÚNG HẠNG MỤC đang chọn (phạm vi của cả trang),
      không phụ thuộc ô tìm kiếm / chip lọc trạng thái (những cái đó chỉ là lọc tạm). ---- */
@@ -102,7 +103,9 @@ function renderChiphi(){
     +stat+hmPTNote_()+hmLacNote_(scope.length)
     +cpOverview_(scope)
     +cpToolbar_(rows, scope)
-    +pgTblHost_('cp', cpTableHtml_(keys,rows));
+    +(cpBt?'<div id="cpSheetSlot"></div>':pgTblHost_('cp', cpTableHtml_(keys,rows)));
+  if(cpBt){ try{ cpSheetGan_(keys,rows); }
+    catch(e){ console.error(e); btSet_('cp',false); btCtx_('cp').frame=null; toast('Bảng tính lỗi — chuyển về bảng cũ'); return renderChiphi(); } }
   markBlocks_('#v-chiphi table.cpflat');
   pgBarsBind_('cp'); tkSelBar_();
   // dòng tiêu đề nhóm dính NGAY DƯỚI hàng tiêu đề cột (chiều cao hàng này thay đổi theo số cột)
