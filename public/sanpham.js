@@ -25,7 +25,7 @@ function renderSanpham(){
             +'<button class="btn blue sm" onclick="showTab(\'import\')">'+icon('plus',14)+' Thêm sản phẩm</button>'
           +'</div>'
           +'<div class="sp-headrow"><div class="spviewtabs" id="spViewTabs"></div><div class="spbar" id="spBar"></div></div>'
-          +'<div class="colchips sp-colchips" id="spColBar"></div>'
+          +'<div class="pg-cols sp-colbox" id="spColBar"></div>'
           +'<div class="tbl-wrap"><table class="sp-table"><colgroup id="spColg"></colgroup><thead id="spHead"></thead>'
             +'<tbody id="spBody"></tbody></table></div>'
           // thanh kéo ngang nằm NGAY DƯỚI bảng, trên phân trang — đúng chỗ người dùng quen tìm
@@ -848,8 +848,13 @@ function spColList_(){
 function spColChips_(){
   var cols=spColList_(), on=cols.filter(function(c){ return spColOn_(c[0]); }).length;
   var bar=document.getElementById('spColBar');
-  if(bar) bar.innerHTML='<span class="cp-collbl">Cột hiển thị</span>'+cols.filter(function(c){ return c[0]!=='stt'&&c[0]!=='ten'; })
-    .map(function(c){ return '<span class="chip'+(spColOn_(c[0])?' on':'')+'" onclick="spColToggle(\''+c[0]+'\')">'+esc(c[1])+'</span>'; }).join('');
+  // cùng kiểu Chi phí / Dự án: Cột hiển thị n/N (thu gọn) · Chọn nhanh / Của tôi ▾ · Hiện tất cả · Cột cơ bản
+  if(bar) bar.innerHTML='<div class="tk-frame-hr">'
+      +'<button class="tk-frame-h fold-h" onclick="foldToggle_(\'cols\')" title="Ẩn / hiện các chip cột">Cột hiển thị <b>'+on+'/'+cols.length+'</b><i class="fold-ic"></i></button>'
+      +csQuickBtn_('sp','spPresetBtn')
+      +'<button class="pg-q" onclick="spColAll_(1)">Hiện tất cả</button><button class="pg-q" onclick="spColCoBan_()">Cột cơ bản</button></div>'
+    +'<div class="colchips sp-colchips">'+cols.filter(function(c){ return c[0]!=='stt'&&c[0]!=='ten'; })
+    .map(function(c){ return '<span class="chip'+(spColOn_(c[0])?' on':'')+'" onclick="spColToggle(\''+c[0]+'\')">'+esc(c[1])+'</span>'; }).join('')+'</div>';
   var n=document.getElementById('spColN'); if(n) n.textContent=on+'/'+cols.length;
   if(document.getElementById('spColPop')) spColPopRender_();
 }
@@ -890,6 +895,8 @@ function spColPopRender_(){
       +'<button class="btn ghost xs" onclick="spColAll_(0)">Ẩn bớt</button></div>';
   var i=document.getElementById('spColQ'); if(i&&document.activeElement!==i) i.value=(q?i.value:i.value);
 }
+var SP_COL_CB=['thumb','duyet','thuong_hieu','giaDaiLy'];   // "Cột cơ bản": ảnh · trạng thái · thương hiệu · giá
+function spColCoBan_(){ var m={}; (spPTMode_()?COLSET.sp.keys().slice(0,4):SP_COL_CB).forEach(function(k){ m[k]=1; }); COLSET.sp.set(m); COLSET.sp.ve(); }
 function spColAll_(on){
   spColList_().forEach(function(c){
     if(c[0]==='ten'||c[0]==='stt') return;

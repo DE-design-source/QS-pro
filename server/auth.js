@@ -267,7 +267,7 @@ async function me(actor) {
    nên đăng nhập máy khác vẫn giữ. value = null -> xoá khoá đó.                     */
 function prefsOf_(u) { const p = u && u.ui_prefs; return (p && typeof p === 'object' && !Array.isArray(p)) ? p : {}; }
 // Bộ cột lưu theo tài khoản: mỗi bảng một khoá (Bóc tách + Xuất báo giá dùng chung tkCols)
-const PREF_KEYS = ['tkCols', 'cpCols', 'daCols'];
+const PREF_KEYS = ['tkCols', 'cpCols', 'daCols', 'spCols'];
 async function setMyPref(actor, key, value) {
   if (PREF_KEYS.indexOf(key) < 0) throw new Error('Khoá cài đặt không hợp lệ');
   if (value != null && /Cols$/.test(key) && !(Array.isArray(value) && value.length <= 60 && value.every(function (x) { return typeof x === 'string' && x.length < 40; })))

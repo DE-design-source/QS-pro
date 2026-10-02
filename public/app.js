@@ -1621,7 +1621,15 @@ var COLSET={
     macdinh:function(){ return ['khuVuc','ten','thuongHieu','moTa','kichThuoc','hinhAnh','dvt','soLuong','donGia','thanhTien']; },
     on:function(k){ return !!(S._daCols||{})[k]; },
     set:function(m){ S._daCols=S._daCols||{}; DA_KEYS.forEach(function(k){ S._daCols[k]=!!m[k]; }); },
-    ve:function(){ try{ renderDuAn(); }catch(e){} } }
+    ve:function(){ try{ renderDuAn(); }catch(e){} } },
+  // Danh sách SP: cột theo ngành đang xem (đèn / vệ sinh / sơn) hoặc bảng công tác Phần thô
+  sp:{ ten:'Danh sách SP', pref:'spCols', luon:'ten',
+    keys:function(){ return spColList_().map(function(c){ return c[0]; }).filter(function(k){ return k!=='stt'&&k!=='ten'; }); },
+    macdinh:function(){ return spPTMode_()?COLSET.sp.keys():Object.keys(spColsDefault_(spNganhCur_())).filter(function(k){ return k!=='ten'; }); },
+    on:function(k){ return spColOn_(k); },
+    set:function(m){ var pt=spPTMode_(); if(pt) ptOrder2_(); else S._spCols=S._spCols||{};
+      COLSET.sp.keys().forEach(function(k){ if(pt) S._ptColsOn[k]=!!m[k]; else S._spCols[k]=!!m[k]; }); spSaveCols_(); },
+    ve:function(){ try{ spColChips_(); spRenderHead_(); spFilter(); }catch(e){} } }
 };
 function csTab_(t){ return COLSET[t]||COLSET.tk; }
 function csKeys_(t){ return csTab_(t).keys(); }
@@ -1701,6 +1709,7 @@ function csQuickBtn_(t,btnId){
 // Bảng ít cột hơn Bóc tách có thể khiến 2 bộ ra CÙNG một danh sách -> chỉ giữ bộ đầu tiên
 function csPresetList_(t){ var da={};
   return TK_PRESETS.filter(function(ps){
+    if(ps[2]!==null && ps[2]!=='default' && csPresetKeys_(t,ps).length<2) return false;   // bộ viết cho Bóc tách, bảng này gần như không có cột nào khớp
     var sig=csPresetKeys_(t,ps).slice().sort().join('|');
     if(da[sig]) return false; da[sig]=1; return true; }); }
 function csPresetPop_(e,t,btnId){
