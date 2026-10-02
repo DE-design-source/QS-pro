@@ -158,6 +158,10 @@ function btKeoCot_(k, host){
   },true);
 }
 /* ═══ CÔNG CỤ KIỂU EXCEL trên thanh bảng tính ═══ */
+// Toàn màn hình cho khung bảng tính (API trình duyệt) — Bóc tách dùng chế độ toàn màn hình riêng của tab
+function btToanMH_(k){ var f=document.getElementById(k+'Sheet'); f=f&&f.closest('.gs'); if(!f) return;
+  if(document.fullscreenElement){ document.exitFullscreen(); return; }
+  (f.requestFullscreen||f.webkitRequestFullscreen||function(){}).call(f); }
 function btChep_(t){ try{ navigator.clipboard.writeText(String(t)); toast('Đã chép: '+t); }catch(e){} }
 // vùng đang chọn -> danh sách ô {x,y}
 function btVung_(B){ var r=B.selR, c=B.selX; if(!r||!c) return []; var o=[];
@@ -191,13 +195,30 @@ function btFmtSet_(k,p,v){
 /* --- Thao tác dòng --- */
 function btDongChon_(B){ var r=B.selR, ids=[]; if(!r) return ids;
   for(var y=r[0];y<=r[1];y++){ var m=B.meta[y]; if(m&&m.k==='it'&&m.id) ids.push(m.id); } return ids; }
-async function btChenDong_(k){ var ids=btDongChon_(btCtx_(k)); if(!ids.length){ toast('Chọn 1 ô ở dòng sản phẩm trước'); return; } await ctxInsertRow(ids[ids.length-1]); }
-async function btNhanBan_(k){ var ids=btDongChon_(btCtx_(k)); if(!ids.length){ toast('Chọn ô ở các dòng cần nhân bản'); return; }
+// Phần thô: các dòng công tác đang chọn {si, ii} (ii = vị trí gốc trong nhóm)
+function btPtChon_(B){ var r=B.selR, o=[]; if(!r) return o; for(var y=r[0];y<=r[1];y++){ var m=B.meta[y]; if(m&&m.k==='it') o.push({si:m.si, ii:m.ii}); } return o; }
+async function btChenDong_(k){
+  if(k==='pt'){ var B=btCtx_(k), p=btPtChon_(B), m=B.sel&&B.meta[B.sel[1]];
+    if(p.length){ var cu=p[p.length-1]; ptInsertItem(cu.si,cu.ii); } else if(m&&m.k==='sec') ptAddItem(m.si); else toast('Chọn 1 ô trong nhóm công tác trước'); return; }
+  var ids=btDongChon_(btCtx_(k)); if(!ids.length){ toast('Chọn 1 ô ở dòng sản phẩm trước'); return; } await ctxInsertRow(ids[ids.length-1]); }
+async function btNhanBan_(k){
+  if(k==='pt'){ var p=btPtChon_(btCtx_(k)); if(!p.length){ toast('Chọn ô ở các dòng cần nhân bản'); return; }
+    p.sort(function(a,b){ return b.si-a.si||b.ii-a.ii; }).forEach(function(q){ ptDupItem(q.si,q.ii); }); return; }   // từ dưới lên: chỉ số không lệch
+  var ids=btDongChon_(btCtx_(k)); if(!ids.length){ toast('Chọn ô ở các dòng cần nhân bản'); return; }
   for(var i=0;i<ids.length;i++) await ctxDupRow(ids[i]); }
+// Xoá các dòng trong vùng chọn — cả 4 bảng (có hỏi lại)
+async function btXoaDong_(k){
+  var B=btCtx_(k);
+  if(k==='pt'){ var p=btPtChon_(B); if(!p.length){ toast('Chọn ô ở các dòng cần xoá'); return; }
+    if(!await xacNhan_({title:'Xoá '+p.length+' dòng công tác đã chọn?', nguyHiem:true, ok:'Xoá'})) return;
+    p.sort(function(a,b){ return b.si-a.si||b.ii-a.ii; }).forEach(function(q){ var sec=S.phanTho[q.si]; if(sec) sec.items.splice(q.ii,1); });
+    ptPersist(); renderPhanTho(); toast('Đã xoá '+p.length+' dòng'); return; }
+  var ids=btDongChon_(B); if(!ids.length){ toast('Chọn ô ở các dòng cần xoá'); return; }
+  S._tkSel={}; ids.forEach(function(id){ S._tkSel[id]=1; }); tkBulkDel_(); }
 function btSapXep_(k,dir){
   var B=btCtx_(k), x=B.selX?B.selX[0]:-1, c=B.cols[x]; if(!c||c[0]==='stt'){ toast('Chọn 1 ô ở cột cần sắp xếp'); return; }
   if(k==='tk') colSort(c[0],dir); else if(k==='cp'){ S._cpSort=c[0]; S._cpSortDir=dir; renderChiphi(); }
-  else if(k==='da') daSort(c[0],dir); else toast('Bảng Phần thô sắp xếp ở bảng thường');
+  else if(k==='da') daSort(c[0],dir); else ptSortSet_(c[0],dir);
   toast('Sắp xếp '+(dir==='asc'?'A → Z':'Z → A')+' theo "'+c[1]+'"'); }
 // Điền xuống (Ctrl+D): ô ĐẦU của từng cột trong vùng chọn -> các ô bên dưới (chỉ ô sửa được)
 function btDienVung_(k){
@@ -331,7 +352,9 @@ function renderPTSheet_(host, cols, comp){
     data:g.rows, style:st,
     frz:2, columns:cols.map(function(c){ return {title:c[1], width:(btCtx_('pt').wTay||{})[c[0]]||c[3]||100, type:'text',
       align:c[2]==='n'?'right':(c[2]==='c'?'center':'left'), wordWrap:c[0]==='noidung'||c[0]==='ghichu'}; })
+    , menu:ptSheetMenu_
   }, ptSheetGhi_, ro, PT_NOI_BO);
+  tkSheetKeo_(host,'pt');
   return ws;
 }
 // Ghi 1 ô người dùng sửa vào S.phanTho (đúng hàm của bảng cũ), gom nhiều ô liền nhau -> tính + lưu + vẽ lại 1 lần
@@ -449,6 +472,19 @@ function tkSheetCao_(){
   }
 }
 /* Kéo ô số thứ tự dòng (cột xám bên trái) để đổi chỗ dòng / chuyển sang tầng khác — lưu bằng tkMoveLine_ như bảng cũ */
+/* Thả dòng m vào chỗ dòng t (trước / sau). Dòng bóc tách: lưu stt + tầng (tkMoveLine_). Phần thô: chuyển công tác giữa các nhóm. */
+function btDoiHang_(k, m, t, truoc){
+  if(!m||!t||m===t||t.k==='tot') return;
+  if(k==='pt'){
+    var src=S.phanTho[m.si]; if(!src||!src.items[m.ii]) return; var it=src.items.splice(m.ii,1)[0];
+    var dst=S.phanTho[t.si]; if(!dst){ src.items.splice(m.ii,0,it); return; }
+    var i=(t.k==='sec')?dst.items.length:t.ii; if(t.k!=='sec'){ if(t.si===m.si && m.ii<t.ii) i--; if(!truoc) i++; }
+    dst.items.splice(Math.max(0,Math.min(i,dst.items.length)),0,it); ptPersist(); renderPhanTho(); return; }
+  if(t.k==='sec'){
+    if(k==='cp' && cpBy_()!=='tang'){ toast('Thả lên một dòng sản phẩm để đổi chỗ (nhóm đang gom theo '+(cpBy_()==='ncc'?'NCC':'hạng mục')+')'); return; }
+    tkMoveLine_(m.id, t.g==='__k'?'':t.g, null, false); return; }                        // thả lên dòng tầng -> cuối tầng đó
+  if(t.id!==m.id){ var l=lineOf_(t.id); tkMoveLine_(m.id, (l&&l.tang)||'', t.id, truoc); }
+}
 function tkSheetKeo_(host,k){ k=k||'tk';               // dùng chung Bóc tách ('tk') + Dự án ('da'): cùng chia theo tầng
   var B=btCtx_(k), tb0=host.querySelector('tbody'); if(!tb0) return;
   [].forEach.call(tb0.rows,function(tr,y){ var m=B.meta[y], td=tr.cells[0];
@@ -468,7 +504,7 @@ function tkSheetKeo_(host,k){ k=k||'tk';               // dùng chung Bóc tách
     var tr=td.parentNode, y=tr.sectionRowIndex, m=B.meta[y], x0=e.clientX, y0=e.clientY, keo=false;
     function mv(ev){
       if(!keo){ if(Math.abs(ev.clientX-x0)+Math.abs(ev.clientY-y0)<5) return;
-        if(k==='tk'?S.sortKey:S._daSort){ toast('Đang sắp xếp theo cột — bỏ sắp xếp (chuột phải → Bỏ sắp xếp) rồi kéo'); return up(null); }
+        if(btSortOn_(k)){ toast('Đang sắp xếp theo cột — bỏ sắp xếp (chuột phải → Bỏ sắp xếp) rồi kéo'); return up(null); }
         keo=true; document.body.classList.add('gs-keo'); }
       tb.querySelectorAll('.gs-dz-t,.gs-dz-b').forEach(function(r){ r.classList.remove('gs-dz-t','gs-dz-b'); });
       tr.classList.add('gs-dragging'); var d=dich(ev); if(d) d.tr.classList.add(d.tren?'gs-dz-t':'gs-dz-b');
@@ -478,8 +514,7 @@ function tkSheetKeo_(host,k){ k=k||'tk';               // dùng chung Bóc tách
       document.body.classList.remove('gs-keo'); clr(); if(!ev) return;
       if(!keo){ B.ws.updateSelectionFromCoords(0,y,B.cols.length-1,y); return; }
       var d=dich(ev); if(!d) return; var t=B.meta[d.tr.sectionRowIndex]; if(!t) return;
-      if(t.k==='sec') tkMoveLine_(m.id, t.g, null, false);                                // thả lên dòng tầng -> cuối tầng đó
-      else if(t.id!==m.id){ var l=lineOf_(t.id); tkMoveLine_(m.id, (l&&l.tang)||'', t.id, d.tren); }
+      btDoiHang_(k, m, t, d.tren);
     }
     document.addEventListener('mousemove',mv,true); document.addEventListener('mouseup',up,true);
   },true);
@@ -596,12 +631,7 @@ function tkSheetTrong_(){
   tkSheetGop_(true); tkSheetFoot_(); tkSheetNhanTha_();
 }
 // Xoá các dòng sản phẩm nằm trong vùng đang chọn (dùng đúng luồng xoá hàng loạt của bảng cũ, có hỏi lại)
-function tkSheetDel_(){
-  var B=btCtx_('tk'), r=B.selR; if(!r){ toast('Chọn ô ở các dòng cần xoá trước'); return; }
-  S._tkSel={}; for(var y=r[0]; y<=r[1]; y++){ var m=B.meta[y]; if(m&&m.k==='it') S._tkSel[m.id]=1; }
-  if(!Object.keys(S._tkSel).length){ toast('Vùng chọn không có dòng sản phẩm'); return; }
-  tkBulkDel_();
-}
+function tkSheetDel_(){ btXoaDong_('tk'); }
 // Ô người dùng sửa -> đúng quy tắc bảng cũ (tkFieldsFor_). Dán nhiều ô: gom lại, ghi 1 lô (tkApplyEdits_). Dùng cho 'tk' + 'cp'
 function btLineGhi_(k){ return function(x,y,val){ btLineGhiO_(k,x,y,val); }; }
 function btLineGhiO_(k,x,y,val){
@@ -670,7 +700,7 @@ function btGan_(k, cols, lamLuoi, sigX, menu){
       return {title:c[1], width:kk==='stt'?58:Math.max(colW(kk),TK_MINW_[kk]||60), type:(kk==='hinhAnh'||kk==='taiLieu')?'html':'text',
         align:TK_SO[kk]?'right':(TK_GIUA[kk]?'center':'left'), wordWrap:kk==='ten'||kk==='moTa'||kk==='kichThuoc'}; })
   }, btLineGhi_(k), ro, TK_NOI_BO);
-  if(k==='da') tkSheetKeo_(host,'da');      // Dự án chia theo tầng như Bóc tách -> kéo ô số dòng để đổi chỗ / chuyển tầng
+  tkSheetKeo_(host,k);                      // kéo ô số dòng để đổi chỗ (Dự án / Chi phí — giống Bóc tách)
 }
 /* ═══ TAB DỰ ÁN ('da') — mọi dòng của dự án gom theo tầng, dòng tầng mang tổng tầng, dòng TỔNG cuối ═══ */
 function daSheetGrid_(cols, order, groups, lines){
@@ -692,42 +722,32 @@ function daSheetGan_(keys, order, groups, lines){
   var cols=[['stt','STT']].concat(keys.map(function(k){ return [k,cpLabel_(k)]; }));
   btGan_('da', cols, function(){ return daSheetGrid_(cols, order, groups, lines); }, keys.join(), daSheetMenu_);
 }
-function daSheetMenu_(e, x, y, td){
-  var B=btCtx_('da'), m=y>=0?B.meta[y]:null, c=B.cols[x], k=c&&c[0]; closePop();
+function daSheetMenu_(e,x,y,td){ btMenuChung_('da',e,x,y,td); }
+function cpSheetMenu_(e,x,y,td){ btMenuChung_('cp',e,x,y,td); }
+function ptSheetMenu_(e,x,y,td){ btMenuChung_('pt',e,x,y,td); }
+/* Menu chuột phải CHUNG của Chi phí / Dự án / Phần thô — cùng các mục với thanh công cụ (Bóc tách có thêm mục tầng / SP) */
+function btMenuChung_(k,e,x,y,td){
+  var B=btCtx_(k), m=y>=0?B.meta[y]:null, c=B.cols[x], ck=c&&c[0], q='\''+k+'\''; closePop();
   if(y>=0 && !(B.selR && y>=B.selR[0] && y<=B.selR[1])) B.ws.updateSelectionFromCoords(x,y,x,y);
-  function mi(ic,label,fn,hint){ return '<div class="cmi" onclick="'+fn+'">'+icon(ic,14)+'<span>'+label+'</span>'+(hint?'<i class="cmi-k">'+hint+'</i>':'')+'</div>'; }
-  var h='';
-  if(k && k!=='stt'){ h+='<div class="cmh">Cột: '+esc(c[1])+'</div>'
-      +mi('up','Sắp xếp tăng dần','closePop();daSort(\''+k+'\',\'asc\')')
-      +mi('down','Sắp xếp giảm dần','closePop();daSort(\''+k+'\',\'desc\')')
-      +(S._daSort?mi('close','Bỏ sắp xếp','closePop();S._daSort=\'\';renderDuAn()'):'')
-      +(m&&m.k==='it'&&tkSheetSua_(k)?mi('down','Điền giá trị ô này xuống cả cột','closePop();btDien_(\'da\','+x+','+y+')'):'')
-      +(k!=='ten'?mi('eye','Ẩn cột này','closePop();daColToggle(\''+k+'\')'):'')
-      +'<div class="cmsep"></div>'; }
-  h+=mi('search','Tìm & thay thế','closePop();btFind_(\'da\')','Ctrl+F');
+  function mi(ic,label,fn,hint,cls){ return '<div class="cmi '+(cls||'')+'" onclick="closePop();'+fn+'">'+icon(ic,14)+'<span>'+label+'</span>'+(hint?'<i class="cmi-k">'+hint+'</i>':'')+'</div>'; }
+  var sep='<div class="cmsep"></div>', h='';
+  if(m && m.k==='it') h+='<div class="cmh">Dòng</div>'+mi('plus','Chèn dòng trống bên dưới','btChenDong_('+q+')')
+      +mi('copy','Nhân bản dòng','btNhanBan_('+q+')')+mi('trash','Xoá các dòng đang chọn','btXoaDong_('+q+')','','danger')+sep;
+  if(m && m.k==='sec' && k==='pt') h+='<div class="cmh">Nhóm</div>'+mi('plus','Thêm dòng vào nhóm này','ptAddItem('+m.si+')')+sep;
+  if(ck && ck!=='stt') h+='<div class="cmh">Cột: '+esc(c[1])+'</div>'
+      +mi('up','Sắp xếp tăng dần','btSapXep_('+q+',\'asc\')')+mi('down','Sắp xếp giảm dần','btSapXep_('+q+',\'desc\')')
+      +(btSortOn_(k)?mi('close','Bỏ sắp xếp','btBoSapXep_('+q+')'):'')
+      +mi('down','Điền xuống (Ctrl+D)','btDienVung_('+q+')')
+      +(ck!=='ten'&&ck!=='noidung'?mi('eye','Ẩn cột này','btAnCot_('+q+',\''+ck+'\')'):'')+sep;
+  h+=mi('copy','Sao chép','btCopy_('+q+')','Ctrl+C')+mi('search','Tìm & thay thế','btFind_('+q+')','Ctrl+F');
   var pop=document.createElement('div'); pop.className='fltpop ctxmenu'; pop.id='qs_pop'; pop.innerHTML=h; document.body.appendChild(pop);
   pop.style.left=Math.max(8,Math.min(e.clientX, window.innerWidth-pop.offsetWidth-12))+'px';
   pop.style.top=Math.max(8,Math.min(e.clientY, window.innerHeight-pop.offsetHeight-12))+'px';
   setTimeout(function(){ document.addEventListener('mousedown',popOutside); },0);
 }
-function cpSheetMenu_(e, x, y, td){
-  var B=btCtx_('cp'), m=y>=0?B.meta[y]:null, c=B.cols[x], k=c&&c[0]; closePop();
-  if(y>=0 && !(B.selR && y>=B.selR[0] && y<=B.selR[1])) B.ws.updateSelectionFromCoords(x,y,x,y);
-  function mi(ic,label,fn,hint){ return '<div class="cmi" onclick="'+fn+'">'+icon(ic,14)+'<span>'+label+'</span>'+(hint?'<i class="cmi-k">'+hint+'</i>':'')+'</div>'; }
-  var h='';
-  if(k && k!=='stt'){ h+='<div class="cmh">Cột: '+esc(c[1])+'</div>'
-      +mi('up','Sắp xếp tăng dần','closePop();S._cpSort=\''+k+'\';S._cpSortDir=\'asc\';renderChiphi()')
-      +mi('down','Sắp xếp giảm dần','closePop();S._cpSort=\''+k+'\';S._cpSortDir=\'desc\';renderChiphi()')
-      +(S._cpSort?mi('close','Bỏ sắp xếp','closePop();S._cpSort=\'\';renderChiphi()'):'')
-      +(m&&m.k==='it'&&tkSheetSua_(k)?mi('down','Điền giá trị ô này xuống cả cột','closePop();btDien_(\'cp\','+x+','+y+')'):'')
-      +(k!=='ten'?mi('eye','Ẩn cột này','closePop();cpToggle(\''+k+'\')'):'')
-      +'<div class="cmsep"></div>'; }
-  h+=mi('search','Tìm & thay thế','closePop();btFind_(\'cp\')','Ctrl+F');
-  var pop=document.createElement('div'); pop.className='fltpop ctxmenu'; pop.id='qs_pop'; pop.innerHTML=h; document.body.appendChild(pop);
-  pop.style.left=Math.max(8,Math.min(e.clientX, window.innerWidth-pop.offsetWidth-12))+'px';
-  pop.style.top=Math.max(8,Math.min(e.clientY, window.innerHeight-pop.offsetHeight-12))+'px';
-  setTimeout(function(){ document.addEventListener('mousedown',popOutside); },0);
-}
+function btSortOn_(k){ return k==='tk'?S.sortKey:(k==='cp'?S._cpSort:(k==='da'?S._daSort:S._ptSort)); }
+function btBoSapXep_(k){ if(k==='tk') resetSort(); else if(k==='cp'){ S._cpSort=''; renderChiphi(); } else if(k==='da'){ S._daSort=''; renderDuAn(); } else ptSortSet_(''); }
+function btAnCot_(k,ck){ if(k==='tk') ctxHideCol(ck); else if(k==='cp') cpToggle(ck); else if(k==='da') daColToggle(ck); else ptColToggle(ck); }
 
 // Khung kiểu GOOGLE SHEETS (theo mẫu): 1 hàng công cụ gọn · lưới. Chỉ đặt nút CHẠY THẬT.
 var BT_SVG={
@@ -754,7 +774,7 @@ function btFrame_(k){
   var B=btCtx_(k), z=B.zoom, fs=B.font;
   function b(html,tip,fn,on){ return '<button class="gs-b'+(on?' on':'')+'" title="'+tip+'" onclick="'+fn+'">'+html+'</button>'; }
   var sep='<span class="gs-sep"></span>', w='S._bt.'+k+'.ws';
-  var q='\''+k+'\'', dong=(k!=='pt');        // Phần thô: thao tác dòng làm ở bảng thường (công tác theo nhóm)
+  var q='\''+k+'\'', dong=true;               // cả 4 bảng cùng bộ nút (đồng bộ)
   return '<div class="gs">'
     // Hàng 1 — "Trang đầu": hoàn tác · bộ nhớ tạm · chữ · định dạng ô · thống kê
     +'<div class="gs-bar">'
@@ -775,7 +795,7 @@ function btFrame_(k){
     +'<div class="gs-bar gs-bar2">'
       +b(icon('search',17),'Tìm & thay (Ctrl+F)','btFind_('+q+')')
       +(dong?sep+b(btI_('chen'),'Chèn dòng trống','btChenDong_('+q+')')+b(btI_('nhan'),'Nhân bản dòng đang chọn','btNhanBan_('+q+')'):'')
-      +(k==='tk'?b(icon('trash',17),'Xoá các dòng đang chọn','tkSheetDel_()'):'')
+      +b(icon('trash',17),'Xoá các dòng đang chọn','btXoaDong_('+q+')')
       +(dong?sep+b(btI_('az'),'Sắp xếp A → Z theo cột đang chọn','btSapXep_('+q+',\'asc\')')+b(btI_('za'),'Sắp xếp Z → A theo cột đang chọn','btSapXep_('+q+',\'desc\')'):'')
       +b(btI_('dien'),'Điền xuống (Ctrl+D): ô đầu vùng chọn chép xuống các ô dưới','btDienVung_('+q+')')
       +sep+b(btI_('filter'),'Bật / tắt ô lọc cột (Ctrl+Shift+L)','btFilter_('+q+')',B.loc)
@@ -787,6 +807,8 @@ function btFrame_(k){
       +b(icon('download',17),'Xuất Excel',k==='pt'?'ptExportXlsx()':(k==='cp'?'cpXuatExcel_(this)':(k==='da'?'daXuatExcel_(this)':'btXlsx_('+q+')')))
       +'<span style="flex:1"></span>'
       +(k==='tk'?'<button class="gs-b gs-txt" id="tkColBtn" onclick="tkColPop_(event)" title="Chọn cột hiển thị"></button><span class="gs-tools" id="tkSheetTools"></span>':'')
+      +(k!=='tk'?'<button class="gs-b gs-txt gs-cotb" onclick="foldToggle_(\'cols\')" title="Ẩn / hiện hàng chọn cột hiển thị">'+icon('sliders',15)+' Cột</button>'
+        +b(btI_('freeze').replace('M9 3v18M3 9h18','M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5'),'Toàn màn hình (Esc để thoát)','btToanMH_('+q+')'):'')
       +((k==='cp'||k==='da')?'<span class="gs-tools">'+pgToolsHtml_(k)+'</span>':'')
     +'</div>'
     // Thanh công thức: địa chỉ ô + nội dung ô đang chọn (sửa rồi Enter)
