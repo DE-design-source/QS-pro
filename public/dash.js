@@ -233,11 +233,11 @@ function cpColBar_(loc){
 }
 var CP_COL_CB=['ten','soLuong','giaDaiLy','donGia','thanhTien','lnVnd'];
 function cpColAll_(on){ CP_KEYS.forEach(function(k){ S.cpCols[k]= on?true:(CP_COL_CB.indexOf(k)>=0); }); renderChiphi(); }
-function daColBar_(){
+function daColBar_(loc){
   var on=DA_KEYS.filter(function(k){ return S._daCols[k]; }).length;
   return pgColFrame_(on, DA_KEYS.length, '<div class="colchips cp-colchips">'
-    +DA_KEYS.map(function(k){ return '<span class="chip'+(S._daCols[k]?' on':'')+'" onclick="daColToggle(\''+k+'\')">'+esc(cpLabel_(k))+'</span>'; }).join('')+'</div>', 'daColAll_', 'da', 'daPresetBtn');
+    +DA_KEYS.map(function(k){ return '<span class="chip'+(S._daCols[k]?' on':'')+'" onclick="daColToggle(\''+k+'\')">'+esc(cpLabel_(k))+'</span>'; }).join('')+'</div>', 'daColAll_', 'da', 'daPresetBtn', loc);
 }
 var DA_COL_CB=['ten','soLuong','giaDaiLy','donGia','thanhTien','hinhAnh'];
-function daColAll_(on){ S._daCols=S._daCols||{}; DA_KEYS.forEach(function(k){ S._daCols[k]= on?true:(DA_COL_CB.indexOf(k)>=0); }); renderDuAn(); }
+function daColAll_(on){ S._daCols=S._daCols||{}; DA_KEYS.forEach(function(k){ S._daCols[k]= on?true:(DA_COL_CB.indexOf(k)>=0); }); daColLuu_(); renderDuAn(); }
 function dashSearch_(v){ S._dashSearch=v; var grid=document.getElementById('dhProjGrid'); if(grid) grid.innerHTML=dashProjCards_(S._projGroups||projectGroups()); }

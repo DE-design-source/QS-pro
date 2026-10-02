@@ -528,6 +528,9 @@ function daSheetMenu_(e, x, y, td){
   function mi(ic,label,fn,hint){ return '<div class="cmi" onclick="'+fn+'">'+icon(ic,14)+'<span>'+label+'</span>'+(hint?'<i class="cmi-k">'+hint+'</i>':'')+'</div>'; }
   var h='';
   if(k && k!=='stt'){ h+='<div class="cmh">Cột: '+esc(c[1])+'</div>'
+      +mi('up','Sắp xếp tăng dần','closePop();daSort(\''+k+'\',\'asc\')')
+      +mi('down','Sắp xếp giảm dần','closePop();daSort(\''+k+'\',\'desc\')')
+      +(S._daSort?mi('close','Bỏ sắp xếp','closePop();S._daSort=\'\';renderDuAn()'):'')
       +(m&&m.k==='it'&&tkSheetSua_(k)?mi('down','Điền giá trị ô này xuống cả cột','closePop();btDien_(\'da\','+x+','+y+')'):'')
       +(k!=='ten'?mi('eye','Ẩn cột này','closePop();daColToggle(\''+k+'\')'):'')
       +'<div class="cmsep"></div>'; }

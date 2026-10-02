@@ -1622,7 +1622,7 @@ var COLSET={
     keys:function(){ return DA_KEYS.slice(); },
     macdinh:function(){ return ['khuVuc','ten','thuongHieu','moTa','kichThuoc','hinhAnh','dvt','soLuong','donGia','thanhTien']; },
     on:function(k){ return !!(S._daCols||{})[k]; },
-    set:function(m){ S._daCols=S._daCols||{}; DA_KEYS.forEach(function(k){ S._daCols[k]=!!m[k]; }); },
+    set:function(m){ S._daCols=S._daCols||{}; DA_KEYS.forEach(function(k){ S._daCols[k]=!!m[k]; }); if(typeof daColLuu_==='function') daColLuu_(); },
     ve:function(){ try{ renderDuAn(); }catch(e){} } },
   // Danh sách SP: cột theo ngành đang xem (đèn / vệ sinh / sơn) hoặc bảng công tác Phần thô
   sp:{ ten:'Danh sách SP', pref:'spCols', luon:'ten',

@@ -922,8 +922,9 @@ function spRenderHead_(){
     +'<col style="width:'+ACT+'px">';
   head.innerHTML='<tr><th class="selcol"><input type="checkbox" class="spck" id="spCkAll" onclick="spSelAll(this.checked)"></th>'
     +vis.map(function(c){
-      return '<th class="'+spThCls_(c)+' spth" data-k="'+esc(c[0])+'" draggable="true" title="Kéo để đổi chỗ cột · kéo mép phải để giãn">'
-        +esc(c[1])+'<span class="spthrsz" data-k="'+esc(c[0])+'"></span></th>'; }).join('')
+      var on=!spPTMode_()&&S._spSort===c[0];
+      return '<th class="'+spThCls_(c)+' spth'+(on?' sortOn':'')+'" data-k="'+esc(c[0])+'" draggable="true" title="Bấm để sắp xếp · kéo để đổi chỗ cột · kéo mép phải để giãn">'
+        +'<span class="thl" onclick="spSort(\''+esc(c[0])+'\')">'+esc(c[1])+(on?(S._spSortDir==='desc'?' ▼':' ▲'):'')+'</span><span class="spthrsz" data-k="'+esc(c[0])+'"></span></th>'; }).join('')
     +'<th class="act-sp"></th></tr>';
   var tb=head.closest('table');
   if(tb){ var total=SEL+ACT; vis.forEach(function(c){ total+=spColW_(c[0]); });
@@ -1004,6 +1005,18 @@ function spCatPickNode(code){
   renderSpChips_(); spViewTabs_(); spFilter();          // Phần thô đổi cả tab lọc lẫn bảng
   if(document.getElementById('spFltPop')) spBoLocPop_();
 }
+// Sắp xếp theo cột (bấm tiêu đề): tăng -> giảm -> bỏ. Giá trị lấy từ cột DB của ô (raw), không thì thuộc tính SP.
+function spSort(k){ if(spPTMode_()) return;
+  if(S._spSort!==k){ S._spSort=k; S._spSortDir='asc'; } else if(S._spSortDir==='asc') S._spSortDir='desc'; else S._spSort='';
+  S._spPage=1; spRenderHead_(); spFilter(); }
+function spSapXep_(list){ var k=S._spSort; if(!k) return list;
+  var def=spAllCols_().filter(function(c){ return c[0]===k; })[0], col=def&&def[4]&&def[4].col, d=S._spSortDir==='desc'?-1:1;
+  function v(p){ var x=(col&&p.raw&&p.raw[col]!=null)?p.raw[col]:p[k]; if(k==='giaDaiLy') x=p.giaDaiLy!=null?p.giaDaiLy:p.donGiaBan;
+    if(typeof x==='number') return x; var n=String(x==null?'':x).trim(); return /^-?[\d.,]+$/.test(n)?tkNum_(n):n; }
+  return list.slice().sort(function(a,b){ var x=v(a), y=v(b);
+    if(typeof x==='number'&&typeof y==='number') return (x-y)*d;
+    if(x==='') return 1; if(y==='') return -1;                       // ô trống luôn nằm cuối
+    return String(x).localeCompare(String(y),'vi',{numeric:true})*d; }); }
 function spClearFilters(){
   var node=(S._spFilters||{}).node;
   S._spFilters={watt:{},kelvin:{},angle:{},cri:{},brands:{},nccs:{}}; if(node) S._spFilters.node=node; S._spPage=1;
@@ -1496,7 +1509,7 @@ function spDataList_(){
     if(cris.length){ var pc=splitVals(p.cri); if(!pc.some(function(x){return cris.indexOf(x)>=0;})) return false; }
     return true;
   });
-  return spGroupVariants_(list);          // biến thể cùng mã SP nằm liền nhau
+  return spGroupVariants_(spSapXep_(list));          // biến thể cùng mã SP nằm liền nhau
 }
 /* ═══ GOM BIẾN THỂ TRONG BẢNG DANH SÁCH SP ═══
    Trước đây mỗi biến thể là 1 dòng phẳng, chỉ nằm cạnh nhau -> bảng dài, khó nhìn,
