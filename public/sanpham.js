@@ -901,7 +901,11 @@ function spColAll_(on){
 /* Đặt lại cột: xoá luôn phần đã lưu để lần sau mở trang về đúng mặc định */
 function spRenderHead_(){
   var head=document.getElementById('spHead'); if(!head) return;
-  var vis=spVisCols_(), ACT=150, SEL=38;
+  var vis=spVisCols_(), SEL=38;
+  // Cột thao tác: đủ chỗ cho cả 7 nút (♡ ⊕ ✓ sửa · copy · xem · xoá — trước 150px nên bị cắt thành "…"),
+  // và nhận phần bề ngang còn dư để bảng vừa khít khung (tiêu đề + dòng cùng 1 bề rộng, không lệch)
+  var wrapEl=document.querySelector('#v-sanpham .tbl-wrap'), daCot=SEL; vis.forEach(function(c){ daCot+=spColW_(c[0]); });
+  var ACT=Math.max(240, ((wrapEl&&wrapEl.clientWidth)||0)-daCot-2);
   var cg=document.getElementById('spColg');
   if(cg) cg.innerHTML='<col style="width:'+SEL+'px">'
     +vis.map(function(c){ return '<col style="width:'+spColW_(c[0])+'px">'; }).join('')
@@ -913,7 +917,7 @@ function spRenderHead_(){
     +'<th class="act-sp"></th></tr>';
   var tb=head.closest('table');
   if(tb){ var total=SEL+ACT; vis.forEach(function(c){ total+=spColW_(c[0]); });
-    tb.style.tableLayout='fixed'; tb.style.width=total+'px'; tb.style.minWidth='100%'; }   // ít cột: giãn kín khung, khỏi trắng bên phải
+    tb.style.tableLayout='fixed'; tb.style.width=total+'px'; tb.style.minWidth=''; }
   spInitCols_();
 }
 // Thanh chip "Hạng mục đã bóc" = nhóm/dòng SP (giống bộ chọn hạng mục bên Bóc tách)
