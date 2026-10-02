@@ -1451,8 +1451,7 @@ function spRowActions_(p,i){
     +'<button class="sp-act add" title="Ghi danh vào dự án" onclick="spAddToProject('+i+')">'+icon('pluscircle',18)+'</button>'
     +((spCanDuyet_()&&!p.spChung)?'<button class="sp-act '+(p.daDuyet?'undo':'ok')+'" title="'+(p.daDuyet?'Bỏ duyệt':'Duyệt sản phẩm này')+'" onclick="spDuyet('+i+','+(p.daDuyet?0:1)+')">'+icon('check',16)+'</button>':'')
     +(p.spChung?'':'<button class="sp-act edit" title="Cập nhật sản phẩm" onclick="spEditModal('+i+')">'+icon('edit',16)+'</button>')
-    +(p.spChung?'':'<button class="sp-act copy" title="Nhân bản thành biến thể mới (giữ mã, đổi màu/kích thước…)" onclick="spNhanBan_('+i+')">'+icon('copy',16)+'</button>')
-    +((p.spChung||!p.ma||!spCanEdit_())?'':'<button class="sp-act" title="Tạo nhanh nhiều biến thể màu (mỗi màu giá riêng)" onclick="spNhieuBT_('+i+')">'+icon('layers',16)+'</button>')
+    +((!p.ma||!spCanEdit_()||p.spChung)?'':'<button class="sp-act copy" title="Sao chép: tạo sản phẩm mới / biến thể / nhiều màu" onclick="spCopyMenu_(event,'+i+')">'+icon('copy',16)+'</button>')
     +'<button class="sp-act" title="Xem chi tiết" onclick="spOpen_('+i+')">'+icon('eye',16)+'</button>'
     +((isAdmin&&!p.spChung)?'<button class="sp-act del" title="Xoá" onclick="spDelete('+i+')">'+icon('trash',16)+'</button>':'');
 }
@@ -2114,6 +2113,21 @@ function cbSection_(){
 /* Nhân bản 1 sản phẩm thành BIẾN THỂ MỚI: mở đúng modal Sửa nhưng ở chế độ tạo dòng mới,
    giữ nguyên mã + toàn bộ thông tin, người dùng chỉ đổi phần khác (màu, kích thước…).  */
 function spNhanBan_(i){ spEditModal(i, 1); }
+// Nút copy trên dòng: chọn kiểu sao chép
+function spCopyMenu_(e,i){
+  e.stopPropagation(); closePop();
+  var p=(S._spList||[])[i]; if(!p) return;
+  function mi(ic,t,sub,fn){ return '<div class="cmi cmi2" onclick="closePop();'+fn+'">'+icon(ic,15)+'<span><b>'+t+'</b><i>'+sub+'</i></span></div>'; }
+  var pop=document.createElement('div'); pop.className='fltpop ctxmenu'; pop.id='qs_pop';
+  pop.innerHTML=mi('copy','Sao chép thành sản phẩm mới','Chép toàn bộ thông tin, ảnh, tài liệu — đổi mã & tên','spEditModal('+i+',\'copy\')')
+    +mi('plus','Tạo biến thể','Giữ mã '+esc(p.ma)+', đổi màu / kích thước / công suất…','spNhanBan_('+i+')')
+    +mi('layers','Tạo nhanh nhiều màu','Nhiều màu một lần, mỗi màu giá riêng','spNhieuBT_('+i+')');
+  document.body.appendChild(pop);
+  var r=e.currentTarget.getBoundingClientRect();
+  pop.style.left=Math.max(8,Math.min(r.right-pop.offsetWidth, window.innerWidth-pop.offsetWidth-8))+'px';
+  pop.style.top=Math.min(r.bottom+4, window.innerHeight-pop.offsetHeight-8)+'px';
+  setTimeout(function(){ document.addEventListener('mousedown',popOutside); },0);
+}
 /* ═══ BIẾN THỂ MÀU ═══
    Màu của 1 nhóm biến thể hiện thành chấm màu trên dòng đại diện; "Tạo nhanh nhiều biến thể" tạo 1 lần
    nhiều màu từ 1 SP gốc: CÙNG mã / hãng / thông số, mỗi màu 1 giá riêng. Máy chủ (saveDbProduct) coi
@@ -2223,11 +2237,11 @@ async function spEditModal(i, nhanBan){
   var p=(i&&typeof i==='object') ? i : (S._spList||[])[i];
   if(!p) return;
   if(!p.ma){ toast('Sản phẩm chưa có mã — không cập nhật được'); return; }
-  S._speNew=!!nhanBan;
+  S._speNew=!!nhanBan; S._speCopy=(nhanBan==='copy');     // 'copy' = sản phẩm MỚI (mã mới), còn lại = biến thể cùng mã
   var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='spEditOv';
   ov.onclick=function(e){ if(e.target===ov) spEditClose(); };
   ov.innerHTML='<div class="sp-modal sp-edit pd"><div class="pd-head"><h3>'+icon(nhanBan?'plus':'edit',16)+' '
-      +(nhanBan?'Nhân bản — tạo biến thể mới':'Cập nhật sản phẩm')+'</h3><button class="pd-x" onclick="spEditClose()">✕</button></div>'
+      +(nhanBan==='copy'?'Sao chép — tạo sản phẩm mới':(nhanBan?'Nhân bản — tạo biến thể mới':'Cập nhật sản phẩm'))+'</h3><button class="pd-x" onclick="spEditClose()">✕</button></div>'
     +'<div class="spe-2col"><div class="spe-body"><div class="empty" style="padding:24px">Đang tải…</div></div><aside class="spe-side" id="speSide"></aside></div></div>';
   document.body.appendChild(ov);
   var editKey = (p.recordId!=null && p.recordId!=='') ? String(p.recordId) : p.ma;   // id dòng = đúng biến thể
@@ -2271,7 +2285,9 @@ async function spEditModal(i, nhanBan){
     +'<div class="spe-hist"><div class="spe-hist-h">'+icon('clock',15)+' Lịch sử cập nhật <span class="spe-hist-n">'+hist.length+'</span></div>'
     +'<div class="spe-hist-list">'+histHtml+'</div></div>';
   var moi=!!S._speNew;
-  ov.querySelector('.spe-body').innerHTML=(moi?('<div class="spe-note-new">'+icon('bell',14)
+  ov.querySelector('.spe-body').innerHTML=(S._speCopy?('<div class="spe-note-new">'+icon('bell',14)
+        +' Đang tạo <b>sản phẩm mới</b> từ <b>'+esc(p.ma||'')+'</b> — nhập <b>Mã sản phẩm mới</b> (không trùng mã có sẵn), sửa tên / thông số rồi bấm Tạo sản phẩm.</div>')
+      :moi?('<div class="spe-note-new">'+icon('bell',14)
         +' Đang tạo <b>biến thể mới</b> cho mã <b>'+esc(p.ma||'')+'</b> — đổi phần khác biệt ('
         +BT_TRUC.map(function(t){ return t[1]; }).join(' · ')+') rồi bấm Tạo biến thể.</div>'):'')
     +spEditImgSection_()
@@ -2280,7 +2296,9 @@ async function spEditModal(i, nhanBan){
     +'<div class="spe-actions">'
       +'<button class="btn ghost sm" onclick="spEditClose()">Huỷ</button>'
       +((!moi&&spCanDuyet_())?'<button class="btn ghost sm" id="speDuyetBtn" onclick="spEditSave(1)" title="Lưu thay đổi rồi đánh dấu Đã duyệt">'+icon('check',14)+' Lưu &amp; duyệt</button>':'')
-      +'<button class="btn blue" id="speSaveBtn" onclick="spEditSave()">'+icon('check',15)+' '+(moi?'Tạo biến thể':'Lưu cập nhật')+'</button></div>';
+      +'<button class="btn blue" id="speSaveBtn" onclick="spEditSave()">'+icon('check',15)+' '+(S._speCopy?'Tạo sản phẩm':(moi?'Tạo biến thể':'Lưu cập nhật'))+'</button></div>';
+  if(S._speCopy){ var maIn=ov.querySelector('[data-col="ma_sp"]');            // mã mới: mở khoá, để trống, đặt con trỏ vào
+    if(maIn){ maIn.readOnly=false; maIn.value=''; maIn.placeholder='Mã mới, VD: '+(p.ma||'')+'-2'; setTimeout(function(){ maIn.focus(); },50); } }
   var ngSP=nganhCuaSP_(p);
   if(ngSP==='vs'||ngSP==='son'){ var hmSel=ov.querySelector('[data-col="hang_muc"]'); vsApplyHM_(ov, hmSel?hmSel.value:raw.hang_muc, 1, ngSP); }
   ov.querySelectorAll('.docf').forEach(docRender_);
@@ -2340,7 +2358,23 @@ async function spEditSave(luuVaDuyet){
   var imgs=[S._imgMain].concat(S._imgList||[]).filter(Boolean).filter(function(v){ return v.indexOf('data:')!==0; });
   data['ẢNH SẢN PHẨM']=imgs.join('\n');
   if(btn) btn.textContent='Đang lưu…';
-  var lai=function(){ if(btn){ btn.disabled=false; btn.innerHTML=icon('check',15)+' '+(S._speNew?'Tạo biến thể':'Lưu cập nhật'); } };
+  var lai=function(){ if(btn){ btn.disabled=false; btn.innerHTML=icon('check',15)+' '+(S._speCopy?'Tạo sản phẩm':(S._speNew?'Tạo biến thể':'Lưu cập nhật')); } };
+  // ── SAO CHÉP thành SP MỚI: bắt buộc mã mới, không trùng (trùng mã = biến thể / ghi đè SP khác)
+  if(S._speCopy){
+    var maMoi=String(data['MÃ SẢN PHẨM']||'').trim();
+    var trungMa=maMoi && (S.products||[]).some(function(x){ return spNorm_(x.ma)===spNorm_(maMoi); });
+    if(!maMoi || trungMa){ lai();
+      await baoLoi_({ title:maMoi?'Mã đã có':'Chưa nhập mã mới', ok:'Đã hiểu', nguyHiem:false,
+        note:maMoi?('Mã "'+maMoi+'" đã có trong danh sách. Sản phẩm mới cần mã KHÁC; muốn thêm màu / kích thước cho mã này thì dùng "Tạo biến thể".')
+                  :'Nhập Mã sản phẩm mới (khác mã gốc) rồi bấm Tạo sản phẩm.' });
+      var mi_=ov.querySelector('[data-col="ma_sp"]'); if(mi_) mi_.focus(); return; }
+    try{ await api('saveDbProduct', data);
+      S.products=await api('getProducts')||S.products; spViewTabs_(); spFilter();
+      if(typeof renderCatalog==='function') renderCatalog();
+      spEditClose(1); toast('Đã tạo sản phẩm mới '+maMoi+' (chép từ '+((S._spEditP&&S._spEditP.ma)||'')+')');
+    }catch(e){ toast('Lỗi tạo sản phẩm: '+String(e.message||e).slice(0,110)); lai(); }
+    return;
+  }
   // ── NHÂN BẢN: tạo DÒNG MỚI cùng mã. Phải khác ít nhất 1 trục biến thể, nếu không
   //    máy chủ coi là cùng một biến thể và GHI ĐÈ dòng gốc (mất dữ liệu cũ).
   if(S._speNew){
