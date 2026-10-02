@@ -39,7 +39,7 @@
     'LƯU Ý':              ['luu_y', 'Lưu ý', 'text', 'VD: Không thi công khi bề mặt còn ẩm']
   };
 
-  var BE_MAT = ['Bề mặt bóng', 'Bóng mờ', 'Mờ', 'Siêu mờ', 'Bán bóng'];
+  var BE_MAT = ['Bề mặt bóng', 'Siêu bóng', 'Bóng mờ', 'Bán bóng', 'Mờ', 'Siêu mờ'];
   var QUY_CACH = ['1L', '5L', '18L', '20L', '25kg', '40kg'];
   var SO_LOP = ['1', '2', '3'];
   var TRANG_THAI_VL = ['Chất lỏng', 'Bột', 'Sệt'];
