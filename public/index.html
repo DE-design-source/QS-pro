@@ -4735,7 +4735,9 @@ body.gs-keo,body.gs-keo *{cursor:grabbing!important;user-select:none}
 /* hàng tên cột: navy, chữ trắng in hoa đậm — cột nội bộ (giá nhà thầu, lợi nhuận) xám đậm */
 .gs-grid .jss_worksheet > thead > tr:last-child > td{background:#1f3a5f;color:#fff;font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.02em;text-align:center!important;
   white-space:normal;line-height:1.3;padding:10px 6px;border-right:1px solid #3d5677;border-bottom:none}
-.gs-grid .jss_worksheet > thead > tr:last-child > td.gs-int{background:#5f6368;border-right-color:#7a7e83}
+/* (cột nội bộ dùng CÙNG màu navy với các cột khác — đồng bộ) */
+.gs-grid .jss_worksheet > thead td.gs-rsz-on{cursor:col-resize!important}
+body.gs-rsz, body.gs-rsz *{cursor:col-resize!important;user-select:none}
 .gs-grid .jss_worksheet > thead > tr:last-child > td.selected{box-shadow:inset 0 -3px 0 #8ab4f8}
 /* ô đang chọn: khung xanh 2px như Google Sheets */
 .gs-grid .jss_worksheet .highlight{background-color:rgba(26,115,232,.1)}

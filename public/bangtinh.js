@@ -50,7 +50,7 @@ function btTao_(k, host, cols, meta, al, opt, ghi, ro, noiBo){
     parseFormulas:false,          // app lưu chữ thô, không lưu công thức -> ô bắt đầu bằng "=" hiện đúng chữ, không ra #ERROR
     worksheets:[{
       data:opt.data, style:opt.style, mergeCells:opt.merge||{}, wordWrap:true, tableOverflow:true, tableHeight:opt.h||'calc(100vh - 290px)', tableWidth:'100%',
-      freezeColumns:0, allowInsertRow:false, allowInsertColumn:false, allowDeleteRow:false,
+      freezeColumns:0, columnResize:false, allowInsertRow:false, allowInsertColumn:false, allowDeleteRow:false,
       allowDeleteColumn:false, allowRenameColumn:false, columnSorting:false, filters:!!B.loc,
       nestedHeaders:[cols.map(function(c,i){ return {title:btColLetter_(i)}; })],
       columns:opt.columns
@@ -67,12 +67,14 @@ function btTao_(k, host, cols, meta, al, opt, ghi, ro, noiBo){
       if(k==='tk' && m && m.k==='sec'){ S.selFloor=m.g==='CHƯA PHÂN TẦNG'?'':m.g; tkSheetFoot_(); } }
   })[0];
   B.ws=ws;
-  // ít cột -> giãn đều cho kín bề ngang khung (khỏi khoảng trắng bên phải); đo THẬT sau khi dựng, cột STT giữ nguyên
-  var ct=host.querySelector('.jss_content'), tb=host.querySelector('table.jss_worksheet'), du=ct&&tb?ct.clientWidth-tb.offsetWidth-2:0;
+  // ít cột -> giãn đều cho kín bề ngang khung (khỏi khoảng trắng bên phải); đo THẬT sau khi dựng, cột STT giữ nguyên.
+  // Người dùng đã tự kéo độ rộng cột của bảng này thì KHÔNG giãn (tôn trọng số đã kéo).
+  var ct=host.querySelector('.jss_content'), tb=host.querySelector('table.jss_worksheet'), du=(ct&&tb&&!btDaKeoCot_(k,cols))?ct.clientWidth-tb.offsetWidth-2:0;
   if(du>4){ var tc=0; cols.forEach(function(c,i){ if(c[0]!=='stt') tc+=opt.columns[i].width||100; });
     cols.forEach(function(c,i){ if(c[0]==='stt') return; var w=opt.columns[i].width||100, d=Math.floor(w*du/tc);
       try{ ws.setWidth(i, w+d); }catch(e){} }); }
-  if(B.frz) btCoDinh_(host, Math.min(opt.frz,cols.length));
+  B.frzN=Math.min(opt.frz,cols.length);
+  if(B.frz) btCoDinh_(host, B.frzN);
   if(opt.menu) ws.options.contextMenu=function(){ return false; };      // tắt menu của thư viện, dùng menu của app
   B.menu=opt.menu;
   // Khung (host) giữ nguyên qua các lần dựng lại lưới -> chỉ gắn sự kiện 1 LẦN (gắn mỗi lần dựng = 1 cú bấm chạy 2-3 lần)
@@ -83,8 +85,7 @@ function btTao_(k, host, cols, meta, al, opt, ghi, ro, noiBo){
     host.addEventListener('contextmenu',function(e){ var td=e.target.closest('td[data-x]'); if(!td||!B.menu) return;
       e.preventDefault(); e.stopPropagation(); B.menu(e, +td.dataset.x, td.dataset.y==null?-1:+td.dataset.y, td); }, true); }
   ro.forEach(function(ten){ try{ ws.setReadOnly(ten,true); }catch(e){} });
-  // cột nội bộ (giá vốn, lợi nhuận) tiêu đề xám đậm — tách khỏi cột báo khách (navy), như mẫu
-  cols.forEach(function(c,x){ if(noiBo[c[0]] && ws.headers && ws.headers[x]) ws.headers[x].classList.add('gs-int'); });
+  btKeoCot_(k, host);
   return ws;
 }
 /* Cố định N cột đầu (+ cột số dòng) bằng position:sticky của trình duyệt. Không dùng freezeColumns của thư viện:
@@ -97,6 +98,34 @@ function btCoDinh_(host, n){
   [].forEach.call(hd,function(tr){ for(var i=0;i<=n;i++) gan(tr.cells[i],i); });
   [].forEach.call(t.tBodies[0].rows,function(tr){ gan(tr.cells[0],0);
     for(var i=1;i<=n;i++) gan(tr.querySelector('td[data-x="'+(i-1)+'"]'),i); });
+}
+/* Kéo đổi độ rộng cột như Excel: rê tới MÉP PHẢI ô tiêu đề (hàng A/B/C hoặc hàng tên cột) -> con trỏ ↔ -> kéo.
+   Tự làm thay cho của thư viện: thư viện chỉ bắt ở hàng tên cột và tính sai mép khi trang có zoom (.wrap zoom .9).
+   Lưu: bảng Bóc tách / Chi phí / Dự án vào S.colW (dùng chung bảng thường, nhớ qua lần mở sau); Phần thô: trong phiên. */
+function btDaKeoCot_(k,cols){ if(k==='pt') return !!(btCtx_('pt').wTay&&Object.keys(btCtx_('pt').wTay).length);
+  return cols.some(function(c){ return S.colW && S.colW[c[0]]!=null; }); }
+function btKeoCot_(k, host){
+  if(host._btKeoCot) return; host._btKeoCot=1;          // gắn 1 lần cho khung (khung giữ nguyên qua các lần dựng lại)
+  function mepCua(e){ var td=e.target.closest&&e.target.closest('thead td'); if(!td || td.cellIndex<1) return null;
+    var r=td.getBoundingClientRect(); return (r.right-e.clientX)<=7 ? td : null; }
+  host.addEventListener('mousemove',function(e){ if(document.body.classList.contains('gs-rsz')) return;
+    host.querySelectorAll('thead td.gs-rsz-on').forEach(function(t){ t.classList.remove('gs-rsz-on'); });
+    var td=mepCua(e); if(td) td.classList.add('gs-rsz-on'); });
+  host.addEventListener('mousedown',function(e){
+    var td=mepCua(e); if(!td||e.button!==0) return;
+    e.preventDefault(); e.stopPropagation();
+    var B=btCtx_(k), ws=B.ws, x=td.cellIndex-1, col=B.cols[x]; if(!ws||!col) return;
+    var zf=btZf_(td), x0=e.clientX, w0=td.getBoundingClientRect().width/zf, w=w0;
+    document.body.classList.add('gs-rsz');
+    function mv(ev){ w=Math.max(40, Math.round(w0+(ev.clientX-x0)/zf)); try{ ws.setWidth(x, w); }catch(er){} }
+    function up(){ document.removeEventListener('mousemove',mv,true); document.removeEventListener('mouseup',up,true);
+      document.body.classList.remove('gs-rsz');
+      if(k==='pt'){ B.wTay=B.wTay||{}; B.wTay[col[0]]=w; }
+      else { S.colW=S.colW||{}; S.colW[col[0]]=w; if(typeof saveCols==='function') saveCols(); }
+      if(B.frz) btCoDinh_(host, B.frzN||2);             // cột cố định: tính lại vị trí dính
+    }
+    document.addEventListener('mousemove',mv,true); document.addEventListener('mouseup',up,true);
+  },true);
 }
 // Ghi giá trị mới vào lưới (không dựng lại -> giữ ô đang chọn, vị trí cuộn). Ô tự tính KHÔNG vào lịch sử:
 // Ctrl+Z chỉ lùi thao tác của người dùng (lùi ô gõ -> ghi lại -> tính lại)
@@ -160,7 +189,7 @@ function renderPTSheet_(host, cols, comp){
   });
   var ws=btTao_('pt', host, cols, g.meta, cols.map(function(c){ return c[2]==='n'?'n':(c[2]==='c'?'c':''); }), {
     data:g.rows, style:st,
-    frz:2, columns:cols.map(function(c){ return {title:c[1], width:c[3]||100, type:'text',
+    frz:2, columns:cols.map(function(c){ return {title:c[1], width:(btCtx_('pt').wTay||{})[c[0]]||c[3]||100, type:'text',
       align:c[2]==='n'?'right':(c[2]==='c'?'center':'left'), wordWrap:c[0]==='noidung'||c[0]==='ghichu'}; })
   }, ptSheetGhi_, ro, PT_NOI_BO);
   return ws;
