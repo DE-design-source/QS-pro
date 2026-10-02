@@ -2049,7 +2049,8 @@ function cbSearch_(q){
    S._bt = [{recordId, ma, ten, hinhAnh, donGiaBan, ...}] — chỉ là danh sách SP,
    không có số lượng như combo (biến thể là CÙNG một sản phẩm, khác thông số). */
 function btLbl_(x){
-  if(x.nganh==='vs'||x.nganh==='son') return [x.mauSac, x.raw&&x.raw.kich_thuoc].map(function(v){ return String(v==null?'':v).trim(); }).filter(Boolean).join(' · ');
+  if(x.nganh==='son') return [x.ma, x.mauSac, x.raw&&x.raw.be_mat, x.raw&&x.raw.kich_thuoc].map(function(v){ return String(v==null?'':v).trim(); }).filter(Boolean).join(' · ');   // sơn: khác nhau ở mã / màu / bề mặt / dung tích
+  if(x.nganh==='vs') return [x.mauSac, x.raw&&x.raw.kich_thuoc].map(function(v){ return String(v==null?'':v).trim(); }).filter(Boolean).join(' · ');
   return [x.congSuat,x.nhietDo,x.gocChieu,x.mauSac].map(function(v){ return String(v==null?'':v).trim(); })
     .filter(Boolean).join(' · ');
 }
@@ -2135,7 +2136,7 @@ function cbSection_(){
     +'<div id="btPane" style="display:none">'
       +'<p class="cb-note">Gom các sản phẩm là CÙNG một sản phẩm nhưng khác thông số ('+(cbVS_()?'màu sắc, kích thước':'công suất, nhiệt độ màu, góc chiếu, màu')+'). '
         +'Bảng Danh sách SP và thư viện Bóc tách sẽ gộp chúng thành một dòng, bung ra mới thấy từng biến thể.</p>'
-      +(S._spEditP&&S._spEditP.ma&&!S._spEditP.spChung?'<button type="button" class="btn blue sm nbt-open" onclick="spNhieuBT_(S._spEditP)">'+icon('layers',14)+' Tạo nhanh nhiều màu</button>':'')
+      +(S._spEditP&&S._spEditP.ma&&!S._spEditP.spChung?'<button type="button" class="btn blue sm nbt-open" onclick="spNhieuBT_(S._spEditP)">'+icon('layers',14)+' Tạo nhanh biến thể</button>':'')
       +'<div class="cb-find"><input id="btSearch" placeholder="Tìm biến thể theo tên, mã hoặc thương hiệu…" autocomplete="off" oninput="btSearch_(this.value)">'
         +'<div class="cb-sug-box" id="btSug"></div></div>'
       +'<div class="cb-list" id="btList"></div>'
@@ -2152,7 +2153,7 @@ function spCopyMenu_(e,i){
   var pop=document.createElement('div'); pop.className='fltpop ctxmenu'; pop.id='qs_pop';
   pop.innerHTML=mi('copy','Sao chép thành sản phẩm mới','Chép toàn bộ thông tin, ảnh, tài liệu — đổi mã & tên','spEditModal('+i+',\'copy\')')
     +mi('plus','Tạo biến thể','Giữ mã '+esc(p.ma)+', đổi màu / kích thước / công suất…','spNhanBan_('+i+')')
-    +mi('layers','Tạo nhanh nhiều màu','Nhiều màu một lần, mỗi màu giá riêng','spNhieuBT_('+i+')');
+    +mi('layers','Tạo nhanh biến thể','Nhiều mã / màu / bề mặt một lần, giá riêng','spNhieuBT_('+i+')');
   document.body.appendChild(pop);
   var r=e.currentTarget.getBoundingClientRect();
   pop.style.left=Math.max(8,Math.min(r.right-pop.offsetWidth, window.innerWidth-pop.offsetWidth-8))+'px';
@@ -2181,84 +2182,107 @@ function spMauDots_(mau){
       return '<i style="'+(c?('background:'+c):'')+'"'+(c?'':' class="sp-mau-x"')+'></i>'; }).join('')
     +(mau.length>6?'<b>+'+(mau.length-6)+'</b>':'')+'</span>';
 }
+/* Tạo nhanh nhiều biến thể: mỗi dòng 1 biến thể — khác MÃ (VD GJ8 / GJ8B), MÀU, BỀ MẶT (bóng / mờ…), DUNG TÍCH; giá riêng.
+   Giữ nguyên hãng, thông số, ảnh của SP gốc. Máy chủ chặn trùng theo MÃ + MÀU + DUNG TÍCH (không tính bề mặt), nên 2 bề mặt
+   khác nhau phải khác mã hoặc khác màu / dung tích (đúng như bảng giá: Mờ = GJ8, Bóng = GJ8B). Biến thể khác mã tự gom chung nhóm. */
+var NBT_BM=['Bề mặt bóng','Bóng mờ','Mờ','Siêu mờ','Siêu bóng','Bán bóng'];
 function spNhieuBT_(i){                        // i = chỉ số dòng trong bảng, hoặc chính sản phẩm (từ form Cập nhật)
   var p=(i&&typeof i==='object')?i:(S._spList||[])[i]; if(!p||!p.ma) return;
-  S._nbt={p:p, rows:[{mau:'',kt:String((p.raw&&p.raw.kich_thuoc)||''),gia:''}]};
+  var raw=p.raw||{};
+  S._nbt={p:p, rows:[spNbtDong_({})]};
   var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='nbtOv';
   ov.onclick=function(e){ if(e.target===ov) spNhieuBTDong_(); };
-  ov.innerHTML='<div class="sp-modal pd nbt-modal"><div class="pd-head"><h3>'+icon('layers',16)+' Tạo nhanh biến thể màu</h3>'
+  ov.innerHTML='<div class="sp-modal pd nbt-modal"><div class="pd-head"><h3>'+icon('layers',16)+' Tạo nhanh biến thể</h3>'
       +'<button class="pd-x" onclick="spNhieuBTDong_()">✕</button></div>'
     +'<div class="nbt-src">'+(p.hinhAnh?'<img src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'')
-      +'<div><b>'+esc(p.ten||'')+'</b><span>'+esc(p.ma)+(p.thuongHieu?' · '+esc(p.thuongHieu):'')+(p.mauSac?' · đang có màu: '+esc(p.mauSac):'')+'</span></div></div>'
-    +'<p class="ask-note">Mỗi dòng là 1 màu mới — giữ nguyên mã, hãng, thông số, ảnh của sản phẩm gốc; mỗi màu nhập giá riêng. '
-      +'Dán cả cột tên màu (mỗi dòng 1 màu) vào ô Màu đầu tiên là tự tách ra nhiều dòng.</p>'
-    +'<div class="nbt-tbl"><div class="nbt-h"><span>Màu sắc *</span><span>Quy cách / dung tích</span><span>Giá bán lẻ (đ) *</span><span></span></div><div id="nbtRows"></div></div>'
-    +'<button class="btn ghost sm" onclick="spNhieuBTThem_()">'+icon('plus',14)+' Thêm màu</button>'
+      +'<div><b>'+esc(p.ten||'')+'</b><span>Mã '+esc(p.ma)+(p.thuongHieu?' · '+esc(p.thuongHieu):'')+(p.mauSac?' · '+esc(p.mauSac):'')
+        +(raw.be_mat?' · '+esc(raw.be_mat):'')+(raw.kich_thuoc?' · '+esc(raw.kich_thuoc):'')+'</span></div></div>'
+    +'<p class="ask-note">Mỗi dòng là 1 biến thể — giữ nguyên hãng, thông số, ảnh của sản phẩm gốc; chỉ đổi phần khác nhau và nhập giá riêng. '
+      +'Bề mặt khác nhau (Bóng / Mờ…) thường có <b>mã riêng</b> (VD Mờ GJ8 · Bóng GJ8B) — sửa ô Mã cho đúng bảng giá. '
+      +'Dán từ Excel vào ô đầu: <i>Mã ⇥ Màu ⇥ Bề mặt ⇥ Dung tích ⇥ Giá</i> (hoặc chỉ Màu ⇥ Giá).</p>'
+    +'<datalist id="nbtBmList">'+NBT_BM.map(function(x){ return '<option value="'+esc(x)+'">'; }).join('')+'</datalist>'
+    +'<div class="nbt-tbl"><div class="nbt-h"><span>Mã SP</span><span>Màu sắc</span><span>Bề mặt</span><span>Dung tích</span><span>Giá bán lẻ (đ) *</span><span></span></div><div id="nbtRows"></div></div>'
+    +'<button class="btn ghost sm" onclick="spNhieuBTThem_()">'+icon('plus',14)+' Thêm biến thể</button>'
     +'<div class="ask-err" id="nbtErr" style="display:none"></div>'
     +'<div class="ask-f-btn"><button class="btn ghost sm" onclick="spNhieuBTDong_()">Huỷ</button>'
       +'<button class="btn blue" id="nbtOk" onclick="spNhieuBTLuu_()">'+icon('check',15)+' Tạo biến thể</button></div></div>';
   document.body.appendChild(ov); spNhieuBTVe_();
-  var f=ov.querySelector('.nbt-mau'); if(f) f.focus();
+  var f=ov.querySelector('.nbt-ma'); if(f) f.focus();
 }
+// dòng mới: lấy mặc định từ SP gốc (mã, bề mặt, dung tích) hoặc từ dòng trên cùng (a)
+function spNbtDong_(a){ var p=S._nbt?S._nbt.p:{}, raw=(p&&p.raw)||{};
+  return {ma:a.ma||p.ma||'', mau:'', bm:a.bm!=null?a.bm:String(raw.be_mat||''), kt:a.kt!=null?a.kt:String(raw.kich_thuoc||''), gia:''}; }
 function spNhieuBTDong_(){ var o=document.getElementById('nbtOv'); if(o) o.remove(); S._nbt=null; }
 function spNhieuBTVe_(){
   var box=document.getElementById('nbtRows'); if(!box||!S._nbt) return;
+  function o(k,f,v,ph,cls,them){ return '<input'+(cls?' class="'+cls+'"':'')+' value="'+esc(v)+'" placeholder="'+ph+'" oninput="spNhieuBTSua_('+k+',\''+f+'\',this.value)"'+(them||'')+'>'; }
   box.innerHTML=S._nbt.rows.map(function(r,k){ var c=spMauCss_(r.mau);
-    return '<div class="nbt-r"><label class="nbt-mauw"><i style="'+(c?'background:'+c:'')+'"'+(c?'':' class="sp-mau-x"')+'></i>'
-        +'<input class="nbt-mau" value="'+esc(r.mau)+'" placeholder="VD: Trắng sứ" oninput="spNhieuBTSua_('+k+',\'mau\',this.value)" onpaste="spNhieuBTDan_(event,'+k+')"></label>'
-      +'<input value="'+esc(r.kt)+'" placeholder="VD: 5L" oninput="spNhieuBTSua_('+k+',\'kt\',this.value)">'
-      +'<input class="num" inputmode="numeric" value="'+esc(r.gia)+'" placeholder="0" oninput="spNhieuBTSua_('+k+',\'gia\',this.value)"'
-        +' onkeydown="if(event.key===\'Enter\'){event.preventDefault();spNhieuBTThem_();}">'
+    return '<div class="nbt-r">'
+      +o(k,'ma',r.ma,'Mã','nbt-ma',' onpaste="spNhieuBTDan_(event,'+k+')"')
+      +'<label class="nbt-mauw"><i style="'+(c?'background:'+c:'')+'"'+(c?'':' class="sp-mau-x"')+'></i>'+o(k,'mau',r.mau,'VD: Trắng','nbt-mau')+'</label>'
+      +o(k,'bm',r.bm,'VD: Bóng','',' list="nbtBmList"')
+      +o(k,'kt',r.kt,'VD: 5L')
+      +o(k,'gia',r.gia,'0','num',' inputmode="numeric" onkeydown="if(event.key===\'Enter\'){event.preventDefault();spNhieuBTThem_();}"')
       +'<button class="cb-del" title="Bỏ dòng" onclick="spNhieuBTBo_('+k+')">'+icon('x',14)+'</button></div>'; }).join('');
 }
 function spNhieuBTSua_(k,f,v){ var r=S._nbt&&S._nbt.rows[k]; if(!r) return; r[f]=v;
   if(f==='mau'){ var dot=document.querySelectorAll('#nbtRows .nbt-mauw i')[k], c=spMauCss_(v); if(dot){ dot.style.background=c||''; dot.className=c?'':'sp-mau-x'; } } }
 function spNhieuBTThem_(){ if(!S._nbt) return; var a=S._nbt.rows[S._nbt.rows.length-1]||{};
-  S._nbt.rows.push({mau:'',kt:a.kt||'',gia:''}); spNhieuBTVe_();
-  var ins=document.querySelectorAll('#nbtRows .nbt-mau'); if(ins.length) ins[ins.length-1].focus(); }
-function spNhieuBTBo_(k){ if(!S._nbt) return; S._nbt.rows.splice(k,1); if(!S._nbt.rows.length) S._nbt.rows.push({mau:'',kt:'',gia:''}); spNhieuBTVe_(); }
-// dán cột màu (từ Excel / ghi chú): mỗi dòng 1 màu; có thêm cột giá (tab) thì lấy luôn
+  S._nbt.rows.push(spNbtDong_({ma:a.ma, bm:a.bm, kt:a.kt})); spNhieuBTVe_();
+  var ins=document.querySelectorAll('#nbtRows .nbt-ma'); if(ins.length){ ins[ins.length-1].focus(); ins[ins.length-1].select(); } }
+function spNhieuBTBo_(k){ if(!S._nbt) return; S._nbt.rows.splice(k,1); if(!S._nbt.rows.length) S._nbt.rows.push(spNbtDong_({})); spNhieuBTVe_(); }
+// dán từ Excel vào ô Mã: 5 cột Mã ⇥ Màu ⇥ Bề mặt ⇥ Dung tích ⇥ Giá · 3 cột Màu ⇥ Dung tích ⇥ Giá · 2 cột Màu ⇥ Giá
 function spNhieuBTDan_(e,k){
   var t=(e.clipboardData||window.clipboardData).getData('text')||''; if(t.indexOf('\n')<0 && t.indexOf('\t')<0) return;
   e.preventDefault();
-  var kt=(S._nbt.rows[k]||{}).kt||'';
-  var moi=t.split(/\r?\n/).map(function(d){ return d.split('\t'); }).filter(function(c){ return String(c[0]||'').trim(); })
-    .map(function(c){ return {mau:c[0].trim(), kt:(c.length>2?String(c[1]).trim():'')||kt, gia:String(c[c.length>2?2:1]||'').trim()}; });
+  var d0=S._nbt.rows[k]||spNbtDong_({});
+  var moi=t.split(/\r?\n/).map(function(d){ return d.split('\t').map(function(x){ return String(x||'').trim(); }); })
+    .filter(function(c){ return c.some(Boolean); }).map(function(c){
+      if(c.length>=5) return {ma:c[0]||d0.ma, mau:c[1], bm:c[2], kt:c[3]||d0.kt, gia:c[4]};
+      if(c.length>=3) return {ma:d0.ma, mau:c[0], bm:d0.bm, kt:c[1]||d0.kt, gia:c[2]};
+      return {ma:d0.ma, mau:c[0], bm:d0.bm, kt:d0.kt, gia:c[1]||''}; });
   S._nbt.rows.splice.apply(S._nbt.rows,[k,1].concat(moi)); spNhieuBTVe_();
 }
 async function spNhieuBTLuu_(){
   var N=S._nbt; if(!N) return; var p=N.p, err=document.getElementById('nbtErr');
-  var rows=N.rows.filter(function(r){ return String(r.mau).trim()||String(r.gia).trim(); });
+  var rows=N.rows.filter(function(r){ return [r.mau,r.gia].some(function(v){ return String(v||'').trim(); }) || (String(r.ma||'').trim() && String(r.ma).trim()!==p.ma); });
   function bao(m){ err.textContent=m; err.style.display='block'; }
-  if(!rows.length) return bao('Nhập ít nhất 1 màu.');
-  var thieu=rows.filter(function(r){ return !String(r.mau).trim() || !(tkNum_(r.gia)>0); });
-  if(thieu.length) return bao('Mỗi dòng cần Màu sắc và Giá bán lẻ > 0 (còn '+thieu.length+' dòng thiếu).');
-  // màu (+ quy cách) đã có trong cùng mã -> bỏ qua, không ghi đè SP cũ
-  function khoa(m,kt){ return spNorm_(m)+'|'+spNorm_(kt); }
-  var co={}; (S.products||[]).forEach(function(x){ if(x.ma===p.ma) co[khoa(x.mauSac, x.raw&&x.raw.kich_thuoc)]=1; });
+  if(!rows.length) return bao('Nhập ít nhất 1 biến thể.');
+  var thieu=rows.filter(function(r){ return !String(r.ma||'').trim() || !(tkNum_(r.gia)>0); });
+  if(thieu.length) return bao('Mỗi dòng cần Mã SP và Giá bán lẻ > 0 (còn '+thieu.length+' dòng thiếu).');
+  // Khoá trùng GIỐNG máy chủ: mã + màu + dung tích. Đã có -> bỏ qua (không ghi đè SP cũ), kèm gợi ý đổi mã.
+  function khoa(ma,m,kt){ return spNorm_(ma)+'|'+spNorm_(m)+'|'+spNorm_(kt); }
+  var co={}; (S.products||[]).forEach(function(x){ co[khoa(x.ma, x.mauSac, x.raw&&x.raw.kich_thuoc)]=1; });
   var trongDs={}, tao=[], trung=[];
-  rows.forEach(function(r){ var kk=khoa(r.mau,r.kt); if(co[kk]||trongDs[kk]) trung.push(r.mau); else { trongDs[kk]=1; tao.push(r); } });
-  if(!tao.length) return bao('Các màu này đều đã có cho mã '+p.ma+': '+trung.join(', '));
+  rows.forEach(function(r){ var kk=khoa(r.ma,r.mau,r.kt), nh=[r.ma,r.mau,r.bm,r.kt].filter(function(x){ return String(x||'').trim(); }).join(' · ');
+    if(co[kk]||trongDs[kk]) trung.push(nh); else { trongDs[kk]=1; tao.push(r); } });
+  if(!tao.length) return bao('Đã có sản phẩm trùng mã + màu + dung tích: '+trung.join('; ')+'. Biến thể khác bề mặt cần mã riêng (VD GJ8B).');
   var goc={}; Object.keys(p.raw||{}).forEach(function(col){ var lb=SP_COL2LABEL_[col]; if(lb && col!=='gia_dai_ly') goc[lb]=p.raw[col]; });
-  goc['MÃ SẢN PHẨM']=p.ma; goc['TÊN SẢN PHẨM']=p.ten; goc['ẢNH SẢN PHẨM']=p.anhTatCa||p.hinhAnh||'';
+  goc['TÊN SẢN PHẨM']=p.ten; goc['ẢNH SẢN PHẨM']=p.anhTatCa||p.hinhAnh||'';
   var btn=document.getElementById('nbtOk'); btn.disabled=true;
-  var ok=0, loi=[];
+  var ok=0, loi=[], moiIds=[], khacMa=false;
   for(var j=0;j<tao.length;j++){ var r=tao[j]; btn.textContent='Đang tạo '+(j+1)+'/'+tao.length+'…';
-    try{ await api('saveDbProduct', Object.assign({}, goc, {'MÀU SẮC':r.mau.trim(), 'KÍCH THƯỚC':String(r.kt||'').trim(), 'GIÁ BÁN LẺ':tkNum_(r.gia)})); ok++; }
-    catch(e){ loi.push(r.mau+': '+String(e.message||e).slice(0,60)); } }
-  // SP gốc đang ở nhóm gom tay (nhom_bt) -> đưa các màu mới vào cùng nhóm, không thì chúng tách nhóm (gom theo mã)
+    var d=Object.assign({}, goc, {'MÃ SẢN PHẨM':String(r.ma).trim(), 'MÀU SẮC':String(r.mau||'').trim(), 'KÍCH THƯỚC':String(r.kt||'').trim(), 'GIÁ BÁN LẺ':tkNum_(r.gia)});
+    if(String(r.bm||'').trim()) d['BỀ MẶT HOÀN THIỆN']=String(r.bm).trim();
+    if(d['MÃ SẢN PHẨM']!==p.ma) khacMa=true;
+    try{ var rs=await api('saveDbProduct', d); ok++; if(rs&&rs.id!=null) moiIds.push(String(rs.id)); }
+    catch(e){ loi.push((r.ma||r.mau)+': '+String(e.message||e).slice(0,60)); } }
+  // Gom 1 NHÓM biến thể (nhom_bt): SP gốc đã có nhóm gom tay, hoặc có biến thể KHÁC MÃ (không tự gom theo mã được)
   try{ S.products=await api('getProducts')||S.products;
-    if(String(p.nhomBT||'').trim()){ var ids=(S.products||[]).filter(function(x){ return String(x.recordId)!==String(p.recordId) && (x.nhomBT===p.nhomBT || x.ma===p.ma); }).map(function(x){ return {id:x.recordId}; });
+    if(String(p.nhomBT||'').trim() || khacMa){
+      var ids=(S.products||[]).filter(function(x){ var id=String(x.recordId); return id!==String(p.recordId)
+          && (x.ma===p.ma || (p.nhomBT && x.nhomBT===p.nhomBT) || moiIds.indexOf(id)>=0); }).map(function(x){ return {id:x.recordId}; });
       await api('setBienThe', String(p.recordId), ids); S.products=await api('getProducts')||S.products;
-      // form Cập nhật SP đang mở: cập nhật danh sách nhóm trong form, nếu không bấm "Lưu cập nhật" sẽ ghi đè mất các màu mới
-      if(String(S._spEditRecId)===String(p.recordId) && typeof btRender_==='function'){
-        S._bt=(S.products||[]).filter(function(x){ return x.nhomBT===p.nhomBT && String(x.recordId)!==String(p.recordId); })
-          .map(function(x){ return {recordId:x.recordId, ma:x.ma, ten:x.ten, hinhAnh:x.hinhAnh, donGiaBan:x.donGiaBan, mauSac:x.mauSac, nganh:x.nganh, raw:x.raw}; });
-        btRender_(); } } }
-  catch(e){ loi.push('Làm mới danh sách: '+String(e.message||e).slice(0,60)); }
-  if(String(S._spEditRecId)===String(p.recordId) && typeof btRender_==='function') btRender_();   // form đang mở: hiện ngay các màu mới
+      var goc2=(S.products||[]).filter(function(x){ return String(x.recordId)===String(p.recordId); })[0], nh2=goc2&&goc2.nhomBT;
+      // form Cập nhật SP đang mở: cập nhật danh sách nhóm trong form, nếu không bấm "Lưu cập nhật" sẽ ghi đè mất biến thể mới
+      if(String(S._spEditRecId)===String(p.recordId) && typeof btRender_==='function' && nh2){
+        if(S._spEditP) S._spEditP.nhomBT=nh2;
+        S._bt=(S.products||[]).filter(function(x){ return x.nhomBT===nh2 && String(x.recordId)!==String(p.recordId); })
+          .map(function(x){ return {recordId:x.recordId, ma:x.ma, ten:x.ten, hinhAnh:x.hinhAnh, donGiaBan:x.donGiaBan, mauSac:x.mauSac, nganh:x.nganh, raw:x.raw}; }); } } }
+  catch(e){ loi.push('Gom nhóm biến thể: '+String(e.message||e).slice(0,60)); }
+  if(String(S._spEditRecId)===String(p.recordId) && typeof btRender_==='function') btRender_();   // form đang mở: hiện ngay biến thể mới
   spNhieuBTDong_(); spViewTabs_&&spViewTabs_(); spFilter(); if(typeof renderCatalog==='function') renderCatalog();
-  toast('Đã tạo '+ok+' biến thể màu cho '+p.ma+(trung.length?(' · bỏ qua '+trung.length+' màu đã có'):'')+(loi.length?(' · lỗi: '+loi.join('; ')):''));
+  toast('Đã tạo '+ok+' biến thể cho '+p.ma+(trung.length?(' · bỏ qua '+trung.length+' dòng đã có'):'')+(loi.length?(' · lỗi: '+loi.join('; ')):''));
 }
 // Các trục phân biệt biến thể — phải khác ít nhất 1 cái, nếu không sẽ GHI ĐÈ dòng gốc
 var BT_TRUC=[['nhiet_do_mau_k','Nhiệt độ màu'],['cong_suat_w','Công suất'],['goc_chieu_deg','Góc chiếu'],
