@@ -651,6 +651,17 @@ async function resolvePurchaseRequest(actor, maDon, approve) {
   return { ok: true };
 }
 
+// Theo dõi đơn sau khi duyệt: Đã duyệt -> Đã đặt hàng -> Đã nhận hàng (phòng mua hàng bấm ở tab Mua hàng).
+// Chỉ cho đi đúng 1 bước từ trạng thái liền trước (đổi có điều kiện) -> bấm trùng / 2 người cùng bấm không nhảy cóc.
+const PO_BUOC = { 'Đã đặt hàng': 'Đã duyệt', 'Đã nhận hàng': 'Đã đặt hàng' };
+async function setPurchaseStatus(actor, maDon, status) {
+  const truoc = PO_BUOC[status]; if (!truoc) throw new Error('Trạng thái không hợp lệ');
+  const upd = await supa.update('don_mua_hang', supa.eq('ma_don', maDon) + '&trang_thai=eq.' + encodeURIComponent(truoc), { trang_thai: status });
+  if (!upd || !upd.length) throw new Error('Đơn phải ở trạng thái "' + truoc + '" mới chuyển sang "' + status + '"');
+  await audit(actor, 'purchase_status', status + ' — đơn ' + maDon);
+  return { ok: true, status: status };
+}
+
 /* ===== ĐỀ XUẤT MUA HÀNG — thông báo + duyệt (tách khỏi đơn mua hàng) ===== */
 const DX_TEN = { ck: 'đề xuất chiết khấu', tt: 'đề xuất thanh toán' };
 async function notifyDeXuatAdmins(actor, dx) {
@@ -705,7 +716,7 @@ module.exports = {
   adminListUsers, adminCreateUser, adminUpdateUser, adminSetPassword, adminSetActive, adminDeleteUser, getAuditLog, logClientError,
   notifCount, notifList, notifRead, notifReadAll,
   requestDeleteProducts, listDeleteRequests, resolveDeleteRequest,
-  notifyPurchaseAdmins, listPurchaseRequests, resolvePurchaseRequest,
+  notifyPurchaseAdmins, listPurchaseRequests, resolvePurchaseRequest, setPurchaseStatus,
   notifyDeXuatAdmins, listDeXuat, getDeXuat, resolveDeXuat,
   audit
 };

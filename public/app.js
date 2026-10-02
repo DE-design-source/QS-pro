@@ -2355,7 +2355,7 @@ async function projDataLoad_(maDA){
   S._projData={}; S._ptKey=null; S._areaDA=null; S._ptInfoU=null; S._dtIn=null;   // buộc nạp lại theo dự án mới
   // Mua hàng: kế hoạch thanh toán / NCC đang chọn / đang mở là của DỰ ÁN CŨ -> bỏ. Không bỏ thì lần lưu kế tiếp
   // ghi bản rỗng (dựng trước khi getProjData về) đè lên kế hoạch thật trên server.
-  S._mhPayDA=null; S._mhPay=null; S._mhSel={}; S._mhPayOpen={};
+  S._mhPayDA=null; S._mhPay=null; S._mhSel={}; S._mhPayOpen={}; S._mhDon=null; S._mhDonDA=null;
   if(!maDA) return;
   try{
     var d=await api('getProjData', maDA)||{};

@@ -72,6 +72,8 @@ const REGISTRY = {
   getProjData: store.getProjData,
   setProjData: store.setProjData,
   sendPurchaseRequest: sendPurchaseRequest,
+  getPurchaseOrders: store.getPurchaseOrders,          // đơn mua hàng đã gửi của 1 dự án (tab Mua hàng)
+  setPurchaseStatus: auth.setPurchaseStatus,           // Đã duyệt -> Đã đặt hàng -> Đã nhận hàng
   getDeXuatList: store.getDeXuatList,
   ctHistory: store.ctGetHistory,
   sendDeXuat: sendDeXuat,
@@ -117,7 +119,7 @@ const ACTOR_FNS = new Set(['me', 'setMyPref', 'logClientError', 'logout', 'chang
   'adminListUsers', 'adminCreateUser', 'adminUpdateUser', 'adminSetPassword', 'adminSetActive', 'adminDeleteUser',
   'notifCount', 'notifList', 'notifRead', 'notifReadAll',
   'requestDeleteProducts', 'listDeleteRequests', 'resolveDeleteRequest',
-  'sendPurchaseRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest',
+  'sendPurchaseRequest', 'listPurchaseRequests', 'getPurchaseOrder', 'resolvePurchaseRequest', 'setPurchaseStatus',
   'sendDeXuat', 'listDeXuat', 'getDeXuat', 'resolveDeXuat',
   'listCongTy', 'createCongTy', 'updateCongTy', 'deleteCongTy', 'listCongTyUsers', 'createCongTyUser', 'baoCaoNhapSP',
   'updateDbProductTracked', 'setSpDuyet', 'setYeuThich', 'setCombo', 'setBienThe', 'spMyPerms',

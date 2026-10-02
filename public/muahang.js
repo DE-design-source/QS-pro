@@ -9,37 +9,53 @@ function mhDisc_(l){ return Math.max(0,Math.min(100,Number(l.giamGiaNcc)||0)); }
 function mhPriceCK_(l){ return Math.round(mhPrice(l)*(1-mhDisc_(l)/100)); }
 function mhSub_(items){ return items.reduce(function(a,l){ return a+(Number(l.soLuong)||0)*mhPriceCK_(l); },0); }  // tổng = giá SAU chiết khấu
 function mhTot_(items,vatPct){ var s=mhSub_(items); return s+Math.round(s*vatPct/100); }
-function mhSetDisc(lineId,v){ var l=(S.lines||[]).filter(function(x){return x.lineId===lineId;})[0]; if(!l) return;
-  var p=Math.max(0,Math.min(100,Number(v)||0)); l.giamGiaNcc=p; renderMuahang();
-  api('updateLine',lineId,{giamGiaNcc:p}).catch(function(e){ luuLoi_(e,'giảm giá NCC'); }); }
+function mhIds_(ids){ return String(ids||'').split(',').filter(Boolean); }     // 'a,b,c' = các dòng gốc của 1 dòng đã gộp
+function mhSetDisc(ids,v){ var p=Math.max(0,Math.min(100,Number(v)||0));
+  mhIds_(ids).forEach(function(id){ var l=lineOf_(id); if(!l) return; l.giamGiaNcc=p;
+    api('updateLine',id,{giamGiaNcc:p}).catch(function(e){ luuLoi_(e,'giảm giá NCC'); }); });
+  renderMuahang(); }
+/* Cùng sản phẩm (mã/tên + ĐVT + giá + mức giảm) nằm ở nhiều tầng / phòng -> 1 DÒNG ĐƠN, cộng số lượng.
+   Nhà cung cấp nhận 1 dòng SL tổng thay vì n dòng lặp; % giảm sửa trên dòng gộp áp cho mọi dòng gốc. */
+function mhGop_(items){
+  var m={}, out=[];
+  items.forEach(function(l){
+    var k=[spNorm_(l.maSP||l.ten), spNorm_(l.dvt), mhPrice(l), mhDisc_(l), mhDx_(l)].join('|');
+    if(!m[k]){ m[k]={l:l, ls:[], sl:0}; out.push(m[k]); }
+    m[k].ls.push(l); m[k].sl+=Number(l.soLuong)||0;
+  });
+  out.forEach(function(g){ g.ids=g.ls.map(function(x){ return x.lineId; }).join(',');
+    var vt={}; g.ls.forEach(function(x){ var v=String(x.khuVuc||x.tang||'').trim(); if(v) vt[v]=1; }); g.viTri=Object.keys(vt); });
+  return out;
+}
 function mhSetDiscAll(gi,v){ var g=(S._mhGroups||[])[gi]; if(!g) return; var p=Math.max(0,Math.min(100,Number(v)||0));
   g.items.forEach(function(l){ l.giamGiaNcc=p; api('updateLine',l.lineId,{giamGiaNcc:p}).catch(function(e){ luuLoi_(e,'giảm giá NCC'); }); }); renderMuahang(); }
 function mhOn_(ncc){ return !(S._mhSel&&S._mhSel[ncc]===false); }
 /* Thẻ NCC — dùng lại frontend thẻ của trang Nhập dữ liệu (.dbcard + icon chip) */
 function muahangCard(g, gi, vatPct){
   var ncc=g.ncc, items=g.items, sub=0;
-  var rows=items.map(function(l,i){
-    var dg=mhPrice(l), sl=Number(l.soLuong)||0, ttGoc=sl*dg;
+  var rows=mhGop_(items).map(function(G,i){
+    var l=G.l, dg=mhPrice(l), sl=G.sl, ttGoc=sl*dg, daDat=mhDaDat_(ncc,l);
     var pct=mhDisc_(l), ttCK=sl*mhPriceCK_(l); sub+=ttCK;
     var im=String(l.hinhAnh||'').split('\n')[0];
     var img=im?'<img class="mhp-img" src="'+esc(imgUrlOf(im))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="mhp-img ph"></span>';
     var mo=String(l.moTa||'').trim(), kt=String(l.kichThuoc||'').trim();
     // mô tả và kích thước hay lặp nhau -> chỉ nối phần thật sự mới
     var spec=(mo+(kt && spNorm_(mo).indexOf(spNorm_(kt))<0 ? (mo?' · ':'')+kt : '')).replace(/\s+/g,' ').trim();
-    var sub2=[l.khuVuc,l.thuongHieu].map(function(x){return String(x||'').trim();}).filter(Boolean).join(' · ');
+    var sub2=[G.viTri.length>1?(G.viTri.length+' vị trí: '+G.viTri.join(', ')):(G.viTri[0]||''),l.thuongHieu].map(function(x){return String(x||'').trim();}).filter(Boolean).join(' · ');
     return '<tr>'
       +'<td class="c mut">'+(gi+1)+'.'+(i+1)+'</td>'
       +'<td class="c">'+img+'</td>'
       +'<td class="mhp-cell" title="Bấm để xem thông tin sản phẩm" onclick="mhProdModal_(\''+l.lineId+'\')">'
         +'<div class="mhp-name">'+esc(l.ten||'')+icon('eye',12)+'</div>'
         +(sub2?'<div class="mhp-sub">'+esc(sub2)+'</div>':'')
+        +(daDat?'<div class="mh-dadat" title="Sản phẩm này đã nằm trong đơn đã gửi — kiểm tra trước khi gửi lại để khỏi đặt trùng">'+icon('cart',11)+' Đã có trong đơn '+esc(daDat.maDon)+' · '+esc(daDat.trangThai)+'</div>':'')
         +(spec?'<div class="mhp-spec">'+esc(spec)+'</div>':'')+'</td>'
       +'<td class="c">'+esc(l.dvt||'Cái')+'</td>'
       +'<td class="c b">'+sl+'</td>'
       +'<td class="n">'+money(dg)+'</td>'
       +'<td class="n b">'+money(ttGoc)+'</td>'
-      +'<td class="c"><span class="mh-discwrap dx"><input class="mh-disc" type="number" min="0" max="100" value="'+(mhDx_(l)||'')+'" placeholder="0" onchange="mhSetDx(\''+l.lineId+'\',this.value)" title="Mức giảm giá phòng mua hàng đề xuất với nhà cung cấp"><i>%</i></span></td>'
-      +'<td class="c"><span class="mh-discwrap"><input class="mh-disc" type="number" min="0" max="100" value="'+(pct||'')+'" placeholder="0" onchange="mhSetDisc(\''+l.lineId+'\',this.value)"><i>%</i></span></td>'
+      +'<td class="c"><span class="mh-discwrap dx"><input class="mh-disc" type="number" min="0" max="100" value="'+(mhDx_(l)||'')+'" placeholder="0" onchange="mhSetDx(\''+G.ids+'\',this.value)" title="Mức giảm giá phòng mua hàng đề xuất với nhà cung cấp"><i>%</i></span></td>'
+      +'<td class="c"><span class="mh-discwrap"><input class="mh-disc" type="number" min="0" max="100" value="'+(pct||'')+'" placeholder="0" onchange="mhSetDisc(\''+G.ids+'\',this.value)"><i>%</i></span></td>'
       +'<td class="n b mh-ttck">'+money(ttCK)+'</td></tr>';
   }).join('');
   var vat=Math.round(sub*vatPct/100), tot=sub+vat, on=mhOn_(ncc);
@@ -125,8 +141,9 @@ function renderMuahang(){
   var cards=S._mhGroups.map(function(g,gi){ return muahangCard(g, gi, vatPct); }).join('')
     || '<div class="empty" style="padding:34px;text-align:center;background:#fff;border:1px solid var(--line);border-radius:14px">Chưa có sản phẩm trong hạng mục này.<br>Vào tab <b>Bóc tách</b> thêm sản phẩm trước.</div>';
   box.innerHTML=statbar+hmPTNote_()+hmLacNote_(lines.length)+'<div class="imp-layout"><div class="mhcol">'+cards+'</div>'
-    +'<div class="mhside">'+mhSummary(S._mhGroups,vatPct,grand)+mhDxPanel_()+'</div></div>';
+    +'<div class="mhside">'+mhSummary(S._mhGroups,vatPct,grand)+mhDonPanel_()+mhDxPanel_()+'</div></div>';
   if(S._mhDxDA!==S.cur.maDA) mhLoadDx_();
+  if(S._mhDonDA!==S.cur.maDA) mhLoadDon_();
   foldChipsSync_();
 }
 function mhToggle(gi){ var g=(S._mhGroups||[])[gi]; if(!g) return; S._mhSel=S._mhSel||{}; S._mhSel[g.ncc]=!(S._mhSel[g.ncc]!==false); renderMuahang(); }
@@ -135,7 +152,7 @@ function mhOrderOf(g){
   var sub=g.items.reduce(function(s,l){ return s+(Number(l.soLuong)||0)*mhPriceCK_(l); },0);   // giá SAU chiết khấu
   var vat=Math.round(sub*vatPct/100);
   return { supplier:g.ncc, vatPct:vatPct, vat:vat, total:sub+vat,
-    items:g.items.map(function(l){ return {ten:l.ten||'', ma:l.maSP||'', thuongHieu:l.thuongHieu||'', khuVuc:l.khuVuc||'', hinhAnh:String(l.hinhAnh||'').split('\n')[0], sl:Number(l.soLuong)||0, dvt:l.dvt||'Cái', donGia:mhPriceCK_(l), donGiaGoc:mhPrice(l), giamGiaPct:mhDisc_(l)}; }) };
+    items:mhGop_(g.items).map(function(G){ var l=G.l; return {ten:l.ten||'', ma:l.maSP||'', thuongHieu:l.thuongHieu||'', khuVuc:G.viTri.join(', '), hinhAnh:String(l.hinhAnh||'').split('\n')[0], sl:G.sl, dvt:l.dvt||'Cái', donGia:mhPriceCK_(l), donGiaGoc:mhPrice(l), giamGiaPct:mhDisc_(l)}; }) };
 }
 function mhBase(){ var mi=S._mhInfo||{}; return { project:S.cur&&S.cur.ten, maDA:S.cur&&S.cur.maDA, khachHang:S.cur&&S.cur.khachHang, sdt:S.cur&&S.cur.sdt, node:hmGet_(), hangMuc:nodeName(hmGet_()), nguoiGui:mi.nguoiGui||'', phongBan:mi.phongBan||'', ghiChu:mi.ghiChu||'' }; }
 function mhValidateInfo(){
@@ -149,7 +166,7 @@ function mhSend(gi,btn){
   if(!mhValidateInfo()) return;
   if(btn){ btn.disabled=true; btn.dataset.t=btn.innerHTML; btn.innerHTML='Đang gửi…'; }
   var payload=Object.assign(mhBase(),{ orders:[mhOrderOf(g)] });
-  api('sendPurchaseRequest',payload).then(function(){ toast('✔ Đã gửi yêu cầu mua hàng tới "'+g.ncc+'"'); })
+  api('sendPurchaseRequest',payload).then(function(){ toast('✔ Đã gửi yêu cầu mua hàng tới "'+g.ncc+'"'); S._mhDonDA=null; mhLoadDon_(); })
     .catch(function(e){ toast('Lỗi gửi: '+e.message); })
     .then(function(){ if(btn){ btn.disabled=false; btn.innerHTML=btn.dataset.t; } });
 }
@@ -159,7 +176,7 @@ function mhSendBulk(btn){
   if(!mhValidateInfo()) return;
   if(btn){ btn.disabled=true; btn.dataset.t=btn.innerHTML; btn.innerHTML='Đang gửi…'; }
   var payload=Object.assign(mhBase(),{ orders:sel.map(mhOrderOf) });
-  api('sendPurchaseRequest',payload).then(function(){ toast('✔ Đã gửi yêu cầu hàng loạt tới '+sel.length+' nhà cung cấp'); })
+  api('sendPurchaseRequest',payload).then(function(){ toast('✔ Đã gửi yêu cầu hàng loạt tới '+sel.length+' nhà cung cấp'); S._mhDonDA=null; mhLoadDon_(); })
     .catch(function(e){ toast('Lỗi gửi: '+e.message); })
     .then(function(){ if(btn){ btn.disabled=false; btn.innerHTML=btn.dataset.t; } });
 }
@@ -169,12 +186,12 @@ function mhSendBulk(btn){
    "Giảm giá NCC (%)" (mức NCC đã chốt). Lưu trên dòng ở extra.dxGiam. */
 function mhDx_(l){ return Math.max(0,Math.min(100,Number(l&&l.extra&&l.extra.dxGiam)||0)); }
 function mhDxSum_(items){ return (items||[]).reduce(function(a,l){ return a+mhDx_(l); },0); }
-function mhSetDx(lineId,v){
-  var l=(S.lines||[]).filter(function(x){ return x.lineId===lineId; })[0]; if(!l) return;
+function mhSetDx(ids,v){
   var p=Math.max(0,Math.min(100,Number(v)||0));
-  var ex=Object.assign({}, l.extra||{}); if(p) ex.dxGiam=p; else delete ex.dxGiam;
-  l.extra=ex; renderMuahang();
-  api('updateLine',lineId,{extra:ex}).catch(function(){ toast('Lưu đề xuất giảm giá lỗi'); });
+  mhIds_(ids).forEach(function(id){ var l=lineOf_(id); if(!l) return;
+    var ex=Object.assign({}, l.extra||{}); if(p) ex.dxGiam=p; else delete ex.dxGiam;
+    l.extra=ex; api('updateLine',id,{extra:ex}).catch(function(){ toast('Lưu đề xuất giảm giá lỗi'); }); });
+  renderMuahang();
 }
 function mhSetDxAll(gi,v){
   var g=(S._mhGroups||[])[gi]; if(!g) return;
@@ -452,6 +469,52 @@ function mhDxInner_(){
       +'<div class="mhdx-r"><b>'+money(r.loai==='tt'?r.tongDeXuat:r.tienGiam)+'</b>'
         +'<span class="drq-badge '+scls+'">'+esc(r.status||'')+'</span></div></div>';
   }).join('');
+}
+/* ═══ ĐƠN MUA HÀNG ĐÃ GỬI của dự án: Chờ duyệt -> Đã duyệt -> Đã đặt hàng -> Đã nhận hàng (Từ chối) ═══ */
+async function mhLoadDon_(){
+  if(!S.cur) return; var ma=S.cur.maDA, list;
+  try{ list=await api('getPurchaseOrders', ma)||[]; }catch(e){ list=[]; }
+  if(!S.cur||S.cur.maDA!==ma) return;
+  S._mhDon=list; S._mhDonDA=ma;
+  if(document.getElementById('v-muahang')&&document.getElementById('v-muahang').classList.contains('on')) renderMuahang();
+}
+// Dòng đã nằm trong 1 đơn (chưa bị từ chối) của cùng NCC -> đơn mới nhất chứa nó
+function mhDaDat_(ncc,l){
+  var t=spNorm_(l.ten), m=spNorm_(l.maSP);
+  return (S._mhDon||[]).filter(function(d){ return d.ncc===ncc && d.trangThai!=='Từ chối'
+    && (d.items||[]).some(function(it){ return spNorm_(it.ten)===t && (!m || !it.ma || spNorm_(it.ma)===m); }); })[0]||null;
+}
+var MH_TT={'Chờ duyệt':'cho','Đã duyệt':'duyet','Đã đặt hàng':'dat','Đã nhận hàng':'nhan','Từ chối':'tu'};
+function mhDonPanel_(){
+  var ds=S._mhDon||[];
+  var rows=ds.map(function(d,i){
+    var buoc=d.trangThai==='Đã duyệt'?'Đã đặt hàng':(d.trangThai==='Đã đặt hàng'?'Đã nhận hàng':'');
+    return '<div class="mhdon"><div class="mhdon-h"><b>'+esc(d.maDon)+'</b><span class="mhdon-tt '+(MH_TT[d.trangThai]||'')+'">'+esc(d.trangThai||'')+'</span></div>'
+      +'<div class="mhdon-s">'+esc(d.ncc)+' · '+(d.items||[]).length+' SP · '+money(d.tongCong)+' đ'+(d.ngayGui?' · '+esc(fmtDate(d.ngayGui)):'')+'</div>'
+      +'<div class="mhdon-a">'
+        +(buoc?'<button class="btn ghost xs" onclick="mhDonBuoc_('+i+',\''+buoc+'\',this)">'+icon('check',12)+' '+buoc+'</button>':'')
+        +'<button class="btn ghost xs" onclick="mhDonXls_('+i+',this)">'+icon('download',12)+' Excel</button></div></div>';
+  }).join('') || '<div class="empty" style="padding:16px 14px;font-size:12.5px">Chưa gửi đơn nào cho dự án này.</div>';
+  return '<div class="imp-recent mhdonp"><div class="imp-recent-h">'+icon('cart',15)+' Đơn đã gửi <span class="count">'+pad2(ds.length)+'</span>'
+    +'<span style="flex:1"></span><button class="btn ghost xs" onclick="S._mhDonDA=null;mhLoadDon_()" title="Tải lại trạng thái đơn">'+icon('history',12)+'</button></div>'
+    +'<div class="imp-recent-b">'+rows+'</div></div>';
+}
+async function mhDonBuoc_(i,st,btn){
+  var d=(S._mhDon||[])[i]; if(!d) return;
+  if(!await xacNhan_('Chuyển đơn '+d.maDon+' ('+d.ncc+') sang "'+st+'"?')) return;
+  if(btn) btn.disabled=true;
+  try{ await api('setPurchaseStatus', d.maDon, st); toast('Đơn '+d.maDon+': '+st); S._mhDonDA=null; await mhLoadDon_(); }
+  catch(e){ toast('Lỗi: '+e.message); if(btn) btn.disabled=false; }
+}
+async function mhDonXls_(i,btn){
+  var d=(S._mhDon||[])[i]; if(!d) return;
+  if(btn) btn.disabled=true;
+  try{ await taiFile_('/export/bang',{ ten:'ĐƠN MUA HÀNG '+d.maDon+' — '+d.ncc+' — '+((S.cur&&S.cur.ten)||''), sheet:'Don mua hang',
+      cols:[{label:'STT'},{label:'Mã SP'},{label:'Tên sản phẩm'},{label:'Thương hiệu'},{label:'Vị trí'},{label:'ĐVT'},{label:'SL',num:true},{label:'Đơn giá',num:true},{label:'Thành tiền',num:true}],
+      rows:(d.items||[]).map(function(it,k){ return {cells:[k+1,it.ma,it.ten,it.thuongHieu,it.khuVuc,it.dvt,it.sl,it.donGia,it.thanhTien||it.sl*it.donGia]}; }),
+      tong:[['Trước VAT',d.tongTruocVat],['VAT '+d.vatPct+'%',d.vat],['Tổng cộng',d.tongCong]] }, (d.maDon||'don-mua-hang')+'.xlsx'); }
+  catch(e){ toast('Lỗi xuất Excel: '+e.message); }
+  if(btn) btn.disabled=false;
 }
 function mhDxPanel_(){
   var n=(S._mhDx||[]).length;
