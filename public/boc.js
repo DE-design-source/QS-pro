@@ -39,7 +39,8 @@ async function ctxDupRow(lineId){ closePop();
 async function ctxInsertRow(lineId){ closePop();
   if(!S.cur) return;
   var l=S.lines.filter(function(x){return x.lineId===lineId;})[0];
-  try{ var nl=await api('addLine', S.cur.maDA, {ten:'Hạng mục mới', dvt:'Cái', donGiaVon:0, donGiaBan:0, nhom:S.node, loai:nodeName(S.node),
+  var nd=(l&&l.nhom)||S.node;          // chèn từ Chi phí / Dự án: đúng hạng mục của dòng đang đứng (không phải đề mục đang mở ở Bóc tách)
+  try{ var nl=await api('addLine', S.cur.maDA, {ten:'Hạng mục mới', dvt:'Cái', donGiaVon:0, donGiaBan:0, nhom:nd, loai:nodeName(nd),
       tang:l?(l.tang||''):'', extra:(S.sheet&&tkSheetCo_())?{sheet:S.sheet}:null}, 0);     // cùng sheet đang xem -> thấy được dòng vừa chèn
     S.lines.push(nl); veLaiSauSua_(); renderActGutter&&renderActGutter(); toast('Đã chèn dòng trống'); }
   catch(e){ toast('Lỗi chèn dòng: '+e.message); } }

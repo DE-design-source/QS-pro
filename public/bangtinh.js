@@ -85,7 +85,7 @@ function btTao_(k, host, cols, meta, al, opt, ghi, ro, noiBo){
     host.addEventListener('contextmenu',function(e){ var td=e.target.closest('td[data-x]'); if(!td||!B.menu) return;
       e.preventDefault(); e.stopPropagation(); B.menu(e, +td.dataset.x, td.dataset.y==null?-1:+td.dataset.y, td); }, true); }
   ro.forEach(function(ten){ try{ ws.setReadOnly(ten,true); }catch(e){} });
-  btKeoCot_(k, host);
+  btKeoCot_(k, host); btFmtAp_(k);
   return ws;
 }
 /* Cố định N cột đầu (+ cột số dòng) bằng position:sticky của trình duyệt. Không dùng freezeColumns của thư viện:
@@ -127,6 +127,80 @@ function btKeoCot_(k, host){
     document.addEventListener('mousemove',mv,true); document.addEventListener('mouseup',up,true);
   },true);
 }
+/* ═══ CÔNG CỤ KIỂU EXCEL trên thanh bảng tính ═══ */
+function btChep_(t){ try{ navigator.clipboard.writeText(String(t)); toast('Đã chép: '+t); }catch(e){} }
+// vùng đang chọn -> danh sách ô {x,y}
+function btVung_(B){ var r=B.selR, c=B.selX; if(!r||!c) return []; var o=[];
+  for(var y=r[0];y<=r[1];y++) for(var x=c[0];x<=c[1];x++) o.push({x:x,y:y}); return o; }
+/* --- Định dạng ô: chỉ để đánh dấu khi làm việc trên bảng tính (KHÔNG in ra báo giá / Excel). Lưu theo dự án (btFmt),
+   khoá theo DÒNG (lineId — cùng 1 dòng ở Bóc tách / Chi phí / Dự án dùng chung) + CỘT, nên sắp xếp / thêm dòng không lệch. --- */
+function btFmtAll_(){ return (S._projData&&S._projData.btFmt)||{}; }
+function btFmtKey_(k,m){ return (!m||m.k!=='it')?'':(k==='pt'?('pt:'+m.si+':'+m.ii):String(m.id)); }
+var BT_FMT_CLS={b:'f-b', i:'f-i', u:'f-u', wrap:'f-wrap'};
+function btFmtAp_(k){
+  var B=btCtx_(k), ws=B.ws; if(!ws) return; var all=btFmtAll_();
+  B.meta.forEach(function(m,y){ var key=btFmtKey_(k,m); if(!key) return; var f=all[key]||{};
+    B.cols.forEach(function(c,x){ var td=ws.getCellFromCoords(x,y); if(!td) return; var o=f[c[0]]||{};
+      Object.keys(BT_FMT_CLS).forEach(function(p){ td.classList.toggle(BT_FMT_CLS[p], !!o[p]); });
+      ['l','c','r'].forEach(function(a){ td.classList.toggle('f-al-'+a, o.al===a); });
+      td.classList.toggle('f-c', !!o.c); if(o.c) td.style.setProperty('--fc',o.c);
+      td.classList.toggle('f-bg', !!o.bg); if(o.bg) td.style.setProperty('--fbg',o.bg); }); });
+}
+// p = b|i|u|wrap (bật/tắt) · c|bg (màu, '' = bỏ) · al (l|c|r) · '*' = xoá hết định dạng vùng chọn
+function btFmtSet_(k,p,v){
+  var B=btCtx_(k); if(!B.ws) return; var o=btVung_(B).filter(function(q){ return btFmtKey_(k,B.meta[q.y]); });
+  if(!o.length){ toast('Chọn ô ở dòng sản phẩm / công tác trước'); return; }
+  var all=JSON.parse(JSON.stringify(btFmtAll_()));
+  var bat=(p in BT_FMT_CLS) ? !o.every(function(q){ var f=all[btFmtKey_(k,B.meta[q.y])]; return f&&f[B.cols[q.x][0]]&&f[B.cols[q.x][0]][p]; }) : null;
+  o.forEach(function(q){ var key=btFmtKey_(k,B.meta[q.y]), ck=B.cols[q.x][0];
+    var f=all[key]=all[key]||{}, c=f[ck]=f[ck]||{};
+    if(p==='*') delete f[ck]; else if(bat!==null){ if(bat) c[p]=1; else delete c[p]; } else if(v) c[p]=v; else delete c[p];
+    if(f[ck]&&!Object.keys(f[ck]).length) delete f[ck]; if(!Object.keys(f).length) delete all[key]; });
+  projDataSet_('btFmt', all); btFmtAp_(k);
+}
+/* --- Thao tác dòng --- */
+function btDongChon_(B){ var r=B.selR, ids=[]; if(!r) return ids;
+  for(var y=r[0];y<=r[1];y++){ var m=B.meta[y]; if(m&&m.k==='it'&&m.id) ids.push(m.id); } return ids; }
+async function btChenDong_(k){ var ids=btDongChon_(btCtx_(k)); if(!ids.length){ toast('Chọn 1 ô ở dòng sản phẩm trước'); return; } await ctxInsertRow(ids[ids.length-1]); }
+async function btNhanBan_(k){ var ids=btDongChon_(btCtx_(k)); if(!ids.length){ toast('Chọn ô ở các dòng cần nhân bản'); return; }
+  for(var i=0;i<ids.length;i++) await ctxDupRow(ids[i]); }
+function btSapXep_(k,dir){
+  var B=btCtx_(k), x=B.selX?B.selX[0]:-1, c=B.cols[x]; if(!c||c[0]==='stt'){ toast('Chọn 1 ô ở cột cần sắp xếp'); return; }
+  if(k==='tk') colSort(c[0],dir); else if(k==='cp'){ S._cpSort=c[0]; S._cpSortDir=dir; renderChiphi(); }
+  else if(k==='da') daSort(c[0],dir); else toast('Bảng Phần thô sắp xếp ở bảng thường');
+  toast('Sắp xếp '+(dir==='asc'?'A → Z':'Z → A')+' theo "'+c[1]+'"'); }
+// Điền xuống (Ctrl+D): ô ĐẦU của từng cột trong vùng chọn -> các ô bên dưới (chỉ ô sửa được)
+function btDienVung_(k){
+  var B=btCtx_(k), ws=B.ws, r=B.selR, c=B.selX; if(!ws||!r||!c||r[1]<=r[0]){ toast('Chọn vùng từ ô nguồn kéo xuống các ô cần điền'); return; }
+  var n=0; for(var x=c[0];x<=c[1];x++){ var v=ws.getValueFromCoords(x,r[0]);
+    for(var y=r[0]+1;y<=r[1];y++){ if(ws.isReadOnly(x,y)) continue; B.ghi(x,y,v); n++; } }
+  toast(n?('Đã điền xuống '+n+' ô'):'Vùng chọn không có ô sửa được'); }
+/* --- Sao chép / Cắt / Dán (cùng định dạng Excel: tab giữa cột, xuống dòng giữa hàng) --- */
+function btCopy_(k,cat){ var B=btCtx_(k), ws=B.ws; if(!ws||!B.selR){ toast('Chọn vùng ô trước'); return; }
+  try{ ws.copy(true); }catch(e){}
+  if(cat){ btVung_(B).forEach(function(q){ if(!ws.isReadOnly(q.x,q.y)) B.ghi(q.x,q.y,''); }); }
+  toast(cat?'Đã cắt vùng chọn':'Đã sao chép vùng chọn'); }
+async function btPaste_(k){ var B=btCtx_(k), ws=B.ws; if(!ws||!B.sel){ toast('Chọn ô bắt đầu dán'); return; }
+  var t=''; try{ t=await navigator.clipboard.readText(); }catch(e){ toast('Trình duyệt chặn đọc bộ nhớ tạm — dùng Ctrl+V'); return; }
+  if(!t){ toast('Bộ nhớ tạm trống'); return; } ws.paste(B.sel[0],B.sel[1],t); }
+/* --- Thanh công thức: địa chỉ ô (C5) + nội dung ô đang chọn; sửa rồi Enter = ghi vào ô --- */
+function btFxSync_(k){
+  var B=btCtx_(k), a=document.getElementById(k+'FxAddr'), i=document.getElementById(k+'FxIn'); if(!a||!i||!B.ws||!B.sel) return;
+  var x=B.sel[0], y=B.sel[1], c=B.cols[x];
+  a.textContent=btColLetter_(x)+(y+1)+(B.selR&&(B.selR[1]>B.selR[0]||B.selX[1]>B.selX[0])?(':'+btColLetter_(B.selX[1])+(B.selR[1]+1)):'');
+  i.value=btChu_(B.ws.getValueFromCoords(x,y)); i.disabled=B.ws.isReadOnly(x,y); i.title=c?c[1]:''; }
+function btFxGhi_(k,v){ var B=btCtx_(k); if(!B.ws||!B.sel) return; var x=B.sel[0], y=B.sel[1];
+  if(B.ws.isReadOnly(x,y)) return; if(String(B.ws.getValueFromCoords(x,y))===String(v)) return; B.ws.setValueFromCoords(x,y,v); }
+/* --- Phím tắt khi đang ở bảng tính (không đang gõ trong ô): Ctrl+B/I/U, Ctrl+D, Ctrl+Shift+L --- */
+document.addEventListener('keydown',function(e){
+  if(!(e.ctrlKey||e.metaKey)) return; var k=btDangXem_(); if(!k) return;
+  var t=e.target, B=btCtx_(k); if(t&&/INPUT|TEXTAREA|SELECT/.test(t.tagName)) return;    // đang gõ (ô sửa / ô tìm…) -> để mặc định
+  if(!B.sel) return; var ph=e.key.toLowerCase();
+  if(e.shiftKey && ph==='l'){ e.preventDefault(); btFilter_(k); return; }
+  if(e.shiftKey) return;
+  if(ph==='b'||ph==='i'||ph==='u'){ e.preventDefault(); btFmtSet_(k,ph); }
+  else if(ph==='d'){ e.preventDefault(); btDienVung_(k); }
+},true);
 // Ghi giá trị mới vào lưới (không dựng lại -> giữ ô đang chọn, vị trí cuộn). Ô tự tính KHÔNG vào lịch sử:
 // Ctrl+Z chỉ lùi thao tác của người dùng (lùi ô gõ -> ghi lại -> tính lại)
 function btGhiLuoi_(k, rows){
@@ -134,6 +208,7 @@ function btGhiLuoi_(k, rows){
   try{ rows.forEach(function(r,y){ r.forEach(function(v,x){
     if(String(ws.getValueFromCoords(x,y))!==String(v)) ws.setValueFromCoords(x,y,v,true); }); }); }
   finally{ B.busy=false; ws.ignoreHistory=ih; }
+  btFxSync_(k);
 }
 
 /* Dựng lưới cho bảng Phần thô: mỗi dòng mang meta {k:'sec'|'it', si, ii} để biết ô sửa thuộc đâu */
@@ -596,32 +671,61 @@ var BT_SVG={
   filter:'<path d="M3 4h18l-7 8.5V19l-4 2v-8.5z"/>',
   freeze:'<rect x="3" y="3" width="18" height="18" rx="1"/><path d="M9 3v18M3 9h18"/>',
   sum:'<path d="M18 4H6l6 8-6 8h12"/>',
-  wrap:'<path d="M3 6h18M3 12h15a3 3 0 0 1 0 6h-4"/><path d="m16 16-2 2 2 2"/><path d="M3 18h7"/>'
+  wrap:'<path d="M3 6h18M3 12h15a3 3 0 0 1 0 6h-4"/><path d="m16 16-2 2 2 2"/><path d="M3 18h7"/>',
+  cut:'<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/>',
+  copy:'<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/>',
+  paste:'<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>',
+  al:'<path d="M4 6h16M4 10h10M4 14h16M4 18h10"/>', ac:'<path d="M4 6h16M7 10h10M4 14h16M7 18h10"/>', ar:'<path d="M4 6h16M10 10h10M4 14h16M10 18h10"/>',
+  xoaf:'<path d="m7 21-4-4 10-10 6 6-8 8H7z"/><path d="M14 21h7"/>',
+  chen:'<path d="M3 5h18M3 19h18"/><path d="M12 9v6M9 12h6"/>',
+  nhan:'<rect x="3" y="3" width="13" height="8" rx="1"/><rect x="8" y="13" width="13" height="8" rx="1"/>',
+  az:'<path d="M3 16l4 4 4-4M7 20V4"/><path d="M14 4h6l-6 7h6M14 20l3-7 3 7M15 18h4"/>',
+  za:'<path d="M3 8l4-4 4 4M7 4v16"/><path d="M14 4h6l-6 7h6M14 20l3-7 3 7M15 18h4"/>',
+  dien:'<path d="M12 3v14M6 11l6 6 6-6"/><path d="M4 21h16"/>'
 };
 function btI_(k){ return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+BT_SVG[k]+'</svg>'; }
 function btFrame_(k){
   var B=btCtx_(k), z=B.zoom, fs=B.font;
   function b(html,tip,fn,on){ return '<button class="gs-b'+(on?' on':'')+'" title="'+tip+'" onclick="'+fn+'">'+html+'</button>'; }
   var sep='<span class="gs-sep"></span>', w='S._bt.'+k+'.ws';
+  var q='\''+k+'\'', dong=(k!=='pt');        // Phần thô: thao tác dòng làm ở bảng thường (công tác theo nhóm)
   return '<div class="gs">'
+    // Hàng 1 — "Trang đầu": hoàn tác · bộ nhớ tạm · chữ · định dạng ô · thống kê
     +'<div class="gs-bar">'
-      +b(icon('search',17),'Tìm trong bảng','btFind_(\''+k+'\')')
       +b(btI_('undo'),'Hoàn tác (Ctrl+Z)',w+'&&'+w+'.undo()')+b(btI_('redo'),'Làm lại (Ctrl+Y)',w+'&&'+w+'.redo()')
-      +b(btI_('print'),'In bảng','btPrint_(\''+k+'\')')
-      +'<select class="gs-zoom" title="Thu phóng" onchange="btZoom_(\''+k+'\',this.value)">'
-        +[50,75,90,100,125,150,200].map(function(v){ return '<option value="'+v+'"'+(v===z?' selected':'')+'>'+v+'%</option>'; }).join('')+'</select>'
-      +sep+'<span class="gs-font">Montserrat</span>'+sep
-      +b('−','Giảm cỡ chữ','btFont_(\''+k+'\',-1)')+'<span class="gs-fs">'+fs+'</span>'+b('+','Tăng cỡ chữ','btFont_(\''+k+'\',1)')
-      +sep+b(btI_('filter'),'Bật / tắt ô lọc cột','btFilter_(\''+k+'\')',B.loc)
+      +sep+b(btI_('cut'),'Cắt (Ctrl+X)','btCopy_('+q+',1)')+b(btI_('copy'),'Sao chép (Ctrl+C)','btCopy_('+q+')')+b(btI_('paste'),'Dán (Ctrl+V)','btPaste_('+q+')')
+      +sep+b('−','Giảm cỡ chữ','btFont_('+q+',-1)')+'<span class="gs-fs">'+fs+'</span>'+b('+','Tăng cỡ chữ','btFont_('+q+',1)')
+      +sep+b('<b>B</b>','Đậm (Ctrl+B) — chỉ đánh dấu trên bảng tính, không in ra báo giá','btFmtSet_('+q+',\'b\')')
+      +b('<i style="font-family:Georgia,serif">I</i>','Nghiêng (Ctrl+I)','btFmtSet_('+q+',\'i\')')
+      +b('<u>U</u>','Gạch chân (Ctrl+U)','btFmtSet_('+q+',\'u\')')
+      +'<label class="gs-b gs-clr" title="Màu chữ"><b>A</b><i class="gs-clr-bar" style="background:#d93025"></i><input type="color" value="#d93025" onchange="btFmtSet_('+q+',\'c\',this.value);this.previousElementSibling.style.background=this.value"></label>'
+      +'<label class="gs-b gs-clr" title="Màu nền ô">'+icon('color',15)+'<i class="gs-clr-bar" style="background:#fff59d"></i><input type="color" value="#fff59d" onchange="btFmtSet_('+q+',\'bg\',this.value);this.previousElementSibling.style.background=this.value"></label>'
+      +sep+b(btI_('al'),'Căn trái','btFmtSet_('+q+',\'al\',\'l\')')+b(btI_('ac'),'Căn giữa','btFmtSet_('+q+',\'al\',\'c\')')+b(btI_('ar'),'Căn phải','btFmtSet_('+q+',\'al\',\'r\')')
+      +b(btI_('wrap'),'Xuống dòng trong ô','btFmtSet_('+q+',\'wrap\')')
+      +b(btI_('xoaf'),'Xoá định dạng vùng chọn','btFmtSet_('+q+',\'*\')')
+      +sep+'<span class="gs-sumic" title="Chọn nhiều ô để xem tổng · bấm số để chép">'+btI_('sum')+'</span><span class="gs-sum" id="'+k+'SheetSum"></span>'
+    +'</div>'
+    // Hàng 2 — "Dữ liệu": tìm · dòng · sắp xếp · điền · lọc · hiển thị · xuất
+    +'<div class="gs-bar gs-bar2">'
+      +b(icon('search',17),'Tìm & thay (Ctrl+F)','btFind_('+q+')')
+      +(dong?sep+b(btI_('chen'),'Chèn dòng trống','btChenDong_('+q+')')+b(btI_('nhan'),'Nhân bản dòng đang chọn','btNhanBan_('+q+')'):'')
+      +(k==='tk'?b(icon('trash',17),'Xoá các dòng đang chọn','tkSheetDel_()'):'')
+      +(dong?sep+b(btI_('az'),'Sắp xếp A → Z theo cột đang chọn','btSapXep_('+q+',\'asc\')')+b(btI_('za'),'Sắp xếp Z → A theo cột đang chọn','btSapXep_('+q+',\'desc\')'):'')
+      +b(btI_('dien'),'Điền xuống (Ctrl+D): ô đầu vùng chọn chép xuống các ô dưới','btDienVung_('+q+')')
+      +sep+b(btI_('filter'),'Bật / tắt ô lọc cột (Ctrl+Shift+L)','btFilter_('+q+')',B.loc)
       +b(btI_('freeze'),'Cố định cột đầu khi cuộn ngang','btFreeze_(\''+k+'\')',B.frz)
       +'<button class="gs-b gs-txt gs-gonb'+(B.gon?'':' on')+'" title="Gọn: mỗi dòng 1 hàng chữ (rê chuột xem đủ) · Đủ chữ: hiện hết nội dung ô" onclick="btGon_(\''+k+'\')">'+btGonNhan_(B.gon)+'</button>'
-      +b(icon('download',17),'Xuất Excel',k==='pt'?'ptExportXlsx()':(k==='cp'?'cpXuatExcel_(this)':'btXlsx_(\''+k+'\')'))
-      +(k==='tk'?b(icon('trash',17),'Xoá các dòng đang chọn','tkSheetDel_()'):'')
-      +sep+'<span class="gs-sumic" title="Chọn nhiều ô để xem tổng">'+btI_('sum')+'</span><span class="gs-sum" id="'+k+'SheetSum"></span>'
+      +'<select class="gs-zoom" title="Thu phóng" onchange="btZoom_('+q+',this.value)">'
+        +[50,75,90,100,125,150,200].map(function(v){ return '<option value="'+v+'"'+(v===z?' selected':'')+'>'+v+'%</option>'; }).join('')+'</select>'
+      +sep+b(btI_('print'),'In bảng','btPrint_('+q+')')
+      +b(icon('download',17),'Xuất Excel',k==='pt'?'ptExportXlsx()':(k==='cp'?'cpXuatExcel_(this)':(k==='da'?'daXuatExcel_(this)':'btXlsx_('+q+')')))
       +'<span style="flex:1"></span>'
       +(k==='tk'?'<button class="gs-b gs-txt" id="tkColBtn" onclick="tkColPop_(event)" title="Chọn cột hiển thị"></button><span class="gs-tools" id="tkSheetTools"></span>':'')
       +((k==='cp'||k==='da')?'<span class="gs-tools">'+pgToolsHtml_(k)+'</span>':'')
     +'</div>'
+    // Thanh công thức: địa chỉ ô + nội dung ô đang chọn (sửa rồi Enter)
+    +'<div class="gs-fx"><span class="gs-fx-addr" id="'+k+'FxAddr">A1</span><span class="gs-fx-ic">fx</span>'
+      +'<input id="'+k+'FxIn" placeholder="Chọn 1 ô để xem / sửa nội dung" onkeydown="if(event.key===\'Enter\'){btFxGhi_('+q+',this.value);this.blur();}else if(event.key===\'Escape\'){btFxSync_('+q+');this.blur();}" onchange="btFxGhi_('+q+',this.value)"></div>'
     +'<div id="'+k+'Sheet" class="gs-grid'+(B.gon?' gs-gon':'')+'" style="--gsfs:'+fs+'px'+(z!==100?';zoom:'+(z/100):'')+'"></div>'
     +(k==='tk'?'<div class="gs-foot" id="tkSheetFoot"></div>':'')
   +'</div>';
@@ -629,14 +733,16 @@ function btFrame_(k){
 function ptSheetFrame_(){ return btFrame_('pt'); }
 // Chọn vùng ô: Σ Tổng · TB · Đếm ngay trên hàng công cụ
 function btSum_(k,inst,x1,y1,x2,y2){
-  var B=btCtx_(k); B.sel=[Math.min(x1,x2),Math.min(y1,y2)]; B.selR=[Math.min(y1,y2),Math.max(y1,y2)];
+  var B=btCtx_(k); B.sel=[Math.min(x1,x2),Math.min(y1,y2)]; B.selR=[Math.min(y1,y2),Math.max(y1,y2)]; B.selX=[Math.min(x1,x2),Math.max(x1,x2)];
+  btFxSync_(k);
   var el=document.getElementById(k+'SheetSum'); if(!el) return;
-  var s=0, n=0, so=0;
+  var s=0, n=0, so=0, mn=Infinity, mx=-Infinity;
   for(var y=Math.min(y1,y2); y<=Math.max(y1,y2); y++) for(var x=Math.min(x1,x2); x<=Math.max(x1,x2); x++){
-    var v=String(inst.getValueFromCoords(x,y)||'').trim(); if(!v) continue; n++;
-    if(/^-?[\d.,]+%?$/.test(v)){ s+=tkNum_(v); so++; } }
+    var v=btChu_(inst.getValueFromCoords(x,y)).trim(); if(!v) continue; n++;
+    if(/^-?[\d.,]+%?$/.test(v)){ var so1=tkNum_(v); s+=so1; so++; if(so1<mn) mn=so1; if(so1>mx) mx=so1; } }
   function f(v){ return v.toLocaleString('vi-VN',{maximumFractionDigits:2}); }   // giữ số lẻ (khối lượng 3,5)
-  el.innerHTML = n<2 ? '' : ((so?('<span>Tổng: <b>'+f(s)+'</b></span><span>TB: <b>'+f(s/so)+'</b></span>'):'')+'<span>Đếm: <b>'+n+'</b></span>');
+  function o(nhan,v){ return '<span class="gs-st" title="Bấm để chép số này" onclick="btChep_(\''+f(v)+'\')">'+nhan+': <b>'+f(v)+'</b></span>'; }
+  el.innerHTML = n<2 ? '' : ((so?(o('Tổng',s)+o('TB',s/so)+o('Min',mn)+o('Max',mx)):'')+'<span>Đếm: <b>'+n+'</b></span>');
 }
 function btFreeze_(k){ var B=btCtx_(k); B.frz=!B.frz; btVeLai_(k); }
 function btZoom_(k,v){ var B=btCtx_(k); B.zoom=Number(v)||100;

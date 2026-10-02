@@ -4718,6 +4718,26 @@ body.gs-keo,body.gs-keo *{cursor:grabbing!important;user-select:none}
 .bt-mode button svg{width:14px;height:14px}
 .bt-mode button:hover{color:#1a73e8}
 .bt-mode button.on{background:#1f3a5f;color:#fff}
+/* Định dạng ô của bảng tính (chỉ trên lưới, không in ra báo giá) — !important để thắng style nội tuyến của thư viện */
+.gs-grid .jss_worksheet td.f-b{font-weight:700!important}
+.gs-grid .jss_worksheet td.f-i{font-style:italic!important}
+.gs-grid .jss_worksheet td.f-u{text-decoration:underline!important}
+.gs-grid .jss_worksheet td.f-c{color:var(--fc)!important}
+.gs-grid .jss_worksheet td.f-bg{background-color:var(--fbg)!important}
+.gs-grid .jss_worksheet td.f-al-l{text-align:left!important}
+.gs-grid .jss_worksheet td.f-al-c{text-align:center!important}
+.gs-grid .jss_worksheet td.f-al-r{text-align:right!important}
+.gs-grid.gs-gon .jss_worksheet > tbody > tr > td.f-wrap,.gs-grid .jss_worksheet td.f-wrap{white-space:pre-wrap!important;overflow:visible}
+.gs-bar2{border-top:1px solid #e3e7ec;background:#f6f8fb}
+.gs-clr{position:relative;flex-direction:column;gap:1px;cursor:pointer}
+.gs-clr .gs-clr-bar{display:block;width:16px;height:3px;border-radius:1px}
+.gs-clr input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.gs-st{cursor:copy;border-radius:4px;padding:0 3px} .gs-st:hover{background:#e8f0fe}
+.gs-fx{display:flex;align-items:stretch;height:30px;border-bottom:1px solid #dadce0;background:#fff;font-size:13px}
+.gs-fx-addr{min-width:84px;display:flex;align-items:center;padding:0 10px;border-right:1px solid #dadce0;color:#1f1f1f;font-weight:600;font-variant-numeric:tabular-nums}
+.gs-fx-ic{width:30px;display:flex;align-items:center;justify-content:center;border-right:1px solid #dadce0;color:#80868b;font-style:italic;font-family:Georgia,serif}
+.gs-fx input{flex:1;min-width:0;border:none;outline:none;padding:0 10px;font:inherit;font-size:13px;background:#fff}
+.gs-fx input:disabled{color:#5f6368;background:#fafbfc}
 .gs-foot{display:flex;align-items:center;padding:10px 12px;border-top:1px solid #dadce0;background:#fbfcfe}
 .gs-txt{font-size:12.5px;font-weight:500;gap:5px;padding:0 8px;white-space:nowrap}
 .gs-img{max-width:64px;max-height:64px;object-fit:contain;cursor:zoom-in;display:block;margin:0 auto}
