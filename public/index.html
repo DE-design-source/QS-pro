@@ -4691,6 +4691,10 @@ body.gs-keo,body.gs-keo *{cursor:grabbing!important;user-select:none}
 /* chế độ Gọn: 1 hàng chữ / dòng, chữ dài cắt bằng … */
 .gs-grid.gs-gon .jss_worksheet > tbody > tr > td{white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;max-width:0;padding-top:5px;padding-bottom:5px}
 .gs-grid.gs-gon .gs-img{max-height:34px;max-width:46px}
+/* hàng đã kéo cao (--rh): ảnh to theo ô — cao theo hàng, rộng theo cột (kể cả chế độ Gọn) */
+.gs-grid .jss_worksheet tr.gs-rh .gs-img,.gs-grid.gs-gon .jss_worksheet tr.gs-rh .gs-img{max-height:calc(var(--rh) - 12px);max-width:100%}
+.gs-grid.gs-gon .jss_worksheet tr.gs-rh > td{white-space:pre-wrap!important;vertical-align:middle}
+.gs-grid .jss_worksheet > tbody > tr > td:first-child.gs-hrsz-on{cursor:row-resize!important}
 .gs-gonb svg{flex:none}
 /* đang kéo sản phẩm từ danh mục vào bảng tính */
 #tkSheetWrap{position:relative}
@@ -4744,7 +4748,8 @@ body.gs-keo,body.gs-keo *{cursor:grabbing!important;user-select:none}
 .gs-grid .jss_worksheet > thead td.gs-cot-r{box-shadow:inset -3px 0 0 #1a73e8}
 .gs-foot{display:flex;align-items:center;padding:10px 12px;border-top:1px solid #dadce0;background:#fbfcfe}
 .gs-txt{font-size:12.5px;font-weight:500;gap:5px;padding:0 8px;white-space:nowrap}
-.gs-img{max-width:64px;max-height:64px;object-fit:contain;cursor:zoom-in;display:block;margin:0 auto}
+.gs-img{max-width:min(100%,64px);max-height:64px;object-fit:contain;cursor:zoom-in;display:block;margin:0 auto}
+.gs-grid .jss_worksheet td.gs-cw .gs-img{max-width:100%}   /* cột ảnh đã kéo rộng: ảnh rộng theo cột */
 .gs-grid .jss_worksheet td .tl-badge{margin:0 auto}
 /* lưới */
 .gs-grid .jss_content{max-height:calc(100vh - 300px)}
@@ -4762,6 +4767,7 @@ body.gs-keo,body.gs-keo *{cursor:grabbing!important;user-select:none}
 /* (cột nội bộ dùng CÙNG màu navy với các cột khác — đồng bộ) */
 .gs-grid .jss_worksheet > thead td.gs-rsz-on{cursor:col-resize!important}
 body.gs-rsz, body.gs-rsz *{cursor:col-resize!important;user-select:none}
+body.gs-rszh, body.gs-rszh *{cursor:row-resize!important}
 .gs-grid .jss_worksheet > thead > tr:last-child > td.selected{box-shadow:inset 0 -3px 0 #8ab4f8}
 /* ô đang chọn: khung xanh 2px như Google Sheets */
 .gs-grid .jss_worksheet .highlight{background-color:rgba(26,115,232,.1)}
