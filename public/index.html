@@ -4741,6 +4741,25 @@ body.gs-keo,body.gs-keo *{cursor:grabbing!important;user-select:none}
 .gs-grid .jss_worksheet .highlight-right{border-right:2px solid var(--gb)!important}
 .gs-grid .jss_corner{display:none}   /* nút kéo-điền ở góc ô: dễ bấm nhầm, đã có chuột phải → Điền xuống + Ctrl+C/V */
 .gs-grid .jss_worksheet .editor, .gs-grid .jss_worksheet td.edition{box-shadow:inset 0 0 0 2px var(--gb)}
+/* biến thể màu: chấm màu trên dòng đại diện + popup tạo nhanh nhiều màu */
+.sp-mau{display:inline-flex;align-items:center;margin-left:6px;vertical-align:middle}
+.sp-mau i{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.18);margin-left:-3px;box-shadow:0 0 0 1.5px #fff;background:#e8eaed}
+.sp-mau i:first-child{margin-left:0}
+.sp-mau b{font-size:10.5px;font-weight:600;color:#5f6368;margin-left:4px}
+.sp-mau-x{background:repeating-linear-gradient(45deg,#e8eaed 0 3px,#fff 3px 6px)!important}
+.nbt-modal{width:min(640px,94vw)}
+.nbt-src{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:10px}
+.nbt-src img{width:44px;height:44px;object-fit:contain;border-radius:6px}
+.nbt-src span{display:block;font-size:12px;color:var(--c3);margin-top:2px}
+.nbt-tbl{max-height:46vh;overflow:auto;margin:8px 0}
+.nbt-h,.nbt-r{display:grid;grid-template-columns:1.6fr 1fr 1fr 30px;gap:8px;align-items:center}
+.nbt-h{font-size:11.5px;font-weight:600;color:var(--c3);padding:0 2px 6px}
+.nbt-r{margin-bottom:6px}
+.nbt-r input{height:34px;border:1px solid var(--line);border-radius:8px;padding:0 10px;font:inherit;font-size:13px;min-width:0}
+.nbt-r input.num{text-align:right}
+.nbt-mauw{display:flex;align-items:center;gap:8px}
+.nbt-mauw i{flex:none;width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,0,0,.2);background:#e8eaed}
+.nbt-mauw input{flex:1}
 /* nhắc tải lại khi có bản mới */
 .banmoi{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:10px;
   background:var(--navy);color:#fff;padding:10px 12px 10px 16px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.25);font-size:13px}

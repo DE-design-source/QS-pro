@@ -31,6 +31,11 @@ const C = new Function(['esc', 'escJs_', 'safeUrl_', 'tkNum_', 'pctIn_'].map(pic
   assert.strictEqual(g.rows[4][0], '3.1'); }
 // renderTable đưa ĐÚNG danh sách tầng của bảng thường cho bảng tính (không lọc bỏ tầng trống)
 assert(/tkSheetVe_\(document\.getElementById\('tkSheet'\), cols, order, groups\)/.test(fs.readFileSync(path.join(__dirname, '..', 'public', 'boc.js'), 'utf8')), 'renderTable phải truyền nguyên order cho tkSheetVe_');
+// biến thể màu: tên màu tiếng Việt -> chấm màu (khớp nguyên từ, bỏ dấu)
+{ const sp = fs.readFileSync(path.join(__dirname, '..', 'public', 'sanpham.js'), 'utf8');
+  const mau = new Function(sp.match(/^var SP_MAU_CSS=[^]*?;\n/m)[0] + sp.match(/^function spMauCss_\([^]*?\n}\n/m)[0] + 'return spMauCss_;')();
+  [['Trắng sứ', '#ffffff'], ['Xanh dương', '#1a73e8'], ['Xanh', '#4285f4'], ['Đỏ đô', '#d93025'], ['Vàng đồng', '#d4af37'],
+   ['Màu be', '#e8d5b0'], ['Vân gỗ', '#a1887f'], ['Mã #12ab9f', '#12ab9f'], ['Ánh kim lạ', '']].forEach(([t, c]) => assert.strictEqual(mau(t), c, 'spMauCss_(' + t + ')')); }
 // ô % trống không được thành 0
 assert.strictEqual(C.pctIn_(''), null); assert.strictEqual(C.pctIn_('  '), null);
 assert.strictEqual(C.pctIn_('12,5'), 12.5); assert.strictEqual(C.pctIn_('0'), 0); assert.strictEqual(C.pctIn_('x'), null);
