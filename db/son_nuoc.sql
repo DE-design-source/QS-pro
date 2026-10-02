@@ -24,6 +24,7 @@ alter table public.db_san_pham
   add column if not exists gioi_han_no text,
   add column if not exists ap_suat_hoa_hoi text,
   add column if not exists mat_do_hoi text,
+  add column if not exists mat_do_tuong_doi text,
   add column if not exists do_hoa_tan text,
   add column if not exists tinh_deo text,
   add column if not exists dac_tinh_hat text;

@@ -31,7 +31,8 @@
     'KHẢ NĂNG CHÁY':      ['kha_nang_chay', 'Khả năng cháy', 'text', 'VD: Không có sẵn'],
     'GIỚI HẠN NỔ':        ['gioi_han_no', 'Giới hạn nổ dưới và trên', 'text', 'VD: Thấp hơn 2.6%'],
     'ÁP SUẤT HÓA HƠI':    ['ap_suat_hoa_hoi', 'Áp suất hoá hơi', 'text', 'VD: Không có sẵn'],
-    'MẬT ĐỘ HƠI':         ['mat_do_hoi', 'Mật độ hơi tương đối', 'text', 'VD: 1.195'],
+    'MẬT ĐỘ HƠI':         ['mat_do_hoi', 'Mật độ hơi tương đối', 'text', 'VD: Không có sẵn'],
+    'MẬT ĐỘ TƯƠNG ĐỐI':   ['mat_do_tuong_doi', 'Mật độ tương đối', 'text', 'VD: 1.195'],   // khác "mật độ HƠI tương đối" (bảng IX của SDS)
     'ĐỘ HÒA TAN TRONG NƯỚC': ['do_hoa_tan', 'Độ hoà tan trong nước', 'text', 'VD: Không có sẵn'],
     'TÍNH DẺO':           ['tinh_deo', 'Tính dẻo (độ nhớt)', 'text', 'VD: 2477 mm²/s ở nhiệt độ phòng'],
     'ĐẶC TÍNH HẠT':       ['dac_tinh_hat', 'Đặc tính hạt', 'text', 'VD: Không có sẵn'],
@@ -44,7 +45,7 @@
   var TRANG_THAI_VL = ['Chất lỏng', 'Bột', 'Sệt'];
   // Khối tính chất lý hoá dùng chung cho mọi hạng mục sơn (theo mục IX của bảng dữ liệu an toàn)
   var LY_HOA = ['TRẠNG THÁI VẬT LÝ', 'MÙI', 'NGƯỠNG VỀ MÙI', 'ĐỘ PH', 'ĐIỂM CHẢY / ĐÔNG', 'ĐIỂM SÔI',
-    'ĐIỂM BÙNG CHÁY', 'KHẢ NĂNG CHÁY', 'GIỚI HẠN NỔ', 'ÁP SUẤT HÓA HƠI', 'MẬT ĐỘ HƠI',
+    'ĐIỂM BÙNG CHÁY', 'KHẢ NĂNG CHÁY', 'GIỚI HẠN NỔ', 'ÁP SUẤT HÓA HƠI', 'MẬT ĐỘ HƠI', 'MẬT ĐỘ TƯƠNG ĐỐI',
     'ĐỘ HÒA TAN TRONG NƯỚC', 'TÍNH DẺO', 'ĐẶC TÍNH HẠT', 'LƯU Ý'];
   var CHINH = ['MÀU SẮC', 'BỀ MẶT HOÀN THIỆN', 'ĐỘ PHỦ', 'THỜI GIAN KHÔ', 'SỐ LỚP', 'KÍCH THƯỚC'];
   var OPT_CHUNG = { 'BỀ MẶT HOÀN THIỆN': BE_MAT, 'KÍCH THƯỚC': QUY_CACH, 'SỐ LỚP': SO_LOP,
@@ -69,7 +70,7 @@
       'MÃ SẢN PHẨM': 'Dulux Weathershield Royal Shine', 'MÀU SẮC': 'Màu trắng', 'BỀ MẶT HOÀN THIỆN': 'Bề mặt bóng',
       'ĐỘ PHỦ': 'Lên đến 13 m²/lít/lớp', 'THỜI GIAN KHÔ': '30 phút', 'SỐ LỚP': '2', 'KÍCH THƯỚC': '18L',
       'TRẠNG THÁI VẬT LÝ': 'Chất lỏng', 'ĐỘ PH': '9', 'ĐIỂM SÔI': '100°C (212°F)',
-      'MẬT ĐỘ HƠI': '1.195', 'TÍNH NĂNG': '• Chống nấm mốc\n• Chống bám bụi\n• Bề mặt sáng đẹp\n• Sắc màu bền đẹp',
+      'MẬT ĐỘ HƠI': 'Không có sẵn', 'MẬT ĐỘ TƯƠNG ĐỐI': '1.195', 'TÍNH NĂNG': '• Chống nấm mốc\n• Chống bám bụi\n• Bề mặt sáng đẹp\n• Sắc màu bền đẹp',
       'GIÁ BÁN LẺ': 2890000, 'ĐƠN VỊ TÍNH': 'Thùng' }),
     'Sơn lót': hm({ 'DÒNG SẢN PHẨM': 'Sơn lót', 'TÊN SẢN PHẨM': 'Sơn lót chống kiềm nội thất',
       'MÃ SẢN PHẨM': 'Maxilite Primer', 'MÀU SẮC': 'Màu trắng', 'BỀ MẶT HOÀN THIỆN': 'Mờ',
