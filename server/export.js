@@ -430,8 +430,23 @@ function buildPhanThoSheet(ws, p, pt) {
   ws.views = [{ state: 'frozen', ySplit: 4 }];
 }
 
+/* Trang "Tổng cộng": đúng hộp tổng trang cuối của PDF (client tính bằng bgTong_ rồi gửi lên):
+   Cộng chưa VAT → Chiết khấu → Sau chiết khấu → VAT → TỔNG THANH TOÁN.  tong = [[nhãn, số], …] */
+function buildTongSheet(ws, p, tong) {
+  ws.columns = [{ width: 34 }, { width: 22 }];
+  const t = ws.getCell('A1'); t.value = 'TỔNG GIÁ TRỊ BÁO GIÁ — ' + String(p.ten || '').toUpperCase();
+  t.font = { bold: true, size: 13, color: { argb: 'FF1F3A5F' } }; ws.mergeCells('A1:B1');
+  tong.slice(0, 20).forEach(function (r, i) {
+    const row = ws.getRow(i + 3), cuoi = i === tong.length - 1;
+    row.getCell(1).value = String(r[0] == null ? '' : r[0]);
+    row.getCell(2).value = Number(r[1]) || 0; row.getCell(2).numFmt = '#,##0';
+    row.getCell(2).alignment = { horizontal: 'right' };
+    if (cuoi) row.eachCell(function (c) { c.font = { bold: true, color: { argb: 'FFFFFFFF' } }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F3A5F' } }; });
+  });
+}
+
 /*** ===== ENTRY: exportBaoGia(maDA, cols, format) ===== ***/
-async function exportBaoGia(maDA, cols, format, nodes, phanTho, anMuc) {
+async function exportBaoGia(maDA, cols, format, nodes, phanTho, anMuc, tong) {
   const q = await dataStore.getQuote(maDA);
   const p = q.project || {};
   // chỉ xuất các hạng mục được tích ở tab Xuất báo giá (rỗng = xuất hết)
@@ -456,6 +471,7 @@ async function exportBaoGia(maDA, cols, format, nodes, phanTho, anMuc) {
   const an = {}; (Array.isArray(anMuc) ? anMuc : []).forEach(function (k) { an[String(k)] = 1; });
   const cover = (await dataStore.getCoverOrInit(maDA)).filter(function (c) { return !an[String(c.stt).split('.')[0]]; });
   buildCoverSheet(wb.addWorksheet('Tờ bìa'), p, cover);
+  if (Array.isArray(tong) && tong.length) buildTongSheet(wb.addWorksheet('Tổng cộng'), p, tong);
   buildSection32(wb.addWorksheet('3.2 Phần hoàn thiện'), p, cover);
   if (Array.isArray(phanTho) && phanTho.length) buildPhanThoSheet(wb.addWorksheet('3.1 Phần thô'), p, phanTho);
 
@@ -488,6 +504,7 @@ async function exportBaoGia(maDA, cols, format, nodes, phanTho, anMuc) {
 }
 
 exportBaoGia.buildPhanThoSheet = buildPhanThoSheet;   // để test riêng sheet Phần thô
+exportBaoGia.buildTongSheet = buildTongSheet;
 // 1 bảng do client dựng sẵn -> Excel: {ten, sheet, cols:[{label,num}], rows:[{cells:[]}|{group:''}], tong:[[nhãn,số]]}
 async function buildBangXlsx(b) {
   const cols = (Array.isArray(b.cols) ? b.cols : []).slice(0, 60), rows = (Array.isArray(b.rows) ? b.rows : []).slice(0, 20000);

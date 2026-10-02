@@ -101,5 +101,9 @@ fs.readdirSync(path.join(__dirname, '..', 'public')).filter(f => f.endsWith('.js
   assert.strictEqual(ws.getCell('A4').value, 'I. Thiết bị đèn'); assert(ws.getCell('C4').isMerged);
   assert.strictEqual(ws.getCell('C5').value, 7680000);
   assert.strictEqual(ws.getCell('B7').value, 'Tổng'); assert.strictEqual(ws.getCell('C7').value, 7680000);
+  // báo giá Excel: trang "Tổng cộng" đúng hộp tổng PDF, dòng cuối là TỔNG THANH TOÁN
+  const wb2 = new ExcelJS.Workbook(), ws2 = wb2.addWorksheet('Tổng cộng');
+  require('../server/export').buildTongSheet(ws2, { ten: 'Villa' }, [['Cộng (chưa VAT)', 2000000], ['Chiết khấu 10%', -200000], ['Sau chiết khấu', 1800000], ['VAT 10%', 180000], ['TỔNG THANH TOÁN', 1980000]]);
+  assert.strictEqual(ws2.getCell('B4').value, -200000); assert.strictEqual(ws2.getCell('A7').value, 'TỔNG THANH TOÁN'); assert.strictEqual(ws2.getCell('B7').value, 1980000);
   console.log('test-core: tất cả đạt');
 })().catch(e => { console.error(e); process.exit(1); });

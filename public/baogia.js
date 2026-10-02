@@ -26,8 +26,10 @@ function coverCosts(){
   var total=0; cover.forEach(function(c){ if(coverDepth(c.stt)===1 && !bgHidden(c.stt)) total+=cost[c.stt]; });
   return {cost:cost,total:total};
 }
-function bgHidden(stt){ var root=String(stt).split('.')[0]; return !!(S.bgHide && S.bgHide[root]); }
-function bgToggle(stt){ S.bgHide=S.bgHide||{}; if(S.bgHide[stt]) delete S.bgHide[stt]; else S.bgHide[stt]=1; drawBaogia(); }
+// Mục lớn đã ẩn khỏi tờ bìa: lưu THEO DỰ ÁN (bgCfg.an) — trước chỉ trong bộ nhớ, dùng chung mọi dự án, tải lại là mất
+function bgAn_(){ return ((S._projData&&S._projData.bgCfg)||{}).an||{}; }
+function bgHidden(stt){ var root=String(stt).split('.')[0]; return !!bgAn_()[root]; }
+function bgToggle(stt){ var a=Object.assign({},bgAn_()); if(a[stt]) delete a[stt]; else a[stt]=1; bgOptSet_('an',a); }
 function setCoverMau(m){ S.coverMau=m; try{localStorage.setItem('qs_covermau',m);}catch(e){} drawBaogia(); }
 function coverInfo(field,value){ if(!S.cur)return; var f={}; f[field]=value; api('updateProject',S.cur.maDA,f).then(syncProj).catch(function(e){toast('Lỗi: '+e.message);}); }
 function ic(field){ var v=(S.cur&&S.cur[field])||''; return '<td><input class="cin" value="'+esc(v)+'" onchange="coverInfo(\''+field+'\',this.value)"></td>'; }
@@ -211,7 +213,7 @@ function bgBuildPages(){
   // ===== Hộp tổng + ghi chú + ô ký =====
   // Tổng phải ĐÚNG phạm vi đang xuất: chỉ cộng các dòng đã lọc theo hạng mục + phần thô
   // (trước đây luôn cộng cả dự án nên chọn 1 hạng mục mà tổng vẫn ra tiền của hạng mục khác).
-  var subBG=lines.reduce(function(a,l){ return a+ttBan_(l); },0)+ptTong;
+  var subBG=lines.reduce(function(a,l){ return a+ttBan_(l); },0)+ptTong;     // = bgSub_() (dùng cho Excel + kiểm tra tờ bìa)
   inners[inners.length-1]+=bgTongKetHTML_(bgTong_(subBG), org);
   var N=inners.length;
   return inners.map(function(inner,idx){
@@ -741,7 +743,7 @@ async function renderExport(){
 function drawBaogia(){
   var box=document.getElementById('v-export'); if(!box) return;
   S.coverMau=S.coverMau||(function(){try{return localStorage.getItem('qs_covermau');}catch(e){return '';}}())||'m2';
-  S.bgHide=S.bgHide||{}; if(!S.bgDeMuc) S.bgDeMuc='__all__';
+  if(!S.bgDeMuc) S.bgDeMuc='__all__';
   if(!S.bgView) S.bgView='doc';
   // header chung + chuyển chế độ
   var seg='<div class="bgseg"><button class="'+(S.bgView==='doc'?'on':'')+'" onclick="bgSetView(\'doc\')">'+icon('eye',14)+' Xem trước & Xuất</button>'
@@ -759,7 +761,7 @@ function drawBaogia(){
   }
   var comp=coverCosts(), p=S.cur||{}, q0=bgTong_(computeQuoteLocal().subtotal), q={subtotal:q0.sub, vatPct:q0.vatPct, vat:q0.vat, total:q0.total, ck:q0.ck};
   var secs=(S.cover||[]).filter(function(c){return coverDepth(c.stt)===1;}).sort(coverSortFn);
-  var chips=secs.map(function(s){ return '<span class="bgchip'+(S.bgHide[s.stt]?' off':'')+'" onclick="bgToggle(\''+s.stt+'\')">'+esc(s.hangMuc||s.stt)+'</span>'; }).join('')||'<span class="hint" style="color:#889">Chưa có mục. Bấm ↻ Nạp lại mẫu.</span>';
+  var chips=secs.map(function(s){ return '<span class="bgchip'+(bgAn_()[s.stt]?' off':'')+'" onclick="bgToggle(\''+s.stt+'\')">'+esc(s.hangMuc||s.stt)+'</span>'; }).join('')||'<span class="hint" style="color:#889">Chưa có mục. Bấm ↻ Nạp lại mẫu.</span>';
   var covTable=S.coverMau==='m1'?coverTableM1(comp):coverTableM2(comp);
   var colChips=COLS.map(function(c){return '<span class="chip'+(S.cols[c[0]]?' on':'')+'" onclick="toggleCol(\''+c[0]+'\')">'+esc(c[1])+'</span>';}).join('');
 
@@ -840,8 +842,11 @@ async function doExport(fmt,btn){
         S.cover=await api('saveCover',S.cur.maDA,S.cover)||S.cover;
       }
       bgChot_('excel'); drawBaogia();
-      var an=Object.keys(S.bgHide||{}).filter(function(k){ return S.bgHide[k]; });   // mục đã ẩn khỏi tờ bìa
-      var r=await api('exportBaoGia',S.cur.maDA,cols,'xlsx',nodes,pt,an);
+      var an=Object.keys(bgAn_()).filter(function(k){ return bgAn_()[k]; });   // mục đã ẩn khỏi tờ bìa
+      var t=bgTong_(bgSub_()), tong=[['Cộng (chưa VAT)',t.sub]];   // trang Tổng cộng của Excel = đúng hộp tổng trang cuối PDF
+      if(t.ck) tong.push(['Chiết khấu'+(bgOpt_().ckKieu==='pct'?' '+bgOpt_().ck+'%':''),-t.ck],['Sau chiết khấu',t.sau]);
+      tong.push(['VAT '+t.vatPct+'%',t.vat],['TỔNG THANH TOÁN',t.total]);
+      var r=await api('exportBaoGia',S.cur.maDA,cols,'xlsx',nodes,pt,an,tong);
       dl(r); toast('Đã xuất Excel · '+cols.length+' cột'+(nodes.length?(' · '+nodes.length+' hạng mục'):'')+(pt.length?(' · kèm phần thô'):''));
     }
   }catch(e){ toast('Lỗi: '+e.message); } btn.disabled=false; btn.textContent=o;
@@ -946,9 +951,19 @@ function bgNoiBoCanh_(){ var ks=bgNoiBoBat_(); if(!ks.length) return '';
     +') đang bật ở Bóc tách nhưng <b>không in</b> trên báo giá gửi khách.</span><button class="btn ghost sm" onclick="bgNoiBoDat_(1)">Xuất kèm (bản nội bộ)</button></div>';
   return '<div class="bg-noibo">'+icon('bell',15)+'<span><b>Đang xuất kèm cột nội bộ:</b> '+ks.map(function(k){ return BG_NOI_BO[k]; }).join(', ')
     +' — chỉ dùng cho bản nội bộ, KHÔNG gửi khách.</span><button class="btn sm" onclick="bgNoiBoDat_(0)">Ẩn khỏi báo giá</button></div>'; }
+// Tờ bìa cộng TOÀN dự án (kể cả mục không chọn xuất, số sửa tay); trang cuối chỉ cộng phần đang xuất -> báo khi 2 số khác nhau
+function bgBiaCanh_(){
+  if(!(S.cover||[]).length) return '';
+  var bia=coverCosts().total, cuoi=bgSub_(); if(Math.abs(bia-cuoi)<1000) return '';
+  var ly=[]; if(bgSelCodes_().length) ly.push('trang 2+ chỉ xuất '+bgSelCodes_().length+' hạng mục đã chọn');
+  if(!bgPTOn_() && (S.phanTho||[]).length) ly.push('không xuất Phần thô');
+  ly.push('hoặc tờ bìa có số sửa tay');
+  return '<div class="bg-noibo an">'+icon('bell',15)+'<span>Tổng tờ bìa <b>'+money(bia)+' đ</b> khác tổng trang cuối <b>'+money(cuoi)+' đ</b> (chưa CK/VAT) — vì '
+    +ly.join(', ')+'. Kiểm tra trước khi gửi khách.</span></div>';
+}
 function bgCtlBar_(){
-  var pages=bgBuildPages().length;
-  return bgNoiBoCanh_()+'<div class="bgctl">'
+  var pages=bgBuildPages().length, vp=Number(S.cur&&S.cur.vat)||0;
+  return bgNoiBoCanh_()+bgBiaCanh_()+'<div class="bgctl">'
     +'<span class="bgctl-mau" title="Trang 1 luôn là tờ bìa — chọn kiểu">'
       +'<label>Trang 1 · Tờ bìa</label>'
       +'<button class="'+(S.coverMau==='m1'?'on':'')+'" onclick="setCoverMau(\'m1\')">Mẫu 1</button>'
@@ -968,6 +983,8 @@ function bgCtlBar_(){
           return '<option value="'+o[0]+'"'+(String(S.bgZoom||'fit')===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join('')
       +'</select></span>'
     +(bgColTuyBien_()?'<button class="btn ghost sm" onclick="bgColReset_()" title="Trả rộng và thứ tự cột về mặc định">'+icon('close',13)+' Đặt lại cột</button>':'')
+    +'<span class="bgctl-sel" title="Thuế VAT của dự án — dùng chung với Bóc tách / Chi phí"><label>VAT</label>'
+      +'<input class="bgctl-vat" type="number" step="any" min="0" value="'+vp+'" onchange="setVat(this.value)">%</span>'
     +'<span class="bgctl-n">'+icon('doc',13)+' Số trang <b>'+pages+'</b></span>'
     +'<span style="flex:1"></span>'
     +bgVerBar_()
@@ -1021,6 +1038,8 @@ function coverTag_(c){      // nhãn cạnh ô chi phí ở chế độ Chỉnh 
     : '<span class="cv-tag auto" title="Tự cộng từ '+a.n+' dòng bóc tách">tự động</span>';
 }
 // Tổng: tạm tính -> chiết khấu tổng -> VAT
+// Cộng chưa VAT của báo giá đang xuất: dòng thuộc hạng mục đã chọn + Phần thô (nếu đang xuất) — giống hộp tổng trang cuối
+function bgSub_(){ return bgLines_().reduce(function(a,l){ return a+ttBan_(l); },0)+bgPTSecs_().reduce(function(a,sec){ return a+(Number(sec.tt)||0); },0); }
 function bgTong_(sub){
   var o=bgOpt_(), ck=o.ckKieu==='vnd'?Math.min(sub,o.ck):Math.round(sub*Math.min(100,o.ck)/100);
   var sau=sub-ck, vp=Number(S.cur&&S.cur.vat)||0, vat=Math.round(sau*vp/100);
