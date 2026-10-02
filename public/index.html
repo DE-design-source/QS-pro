@@ -1591,7 +1591,7 @@ table.admtbl tbody tr{transition:background .1s} table.admtbl tbody tr:hover{bac
    bóng gần như vô hình · khoảng trắng kỷ luật
    ═══════════════════════════════════════════════════════════════ */
 html,body{font-size:13px;letter-spacing:-.005em;-moz-osx-font-smoothing:grayscale}
-.wrap{max-width:1760px;padding:0 28px}
+.wrap{max-width:none;padding:0 14px}   /* mọi tab trải hết bề ngang màn hình (trước giới hạn 1760px, căn giữa -> màn rộng chừa trắng 2 bên) */
 
 /* ---------- 1. TYPOGRAPHY: bớt đậm, tracking chuẩn ---------- */
 h1,h2,h3,h4{letter-spacing:-.018em;font-weight:650}
@@ -4674,7 +4674,7 @@ body.bt-tk #v-boc #tkToolBox{margin-bottom:-4px}   /* khung cha đã có gap 10p
 body.bt-tk #v-boc{padding-bottom:0}
 body.bt-tk:has(#v-boc.on) #bocGrid{margin-bottom:0}
 /* đang ở tab Bóc tách dạng bảng tính: bỏ giới hạn bề ngang -> trang trải hết 2 mép màn hình, bảng thấy nhiều cột hơn */
-body.bt-tk:has(#v-boc.on) .wrap, body:has(#v-duan.on #daSheet) .wrap{max-width:none;padding-left:14px;padding-right:14px}   /* bảng tính vừa khít màn hình (tkSheetCao_): bỏ khoảng đệm đáy để trang không cuộn */
+/* (bề ngang: .wrap đã trải hết cho mọi tab) */
 .gs-tools{display:inline-flex;align-items:center}
 .gs-tools .tk-toolrow{display:flex;align-items:center;gap:2px;margin:0;padding:0;border:none}
 .gs-grid td.gs-drag{cursor:grab}

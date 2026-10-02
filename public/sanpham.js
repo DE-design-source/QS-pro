@@ -913,7 +913,7 @@ function spRenderHead_(){
     +'<th class="act-sp"></th></tr>';
   var tb=head.closest('table');
   if(tb){ var total=SEL+ACT; vis.forEach(function(c){ total+=spColW_(c[0]); });
-    tb.style.tableLayout='fixed'; tb.style.width=total+'px'; }
+    tb.style.tableLayout='fixed'; tb.style.width=total+'px'; tb.style.minWidth='100%'; }   // ít cột: giãn kín khung, khỏi trắng bên phải
   spInitCols_();
 }
 // Thanh chip "Hạng mục đã bóc" = nhóm/dòng SP (giống bộ chọn hạng mục bên Bóc tách)
