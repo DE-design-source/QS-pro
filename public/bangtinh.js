@@ -396,6 +396,19 @@ function tkSheetNhanTha_(){
     if(d.g) S.selFloor=d.g; addProdObj(p, d.g, sl); });
   document.addEventListener('dragend',clr);
 }
+// Nhảy tới dòng TẦNG trên lưới (vừa thêm tầng): cuộn tới, chọn ô tên tầng, nháy vàng
+function tkSheetDenTang_(g){
+  if(!btSong_('tk') || !btCtx_('tk').ws.element.offsetParent) return false;
+  var B=btCtx_('tk'), y=B.meta.findIndex(function(m){ return m.k==='sec' && m.g===g; }); if(y<0) return false;
+  return btDenO_(B, Math.min(1,B.cols.length-1), y);
+}
+function btDenO_(B,x,y){
+  B.ws.updateSelectionFromCoords(x,y,x,y);
+  var td=B.ws.getCellFromCoords(x,y), tr=td&&td.parentNode;
+  if(td) try{ td.scrollIntoView({block:'nearest', inline:'nearest'}); }catch(e){}
+  if(tr){ tr.classList.remove('gs-moi'); void tr.offsetWidth; tr.classList.add('gs-moi'); setTimeout(function(){ tr.classList.remove('gs-moi'); },1600); }
+  return true;
+}
 /* Nhảy tới 1 dòng trên lưới (dòng vừa thêm / vừa tìm): bung tầng nếu đang thu gọn, cuộn tới, chọn ô Tên
    (gõ là sửa luôn), nháy vàng. Trả false khi không đang xem bảng tính -> người gọi dùng cách của bảng cũ. */
 function tkSheetDen_(id){
@@ -403,12 +416,7 @@ function tkSheetDen_(id){
   var l=lineOf_(id), g=l&&((l.tang||'').trim()||'CHƯA PHÂN TẦNG');
   if(g && S.collapsed && S.collapsed[g]){ S.collapsed[g]=false; renderTable(); }
   var B=btCtx_('tk'), y=B.meta.findIndex(function(m){ return m.k==='it' && m.id===id; }); if(y<0) return true;
-  var x=Math.max(0, B.cols.findIndex(function(c){ return c[0]==='ten'; }));
-  B.ws.updateSelectionFromCoords(x,y,x,y);
-  var td=B.ws.getCellFromCoords(x,y), tr=td&&td.parentNode;
-  if(td) try{ td.scrollIntoView({block:'nearest', inline:'nearest'}); }catch(e){}
-  if(tr){ tr.classList.remove('gs-moi'); void tr.offsetWidth; tr.classList.add('gs-moi'); setTimeout(function(){ tr.classList.remove('gs-moi'); },1600); }
-  return true;
+  return btDenO_(B, Math.max(0, B.cols.findIndex(function(c){ return c[0]==='ten'; })), y);
 }
 // Hạng mục chưa có dòng nào: vẫn giữ khung bảng tính (không nhảy về bảng thường) + hướng dẫn + nút thêm ở dưới
 function tkSheetTrong_(){

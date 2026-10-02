@@ -198,6 +198,7 @@ async function addFloorName(name){
     var p=await api('updateProject', S.cur.maDA, {tangTuTao:cur.join('|')}); S.cur=p;
     var i=S.projects.findIndex(function(x){return x.maDA===p.maDA;}); if(i>=0)S.projects[i]=p;
     S.selFloor=name; renderFloors(); renderTable(); toast('Đã thêm tầng: '+name);
+    if(typeof tkSheetDenTang_==='function') tkSheetDenTang_(name);      // bảng tính: cuộn tới + nháy dòng tầng mới
     refreshAddFloorPop_();
   }catch(e){ toast('Lỗi: '+e.message); }
 }
@@ -486,8 +487,9 @@ function renderTable(){
   if(tkBt){
     try{
       if(!document.getElementById('tkSheet')) tsw.innerHTML=btFrame_('tk');
-      if(!lines.length){ tkSheetTrong_(); tkTongTien_(lines); return; }    // hạng mục trống: vẫn khung bảng tính
-      tkSheetVe_(document.getElementById('tkSheet'), cols, order.filter(function(g){ return (groups[g]||[]).length; }), groups);
+      // ĐỒNG BỘ với bảng thường: cùng danh sách tầng `order` (kể cả tầng chưa có dòng — vừa thêm tầng là thấy ngay)
+      if(!order.length){ tkSheetTrong_(); tkTongTien_(lines); return; }    // chưa có tầng lẫn dòng: khung trống + hướng dẫn
+      tkSheetVe_(document.getElementById('tkSheet'), cols, order, groups);
       tkTongTien_(lines); return;
     }catch(e){ console.error(e); btSet_('tk',false); tkSheetGop_(false); tsw.innerHTML=''; toast('Bảng tính lỗi — chuyển về bảng cũ'); renderTable(); return; }
   }

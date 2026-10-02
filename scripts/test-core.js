@@ -21,6 +21,16 @@ const C = new Function(['esc', 'escJs_', 'safeUrl_', 'tkNum_', 'pctIn_'].map(pic
   assert.deepStrictEqual(G({ giaBanLe: 50000000, ckDaiLy: 35, donGiaVon: 32500000, donGiaBan: 32500000 }), { donGiaVon: 50000000, chietKhau: 35, donGiaBan: 50000000 });
   assert.deepStrictEqual(G({ recordId: 7, donGiaBan: 32500000 }), { donGiaVon: 50000000, chietKhau: 35, donGiaBan: 50000000 });   // SP đi kèm rút gọn
   assert.deepStrictEqual(G({ donGiaVon: 900000, donGiaBan: 900000 }), { donGiaVon: 900000, chietKhau: 0, donGiaBan: 900000 }); }  // chưa có giá niêm yết
+// bảng tính Bóc tách: tầng CHƯA có dòng vẫn phải có dòng tầng (vừa thêm tầng là thấy), số La Mã khớp bảng thường
+{ const bt = fs.readFileSync(path.join(__dirname, '..', 'public', 'bangtinh.js'), 'utf8');
+  const grid = new Function('S', 'PT_ROMAN', 'btMoney_', 'sortLines_', 'tkSheetO_',
+    bt.match(/^function tkSheetGrid_\([^]*?\n}\n/m)[0] + 'return tkSheetGrid_;')(
+    { collapsed: {} }, ['I', 'II', 'III'], v => String(v || ''), a => a, (l, k, stt) => k === 'stt' ? stt : l.ten);
+  const g = grid([['stt'], ['ten']], ['TẦNG 1', 'TẦNG LỬNG', 'CHƯA PHÂN TẦNG'], { 'TẦNG 1': [{ lineId: 'a', ten: 'Đèn' }], 'CHƯA PHÂN TẦNG': [{ lineId: 'b', ten: 'Ray' }] });
+  assert.deepStrictEqual(g.meta.map(m => m.k + ':' + (m.g || m.id)), ['sec:TẦNG 1', 'it:a', 'sec:TẦNG LỬNG', 'sec:CHƯA PHÂN TẦNG', 'it:b']);
+  assert.strictEqual(g.rows[4][0], '3.1'); }
+// renderTable đưa ĐÚNG danh sách tầng của bảng thường cho bảng tính (không lọc bỏ tầng trống)
+assert(/tkSheetVe_\(document\.getElementById\('tkSheet'\), cols, order, groups\)/.test(fs.readFileSync(path.join(__dirname, '..', 'public', 'boc.js'), 'utf8')), 'renderTable phải truyền nguyên order cho tkSheetVe_');
 // ô % trống không được thành 0
 assert.strictEqual(C.pctIn_(''), null); assert.strictEqual(C.pctIn_('  '), null);
 assert.strictEqual(C.pctIn_('12,5'), 12.5); assert.strictEqual(C.pctIn_('0'), 0); assert.strictEqual(C.pctIn_('x'), null);
