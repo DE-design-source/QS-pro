@@ -2019,7 +2019,7 @@ function cbSearch_(q){
    S._bt = [{recordId, ma, ten, hinhAnh, donGiaBan, ...}] — chỉ là danh sách SP,
    không có số lượng như combo (biến thể là CÙNG một sản phẩm, khác thông số). */
 function btLbl_(x){
-  if(x.nganh==='vs') return [x.mauSac, x.raw&&x.raw.kich_thuoc].map(function(v){ return String(v==null?'':v).trim(); }).filter(Boolean).join(' · ');
+  if(x.nganh==='vs'||x.nganh==='son') return [x.mauSac, x.raw&&x.raw.kich_thuoc].map(function(v){ return String(v==null?'':v).trim(); }).filter(Boolean).join(' · ');
   return [x.congSuat,x.nhietDo,x.gocChieu,x.mauSac].map(function(v){ return String(v==null?'':v).trim(); })
     .filter(Boolean).join(' · ');
 }
@@ -2034,10 +2034,16 @@ function btRow_(x,i){
 }
 function btRender_(){
   var box=document.getElementById('btList'); if(!box) return;
-  var list=S._bt||[];
-  box.innerHTML=list.length?list.map(btRow_).join('')
-    :'<div class="cb-empty">Chưa gom biến thể nào. Sản phẩm trùng MÃ vẫn tự động là biến thể của nhau — ô này dùng khi muốn gom cả sản phẩm khác mã.</div>';
-  var n=document.getElementById('btCount'); if(n) n.textContent=list.length;
+  var list=S._bt||[], p=S._spEditP||{};
+  // biến thể TỰ ĐỘNG = cùng mã SP (vd các màu tạo bằng "Tạo nhanh nhiều màu") — chỉ hiện, không cần gom tay
+  var gom={}; list.forEach(function(x){ gom[String(x.recordId)]=1; });
+  var cungMa=p.ma?(S.products||[]).filter(function(x){ return x.ma===p.ma && String(x.recordId)!==String(p.recordId) && !gom[String(x.recordId)]; }):[];
+  box.innerHTML=(list.length?list.map(btRow_).join('')
+      :'<div class="cb-empty">Chưa gom tay sản phẩm khác mã nào — ô tìm ở trên dùng khi muốn gom cả sản phẩm khác mã.</div>')
+    +(cungMa.length?'<div class="bt-auto"><b>Cùng mã '+esc(p.ma)+' — tự động là biến thể ('+cungMa.length+'):</b> '
+      +cungMa.map(function(x){ var c=spMauCss_(x.mauSac); return '<span class="bt-auto-i"><i style="'+(c?'background:'+c:'')+'"'+(c?'':' class="sp-mau-x"')+'></i>'
+        +esc(btLbl_(x)||x.ten||'')+(x.donGiaBan?' · '+money(x.donGiaBan)+'đ':'')+'</span>'; }).join('')+'</div>':'');
+  var n=document.getElementById('btCount'); if(n) n.textContent=list.length+cungMa.length;
 }
 function btRemove_(i){ (S._bt||[]).splice(i,1); btRender_(); }
 function btAdd_(recordId){
@@ -2099,6 +2105,7 @@ function cbSection_(){
     +'<div id="btPane" style="display:none">'
       +'<p class="cb-note">Gom các sản phẩm là CÙNG một sản phẩm nhưng khác thông số ('+(cbVS_()?'màu sắc, kích thước':'công suất, nhiệt độ màu, góc chiếu, màu')+'). '
         +'Bảng Danh sách SP và thư viện Bóc tách sẽ gộp chúng thành một dòng, bung ra mới thấy từng biến thể.</p>'
+      +(S._spEditP&&S._spEditP.ma&&!S._spEditP.spChung?'<button type="button" class="btn blue sm nbt-open" onclick="spNhieuBT_(S._spEditP)">'+icon('layers',14)+' Tạo nhanh nhiều màu</button>':'')
       +'<div class="cb-find"><input id="btSearch" placeholder="Tìm biến thể theo tên, mã hoặc thương hiệu…" autocomplete="off" oninput="btSearch_(this.value)">'
         +'<div class="cb-sug-box" id="btSug"></div></div>'
       +'<div class="cb-list" id="btList"></div>'
@@ -2129,8 +2136,8 @@ function spMauDots_(mau){
       return '<i style="'+(c?('background:'+c):'')+'"'+(c?'':' class="sp-mau-x"')+'></i>'; }).join('')
     +(mau.length>6?'<b>+'+(mau.length-6)+'</b>':'')+'</span>';
 }
-function spNhieuBT_(i){
-  var p=(S._spList||[])[i]; if(!p||!p.ma) return;
+function spNhieuBT_(i){                        // i = chỉ số dòng trong bảng, hoặc chính sản phẩm (từ form Cập nhật)
+  var p=(i&&typeof i==='object')?i:(S._spList||[])[i]; if(!p||!p.ma) return;
   S._nbt={p:p, rows:[{mau:'',kt:String((p.raw&&p.raw.kich_thuoc)||''),gia:''}]};
   var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='nbtOv';
   ov.onclick=function(e){ if(e.target===ov) spNhieuBTDong_(); };
@@ -2197,8 +2204,14 @@ async function spNhieuBTLuu_(){
   // SP gốc đang ở nhóm gom tay (nhom_bt) -> đưa các màu mới vào cùng nhóm, không thì chúng tách nhóm (gom theo mã)
   try{ S.products=await api('getProducts')||S.products;
     if(String(p.nhomBT||'').trim()){ var ids=(S.products||[]).filter(function(x){ return String(x.recordId)!==String(p.recordId) && (x.nhomBT===p.nhomBT || x.ma===p.ma); }).map(function(x){ return {id:x.recordId}; });
-      await api('setBienThe', String(p.recordId), ids); S.products=await api('getProducts')||S.products; } }
+      await api('setBienThe', String(p.recordId), ids); S.products=await api('getProducts')||S.products;
+      // form Cập nhật SP đang mở: cập nhật danh sách nhóm trong form, nếu không bấm "Lưu cập nhật" sẽ ghi đè mất các màu mới
+      if(String(S._spEditRecId)===String(p.recordId) && typeof btRender_==='function'){
+        S._bt=(S.products||[]).filter(function(x){ return x.nhomBT===p.nhomBT && String(x.recordId)!==String(p.recordId); })
+          .map(function(x){ return {recordId:x.recordId, ma:x.ma, ten:x.ten, hinhAnh:x.hinhAnh, donGiaBan:x.donGiaBan, mauSac:x.mauSac, nganh:x.nganh, raw:x.raw}; });
+        btRender_(); } } }
   catch(e){ loi.push('Làm mới danh sách: '+String(e.message||e).slice(0,60)); }
+  if(String(S._spEditRecId)===String(p.recordId) && typeof btRender_==='function') btRender_();   // form đang mở: hiện ngay các màu mới
   spNhieuBTDong_(); spViewTabs_&&spViewTabs_(); spFilter(); if(typeof renderCatalog==='function') renderCatalog();
   toast('Đã tạo '+ok+' biến thể màu cho '+p.ma+(trung.length?(' · bỏ qua '+trung.length+' màu đã có'):'')+(loi.length?(' · lỗi: '+loi.join('; ')):''));
 }
