@@ -11,6 +11,7 @@ function pgHeadRow_(id, n, stats){
   return '<div class="pgh"><span class="pgh-lbl">Hạng mục đã bóc</span><span class="count">['+pad2(n)+']</span>'
     +'<button class="tree-btn hm-open pgh-pill'+(hm?' on':'')+'" id="'+id+'" onclick="hmPop_(event,\''+id+'\')" title="Chọn hạng mục">'
       +'<span class="hm-name">'+esc(hm?(hm+'.'+(nodeName(hm)||hm)):'Tất cả hạng mục')+'</span><span class="cnt">['+pad2(n)+']</span></button>'
+    +((id==='cpHmBtn'||id==='daHmBtn')&&btSan_()?btCheDoNut_():'')     // công tắc Bảng tính | Bảng thường — cùng chỗ với Bóc tách
     +'<span class="pgh-sp"></span>'
     +'<div class="tkt-row pgh-tot">'+stats+'</div>'+blkFold_('totals','dải tổng tiền')+'</div>';
 }
@@ -47,8 +48,9 @@ function pgToolsHtml_(k){
 /* Khối 2 của Chi phí / Dự án: hàng công cụ · hàng lọc-tìm riêng của tab (loc) · hàng chọn cột.
    Cả khối gập lại bằng nút tròn ở góc phải, y như bên Bóc tách.                        */
 function pgColFrame_(on,total,chips,fnAll,csKey,btnId,loc){
+  var bt=(csKey==='cp'||csKey==='da') && btSan_() && btOn_(csKey);   // dạng bảng tính: 2 nút công cụ nằm trên thanh bảng tính (như Bóc tách)
   return '<div class="pg-cols pg-tools">'
-    +'<div class="tk-frame-hr tk-toolhr"><span class="tk-frame-h">Công cụ bảng</span>'+pgToolsHtml_(csKey||'pg')+blkFold_('tools','khối công cụ')+'</div>'
+    +(bt?'':'<div class="tk-frame-hr tk-toolhr"><span class="tk-frame-h">Công cụ bảng</span>'+pgToolsHtml_(csKey||'pg')+blkFold_('tools','khối công cụ')+'</div>')
     +(loc||'')
     +'<div class="tk-frame-hr">'
       +'<button class="tk-frame-h fold-h" onclick="foldToggle_(\'cols\')" title="Ẩn / hiện các chip cột">Cột hiển thị <b>'+on+'/'+total+'</b><i class="fold-ic"></i></button>'
@@ -97,10 +99,8 @@ function renderChiphi(){
      +'<span class="tkt-i">'+pgVat_()+'<b>'+money(vat)+' đ</b></span>'
      +pgStat_('Tổng',money(ban+vat)+' đ','grand'));
 
-  box.innerHTML='<div class="sechd"><h2>Chi phí</h2><span class="count">'+scope.length+'</span>'+(btSan_()?btCheDoNut_():'')
-      +'<span class="sp" style="flex:1"></span>'
-      +'<span class="cp-hint">'+icon('sliders',13)+' Bấm thẳng vào ô để sửa giá NCC · CK · %LN · giá bán — số tính lại ngay</span></div>'
-    +stat+hmPTNote_()+hmLacNote_(scope.length)
+  // Không còn dòng tiêu đề trang riêng: như Bóc tách, thanh "Hạng mục đã bóc" (pgHeadRow_) là đầu trang
+  box.innerHTML=stat+hmPTNote_()+hmLacNote_(scope.length)
     +cpOverview_(scope)
     +cpToolbar_(rows, scope)
     +(cpBt?'<div id="cpSheetSlot"></div>':pgTblHost_('cp', cpTableHtml_(keys,rows)));
