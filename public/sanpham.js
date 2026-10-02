@@ -150,7 +150,10 @@ function spBulkToProject(){
 }
 async function spAddToProject(i){ var p=(S._spList||[])[i]; if(!p) return; if(!S.cur){ toast('Chưa chọn dự án'); return; }
   await addProdObj(p); renderSpProjPanel_(); setTimeout(renderSpProjPanel_,700); }
-async function spRemoveFromProject(id){ await delLine(id); renderSpProjPanel_(); }
+async function spRemoveFromProject(id){
+  var l=(S.lines||[]).filter(function(x){ return x.lineId===id; })[0];
+  if(!await xacNhan_('Bỏ "'+((l&&l.ten)||'sản phẩm này')+'" khỏi dự án '+((S.cur&&S.cur.ten)||'')+'? Dòng bóc tách của nó sẽ bị xoá.')) return;
+  await delLine(id); renderSpProjPanel_(); }
 
 // cột DB -> thuộc tính đã format sẵn trong object sản phẩm (hiển thị cho đẹp: "12W", "Ø100mm"…)
 var COL2PROP={ thuong_hieu:'thuongHieu', nha_cung_cap:'ncc', hang_muc:'hangMuc', dong_sp:'dongSanPham',

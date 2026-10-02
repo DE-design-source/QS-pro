@@ -560,7 +560,24 @@ async function pendingCommit_(btn){
   try{ await pendingCommitRun_(ds, btn); }
   finally{ S._committing=false; impRecentRefresh_(); }
 }
+/* Máy chủ (saveDbProduct / importCommit) gặp SP TRÙNG mã + thông số biến thể (K · W · góc · màu · kích thước)
+   thì CẬP NHẬT đè lên SP cũ, không báo gì -> hỏi lại trước khi lưu. */
+var IMP_TRUC=[['MÀU SẮC','mauSac','mau_sac'],['NHIỆT ĐỘ MÀU (K)','nhietDo','nhiet_do_mau_k'],['CÔNG SUẤT (W)','congSuat','cong_suat_w'],
+  ['GÓC CHIẾU (°)','gocChieu','goc_chieu_deg'],['KÍCH THƯỚC','kichThuoc','kich_thuoc']];
+function impGon_(v){ return String(v==null?'':v).toLowerCase().replace(/[^0-9a-z.\u00c0-\u1ef9]/g,''); }
+function impTrungSP_(it){
+  var o=it.data||it.prod||{}, ma=String(o['MÃ SẢN PHẨM']||o.ma||it.ma||'').trim(); if(!ma) return null;
+  return (S.products||[]).filter(function(p){
+    if(String(p.ma||'').trim().toLowerCase()!==ma.toLowerCase() || p.spChung) return false;
+    return IMP_TRUC.every(function(t){ var v=o[t[0]]; if(v==null) v=o[t[1]]; if(v==null||v==='') return true;   // ô bỏ trống: không tính khác
+      return impGon_(v)===impGon_(p.raw&&p.raw[t[2]]); });
+  })[0]||null;
+}
 async function pendingCommitRun_(ds, btn){
+  var trung=ds.map(function(it){ var p=impTrungSP_(it); return p?(it.ten+' (mã '+p.ma+')'):null; }).filter(Boolean);
+  if(trung.length && !await xacNhan_({ title:trung.length+' sản phẩm đã có sẵn', ok:'Vẫn lưu (cập nhật đè)', huy:'Xem lại',
+      note:'Trùng mã + thông số với sản phẩm đã có trong Database — lưu sẽ CẬP NHẬT ĐÈ lên sản phẩm cũ. Muốn tạo sản phẩm riêng thì đổi mã, hoặc đổi màu / kích thước / công suất để thành biến thể.',
+      dong:trung })) return;
   if(btn){ btn.disabled=true; btn.textContent='⏳ Đang lưu 0/'+ds.length+'…'; }
   var ok=0, loi=0, conLai=[], ghiN=0, ghiDs=[];
   var form=ds.filter(function(x){ return x.kind==='form'; }), file=ds.filter(function(x){ return x.kind==='file'; });
