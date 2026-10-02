@@ -277,7 +277,8 @@ function bgCoverPage_(comp){
 }
 /* ---- Cột của bảng chi tiết trong tài liệu = đúng các chip cột đang bật ---- */
 function bgDocCols_(){
-  var vis=visCols().filter(function(c){ return c[0]!=='stt' && c[0]!=='taiLieu'; });
+  var nb=bgNoiBoXuat_();
+  var vis=visCols().filter(function(c){ return c[0]!=='stt' && c[0]!=='taiLieu' && (nb || !BG_NOI_BO[c[0]]); });
   if(!vis.length) vis=[['ten','Tên sản phẩm'],['soLuong','Số lượng'],['donGiaCK','Đơn giá'],['thanhTien','Thành tiền']];
   var ord=S.bgColOrder||[];
   if(ord.length){                                  // thứ tự do người dùng kéo trên trang xem trước
@@ -449,8 +450,9 @@ function bgPTCols_(secs){
   var cols=[['n','Nội dung công việc']];
   cols.push(['dvt','ĐVT']);
   cols.push(['kl','Khối lượng']);
-  if(on.giaNCC||on.giaDaiLy) cols.push(['dgnt','Đơn giá (nhà thầu)']);
-  if(on.giaNCC||on.giaDaiLy) cols.push(['ttnt','Thành tiền (nhà thầu)']);
+  var nt=bgNoiBoXuat_() && (on.giaNCC||on.giaDaiLy);      // giá nhà thầu là giá vốn: chỉ in khi bật "xuất kèm cột nội bộ"
+  if(nt) cols.push(['dgnt','Đơn giá (nhà thầu)']);
+  if(nt) cols.push(['ttnt','Thành tiền (nhà thầu)']);
   cols.push(['dg','Đơn giá']);
   cols.push(['tt','Thành tiền']);
   if(coGC) cols.push(['gc','Ghi chú']);
@@ -805,7 +807,7 @@ var BG_KEYMAP={donGia:'donGia', donGiaCK:'donGiaCK', thanhTien:'thanhTien', giaN
 function bgExportCols_(){
   var vis=visCols();
   var cols=vis.map(function(c){ return {key:c[0], label:String(c[1]).toUpperCase()}; })
-    .filter(function(c){ return c.key!=='stt' && c.key!=='taiLieu'; });
+    .filter(function(c){ return c.key!=='stt' && c.key!=='taiLieu' && (bgNoiBoXuat_() || !BG_NOI_BO[c.key]); });
   cols.unshift({key:'stt',label:'STT'});
   if(!cols.some(function(c){ return c.key==='ten'; })) cols.splice(1,0,{key:'ten',label:'TÊN SẢN PHẨM'});
   return cols;
@@ -933,9 +935,20 @@ function bgSelAll_(on){
 function bgPerSec_(){ return S.bgPerSec!==false; }
 function bgTogglePerSec_(){ S.bgPerSec=!bgPerSec_(); S.bgPage=1; drawBaogia(); }
 /* --- chọn cột sẽ xuất (dùng chung S.cols với bảng Bóc tách) --- */
+// Cột nội bộ (giá vốn, CK đại lý, lợi nhuận): bật ở Bóc tách là cũng vào PDF / Excel gửi khách -> cảnh báo + ẩn nhanh
+var BG_NOI_BO={giaNCC:'Giá bán lẻ NCC', chietKhau:'CK đại lý', giaDaiLy:'Giá đại lý', lnPct:'% lợi nhuận', markup:'Markup', margin:'Margin', lnVnd:'Lợi nhuận (VND)'};
+// Mặc định KHÔNG in cột nội bộ (báo giá là để gửi khách); bật "xuất kèm" khi cần bản nội bộ. Lưu theo dự án (bgCfg.noiBo).
+function bgNoiBoXuat_(){ return !!(((S._projData&&S._projData.bgCfg)||{}).noiBo); }
+function bgNoiBoBat_(){ return Object.keys(BG_NOI_BO).filter(function(k){ return S.cols&&S.cols[k]; }); }
+function bgNoiBoDat_(on){ bgOptSet_('noiBo', !!on); toast(on?'Báo giá sẽ in kèm cột nội bộ (giá vốn / lợi nhuận)':'Đã ẩn cột nội bộ khỏi báo giá'); }
+function bgNoiBoCanh_(){ var ks=bgNoiBoBat_(); if(!ks.length) return '';
+  if(!bgNoiBoXuat_()) return '<div class="bg-noibo an">'+icon('lock',15)+'<span>Cột nội bộ ('+ks.map(function(k){ return BG_NOI_BO[k]; }).join(', ')
+    +') đang bật ở Bóc tách nhưng <b>không in</b> trên báo giá gửi khách.</span><button class="btn ghost sm" onclick="bgNoiBoDat_(1)">Xuất kèm (bản nội bộ)</button></div>';
+  return '<div class="bg-noibo">'+icon('bell',15)+'<span><b>Đang xuất kèm cột nội bộ:</b> '+ks.map(function(k){ return BG_NOI_BO[k]; }).join(', ')
+    +' — chỉ dùng cho bản nội bộ, KHÔNG gửi khách.</span><button class="btn sm" onclick="bgNoiBoDat_(0)">Ẩn khỏi báo giá</button></div>'; }
 function bgCtlBar_(){
   var pages=bgBuildPages().length;
-  return '<div class="bgctl">'
+  return bgNoiBoCanh_()+'<div class="bgctl">'
     +'<span class="bgctl-mau" title="Trang 1 luôn là tờ bìa — chọn kiểu">'
       +'<label>Trang 1 · Tờ bìa</label>'
       +'<button class="'+(S.coverMau==='m1'?'on':'')+'" onclick="setCoverMau(\'m1\')">Mẫu 1</button>'
@@ -988,7 +1001,8 @@ var BG_DOT_MAC=[['Tạm ứng khi ký hợp đồng',50],['Khi giao hàng / thi 
 function bgOpt_(){
   var c=(S._projData&&S._projData.bgCfg)||{};
   return { ck:Math.max(0,Number(c.ck)||0), ckKieu:c.ckKieu==='vnd'?'vnd':'pct',
-    ngay:c.ngay||new Date().toLocaleDateString('sv-SE'),     // YYYY-MM-DD theo giờ máy (VN), không phải UTC hieuLuc:c.hieuLuc==null?30:Math.max(0,Number(c.hieuLuc)||0),
+    ngay:c.ngay||new Date().toLocaleDateString('sv-SE'),     // YYYY-MM-DD theo giờ máy (VN), không phải UTC
+    hieuLuc:c.hieuLuc==null?30:Math.max(0,Number(c.hieuLuc)||0),
     dot:Array.isArray(c.dot)?c.dot:BG_DOT_MAC, ghiChu:c.ghiChu==null?null:String(c.ghiChu), tay:c.tay||{} };
 }
 function bgOptSet_(k,v){ var c=Object.assign({},(S._projData&&S._projData.bgCfg)||{}); c[k]=v; projDataSet_('bgCfg',c); drawBaogia(); }

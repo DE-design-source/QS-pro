@@ -358,7 +358,9 @@ function showTab(tab){
   if(tab==='dash') renderDash();
   if(tab==='chiphi') renderChiphi();
   if(tab==='export') renderExport();
-  if(tab==='import') renderImport();
+  // Nhập dữ liệu: đã dựng rồi thì GIỮ form đang nhập dở (ảnh, combo…), chỉ làm mới danh sách bên dưới
+  if(tab==='import'){ var vImp=document.getElementById('v-import');
+    if(!vImp || !vImp.childElementCount) renderImport(); else if(typeof impRecentRefresh_==='function') impRecentRefresh_(); }
   if(tab==='sanpham') renderSanpham();
   if(tab==='muahang') renderMuahang();
   if(tab==='duan') renderDuAn();
@@ -1865,7 +1867,7 @@ function cellVal(l,key){
     case 'markup': { var dl=giaDaiLy_(l),dg=donGiaCK_(l); return dl>0?Math.round((dg-dl)/dl*100)+'%':'—'; }
     case 'margin': { var dl2=giaDaiLy_(l),dg2=donGiaCK_(l); return dg2>0?Math.round((dg2-dl2)/dg2*100)+'%':'—'; }
     case 'lnVnd': return money((donGiaCK_(l)-giaDaiLy_(l))*(Number(l.soLuong)||0));
-    case 'thanhTien': return money(l.thanhTienBan);
+    case 'thanhTien': return money(ttBan_(l));
     case 'trangThai': return esc(l.trangThai||'');
     case 'ghiChu': return esc(l.ghiChu||'');
   }
@@ -2351,11 +2353,15 @@ async function projDataFlush_(){
 async function projDataLoad_(maDA){
   projDataFlush_();   // đẩy nốt thay đổi đang chờ của dự án cũ (đã nhớ đúng dự án)
   S._projData={}; S._ptKey=null; S._areaDA=null; S._ptInfoU=null; S._dtIn=null;   // buộc nạp lại theo dự án mới
+  // Mua hàng: kế hoạch thanh toán / NCC đang chọn / đang mở là của DỰ ÁN CŨ -> bỏ. Không bỏ thì lần lưu kế tiếp
+  // ghi bản rỗng (dựng trước khi getProjData về) đè lên kế hoạch thật trên server.
+  S._mhPayDA=null; S._mhPay=null; S._mhSel={}; S._mhPayOpen={};
   if(!maDA) return;
   try{
     var d=await api('getProjData', maDA)||{};
     if(!S.cur||S.cur.maDA!==maDA) return;             // đã đổi sang dự án khác trong lúc chờ
     S._projData=d; S._ptKey=null; S._areaDA=null; S._ptInfoU=null;   // bỏ bản đã dựng tạm trong lúc chờ (kể cả thông tin công tác dùng chung)
+    S._mhPayDA=null; S._mhPay=null;                                       // kế hoạch thanh toán: đọc lại từ dữ liệu server vừa về
     // Lần đầu chuyển từ localStorage lên server: máy nào còn dữ liệu cũ thì đẩy lên.
     // Đẩy CẢ 4 khoá (trước chỉ đẩy bảng phần thô) -> diện tích, VAT phần thô và thông tin
     // công tác tự nhập cũng hết cảnh chỉ có trên một máy.

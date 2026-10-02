@@ -14,7 +14,7 @@ function renderSanpham(){
       +'<div class="sp-main">'
         +'<div class="dbcard sp-card">'
           +'<div class="sp-toolbar">'
-            +'<div class="sp-search-wrap">'+searchIc+'<input id="spSearch" placeholder="Tìm theo tên, mã hoặc thương hiệu…" oninput="spFilter()"></div>'
+            +'<div class="sp-search-wrap">'+searchIc+'<input id="spSearch" placeholder="Tìm theo tên, mã hoặc thương hiệu…" oninput="S._spPage=1;spFilter()"></div>'
             +'<span class="sp-flex"></span>'
             +'<button class="btn ghost sm sp-undobtn" id="spUndoBtn" onclick="spUndo_()" disabled title="Chưa có thao tác nào để hoàn tác">'
               +'<svg class="ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-4"/></svg> Hoàn tác</button>'
@@ -1003,14 +1003,14 @@ function spCatPickNode(code){
 }
 function spClearFilters(){
   var node=(S._spFilters||{}).node;
-  S._spFilters={watt:{},kelvin:{},angle:{},cri:{}}; if(node) S._spFilters.node=node;
+  S._spFilters={watt:{},kelvin:{},angle:{},cri:{},brands:{},nccs:{}}; if(node) S._spFilters.node=node; S._spPage=1;
   renderSpChips_(); spFilter(); if(document.getElementById('spFltPop')) spBoLocPop_();
 }
 // đếm số điều kiện "bộ lọc nâng cao" đang bật (không tính chip Hạng mục hiển thị sẵn)
 function actKeys_(o){ return Object.keys(o||{}).filter(function(k){ return o[k]; }); }
 function spFltCount_(){ if(spPTMode_()) return ptFltCount_();
   var f=S._spFilters||{}; var n=0; if(f.min)n++; if(f.max)n++;
-  ['watt','kelvin','angle','cri'].forEach(function(g){ n+=actKeys_(f[g]).length; }); return n; }
+  ['watt','kelvin','angle','cri','brands','nccs'].forEach(function(g){ n+=actKeys_(f[g]).length; }); return n; }   // tính cả lọc thương hiệu / NCC
 function spAnyFilter_(){ var f=S._spFilters||{}; return !!(f.brand||f.hangMuc||f.dong||spFltCount_()); }
 // ==== Popover "Bộ lọc" cho Danh sách SP (công suất / nhiệt độ / góc / CRI / thương hiệu / giá) ====
 // phạm vi bộ lọc = sản phẩm thuộc hạng mục (node) đang chọn — để option lọc tương ứng hạng mục
@@ -1540,6 +1540,10 @@ function spFilter(){
 
   var full=spDataList_();
   S._spFull=full; S._spSel=S._spSel||{};
+  // Chọn dòng rồi lọc/tìm làm dòng đó khuất: bỏ chọn luôn -> thanh hàng loạt, "Tải Excel (n)" và thao tác
+  // cùng 1 tập (trước: đếm cả dòng khuất nhưng chỉ thao tác dòng đang thấy)
+  var conThay={}; (full||[]).map(spKeyOf_).forEach(function(k){ conThay[k]=1; });
+  Object.keys(S._spSel).forEach(function(k){ if(!conThay[k]) delete S._spSel[k]; });
   // Gom biến thể: đếm trang theo NHÓM (1 nhóm = 1 dòng), bung ra mới thêm dòng con
   var groups = PT ? (full||[]).map(function(x){ return {key:'', head:x, kids:[]}; }) : spVarGroups2_(full);
   var per=spPerGet_(), pages=per?Math.max(1,Math.ceil(groups.length/per)):1;

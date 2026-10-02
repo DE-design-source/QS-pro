@@ -604,6 +604,7 @@ async function pendingCommitRun_(ds, btn){
   }
   impRecentRefresh_();
   try{ renderFilters(); renderCatalog(); }catch(e){}     // làm mới panel Bóc tách (nếu đang dựng)
+  if(ghiN && typeof veLaiSauSua_==='function') veLaiSauSua_();   // vừa ghi danh vào dự án đang mở -> Bóc tách / tổng tiền vẽ lại
   var msg='Đã lưu '+ok+' sản phẩm vào Database'+(ghiN?(' · ghi danh '+ghiN+' vào dự án'):'');
   if(loi) await baoLoi_({ title:loi+' sản phẩm chưa lưu được', ok:'Đã hiểu',
     note:msg+'.\nCác dòng dưới đây vẫn nằm trong danh sách chờ (nhãn "Lỗi") — sửa rồi bấm Thêm sản phẩm lại.',

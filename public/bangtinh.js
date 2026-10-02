@@ -202,7 +202,7 @@ function tkSheetO_(l,k,stt){
     case 'donGia': return btMoney_(l.donGiaBan);
     case 'giaDaiLy': return btMoney_(giaDaiLy_(l));
     case 'donGiaCK': return btMoney_(donGiaCK_(l));
-    case 'thanhTien': return btMoney_(l.thanhTienBan);
+    case 'thanhTien': return btMoney_(ttBan_(l));
     case 'lnVnd': return btMoney_((donGiaCK_(l)-giaDaiLy_(l))*(Number(l.soLuong)||0));
     case 'chietKhau': case 'lnPct': case 'ckKhach': return (Number(l[k])||0)+'%';
     case 'markup': { var dl=giaDaiLy_(l),dg=donGiaCK_(l); return dl>0?Math.round((dg-dl)/dl*100)+'%':''; }
@@ -217,7 +217,7 @@ function tkSheetGrid_(cols, order, groups){
     var list=groups[g]||[], r=cols.map(function(){ return ''; });
     var dong=S.collapsed&&S.collapsed[g];
     r[0]=(dong?'▸ ':'▾ ')+(PT_ROMAN[gi]||String(gi+1)); if(cols.length>1) r[1]=g+(dong?'  ·  '+list.length+' dòng (đang thu gọn)':'');
-    if(iTT>1) r[iTT]=btMoney_(list.reduce(function(s,l){ return s+(Number(l.thanhTienBan)||0); },0));
+    if(iTT>1) r[iTT]=btMoney_(list.reduce(function(s,l){ return s+ttBan_(l); },0));
     rows.push(r); meta.push({k:'sec', g:g});
     if(dong) return;
     sortLines_(list).forEach(function(l,ri){

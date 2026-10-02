@@ -145,7 +145,11 @@ function renderDash(){
       +'<div class="dh-grid"><div class="dh-main">'+dashProjSection_()+'</div><div class="dh-side">'+dashQuick_()+'</div></div>';
     return;
   }
-  var von=0,ban=0,kl=0,groups={}; S.lines.forEach(function(l){ von+=ttVon_(l);ban+=ttBan_(l);kl+=Number(l.soLuong)||0; var k=l.nhom||'Khác'; (groups[k]=groups[k]||{ban:0}).ban+=ttBan_(l); });
+  // Số TOÀN DỰ ÁN (không theo bộ lọc hạng mục của các tab khác) — nhãn ghi rõ để khỏi lệch với Chi phí / Dự án.
+  // Nhóm biểu đồ gom về cấp 3 (VD 3.2.6.1 + 3.2.6.2 -> 3.2.6) cho khỏi vụn thành nhiều cột lẻ.
+  var von=0,ban=0,groups={}; S.lines.forEach(function(l){ von+=ttVon_(l);ban+=ttBan_(l);
+    var k=String(l.nhom||'').split('.').slice(0,3).join('.')||'Khác'; (groups[k]=groups[k]||{ban:0}).ban+=ttBan_(l); });
+  var vatPct=Number(S.cur.vat)||0, vat=Math.round(ban*vatPct/100);
   var lnT=ban-von, bien=ban>0?(lnT/ban*100):0, gr=currentGroup();
   // ---- HERO ----
   var hero='<div class="dh-hero"><div class="dh-hero-l">'
@@ -160,10 +164,10 @@ function renderDash(){
     +'</div></div>';
   // ---- KPI ----
   var kpis='<div class="dh-kpis">'
-    +dhKpi_('list','Số hạng mục',S.lines.length,'','blue')
-    +dhKpi_('layers','Tổng khối lượng',kl,'','slate')
-    +dhKpi_('lock','Giá trị vốn',money(von)+' đ','','slate')
-    +dhKpi_('money','Tổng giá bán',money(ban)+' đ','','blue')
+    +dhKpi_('list','Dòng sản phẩm',S.lines.length,'toàn dự án','blue')
+    +dhKpi_('lock','Giá vốn',money(von)+' đ','toàn dự án','slate')
+    +dhKpi_('money','Giá bán',money(ban)+' đ','chưa VAT','blue')
+    +dhKpi_('doc','Tổng thanh toán',money(ban+vat)+' đ','gồm VAT '+vatPct+'%','slate')
     +dhKpi_('gauge','Lợi nhuận',money(lnT)+' đ',bien.toFixed(1)+'% biên',lnT<0?'red':'green')+'</div>';
   // ---- Side: chart nhóm + thao tác nhanh ----
   var byG=Object.keys(groups).map(function(k){return {k:k,ban:groups[k].ban};}).sort(function(a,b){return b.ban-a.ban;});

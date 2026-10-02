@@ -145,7 +145,7 @@ function cpSortVal_(l,k){
     case 'markup': return markup_(l);
     case 'margin': return margin_(l);
     case 'lnVnd': return lnVnd_(l);
-    case 'thanhTien': return Number(l.thanhTienBan)||0;
+    case 'thanhTien': return ttBan_(l);
     default: return String(l[k]||'');
   }
 }
@@ -389,7 +389,8 @@ function cpWarn_(l){
   if(!(Number(l.donGiaBan)>0)) return 'chuaGia';
   if(!(Number(l.donGiaVon)>0)) return 'chuaVon';
   if(lnVnd_(l)<0) return 'lo';
-  return margin_(l)<cpMinBien_() ? 'thap' : '';
+  var d=donGiaCK_(l), bien=d>0?(d-giaDaiLy_(l))/d*100:0;    // so số CHÍNH XÁC (margin_ đã làm tròn: 14,6% thành 15% -> không bị báo)
+  return bien<cpMinBien_() ? 'thap' : '';
 }
 function cpKeyOf_(l,by){ var v=String((by==='tang'?l.tang:(by==='ncc'?l.ncc:l.nhom))||'').trim(); return v||'__k'; }
 function cpKeyName_(k,by){

@@ -524,7 +524,7 @@ function renderTable(){
     var roman=['I','II','III','IV','V','VI','VII','VIII','IX','X'][gi]||(gi+1);
     var col=S.collapsed[g]?'▸':'▾';
     var gval=(g==='CHƯA PHÂN TẦNG'?'':g), isSel=((S.selFloor||'')===gval);
-    var gsum=(groups[g]||[]).reduce(function(s,l){ return s+(Number(l.thanhTienBan)||0); },0);
+    var gsum=(groups[g]||[]).reduce(function(s,l){ return s+ttBan_(l); },0);   // cùng công thức Chi phí / Dự án / Báo giá
     body+='<tr class="grp'+(isSel?' selFloor':'')+'" draggable="true" data-g="'+esc(g)+'"><td colspan="'+cols.length+'" data-f="'+esc(g)+'">'
       +'<span class="gcol" onclick="event.stopPropagation();toggleFloor(this.closest(\'td\').dataset.f)">'+col+'</span> '
       +'<span class="gname" onclick="selectFloor(this.closest(\'td\').dataset.f)" ondblclick="renameFloor(this.closest(\'td\').dataset.f)" title="Bấm để chọn tầng · bấm đúp đổi tên" style="cursor:pointer">'+roman+'. '+esc(g)+'</span>'
@@ -580,7 +580,7 @@ function renderTable(){
 }
 // ----- Tổng tiền (chưa VAT / VAT / tổng thành tiền) -----
 function tkTongTien_(lines){
-  var sub=lines.reduce(function(s,l){ return s+(Number(l.thanhTienBan)||0); },0);
+  var sub=lines.reduce(function(s,l){ return s+ttBan_(l); },0);
   var vatPct=Number(S.cur&&S.cur.vat)||0;
   var vat=Math.round(sub*vatPct/100);
   var te=document.getElementById('tkTotals');
@@ -993,7 +993,7 @@ function tkBangDong_(){ return bocVisible_() || viewOn_('v-chiphi') || viewOn_('
 function tkSelBar_(){
   var w=tkBulkWrap_(), n=tkSelIds_().length;
   if(!n || !tkBangDong_()){ w.innerHTML=''; tkPopClose_(); return; }
-  var tien=tkSelLines_().reduce(function(s,l){ return s+(Number(l.thanhTienBan)||0); },0);
+  var tien=tkSelLines_().reduce(function(s,l){ return s+ttBan_(l); },0);
   w.innerHTML='<div class="bbar" id="tkBulkBar">'
     +'<div class="bb-count"><b>'+n+'</b><span>dòng đã chọn · '+money(tien)+' đ</span>'
       +'<button class="bb-x" title="Bỏ chọn (Esc)" onclick="tkClearSel()">✕</button></div>'

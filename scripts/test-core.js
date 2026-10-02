@@ -36,6 +36,13 @@ assert(/tkSheetVe_\(document\.getElementById\('tkSheet'\), cols, order, groups\)
   const mau = new Function(sp.match(/^var SP_MAU_CSS=[^]*?;\n/m)[0] + sp.match(/^function spMauCss_\([^]*?\n}\n/m)[0] + 'return spMauCss_;')();
   [['Trắng sứ', '#ffffff'], ['Xanh dương', '#1a73e8'], ['Xanh', '#4285f4'], ['Đỏ đô', '#d93025'], ['Vàng đồng', '#d4af37'],
    ['Màu be', '#e8d5b0'], ['Vân gỗ', '#a1887f'], ['Mã #12ab9f', '#12ab9f'], ['Ánh kim lạ', '']].forEach(([t, c]) => assert.strictEqual(mau(t), c, 'spMauCss_(' + t + ')')); }
+// Mua hàng: tiền mỗi đợt = % × tổng đơn hiện tại; toàn % đủ 100 thì cộng lại đúng tổng; đợt gõ tay giữ nguyên
+{ const mh = fs.readFileSync(path.join(__dirname, '..', 'public', 'muahang.js'), 'utf8');
+  const tinh = new Function(mh.match(/^function mhPayTinh_\([^]*?\n}\n/m)[0] + 'return mhPayTinh_;')();
+  const a = tinh([{ pct: 33.3, tien: 0 }, { pct: 33.3, tien: 0 }, { pct: 33.4, tien: 0 }], 1000001);
+  assert.strictEqual(a.reduce((s, d) => s + d.tien, 0), 1000001); assert.strictEqual(a[0].tien, 333000);
+  assert.strictEqual(tinh([{ pct: 100, tien: 0 }], 5000000)[0].tien, 5000000);               // đợt mặc định không còn "0 đ"
+  assert.strictEqual(tinh([{ pct: 50, tien: 777, tay: 1 }, { pct: 50, tien: 0 }], 2000)[0].tien, 777); }
 // ô % trống không được thành 0
 assert.strictEqual(C.pctIn_(''), null); assert.strictEqual(C.pctIn_('  '), null);
 assert.strictEqual(C.pctIn_('12,5'), 12.5); assert.strictEqual(C.pctIn_('0'), 0); assert.strictEqual(C.pctIn_('x'), null);
