@@ -814,7 +814,7 @@ async function tkMoveLine_(dragId,floor,targetId,before){
   var changed=[];
   S.lines.forEach(function(l,i){ if(l.stt!==i+1){ l.stt=i+1; if(changed.indexOf(l)<0) changed.push(l); } });
   if(dragged.tang!==oldTang && changed.indexOf(dragged)<0) changed.push(dragged);
-  renderFloors(); renderTable();
+  renderFloors(); veLaiSauSua_();          // vẽ lại cả tab đang mở (kéo dòng ở Dự án), không chỉ Bóc tách
   try{ await Promise.all(changed.map(function(l){ return api('updateLine', l.lineId, {stt:l.stt, tang:l.tang}); })); }
   catch(e){ toast('Lỗi lưu thứ tự: '+(e.message||e)); }
 }

@@ -60,6 +60,11 @@ function pgColFrame_(on,total,chips,fnAll,csKey,btnId,loc){
 }
 // Bảng Chi phí dùng ĐÚNG key cột + cellInput của Bóc tách -> giao diện/hành vi ô y hệt
 var CP_KEYS=['ten','dvt','soLuong','giaNCC','chietKhau','giaDaiLy','lnPct','donGia','ckKhach','donGiaCK','markup','margin','lnVnd','thanhTien'];
+// thứ tự cột Chi phí (kéo đổi chỗ ở bảng tính) — nhớ theo máy; cột mới thêm vào CP_KEYS tự nối cuối
+function cpOrder_(){
+  if(!S._cpOrder){ try{ S._cpOrder=JSON.parse(localStorage.getItem('qs_cporder')||'null'); }catch(e){} }
+  var o=(Array.isArray(S._cpOrder)?S._cpOrder:[]).filter(function(k){ return CP_KEYS.indexOf(k)>=0; });
+  CP_KEYS.forEach(function(k){ if(o.indexOf(k)<0) o.push(k); }); return S._cpOrder=o; }
 function cpLabel_(k){ var c=COLS.filter(function(x){return x[0]===k;})[0]; return c?c[1]:k; }
 // Ô tab Chi phí: giống cellInput của Bóc tách, RIÊNG cột Tên bỏ nút ⌕ chọn/tạo SP
 /* Ô chọn dòng ở cột STT của bảng Chi phí / Dự án — dùng CHUNG bộ chọn với Bóc tách
@@ -81,7 +86,7 @@ function renderChiphi(){
     +'<span>Vào <b>Bảng điều khiển</b> chọn hoặc tạo một dự án để xem bảng chi phí.</span></div>'; return; }
   if(!S.cpCols) S.cpCols={ten:1,dvt:1,soLuong:1,giaNCC:1,chietKhau:1,giaDaiLy:1,lnPct:1,donGia:1,thanhTien:1,lnVnd:1};
   if(S._cpOvHide===undefined){ try{ S._cpOvHide=localStorage.getItem('qs_cpOvHide')==='1'; }catch(e){ S._cpOvHide=false; } }
-  var keys=CP_KEYS.filter(function(k){ return S.cpCols[k]; });
+  var keys=cpOrder_().filter(function(k){ return S.cpCols[k]; });
   var rows=cpRows_();
   var cpBt=btSan_() && btOn_('cp') && rows.length>0;      // chế độ bảng tính (bangtinh.js); không có dòng -> bảng cũ (có lời nhắc)
 
@@ -507,7 +512,7 @@ async function cpSoSanh_(){
 // Xuất đúng bảng đang xem: cột đang bật, bộ lọc/tìm kiếm, cách gom
 async function cpXuatExcel_(btn){
   if(!S.cur) return;
-  var keys=CP_KEYS.filter(function(k){ return S.cpCols[k]; }), rows=cpRows_(), by=cpBy_();
+  var keys=cpOrder_().filter(function(k){ return S.cpCols[k]; }), rows=cpRows_(), by=cpBy_();
   if(!rows.length){ toast('Không có dòng nào để xuất'); return; }
   var cols=[{label:'STT'}].concat(keys.map(function(k){ return {label:cpLabel_(k), num:cpAlign_(k)==='num'||cpAlign_(k)==='ct'&&k!=='dvt'}; }));
   function val(l,k){ if(k==='ten'||k==='dvt') return String(l[k]||''); var v=cellSortVal_(l,k); return typeof v==='number'?v:(Number(v)||0); }
