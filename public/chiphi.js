@@ -90,14 +90,13 @@ function renderChiphi(){
   var hmNow=hmGet_();
   var scope=hmNow?(S.lines||[]).filter(function(l){ var c=String(l.nhom||'');
       return c===hmNow || c.indexOf(hmNow+'.')===0; }):(S.lines||[]);
-  var von=0,ban=0; scope.forEach(function(l){ von+=ttVon_(l); ban+=ttBan_(l); });
-  var lnT=ban-von, bien=ban>0?(lnT/ban*100):0, lnCls=lnT<0?'red':(lnT>0?'green':'');
-  var vatPct=Number(S.cur.vat)||0, vat=Math.round(ban*vatPct/100);
+  var T=cpTong_(scope,hmNow), lnCls=T.ln<0?'red':(T.ln>0?'green':'');
   var stat=pgHeadRow_('cpHmBtn', scope.length,
-      pgStat_('Vốn',money(von)+' đ')+pgStat_('Giá bán',money(ban)+' đ')
-     +pgStat_('Lợi nhuận',money(lnT)+' đ','ln '+lnCls)+pgStat_('Biên',bien.toFixed(1)+'%','ln '+lnCls)
-     +'<span class="tkt-i">'+pgVat_()+'<b>'+money(vat)+' đ</b></span>'
-     +pgStat_('Tổng',money(ban+vat)+' đ','grand'));
+      pgStat_('Vốn',money(T.von)+' đ')+pgStat_('Giá bán',money(T.ban)+' đ')
+     +(T.ck?pgStat_('CK báo giá','−'+money(T.ck)+' đ'):'')
+     +pgStat_('Lợi nhuận',money(T.ln)+' đ','ln '+lnCls)+pgStat_('Biên',T.bien.toFixed(1)+'%','ln '+lnCls)
+     +'<span class="tkt-i">'+pgVat_()+'<b>'+money(T.vat)+' đ</b></span>'
+     +pgStat_('Tổng',money(T.total)+' đ','grand'));
 
   // Không còn dòng tiêu đề trang riêng: như Bóc tách, thanh "Hạng mục đã bóc" (pgHeadRow_) là đầu trang
   box.innerHTML=stat+hmPTNote_()+hmLacNote_(scope.length)
@@ -224,7 +223,7 @@ function hmLacNote_(soHien){
 function hmPTNote_(){
   if(hmGet_()!=='3.1') return '';
   return '<div class="hm-note">'+icon('layers',15)
-    +'<span><b>Hạng mục Phần thô</b> có bảng ước tính riêng — số liệu không nằm trong danh sách dòng của trang này. '
+    +'<span><b>Hạng mục Phần thô</b> có bảng ước tính riêng — số tổng phía trên đã gồm Phần thô, còn bảng chi tiết từng công tác nằm ở Bóc tách. '
     +'Xem và sửa ở tab <b>Bóc tách</b>, hoặc chọn hạng mục khác ở ô bên trên.</span>'
     +'<button class="btn ghost xs" onclick="showTab(\'boc\')">Mở Bóc tách</button></div>';
 }
@@ -403,17 +402,28 @@ function cpGroupsOf_(list,by){
   return ord.map(function(k){ return {k:k, ten:cpKeyName_(k,by), list:m[k], t:cpTotOf_(m[k])}; });
 }
 function cpOvToggle_(){ S._cpOvHide=!S._cpOvHide; try{ localStorage.setItem('qs_cpOvHide',S._cpOvHide?'1':''); }catch(e){} renderChiphi(); }
+/* Tổng của trang Chi phí = đúng số báo giá: dòng bóc tách trong phạm vi + PHẦN THÔ (khi xem tất cả / hạng mục 3.1)
+   − chiết khấu tổng của báo giá (chỉ khi xem tất cả hạng mục — CK áp cho cả báo giá) -> VAT -> tổng thanh toán. */
+function cpTong_(scope,hm){
+  var t=cpTotOf_(scope), ptVon=0, ptBan=0, ck=0;
+  if(!hm || hm==='3.1'){ try{ if(typeof ptEnsure==='function') ptEnsure();
+      if((S.phanTho||[]).length){ var c=ptComputeAll(); ptBan=c.grand||0; ptVon=c.contractor||0; } }catch(e){} }
+  var ban=t.ban+ptBan;
+  if(!hm && typeof bgTong_==='function') ck=bgTong_(ban).ck||0;
+  var net=ban-ck, von=t.von+ptVon, ln=net-von, vp=Number(S.cur&&S.cur.vat)||0, vat=Math.round(net*vp/100);
+  return {n:t.n, von:von, ban:ban, ck:ck, net:net, ln:ln, bien:net>0?ln/net*100:0, vatPct:vp, vat:vat, total:net+vat, ptBan:ptBan, ptVon:ptVon};
+}
 function cpOverview_(scope){
   if(S._cpOvHide) return '<div class="cpov-min"><button class="btn ghost sm" onclick="cpOvToggle_()">'+icon('gauge',14)+' Hiện tổng quan chi phí</button></div>';
-  var T=cpTotOf_(scope), vatPct=Number(S.cur.vat)||0, vat=Math.round(T.ban*vatPct/100), bien=T.ban>0?T.ln/T.ban*100:0, min=cpMinBien_();
+  var T=cpTong_(scope,hmGet_()), vatPct=T.vatPct, vat=T.vat, bien=T.bien, min=cpMinBien_();
   var w={lo:0,thap:0,chuaGia:0,chuaVon:0}; scope.forEach(function(l){ var k=cpWarn_(l); if(k) w[k]++; });
   function card(lb,val,sub,cls){ return '<div class="cpk'+(cls?' '+cls:'')+'"><span class="cpk-l">'+lb+'</span><b class="cpk-v">'+val+'</b>'+(sub?'<span class="cpk-s">'+sub+'</span>':'')+'</div>'; }
   var ws=[['lo','đang lỗ'],['thap','biên dưới '+min+'%'],['chuaGia','chưa có giá bán'],['chuaVon','chưa có giá vốn']].filter(function(x){ return w[x[0]]; });
-  var kpis=card('Giá vốn',money(T.von)+' đ',T.n+' dòng')
-    +card('Giá bán',money(T.ban)+' đ','chưa gồm VAT')
+  var kpis=card('Giá vốn',money(T.von)+' đ',T.n+' dòng'+(T.ptVon?' + Phần thô':''))
+    +card('Giá bán',money(T.net)+' đ',T.ck?('đã trừ CK báo giá '+money(T.ck)+' đ · chưa VAT'):'chưa gồm VAT')
     +card('Lợi nhuận',money(T.ln)+' đ','biên '+bien.toFixed(1)+'% trên giá bán',T.ln<0?'neg':(bien<min?'low':'pos'))
     +card('VAT '+vatPct+'%',money(vat)+' đ')
-    +card('Tổng thanh toán',money(T.ban+vat)+' đ','','grand')
+    +card('Tổng thanh toán',money(T.total)+' đ','','grand')
     +'<div class="cpk cpk-warn'+(ws.length?'':' ok')+'"><span class="cpk-l">Cảnh báo</span>'
       +(ws.length ? ws.map(function(x){ return '<button class="cpk-w" onclick="cpSetFlt(\''+x[0]+'\')" title="Lọc các dòng này"><b>'+w[x[0]]+'</b> '+x[1]+'</button>'; }).join('')
                   : '<b class="cpk-v sm">Không có dòng nào cần xem lại</b>')
