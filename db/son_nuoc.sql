@@ -1,7 +1,7 @@
 -- ════════════════════════════════════════════════════════════════
 --  SƠN NƯỚC — THÔNG SỐ SẢN PHẨM (đề mục 3.2.2)
 --  Hạng mục: Sơn nội thất · Sơn ngoại thất · Sơn lót · Sơn chống thấm ·
---            Bả matit · Sơn hiệu ứng · Sơn sàn epoxy · Dung môi & phụ gia
+--            Sơn dầu · Bả matit · Sơn hiệu ứng · Sơn sàn epoxy · Dung môi & phụ gia
 --  Danh sách thông số của từng hạng mục: public/son-spec.js
 --  Chỉ THÊM cột text -> dữ liệu cũ không đổi. Chạy lại nhiều lần vẫn an toàn.
 --  (Các cột mau_sac · kich_thuoc · be_mat · luu_y · tinh_nang dùng chung với
