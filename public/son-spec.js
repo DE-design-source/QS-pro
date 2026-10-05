@@ -40,7 +40,7 @@
   };
 
   var BE_MAT = ['Bề mặt bóng', 'Siêu bóng', 'Bóng mờ', 'Bán bóng', 'Mờ', 'Siêu mờ'];
-  var QUY_CACH = ['1L', '5L', '18L', '20L', '25kg', '40kg'];
+  var QUY_CACH = ['0.75L', '0.8L', '1L', '2.5L', '3L', '5L', '15L', '17L', '18L', '20L', '25kg', '40kg'];
   var SO_LOP = ['1', '2', '3'];
   var TRANG_THAI_VL = ['Chất lỏng', 'Bột', 'Sệt'];
   // Khối tính chất lý hoá dùng chung cho mọi hạng mục sơn (theo mục IX của bảng dữ liệu an toàn)
