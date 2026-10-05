@@ -81,6 +81,17 @@ function prodToObj(r) {
     if (bh) a.push('Bảo hành: ' + bh);
     moTa = a.join('\n'); if (s(r.ghi_chu)) moTa += (moTa ? '\n' : '') + s(r.ghi_chu);
     thongSoTK = tk.map(line).filter(Boolean).join('\n');
+    if (nganh === 'son') {
+      /* SƠN NƯỚC — theo file "sơn nước.xlsx" (khối HIỂN THỊ TRÊN TRANG DỰ TOÁN):
+           THÔNG TIN CHÍNH   = Bề mặt · Độ phủ · Thời gian khô · Số lớp · Dòng sản phẩm · Hạng mục (Sơn nước) · Kích thước
+           TÍNH NĂNG SẢN PHẨM = các dòng tính năng (cột 2 của bảng — không in khối lý hoá IX, khối đó chỉ ở trang thông tin SP) */
+      const b = chinh.filter(function (lb) { return lb !== 'KÍCH THƯỚC'; }).map(line).filter(Boolean);
+      b.push('Dòng sản phẩm: ' + (dong || SPEC.chuanHM(r.hang_muc) || s(r.hang_muc)));
+      b.push('Hạng mục: ' + SPEC.MUC);
+      if (chinh.indexOf('KÍCH THƯỚC') >= 0 && line('KÍCH THƯỚC')) b.push(line('KÍCH THƯỚC'));
+      moTa = b.join('\n');
+      thongSoTK = s(r.tinh_nang).split(/\r?\n/).map(function (x) { return x.replace(/^[•\-*\s]+/, '').trim(); }).filter(Boolean).join('\n');
+    }
   }
   return {
     ma: s(r.ma_sp), ten: s(r.ten_sp), dongSanPham: dong, hangMuc: s(r.hang_muc),

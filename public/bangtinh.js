@@ -424,7 +424,7 @@ function tkSheetVe_(host, cols, order, groups){
   tkSheetGop_(true);
   tkSheetFoot_(); tkSheetNhanTha_(); setTimeout(tkSheetCao_,0);
   var cb=document.getElementById('tkColBtn'); if(cb) cb.innerHTML=icon('sliders',15)+' Cột '+cols.length+'/'+COLS.length;
-  var sig=cols.map(function(c){ return c[0]; }).join()+'|'+g.meta.map(function(m){ return m.k==='sec'?('#'+m.g):m.id; }).join();
+  var sig=cols.map(function(c){ return c[0]+':'+c[1]; }).join()+'|'+g.meta.map(function(m){ return m.k==='sec'?('#'+m.g):m.id; }).join();
   if(btSong_('tk') && B.sig===sig && host.contains(B.ws.element)){ btGhiLuoi_('tk', g.rows); return; }
   B.sig=sig;
   // Cố định tới cột Tên sản phẩm nếu phần cố định không quá 40% bề ngang khung, không thì chỉ STT + cột kế

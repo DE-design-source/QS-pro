@@ -1090,7 +1090,8 @@ function pdSection_(title, rows){
 // Ảnh (gallery nhiều ảnh) + mã + tên + Key Product Info — bám Figma
 function pdMedia_(p){
   var cong=p.congSuat||parseWatt(p.ten), nd=p.nhietDo||parseKelvin(p.ten);
-  var keyItems=(nganhCuaSP_(p)==='vs')
+  var keyItems=(nganhCuaSP_(p)==='son') ? []        // sơn nước: khối Key Product Info do pdSpecsSon_ vẽ (dạng bảng nhãn / giá trị)
+    : (nganhCuaSP_(p)==='vs')
     ? vsChip_(p)
     : [
     ['power', cong + (p.dongRa?(' ('+p.dongRa+(/mA/i.test(p.dongRa)?'':'mA')+')'):'')],
@@ -1150,6 +1151,7 @@ function pdGoImg_(d){ pdSetImg_((S._pdIdx||0)+d); }
 // Các nhóm thông số — tiêu đề song ngữ + thứ tự theo Figma
 function pdSpecs_(p){
   if(nganhCuaSP_(p)==='vs') return pdSpecsVS_(p);
+  if(nganhCuaSP_(p)==='son') return pdSpecsSon_(p);
   return pdSection_('Design Specifications|Thông số thiết kế',[
       ['Chất liệu',p.chatLieu],['Chiều cao',p.chieuCao],['Đường kính',p.duongKinh],
       ['Góc nghiêng / góc chỉnh hướng',p.gocNghieng],['Dòng sản phẩm',p.dongSanPham||p.nhom]])
@@ -1185,6 +1187,15 @@ function pdSpecsVS_(p){
     +pdSection_('Design Specifications|Thông số thiết kế', rows(g.tk))
     +(String(p.tinhNang||'').trim()
       ? '<div class="pd-block"><div class="pd-sec">Features <i>(Tính năng)</i></div>'+pdBullets_(p.tinhNang)+'</div>' : '');
+}
+/* Sơn nước — trang thông tin SP theo file "sơn nước.xlsx": Key Product Info · Tính năng sản phẩm · khối IX (lý hoá) */
+function pdSpecsSon_(p){
+  var g=vsNhom_(p), rows=function(ds){ return ds.map(function(lb){ return [SON_SPEC.METRIC[lb][1], vsVal_(p,lb)]; }); };
+  return pdSection_('Key Product Info|Thông tin chính',
+      rows(g.chinh).concat([['Dòng sản phẩm',p.dongSanPham||SON_SPEC.chuanHM(p.hangMuc)||p.hangMuc],['Hạng mục',SON_SPEC.MUC]]))
+    +(String(p.tinhNang||'').trim()
+      ? '<div class="pd-block"><div class="pd-sec">Tính năng sản phẩm</div>'+pdBullets_(p.tinhNang)+'</div>' : '')
+    +pdSection_(SON_SPEC.TEN_TK, rows(g.tk));
 }
 // 4 thông số nổi bật của SP vệ sinh (chip Key Product Info / cột Thông số trong danh sách)
 function vsChip_(p){
@@ -1812,6 +1823,8 @@ function toggleCol(k){ S.cols[k]=!S.cols[k]; renderColChips(); renderTable(); if
 
 /* ===== TAKEOFF TABLE ===== */
 function visCols(){ var byK={}; COLS.forEach(function(c){ byK[c[0]]=c; });
+  // đề mục Sơn nước: cột thứ 2 là "Tính năng sản phẩm" (không phải thông số thiết kế) — theo file sơn nước.xlsx
+  if(vsFltNganh_()==='son') byK.kichThuoc=['kichThuoc','Tính năng sản phẩm',byK.kichThuoc[2]];
   return (S.colOrder||COLS.map(function(c){return c[0];})).map(function(k){ return byK[k]; }).filter(function(c){ return c && S.cols[c[0]]; }); }
 // giá đại lý = giá bán lẻ (giá vốn NCC) sau chiết khấu đại lý  |  đơn giá = giá bán sau chiết khấu khách
 /* Giá SP trong danh mục -> giá trên DÒNG bóc tách, đúng mô hình giá của dòng (recalcLine_ / calc_ ở server):

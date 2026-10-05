@@ -19,22 +19,22 @@
     'ĐỘ PHỦ':             ['do_phu', 'Độ phủ', 'text', 'VD: Lên đến 13 m²/lít/lớp'],
     'THỜI GIAN KHÔ':      ['thoi_gian_kho', 'Thời gian khô', 'text', 'VD: 30 phút (khô bề mặt)'],
     'SỐ LỚP':             ['so_lop', 'Số lớp', 'sel', 'VD: 2'],
-    'KÍCH THƯỚC':         ['kich_thuoc', 'Quy cách (dung tích)', 'sel', 'VD: 18L'],
+    'KÍCH THƯỚC':         ['kich_thuoc', 'Kích thước', 'sel', 'VD: 18L'],
     // ----- IX. Các tính chất vật lý và hoá học -----
     'TRẠNG THÁI VẬT LÝ':  ['trang_thai_vat_ly', 'Trạng thái vật lý', 'sel', 'VD: Chất lỏng'],
     'MÙI':                ['mui', 'Mùi', 'text', 'VD: Đặc tính'],
     'NGƯỠNG VỀ MÙI':      ['nguong_mui', 'Ngưỡng về mùi', 'text', 'VD: Không có sẵn'],
-    'ĐỘ PH':              ['do_ph', 'Độ pH', 'text', 'VD: 9'],
-    'ĐIỂM CHẢY / ĐÔNG':   ['diem_dong', 'Điểm chảy / điểm đông', 'text', 'VD: Không có sẵn'],
-    'ĐIỂM SÔI':           ['diem_soi', 'Điểm sôi / dải sôi', 'text', 'VD: 100°C (212°F)'],
+    'ĐỘ PH':              ['do_ph', 'pH', 'text', 'VD: 9'],
+    'ĐIỂM CHẢY / ĐÔNG':   ['diem_dong', 'Điểm chảy/điểm đông', 'text', 'VD: Không có sẵn'],
+    'ĐIỂM SÔI':           ['diem_soi', 'Điểm sôi, điểm sôi ban đầu, và dải sôi', 'text', 'VD: 100°C (212°F)'],
     'ĐIỂM BÙNG CHÁY':     ['diem_bung_chay', 'Điểm bùng cháy', 'text', 'VD: Cốc đậy kín: Không áp dụng'],
     'KHẢ NĂNG CHÁY':      ['kha_nang_chay', 'Khả năng cháy', 'text', 'VD: Không có sẵn'],
     'GIỚI HẠN NỔ':        ['gioi_han_no', 'Giới hạn nổ dưới và trên', 'text', 'VD: Thấp hơn 2.6%'],
-    'ÁP SUẤT HÓA HƠI':    ['ap_suat_hoa_hoi', 'Áp suất hoá hơi', 'text', 'VD: Không có sẵn'],
+    'ÁP SUẤT HÓA HƠI':    ['ap_suat_hoa_hoi', 'Áp suất hóa hơi', 'text', 'VD: Không có sẵn'],
     'MẬT ĐỘ HƠI':         ['mat_do_hoi', 'Mật độ hơi tương đối', 'text', 'VD: Không có sẵn'],
     'MẬT ĐỘ TƯƠNG ĐỐI':   ['mat_do_tuong_doi', 'Mật độ tương đối', 'text', 'VD: 1.195'],   // khác "mật độ HƠI tương đối" (bảng IX của SDS)
-    'ĐỘ HÒA TAN TRONG NƯỚC': ['do_hoa_tan', 'Độ hoà tan trong nước', 'text', 'VD: Không có sẵn'],
-    'TÍNH DẺO':           ['tinh_deo', 'Tính dẻo (độ nhớt)', 'text', 'VD: 2477 mm²/s ở nhiệt độ phòng'],
+    'ĐỘ HÒA TAN TRONG NƯỚC': ['do_hoa_tan', 'Độ hòa tan trong nước', 'text', 'VD: Không có sẵn'],
+    'TÍNH DẺO':           ['tinh_deo', 'Tính dẻo', 'text', 'VD: 2477 mm²/s ở nhiệt độ phòng'],
     'ĐẶC TÍNH HẠT':       ['dac_tinh_hat', 'Đặc tính hạt', 'text', 'VD: Không có sẵn'],
     'LƯU Ý':              ['luu_y', 'Lưu ý', 'text', 'VD: Không thi công khi bề mặt còn ẩm']
   };
@@ -44,10 +44,12 @@
   var SO_LOP = ['1', '2', '3'];
   var TRANG_THAI_VL = ['Chất lỏng', 'Bột', 'Sệt'];
   // Khối tính chất lý hoá dùng chung cho mọi hạng mục sơn (theo mục IX của bảng dữ liệu an toàn)
-  var LY_HOA = ['TRẠNG THÁI VẬT LÝ', 'MÙI', 'NGƯỠNG VỀ MÙI', 'ĐỘ PH', 'ĐIỂM CHẢY / ĐÔNG', 'ĐIỂM SÔI',
+  // Thứ tự + cách chia khối theo ĐÚNG file "sơn nước.xlsx" của Dezon: Màu sắc nằm ở khối IX (sau Trạng thái vật lý),
+  // khối Key Product Info chỉ có Bề mặt · Độ phủ · Thời gian khô · Số lớp · Kích thước.
+  var LY_HOA = ['TRẠNG THÁI VẬT LÝ', 'MÀU SẮC', 'MÙI', 'NGƯỠNG VỀ MÙI', 'ĐỘ PH', 'ĐIỂM CHẢY / ĐÔNG', 'ĐIỂM SÔI',
     'ĐIỂM BÙNG CHÁY', 'KHẢ NĂNG CHÁY', 'GIỚI HẠN NỔ', 'ÁP SUẤT HÓA HƠI', 'MẬT ĐỘ HƠI', 'MẬT ĐỘ TƯƠNG ĐỐI',
     'ĐỘ HÒA TAN TRONG NƯỚC', 'TÍNH DẺO', 'ĐẶC TÍNH HẠT', 'LƯU Ý'];
-  var CHINH = ['MÀU SẮC', 'BỀ MẶT HOÀN THIỆN', 'ĐỘ PHỦ', 'THỜI GIAN KHÔ', 'SỐ LỚP', 'KÍCH THƯỚC'];
+  var CHINH = ['BỀ MẶT HOÀN THIỆN', 'ĐỘ PHỦ', 'THỜI GIAN KHÔ', 'SỐ LỚP', 'KÍCH THƯỚC'];
   var OPT_CHUNG = { 'BỀ MẶT HOÀN THIỆN': BE_MAT, 'KÍCH THƯỚC': QUY_CACH, 'SỐ LỚP': SO_LOP,
     'TRẠNG THÁI VẬT LÝ': TRANG_THAI_VL };
 
@@ -133,6 +135,8 @@
   var api = { METRIC: METRIC, HM: HM, HANG_MUC: HANG_MUC, ALL: ALL, CHUNG: CHUNG,
     gom: gom, CHINH_ALL: CHINH_ALL, TK_ALL: TK_ALL,
     chuanHM: chuanHM, hmOf: hmOf, labelsOf: labelsOf, optsOf: optsOf, isReq: isReq,
+    MUC: 'Sơn nước',                              // giá trị dòng "Hạng mục" trên bảng dự toán / trang thông tin SP
+    TEN_TK: 'IX. Các tính chất vật lý và hóa học và đặc tính an toàn',
     VD: '[VÍ DỤ]' };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.SON_SPEC = api;

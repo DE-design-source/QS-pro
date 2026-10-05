@@ -99,7 +99,11 @@ const VS=require(R('public/vs-spec.js')), st=require(R('server/store_supa')), st
   db=[{id:7,ma_sp:'S',ten_sp:'Sơn',nganh:null,hang_muc:'Sơn ngoại thất',mau_sac:'Màu trắng',do_phu:'13 m²/lít',kich_thuoc:'18L',do_ph:'9'}];
   const pS=(await st.getProducts())[0];
   ok(pS.nganh==='son' && pS.muc==='Sơn nước','prodToObj sơn '+pS.nganh+'/'+pS.muc);
-  ok(/Độ phủ: 13/.test(pS.moTa) && /Độ pH: 9/.test(pS.kichThuoc),'ghép cột hiển thị sơn '+pS.moTa+' | '+pS.kichThuoc);
+  // theo file "sơn nước.xlsx": Thông tin chính = Bề mặt · Độ phủ · Thời gian khô · Số lớp · Dòng SP · Hạng mục · Kích thước; cột 2 = Tính năng
+  db[0].tinh_nang='• Chống nấm mốc\n• Chống bám bụi'; db[0].be_mat='Bề mặt bóng';
+  const pS2=(await st.getProducts())[0];
+  ok(pS2.moTa==='Bề mặt hoàn thiện: Bề mặt bóng\nĐộ phủ: 13 m²/lít\nDòng sản phẩm: Sơn ngoại thất\nHạng mục: Sơn nước\nKích thước: 18L','thông tin chính sơn '+JSON.stringify(pS2.moTa));
+  ok(pS2.kichThuoc==='Chống nấm mốc\nChống bám bụi' && !/pH/.test(pS2.moTa+pS2.kichThuoc),'cột 2 sơn = tính năng '+JSON.stringify(pS2.kichThuoc));
 
   console.log('\nKẾT QUẢ: '+pass+' đạt, '+fail+' lỗi'); if(fail) process.exitCode=1;
 })().catch(e=>{console.error('CRASH',e);process.exit(1);});
