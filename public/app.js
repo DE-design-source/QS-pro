@@ -1236,7 +1236,7 @@ function showDetailObj_(p, addJs){
       +'<button class="btn blue sm" onclick="'+addJs+'">'+icon('plus',14)+' Thêm vào bóc tách</button></div>';
   document.addEventListener('keydown',pdPanelKey_);
   el.scrollTop=0;
-  pdLoadCombo_(p, null, 'bóc tách', 'pdComboPanel');     // xem combo của chính SP này (nếu có)
+  pdLoadCombo_(p, null, 'bóc tách', 'pdComboPanel', 1);  // combo của chính SP này — thêm được cả bộ như thẻ chính
 }
 function showDetail(i){
   var p=(S._filtered||[])[i]; if(!p) return;
@@ -2623,7 +2623,7 @@ function catVarHtml_(list,G){
   var rows=G.kids.map(function(ix,k){
     var x=list[ix];
     var lbl=catVarLbl_(x) || x.ten || '';
-    var phu=[x.thuongHieu, (catVarLbl_(x)?'':ccSpecTxt_(x))].map(function(t){ return String(t||'').trim(); }).filter(Boolean).join(' · ');
+    var phu=[x.thuongHieu, (catVarLbl_(x)?'':ccSpecTxt_(x)), (x.comboN?('Combo '+x.comboN):'')].map(function(t){ return String(t||'').trim(); }).filter(Boolean).join(' · ');
     return ccRow_(head+'.'+(k+2), Object.assign({},x,{ten:lbl}), phu,
       'showDetail('+ix+')', 'addProduct('+ix+')',
       ' draggable="true" ondragstart="prodDragStart(event,'+ix+')" ondragend="prodDragEnd()"');

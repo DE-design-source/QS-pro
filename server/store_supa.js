@@ -717,13 +717,14 @@ async function stampCombo_(list) {
   try { rows = await supa.select('sp_combo', { select: 'sp_id,sp_kem_id', limit: LIM, noScope: true }); }
   catch (e) { return list; }                       // chưa có bảng sp_combo -> bỏ qua
   // đếm CẢ HAI CHIỀU: A kèm B thì cả A lẫn B đều được tính là có combo
+  // (đếm theo ĐỐI TÁC khác nhau: cặp A–B có thể lưu 2 dòng A->B và B->A khi mỗi bên đặt số lượng riêng)
   const cnt = {};
   rows.forEach(function (r) {
-    const a = String(r.sp_id), b = String(r.sp_kem_id);
-    cnt[a] = (cnt[a] || 0) + 1;
-    cnt[b] = (cnt[b] || 0) + 1;
+    const a = String(r.sp_id), b = String(r.sp_kem_id); if (a === b) return;
+    (cnt[a] = cnt[a] || {})[b] = 1;
+    (cnt[b] = cnt[b] || {})[a] = 1;
   });
-  list.forEach(function (p) { p.comboN = cnt[String(p.recordId)] || 0; });
+  list.forEach(function (p) { p.comboN = Object.keys(cnt[String(p.recordId)] || {}).length; });
   return list;
 }
 async function stampYeuThich_(list) {
@@ -852,8 +853,10 @@ async function setCombo(actor, key, items) {
     // 1) liên kết do bên kia đặt, nay bị bỏ -> xoá
     const boDi = bw.filter(function (r) { return !keep[String(r.sp_id)]; }).map(function (r) { return r.id; });
     if (boDi.length) await supa.remove('sp_combo', 'id=in.(' + boDi.join(',') + ')');
-    // 2) liên kết do bên kia đặt và vẫn giữ -> để nguyên, không ghi đè
-    const giuLai = {}; bw.forEach(function (r) { if (keep[String(r.sp_id)]) giuLai[String(r.sp_id)] = 1; });
+    // 2) liên kết do bên kia đặt và vẫn giữ -> để nguyên dòng của bên kia, không ghi đè.
+    //    Nhưng nếu ở phía này người dùng đặt SỐ LƯỢNG khác 1 thì ghi thêm dòng chiều xuôi của mình
+    //    (getCombo ưu tiên chiều xuôi) — trước đây số lượng này bị bỏ qua, lưu xong vẫn hiện ×1.
+    const giuLai = {}; bw.forEach(function (r) { const x = keep[String(r.sp_id)]; if (x && (n(x.soLuong) || 1) === 1) giuLai[String(r.sp_id)] = 1; });
     // 3) phần mình sở hữu -> ghi lại từ đầu
     // ghi bản mới TRƯỚC rồi mới xoá bản cũ: ghi lỗi thì combo cũ vẫn còn
     const cu = await supa.select('sp_combo', { select: 'id', filter: supa.eq('sp_id', cur.id), limit: 200 });

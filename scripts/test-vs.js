@@ -105,5 +105,26 @@ const VS=require(R('public/vs-spec.js')), st=require(R('server/store_supa')), st
   ok(pS2.moTa==='Bề mặt hoàn thiện: Bề mặt bóng\nĐộ phủ: 13 m²/lít\nDòng sản phẩm: Sơn ngoại thất\nHạng mục: Sơn nước\nKích thước: 18L','thông tin chính sơn '+JSON.stringify(pS2.moTa));
   ok(pS2.kichThuoc==='Chống nấm mốc\nChống bám bụi' && !/pH/.test(pS2.moTa+pS2.kichThuoc),'cột 2 sơn = tính năng '+JSON.stringify(pS2.kichThuoc));
 
+  console.log('8. Combo 2 chiều: số lượng đặt ở phía nào hiện đúng ở phía đó');
+  { let cb=[], cid=0; const sp=[{id:1,ma_sp:'A',ten_sp:'A'},{id:2,ma_sp:'B',ten_sp:'B'}];
+    const idOf=(f,c)=>{ const m=new RegExp('(?:^|&)'+c+'=eq\\.(\\d+)').exec(f||''); return m?+m[1]:null; };
+    const inOf=f=>{ const m=/id=in\.\(([^)]*)\)/.exec(f||''); return m?m[1].split(',').map(Number):null; };
+    const o0={select:fake.select,insert:fake.insert,remove:fake.remove};
+    fake.select=async(t,o)=>{ const f=(o&&o.filter)||'';
+      if(t==='db_san_pham'){ const i=idOf(f,'id'), l=inOf(f); return sp.filter(r=>i!=null?r.id===i:(l?l.includes(r.id):true)); }
+      if(t==='sp_combo'){ const a=idOf(f,'sp_id'), b=idOf(f,'sp_kem_id'); return cb.filter(r=>(a==null||r.sp_id===a)&&(b==null||r.sp_kem_id===b)); }
+      return []; };
+    fake.insert=async(t,r)=>{ if(t==='sp_combo') r.forEach(x=>cb.push(Object.assign({id:++cid},x))); return [{}]; };
+    fake.remove=async(t,f)=>{ if(t==='sp_combo'){ const l=inOf(f)||[]; cb=cb.filter(r=>!l.includes(r.id)); } };
+    await st.setCombo(null,'1',[{id:2,soLuong:3}]);
+    let gA=await st.getCombo('1'), gB=await st.getCombo('2');
+    ok(gA.length===1 && gA[0].comboSL===3 && gB.length===1 && gB[0].comboSL===1 && gB[0].comboNguoc,'A kèm 3 B: '+JSON.stringify([gA.map(x=>x.comboSL),gB.map(x=>x.comboSL)]));
+    await st.setCombo(null,'2',[{id:1,soLuong:2}]);          // phía B đặt số lượng riêng -> trước đây bị bỏ qua (vẫn ×1)
+    gA=await st.getCombo('1'); gB=await st.getCombo('2');
+    ok(gB[0].comboSL===2 && gA[0].comboSL===3,'B đặt ×2 phải giữ, A vẫn ×3: '+JSON.stringify([gA.map(x=>x.comboSL),gB.map(x=>x.comboSL)]));
+    const ps=await st.getProducts(); ok(ps.every(x=>x.comboN===1),'đếm combo theo đối tác, không nhân đôi: '+ps.map(x=>x.comboN));
+    await st.setCombo(null,'2',[]); ok(!cb.length && !(await st.getCombo('1')).length,'bỏ ở 1 phía -> mất cả 2 phía, còn '+cb.length);
+    Object.assign(fake,o0); }
+
   console.log('\nKẾT QUẢ: '+pass+' đạt, '+fail+' lỗi'); if(fail) process.exitCode=1;
 })().catch(e=>{console.error('CRASH',e);process.exit(1);});

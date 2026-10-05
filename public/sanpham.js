@@ -1824,12 +1824,13 @@ function spModal(i){
   pdLoadCombo_(p, i, 'dự án', 'pdComboModal');
 }
 /* Nạp & hiện danh sách sản phẩm đi kèm trong modal chi tiết */
-async function pdLoadCombo_(p, idx, dich, boxId){
+async function pdLoadCombo_(p, idx, dich, boxId, them){
   var box=document.getElementById(boxId||'pdCombo'); if(!box) return;
   var list=[], seq=S._pdComboSeq=(S._pdComboSeq||0)+1;
   try{ list=await api('getCombo', String(p.recordId||p.ma))||[]; }catch(e){ list=[]; }
   if(seq!==S._pdComboSeq) return;                  // đã mở sản phẩm khác trong lúc chờ
-  S._pdCombo=list; S._pdComboBox={idx:idx, dich:dich, boxId:boxId||'pdCombo'};
+  S._pdCombo=list; S._pdComboBox={idx:idx, dich:dich, boxId:boxId||'pdCombo', p:(idx!=null||them)?p:null};   // p = SP chính để "Thêm combo"
+  if(S._catCb) S._catCb[catCbKey_(p)]=list;      // thẻ danh mục dùng lại đúng bản mới nhất
   S._pdComboBo=1;                       // mỗi lần mở sản phẩm khác thì số bộ về 1
   pdComboVe_();
 }
@@ -1858,7 +1859,7 @@ function pdComboVe_(){
         +'<span class="cbi-q" title="Số lượng đi kèm cho MỖI bộ — bấm để sửa">'
           +'<input type="number" min="1" step="1" value="'+sl+'"'
             +' onclick="event.stopPropagation()" onchange="pdCbSL_('+k+',null,this.value)">'
-          +(bo>1?('<em>× '+bo+'</em>'):'')+' cái</span>'
+          +(bo>1?('<em>× '+bo+' = <b>'+slTong+'</b></em>'):'')+' cái</span>'
       +'</div>'
     +'</div>';
   }).join('');
@@ -1866,7 +1867,7 @@ function pdComboVe_(){
     +'<div class="pd-sec">Sản phẩm đi kèm <i>('+list.length+')</i></div>'
     +'<div class="cbi-list">'+rows+'</div>'
     +'<div class="cbi-tot"><span>Tổng'+(bo>1?(' '+bo+' bộ'):'')+'</span><b>'+money(tong)+' đ</b></div>'
-    +((o.idx==null||o.idx<0)?''
+    +(!o.p?''
       :('<div class="cbi-act">'
         +'<span class="cbi-bost" title="Số bộ combo cần thêm">'
           +'<button class="cbi-b" onclick="event.stopPropagation();pdCbBoSet_(-1)">−</button>'
@@ -1875,7 +1876,7 @@ function pdComboVe_(){
           +'<button class="cbi-b" onclick="event.stopPropagation();pdCbBoSet_(1)">+</button>'
         +'</span>'
         +'<button class="btn blue sm cbi-add" title="Thêm sản phẩm chính và toàn bộ sản phẩm đi kèm vào '+esc(o.dich||'bóc tách')+'"'
-          +' onclick="pdAddCombo_('+o.idx+')">'+icon('plus',14)+' Thêm '+(bo>1?(bo+' bộ'):'combo')+'</button>'
+          +' onclick="pdAddCombo_()">'+icon('plus',14)+' Thêm '+(bo>1?(bo+' bộ'):'combo')+'</button>'
       +'</div>'))
   +'</div>';
 }
@@ -1899,14 +1900,11 @@ function pdCbSL_(k, d, giaTri){
 async function pdAddCombo_(idx){
   var list=S._pdCombo||[], bo=pdCbBo_();
   var okTab=document.getElementById('v-sanpham').classList.contains('on');
+  var chinh=(S._pdComboBox||{}).p; if(!chinh) return;      // SP đang mở (kể cả biến thể / SP con — không phụ thuộc vị trí trong danh sách)
   if(okTab){
-    var chinh=(S._spList||[])[idx];
-    if(chinh){ if(!S.cur){ toast('Chưa chọn dự án'); return; }
-      await addProdObj(chinh, undefined, bo); renderSpProjPanel_(); setTimeout(renderSpProjPanel_,700); }
-  } else {
-    var p=(S._filtered||[])[idx];
-    if(p) await addProdObj(p, S.selFloor||'', bo);
-  }
+    if(!S.cur){ toast('Chưa chọn dự án'); return; }
+    await addProdObj(chinh, undefined, bo); renderSpProjPanel_(); setTimeout(renderSpProjPanel_,700);
+  } else await addProdObj(chinh, S.selFloor||'', bo);
   for(var k=0;k<list.length;k++){
     var x=list[k];
     await addProdObj(x, S.selFloor||'', (Number(x.comboSL)||1)*bo);   // 1 dòng, đúng số lượng × số bộ
@@ -2458,7 +2456,7 @@ async function spEditSave(luuVaDuyet){
   try{
     var r=await api('updateDbProductTracked', S._spEditMa, data);
 
-    try{ await api('setCombo', S._spEditMa, (S._combo||[]).map(function(x){ return {id:x.recordId, soLuong:x.comboSL}; })); }
+    try{ await api('setCombo', S._spEditMa, (S._combo||[]).map(function(x){ return {id:x.recordId, soLuong:x.comboSL}; })); S._catCb={}; }   // bỏ bản combo đã nhớ -> Bóc tách hiện đúng bản vừa lưu
     catch(e){ toast('Lưu sản phẩm đi kèm lỗi: '+e.message.slice(0,90)); }
     try{ await api('setBienThe', S._spEditMa, (S._bt||[]).map(function(x){ return {id:x.recordId}; })); }
     catch(e){ toast('Lưu nhóm biến thể lỗi: '+e.message.slice(0,90)); }
