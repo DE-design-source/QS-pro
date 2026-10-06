@@ -6334,6 +6334,14 @@ body.fold-cols .bg-cols .colchips{display:flex}
 #v-chiphi .cpov-g{margin-top:8px}
 #v-chiphi .cpov-c{padding:7px 12px}
 #v-chiphi .cpov-t{margin-bottom:4px}
+
+/* Chi phí / Dự án: tìm · lọc · gom · nút thao tác · "Cột hiển thị" nằm CHUNG 1 hàng (hẹp thì tự xuống dòng); chip cột bung ra ở hàng dưới */
+#v-chiphi .pg-cols.pg-tools,#v-duan .pg-cols.pg-tools{display:flex;flex-wrap:wrap;align-items:center}
+#v-chiphi .pg-tools>*,#v-duan .pg-tools>*{flex:0 0 100%;min-width:0}
+#v-chiphi .pg-tools>.cp-bar,#v-duan .pg-tools>.cp-bar{flex:1 1 620px;border-bottom:none}
+#v-chiphi .pg-tools>.tk-frame-hr:not(.tk-toolhr),#v-duan .pg-tools>.tk-frame-hr:not(.tk-toolhr){flex:0 0 auto;border-bottom:none;border-left:1px solid #eef1f4;margin:5px 0;padding:0 12px}
+#v-chiphi .pg-tools>.colchips,#v-duan .pg-tools>.colchips{border-top:1px solid #eef1f4;padding-top:8px}
+.cp-ovbtn.on{background:#eef4ff;border-color:#c9dbff;color:#1d4ed8}
 </style>
 
 <!-- ===== TOP NAV ===== -->

@@ -262,6 +262,7 @@ function cpToolbar_(rows, scope){
       +[['hm','Hạng mục'],['tang','Tầng'],['ncc','NCC'],['','Không gom']].map(function(x){
         return '<button class="'+(cpBy_()===x[0]?'on':'')+'" onclick="cpSetBy(\''+x[0]+'\')">'+x[1]+'</button>'; }).join('')+'</div>'
       // các nút thao tác nằm CÙNG hàng với tìm / lọc / gom (bớt 1 hàng; hẹp thì tự xuống dòng)
+      +'<button class="btn ghost sm cp-ovbtn'+(S._cpOvHide?'':' on')+'" onclick="cpOvToggle_()" title="'+(S._cpOvHide?'Hiện':'Ẩn')+' thẻ Tổng quan chi phí (vốn · giá bán · lợi nhuận · biểu đồ)">'+icon('gauge',14)+' Tổng quan</button>'
       +'<button class="btn ghost sm" onclick="cpBienMucTieu_()" title="Tính lại giá bán để đạt biên lợi nhuận mong muốn">'+icon('gauge',14)+' Biên mục tiêu…</button>'
       +(cpSoNhap_()>1?'<button class="btn ghost sm" onclick="cpSoSanh_()" title="So tổng tiền các bản nháp của dự án này">'+icon('layers',14)+' So sánh '+cpSoNhap_()+' bản nháp</button>':'')
       +'<button class="btn ghost sm" id="cpXlsBtn" onclick="cpXuatExcel_(this)" title="Bảng đang xem (đúng cột, lọc, cách gom) ra file Excel">'+icon('download',14)+' Xuất Excel</button>'
@@ -417,7 +418,7 @@ function cpTong_(scope,hm){
   return {n:t.n, von:von, ban:ban, ck:ck, net:net, ln:ln, bien:net>0?ln/net*100:0, vatPct:vp, vat:vat, total:net+vat, ptBan:ptBan, ptVon:ptVon};
 }
 function cpOverview_(scope){
-  if(S._cpOvHide) return '<div class="cpov-min"><button class="btn ghost sm" onclick="cpOvToggle_()">'+icon('gauge',14)+' Hiện tổng quan chi phí</button></div>';
+  if(S._cpOvHide) return '';        // nút bật lại nằm trên hàng công cụ ("Tổng quan") — không chiếm riêng 1 hàng
   var T=cpTong_(scope,hmGet_()), vatPct=T.vatPct, vat=T.vat, bien=T.bien, min=cpMinBien_();
   var w={lo:0,thap:0,chuaGia:0,chuaVon:0}; scope.forEach(function(l){ var k=cpWarn_(l); if(k) w[k]++; });
   function card(lb,val,sub,cls){ return '<div class="cpk'+(cls?' '+cls:'')+'"><span class="cpk-l">'+lb+'</span><b class="cpk-v">'+val+'</b>'+(sub?'<span class="cpk-s">'+sub+'</span>':'')+'</div>'; }
