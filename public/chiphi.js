@@ -261,11 +261,9 @@ function cpToolbar_(rows, scope){
     +'<div class="cp-seg" title="Gom các dòng và cộng tổng từng nhóm"><span>Gom theo</span>'
       +[['hm','Hạng mục'],['tang','Tầng'],['ncc','NCC'],['','Không gom']].map(function(x){
         return '<button class="'+(cpBy_()===x[0]?'on':'')+'" onclick="cpSetBy(\''+x[0]+'\')">'+x[1]+'</button>'; }).join('')+'</div>'
-    +'</div>'
-    +'<div class="cp-bar cp-acts">'
+      // các nút thao tác nằm CÙNG hàng với tìm / lọc / gom (bớt 1 hàng; hẹp thì tự xuống dòng)
       +'<button class="btn ghost sm" onclick="cpBienMucTieu_()" title="Tính lại giá bán để đạt biên lợi nhuận mong muốn">'+icon('gauge',14)+' Biên mục tiêu…</button>'
       +(cpSoNhap_()>1?'<button class="btn ghost sm" onclick="cpSoSanh_()" title="So tổng tiền các bản nháp của dự án này">'+icon('layers',14)+' So sánh '+cpSoNhap_()+' bản nháp</button>':'')
-      +'<span style="flex:1"></span>'
       +'<button class="btn ghost sm" id="cpXlsBtn" onclick="cpXuatExcel_(this)" title="Bảng đang xem (đúng cột, lọc, cách gom) ra file Excel">'+icon('download',14)+' Xuất Excel</button>'
     +'</div>';
   return cpColBar_(bar)+(cpLnBulkHien_()?cpLnQuick_():'');

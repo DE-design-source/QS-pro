@@ -454,6 +454,18 @@ function tkSheetVe_(host, cols, order, groups){
 /* Bảng vừa khít màn hình: đáy khung bảng = đáy cửa sổ (bằng panel trái), nhiều dòng thì cuộn TRONG bảng,
    trang không dài ra. Tính lại khi đổi cỡ cửa sổ / khối phía trên đổi cao (gập chip, gập thẻ dự án…). */
 function btZf_(el){ var f=1; for(var e=el; e&&e.nodeType===1; e=e.parentElement){ var z=parseFloat(getComputedStyle(e).zoom); if(z>0) f*=z; } return f; }
+/* Chi phí / Dự án: lưới cao vừa tới đáy cửa sổ (đáy tab = đáy màn hình, lưới cuộn bên trong) — cùng nếp với Bóc tách */
+function btCaoFit_(k){
+  var c=document.querySelector('#'+k+'Sheet .jss_content'); if(!c || !c.offsetParent || document.fullscreenElement) return;
+  var v=c.closest('.view'); if(!v) return;
+  var y0=window.pageYOffset||0, h=parseFloat(c.style.height)||c.offsetHeight;
+  h=Math.max(260, Math.floor(h+(window.innerHeight-10-(v.getBoundingClientRect().bottom+y0))/btZf_(c)));
+  if(c.style.height!==h+'px'){ c.style.height=h+'px'; c.style.maxHeight=h+'px'; }
+  if(!S._btCaoObs && window.ResizeObserver){                  // khối phía trên đổi cao / đổi cỡ cửa sổ -> tính lại
+    var hen=0, lai=function(){ if(!hen) hen=requestAnimationFrame(function(){ hen=0; btCaoFit_('cp'); btCaoFit_('da'); }); };
+    S._btCaoObs=new ResizeObserver(lai); S._btCaoObs.observe(document.body); window.addEventListener('resize',lai);
+  }
+}
 function tkSheetCao_(){
   var c=document.querySelector('#tkSheet .jss_content'); if(!c || !c.offsetParent) return;
   // đáy mục tiêu = đáy cửa sổ; panel danh mục bên trái kéo dài tới đúng đáy đó -> 2 cột bằng nhau, trang không cuộn
@@ -678,7 +690,7 @@ function btGan_(k, cols, lamLuoi, sigX, menu){
   else { slot.outerHTML=btFrame_(k); B.frame=document.getElementById(k+'Sheet').parentNode; B.ws=null; }
   var g=lamLuoi(), host=document.getElementById(k+'Sheet');
   var sig=sigX+'|'+g.meta.map(function(m){ return m.k==='it'?(m.id+(m.w||'')):(m.k+(m.g||'')); }).join();
-  if(btSong_(k) && B.sig===sig){ btGhiLuoi_(k, g.rows); return; }
+  if(btSong_(k) && B.sig===sig){ btGhiLuoi_(k, g.rows); btCaoFit_(k); return; }
   B.sig=sig;
   var st={}, ro=[], merge={}, iTen=-1; cols.forEach(function(c,i){ if(c[0]==='ten') iTen=i; });
   var frz=(iTen>0&&iTen<4)?iTen+1:2;
@@ -701,6 +713,7 @@ function btGan_(k, cols, lamLuoi, sigX, menu){
         align:TK_SO[kk]?'right':(TK_GIUA[kk]?'center':'left'), wordWrap:kk==='ten'||kk==='moTa'||kk==='kichThuoc'}; })
   }, btLineGhi_(k), ro, TK_NOI_BO);
   tkSheetKeo_(host,k);                      // kéo ô số dòng để đổi chỗ (Dự án / Chi phí — giống Bóc tách)
+  btCaoFit_(k);
 }
 /* ═══ TAB DỰ ÁN ('da') — mọi dòng của dự án gom theo tầng, dòng tầng mang tổng tầng, dòng TỔNG cuối ═══ */
 function daSheetGrid_(cols, order, groups, lines){
