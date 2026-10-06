@@ -6305,6 +6305,21 @@ body.fold-cols .bg-cols .colchips{display:flex}
 .sp-tags .sp-btchip:hover{background:#ffecd2;border-color:#efc88f}
 .sp-tags .sp-btchip.on{background:#b4620d;border-color:#b4620d;color:#fff}
 .sp-tags .sp-mau,.sp-tags .sp-cbq2{margin-left:1px}
+
+/* ═══ Gọn phần đầu trang Bóc tách (và thanh công cụ bảng tính của mọi tab) — nhường chiều cao cho bảng ═══ */
+#pcard{margin-top:6px}
+#qbar{margin-top:6px;padding:4px 8px 4px 12px}
+#v-boc .boc{margin-top:8px}
+#v-boc .tk-panel{gap:6px}
+#v-boc .tk-panel .toolbar.tk-frame-hm{padding:5px 12px}
+#v-boc .tk-panel #tkColsHr{padding:4px 12px}
+#v-boc .gs{margin-top:0}
+/* 2 hàng công cụ bảng tính nằm CHUNG 1 hàng khi đủ rộng; hẹp thì hàng 2 tự xuống dòng như cũ */
+.gs{display:flex;flex-wrap:wrap;align-content:flex-start}
+.gs>*{flex:0 0 100%;min-width:0;max-width:100%}
+.gs>.gs-bar{flex:0 0 auto;min-height:36px;padding:3px 8px}
+.gs>.gs-bar2{flex:1 1 880px;border-top:none;background:#f0f4f9}
+.gs>.gs-fx{height:28px}
 </style>
 
 <!-- ===== TOP NAV ===== -->
