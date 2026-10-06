@@ -16,7 +16,9 @@ function renderSanpham(){
         +'<div class="dbcard sp-card">'
           +'<div class="sp-toolbar">'
             +'<div class="sp-search-wrap">'+searchIc+'<input id="spSearch" placeholder="Tìm theo tên, mã hoặc thương hiệu…" oninput="S._spPage=1;spFilter()"></div>'
+            +'<div class="spviewtabs" id="spViewTabs"></div>'      // tab trạng thái + ô hạng mục nằm CÙNG hàng với ô tìm (bớt 1 hàng)
             +'<span class="sp-flex"></span>'
+            +'<div class="spbar" id="spBar"></div>'
             +'<button class="btn ghost sm sp-undobtn" id="spUndoBtn" onclick="spUndo_()" disabled title="Chưa có thao tác nào để hoàn tác">'
               +'<svg class="ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-4"/></svg> Hoàn tác</button>'
             +'<button class="btn ghost sm sp-editbtn" id="spEditBtn" onclick="spEditToggle()" title="Sửa nhanh ngay trên bảng — hiện tất cả cột nhập liệu">'+icon('edit',14)+' Edit</button>'
@@ -25,7 +27,6 @@ function renderSanpham(){
             +'<button class="btn ghost sm" id="spXlsBtn" onclick="spXlsClick_()" title="Tải danh sách ra file Excel">'+icon('download',14)+' <span id="spXlsLbl">Tải Excel</span></button>'
             +'<button class="btn blue sm" onclick="showTab(\'import\')">'+icon('plus',14)+' Thêm sản phẩm</button>'
           +'</div>'
-          +'<div class="sp-headrow"><div class="spviewtabs" id="spViewTabs"></div><div class="spbar" id="spBar"></div></div>'
           +'<div class="pg-cols sp-colbox" id="spColBar"></div>'
           +'<div class="tbl-wrap"><table class="sp-table"><colgroup id="spColg"></colgroup><thead id="spHead"></thead>'
             +'<tbody id="spBody"></tbody></table></div>'
@@ -621,7 +622,22 @@ function spSyncRow_(el,p){
 /* Đóng băng kiểu Excel: cột chọn + 2 cột đầu bám trái, hàng tiêu đề bám trên.
    Bề rộng cột thay đổi theo dữ liệu nên phải ĐO rồi gán left sau mỗi lần vẽ.  */
 var SP_FRZ=3;                       // số CỘT DỮ LIỆU được cố định (chưa kể cột chọn) — STT · Ảnh · Sản phẩm
+/* Bảng LUÔN vừa khít màn hình: đáy thẻ = đáy cửa sổ (bảng cuộn bên trong, trang không cuộn) — như Bóc tách */
+function spCaoFit_(){
+  var w=document.querySelector('#v-sanpham .sp-card .tbl-wrap'); if(!w||!w.offsetParent) return;
+  if(window.innerWidth<=900){ w.style.height=''; return; }            // màn hẹp: để trang cuộn tự nhiên
+  var zf=btZf_(w), card=w.closest('.sp-card'), duoi=0;
+  if(!card._caoRO && window.ResizeObserver){ card._caoRO=1;          // bung / gập hàng chip cột, toolbar xuống dòng -> tính lại
+    var ro=new ResizeObserver(function(){ clearTimeout(spCaoFit_._t); spCaoFit_._t=setTimeout(spCaoFit_,60); });
+    [card.querySelector('.sp-toolbar'), document.getElementById('spColBar'), document.getElementById('spPager')].forEach(function(e){ if(e) ro.observe(e); }); }
+  for(var e=w.nextElementSibling; e; e=e.nextElementSibling) duoi+=e.offsetHeight+(parseFloat(getComputedStyle(e).marginTop)||0)+(parseFloat(getComputedStyle(e).marginBottom)||0);
+  var h=Math.max(220, Math.floor((window.innerHeight-w.getBoundingClientRect().top)/zf-duoi-10));
+  w.style.height=h+'px'; w.style.maxHeight='none';
+  var pn=document.getElementById('spProjPanel');
+  if(pn&&pn.offsetParent&&card){ var hp=Math.floor((window.innerHeight-pn.getBoundingClientRect().top)/zf-10); pn.style.height=hp+'px'; pn.style.maxHeight='none'; }
+}
 function spFreeze_(){
+  spCaoFit_();
   var head=document.getElementById('spHead'), body=document.getElementById('spBody');
   if(!head||!body) return;
   var hr=head.querySelector('tr'); if(!hr) return;

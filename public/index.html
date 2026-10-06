@@ -6282,9 +6282,15 @@ body.fold-cols .bg-cols .colchips{display:flex}
 #v-sanpham .sp-workspace{margin-top:10px;gap:12px}
 #v-sanpham .sp-card{margin-top:0}
 #v-sanpham .sp-toolbar{padding:8px 12px;gap:8px}
-#v-sanpham .sp-headrow{padding:6px 12px;gap:10px}
-#v-sanpham #spColBar{margin-top:0}
-#v-sanpham .sp-colbox .tk-frame-hr{padding:6px 12px 0}
+#v-sanpham{padding-bottom:0}
+#v-sanpham .sp-toolbar{flex-wrap:wrap;row-gap:6px}
+#v-sanpham .sp-toolbar .sp-search-wrap{flex:1 1 200px;max-width:300px}
+#v-sanpham .sp-toolbar .spviewtabs{padding:0;margin:0;border:none;gap:4px;flex-wrap:wrap}
+#v-sanpham .sp-toolbar .spbar{padding:0;margin:0;border:none;background:none;flex:0 1 auto}
+/* hàng "Cột hiển thị" dính liền thẻ — không viền bo riêng, không hở trên dưới */
+#v-sanpham #spColBar{margin:0;border:none;border-radius:0;box-shadow:none;border-bottom:1px solid var(--ln)}
+#v-sanpham .sp-colbox .tk-frame-hr{padding:5px 12px}
+#v-sanpham .tk-hbar.sp-hbar{margin:4px 0 0}
 #v-sanpham .sp-projpanel{padding:10px 12px}
 /* Nhãn Combo / Biến thể dưới tên SP: 1 hàng chip riêng, chữ đầu viết hoa */
 .sp-name .sp-tags{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:4px}
