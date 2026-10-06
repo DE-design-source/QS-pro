@@ -6318,7 +6318,19 @@ body.fold-cols .bg-cols .colchips{display:flex}
 .gs{display:flex;flex-wrap:wrap;align-content:flex-start}
 .gs>*{flex:0 0 100%;min-width:0;max-width:100%}
 .gs>.gs-bar{flex:0 0 auto;min-height:36px;padding:3px 8px}
-.gs>.gs-bar2{flex:1 1 880px;border-top:none;background:#f0f4f9}
+.gs>.gs-bar2{flex:1 1 0;border-top:none;background:#f0f4f9;flex-wrap:nowrap;overflow:hidden;white-space:nowrap}
+.gs>.gs-bar2>*{flex-shrink:0}
+.gs>.gs-bar2>span:not([class]){flex:1 1 0;flex-shrink:1;min-width:0}      /* khoảng đệm giữa nhóm trái / phải */
+/* Thanh công cụ luôn 1 hàng; thiếu chỗ thì hiện nút ▾ — bấm mới bung hàng 2 (btBarSync_ / btBarMo_) */
+.gs{position:relative}
+.gs>.gs-more{display:none;position:absolute;top:5px;right:6px;flex:none;width:26px;height:26px;max-width:26px;padding:0;border:1px solid #c7d2e0;border-radius:6px;
+  background:#fff;color:#444746;cursor:pointer;align-items:center;justify-content:center;z-index:3}
+.gs>.gs-more:hover{background:#e8f0fe;border-color:#1a73e8;color:#1a73e8}
+.gs.gs-tran>.gs-more{display:inline-flex}
+.gs.gs-tran>.gs-bar2{padding-right:40px}
+body.gs-mo .gs>.gs-bar2{flex:0 0 100%;flex-wrap:wrap;overflow:visible;white-space:normal;border-top:1px solid #e3e7ec}
+body.gs-mo .gs>.gs-bar{flex:0 0 100%;padding-right:40px}
+body.gs-mo .gs>.gs-more svg{transform:rotate(180deg)}
 .gs>.gs-fx{height:28px}
 
 /* ═══ Gọn phần đầu trang Chi phí / Dự án — cùng nếp với Bóc tách; lưới cao tới đáy màn hình (btCaoFit_) ═══ */

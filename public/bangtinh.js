@@ -44,6 +44,7 @@ function btSong_(k){ var B=btCtx_(k); return !!(B.ws && document.body.contains(B
 function btTao_(k, host, cols, meta, al, opt, ghi, ro, noiBo){
   var B=btCtx_(k); host.innerHTML='';
   B.cols=cols; B.meta=meta; B.al=al; B.ghi=ghi;
+  setTimeout(btBarSync_,0);        // thanh công cụ 1 hàng: đo xem có cần nút ▾ không
   B.sel=B.selR=null;              // lưới mới chưa chọn ô nào — giữ vùng chọn cũ thì "Xoá dòng" xoá nhầm dòng ở vị trí cũ
   var ws=jspreadsheet(host,{
     tabs:false, toolbar:false,
@@ -789,6 +790,19 @@ var BT_SVG={
   dien:'<path d="M12 3v14M6 11l6 6 6-6"/><path d="M4 21h16"/>'
 };
 function btI_(k){ return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+BT_SVG[k]+'</svg>'; }
+/* Thanh công cụ LUÔN 1 hàng. Không đủ chỗ -> hiện nút ▾ ở cuối hàng; bấm mới bung phần còn lại xuống hàng 2 (nhớ theo máy). */
+function btBarMo_(btn){ var mo=!document.body.classList.contains('gs-mo'); document.body.classList.toggle('gs-mo',mo);
+  try{ localStorage.setItem('qs_gsmo',mo?'1':''); }catch(e){} btBarSync_(); window.dispatchEvent(new Event('resize')); }
+function btBarSync_(){
+  if(btBarSync_._d===undefined){ btBarSync_._d=1; try{ document.body.classList.toggle('gs-mo', localStorage.getItem('qs_gsmo')==='1'); }catch(e){} }
+  var mo=document.body.classList.contains('gs-mo');
+  [].forEach.call(document.querySelectorAll('.gs'),function(gs){
+    var b2=gs.querySelector('.gs-bar2'), nut=gs.querySelector('.gs-more'); if(!b2||!nut||!gs.offsetParent) return;
+    if(!gs._barRO && window.ResizeObserver){ gs._barRO=new ResizeObserver(function(){ clearTimeout(gs._barT); gs._barT=setTimeout(btBarSync_,60); }); gs._barRO.observe(gs); }
+    if(mo){ gs.classList.add('gs-tran'); nut.title='Thu thanh công cụ về 1 hàng'; return; }
+    gs.classList.remove('gs-tran');                                   // đo khi CHƯA chừa chỗ cho nút
+    var tran=b2.scrollWidth>b2.clientWidth+1; gs.classList.toggle('gs-tran',tran); nut.title='Hiện thêm công cụ (xuống hàng 2)'; });
+}
 function btFrame_(k){
   var B=btCtx_(k), z=B.zoom, fs=B.font;
   function b(html,tip,fn,on){ return '<button class="gs-b'+(on?' on':'')+'" title="'+tip+'" onclick="'+fn+'">'+html+'</button>'; }
@@ -831,6 +845,7 @@ function btFrame_(k){
       +((k==='cp'||k==='da')?'<span class="gs-tools">'+pgToolsHtml_(k)+'</span>':'')
     +'</div>'
     // Thanh công thức: địa chỉ ô + nội dung ô đang chọn (sửa rồi Enter)
+    +'<button class="gs-more" onclick="btBarMo_(this)" title="Hiện thêm công cụ (xuống hàng 2)"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>'
     +'<div class="gs-fx"><span class="gs-fx-addr" id="'+k+'FxAddr">A1</span><span class="gs-fx-ic">fx</span>'
       +'<input id="'+k+'FxIn" placeholder="Chọn 1 ô để xem / sửa nội dung" onkeydown="if(event.key===\'Enter\'){btFxGhi_('+q+',this.value);this.blur();}else if(event.key===\'Escape\'){btFxSync_('+q+');this.blur();}" onchange="btFxGhi_('+q+',this.value)"></div>'
     +'<div id="'+k+'Sheet" class="gs-grid'+(B.gon?' gs-gon':'')+'" style="--gsfs:'+fs+'px'+(z!==100?';zoom:'+(z/100):'')+'"></div>'
