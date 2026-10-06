@@ -487,6 +487,10 @@ function tkSheetCao_(){
 /* Thả dòng m vào chỗ dòng t (trước / sau). Dòng bóc tách: lưu stt + tầng (tkMoveLine_). Phần thô: chuyển công tác giữa các nhóm. */
 function btDoiHang_(k, m, t, truoc){
   if(!m||!t||m===t||t.k==='tot') return;
+  if(m.k==='sec'){                                  // kéo DÒNG TẦNG / PHÒNG: đổi thứ tự cả tầng (như kéo tiêu đề tầng ở bảng thường)
+    var den=t.k==='sec'?t.g:((lineOf_(t.id)||{}).tang||''); if(!den||den===m.g) return;
+    var fl=floorsList(); if(fl.indexOf(den)<0||den==='CHƯA PHÂN TẦNG'){ toast('Thả lên một tầng / phòng khác để đổi thứ tự'); return; }
+    moveFloor(m.g, den, fl.indexOf(m.g)<fl.indexOf(den)); return; }   // kéo xuống -> nằm sau tầng đích · kéo lên -> nằm trước
   if(k==='pt'){
     var src=S.phanTho[m.si]; if(!src||!src.items[m.ii]) return; var it=src.items.splice(m.ii,1)[0];
     var dst=S.phanTho[t.si]; if(!dst){ src.items.splice(m.ii,0,it); return; }
@@ -500,7 +504,9 @@ function btDoiHang_(k, m, t, truoc){
 function tkSheetKeo_(host,k){ k=k||'tk';               // dùng chung Bóc tách ('tk') + Dự án ('da'): cùng chia theo tầng
   var B=btCtx_(k), tb0=host.querySelector('tbody'); if(!tb0) return;
   [].forEach.call(tb0.rows,function(tr,y){ var m=B.meta[y], td=tr.cells[0];
-    if(m && m.k==='it'){ td.classList.add('gs-drag'); td.title='Kéo để đổi chỗ dòng · bấm để chọn cả dòng'; } });
+    if(m && m.k==='it'){ td.classList.add('gs-drag'); td.title='Kéo để đổi chỗ dòng · bấm để chọn cả dòng'; }
+    else if(m && m.k==='sec' && (k==='tk'||k==='da') && m.g && m.g!=='CHƯA PHÂN TẦNG' && floorsList().indexOf(m.g)>=0){
+      td.classList.add('gs-drag'); td.title='Kéo để đổi thứ tự tầng / phòng (lên / xuống)'; } });
   if(host._tkKeo) return; host._tkKeo=1;                  // sự kiện gắn 1 lần cho khung; tbody lấy lại mỗi lần dùng (lưới dựng lại thì tbody mới)
   var tb={ querySelectorAll:function(q){ var t=host.querySelector('tbody'); return t?t.querySelectorAll(q):[]; } };
   function clr(){ tb.querySelectorAll('.gs-dz-t,.gs-dz-b,.gs-dragging').forEach(function(r){ r.classList.remove('gs-dz-t','gs-dz-b','gs-dragging'); }); }
