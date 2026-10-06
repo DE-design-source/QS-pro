@@ -490,7 +490,7 @@ function bgDocHTML(){
   return '<div class="bgvp-hd">'
       +'<span class="bgvp-t">'+esc(m.ten||'Trang '+S.bgPage)+'</span>'
       +(m.dong?('<span class="bgvp-n">'+m.dong+' dòng</span><span class="bgvp-tien">'+money(m.tien||0)+' đ</span>'):'')
-      +'<span style="flex:1"></span>'
+      +'<span style="flex:1"></span>'+bgSeg_()      // nút chuyển Xem trước / Chỉnh sửa nằm ngay trên khung xem (bỏ hàng tiêu đề riêng)
       +'<span class="bgvp-p">Trang '+S.bgPage+' / '+pages.length+'</span>'
     +'</div>'
     +'<div class="bgvp" id="bgViewport"><div class="qs-doc" id="qsDoc">'+pg.html+'</div>'
@@ -500,9 +500,14 @@ function bgDocHTML(){
 /* kéo mép dưới khung xem để chỉnh chiều cao */
 function bgVpApply_(){
   var v=document.getElementById('bgViewport'); if(!v) return;
-  var h=Number(S.bgVpH||0); if(!h){ try{ h=Number(localStorage.getItem('qs_bgH'))||0; }catch(e){} }
-  if(!h) h=Math.max(420, Math.round(window.innerHeight*0.66));
-  S.bgVpH=h; v.style.height=h+'px';
+  // Đã kéo tay (nhớ theo máy, khoá qs_bgH2) -> giữ; chưa thì khung TỰ CAO TỚI ĐÁY MÀN HÌNH (trang không cuộn)
+  var h=Number(S.bgVpH||0); if(!h){ try{ h=Number(localStorage.getItem('qs_bgH2'))||0; }catch(e){} }
+  if(h){ S.bgVpH=h; v.style.height=h+'px'; return; }
+  // dời đúng phần chênh giữa đáy tab và đáy cửa sổ (số đo màn hình đã nhân zoom của app -> chia lại)
+  var zf=(typeof btZf_==='function')?btZf_(v):1, view=v.closest('.view')||v;
+  v.style.height=Math.max(320, Math.floor(v.offsetHeight+(window.innerHeight-28-(view.getBoundingClientRect().bottom+(window.pageYOffset||0)))/zf))+'px';
+  if(!bgVpApply_._b){ bgVpApply_._b=1; window.addEventListener('resize',function(){ clearTimeout(bgVpApply_._t);
+    bgVpApply_._t=setTimeout(function(){ if(!S.bgVpH){ bgVpApply_(); if(typeof bgZoomApply_==='function') bgZoomApply_(); } },120); }); }
 }
 function bgVpBind_(){
   var g=document.getElementById('bgVpGrip'), v=document.getElementById('bgViewport');
@@ -516,14 +521,13 @@ function bgVpBind_(){
       S.bgVpH=Math.round(h); v.style.height=S.bgVpH+'px'; }
     function up(){ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up);
       document.body.style.cursor='';
-      try{ localStorage.setItem('qs_bgH', String(S.bgVpH||'')); }catch(e){}
+      try{ localStorage.setItem('qs_bgH2', String(S.bgVpH||'')); }catch(e){}
       bgZoomApply_(); }
     document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
   });
   g.addEventListener('dblclick',function(){       // bấm đúp = trả về chiều cao mặc định
-    S.bgVpH=Math.max(420, Math.round(window.innerHeight*0.66)); v.style.height=S.bgVpH+'px';
-    try{ localStorage.setItem('qs_bgH', String(S.bgVpH)); }catch(e){}
-    bgZoomApply_(); toast('Đã trả khung xem về chiều cao mặc định');
+    S.bgVpH=0; try{ localStorage.removeItem('qs_bgH2'); }catch(e){}
+    bgVpApply_(); bgZoomApply_(); toast('Đã trả khung xem về vừa khít màn hình');
   });
 }
 var QS_DOC_CSS=''
@@ -746,17 +750,17 @@ function drawBaogia(){
   if(!S.bgDeMuc) S.bgDeMuc='__all__';
   if(!S.bgView) S.bgView='doc';
   // header chung + chuyển chế độ
-  var seg='<div class="bgseg"><button class="'+(S.bgView==='doc'?'on':'')+'" onclick="bgSetView(\'doc\')">'+icon('eye',14)+' Xem trước & Xuất</button>'
-    +'<button class="'+(S.bgView==='edit'?'on':'')+'" onclick="bgSetView(\'edit\')">'+icon('sliders',14)+' Chỉnh sửa</button></div>';
-  var sechd='<div class="sechd"><h2>Xuất báo giá</h2><span style="flex:1"></span>'+seg+'</div>';
+  var seg=bgSeg_();
+  // (bỏ hàng tiêu đề "Xuất báo giá": chế độ xem trước đặt nút chuyển ngay đầu thanh điều khiển; chế độ sửa giữ 1 hàng mảnh)
+  var sechd='<div class="sechd bg-segrow"><span style="flex:1"></span>'+seg+'</div>';
   // ---- Chế độ tài liệu (xem trước phân trang + xuất) ----
   if(S.bgView==='doc'){
     bgCfgLoad_();
-    box.innerHTML=sechd
-      +bgCtlBar_()
+    box.innerHTML=bgCtlBar_()
       +bgTkPanel_()
       +bgDocHTML();
-    bgVpApply_(); bgVpBind_(); bgZoomApply_(); foldChipsSync_();   // nút thu gọn vừa vẽ lại -> trả đúng trạng thái
+    foldChipsSync_(); bgVpApply_(); bgVpBind_(); bgZoomApply_();
+    requestAnimationFrame(function(){ if(!S.bgVpH){ bgVpApply_(); bgZoomApply_(); } });      // khối phía trên xếp xong -> canh lại đáy   // nút thu gọn vừa vẽ lại -> trả đúng trạng thái
     return;
   }
   var comp=coverCosts(), p=S.cur||{}, q0=bgTong_(computeQuoteLocal().subtotal), q={subtotal:q0.sub, vatPct:q0.vatPct, vat:q0.vat, total:q0.total, ck:q0.ck};
@@ -960,6 +964,10 @@ function bgBiaCanh_(){
   ly.push('hoặc tờ bìa có số sửa tay');
   return '<div class="bg-noibo an">'+icon('bell',15)+'<span>Tổng tờ bìa <b>'+money(bia)+' đ</b> khác tổng trang cuối <b>'+money(cuoi)+' đ</b> (chưa CK/VAT) — vì '
     +ly.join(', ')+'. Kiểm tra trước khi gửi khách.</span></div>';
+}
+function bgSeg_(){
+  return '<div class="bgseg"><button class="'+(S.bgView==='doc'?'on':'')+'" onclick="bgSetView(\'doc\')">'+icon('eye',14)+' Xem trước & Xuất</button>'
+    +'<button class="'+(S.bgView==='edit'?'on':'')+'" onclick="bgSetView(\'edit\')">'+icon('sliders',14)+' Chỉnh sửa</button></div>';
 }
 function bgCtlBar_(){
   var pages=bgBuildPages().length, vp=Number(S.cur&&S.cur.vat)||0;
