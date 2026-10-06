@@ -355,7 +355,7 @@ function renderPTSheet_(host, cols, comp){
       align:c[2]==='n'?'right':(c[2]==='c'?'center':'left'), wordWrap:c[0]==='noidung'||c[0]==='ghichu'}; })
     , menu:ptSheetMenu_
   }, ptSheetGhi_, ro, PT_NOI_BO);
-  tkSheetKeo_(host,'pt');
+  tkSheetKeo_(host,'pt'); ptSheetCao_();
   return ws;
 }
 // Ghi 1 ô người dùng sửa vào S.phanTho (đúng hàm của bảng cũ), gom nhiều ô liền nhau -> tính + lưu + vẽ lại 1 lần
@@ -463,8 +463,21 @@ function btCaoFit_(k){
   h=Math.max(260, Math.floor(h+(window.innerHeight-10-(v.getBoundingClientRect().bottom+y0))/btZf_(c)));
   if(c.style.height!==h+'px'){ c.style.height=h+'px'; c.style.maxHeight=h+'px'; }
   if(!S._btCaoObs && window.ResizeObserver){                  // khối phía trên đổi cao / đổi cỡ cửa sổ -> tính lại
-    var hen=0, lai=function(){ if(!hen) hen=requestAnimationFrame(function(){ hen=0; btCaoFit_('cp'); btCaoFit_('da'); }); };
+    var hen=0, lai=function(){ clearTimeout(hen); hen=setTimeout(function(){ btCaoFit_('cp'); btCaoFit_('da'); },30); };
     S._btCaoObs=new ResizeObserver(lai); S._btCaoObs.observe(document.body); window.addEventListener('resize',lai);
+  }
+}
+/* Phần thô: lưới cao vừa tới đáy cửa sổ (trước đây cao cố định theo 100vh nên tràn khỏi khung, mất phần dưới) */
+function ptSheetCao_(){
+  var c=document.querySelector('#ptSheet .jss_content'); if(!c || !c.offsetParent || document.fullscreenElement) return;
+  var y0=window.pageYOffset||0, left=document.getElementById('leftCat'), day=window.innerHeight-14;
+  if(left){ var lh=Math.round((day-(left.getBoundingClientRect().top+y0))/btZf_(left))+'px';
+    if(left.style.height!==lh){ left.style.height=lh; left.style.maxHeight=lh; } }
+  var h=Math.max(260, Math.floor((day-12-(c.getBoundingClientRect().top+y0))/btZf_(c)));      // 12 = đệm dưới của khung Phần thô
+  if(c.style.height!==h+'px'){ c.style.height=h+'px'; c.style.maxHeight=h+'px'; }
+  if(!S._ptCaoObs && window.ResizeObserver){
+    var hen=0, lai=function(){ clearTimeout(hen); hen=setTimeout(ptSheetCao_,30); };
+    S._ptCaoObs=new ResizeObserver(lai); S._ptCaoObs.observe(document.body); window.addEventListener('resize',lai);
   }
 }
 function tkSheetCao_(){

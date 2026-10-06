@@ -6398,6 +6398,14 @@ body.gs-mo .gs>.gs-more svg{transform:rotate(180deg)}
 #v-import .imp-recent-h{padding:8px 14px}
 #v-import .imp-recent-note{padding:6px 12px}
 #v-import .imp-rfoot{padding:8px 12px}
+
+/* Phần thô (Bóc tách): gọn phần đầu như các hạng mục khác */
+#v-boc .tk-panel>#ptWrap{padding:6px 12px 8px}
+#v-boc #ptWrap .pt-toolbar{margin-bottom:6px}
+#v-boc #ptWrap .pt-colchips{margin-bottom:6px}
+#v-boc #ptWrap .gs{margin-top:0}
+#v-boc:has(#ptSheet){padding-bottom:0}
+#v-boc:has(#ptSheet) #bocGrid{margin-bottom:0}      /* bảng tính Phần thô: trang không cuộn dư (như bảng tính sản phẩm) */
 </style>
 
 <!-- ===== TOP NAV ===== -->
