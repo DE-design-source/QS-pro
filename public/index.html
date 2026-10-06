@@ -6277,6 +6277,28 @@ body.fold-tools .pg-cols.pg-tools .tk-toolhr{border-bottom:none}
 .bg-cols .tk-frame-hr .blk-fold{margin-left:auto}
 /* chip cột xuất luôn hiện (ít chip, không gập theo trạng thái 'cols' dùng chung với Bóc tách) */
 body.fold-cols .bg-cols .colchips{display:flex}
+
+/* ═══ Danh sách sản phẩm: gọn phần đầu trang — nhường chiều cao cho bảng ═══ */
+#v-sanpham .sp-workspace{margin-top:10px;gap:12px}
+#v-sanpham .sp-card{margin-top:0}
+#v-sanpham .sp-toolbar{padding:8px 12px;gap:8px}
+#v-sanpham .sp-headrow{padding:6px 12px;gap:10px}
+#v-sanpham #spColBar{margin-top:0}
+#v-sanpham .sp-colbox .tk-frame-hr{padding:6px 12px 0}
+#v-sanpham .sp-projpanel{padding:10px 12px}
+/* Nhãn Combo / Biến thể dưới tên SP: 1 hàng chip riêng, chữ đầu viết hoa */
+.sp-name .sp-tags{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:4px}
+.sp-tags .sp-cbn{margin-left:0;gap:3px;height:19px;padding:0 6px;border-radius:6px;font-family:inherit;font-size:11px;font-weight:600;
+  letter-spacing:0;background:#eef4ff;color:#1d4ed8;border:1px solid #d6e4ff;cursor:pointer;transition:background .12s,border-color .12s}
+.sp-tags .sp-cbn b{display:inline;font:inherit;font-weight:700;color:inherit;margin:0}
+.sp-tags .sp-cbn .ico{stroke-width:2;opacity:.85}
+.sp-tags .sp-cbn .cbc{font-size:8px;margin:0 0 0 1px;opacity:.6}
+.sp-tags .sp-cbn:hover{background:#dfeaff;border-color:#b9d0ff}
+.sp-tags .sp-cbn.on{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
+.sp-tags .sp-btchip{background:#fff6ea;color:#a8590a;border-color:#f6dfbf}
+.sp-tags .sp-btchip:hover{background:#ffecd2;border-color:#efc88f}
+.sp-tags .sp-btchip.on{background:#b4620d;border-color:#b4620d;color:#fff}
+.sp-tags .sp-mau,.sp-tags .sp-cbq2{margin-left:1px}
 </style>
 
 <!-- ===== TOP NAV ===== -->

@@ -6,7 +6,8 @@
 function renderSanpham(){
   var box=document.getElementById('v-sanpham');
   var searchIc='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>';
-  box.innerHTML='<div class="sechd"><h2>Danh sách sản phẩm</h2><span class="count" id="spCount">0</span></div>'
+  // (bỏ hàng tiêu đề "Danh sách sản phẩm" — tab trên cùng đã ghi rõ, số SP có ở tab "Tất cả"; nhường chỗ cho bảng)
+  box.innerHTML='<span id="spCount" hidden>0</span>'
     +'<div class="sp-workspace'+(spPanelHidden_()?' panel-hidden':'')+'" id="spWorkspace">'
       +'<button class="spp-show" id="sppShow" title="Hiện panel Sản phẩm trong dự án" onclick="spPanelToggle()">'
         +icon('layers',15)+'<span class="spp-show-n">'+((S.cur?S.lines:[])||[]).length+'</span></button>'
@@ -223,10 +224,12 @@ function spAllCols_(){
       var per=spPerGet_(), tr=Math.max(1,S._spPage||1);
       return '<span class="sp-stt">'+((per?(tr-1)*per:0)+i+1)+'</span>'; }],
     ['thumb','Ảnh','thumbcol',function(p){ return p.hinhAnh?'<img class="sp-th" src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="sp-th"></span>'; }],
-    ['ten','Sản phẩm','sp-name',function(p,i){ return '<b>'+esc(p.ten||'')+'</b><span class="sp-code">'+esc(p.ma||'')
-        +(p.spChung?'<span class="sp-chung" title="Sản phẩm thuộc kho chung của Dezon — chỉ xem">Kho Dezon</span>':'')
-        +(p.comboN?'<button class="sp-cbn sp-cbtog'+(spCbMo_(p)?' on':'')+'" title="Xem '+p.comboN+' sản phẩm đi kèm" onclick="event.stopPropagation();spComboToggle_('+i+')"><span class="cbc">▸</span>'+icon('layers',10)+' combo '+p.comboN+'</button>':'')
-        +spVarChip_(p)+spCbQty_(i)+'</span>'; },
+    ['ten','Sản phẩm','sp-name',function(p,i){ // mã 1 dòng riêng; nhãn Combo / Biến thể / màu nằm 1 hàng chip bên dưới (không chen vào dòng mã)
+      var tags=(p.comboN?'<button class="sp-cbn sp-cbtog'+(spCbMo_(p)?' on':'')+'" title="Xem '+p.comboN+' sản phẩm đi kèm" onclick="event.stopPropagation();spComboToggle_('+i+')">'+icon('layers',11)+'Combo <b>'+p.comboN+'</b><span class="cbc">▸</span></button>':'')
+        +spVarChip_(p)+spCbQty_(i);
+      return '<b>'+esc(p.ten||'')+'</b><span class="sp-code">'+esc(p.ma||'')
+        +(p.spChung?'<span class="sp-chung" title="Sản phẩm thuộc kho chung của Dezon — chỉ xem">Kho Dezon</span>':'')+'</span>'
+        +(tags?'<span class="sp-tags">'+tags+'</span>':''); },
       {lark:'TÊN SẢN PHẨM', col:'ten_sp', sfx:''}],
     ['duyet','Trạng thái','ct',function(p){
       var on=!!p.daDuyet;
@@ -1523,8 +1526,8 @@ function spCbQty_(i){
 function spVarChip_(p){
   var m=(S._btMap||{})[spKeyOf_(p)]; if(!m) return '';
   var k=m.key||'';
-  return spMauDots_(m.mau)+'<button class="sp-cbn sp-btchip'+(m.mo?' on':'')+'" title="'+(m.mo?'Thu gọn':'Xem')+' '+m.n+' biến thể của sản phẩm này"'
-    +' onclick="event.stopPropagation();spVarToggle_(\''+escJs_(k)+'\')"><span class="cbc">▸</span>'+icon('layers',10)+' biến thể '+m.n+'</button>';
+  return '<button class="sp-cbn sp-btchip'+(m.mo?' on':'')+'" title="'+(m.mo?'Thu gọn':'Xem')+' '+m.n+' biến thể của sản phẩm này"'
+    +' onclick="event.stopPropagation();spVarToggle_(\''+escJs_(k)+'\')">'+icon('copy',11)+'Biến thể <b>'+m.n+'</b><span class="cbc">▸</span></button>'+spMauDots_(m.mau);
 }
 function spVarGroups2_(list){
   var out=[], at={};
