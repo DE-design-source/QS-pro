@@ -4017,6 +4017,46 @@ input::placeholder,textarea::placeholder{color:var(--c4)}
 .colpop-n{font-size:var(--t-xs);color:var(--c3);font-weight:600}
 .colpop-x{margin-left:auto;border:none;background:transparent;color:var(--c3);cursor:pointer;font-size:12px;padding:2px 4px;border-radius:var(--rc)}
 .colpop-x:hover{background:var(--bg3);color:var(--c1)}
+/* hộp Cột hiển thị của Bóc tách: rộng hơn, cao tối đa tới đáy màn hình — đầu + chân cố định, danh sách cột cuộn ở giữa */
+#tkColPop{width:340px;display:flex;flex-direction:column;max-height:calc(100vh - 24px)}
+#tkColPop>*{flex:none}
+#tkColPop>.colpop-b{flex:1 1 auto;min-height:80px;max-height:none}
+/* lọc kiểu Excel trên bảng tính Bóc tách: nút ▾ ở góc phải tiêu đề cột + bảng tick giá trị */
+.gs-flt{position:absolute;right:2px;bottom:2px;width:14px;height:14px;display:inline-grid;place-items:center;border-radius:3px;
+  background:#ffffff26;color:#fff;cursor:pointer;line-height:0}
+.gs-flt:hover{background:#ffffff59}
+.gs-flt.sx{background:#ffffff59}
+.gs-flt.on{background:#fbbf24;color:#1f3a5f}
+.gs-locpop{width:270px;max-height:none!important;overflow:visible!important;display:flex;flex-direction:column}
+.gs-locpop .fpa svg{flex:none;width:15px;height:15px}
+.gs-locpop .fsearch{margin:6px 0 4px;padding:7px 10px;box-sizing:border-box}
+.gs-loc-l{max-height:min(260px,38vh);overflow:auto;border:1px solid #e6eaef;border-radius:8px;padding:3px}
+.gs-locpop .fchk{padding:5px 8px;font-size:12.5px}
+.gs-locpop .fchk .bx{color:transparent}
+.gs-locpop .fchk.on .bx{color:#fff}
+.gs-locpop .fchk.all{border-bottom:1px solid #eef1f5;border-radius:7px 7px 0 0}
+.gs-loc-v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gs-loc-v i{color:#98a6b3}
+.gs-loc-n{flex:none;font-size:11px;color:#98a6b3}
+.gs-loc-f{display:flex;justify-content:flex-end;gap:6px;padding-top:8px}
+.gs-loc-f .btn{min-width:64px;justify-content:center}
+/* bảng cột đặt tên (Bóc tách) */
+.colpop-bo{padding:10px 12px;border-bottom:1px solid var(--ln);background:var(--bg2)}
+.colpop-bo-h{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c3);margin-bottom:7px}
+.colpop-bo-l{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;max-height:96px;overflow:auto}
+.colpop-bo-e{font-size:11.5px;color:var(--c3);line-height:1.45;margin-bottom:8px}
+.colbo{display:inline-flex;align-items:center;max-width:100%;border:1px solid var(--ln2);border-radius:99px;background:#fff;overflow:hidden}
+.colbo button{border:none;background:none;font:inherit;font-size:12px;font-weight:550;color:var(--c2);cursor:pointer;height:26px;padding:0 4px 0 11px;
+  display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.colbo button i{font-style:normal;font-size:10.5px;font-weight:700;color:var(--c3)}
+.colbo .colbo-x{padding:0 9px 0 5px;font-size:9px;color:var(--c4)}
+.colbo .colbo-x:hover{color:#c0392b}
+.colbo:hover{border-color:var(--blue)}
+.colbo.on{background:var(--navy);border-color:var(--navy)}
+.colbo.on button,.colbo.on button i{color:#fff}
+.colpop-bo-f{display:flex;gap:6px}
+.colpop-bo-f input{flex:1;min-width:0;height:30px;padding:0 10px;border:1px solid var(--ln2);border-radius:var(--rc);font:inherit;font-size:12.5px;background:#fff}
+.colpop-bo-f input:focus{outline:none;border-color:var(--blue);box-shadow:var(--focus)}
 .colpop-s{padding:10px 12px 6px}
 .colpop-s input{width:100%;box-sizing:border-box;height:32px;padding:0 10px;border:1px solid var(--ln2);
   border-radius:var(--rc);font:inherit;font-size:var(--t-sm)}
@@ -5622,7 +5662,8 @@ table.pt tr.frzrow.rowsel>td{background:#eaf3ff!important}
 .qb-ib{position:relative;width:34px;height:34px;display:grid;place-items:center;border:1px solid transparent;border-radius:9px;background:none;color:#4a5563;cursor:pointer}
 .qb-ib:hover{background:#f3f5f8;border-color:#e3e8ee;color:var(--c1,#111c28)}
 .qb-ib.on{background:#eaf1ff;border-color:#cfe0ff;color:#1d4ed8}
-.qb-ib#qbFav.on{background:#fff0f4;border-color:#ffd0dc;color:#e11d48}
+.qb-ib#qbFav.on{background:#fff7e6;border-color:#fcd9a0;color:#d97706}
+.qb-ib#qbFav.on svg{fill:currentColor}
 .qb-badge{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--blue);color:#fff;font-size:10px;font-weight:700;line-height:16px}
 .qb-sep{width:1px;height:20px;background:#e3e8ee;margin:0 4px}
 .qb-exp{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;margin-left:4px;border:1px solid #d7dde4;border-radius:9px;background:#fff;
@@ -6386,6 +6427,119 @@ body.fold-cols .bg-cols .colchips{display:flex}
 #v-import .imp-recent-h{padding:8px 14px}
 #v-import .imp-recent-note{padding:6px 12px}
 #v-import .imp-rfoot{padding:8px 12px}
+
+/* ═══ BÓC TÁCH — bố cục theo mẫu: băng dự án 1 dòng (kèm tổng tiền) · hạng mục gần đây ở đầu panel trái ·
+   bảng tính: 2 hàng công cụ nền trắng, nút Thêm tầng / Thêm hạng mục ở góc phải hàng 1 ═══ */
+#pcard .pc-tot{display:none}
+body:has(#v-boc.on) #pcard.pcard{padding:5px 10px 5px 18px;gap:14px;align-items:center;min-height:46px}
+body:has(#v-boc.on) #pcard .pc-main{display:flex;align-items:center;gap:14px;flex:none;min-width:0}
+body:has(#v-boc.on) #pcard .pc-top h1{font-size:15px}
+body:has(#v-boc.on) #pcard .macode{margin:0;font-size:11.5px;white-space:nowrap}
+body:has(#v-boc.on) #pcard .pc-edit,body:has(#v-boc.on) #pcard .pc-kpi,body:has(#v-boc.on) #pcard .pc-prog{display:none}
+body:has(#v-boc.on) #pcard .pc-info{flex:1;flex-wrap:nowrap;gap:16px;overflow:hidden}
+body:has(#v-boc.on) #pcard .pc-info>div{flex-direction:row;align-items:baseline;gap:5px;flex:none}
+body:has(#v-boc.on) #pcard .pc-info .k{font-size:11px}
+body:has(#v-boc.on) #pcard .pc-info .v{font-size:12px;max-width:150px}
+body:has(#v-boc.on) #pcard .pc-proj{margin-left:0}
+body:has(#v-boc.on) #pcard .pc-tot{display:flex;align-items:center;flex:none;height:34px;margin-left:auto;padding:0 6px 0 4px;
+  background:#fff;border-radius:4px;color:#1c2735;cursor:default}
+#pcard .pc-tot .tk-totals{margin:0}
+#pcard .pc-tot .blk-fold{margin-left:8px}
+body.fold-totals #pcard .pc-tot .tk-totals{display:none}
+body.fold-totals #pcard .pc-tot{padding:0 5px}
+body.fold-totals #pcard .pc-tot .blk-fold{margin-left:0}
+@media(max-width:1700px){ body:has(#v-boc.on) #pcard .pc-info{display:none} }
+@media(min-width:1340px){ body:has(#v-boc.on) #pcard.pcard{flex-wrap:nowrap} body:has(#v-boc.on) #pcard .pc-proj{flex:none} }
+@media(max-width:900px){ body:has(#v-boc.on) #pcard.pcard{flex-wrap:wrap} body:has(#v-boc.on) #pcard .pc-tot{margin-left:0} }
+
+/* hạng mục gần đây: hàng đầu panel trái; ô tìm nhanh (Ctrl+K) nằm trên băng dự án, kế mã dự án */
+#leftCat>.qbar{flex:none;margin:0 0 8px;padding:0 0 8px;min-height:0;border:none;border-bottom:1px solid #eef1f4;border-radius:0;background:none;box-shadow:none}
+#leftCat>.qbar .qb-recent{flex:1 1 auto}
+#leftCat>.qbar .qb-right{display:none}
+#pcard .pc-find{display:none}
+body:has(#v-boc.on) #pcard .pc-find:not(:empty){display:flex;flex:0 1 420px;min-width:160px;cursor:default}
+#pcard .pc-find .qb-find{flex:1 1 auto;min-width:0;max-width:none;height:32px;margin:0;border-color:transparent;background:#fff}
+@media(max-width:1100px){ body:has(#v-boc.on) #pcard .pc-find:not(:empty){flex-basis:220px} }
+/* panel trái Bóc tách: dấu yêu thích là NGÔI SAO vàng (cùng màu nút lọc ngôi sao trên thanh công cụ) */
+#leftCat{--fav:#f59e0b;--fav-d:#d97706;--fav-bg:#fffbeb;--fav-ln:#fde68a}
+/* ═══ panel sản phẩm TÁCH RỜI thành cửa sổ nổi (catFloat*_ trong app.js) ═══ */
+.catfl-btn{flex:none;width:30px;height:30px;margin-left:6px;display:inline-grid;place-items:center;border:1px solid var(--ln2,#e3e8ef);border-radius:99px;
+  background:#fff;color:#5b6878;cursor:pointer;padding:0}
+.catfl-btn:hover{border-color:var(--blue);color:var(--blue)}
+.catfl-h{display:none}
+@media(max-width:1120px){ .catfl-btn{display:none!important} }
+@media(min-width:1121px){
+  body.cat-float #bocGrid{grid-template-columns:minmax(0,1fr)!important}
+  body.cat-float #bocGrid.detail{grid-template-columns:268px minmax(0,1fr)!important}
+  body.cat-float #leftCat{position:fixed!important;z-index:66;min-width:260px;min-height:260px;max-width:none;padding-top:0;resize:both;overflow:auto;
+    border:1px solid #c5cfdb;border-radius:12px;background:#fff;box-shadow:0 18px 50px #0b1f3a40,0 2px 8px #0b1f3a1f}
+  body.cat-float #leftCat .cat-resize,body.cat-float #catFloatBtn{display:none!important}
+  body.cat-float .catfl-h{display:flex;align-items:center;gap:7px;position:sticky;top:0;z-index:5;margin:0 -12px 10px;padding:6px 8px 6px 12px;
+    background:#1f3a5f;color:#fff;border-radius:11px 11px 0 0;cursor:move;user-select:none;font-size:12.5px}
+  body.cat-float .catfl-h b{font-weight:600}
+  body.cat-float .catfl-h svg{opacity:.7;flex:none}
+  body.cat-float .catfl-h button{width:26px;height:24px;display:inline-grid;place-items:center;border:none;border-radius:6px;background:#ffffff1f;color:#fff;cursor:pointer;padding:0;font-size:12px}
+  body.cat-float .catfl-h button svg{opacity:1}
+  body.cat-float .catfl-h button:hover{background:#ffffff40}
+  body.cat-float.bt-tk #leftCat .cat-hd{top:48px}
+  body.cat-float.bt-tk #leftCat>.qbar{padding-right:96px}
+  body.cat-float #leftCat.fl-keo{opacity:.3;pointer-events:none}
+  body.fl-dang-doi{user-select:none;cursor:move}
+}
+/* bảng tính: tiêu đề + ô đề mục của panel trái đã có trên hàng công cụ (Bộ lọc · Yêu thích · chọn hạng mục) */
+body.bt-tk #leftCat #mmSel{display:none}
+/* ...riêng nút "Bộ lọc" (bật / tắt Công suất, Nhiệt độ màu, Thương hiệu… trên panel) giữ lại, nằm cuối hàng hạng mục gần đây */
+body.bt-tk #leftCat .cat-hd{position:absolute;top:var(--catPadT,12px);right:var(--catPadR,12px);z-index:3;margin:0;padding:0;border:none;background:none;min-height:0}
+body.bt-tk #leftCat .cat-hd>:not(#filtBtn):not(#catFloatBtn){display:none!important}
+body.bt-tk #leftCat .cat-hd #filtBtn{height:30px;margin:0}
+body.bt-tk #leftCat>.qbar{padding-right:134px}
+
+/* bảng tính: hàng "Hạng mục đã bóc" + "Cột hiển thị" gộp vào hàng công cụ của lưới */
+body.bt-tk #v-boc #tkToolBox{display:none}
+#tkSheetWrap>.gs{overflow:visible}
+#tkSheetWrap>.gs>.gs-bar{flex:0 0 100%;min-height:44px;padding:4px 10px;background:#fff;border-bottom:none}
+#tkSheetWrap>.gs>.gs-bar:first-child{border-radius:8px 8px 0 0}
+#tkSheetWrap>.gs>.gs-bar2{border-bottom:1px solid #dadce0}
+#tkSheetWrap>.gs>.gs-grid{border-radius:0 0 8px 8px;overflow:hidden}
+#tkSheetWrap .gs-bar .gs-b:hover,#tkSheetWrap .gs-bar .gs-zoom:hover{background:#eef1f5}
+.gs-hm{display:inline-flex;align-items:center;min-width:0;margin-right:10px}
+.gs-hm .toolbar.tk-frame-hm{display:flex;align-items:center;gap:6px;margin:0!important;padding:0!important;border:none;background:none;box-shadow:none}
+.gs-hm .tk-frame-hm>h3,.gs-hm .tk-frame-hm>.count,.gs-hm .tk-frame-hm>.sp,.gs-hm .tk-frame-hm>.tk-zen{display:none}
+#v-boc .gs-hm .side-tog{width:30px;height:30px;margin:0}
+#v-boc .gs-hm .tk-frame-hm .tree-btn{height:30px;min-width:0;max-width:240px}
+.gs-hm .bt-mode{margin-left:0}
+.gs-hm .bt-mode button{height:24px;padding:0 9px}
+.gs-bar .gs-foot{display:inline-flex;align-items:center;gap:8px;flex:none;margin-left:8px;padding:0;border:none;background:none}
+.gs-bar .gs-foot .addbtn{white-space:nowrap}
+/* toàn màn hình: chừa chỗ cho nút "Thoát toàn màn hình" nổi ở góc phải, khỏi đè lên nút Thêm hạng mục */
+body.tkfull #tkSheetWrap>.gs>.gs-bar:first-child{padding-right:232px}
+/* hàng công cụ 2 luôn gọn 1 dòng: bảng hẹp dần thì công tắc kiểu bảng chỉ còn biểu tượng, rồi ô hạng mục co lại */
+#tkSheetWrap>.gs{container-type:inline-size}
+.gs-hm .tree-btn #treeLabel{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@container (max-width:1410px){
+  .gs-hm .bt-mode button{font-size:0;gap:0;padding:0 8px}
+}
+/* từ 1100px trở lên hàng 2 KHÔNG xuống dòng: thiếu chỗ thì ô hạng mục tự co (tên dài hiện …) */
+@container (min-width:1100px){
+  #tkSheetWrap>.gs>.gs-bar2{flex-wrap:nowrap}
+  #tkSheetWrap>.gs>.gs-bar2>*{flex-shrink:0}
+  #tkSheetWrap>.gs>.gs-bar2>.gs-hm{flex:0 1 auto}
+  #v-boc .gs-hm .toolbar.tk-frame-hm{min-width:0;flex:0 1 auto;flex-wrap:nowrap!important}
+  .gs-hm .tk-frame-hm>div{min-width:0;flex:0 1 auto}
+  .gs-hm .tk-frame-hm>.side-tog,.gs-hm .tk-frame-hm>#btModeSlot,.gs-hm .tk-frame-hm>.sheets{flex:none}
+  #v-boc .gs-hm .tk-frame-hm .tree-btn{max-width:100%}
+  .gs-hm .tree-btn .cnt,.gs-hm .tree-btn::after{flex:none}
+}
+@container (max-width:1240px){
+  #tkSheetWrap .gs-bar2 .gs-sep{margin:0 3px}
+}
+@container (max-width:1170px){
+  #tkSheetWrap>.gs>.gs-bar2{gap:0;padding:4px 6px}
+  #tkSheetWrap .gs-bar2 .gs-sep{margin:0 1px}
+  .gs-hm{margin-right:0}
+  #tkSheetWrap .gs-bar2 .gs-zoom{padding:0}
+}
+.gs-bar .gs-foot .addbtn{height:32px;margin:0}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -6475,6 +6629,8 @@ body.fold-cols .bg-cols .colchips{display:flex}
       <div class="pc-top"><h1 id="pcName">Chưa chọn dự án</h1><span class="status" id="pcStatus">Bản nháp</span><span id="pcDezon"></span><span class="pc-edit">Bấm để sửa ›</span></div>
       <div class="macode">Mã: <span id="pcCode">—</span></div>
     </div>
+    <!-- Ô tìm nhanh (Ctrl+K) của tab Bóc tách — qbRender_ vẽ vào đây -->
+    <div class="pc-find" id="pcFind" onclick="event.stopPropagation()" title=""></div>
     <div class="pc-info">
       <div><span class="k">Khách hàng</span><span class="v" id="pcKH">—</span></div>
       <div><span class="k">Điện thoại</span><span class="v" id="pcSDT">—</span></div>
@@ -6483,6 +6639,12 @@ body.fold-cols .bg-cols .colchips{display:flex}
     </div>
     <div class="pc-kpi" id="pcKpi"></div>
     <div class="pc-prog"><div class="pct" id="pcPct">0%</div><div class="bar"><i id="pcBar"></i></div></div>
+    <!-- Tổng tiền hạng mục đang bóc (chỉ hiện ở tab Bóc tách) -->
+    <div class="pc-tot" onclick="event.stopPropagation()" title="">
+      <div class="tk-totals" id="tkTotals"></div>
+      <span class="tk-mini" id="tkMini"></span>
+      <button class="blk-fold" id="foldTotalsBtn" onclick="foldToggle_('totals')" title="Thu gọn dải tổng tiền"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+    </div>
     <div class="pc-proj" onclick="event.stopPropagation()" title="Đổi dự án đang làm việc">
       <select class="select" id="projSel"></select>
       <button class="btn blue sm" onclick="openCreate()">Tạo dự án +</button>
@@ -6491,14 +6653,21 @@ body.fold-cols .bg-cols .colchips{display:flex}
   </div>
 
   <!-- ===== VIEW: BÓC TÁCH ===== -->
-  <!-- Thanh công cụ nhanh DÙNG CHUNG Bóc tách · Chi phí · Dự án (qbMount_ chuyển tới trên tab đang mở) -->
-  <div class="qbar" id="qbar"></div>
+  <!-- Thanh công cụ nhanh DÙNG CHUNG Bóc tách · Chi phí · Dự án: ở Bóc tách nằm đầu panel trái (#leftCat), tab khác qbMount_ chuyển lên trên tab đang mở -->
   <div class="view on" id="v-boc">
     <div class="boc" id="bocGrid">
       <!-- LEFT: filter + catalog -->
       <div class="panel catpanel" id="leftCat">
+        <!-- thanh tiêu đề khi panel TÁCH RỜI thành cửa sổ nổi (catFloat*_): kéo để dời · gắn lại · ẩn -->
+        <div class="catfl-h" id="catFlH" onmousedown="catFloatDrag_(event)" title="Kéo để dời cửa sổ">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>
+          <b>Sản phẩm</b><span style="flex:1"></span>
+          <button onclick="catFloatToggle_()" title="Gắn lại vào cột trái"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button>
+          <button onclick="sideToggle_()" title="Ẩn panel sản phẩm (bấm nút ẩn / hiện panel trên thanh công cụ để mở lại)">✕</button>
+        </div>
+        <div class="qbar" id="qbar"></div>
         <div class="catpanel-top">
-          <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><span class="sp" style="flex:1"></span><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg><span class="filt-lbl">Bộ lọc</span><span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button><button class="favgo-btn" id="favGoBtn" onclick="catFavToggle()"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg><span class="favgo-n" id="favGoN"></span></button></div>
+          <div class="cat-hd"><h3>Hạng mục</h3><span class="cat-count" id="catCount"></span><span class="sp" style="flex:1"></span><button class="filt-btn" id="filtBtn" onclick="toggleFiltDrop()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg><span class="filt-lbl">Bộ lọc</span><span class="filt-badge" id="filtBadge"></span><span class="filt-car">▾</span></button><button class="catfl-btn" id="catFloatBtn" onclick="catFloatToggle_()" title="Tách panel sản phẩm thành cửa sổ nổi"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="13" height="13" rx="2"/><path d="M8 8V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-3"/></svg></button><button class="favgo-btn" id="favGoBtn" onclick="catFavToggle()"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg><span class="favgo-n" id="favGoN"></span></button></div>
 
           <!-- 3 bộ chọn (theo Figma) -->
           <!-- Ô ĐỀ MỤC: một dòng gọn; bấm vào mới xổ bộ chọn mind map (bấm tới đâu hiện tới đó) -->
@@ -6572,9 +6741,6 @@ body.fold-cols .bg-cols .colchips{display:flex}
           <div class="sheets" id="tkSheets"></div>
           <div class="sp" style="flex:1"></div>
           <span id="btModeSlot"></span>
-          <div class="tk-totals" id="tkTotals"></div>
-          <span class="tk-mini" id="tkMini"></span>
-          <button class="blk-fold" id="foldTotalsBtn" onclick="foldToggle_('totals')" title="Thu gọn dải tổng tiền"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
           <button class="tk-zen" id="tkZenBtn" onclick="tkZenToggle()" title="Thu gọn khối đầu bảng cho màn hình rộng hơn" aria-label="Thu gọn khối đầu bảng"><i></i></button>
         </div>
         <!-- KHỐI 2: công cụ của bảng + chọn cột (nằm ngoài #tkNormal để Phần thô cũng dùng được) -->

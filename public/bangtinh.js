@@ -11,8 +11,8 @@ function btCheDo_(){ try{ return localStorage.getItem('qs_bt_mode')==='cu'?'cu':
 function btOn_(k){ return !(S._btLoi && S._btLoi[k]) && btCheDo_()!=='cu'; }
 function btCheDoNut_(){ var m=btCheDo_();
   return '<div class="bt-mode" title="Chọn kiểu bảng — máy sẽ nhớ">'
-    +'<button class="'+(m==='moi'?'on':'')+'" onclick="btCheDoDat_(\'moi\')">'+btI_('freeze')+'Bảng tính</button>'
-    +'<button class="'+(m==='cu'?'on':'')+'" onclick="btCheDoDat_(\'cu\')">'+icon('list',15)+'Bảng thường</button></div>'; }
+    +'<button class="'+(m==='moi'?'on':'')+'" onclick="btCheDoDat_(\'moi\')" title="Bảng tính">'+btI_('freeze')+'Bảng tính</button>'
+    +'<button class="'+(m==='cu'?'on':'')+'" onclick="btCheDoDat_(\'cu\')" title="Bảng thường">'+icon('list',15)+'Bảng thường</button></div>'; }
 function btCheDoDat_(v){
   try{ localStorage.setItem('qs_bt_mode',v); }catch(e){}
   S._btLoi={}; ['tk','cp','da','pt'].forEach(function(k){ var B=btCtx_(k); B.ws=null; B.frame=null; B.sig=''; });
@@ -67,13 +67,14 @@ function btTao_(k, host, cols, meta, al, opt, ghi, ro, noiBo){
       if(k==='tk' && m && m.k==='sec'){ S.selFloor=m.g==='CHƯA PHÂN TẦNG'?'':m.g; tkSheetFoot_(); } }
   })[0];
   B.ws=ws;
-  // ít cột -> giãn đều cho kín bề ngang khung (khỏi khoảng trắng bên phải); đo THẬT sau khi dựng, cột STT giữ nguyên.
-  // Người dùng đã tự kéo độ rộng cột của bảng này thì KHÔNG giãn (tôn trọng số đã kéo).
-  var ct=host.querySelector('.jss_content'), tb=host.querySelector('table.jss_worksheet'), du=(ct&&tb&&!btDaKeoCot_(k,cols))?ct.clientWidth-tb.offsetWidth-2:0;
-  if(du>4){ var tc=0; cols.forEach(function(c,i){ if(c[0]!=='stt') tc+=opt.columns[i].width||100; });
-    cols.forEach(function(c,i){ if(c[0]==='stt') return; var w=opt.columns[i].width||100, d=Math.floor(w*du/tc);
-      try{ ws.setWidth(i, w+d); }catch(e){} }); }
   B.frzN=Math.min(opt.frz,cols.length);
+  // ít cột -> giãn đều cho kín bề ngang khung (khỏi khoảng trắng bên phải), cột STT giữ nguyên. Khung đổi bề ngang
+  // (toàn màn hình, ẩn / kéo panel trái, đổi cỡ cửa sổ) thì giãn lại -> bảng lúc nào cũng khít khung.
+  B.w0=opt.columns.map(function(c){ return c.width||100; }); B.wNow=B.w0.slice();
+  btGian_(k);
+  if(!host._btGianObs && window.ResizeObserver){ var hen=0;
+    host._btGianObs=new ResizeObserver(function(){ if(!hen) hen=requestAnimationFrame(function(){ hen=0; btGian_(k); }); });
+    host._btGianObs.observe(host); }
   if(B.frz) btCoDinh_(host, B.frzN);
   if(opt.menu) ws.options.contextMenu=function(){ return false; };      // tắt menu của thư viện, dùng menu của app
   B.menu=opt.menu;
@@ -89,6 +90,22 @@ function btTao_(k, host, cols, meta, al, opt, ghi, ro, noiBo){
   meta.forEach(function(m,y){ var h=btRowH_(k,btRowKey_(k,m)); if(h) btRowHAp_(k,y,h); });
   btCotAnhAp_(k);
   return ws;
+}
+/* Giãn cột cho bảng kín bề ngang khung: tổng bề rộng gốc (B.w0) hẹp hơn khung thì chia phần dư theo tỉ lệ cho các cột
+   (trừ STT); rộng hơn khung thì trả về bề rộng gốc (kéo ngang như cũ). Đo THẬT trên lưới đang hiện. */
+function btGian_(k){
+  var B=btCtx_(k), ws=B.ws, w0=B.w0, cu=B.wNow; if(!ws||!w0||!cu||!btSong_(k)) return;
+  var host=ws.element.closest('.gs-grid')||ws.element, ct=host.querySelector('.jss_content'), tb=host.querySelector('table.jss_worksheet');
+  if(!ct||!tb||!ct.clientWidth||document.body.classList.contains('gs-rsz')) return;
+  function tong(a){ return a.reduce(function(s,w){ return s+w; },0); }
+  var con=ct.clientWidth-2-(tb.offsetWidth-tong(cu)), du=con-tong(w0), tc=0, moi=w0.slice();   // con = chỗ dành cho các cột dữ liệu
+  if(du>4){ B.cols.forEach(function(c,i){ if(c[0]!=='stt') tc+=w0[i]; });
+    if(tc>0) B.cols.forEach(function(c,i){ if(c[0]!=='stt') moi[i]=w0[i]+Math.floor(w0[i]*du/tc); }); }
+  var doi=false;
+  moi.forEach(function(w,i){ if(w===cu[i]) return; doi=true; try{ ws.setWidth(i, w); }catch(e){} cu[i]=w; });
+  if(!doi) return;
+  if(B.frz) btCoDinh_(host, B.frzN||2);
+  btCotAnhAp_(k);
 }
 /* Cố định N cột đầu (+ cột số dòng) bằng position:sticky của trình duyệt. Không dùng freezeColumns của thư viện:
    nó dời từng ô bằng JS mỗi lần cuộn -> kéo ngang giật, và hàng chữ A/B/C không dính theo. */
@@ -140,6 +157,7 @@ function btKeoCot_(k, host){
     document.addEventListener('mousemove',mv,true); document.addEventListener('mouseup',up,true);
   },true);
   host.addEventListener('mousedown',function(e){
+    if(e.target.closest&&e.target.closest('.gs-flt')) return;          // nút lọc ▾ ở tiêu đề: không kéo cột
     if(e.button===0 && !mepCua(e)) return btKeoDoiCot_(k, host, e);   // giữa ô tiêu đề = kéo đổi chỗ cột
     var td=mepCua(e); if(!td||e.button!==0) return;
     e.preventDefault(); e.stopPropagation();
@@ -151,6 +169,7 @@ function btKeoCot_(k, host){
       document.body.classList.remove('gs-rsz');
       if(k==='pt'){ B.wTay=B.wTay||{}; B.wTay[col[0]]=w; }
       else { S.colW=S.colW||{}; S.colW[col[0]]=w; if(typeof saveCols==='function') saveCols(); }
+      if(B.w0&&B.wNow){ B.w0[x]=w; B.wNow[x]=w; }       // bề rộng vừa kéo = gốc mới cho lần giãn sau
       if(B.frz) btCoDinh_(host, B.frzN||2);             // cột cố định: tính lại vị trí dính
       btCotAnhAp_(k);
     }
@@ -247,7 +266,7 @@ document.addEventListener('keydown',function(e){
   if(!(e.ctrlKey||e.metaKey)) return; var k=btDangXem_(); if(!k) return;
   var t=e.target, B=btCtx_(k); if(t&&/INPUT|TEXTAREA|SELECT/.test(t.tagName)) return;    // đang gõ (ô sửa / ô tìm…) -> để mặc định
   if(!B.sel) return; var ph=e.key.toLowerCase();
-  if(e.shiftKey && ph==='l'){ e.preventDefault(); btFilter_(k); return; }
+  if(e.shiftKey && ph==='l'){ e.preventDefault(); if(k!=='tk') btFilter_(k); return; }
   if(e.shiftKey) return;
   if(ph==='b'||ph==='i'||ph==='u'){ e.preventDefault(); btFmtSet_(k,ph); }
   else if(ph==='d'){ e.preventDefault(); btDienVung_(k); }
@@ -423,6 +442,7 @@ function tkSheetVe_(host, cols, order, groups){
   var B=btCtx_('tk'), g=tkSheetGrid_(cols, order, groups);
   tkSheetGop_(true);
   tkSheetFoot_(); tkSheetNhanTha_(); setTimeout(tkSheetCao_,0);
+  setTimeout(tkLocNut_,0);                                   // nút lọc ▾ ở tiêu đề cột (kiểu Excel)
   var cb=document.getElementById('tkColBtn'); if(cb) cb.innerHTML=icon('sliders',15)+' Cột '+cols.length+'/'+COLS.length;
   var sig=cols.map(function(c){ return c[0]+':'+c[1]; }).join()+'|'+g.meta.map(function(m){ return m.k==='sec'?('#'+m.g):m.id; }).join();
   if(btSong_('tk') && B.sig===sig && host.contains(B.ws.element)){ btGhiLuoi_('tk', g.rows); return; }
@@ -451,6 +471,92 @@ function tkSheetVe_(host, cols, order, groups){
   }, btLineGhi_('tk'), ro, TK_NOI_BO);
   tkSheetKeo_(host); tkSheetCao_();
 }
+/* ═══ LỌC KIỂU EXCEL cho bảng tính Bóc tách ═══
+   Mỗi tiêu đề cột có nút ▾: bấm ra danh sách giá trị có ô tick + ô tìm + sắp xếp A→Z / Z→A, bấm OK để lọc.
+   Lọc ghi vào S.colFilter[key] dạng MẢNG các giá trị được giữ (bảng thường vẫn dùng 1 chuỗi) — renderTable() áp cho cả 2 bảng.
+   Giá trị đem lọc = đúng chữ đang hiện trong ô (tkSheetO_), nên cột tính toán (Thành tiền, Giá đại lý…) cũng lọc được. */
+function tkLocGt_(l,k){
+  if(k==='hinhAnh') return l.hinhAnh?'Có ảnh':'';
+  if(k==='taiLieu') return lineDocs_(l).length?'Có tài liệu':'';
+  return String(tkSheetO_(l,k,'')).trim();
+}
+function tkLocKhop_(f,l,k){ return Array.isArray(f)?f.indexOf(tkLocGt_(l,k))>=0:colPlain(l,k)===f; }
+function tkLocNut_(){
+  var host=document.getElementById('tkSheet'); if(!host || !btSong_('tk')) return;
+  var B=btCtx_('tk'), tr=host.querySelector('table.jss_worksheet > thead > tr:last-child'); if(!tr) return;
+  var flt=S.colFilter||{};
+  B.cols.forEach(function(c,i){ var td=tr.cells[i+1]; if(!td || c[0]==='stt') return;
+    var b=td.querySelector('.gs-flt');
+    if(!b){ b=document.createElement('span'); b.className='gs-flt'; b.title='Lọc / sắp xếp cột này';
+      b.innerHTML='<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+      td.appendChild(b); td.classList.add('gs-co-flt'); }
+    b.setAttribute('data-k',c[0]);
+    b.classList.toggle('on', flt[c[0]]!=null);
+    b.classList.toggle('sx', S.sortKey===c[0]); });
+  if(!host._locNghe){ host._locNghe=1;
+    host.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('.gs-flt'); if(!b) return;
+      e.preventDefault(); e.stopPropagation(); tkLocPop_(b, b.getAttribute('data-k')); },true);
+    // chặn mousedown / dblclick trên nút ▾ để thư viện không coi là bấm tiêu đề (chọn cả cột, đổi tên cột)
+    ['mousedown','dblclick'].forEach(function(ev){ host.addEventListener(ev,function(e){ if(e.target.closest&&e.target.closest('.gs-flt')){ e.preventDefault(); e.stopPropagation(); } },true); }); }
+}
+function tkLocPop_(nut,key){
+  closePop();
+  var flt=S.colFilter||{}, so=!!TK_SO[key];
+  var lines=S.lines.filter(function(l){ return l.nhom===S.node || String(l.nhom||'').indexOf(S.node+'.')===0; });
+  if(S.sheet && tkSheetCo_()) lines=lines.filter(function(l){ return tkSheetOf_(l)===S.sheet; });
+  Object.keys(flt).forEach(function(k){ if(k===key) return;           // như Excel: danh sách chỉ gồm dòng còn lại sau lọc của các cột KHÁC
+    lines=lines.filter(function(l){ return tkLocKhop_(flt[k],l,k); }); });
+  var dem={}, giu={};
+  lines.forEach(function(l){ var v=tkLocGt_(l,key); dem[v]=(dem[v]||0)+1; if(flt[key]==null || tkLocKhop_(flt[key],l,key)) giu[v]=1; });
+  var ds=Object.keys(dem).sort(function(a,b){ if(a===''||b==='') return a===''?(b===''?0:1):-1;       // (Trống) xuống cuối
+    return so?(tkNum_(a)-tkNum_(b)):a.localeCompare(b,'vi',{numeric:true}); });
+  var cur=flt[key], chon={};
+  ds.forEach(function(v){ chon[v]=giu[v]?1:0; });
+  S._loc={key:key, ds:ds, chon:chon};
+  var lbl=(COLS.filter(function(c){ return c[0]===key; })[0]||[key,key])[1];
+  var pop=document.createElement('div'); pop.className='fltpop gs-locpop'; pop.id='qs_pop';
+  pop.innerHTML='<div class="fhdr">'+esc(lbl)+'</div>'
+    +'<div class="fpa" onclick="colSort(\''+key+'\',\'asc\')">'+btI_('az')+(so?'Sắp xếp nhỏ → lớn':'Sắp xếp A → Z')+'</div>'
+    +'<div class="fpa" onclick="colSort(\''+key+'\',\'desc\')">'+btI_('za')+(so?'Sắp xếp lớn → nhỏ':'Sắp xếp Z → A')+'</div>'
+    +(S.sortKey?'<div class="fpa" onclick="resetSort();closePop()">'+icon('close',14)+'Bỏ sắp xếp</div>':'')
+    +'<div class="fpsep"></div>'
+    +(cur!=null?'<div class="fpa" onclick="tkLocXoa_(\''+key+'\')">'+btI_('filter')+'Xoá lọc cột “'+esc(lbl)+'”</div>':'')
+    +(Object.keys(flt).length>(cur!=null?1:0)?'<div class="fpa" onclick="tkLocXoa_()">'+btI_('xoaf')+'Xoá lọc của mọi cột</div>':'')
+    +'<input class="fsearch" placeholder="Tìm giá trị…" oninput="tkLocTim_(this.value)">'
+    +'<div class="gs-loc-l" id="tkLocL">'
+      +'<div class="fchk all" onclick="tkLocTat_()"><span class="bx">✓</span><b>(Chọn tất cả)</b></div>'
+      +ds.map(function(v,i){ return '<div class="fchk'+(chon[v]?' on':'')+'" data-i="'+i+'" data-t="'+esc(spNorm_(v))+'" onclick="tkLocDoi_('+i+')">'
+          +'<span class="bx">✓</span><span class="gs-loc-v">'+(v?esc(v):'<i>(Trống)</i>')+'</span><span class="gs-loc-n">'+dem[v]+'</span></div>'; }).join('')
+    +'</div>'
+    +'<div class="gs-loc-f"><button class="btn ghost xs" onclick="closePop()">Huỷ</button><button class="btn blue xs" onclick="tkLocOk_()">OK</button></div>';
+  document.body.appendChild(pop); tkLocDau_();
+  var r=nut.getBoundingClientRect(), w=pop.offsetWidth||270, h=pop.offsetHeight, top=r.bottom+4;
+  if(top+h>window.innerHeight-10) top=Math.max(10, window.innerHeight-h-10);
+  pop.style.left=Math.max(8,Math.min(r.right-22, window.innerWidth-w-12))+'px'; pop.style.top=top+'px';
+  setTimeout(function(){ document.addEventListener('mousedown',popOutside); var s=pop.querySelector('.fsearch'); if(s) s.focus(); },0);
+}
+function tkLocHien_(){ return [].filter.call(document.querySelectorAll('#tkLocL .fchk[data-i]'),function(el){ return el.style.display!=='none'; }); }
+// ô "(Chọn tất cả)": tick khi mọi giá trị ĐANG HIỆN đều được chọn
+function tkLocDau_(){ var L=S._loc, a=document.querySelector('#tkLocL .fchk.all'); if(!L||!a) return;
+  var hien=tkLocHien_(); a.classList.toggle('on', hien.length>0 && hien.every(function(el){ return L.chon[L.ds[+el.dataset.i]]; })); }
+function tkLocDoi_(i){ var L=S._loc; if(!L) return; var v=L.ds[i]; L.chon[v]=L.chon[v]?0:1;
+  var el=document.querySelector('#tkLocL .fchk[data-i="'+i+'"]'); if(el) el.classList.toggle('on',!!L.chon[v]); tkLocDau_(); }
+function tkLocTat_(){ var L=S._loc; if(!L) return; var hien=tkLocHien_();
+  var bat=!hien.every(function(el){ return L.chon[L.ds[+el.dataset.i]]; });
+  hien.forEach(function(el){ L.chon[L.ds[+el.dataset.i]]=bat?1:0; el.classList.toggle('on',bat); }); tkLocDau_(); }
+function tkLocTim_(q){ q=spNorm_(q||'');
+  [].forEach.call(document.querySelectorAll('#tkLocL .fchk[data-i]'),function(el){ el.style.display=(!q||el.dataset.t.indexOf(q)>=0)?'':'none'; }); tkLocDau_(); }
+function tkLocOk_(){ var L=S._loc; if(!L) return;
+  // đang gõ tìm: chỉ giữ các giá trị vừa khớp ô tìm VÀ đang tick (như Excel)
+  var q=((document.querySelector('#qs_pop .fsearch')||{}).value||'').trim();
+  var giu=q?tkLocHien_().map(function(el){ return L.ds[+el.dataset.i]; }).filter(function(v){ return L.chon[v]; })
+           :L.ds.filter(function(v){ return L.chon[v]; });
+  if(!giu.length){ toast('Tick ít nhất 1 giá trị để lọc'); return; }
+  S.colFilter=S.colFilter||{};
+  if(giu.length===L.ds.length) delete S.colFilter[L.key]; else S.colFilter[L.key]=giu;
+  closePop(); renderTable();
+}
+function tkLocXoa_(key){ if(key) delete S.colFilter[key]; else S.colFilter={}; closePop(); renderTable(); }
 /* Bảng vừa khít màn hình: đáy khung bảng = đáy cửa sổ (bằng panel trái), nhiều dòng thì cuộn TRONG bảng,
    trang không dài ra. Tính lại khi đổi cỡ cửa sổ / khối phía trên đổi cao (gập chip, gập thẻ dự án…). */
 function btZf_(el){ var f=1; for(var e=el; e&&e.nodeType===1; e=e.parentElement){ var z=parseFloat(getComputedStyle(e).zoom); if(z>0) f*=z; } return f; }
@@ -472,6 +578,7 @@ function tkSheetCao_(){
   var y0=window.pageYOffset||0, grid=document.getElementById('bocGrid'), left=document.getElementById('leftCat');
   var gTop=grid?grid.getBoundingClientRect().top+y0:0, day=Math.max(gTop+420, window.innerHeight-14);
   // số đo màn hình (getBoundingClientRect) đã nhân zoom của app (.wrap zoom .9 …), còn CSS height chưa -> chia lại
+  if(left && document.body.classList.contains('cat-float')) left=null;       // panel đang tách rời: tự có cỡ riêng
   if(left){ var lh=Math.round((day-(left.getBoundingClientRect().top+y0))/btZf_(left))+'px';
     if(left.style.height!==lh){ left.style.height=lh; left.style.maxHeight=lh; } }
   var gs=c.closest('.gs'), h=parseFloat(c.style.height)||c.offsetHeight;
@@ -545,6 +652,10 @@ function tkSheetGop_(on){
   if(!row) return;
   if(on && slot && row.parentNode!==slot) slot.appendChild(row);
   else if(!on && home && row.parentNode!==home) home.insertBefore(row, document.getElementById('foldToolsBtn'));
+  // hàng "Hạng mục đã bóc" (ẩn panel · chọn hạng mục · kiểu bảng) cũng gộp vào hàng công cụ của lưới
+  var hm=document.querySelector('.tk-panel .tk-frame-hm'), hs=document.getElementById('tkSheetHm'), tb=document.getElementById('tkToolBox');
+  if(on && hm && hs && hm.parentNode!==hs) hs.appendChild(hm);
+  else if(!on && hm && tb && hm.parentNode!==tb.parentNode) tb.parentNode.insertBefore(hm, tb);
   var left=document.getElementById('leftCat'); if(!on && left && left.style.height){ left.style.height=''; left.style.maxHeight=''; }   // trả panel trái về cỡ CSS
 }
 // Bảng tính nào đang hiện (để Ctrl+F / Tìm & thay chạy trên lưới thay vì bảng cũ đang ẩn)
@@ -809,6 +920,7 @@ function btFrame_(k){
       +b(btI_('wrap'),'Xuống dòng trong ô','btFmtSet_('+q+',\'wrap\')')
       +b(btI_('xoaf'),'Xoá định dạng vùng chọn','btFmtSet_('+q+',\'*\')')
       +sep+'<span class="gs-sumic" title="Chọn nhiều ô để xem tổng · bấm số để chép">'+btI_('sum')+'</span><span class="gs-sum" id="'+k+'SheetSum"></span>'
+      +(k==='tk'?'<span style="flex:1"></span><div class="gs-foot" id="tkSheetFoot"></div>':'')
     +'</div>'
     // Hàng 2 — "Dữ liệu": tìm · dòng · sắp xếp · điền · lọc · hiển thị · xuất
     +'<div class="gs-bar gs-bar2">'
@@ -817,7 +929,7 @@ function btFrame_(k){
       +b(icon('trash',17),'Xoá các dòng đang chọn','btXoaDong_('+q+')')
       +(dong?sep+b(btI_('az'),'Sắp xếp A → Z theo cột đang chọn','btSapXep_('+q+',\'asc\')')+b(btI_('za'),'Sắp xếp Z → A theo cột đang chọn','btSapXep_('+q+',\'desc\')'):'')
       +b(btI_('dien'),'Điền xuống (Ctrl+D): ô đầu vùng chọn chép xuống các ô dưới','btDienVung_('+q+')')
-      +sep+b(btI_('filter'),'Bật / tắt ô lọc cột (Ctrl+Shift+L)','btFilter_('+q+')',B.loc)
+      +sep+(k==='tk'?'':b(btI_('filter'),'Bật / tắt ô lọc cột (Ctrl+Shift+L)','btFilter_('+q+')',B.loc))      // Bóc tách: lọc bằng nút ▾ ở tiêu đề cột (tkLocPop_)
       +b(btI_('freeze'),'Cố định cột đầu khi cuộn ngang','btFreeze_(\''+k+'\')',B.frz)
       +'<button class="gs-b gs-txt gs-gonb'+(B.gon?'':' on')+'" title="Gọn: mỗi dòng 1 hàng chữ (rê chuột xem đủ) · Đủ chữ: hiện hết nội dung ô" onclick="btGon_(\''+k+'\')">'+btGonNhan_(B.gon)+'</button>'
       +'<select class="gs-zoom" title="Thu phóng" onchange="btZoom_('+q+',this.value)">'
@@ -825,7 +937,7 @@ function btFrame_(k){
       +sep+b(btI_('print'),'In bảng','btPrint_('+q+')')
       +b(icon('download',17),'Xuất Excel',k==='pt'?'ptExportXlsx()':(k==='cp'?'cpXuatExcel_(this)':(k==='da'?'daXuatExcel_(this)':'btXlsx_('+q+')')))
       +'<span style="flex:1"></span>'
-      +(k==='tk'?'<button class="gs-b gs-txt" id="tkColBtn" onclick="tkColPop_(event)" title="Chọn cột hiển thị"></button><span class="gs-tools" id="tkSheetTools"></span>':'')
+      +(k==='tk'?'<span class="gs-hm" id="tkSheetHm"></span><button class="gs-b gs-txt" id="tkColBtn" onclick="tkColPop_(event)" title="Chọn cột hiển thị"></button><span class="gs-tools" id="tkSheetTools"></span>':'')
       +(k!=='tk'?'<button class="gs-b gs-txt gs-cotb" onclick="foldToggle_(\'cols\')" title="Ẩn / hiện hàng chọn cột hiển thị">'+icon('sliders',15)+' Cột</button>'
         +b(btI_('freeze').replace('M9 3v18M3 9h18','M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5'),'Toàn màn hình (Esc để thoát)','btToanMH_('+q+')'):'')
       +((k==='cp'||k==='da')?'<span class="gs-tools">'+pgToolsHtml_(k)+'</span>':'')
@@ -834,7 +946,6 @@ function btFrame_(k){
     +'<div class="gs-fx"><span class="gs-fx-addr" id="'+k+'FxAddr">A1</span><span class="gs-fx-ic">fx</span>'
       +'<input id="'+k+'FxIn" placeholder="Chọn 1 ô để xem / sửa nội dung" onkeydown="if(event.key===\'Enter\'){btFxGhi_('+q+',this.value);this.blur();}else if(event.key===\'Escape\'){btFxSync_('+q+');this.blur();}" onchange="btFxGhi_('+q+',this.value)"></div>'
     +'<div id="'+k+'Sheet" class="gs-grid'+(B.gon?' gs-gon':'')+'" style="--gsfs:'+fs+'px'+(z!==100?';zoom:'+(z/100):'')+'"></div>'
-    +(k==='tk'?'<div class="gs-foot" id="tkSheetFoot"></div>':'')
   +'</div>';
 }
 function ptSheetFrame_(){ return btFrame_('pt'); }
@@ -853,7 +964,10 @@ function btSum_(k,inst,x1,y1,x2,y2){
 }
 function btFreeze_(k){ var B=btCtx_(k); B.frz=!B.frz; btVeLai_(k); }
 function btZoom_(k,v){ var B=btCtx_(k); B.zoom=Number(v)||100;
-  var h=document.getElementById(k+'Sheet'); if(h) h.style.zoom=(B.zoom/100); }
+  var h=document.getElementById(k+'Sheet'); if(h) h.style.zoom=(B.zoom/100);
+  // thu / phóng làm lưới đổi cỡ thật -> tính lại chiều cao (kín tới đáy màn hình) và giãn cột (kín bề ngang)
+  if(k==='tk') tkSheetCao_(); else btCaoFit_(k);
+  btGian_(k); }
 function btFont_(k,d){ var B=btCtx_(k); B.font=Math.max(10,Math.min(20,B.font+d));
   var h=document.getElementById(k+'Sheet'); if(!h) return; h.style.setProperty('--gsfs',B.font+'px');
   var f=h.parentNode.querySelector('.gs-fs'); if(f) f.textContent=B.font; }

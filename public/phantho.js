@@ -1287,7 +1287,7 @@ function renderPTLibrary(){
             +(da?'<span class="ptlib-da" title="Công tác này đã có trong bảng">✓ đã thêm</span>':'')
           +'</div>'
           +'<div class="ptlib-act">'
-            +(ctr?'<button class="ptlib-fav'+(ctr.yeuThich?' on':'')+'" title="'+(ctr.yeuThich?'Bỏ khỏi công tác yêu thích':'Thêm vào công tác yêu thích')+'" onclick="event.stopPropagation();ctFav_(\''+ctr.id+'\','+(ctr.yeuThich?0:1)+')">'+icon('heart',13)+'</button>':'')
+            +(ctr?'<button class="ptlib-fav'+(ctr.yeuThich?' on':'')+'" title="'+(ctr.yeuThich?'Bỏ khỏi công tác yêu thích':'Thêm vào công tác yêu thích')+'" onclick="event.stopPropagation();ctFav_(\''+ctr.id+'\','+(ctr.yeuThich?0:1)+')">'+icon('star',13)+'</button>':'')
             +'<button class="ptlib-add" title="Thêm vào bảng ước tính" onclick="event.stopPropagation();ptAddFromLib('+si+','+ii+')">'+icon('plus',14)+'</button>'
           +'</div></div>';
       }).join('')+'</div>')+'</div>';

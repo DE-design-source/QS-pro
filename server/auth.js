@@ -267,11 +267,16 @@ async function me(actor) {
    nên đăng nhập máy khác vẫn giữ. value = null -> xoá khoá đó.                     */
 function prefsOf_(u) { const p = u && u.ui_prefs; return (p && typeof p === 'object' && !Array.isArray(p)) ? p : {}; }
 // Bộ cột lưu theo tài khoản: mỗi bảng một khoá (Bóc tách + Xuất báo giá dùng chung tkCols)
-const PREF_KEYS = ['tkCols', 'cpCols', 'daCols', 'spCols'];
+const PREF_KEYS = ['tkCols', 'cpCols', 'daCols', 'spCols', 'tkColSets'];
 async function setMyPref(actor, key, value) {
   if (PREF_KEYS.indexOf(key) < 0) throw new Error('Khoá cài đặt không hợp lệ');
   if (value != null && /Cols$/.test(key) && !(Array.isArray(value) && value.length <= 60 && value.every(function (x) { return typeof x === 'string' && x.length < 40; })))
     throw new Error('Bộ cột không hợp lệ');
+  // tkColSets: các bảng cột ĐẶT TÊN của tab Bóc tách — [{ ten, cols: [...] }]
+  if (value != null && key === 'tkColSets' && !(Array.isArray(value) && value.length <= 30 && value.every(function (b) {
+    return b && typeof b.ten === 'string' && b.ten.length > 0 && b.ten.length <= 60 && Array.isArray(b.cols) && b.cols.length <= 60
+      && b.cols.every(function (x) { return typeof x === 'string' && x.length < 40; }); })))
+    throw new Error('Bảng cột không hợp lệ');
   const u = await getUserById(actor.uid);
   if (!u) throw new Error('Phiên không hợp lệ');
   const prefs = Object.assign({}, prefsOf_(u));

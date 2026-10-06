@@ -374,7 +374,10 @@ function qbTab_(){ return S._qbTab||'boc'; }
 function qbMount_(tab){
   var qb=document.getElementById('qbar'), v=document.getElementById('v-'+tab); if(!qb) return;
   if(QB_TABS.indexOf(tab)<0 || !v){ qb.style.display='none'; return; }
-  S._qbTab=tab; if(qb.nextElementSibling!==v) v.parentNode.insertBefore(qb, v);
+  // Bóc tách: thanh hạng mục gần đây nằm ở ĐẦU panel trái (theo mẫu); tab khác: trên đầu tab như cũ
+  var left=tab==='boc'&&document.getElementById('leftCat');
+  S._qbTab=tab; if(left){ if(qb.parentNode!==left) left.insertBefore(qb, left.firstChild); }
+  else if(qb.nextElementSibling!==v) v.parentNode.insertBefore(qb, v);
   qb.style.display=''; qbRender_();
 }
 
@@ -502,6 +505,62 @@ function sideApply_(){
   if(b){ b.classList.toggle('on', off); b.title=off?'Hiện lại panel sản phẩm bên trái':'Thu gọn panel sản phẩm — bảng rộng hơn'; }
   if(typeof qbRightSync_==='function') qbRightSync_();   // panel ẩn -> hàng công cụ thêm nút Bộ lọc / Yêu thích
   tkBarsSync_();                      // bề ngang bảng vừa đổi -> kéo thanh & nút xoá về đúng mép
+  catFloatApply_();                   // panel đang tách rời (cửa sổ nổi) -> đặt lại vị trí / cỡ đã nhớ
+}
+/* ═══ TÁCH RỜI panel sản phẩm thành CỬA SỔ NỔI (như thanh công cụ) ═══
+   Bấm nút "tách" ở đầu panel -> panel rời khỏi cột trái, nổi trên bảng: bảng bóc tách rộng hết bề ngang,
+   vẫn kéo sản phẩm từ panel thả vào bảng như cũ. Kéo thanh tiêu đề để dời, kéo góc dưới-phải để đổi cỡ,
+   bấm "gắn lại" để về cột trái. Vị trí + cỡ nhớ theo máy (qs_catFloat). Màn hẹp (≤1120px) không tách. */
+function catFloatGet_(){ try{ var v=JSON.parse(localStorage.getItem('qs_catFloat')||'null'); if(v&&typeof v==='object') return v; }catch(e){} return {}; }
+function catFloatLuu_(v){ try{ localStorage.setItem('qs_catFloat', JSON.stringify(v)); }catch(e){} }
+function catFloatOn_(){ return !!catFloatGet_().on && window.innerWidth>1120; }
+function catFloatZf_(el){ return (typeof btZf_==='function')?btZf_(el.parentElement||el):1; }
+function catFloatApply_(){
+  var p=document.getElementById('leftCat'); if(!p) return;
+  var v=catFloatGet_(), on=catFloatOn_();
+  document.body.classList.toggle('cat-float', on);
+  if(on){
+    var zf=catFloatZf_(p), W=window.innerWidth/zf, H=window.innerHeight/zf;
+    var w=Math.max(260, Math.min(v.w||340, W-16)), h=Math.max(260, Math.min(v.h||Math.round(H*0.7), H-16));
+    var x=Math.max(0, Math.min(v.x==null?16:v.x, W-w-4)), y=Math.max(0, Math.min(v.y==null?Math.round(H*0.22):v.y, H-60));
+    p.style.left=x+'px'; p.style.top=y+'px'; p.style.width=w+'px'; p.style.height=h+'px'; p.style.maxHeight='none';
+  } else if(p.style.left||p.style.top||p.style.width){
+    p.style.left=p.style.top=p.style.width=p.style.height=p.style.maxHeight='';
+  }
+  var b=document.getElementById('catFloatBtn'); if(b) b.title=on?'Gắn panel sản phẩm lại vào cột trái':'Tách panel sản phẩm thành cửa sổ nổi — bảng rộng hết bề ngang, vẫn kéo thả được';
+  if(typeof tkBarsSync_==='function') tkBarsSync_();
+  if(typeof tkSheetCao_==='function') setTimeout(tkSheetCao_,0);
+  if(!p._flNghe){ p._flNghe=1;
+    // đang kéo 1 sản phẩm ra khỏi cửa sổ nổi: làm mờ + cho chuột xuyên qua để thả được vào phần bảng nằm dưới nó
+    p.addEventListener('dragstart',function(){ if(catFloatOn_()) setTimeout(function(){ p.classList.add('fl-keo'); },0); });
+    document.addEventListener('dragend',function(){ p.classList.remove('fl-keo'); });
+    // đổi cỡ bằng góc dưới-phải (CSS resize) -> nhớ cỡ mới
+    p.addEventListener('mouseup',function(){ if(!catFloatOn_()) return; var s=catFloatGet_(), w=parseFloat(p.style.width), h=parseFloat(p.style.height);
+      if(w&&h&&(w!==s.w||h!==s.h)){ s.w=Math.round(w); s.h=Math.round(h); catFloatLuu_(s); } });
+    window.addEventListener('resize',function(){ if(catFloatGet_().on) catFloatApply_(); });
+  }
+}
+function catFloatToggle_(){
+  if(window.innerWidth<=1120){ toast('Màn hình hẹp — không tách panel được'); return; }
+  var v=catFloatGet_(); v.on=!v.on; catFloatLuu_(v);
+  if(v.on && typeof sideGet_==='function' && sideGet_()) sideToggle_();      // đang ẩn panel thì hiện lại rồi mới tách
+  catFloatApply_();
+  toast(v.on?'Đã tách panel sản phẩm — kéo thanh tiêu đề để dời, kéo sản phẩm thả vào bảng như cũ':'Đã gắn panel sản phẩm lại vào cột trái');
+}
+// kéo thanh tiêu đề để dời cửa sổ nổi
+function catFloatDrag_(e){
+  if(e.button!==0 || (e.target.closest&&e.target.closest('button'))) return;
+  var p=document.getElementById('leftCat'); if(!p||!catFloatOn_()) return;
+  e.preventDefault();
+  var zf=catFloatZf_(p), x0=e.clientX, y0=e.clientY, l0=parseFloat(p.style.left)||0, t0=parseFloat(p.style.top)||0;
+  var W=window.innerWidth/zf, H=window.innerHeight/zf, w=p.offsetWidth;
+  document.body.classList.add('fl-dang-doi');
+  function mv(ev){ p.style.left=Math.max(60-w, Math.min(l0+(ev.clientX-x0)/zf, W-60))+'px';
+                   p.style.top=Math.max(0, Math.min(t0+(ev.clientY-y0)/zf, H-40))+'px'; }
+  function up(){ document.removeEventListener('mousemove',mv,true); document.removeEventListener('mouseup',up,true);
+    document.body.classList.remove('fl-dang-doi');
+    var s=catFloatGet_(); s.x=Math.round(parseFloat(p.style.left)||0); s.y=Math.round(parseFloat(p.style.top)||0); catFloatLuu_(s); }
+  document.addEventListener('mousemove',mv,true); document.addEventListener('mouseup',up,true);
 }
 function sideToggle_(){ try{ localStorage.setItem('qs_sideOff', sideGet_()?'0':'1'); }catch(e){} sideApply_(); }
 function toggleFsec(key){
@@ -939,6 +998,9 @@ function fltShowMap_(){
     var off=null; try{ off=JSON.parse(localStorage.getItem('qs_fltoff')||'null'); }catch(e){}
     if(Array.isArray(off)) off.forEach(function(k){ m[k]=false; });
   }
+  // 1 lần: hiện lại Công suất + Nhiệt độ màu — có lúc panel không còn nút Bộ lọc nên ai lỡ tắt 2 khối này không bật lại được
+  try{ if(!localStorage.getItem('qs_fltshow_fix1')){ delete m.watt; delete m.kelvin;
+    localStorage.setItem('qs_fltshow_fix1','1'); localStorage.setItem('qs_fltshow', JSON.stringify(m)); } }catch(e){}
   S._fltShow=m; return m;
 }
 function fltHien_(k){ var m=fltShowMap_(); return (k in m)?!!m[k]:fltDefShow_(k); }
@@ -1032,7 +1094,7 @@ function renderCatalog(){
     if(!list.length){ el.innerHTML=renderCtLib_(ctSecs); S._filtered=list; return; }
   }
   if(!list.length){ el.innerHTML=S.fFav
-      ? '<div class="ptlib-empty">'+icon('heart',22)+'<b>Chưa có sản phẩm yêu thích</b><span>Bấm biểu tượng trái tim ở một sản phẩm (tại đây hoặc trong Danh sách sản phẩm) để lưu lại, lần sau mở dự án mới là lấy ra dùng ngay.</span></div>'
+      ? '<div class="ptlib-empty">'+icon('star',22)+'<b>Chưa có sản phẩm yêu thích</b><span>Bấm ngôi sao ở một sản phẩm tại đây (hoặc trái tim trong Danh sách sản phẩm) để lưu lại, lần sau mở dự án mới là lấy ra dùng ngay.</span></div>'
       : '<div class="empty">Không có sản phẩm khớp lọc.</div>';
     S._filtered=list; return; }
   var grp=catVarGroups_(list.slice(0,300));
@@ -1049,7 +1111,7 @@ function renderCatalog(){
         +'<div class="meta"><span class="pr">'+money(p.donGiaBan)+' đ</span></div>'
       +'</div>'
       +'<div class="cacts">'
-        +'<button class="cfav'+(p.yeuThich?' on':'')+'" title="'+(p.yeuThich?'Bỏ khỏi sản phẩm yêu thích':'Thêm vào sản phẩm yêu thích')+'" onclick="event.stopPropagation();catFav('+i+','+(p.yeuThich?0:1)+')">'+icon('heart',15)+'</button>'
+        +'<button class="cfav'+(p.yeuThich?' on':'')+'" title="'+(p.yeuThich?'Bỏ khỏi sản phẩm yêu thích':'Thêm vào sản phẩm yêu thích')+'" onclick="event.stopPropagation();catFav('+i+','+(p.yeuThich?0:1)+')">'+icon('star',15)+'</button>'
         +'<button class="add" title="Thêm vào bóc tách" onclick="event.stopPropagation();addProduct('+i+')">'+icon('plus',15)+'</button>'
       +'</div>'
       // hàng chip thông số nằm RIÊNG 1 hàng, rộng hết thẻ -> đủ chỗ, không cắt, không rớt dòng
@@ -1782,6 +1844,50 @@ function renderColChips(){
   }).join('');
   if(document.getElementById('tkColPop')) tkColPopRender_();
 }
+/* ═══ BẢNG CỘT ĐẶT TÊN (tab Bóc tách) ═══
+   Trong bảng "Cột hiển thị": tick các cột muốn xem -> gõ tên (vd "Bảng thiết kế") -> Lưu. Lần sau bấm tên bảng là
+   bật lại đúng các cột đó. Lưu theo TÀI KHOẢN (users.ui_prefs.tkColSets) + bản dự phòng localStorage, như bộ "Của tôi". */
+function tkBoKey_(){ return 'qs_tkcolsets_'+String((S.me&&S.me.username)||'').toLowerCase(); }
+function tkBoList_(){
+  var v=S.me&&S.me.uiPrefs&&S.me.uiPrefs.tkColSets;
+  if(!Array.isArray(v)){ try{ v=JSON.parse(localStorage.getItem(tkBoKey_())||'null'); }catch(e){ v=null; } }
+  if(!Array.isArray(v)) return [];
+  var ks=csKeys_('tk');
+  return v.filter(function(b){ return b && typeof b.ten==='string' && b.ten && Array.isArray(b.cols); })
+    .map(function(b){ return {ten:b.ten, cols:b.cols.filter(function(k){ return ks.indexOf(k)>=0; })}; });
+}
+function tkBoOn_(b){ var want=csWant_('tk',b.cols); return csKeys_('tk').every(function(k){ return !!csOn_('tk',k)===!!want[k]; }); }
+async function tkBoGhi_(ds){
+  try{ localStorage.setItem(tkBoKey_(), JSON.stringify(ds)); }catch(e){}
+  if(S.me) S.me.uiPrefs=Object.assign({}, S.me.uiPrefs, {tkColSets:ds});
+  try{ var r=await api('setMyPref','tkColSets',ds.length?ds:null);
+    if(S.me && r && r.uiPrefs){ S.me.uiPrefs=r.uiPrefs; if(!ds.length) S.me.uiPrefs.tkColSets=[]; }
+    return true;
+  }catch(e){ toast('Đã lưu trên máy này. Lưu theo tài khoản lỗi: '+e.message); return false; }
+}
+function tkBoDung_(i){
+  var b=tkBoList_()[i]; if(!b) return;
+  csTab_('tk').set(csWant_('tk',b.cols)); csTab_('tk').ve();
+  toast('Đã mở bảng: '+b.ten);
+}
+async function tkBoLuu_(){
+  var inp=document.getElementById('tkBoTen'), ten=String((inp&&inp.value)||'').trim().slice(0,60);
+  if(!ten){ toast('Gõ tên bảng trước khi lưu'); if(inp) inp.focus(); return; }
+  var ds=tkBoList_(), cols=csDangBat_('tk'), cu=-1;
+  ds.forEach(function(b,i){ if(b.ten.toLowerCase()===ten.toLowerCase()) cu=i; });
+  if(cu>=0){ if(!await xacNhan_('Đã có bảng "'+ds[cu].ten+'". Ghi đè bằng '+cols.length+' cột đang hiện?')) return; ds[cu]={ten:ten, cols:cols}; }
+  else { if(ds.length>=30){ toast('Tối đa 30 bảng — xoá bớt bảng cũ trước'); return; } ds.push({ten:ten, cols:cols}); }
+  if(inp) inp.value='';
+  if(await tkBoGhi_(ds)) toast('Đã lưu bảng "'+ten+'" ('+cols.length+' cột)');
+  tkColPopRender_();
+}
+async function tkBoXoa_(i){
+  var ds=tkBoList_(), b=ds[i]; if(!b) return;
+  if(!await xacNhan_('Xoá bảng "'+b.ten+'"? Các cột đang hiện không đổi.')) return;
+  ds.splice(i,1);
+  if(await tkBoGhi_(ds)) toast('Đã xoá bảng "'+b.ten+'"');
+  tkColPopRender_();
+}
 function tkColPop_(e){
   if(e&&e.stopPropagation) e.stopPropagation();
   var old=document.getElementById('tkColPop');
@@ -1790,7 +1896,8 @@ function tkColPop_(e){
   document.body.appendChild(pop); tkColPopRender_();
   var btn=document.getElementById('tkColBtn');
   if(btn){ var r=btn.getBoundingClientRect(), w=pop.offsetWidth||300;
-    pop.style.top=(r.bottom+6)+'px'; pop.style.left=Math.max(8,Math.min(r.left, window.innerWidth-w-10))+'px'; }
+    pop.style.top=(r.bottom+6)+'px'; pop.style.left=Math.max(8,Math.min(r.left, window.innerWidth-w-10))+'px';
+    pop.style.maxHeight=Math.max(260, window.innerHeight-(r.bottom+6)-12)+'px'; }      // không tràn đáy màn hình: danh sách cột cuộn bên trong, 2 nút cuối luôn thấy
   setTimeout(function(){ document.addEventListener('mousedown',tkColOutside_); },0);
   var q=document.getElementById('tkColQ'); if(q) q.focus();
 }
@@ -1804,8 +1911,17 @@ function tkColPopRender_(){
   var q=spNorm_((document.getElementById('tkColQ')||{}).value||'');
   var on=COLS.filter(function(c){ return S.cols[c[0]]; }).length;
   var list=COLS.filter(function(c){ return !q || spNorm_(c[1]).indexOf(q)>=0; });
+  var bos=tkBoList_(), tenBo=(document.getElementById('tkBoTen')||{}).value||'';
   pop.innerHTML='<div class="colpop-h"><b>Cột hiển thị</b><span class="colpop-n">'+on+'/'+COLS.length+'</span>'
       +'<button class="colpop-x" onclick="tkColPop_()">✕</button></div>'
+    // bảng cột đặt tên: bấm tên để mở · gõ tên + Lưu để lưu các cột đang tick
+    +'<div class="colpop-bo"><div class="colpop-bo-h">Bảng đã lưu</div>'
+      +(bos.length?('<div class="colpop-bo-l">'+bos.map(function(b,i){
+          return '<span class="colbo'+(tkBoOn_(b)?' on':'')+'"><button onclick="tkBoDung_('+i+')" title="Mở bảng này ('+b.cols.length+' cột)">'+esc(b.ten)+'<i>'+b.cols.length+'</i></button>'
+            +'<button class="colbo-x" onclick="tkBoXoa_('+i+')" title="Xoá bảng này">✕</button></span>'; }).join('')+'</div>')
+        :'<div class="colpop-bo-e">Chưa có bảng nào. Tick các cột muốn xem, đặt tên rồi bấm Lưu.</div>')
+      +'<div class="colpop-bo-f"><input id="tkBoTen" maxlength="60" placeholder="Tên bảng, vd: Bảng thiết kế" value="'+esc(tenBo)+'" onkeydown="if(event.key===\'Enter\')tkBoLuu_()">'
+        +'<button class="btn blue xs" onclick="tkBoLuu_()" title="Lưu '+on+' cột đang tick thành 1 bảng">Lưu</button></div></div>'
     +'<div class="colpop-s"><input id="tkColQ" placeholder="Tìm cột…" value="'+esc((document.getElementById('tkColQ')||{}).value||'')+'" oninput="tkColPopRender_()"></div>'
     +'<div class="colpop-b">'+(list.length?list.map(function(c){
         return '<label class="colpop-i"><input type="checkbox" '+(S.cols[c[0]]?'checked':'')+' onchange="toggleCol(\''+c[0]+'\')"><span>'+esc(c[1])+'</span></label>';

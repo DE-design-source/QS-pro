@@ -477,7 +477,8 @@ function renderTable(){
   var t=document.getElementById('tkTable');
   if(!S.cur){ t.style.width=''; t.innerHTML='<tr><td class="empty">Chưa chọn dự án.</td></tr>'; tkSheetChips_(null); return; }
   var flt=S.colFilter||{};
-  Object.keys(flt).forEach(function(k){ lines=lines.filter(function(l){ return colPlain(l,k)===flt[k]; }); });
+  // lọc cột: bảng thường = 1 giá trị (chuỗi) · bảng tính = nhiều giá trị tick kiểu Excel (mảng, xem tkLocPop_)
+  Object.keys(flt).forEach(function(k){ lines=lines.filter(function(l){ return tkLocKhop_(flt[k],l,k); }); });
   var cols=visCols();
   var numK=['soLuong','giaNCC','giaDaiLy','donGia','donGiaCK','lnVnd','thanhTien'], ctK=['stt','hinhAnh','dvt','chietKhau','lnPct','ckKhach','markup','margin'];
   var groups={};
@@ -1584,11 +1585,15 @@ async function giaSyncApply_(btn){
 function qbRender_(){
   var el=document.getElementById('qbar'); if(!el) return;
   if(document.activeElement && document.activeElement.id==='qbQ') { qbRightSync_(); qbRecentSync_(); return; }   // đang gõ: không vẽ lại ô tìm
-  el.innerHTML='<div class="qb-recent" id="qbRecent"></div>'
-    +'<div class="qb-find">'+icon('search',15)
+  var find='<div class="qb-find">'+icon('search',15)
       +'<input id="qbQ" placeholder="Tìm sản phẩm, công tác, dòng trong bảng, hạng mục…" autocomplete="off" spellcheck="false"'
       +' oninput="qbSearch_(this.value)" onfocus="qbSearch_(this.value)" onkeydown="qbKey_(event)">'
-      +'<kbd>'+(/Mac/i.test(navigator.platform||'')?'⌘':'Ctrl')+' K</kbd></div>'
+      +'<kbd>'+(/Mac/i.test(navigator.platform||'')?'⌘':'Ctrl')+' K</kbd></div>';
+  // Bóc tách: ô tìm nhanh nằm trên băng dự án, kế mã dự án (#pcFind); tab khác: trong thanh công cụ nhanh như cũ
+  var pf=document.getElementById('pcFind'), tren=!!pf && qbTab_()==='boc';
+  if(pf) pf.innerHTML=tren?find:'';
+  el.innerHTML='<div class="qb-recent" id="qbRecent"></div>'
+    +(tren?'':find)
     +'<div class="qb-right" id="qbRight"></div>';
   qbRecentSync_(); qbRightSync_();
 }
@@ -1625,10 +1630,9 @@ function tkToolsSync_(){
   var box=document.getElementById('tkToolRow'); if(!box) return;
   var nf=(typeof activeFiltCount_==='function')?activeFiltCount_():0;
   var side=(typeof sideGet_==='function')&&sideGet_(), zen=(typeof foldAllOn_==='function')&&foldAllOn_();
-  // Bộ lọc / yêu thích LUÔN có trên thanh công cụ (panel trái đang mở hay đã thu gọn đều bấm được)
+  // Yêu thích LUÔN có trên thanh công cụ (panel trái đang mở hay đã thu gọn đều bấm được); lọc bảng = nút ▾ ở tiêu đề cột
   var g1 = '<span class="tk-tgrp">'
-      +qbBtn_('qbFilt',QB_IC.filter,'Bộ lọc sản phẩm'+(nf?(' — đang lọc '+nf):''),'qbFilter_(event)',nf>0,nf||'')
-      +qbBtn_('qbFav',icon('heart',16),S.fFav?'Đang chỉ hiện sản phẩm yêu thích — bấm để bỏ':'Chỉ hiện sản phẩm yêu thích','catFavToggle();qbRightSync_()',!!S.fFav)
+      +qbBtn_('qbFav',icon('star',16),S.fFav?'Đang chỉ hiện sản phẩm yêu thích — bấm để bỏ':'Chỉ hiện sản phẩm yêu thích','catFavToggle();qbRightSync_()',!!S.fFav)
     +'</span><span class="tk-tsep"></span>';
   box.innerHTML=g1
     +'<span class="tk-tgrp">'                                  // nhóm 1: nội dung bảng
