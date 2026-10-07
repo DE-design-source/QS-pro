@@ -1863,39 +1863,33 @@ function pdComboVe_(){
   if(!list.length){ box.innerHTML=''; return; }
   var bo=pdCbBo_();
   var tong=list.reduce(function(a,x){ return a+(Number(x.donGiaBan)||0)*(Number(x.comboSL)||1)*bo; },0);
+  /* Khối "Sản phẩm đi kèm" (kiểu bảng gọn, cùng tông trắng / navy với panel):
+     tiêu đề + tổng · danh sách (ảnh · tên · mã · đơn giá | SL mỗi bộ · thành tiền) · chân: số bộ + Thêm combo */
   var rows=list.map(function(x,k){
     var sl=Number(x.comboSL)||1, dg=Number(x.donGiaBan)||0, slTong=sl*bo;
-    var tip=x.comboNguoc?' title="Liên kết đặt từ phía sản phẩm kia — đi kèm 2 chiều"':'';
-    return '<div class="cbi"'+tip+' draggable="true"'
-      +' ondragstart="pdComboDrag_(event,'+k+')" ondragend="prodDragEnd()">'
-      +(x.hinhAnh?'<img class="cbi-th" src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="cbi-th"></span>')
-      +'<div class="cbi-m">'
-        +'<b>'+esc(x.ten||'')+(x.comboNguoc?' <span class="cbi-rev">↔</span>':'')+'</b>'
-        +'<span class="cbi-sub">'+esc(x.ma||'')+' · '+money(dg)+' đ/cái</span>'
-      +'</div>'
-      +'<div class="cbi-p">'
-        +'<b>'+money(dg*slTong)+' đ</b>'
-        +'<span class="cbi-q" title="Số lượng đi kèm cho MỖI bộ — bấm để sửa">'
-          +'<input type="number" min="1" step="1" value="'+sl+'"'
-            +' onclick="event.stopPropagation()" onchange="pdCbSL_('+k+',null,this.value)">'
-          +(bo>1?('<em>× '+bo+' = <b>'+slTong+'</b></em>'):'')+' cái</span>'
-      +'</div>'
+    return '<div class="pcb-r" draggable="true" ondragstart="pdComboDrag_(event,'+k+')" ondragend="prodDragEnd()"'
+        +(x.comboNguoc?' title="Liên kết đặt từ phía sản phẩm kia — đi kèm 2 chiều"':'')+'>'
+      +(x.hinhAnh?'<img class="pcb-th" src="'+esc(imgSrc1_(x.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'<span class="pcb-th"></span>')
+      +'<div class="pcb-m"><b>'+esc(x.ten||'')+(x.comboNguoc?' <span class="pcb-rev">↔</span>':'')+'</b>'
+        +'<span>'+esc(x.ma||'')+(x.ma?' · ':'')+money(dg)+' đ</span></div>'
+      +'<div class="pcb-p"><b>'+money(dg*slTong)+' đ</b>'
+        +'<label class="pcb-q" title="Số lượng đi kèm cho MỖI bộ">SL <input type="number" min="1" step="1" value="'+sl+'"'
+          +' onclick="event.stopPropagation()" onchange="pdCbSL_('+k+',null,this.value)">'
+          +(bo>1?'<em>× '+bo+' = '+slTong+'</em>':'')+'</label></div>'
     +'</div>';
   }).join('');
-  box.innerHTML='<div class="pd-block pd-combo">'
-    +'<div class="pd-sec">Sản phẩm đi kèm <i>('+list.length+')</i></div>'
-    +'<div class="cbi-list">'+rows+'</div>'
-    +'<div class="cbi-tot"><span>Tổng'+(bo>1?(' '+bo+' bộ'):'')+'</span><b>'+money(tong)+' đ</b></div>'
+  box.innerHTML='<div class="pd-block pcb">'
+    +'<div class="pcb-h"><span class="pcb-t">'+icon('layers',14)+' Sản phẩm đi kèm</span><span class="pcb-n">'+list.length+'</span></div>'
+    +'<div class="pcb-list">'+rows+'</div>'
+    +'<div class="pcb-tot"><span>Tổng '+(bo>1?bo+' bộ':'combo')+'</span><b>'+money(tong)+' đ</b></div>'
     +(!o.p?''
-      :('<div class="cbi-act">'
-        +'<span class="cbi-bost" title="Số bộ combo cần thêm">'
-          +'<button class="cbi-b" onclick="event.stopPropagation();pdCbBoSet_(-1)">−</button>'
-          +'<input type="number" min="1" step="1" value="'+bo+'" onclick="event.stopPropagation()"'
-            +' onchange="pdCbBoSet_(null,this.value)">'
-          +'<button class="cbi-b" onclick="event.stopPropagation();pdCbBoSet_(1)">+</button>'
-        +'</span>'
-        +'<button class="btn blue sm cbi-add" title="Thêm sản phẩm chính và toàn bộ sản phẩm đi kèm vào '+esc(o.dich||'bóc tách')+'"'
-          +' onclick="pdAddCombo_()">'+icon('plus',14)+' Thêm '+(bo>1?(bo+' bộ'):'combo')+'</button>'
+      :('<div class="pcb-ft">'
+        +'<span class="pcb-bo" title="Số bộ combo cần thêm"><label>Số bộ</label>'
+          +'<button onclick="event.stopPropagation();pdCbBoSet_(-1)" aria-label="Bớt 1 bộ">−</button>'
+          +'<input type="number" min="1" step="1" value="'+bo+'" onclick="event.stopPropagation()" onchange="pdCbBoSet_(null,this.value)">'
+          +'<button onclick="event.stopPropagation();pdCbBoSet_(1)" aria-label="Thêm 1 bộ">+</button></span>'
+        +'<button class="btn blue sm pcb-add" title="Thêm sản phẩm chính và toàn bộ sản phẩm đi kèm vào '+esc(o.dich||'bóc tách')+'" onclick="pdAddCombo_()">'
+          +icon('plus',14)+' Thêm '+(bo>1?(bo+' bộ'):'combo')+'</button>'
       +'</div>'))
   +'</div>';
 }
