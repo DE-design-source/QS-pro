@@ -6465,6 +6465,14 @@ body.gs-mo .gs>.gs-more svg{transform:rotate(180deg)}
 #pdPanel #pdComboPanel .pcb-h,#pdPanel #pdComboPanel .pcb-r,#pdPanel #pdComboPanel .pcb-tot{padding-left:13px;padding-right:13px}
 #pdPanel #pdComboPanel .pcb-ft{padding:0 13px 12px}
 #pdPanel #pdComboPanel .pcb-r{gap:8px}
+
+/* ═══ Bóc tách: bỏ thanh tìm chung + ô đề mục ở panel trái; "Cột hiển thị" về góc phải hàng Hạng mục đã bóc ═══ */
+body:has(#v-boc.on) #qbar{display:none}
+#v-boc #leftCat #mmSel,#v-boc #leftCat #mmNav{display:none!important}
+#v-boc .tk-frame-hm>#tkColsHr{display:flex!important;align-items:center;gap:6px;flex:none;padding:0;margin:0 0 0 6px;border:none;background:none}
+#v-boc .tk-panel:has(#tkToolBox.pt) .tk-frame-hm>#tkColsHr{display:none!important}      /* Phần thô có chip cột riêng */
+body.bt-tk.fold-cols #v-boc #tkToolBox:not(.pt){display:none}                             /* bảng tính + chip đang gập: khối dưới trống -> ẩn hẳn */
+body.bt-tk #v-boc #tkToolBox .colchips{padding:6px 12px}
 </style>
 
 <!-- ===== TOP NAV ===== -->
@@ -6653,6 +6661,9 @@ body.gs-mo .gs>.gs-more svg{transform:rotate(180deg)}
           <span id="btModeSlot"></span>
           <div class="tk-totals" id="tkTotals"></div>
           <span class="tk-mini" id="tkMini"></span>
+          <!-- "Cột hiển thị" + bộ cột: nằm cuối hàng này (góc phải) thay vì chiếm riêng 1 hàng; chip cột bung ở khối dưới -->
+          <div class="tk-frame-hr" id="tkColsHr"><button class="tk-frame-h fold-h" onclick="foldToggle_('cols')" title="Ẩn / hiện các chip cột">Cột hiển thị <b id="tkColsN"></b><i class="fold-ic"></i></button>
+            <span id="tkPresetSlot"></span></div>
           <button class="blk-fold" id="foldTotalsBtn" onclick="foldToggle_('totals')" title="Thu gọn dải tổng tiền"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
           <button class="tk-zen" id="tkZenBtn" onclick="tkZenToggle()" title="Thu gọn khối đầu bảng cho màn hình rộng hơn" aria-label="Thu gọn khối đầu bảng"><i></i></button>
         </div>
@@ -6661,8 +6672,6 @@ body.gs-mo .gs>.gs-more svg{transform:rotate(180deg)}
           <div class="tk-frame-hr tk-toolhr"><span class="tk-frame-h">Công cụ bảng</span>
             <div class="tk-toolrow" id="tkToolRow"></div>
             <button class="blk-fold" id="foldToolsBtn" onclick="foldToggle_('tools')" title="Thu gọn khối công cụ"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button></div>
-          <div class="tk-frame-hr" id="tkColsHr"><button class="tk-frame-h fold-h" onclick="foldToggle_('cols')" title="Ẩn / hiện các chip cột">Cột hiển thị <b id="tkColsN"></b><i class="fold-ic"></i></button>
-            <span id="tkPresetSlot"></span></div>
           <div class="colchips" id="colChips"></div></div>
         <div id="tkNormal">
           <div class="floorhint" id="floorHint"></div>

@@ -496,7 +496,7 @@ function tkSheetCao_(){
   h=Math.max(260, Math.floor(h+(day-(gs.getBoundingClientRect().bottom+y0))/btZf_(c)));   // dời đúng phần chênh của đáy khung
   if(c.style.height!==h+'px'){ c.style.height=h+'px'; c.style.maxHeight=h+'px'; }
   if(!S._tkCaoObs && window.ResizeObserver){                  // khối phía trên đổi cao -> tính lại (1 lần / khung hình)
-    var hen=0; S._tkCaoObs=new ResizeObserver(function(){ if(!hen) hen=requestAnimationFrame(function(){ hen=0; tkSheetCao_(); }); });
+    var hen=0; S._tkCaoObs=new ResizeObserver(function(){ clearTimeout(hen); hen=setTimeout(tkSheetCao_,30); });   // setTimeout: rAF bị hoãn khi tab chạy nền -> chiều cao kẹt
     S._tkCaoObs.observe(document.body);
     window.addEventListener('resize',function(){ tkSheetCao_(); });
   }
