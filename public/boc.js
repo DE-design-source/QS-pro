@@ -802,6 +802,7 @@ async function onRowDrop(dragId,targetTr,before){
 // Chuyển 1 dòng tới trước/sau dòng targetId (hoặc cuối tầng floor khi targetId rỗng), lưu stt + tầng (bảng cũ & bảng tính dùng chung)
 async function tkMoveLine_(dragId,floor,targetId,before){
   var di=S.lines.findIndex(function(l){return l.lineId===dragId;}); if(di<0) return;
+  if(tkTam_(dragId)){ toast('Dòng vừa thêm đang lưu — thử lại sau 1–2 giây'); return; }
   var dragged=S.lines[di];
   if(floor==='CHƯA PHÂN TẦNG') floor='';
   if(targetId===dragId) return;
@@ -967,7 +968,12 @@ function tkFieldsFor_(l,k,raw){
   return null;
 }
 // Áp 1 loạt thay đổi: cập nhật tại chỗ + vẽ lại 1 lần, rồi đồng bộ server theo lô
+/* Dòng vừa thêm còn mang id tạm 'tmp_…' (máy chủ chưa trả id thật): sửa / xoá / kéo HÀNG LOẠT lúc này gửi id tạm lên máy chủ
+   -> lỗi hoặc mất thao tác khi dòng thật thay vào. Bỏ qua các dòng đó và báo người dùng thử lại (sửa từng ô vẫn được xếp hàng ở editLine). */
+function tkTam_(id){ return String(id||'').indexOf('tmp_')===0; }
 async function tkApplyEdits_(edits, nhan){
+  var tam=0; edits=(edits||[]).filter(function(e){ if(e&&tkTam_(e.id)){ tam++; return false; } return true; });
+  if(tam) toast(tam+' dòng vừa thêm đang lưu — chưa áp thay đổi cho các dòng đó, thử lại sau 1–2 giây');
   var byId={}; edits.forEach(function(e){ if(!e||!e.fields) return; byId[e.id]=Object.assign(byId[e.id]||{},e.fields); });
   var ids=Object.keys(byId); if(!ids.length){ toast('Không có ô nào sửa được'); return 0; }
   // dán/điền vùng rất lớn: hỏi lại vì mỗi dòng là một lần ghi lên máy chủ
@@ -1121,7 +1127,9 @@ async function tkBulkDup_(){
   toast('Đã nhân bản '+(ls.length-loi)+' dòng'+(loi?(' · '+loi+' lỗi'):''));
 }
 async function tkBulkDel_(){
-  var ids=tkSelIds_(); if(!ids.length) return;
+  var ids=tkSelIds_(), nTam=ids.filter(tkTam_).length; ids=ids.filter(function(id){ return !tkTam_(id); });
+  if(nTam) toast(nTam+' dòng vừa thêm đang lưu — chưa xoá các dòng đó, thử lại sau 1–2 giây');
+  if(!ids.length) return;
   if(!await xacNhan_('Xoá '+ids.length+' dòng đã chọn? Không hoàn tác được.')) return;
   var loi=0, xong={};
   for(var i=0;i<ids.length;i+=5){
