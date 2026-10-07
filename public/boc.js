@@ -1687,7 +1687,7 @@ function ccRow_(stt, x, phu, moJs, themJs, dragAttr){
   return '<div class="ccrow"'+(dragAttr||'')+' title="'+esc(String(x.ten||'')+(phu?' — '+phu:''))+'" onclick="'+moJs+'">'
     +'<span class="ccr-no">'+esc(stt)+'</span>'+img
     +'<span class="ccr-m">'
-      +'<b>'+esc(x.ten||'')+'</b>'
+      +'<b>'+esc(x._ten!=null?x._ten:spTenDay_(x))+'</b>'
       +'<span class="ccr-r">'+(phu?'<i>'+esc(phu)+'</i>':'<i></i>')
         +'<em class="ccr-gia">'+money(x.donGiaBan)+' đ</em></span>'
     +'</span>'

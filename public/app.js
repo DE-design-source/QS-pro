@@ -1047,7 +1047,7 @@ function renderCatalog(){
     return '<div class="citem'+(catCbMo_(p)?' cb-open':'')+'" draggable="true" ondragstart="prodDragStart(event,'+i+')" ondragend="prodDragEnd()">'
       +'<div class="no"><span class="no-n">'+(i+1)+'</span></div>'+im2
       +'<div class="cmid" onclick="showDetail('+i+')" title="Xem chi tiết sản phẩm">'
-        +'<div class="nm">'+esc(p.ten)+'</div>'
+        +'<div class="nm">'+esc(spTenDay_(p))+'</div>'
         +'<div class="meta"><span class="pr">'+money(p.donGiaBan)+' đ</span></div>'
       +'</div>'
       +'<div class="cacts">'
@@ -2633,6 +2633,14 @@ function catVarToggle_(i){
   renderCatalog(); if(sc) sc.scrollTop=top;
 }
 // nhãn ngắn cho biến thể: lấy phần thông số khác nhau
+/* Tên hiển thị ở thư viện sản phẩm (thẻ chính · dòng combo · dòng biến thể): TÊN - MÀU SẮC - KÍCH THƯỚC.
+   Phần nào đã có sẵn trong tên thì không lặp lại; SP không có màu / kích thước thì chỉ còn tên. */
+function spTenDay_(p){
+  if(!p) return '';
+  var ten=String(p.ten||'').trim(), low=spNorm_(ten);
+  var kt=String(p.kichThuocVS||(p.raw&&p.raw.kich_thuoc)||'').trim();
+  return [ten].concat([String(p.mauSac||'').trim(), kt].filter(function(v){ return v && low.indexOf(spNorm_(v))<0; })).join(' - ');
+}
 function catVarLbl_(x){
   return [x.congSuat,x.nhietDo,x.gocChieu,x.mauSac].map(function(v){ return String(v==null?'':v).trim(); })
     .filter(Boolean).join(' · ');
@@ -2643,7 +2651,8 @@ function catVarHtml_(list,G){
     var x=list[ix];
     var lbl=catVarLbl_(x) || x.ten || '';
     var phu=[x.thuongHieu, (catVarLbl_(x)?'':ccSpecTxt_(x)), (x.comboN?('Combo '+x.comboN):'')].map(function(t){ return String(t||'').trim(); }).filter(Boolean).join(' · ');
-    return ccRow_(head+'.'+(k+2), Object.assign({},x,{ten:lbl}), phu,
+    var ng=nganhCuaSP_(x);      // sơn / vệ sinh: dòng biến thể cũng ghi đủ Tên - Màu - Kích thước; đèn giữ nhãn thông số (W · K · góc)
+    return ccRow_(head+'.'+(k+2), Object.assign({},x,{_ten:(ng==='son'||ng==='vs')?spTenDay_(x):lbl}), phu,
       'showDetail('+ix+')', 'addProduct('+ix+')',
       ' draggable="true" ondragstart="prodDragStart(event,'+ix+')" ondragend="prodDragEnd()"');
   }).join('');
