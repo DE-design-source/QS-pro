@@ -513,7 +513,10 @@ function btDoiHang_(k, m, t, truoc){
   if(t.k==='sec'){
     if(k==='cp' && cpBy_()!=='tang'){ toast('Thả lên một dòng sản phẩm để đổi chỗ (nhóm đang gom theo '+(cpBy_()==='ncc'?'NCC':'hạng mục')+')'); return; }
     tkMoveLine_(m.id, t.g==='__k'?'':t.g, null, false); return; }                        // thả lên dòng tầng -> cuối tầng đó
-  if(t.id!==m.id){ var l=lineOf_(t.id); tkMoveLine_(m.id, (l&&l.tang)||'', t.id, truoc); }
+  if(t.id!==m.id){ var l=lineOf_(t.id), me=lineOf_(m.id);
+    // Chi phí đang gom theo hạng mục / NCC: kéo chỉ để ĐỔI THỨ TỰ — giữ nguyên tầng của dòng (trước đây âm thầm chuyển sang tầng của dòng đích)
+    var tg=(k==='cp' && cpBy_()!=='tang') ? ((me&&me.tang)||'') : ((l&&l.tang)||'');
+    tkMoveLine_(m.id, tg, t.id, truoc); }
 }
 function tkSheetKeo_(host,k){ k=k||'tk';               // dùng chung Bóc tách ('tk') + Dự án ('da'): cùng chia theo tầng
   var B=btCtx_(k), tb0=host.querySelector('tbody'); if(!tb0) return;

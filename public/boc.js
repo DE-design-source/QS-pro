@@ -660,7 +660,7 @@ function moveCol(from,to,before){ var o=S.colOrder.slice(), fi=o.indexOf(from); 
 async function moveFloor(from,to,sau){          // sau=true: đặt SAU tầng đích (mặc định: trước)
   var fl=floorsList().filter(function(t){return t!=='CHƯA PHÂN TẦNG';}); var fi=fl.indexOf(from), ti=fl.indexOf(to); if(fi<0||ti<0||fi===ti)return;
   fl.splice(fi,1); ti=fl.indexOf(to); fl.splice(sau?ti+1:ti,0,from);
-  try{ var p=await api('updateProject',S.cur.maDA,{tangTuTao:fl.join('|')}); syncProj(p); renderFloors(); renderTable(); toast('Đã đổi thứ tự tầng'); }catch(e){ toast('Lỗi: '+e.message); }
+  try{ var p=await api('updateProject',S.cur.maDA,{tangTuTao:fl.join('|')}); syncProj(p); renderFloors(); renderTable(); if(typeof veLaiSauSua_==='function') veLaiSauSua_(); toast('Đã đổi thứ tự tầng'); }catch(e){ toast('Lỗi: '+e.message); }
 }
 /* thu gọn / đổi tên tầng */
 function toggleFloor(g){ S.collapsed[g]=!S.collapsed[g]; renderTable(); }

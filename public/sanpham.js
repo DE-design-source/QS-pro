@@ -2057,7 +2057,7 @@ function cbSearch_(q){
   box.style.display='block';
 }
 /* ═══ BIẾN THỂ: nhóm sản phẩm cùng dòng, do người dùng tự gom ═══
-   S._bt = [{recordId, ma, ten, hinhAnh, donGiaBan, ...}] — chỉ là danh sách SP,
+   S._btNhom = [{recordId, ma, ten, hinhAnh, donGiaBan, ...}] — chỉ là danh sách SP,
    không có số lượng như combo (biến thể là CÙNG một sản phẩm, khác thông số). */
 function btLbl_(x){
   if(x.nganh==='son') return [x.ma, x.mauSac, x.raw&&x.raw.be_mat, x.raw&&x.raw.kich_thuoc].map(function(v){ return String(v==null?'':v).trim(); }).filter(Boolean).join(' · ');   // sơn: khác nhau ở mã / màu / bề mặt / dung tích
@@ -2076,7 +2076,7 @@ function btRow_(x,i){
 }
 function btRender_(){
   var box=document.getElementById('btList'); if(!box) return;
-  var list=S._bt||[], p=S._spEditP||{};
+  var list=S._btNhom||[], p=S._spEditP||{};
   // biến thể TỰ ĐỘNG = cùng mã SP (vd các màu tạo bằng "Tạo nhanh nhiều màu") — chỉ hiện, không cần gom tay
   var gom={}; list.forEach(function(x){ gom[String(x.recordId)]=1; });
   var cungMa=p.ma?(S.products||[]).filter(function(x){ return x.ma===p.ma && String(x.recordId)!==String(p.recordId) && !gom[String(x.recordId)]; }):[];
@@ -2087,15 +2087,15 @@ function btRender_(){
         +esc(btLbl_(x)||x.ten||'')+(x.donGiaBan?' · '+money(x.donGiaBan)+'đ':'')+'</span>'; }).join('')+'</div>':'');
   var n=document.getElementById('btCount'); if(n) n.textContent=list.length+cungMa.length;
 }
-function btRemove_(i){ (S._bt||[]).splice(i,1); btRender_(); }
+function btRemove_(i){ (S._btNhom||[]).splice(i,1); btRender_(); }
 function btAdd_(recordId){
   var p=(S.products||[]).filter(function(x){ return String(x.recordId)===String(recordId); })[0];
   if(!p) return;
-  S._bt=S._bt||[];
+  S._btNhom=S._btNhom||[];
   if(String(p.recordId)===String(S._spEditRecId)){ toast('Không thể gom sản phẩm với chính nó'); return; }
-  if(S._bt.some(function(x){ return String(x.recordId)===String(p.recordId); })){ toast('Sản phẩm này đã có trong nhóm biến thể'); return; }
+  if(S._btNhom.some(function(x){ return String(x.recordId)===String(p.recordId); })){ toast('Sản phẩm này đã có trong nhóm biến thể'); return; }
   if(String(p.nhomBT||'').trim()) toast('Sản phẩm này đang ở nhóm biến thể khác — lưu xong sẽ chuyển sang nhóm này');
-  S._bt.push({recordId:p.recordId, ma:p.ma, ten:p.ten, hinhAnh:p.hinhAnh, donGiaBan:p.donGiaBan,
+  S._btNhom.push({recordId:p.recordId, ma:p.ma, ten:p.ten, hinhAnh:p.hinhAnh, donGiaBan:p.donGiaBan,
               congSuat:p.congSuat, nhietDo:p.nhietDo, gocChieu:p.gocChieu, mauSac:p.mauSac, nganh:p.nganh, raw:p.raw});
   btRender_(); btSearch_('');
   var inp=document.getElementById('btSearch'); if(inp){ inp.value=''; inp.focus(); }
@@ -2105,7 +2105,7 @@ function btSearch_(q){
   q=String(q||'').trim().toLowerCase();
   if(q.length<1){ box.innerHTML=''; box.style.display='none'; return; }
   var cur=String(S._spEditRecId||'');
-  var chon={}; (S._bt||[]).forEach(function(x){ chon[String(x.recordId)]=1; });
+  var chon={}; (S._btNhom||[]).forEach(function(x){ chon[String(x.recordId)]=1; });
   var hit=(S.products||[]).filter(function(p){
     if(String(p.recordId)===cur || chon[String(p.recordId)] || p.spChung) return false;
     return ((p.ten||'')+' '+(p.ma||'')+' '+(p.thuongHieu||'')).toLowerCase().indexOf(q)>=0;
@@ -2288,7 +2288,7 @@ async function spNhieuBTLuu_(){
       // form Cập nhật SP đang mở: cập nhật danh sách nhóm trong form, nếu không bấm "Lưu cập nhật" sẽ ghi đè mất biến thể mới
       if(String(S._spEditRecId)===String(p.recordId) && typeof btRender_==='function' && nh2){
         if(S._spEditP) S._spEditP.nhomBT=nh2;
-        S._bt=(S.products||[]).filter(function(x){ return x.nhomBT===nh2 && String(x.recordId)!==String(p.recordId); })
+        S._btNhom=(S.products||[]).filter(function(x){ return x.nhomBT===nh2 && String(x.recordId)!==String(p.recordId); })
           .map(function(x){ return {recordId:x.recordId, ma:x.ma, ten:x.ten, hinhAnh:x.hinhAnh, donGiaBan:x.donGiaBan, mauSac:x.mauSac, nganh:x.nganh, raw:x.raw}; }); } } }
   catch(e){ loi.push('Gom nhóm biến thể: '+String(e.message||e).slice(0,60)); }
   if(String(S._spEditRecId)===String(p.recordId) && typeof btRender_==='function') btRender_();   // form đang mở: hiện ngay biến thể mới
@@ -2321,7 +2321,7 @@ async function spEditModal(i, nhanBan){
   S._combo=(got[2]||[]).map(function(x){
     return {recordId:x.recordId, ma:x.ma, ten:x.ten, hinhAnh:x.hinhAnh, donGiaBan:x.donGiaBan, comboSL:x.comboSL||1,
             comboNguoc:!!x.comboNguoc, comboBoSL:x.comboBoSL}; });
-  S._bt=(got[3]||[]).map(function(x){
+  S._btNhom=(got[3]||[]).map(function(x){
     return {recordId:x.recordId, ma:x.ma, ten:x.ten, hinhAnh:x.hinhAnh, donGiaBan:x.donGiaBan,
             congSuat:x.congSuat, nhietDo:x.nhietDo, gocChieu:x.gocChieu, mauSac:x.mauSac}; });
   if(!raw){ ov.querySelector('.spe-body').innerHTML='<div class="empty" style="padding:24px">Không tải được dữ liệu sản phẩm.</div>';
@@ -2368,7 +2368,7 @@ async function spEditModal(i, nhanBan){
   var ngSP=nganhCuaSP_(p);
   if(ngSP==='vs'||ngSP==='son'){ var hmSel=ov.querySelector('[data-col="hang_muc"]'); vsApplyHM_(ov, hmSel?hmSel.value:raw.hang_muc, 1, ngSP); }
   ov.querySelectorAll('.docf').forEach(docRender_);
-  cbRender_(); btRender_(); cbTab_((S._bt||[]).length&&!(S._combo||[]).length?'bt':'combo');
+  cbRender_(); btRender_(); cbTab_((S._btNhom||[]).length&&!(S._combo||[]).length?'bt':'combo');
   document.addEventListener('mousedown',cbOutside_);
   S._speSnap=speSnap_(ov);            // mốc so sánh -> đóng modal mà còn thay đổi thì hỏi lại
 }
@@ -2379,7 +2379,7 @@ function speSnap_(ov){
   var v=[].map.call(ov.querySelectorAll('[data-col]'), function(e){ return e.getAttribute('data-col')+'='+(e.value||''); }).join('|');
   return v+'||img:'+(S._imgMain||'')+','+((S._imgList||[]).join(','))
          +'||cb:'+((S._combo||[]).map(function(x){ return x.recordId+'x'+(x.comboSL||1); }).join(','))
-         +'||bt:'+((S._bt||[]).map(function(x){ return x.recordId; }).join(','));
+         +'||bt:'+((S._btNhom||[]).map(function(x){ return x.recordId; }).join(','));
 }
 // bấm ra ngoài thì đóng gợi ý tìm sản phẩm
 function cbOutside_(e){
@@ -2471,7 +2471,7 @@ async function spEditSave(luuVaDuyet){
 
     try{ await api('setCombo', S._spEditMa, (S._combo||[]).map(function(x){ return {id:x.recordId, soLuong:x.comboSL}; })); S._catCb={}; S._catCbOpen={}; }   // bỏ bản combo đã nhớ + gập các thẻ đang bung (nếu không sẽ kẹt "Đang tải…") -> mở lại là bản vừa lưu
     catch(e){ toast('Lưu sản phẩm đi kèm lỗi: '+e.message.slice(0,90)); }
-    try{ await api('setBienThe', S._spEditMa, (S._bt||[]).map(function(x){ return {id:x.recordId}; })); }
+    try{ await api('setBienThe', S._spEditMa, (S._btNhom||[]).map(function(x){ return {id:x.recordId}; })); }
     catch(e){ toast('Lưu nhóm biến thể lỗi: '+e.message.slice(0,90)); }
     /* BẤM "Lưu và duyệt" thì PHẢI duyệt, kể cả khi không có trường nào đổi.
        Trước đây bước duyệt nằm trong nhánh r.updated: mở sản phẩm ra, không sửa gì (hoặc chỉ
