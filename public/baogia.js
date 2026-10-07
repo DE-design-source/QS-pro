@@ -1166,7 +1166,7 @@ function bgSnap_(){
   return { lines:(S.lines||[]).map(function(l){ var o={}; BG_SNAP_F.forEach(function(k){ if(l[k]!=null&&l[k]!=='') o[k]=l[k]; }); return o; }),
     cover:(S.cover||[]).map(function(c){ return {stt:c.stt, hangMuc:c.hangMuc, moTa:c.moTa, chiPhi:coverHasChild(c.stt)?0:cc.cost[c.stt]}; }),
     opt:Object.assign({ngay:bgOpt_().ngay},(S._projData&&S._projData.bgCfg)||{}), nodes:bgSelCodes_(),
-    pt:(function(){ try{ ptEnsure(); return S.phanTho||[]; }catch(e){ return []; } })(),
+    pt:(function(){ try{ ptEnsure(); return JSON.parse(JSON.stringify(S.phanTho||[])); }catch(e){ return []; } })(),   // BẢN SAO: sửa Phần thô sau khi chốt không được làm đổi bản đã chốt
     proj:{vat:S.cur.vat, khachHang:S.cur.khachHang, ten:S.cur.ten} };
 }
 function bgSnapKey_(sn){ return JSON.stringify([sn.lines,sn.cover,sn.opt,sn.nodes,sn.proj,sn.pt]); }

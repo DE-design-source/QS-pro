@@ -102,7 +102,7 @@ const VS=require(R('public/vs-spec.js')), st=require(R('server/store_supa')), st
   // theo file "sơn nước.xlsx": Thông tin chính = Bề mặt · Độ phủ · Thời gian khô · Số lớp · Dòng SP · Hạng mục · Kích thước; cột 2 = Tính năng
   db[0].tinh_nang='• Chống nấm mốc\n• Chống bám bụi'; db[0].be_mat='Bề mặt bóng';
   const pS2=(await st.getProducts())[0];
-  ok(pS2.moTa==='Bề mặt hoàn thiện: Bề mặt bóng\nĐộ phủ: 13 m²/lít\nDòng sản phẩm: Sơn ngoại thất\nHạng mục: Sơn nước\nKích thước: 18L','thông tin chính sơn '+JSON.stringify(pS2.moTa));
+  ok(pS2.moTa==='Màu sắc: Màu trắng\nBề mặt hoàn thiện: Bề mặt bóng\nĐộ phủ: 13 m²/lít\nDòng sản phẩm: Sơn ngoại thất\nHạng mục: Sơn nước\nKích thước: 18L','thông tin chính sơn '+JSON.stringify(pS2.moTa));
   ok(pS2.kichThuoc==='Chống nấm mốc\nChống bám bụi' && !/pH/.test(pS2.moTa+pS2.kichThuoc),'cột 2 sơn = tính năng '+JSON.stringify(pS2.kichThuoc));
 
   console.log('8. Combo 2 chiều: số lượng đặt ở phía nào hiện đúng ở phía đó');

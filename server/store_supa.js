@@ -86,6 +86,7 @@ function prodToObj(r) {
            THÔNG TIN CHÍNH   = Bề mặt · Độ phủ · Thời gian khô · Số lớp · Dòng sản phẩm · Hạng mục (Sơn nước) · Kích thước
            TÍNH NĂNG SẢN PHẨM = các dòng tính năng (cột 2 của bảng — không in khối lý hoá IX, khối đó chỉ ở trang thông tin SP) */
       const b = chinh.filter(function (lb) { return lb !== 'KÍCH THƯỚC'; }).map(line).filter(Boolean);
+      if (s(r.mau_sac).trim()) b.unshift('Màu sắc: ' + s(r.mau_sac).trim());   // màu phải thấy trên dòng bóc tách / báo giá (và để 2 màu cùng mã không bị coi là 1 SP)
       b.push('Dòng sản phẩm: ' + (dong || SPEC.chuanHM(r.hang_muc) || s(r.hang_muc)));
       b.push('Hạng mục: ' + SPEC.MUC);
       if (chinh.indexOf('KÍCH THƯỚC') >= 0 && line('KÍCH THƯỚC')) b.push(line('KÍCH THƯỚC'));
@@ -792,7 +793,7 @@ async function getCombo(key) {
   try {
     fw = await supa.select('sp_combo', { filter: supa.eq('sp_id', cur.id), order: 'sort_no.asc', limit: 100 });
     bw = await supa.select('sp_combo', { filter: supa.eq('sp_kem_id', cur.id), order: 'sort_no.asc', limit: 100 });
-  } catch (e) { if (/sp_combo/.test((e && e.message) || '')) return []; throw e; }   // bảng chưa sẵn sàng
+  } catch (e) { if (comboMissing_(e)) return []; throw e; }   // CHỈ khi chưa có bảng. Lỗi khác (mạng, 5xx) phải báo lên — trả [] thì form sửa tưởng "không có combo" rồi lưu đè xoá hết
   // gộp 2 chiều về 1 danh sách "đối tác", chiều xuôi được ưu tiên nếu trùng
   const seen = {}, link = [];
   fw.forEach(function (r) {

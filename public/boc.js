@@ -196,7 +196,7 @@ async function addFloorName(name){
   if(cur.indexOf(name)>=0){ S.selFloor=name; renderFloors(); renderTable(); toast('Tầng "'+name+'" đã có — chuyển sang đang thêm'); refreshAddFloorPop_(); return; }
   cur.push(name);
   try{
-    var p=await api('updateProject', S.cur.maDA, {tangTuTao:cur.join('|')}); S.cur=p;
+    var p=await api('updateProject', S.cur.maDA, {tangTuTao:cur.join('|')}); if(S.cur&&S.cur.maDA===p.maDA) S.cur=p;   // đổi dự án trong lúc chờ thì không kéo S.cur về dự án cũ
     var i=S.projects.findIndex(function(x){return x.maDA===p.maDA;}); if(i>=0)S.projects[i]=p;
     S.selFloor=name; renderFloors(); renderTable(); toast('Đã thêm tầng: '+name);
     if(typeof tkSheetDenTang_==='function') tkSheetDenTang_(name);      // bảng tính: cuộn tới + nháy dòng tầng mới
@@ -299,10 +299,7 @@ async function addProdObj(p,floor,sl,node){
   // vẫn là 2 DÒNG RIÊNG (trước đây gộp mất, kéo 4 biến thể chỉ vào 1 dòng).
   // Gộp SL chỉ khi: cùng hạng mục + tầng, TRÙNG CẢ THÔNG SỐ (biến thể khác = dòng riêng)
   // VÀ dòng đó CHƯA điền PHÒNG. Đã gán phòng -> thêm SP đó nữa nghĩa là cho PHÒNG KHÁC -> tạo DÒNG MỚI.
-  // Sơn nước: màu không nằm trong "Thông tin chính" (theo file sơn nước.xlsx) nên 2 màu cùng mã có moTa GIỐNG nhau
-  // -> không thể biết dòng cũ là màu nào: KHÔNG gộp, mỗi lần thêm là 1 dòng riêng (thà dư dòng còn hơn gộp nhầm màu).
-  var khongGop=nganhCuaSP_(p)==='son' && String(p.mauSac||'').trim();
-  var same=khongGop?null:S.lines.filter(function(l){
+  var same=S.lines.filter(function(l){
     return !l._pending && l.nhom===nd && (l.tang||'')===floor
       && ((p.ma&&l.maSP&&l.maSP===p.ma)||l.ten===p.ten)
       && String(l.moTa||'').trim()===String(p.moTa||'').trim()

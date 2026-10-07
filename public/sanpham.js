@@ -2311,9 +2311,11 @@ async function spEditModal(i, nhanBan){
     +'<div class="spe-2col"><div class="spe-body"><div class="empty" style="padding:24px">Đang tải…</div></div><aside class="spe-side" id="speSide"></aside></div></div>';
   document.body.appendChild(ov);
   var editKey = (p.recordId!=null && p.recordId!=='') ? String(p.recordId) : p.ma;   // id dòng = đúng biến thể
-  var none=function(){ return null; };
+  var none=function(){ return null; }, loi=function(){ return false; };      // false = TẢI LỖI (khác với [] = thật sự không có)
   var got=await Promise.all([ api('getDbProduct', editKey).catch(none), api('getProductHistory', p.ma).catch(none),
-    api('getCombo', editKey).catch(none), api('getBienThe', editKey).catch(none) ]);
+    api('getCombo', editKey).catch(loi), api('getBienThe', editKey).catch(loi) ]);
+  S._comboOk=got[2]!==false; S._btOk=got[3]!==false;
+  if(!S._comboOk||!S._btOk) toast('Không tải được '+[S._comboOk?'':'sản phẩm đi kèm', S._btOk?'':'nhóm biến thể'].filter(Boolean).join(' và ')+' — phần này sẽ được GIỮ NGUYÊN khi lưu');
   // Đã đóng modal / mở sản phẩm khác trong lúc tải -> bỏ, không đè trạng thái của modal đang mở
   if(!ov.isConnected) return;
   var raw=got[0], hist=got[1]||[];
@@ -2469,9 +2471,9 @@ async function spEditSave(luuVaDuyet){
   try{
     var r=await api('updateDbProductTracked', S._spEditMa, data);
 
-    try{ await api('setCombo', S._spEditMa, (S._combo||[]).map(function(x){ return {id:x.recordId, soLuong:x.comboSL}; })); S._catCb={}; S._catCbOpen={}; }   // bỏ bản combo đã nhớ + gập các thẻ đang bung (nếu không sẽ kẹt "Đang tải…") -> mở lại là bản vừa lưu
+    if(S._comboOk!==false) try{ await api('setCombo', S._spEditMa, (S._combo||[]).map(function(x){ return {id:x.recordId, soLuong:x.comboSL}; })); S._catCb={}; S._catCbOpen={}; }   // bỏ bản combo đã nhớ + gập các thẻ đang bung (nếu không sẽ kẹt "Đang tải…") -> mở lại là bản vừa lưu
     catch(e){ toast('Lưu sản phẩm đi kèm lỗi: '+e.message.slice(0,90)); }
-    try{ await api('setBienThe', S._spEditMa, (S._btNhom||[]).map(function(x){ return {id:x.recordId}; })); }
+    if(S._btOk!==false) try{ await api('setBienThe', S._spEditMa, (S._btNhom||[]).map(function(x){ return {id:x.recordId}; })); }
     catch(e){ toast('Lưu nhóm biến thể lỗi: '+e.message.slice(0,90)); }
     /* BẤM "Lưu và duyệt" thì PHẢI duyệt, kể cả khi không có trường nào đổi.
        Trước đây bước duyệt nằm trong nhánh r.updated: mở sản phẩm ra, không sửa gì (hoặc chỉ

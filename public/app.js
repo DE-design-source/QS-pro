@@ -2337,6 +2337,13 @@ var PD_CTY_KEYS={ptInfo:1, bgOrg:1};
 function projDataSet_(khoa, val){
   S._projData=S._projData||{}; S._projData[khoa]=val;
   if(!S.cur||!S.cur.maDA) return;
+  /* Dữ liệu dự án CHƯA tải xong (hoặc lần tải bị lỗi): giá trị đang có dựng từ mặc định rỗng — lưu lúc này sẽ ĐÈ MẤT
+     cấu hình báo giá / lịch sử phiên bản / kế hoạch thanh toán thật trên máy chủ. Không lưu, báo 1 lần và tải lại. */
+  if(S._pdOk!==S.cur.maDA){
+    if(S._pdCanh!==S.cur.maDA){ S._pdCanh=S.cur.maDA; toast('Dữ liệu dự án chưa tải xong — thay đổi vừa rồi CHƯA được lưu. Đang tải lại, vui lòng thao tác lại sau vài giây.'); }
+    if(!S._pdDang){ var ma0=S.cur.maDA; projDataLoad_(ma0).then(function(){ if(S._pdOk===ma0 && typeof veLaiSauSua_==='function') veLaiSauSua_(); }); }
+    return;
+  }
   // Nhớ dự án + giá trị NGAY LÚC SỬA: đổi dự án trong 1.2s trước đây làm flush ghi undefined vào dự án mới
   S._pdQueue=S._pdQueue||{}; S._pdQueue[khoa]={ma:PD_CTY_KEYS[khoa]?'__cty':S.cur.maDA, val:val};
   clearTimeout(S._pdTimer);
@@ -2370,11 +2377,13 @@ async function projDataLoad_(maDA){
   // Mua hàng: kế hoạch thanh toán / NCC đang chọn / đang mở là của DỰ ÁN CŨ -> bỏ. Không bỏ thì lần lưu kế tiếp
   // ghi bản rỗng (dựng trước khi getProjData về) đè lên kế hoạch thật trên server.
   S._mhPayDA=null; S._mhPay=null; S._mhSel={}; S._mhPayOpen={}; S._mhDon=null; S._mhDonDA=null;
+  S._pdOk=null;                                       // chưa có dữ liệu thật của dự án nào -> projDataSet_ không được lưu
   if(!maDA) return;
+  S._pdDang=maDA;
   try{
     var d=await api('getProjData', maDA)||{};
     if(!S.cur||S.cur.maDA!==maDA) return;             // đã đổi sang dự án khác trong lúc chờ
-    S._projData=d; S._ptKey=null; S._areaDA=null; S._ptInfoU=null;   // bỏ bản đã dựng tạm trong lúc chờ (kể cả thông tin công tác dùng chung)
+    S._projData=d; S._pdOk=maDA; S._pdCanh=null; S._ptKey=null; S._areaDA=null; S._ptInfoU=null;   // bỏ bản đã dựng tạm trong lúc chờ (kể cả thông tin công tác dùng chung)
     S._mhPayDA=null; S._mhPay=null;                                       // kế hoạch thanh toán: đọc lại từ dữ liệu server vừa về
     // Lần đầu chuyển từ localStorage lên server: máy nào còn dữ liệu cũ thì đẩy lên.
     // Đẩy CẢ 4 khoá (trước chỉ đẩy bảng phần thô) -> diện tích, VAT phần thô và thông tin
@@ -2396,7 +2405,8 @@ async function projDataLoad_(maDA){
       S._projData.ptInfo=inf; projDataSet_('ptInfo', inf); day.push('thông tin công tác');
     }
     if(day.length) toast('Đã đưa '+day.join(' · ')+' lên máy chủ — từ giờ máy khác cũng xem được');
-  }catch(e){ /* chưa chạy db/du_an_data.sql -> dùng bản trong máy như cũ */ }
+  }catch(e){ try{ console.error('getProjData',e); }catch(x){} }   // tải lỗi: S._pdOk vẫn null -> không lưu đè (xem projDataSet_)
+  finally{ if(S._pdDang===maDA) S._pdDang=null; }
 }
 
 /* ═══ MÀN HÌNH CHỜ (#splash trong index.html) ═══

@@ -62,6 +62,9 @@ async function projReload_(){
   if(S.cur){ var f=(S.projects||[]).filter(function(p){ return p.maDA===S.cur.maDA; })[0]; S.cur=f||S.projects[0]||null; }
   else S.cur=(S.projects||[])[0]||null;
   try{ S.lines = S.cur ? (await api('getLines', S.cur.maDA)||[]) : []; }catch(e){ S.lines=[]; }
+  // S.cur có thể đã ĐỔI (thêm bản nháp / xoá bản đang mở): nạp lại dữ liệu dự án, nếu không Phần thô, lịch sử báo giá,
+  // kế hoạch thanh toán của dự án CŨ sẽ hiện ở dự án mới và bị lưu sang đó ở lần sửa kế tiếp.
+  if((S.cur?S.cur.maDA:null)!==(S._pdOk||null)){ S._coverDA=null; await projDataLoad_(S.cur?S.cur.maDA:null); }
   if(typeof renderAll==='function') renderAll();
 }
 function projGroupOf_(key){
