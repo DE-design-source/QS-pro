@@ -76,7 +76,9 @@ function cpSttCell_(l, so){
 }
 function cpCell_(l,k){
   if(k==='ten') return '<td class="td-ten" data-k="ten"><div style="display:flex;gap:4px;align-items:center">'
-    +'<input class="cin" value="'+esc(l.ten||'')+'" onchange="editLine(\''+l.lineId+'\',{ten:this.value})">'+lnDiffChip_(l)+'</div></td>';
+    // tên SP tự xuống dòng, hiện đủ tên (như bảng thường của Bóc tách); Enter = xong
+    +'<textarea class="cin" rows="1" title="'+esc(l.ten||'')+'" oninput="autoGrow(this)" onkeydown="if(event.key===\'Enter\'){event.preventDefault();this.blur();}"'
+      +' onchange="editLine(\''+l.lineId+'\',{ten:this.value.replace(/\\s*\\n\\s*/g,\' \')})">'+esc(l.ten||'')+'</textarea>'+lnDiffChip_(l)+'</div></td>';
   return tdK_(cellInput(l,k),k);
 }
 function renderChiphi(){
@@ -111,6 +113,7 @@ function renderChiphi(){
   if(cpBt){ try{ cpSheetGan_(keys,rows); }
     catch(e){ console.error(e); btSet_('cp',false); btCtx_('cp').frame=null; toast('Bảng tính lỗi — chuyển về bảng cũ'); return renderChiphi(); } }
   markBlocks_('#v-chiphi table.cpflat');
+  document.querySelectorAll('#v-chiphi table.cpflat td.td-ten textarea').forEach(autoGrow);
   pgBarsBind_('cp'); tkSelBar_();
   // dòng tiêu đề nhóm dính NGAY DƯỚI hàng tiêu đề cột (chiều cao hàng này thay đổi theo số cột)
   var tb=document.querySelector('#v-chiphi table.cpflat'), th0=tb&&tb.querySelector('th');
