@@ -109,16 +109,21 @@ const VS=require(R('public/vs-spec.js')), st=require(R('server/store_supa')), st
   { let cb=[], cid=0; const sp=[{id:1,ma_sp:'A',ten_sp:'A'},{id:2,ma_sp:'B',ten_sp:'B'}];
     const idOf=(f,c)=>{ const m=new RegExp('(?:^|&)'+c+'=eq\\.(\\d+)').exec(f||''); return m?+m[1]:null; };
     const inOf=f=>{ const m=/id=in\.\(([^)]*)\)/.exec(f||''); return m?m[1].split(',').map(Number):null; };
-    const o0={select:fake.select,insert:fake.insert,remove:fake.remove};
+    const o0={select:fake.select,insert:fake.insert,remove:fake.remove,update:fake.update};
     fake.select=async(t,o)=>{ const f=(o&&o.filter)||'';
       if(t==='db_san_pham'){ const i=idOf(f,'id'), l=inOf(f); return sp.filter(r=>i!=null?r.id===i:(l?l.includes(r.id):true)); }
       if(t==='sp_combo'){ const a=idOf(f,'sp_id'), b=idOf(f,'sp_kem_id'); return cb.filter(r=>(a==null||r.sp_id===a)&&(b==null||r.sp_kem_id===b)); }
       return []; };
-    fake.insert=async(t,r)=>{ if(t==='sp_combo') r.forEach(x=>cb.push(Object.assign({id:++cid},x))); return [{}]; };
+    // DB giả CÓ unique (sp_id, sp_kem_id) như db/sp_combo.sql — chèn trùng cặp là lỗi (trước đây DB giả không chặn nên test không bắt được)
+    fake.insert=async(t,r)=>{ if(t==='sp_combo') r.forEach(x=>{ if(cb.some(y=>y.sp_id===x.sp_id&&y.sp_kem_id===x.sp_kem_id)) throw new Error('duplicate key sp_combo_key'); cb.push(Object.assign({id:++cid},x)); }); return [{}]; };
+    fake.update=async(t,f,p)=>{ if(t==='sp_combo'){ const r=cb.find(x=>x.id===idOf(f,'id')); if(r) Object.assign(r,p); return [r]; } return [{}]; };
     fake.remove=async(t,f)=>{ if(t==='sp_combo'){ const l=inOf(f)||[]; cb=cb.filter(r=>!l.includes(r.id)); } };
     await st.setCombo(null,'1',[{id:2,soLuong:3}]);
     let gA=await st.getCombo('1'), gB=await st.getCombo('2');
     ok(gA.length===1 && gA[0].comboSL===3 && gB.length===1 && gB[0].comboSL===1 && gB[0].comboNguoc,'A kèm 3 B: '+JSON.stringify([gA.map(x=>x.comboSL),gB.map(x=>x.comboSL)]));
+    await st.setCombo(null,'1',[{id:2,soLuong:5}]);          // LƯU LẠI SP đã có combo (đổi số lượng) — trước đây trùng khoá unique
+    gA=await st.getCombo('1'); ok(gA.length===1 && gA[0].comboSL===5 && cb.length===1,'lưu lại combo đã có phải sửa tại chỗ: '+JSON.stringify(cb));
+    await st.setCombo(null,'1',[{id:2,soLuong:3}]);
     await st.setCombo(null,'2',[{id:1,soLuong:2}]);          // phía B đặt số lượng riêng -> trước đây bị bỏ qua (vẫn ×1)
     gA=await st.getCombo('1'); gB=await st.getCombo('2');
     ok(gB[0].comboSL===2 && gA[0].comboSL===3,'B đặt ×2 phải giữ, A vẫn ×3: '+JSON.stringify([gA.map(x=>x.comboSL),gB.map(x=>x.comboSL)]));

@@ -857,13 +857,22 @@ async function setCombo(actor, key, items) {
     //    Nhưng nếu ở phía này người dùng đặt SỐ LƯỢNG khác 1 thì ghi thêm dòng chiều xuôi của mình
     //    (getCombo ưu tiên chiều xuôi) — trước đây số lượng này bị bỏ qua, lưu xong vẫn hiện ×1.
     const giuLai = {}; bw.forEach(function (r) { const x = keep[String(r.sp_id)]; if (x && (n(x.soLuong) || 1) === 1) giuLai[String(r.sp_id)] = 1; });
-    // 3) phần mình sở hữu -> ghi lại từ đầu
-    // ghi bản mới TRƯỚC rồi mới xoá bản cũ: ghi lỗi thì combo cũ vẫn còn
-    const cu = await supa.select('sp_combo', { select: 'id', filter: supa.eq('sp_id', cur.id), limit: 200 });
+    // 3) phần mình sở hữu. Bảng có unique (sp_id, sp_kem_id) nên KHÔNG được chèn lại cặp đã có
+    //    (trước đây chèn bản mới rồi mới xoá bản cũ -> trùng khoá, lưu lại SP đã có combo là lỗi, không đổi được số lượng):
+    //    cặp đã có -> SỬA tại chỗ · cặp mới -> chèn · cặp bị bỏ -> xoá SAU CÙNG (ghi lỗi giữa chừng thì combo cũ vẫn còn)
+    const cu = await supa.select('sp_combo', { select: 'id,sp_kem_id', filter: supa.eq('sp_id', cur.id), limit: 200 });
+    const daCo = {}; cu.forEach(function (r) { daCo[String(r.sp_kem_id)] = r.id; });
     const rows = items.filter(function (x) { return !giuLai[String(x.id)]; })
       .map(function (x, i) { return { sp_id: cur.id, sp_kem_id: Number(x.id), so_luong: n(x.soLuong) || 1, ghi_chu: s(x.ghiChu), sort_no: i }; });
-    if (rows.length) await supa.insert('sp_combo', rows);
-    if (cu.length) await supa.remove('sp_combo', 'id=in.(' + cu.map(function (r) { return r.id; }).join(',') + ')');
+    const giu = {};
+    for (const r of rows.filter(function (r) { return daCo[String(r.sp_kem_id)]; })) {
+      giu[daCo[String(r.sp_kem_id)]] = 1;
+      await supa.update('sp_combo', supa.eq('id', daCo[String(r.sp_kem_id)]), { so_luong: r.so_luong, ghi_chu: r.ghi_chu, sort_no: r.sort_no });
+    }
+    const moi = rows.filter(function (r) { return !daCo[String(r.sp_kem_id)]; });
+    if (moi.length) await supa.insert('sp_combo', moi);
+    const bo = cu.filter(function (r) { return !giu[r.id]; });
+    if (bo.length) await supa.remove('sp_combo', 'id=in.(' + bo.map(function (r) { return r.id; }).join(',') + ')');
   } catch (e) { throw tblErr_(e, 'sp_combo', 'db/sp_combo.sql'); }
   await spHistory_(actor, s(cur.ma_sp), [{ field: 'SẢN PHẨM ĐI KÈM', old: '', new: items.length ? (items.length + ' sản phẩm') : 'Bỏ hết' }]);
   await logAudit_(actor, 'sua_combo', 'Đặt ' + items.length + ' sản phẩm đi kèm cho ' + s(cur.ma_sp) + ' (' + s(cur.ten_sp) + ')');
