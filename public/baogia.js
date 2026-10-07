@@ -839,6 +839,8 @@ async function doExport(fmt,btn){
     else{
       // Phần thô nằm ở máy người dùng (không có trong DB) -> gửi kèm để file Excel có sheet "3.1 Phần thô"
       var pt=bgPTSecs_();
+      // giá NHÀ THẦU là cột nội bộ: chưa bật "in cột nội bộ" thì KHÔNG gửi lên -> máy chủ bỏ hẳn 2 cột đó khỏi sheet Phần thô (khớp bản PDF)
+      if(!bgNoiBoXuat_()) pt=pt.map(function(sec){ return Object.assign({},sec,{items:sec.items.map(function(it){ var o=Object.assign({},it); delete o.dgnt; delete o.ttnt; return o; })}); });
       // file Excel đọc tờ bìa ĐÃ LƯU -> lưu đúng số đang hiện (kể cả số tự cộng từ bóc tách) trước khi xuất
       var cc=coverCosts();
       if((S.cover||[]).length){

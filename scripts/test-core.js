@@ -105,5 +105,9 @@ fs.readdirSync(path.join(__dirname, '..', 'public')).filter(f => f.endsWith('.js
   const wb2 = new ExcelJS.Workbook(), ws2 = wb2.addWorksheet('Tổng cộng');
   require('../server/export').buildTongSheet(ws2, { ten: 'Villa' }, [['Cộng (chưa VAT)', 2000000], ['Chiết khấu 10%', -200000], ['Sau chiết khấu', 1800000], ['VAT 10%', 180000], ['TỔNG THANH TOÁN', 1980000]]);
   assert.strictEqual(ws2.getCell('B4').value, -200000); assert.strictEqual(ws2.getCell('A7').value, 'TỔNG THANH TOÁN'); assert.strictEqual(ws2.getCell('B7').value, 1980000);
+  // sheet Phần thô: giá NHÀ THẦU chỉ in khi client gửi kèm dgnt (đã bật in cột nội bộ) — mặc định không lộ cho khách
+  const hd = function (pt) { const w = new ExcelJS.Workbook().addWorksheet('pt'); require('../server/export').buildPhanThoSheet(w, { ten: 'V' }, pt); return w.getRow(4).values.join('|'); };
+  assert.ok(!/NHÀ THẦU/.test(hd([{ ten: 'A', tt: 350, items: [{ n: 'x', kl: 100, dg: 3.5, tt: 350 }] }])), 'sheet Phần thô lộ cột nhà thầu');
+  assert.ok(/NHÀ THẦU/.test(hd([{ ten: 'A', tt: 350, items: [{ n: 'x', kl: 100, dg: 3.5, tt: 350, dgnt: 3, ttnt: 300 }] }])));
   console.log('test-core: tất cả đạt');
 })().catch(e => { console.error(e); process.exit(1); });

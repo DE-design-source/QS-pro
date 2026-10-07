@@ -383,8 +383,11 @@ async function adminUpdateUser(actor, id, fields) {
   const patch = {};
   if (fields.hasOwnProperty('hoTen')) patch.ho_ten = String(fields.hoTen || '');
   if (fields.hasOwnProperty('role')) {
-    // 'super' chỉ super giữ/gán được; trước đây form gửi 'super' bị hạ thành 'staff'
-    patch.role = fields.role === 'super' ? (actor.r === 'super' ? 'super' : u.role)
+    // 'super' chỉ super giữ/gán được; trước đây form gửi 'super' bị hạ thành 'staff'.
+    // Tài khoản ĐANG là super: form Sửa không có lựa chọn super (mặc định tích "Nhân viên") -> giữ nguyên super,
+    // nếu không chỉ đổi họ tên rồi lưu là tự hạ quyền, mất luôn quyền quản trị hệ thống.
+    patch.role = u.role === 'super' ? 'super'
+               : fields.role === 'super' ? (actor.r === 'super' ? 'super' : u.role)
                : (fields.role === 'admin' ? 'admin' : 'staff');
     if (patch.role !== 'admin' && patch.role !== 'super') await keepLastAdmin_(u);
   }

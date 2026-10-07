@@ -348,17 +348,20 @@ function sheetName_(s) {
  * pt = [{ten, tt, items:[{n,dvt,kl,dgnt,ttnt,dg,tt,gc}]}]
  ***/
 function buildPhanThoSheet(ws, p, pt) {
+  /* Giá NHÀ THẦU là số nội bộ: chỉ in 2 cột này khi client GỬI KÈM dgnt (tức đã bật "in cột nội bộ").
+     Trước đây luôn in -> file Excel gửi khách lộ giá nhà thầu dù bản PDF đã ẩn. */
+  const coNT = (pt || []).some(function (sec) { return (sec.items || []).some(function (it) { return it && it.dgnt != null; }); });
   const COLS = [
-    { label: 'STT', w: 6, al: 'center' },
-    { label: 'NỘI DUNG CÔNG VIỆC', w: 46, al: 'left', wrap: true },
-    { label: 'ĐVT', w: 9, al: 'center' },
-    { label: 'KHỐI LƯỢNG', w: 13, al: 'right' },
-    { label: 'ĐƠN GIÁ (NHÀ THẦU)', w: 17, al: 'right' },
-    { label: 'THÀNH TIỀN (NHÀ THẦU)', w: 19, al: 'right' },
-    { label: 'ĐƠN GIÁ', w: 15, al: 'right' },
-    { label: 'THÀNH TIỀN', w: 17, al: 'right' },
-    { label: 'GHI CHÚ', w: 26, al: 'left', wrap: true }
-  ];
+    { k: 'stt', label: 'STT', w: 6, al: 'center' },
+    { k: 'n', label: 'NỘI DUNG CÔNG VIỆC', w: 46, al: 'left', wrap: true },
+    { k: 'dvt', label: 'ĐVT', w: 9, al: 'center' },
+    { k: 'kl', label: 'KHỐI LƯỢNG', w: 13, al: 'right', fmt: '#,##0.##' },
+    { k: 'dgnt', label: 'ĐƠN GIÁ (NHÀ THẦU)', w: 17, al: 'right', fmt: '#,##0', nt: 1 },
+    { k: 'ttnt', label: 'THÀNH TIỀN (NHÀ THẦU)', w: 19, al: 'right', fmt: '#,##0', nt: 1 },
+    { k: 'dg', label: 'ĐƠN GIÁ', w: 15, al: 'right', fmt: '#,##0' },
+    { k: 'tt', label: 'THÀNH TIỀN', w: 17, al: 'right', fmt: '#,##0' },
+    { k: 'gc', label: 'GHI CHÚ', w: 26, al: 'left', wrap: true }
+  ].filter(function (c) { return coNT || !c.nt; });
   ws.columns = COLS.map(function (c) { return { width: c.w }; });
   const n = COLS.length;
   ws.mergeCells(1, 1, 1, n);
@@ -403,14 +406,12 @@ function buildPhanThoSheet(ws, p, pt) {
     tong += Number(sec.tt) || 0;
     (sec.items || []).forEach(function (it, ii) {
       const rw = ws.getRow(r++);
-      const vals = [ii + 1, String(it.n || ''), String(it.dvt || ''), Number(it.kl) || 0,
-        Number(it.dgnt) || 0, Number(it.ttnt) || 0, Number(it.dg) || 0, Number(it.tt) || 0, String(it.gc || '')];
-      vals.forEach(function (v, i) {
+      COLS.forEach(function (col, i) {
         const c = rw.getCell(i + 1);
-        c.value = v;
+        c.value = col.k === 'stt' ? ii + 1 : (col.fmt ? (Number(it[col.k]) || 0) : String(it[col.k] || ''));
         c.border = bd;
-        c.alignment = { horizontal: COLS[i].al, vertical: 'top', wrapText: !!COLS[i].wrap };
-        if (i >= 3 && i <= 7) c.numFmt = i === 3 ? '#,##0.##' : num;
+        c.alignment = { horizontal: col.al, vertical: 'top', wrapText: !!col.wrap };
+        if (col.fmt) c.numFmt = col.fmt;
         if (ii % 2 === 1) c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: STRIPE } };
       });
     });
