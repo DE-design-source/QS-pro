@@ -1659,7 +1659,8 @@ function catComboHtml_(p, idx){
     return ccRow_((idx+1)+'.'+(k+1), x, phu,
       'catChildDetail_(\''+pk+'\','+k+')', 'catAddChild_(\''+pk+'\','+k+')', '');
   }).join('');
-  return ccBox_('Sản phẩm đi kèm', ds.length, rows, '');
+  var tong=ds.reduce(function(a,x){ return a+(Number(x.donGiaBan)||0)*(Number(x.comboSL)||1); },0);
+  return ccBox_('Sản phẩm đi kèm', ds.length, rows+'<div class="ccfoot">Tổng combo · '+ds.length+' sản phẩm đi kèm <b>'+money(tong)+' đ</b></div>', '');
 }
 /* Khối sản phẩm con — GỘP THÀNH MỘT KHUNG (combo: xanh · biến thể: cam) */
 function ccBox_(ten, n, rows, cls){

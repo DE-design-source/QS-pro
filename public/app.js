@@ -1053,14 +1053,15 @@ function renderCatalog(){
         +'<button class="add" title="Thêm vào bóc tách" onclick="event.stopPropagation();addProduct('+i+')">'+icon('plus',15)+'</button>'
       +'</div>'
       // hàng chip thông số nằm RIÊNG 1 hàng, rộng hết thẻ -> đủ chỗ, không cắt, không rớt dòng
-      +((brand||p.comboN||G.kids.length)?('<div class="cmeta metarow">'
+      +((brand||p.comboN||G.kids.length)?('<div class="cmeta metarow sp-tags">'
           +(brand?'<span class="sz brand">'+brand+'</span>':'')
-          +(p.comboN?('<button class="cc-tag'+(catCbMo_(p)?' on':'')+'" title="Xem '+p.comboN+' sản phẩm đi kèm"'
-              +' onclick="event.stopPropagation();catComboToggle_('+i+')">'
-              +'<i class="cc-car">'+(catCbMo_(p)?'▾':'▸')+'</i>Combo <b>'+p.comboN+'</b></button>'):'')
-          +(G.kids.length?('<button class="cc-tag bt-tag'+(catVarMo_(p)?' on':'')+'" title="Xem '+(G.kids.length+1)+' biến thể của sản phẩm này"'
-              +' onclick="event.stopPropagation();catVarToggle_('+i+')">'
-              +'<i class="cc-car">'+(catVarMo_(p)?'▾':'▸')+'</i>Biến thể <b>'+(G.kids.length+1)+'</b></button>'):'')
+          // nhãn Combo / Biến thể: CÙNG kiểu chip với Danh sách sản phẩm (xanh · cam, chữ đầu viết hoa, chấm màu)
+          +(p.comboN?('<button class="sp-cbn sp-cbtog'+(catCbMo_(p)?' on':'')+'" title="Xem '+p.comboN+' sản phẩm đi kèm"'
+              +' onclick="event.stopPropagation();catComboToggle_('+i+')">'+icon('layers',11)+'Combo <b>'+p.comboN+'</b><span class="cbc">▸</span></button>'):'')
+          +(G.kids.length?('<button class="sp-cbn sp-btchip'+(catVarMo_(p)?' on':'')+'" title="Xem '+(G.kids.length+1)+' biến thể của sản phẩm này"'
+              +' onclick="event.stopPropagation();catVarToggle_('+i+')">'+icon('copy',11)+'Biến thể <b>'+(G.kids.length+1)+'</b><span class="cbc">▸</span></button>'
+              +(typeof spMauDots_==='function'?spMauDots_([p].concat(G.kids.map(function(ix){ return list[ix]; })).map(function(x){ return String(x.mauSac||'').trim(); })
+                  .filter(function(m,j,a){ return m && a.indexOf(m)===j; })):'')):'')
         +'</div>'):'')
       +(specs?'<div class="cspecs" onclick="showDetail('+i+')">'+specs+'</div>':'')
     +'</div>'
