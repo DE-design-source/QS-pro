@@ -1993,7 +1993,8 @@ function ptInp(si,ii,f,v,cls,goiY){
   }
   return '<input class="pt-in '+cls+'" type="number" step="any" value="'+(v===''||v==null?'':v)+'"'
     +(goiY?' placeholder="'+esc(goiY)+'" title="Bỏ trống = '+esc(goiY)+'"':'')
-    +' onchange="ptEdit('+si+','+ii+',\''+f+'\',this.value)">';
+    // ô type=number luôn trả chuỗi dấu CHẤM thập phân ("12.345") — gửi thẳng SỐ, nếu qua tkNum_ sẽ bị hiểu là 12345 (dấu chấm hàng nghìn kiểu VN)
+    +' onchange="ptEdit('+si+','+ii+',\''+f+'\',this.value===\'\'?\'\':this.valueAsNumber)">';
 }
 function ptTxt(si,ii,f,v){ return '<textarea class="pt-in pt-area" rows="1" oninput="autoGrow(this)" onchange="ptEdit('+si+','+ii+',\''+f+'\',this.value)">'+esc(v||'')+'</textarea>'; }
 /* ═══ CÔNG THỨC GIÁ — lấy đúng theo file báo giá (sheet "mai coi công thức ở đây") ═══
