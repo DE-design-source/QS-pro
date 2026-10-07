@@ -818,6 +818,14 @@ app.get('/mau-nhap-son-nuoc.xlsx', async function (req, res) {
 });
 app.get('/healthz', function (req, res) { res.json({ ok: true }); });
 
+// Swagger UI (/api-docs): mặc định chỉ bật khi chạy ở máy dev; muốn bật trên server thật thì đặt SWAGGER=1
+const SWAGGER_ON = process.env.SWAGGER === '1' ||
+  (process.env.SWAGGER !== '0' && process.env.NODE_ENV !== 'production' && !process.env.RENDER);
+if (SWAGGER_ON) {
+  require('./swagger').mount(app, { REGISTRY, PUBLIC_FNS, ACTOR_FNS, ADMIN_FNS, SUPER_FNS });
+}
+
 app.listen(config.port, function () {
   console.log('QS Pro chạy tại http://localhost:' + config.port);
+  if (SWAGGER_ON) console.log('Swagger UI: http://localhost:' + config.port + '/api-docs');
 });

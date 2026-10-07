@@ -919,7 +919,8 @@ function btFrame_(k){
       +sep+b(btI_('al'),'Căn trái','btFmtSet_('+q+',\'al\',\'l\')')+b(btI_('ac'),'Căn giữa','btFmtSet_('+q+',\'al\',\'c\')')+b(btI_('ar'),'Căn phải','btFmtSet_('+q+',\'al\',\'r\')')
       +b(btI_('wrap'),'Xuống dòng trong ô','btFmtSet_('+q+',\'wrap\')')
       +b(btI_('xoaf'),'Xoá định dạng vùng chọn','btFmtSet_('+q+',\'*\')')
-      +sep+'<span class="gs-sumic" title="Chọn nhiều ô để xem tổng · bấm số để chép">'+btI_('sum')+'</span><span class="gs-sum" id="'+k+'SheetSum"></span>'
+      // Bóc tách: không hiện Σ Tổng · TB · Min · Max · Đếm (chọn 1 hàng là dãy số đẩy nút Thêm tầng / Thêm hạng mục xuống dòng)
+      +(k==='tk'?'':sep+'<span class="gs-sumic" title="Chọn nhiều ô để xem tổng · bấm số để chép">'+btI_('sum')+'</span><span class="gs-sum" id="'+k+'SheetSum"></span>')
       +(k==='tk'?'<span style="flex:1"></span><div class="gs-foot" id="tkSheetFoot"></div>':'')
     +'</div>'
     // Hàng 2 — "Dữ liệu": tìm · dòng · sắp xếp · điền · lọc · hiển thị · xuất
