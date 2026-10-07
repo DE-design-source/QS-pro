@@ -6460,6 +6460,11 @@ body.gs-mo .gs>.gs-more svg{transform:rotate(180deg)}
 .pcb-bo input:focus{outline:none;background:#f5f8ff}
 .pcb-add{flex:1 1 110px;min-width:0;height:32px;justify-content:center;white-space:nowrap}
 .pcb{box-sizing:border-box;max-width:100%;min-width:0}
+/* panel Thông tin SP (Bóc tách) hẹp: khối tràn sát 2 mép panel (bù đúng padding 13px), không chừa khoảng trắng 2 bên */
+#pdPanel #pdComboPanel .pcb{margin:14px -13px 0;max-width:none;border-left:none;border-right:none;border-radius:0}
+#pdPanel #pdComboPanel .pcb-h,#pdPanel #pdComboPanel .pcb-r,#pdPanel #pdComboPanel .pcb-tot{padding-left:13px;padding-right:13px}
+#pdPanel #pdComboPanel .pcb-ft{padding:0 13px 12px}
+#pdPanel #pdComboPanel .pcb-r{gap:8px}
 </style>
 
 <!-- ===== TOP NAV ===== -->
