@@ -140,7 +140,7 @@ function renderMuahang(){
      +pgStat_('Tổng',money(grand)+' đ','grand'));
   var cards=S._mhGroups.map(function(g,gi){ return muahangCard(g, gi, vatPct); }).join('')
     || '<div class="empty" style="padding:34px;text-align:center;background:#fff;border:1px solid var(--line);border-radius:14px">Chưa có sản phẩm trong hạng mục này.<br>Vào tab <b>Bóc tách</b> thêm sản phẩm trước.</div>';
-  box.innerHTML=statbar+hmPTNote_()+hmLacNote_(lines.length)+'<div class="imp-layout"><div class="mhcol">'+cards+'</div>'
+  box.innerHTML=statbar+hmPTNote_(1)+hmLacNote_(lines.length)+'<div class="imp-layout"><div class="mhcol">'+cards+'</div>'
     +'<div class="mhside">'+mhSummary(S._mhGroups,vatPct,grand)+mhDonPanel_()+mhDxPanel_()+'</div></div>';
   if(S._mhDxDA!==S.cur.maDA) mhLoadDx_();
   if(S._mhDonDA!==S.cur.maDA) mhLoadDon_();

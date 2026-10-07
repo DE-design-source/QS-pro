@@ -62,8 +62,9 @@ function renderDuAn(){
   var daLines_=dq?daTatCa.filter(function(l){ return spNorm_([l.ten,l.maSP,l.thuongHieu,l.ncc,l.khuVuc].join(' ')).indexOf(dq)>=0; }):daTatCa;
   var numK=['soLuong','giaNCC','giaDaiLy','donGia','donGiaCK','lnVnd','thanhTien'], ctK=['maBanVe','nganh','hinhAnh','dvt','chietKhau','lnPct','ckKhach','markup','margin'];
   function alignCls(k){ return numK.indexOf(k)>=0?'num':(ctK.indexOf(k)>=0?'ct':''); }
-  var ban=0; daTatCa.forEach(function(l){ ban+=ttBan_(l); });
-  var vat=Math.round(ban*(Number(S.cur.vat)||0)/100);
+  // dải tổng = cùng hàm với tab Chi phí (gồm Phần thô khi xem tất cả / hạng mục 3.1, trừ CK báo giá khi xem tất cả)
+  var TT=cpTong_(daTatCa, hmNow||''), ban=TT.net, vat=TT.vat;
+  var banLoc=daLines_.reduce(function(s,l){ return s+ttBan_(l); },0);      // chân bảng: đúng các dòng ĐANG HIỆN (kể cả khi đang tìm)
   // KPI
   var stat=pgHeadRow_('daHmBtn', daTatCa.length,
       pgStat_('Sản phẩm',daTatCa.length)+pgStat_('Số lượng',daTatCa.reduce(function(s,l){return s+(Number(l.soLuong)||0);},0))
@@ -107,7 +108,7 @@ function renderDuAn(){
   var foot='';
   if(daLines_.length){ foot='<tr class="cp-foot"><td class="ct"></td>'+keys.map(function(k,ki){
       if(ki===0) return '<td class="'+alignCls(k)+'"><b>TỔNG · '+daLines_.length+' SP</b></td>';
-      if(k==='thanhTien') return '<td class="num"><b class="cp-strong">'+money(ban)+'</b></td>';
+      if(k==='thanhTien') return '<td class="num"><b class="cp-strong">'+money(banLoc)+'</b></td>';
       if(k==='soLuong') return '<td class="num"><b>'+daLines_.reduce(function(s,l){return s+(Number(l.soLuong)||0);},0)+'</b></td>';
       return '<td class="'+alignCls(k)+'"></td>';
     }).join('')+'</tr>'; }

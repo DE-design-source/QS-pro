@@ -225,10 +225,10 @@ function hmLacNote_(soHien){
     +ds.slice(0,2).map(function(c){ return '<button class="btn ghost xs" onclick="hmSet_(\''+escJs_(c)+'\')">Xem '+esc(ten(c))+'</button>'; }).join('')
     +'<button class="btn ghost xs" onclick="hmSet_(\'\')">Tất cả hạng mục</button></div>';
 }
-function hmPTNote_(){
+function hmPTNote_(khongGom){        // khongGom: tab không cộng Phần thô vào dải tổng (Mua hàng)
   if(hmGet_()!=='3.1') return '';
   return '<div class="hm-note">'+icon('layers',15)
-    +'<span><b>Hạng mục Phần thô</b> có bảng ước tính riêng — số tổng phía trên đã gồm Phần thô, còn bảng chi tiết từng công tác nằm ở Bóc tách. '
+    +'<span><b>Hạng mục Phần thô</b> có bảng ước tính riêng — '+(khongGom?'tab này chỉ tính sản phẩm, KHÔNG gồm Phần thô':'số tổng phía trên đã gồm Phần thô')+', còn bảng chi tiết từng công tác nằm ở Bóc tách. '
     +'Xem và sửa ở tab <b>Bóc tách</b>, hoặc chọn hạng mục khác ở ô bên trên.</span>'
     +'<button class="btn ghost xs" onclick="showTab(\'boc\')">Mở Bóc tách</button></div>';
 }
@@ -444,7 +444,7 @@ function cpOverview_(scope){
       +'<span class="cpb-bar"><i class="b" style="width:'+(g.t.ban/max*100).toFixed(1)+'%"></i><i class="v" style="width:'+(g.t.von/max*100).toFixed(1)+'%"></i></span>'
       +'<span class="cpb-val">'+money(g.t.ban)+'</span><span class="cpb-pct'+cls+'">'+b.toFixed(1)+'%</span></div>'; }).join('')
     +(gs.length>8?'<div class="cpn more">+ '+(gs.length-8)+' hạng mục khác</div>':'');
-  var ns=cpGroupsOf_(scope,'ncc').sort(function(a,b){ return b.t.von-a.t.von; }), tv=T.von||1;
+  var ns=cpGroupsOf_(scope,'ncc').sort(function(a,b){ return b.t.von-a.t.von; }), tv=(T.von-(T.ptVon||0))||1;   // tỷ trọng giữa các NCC: mẫu số là vốn của các DÒNG (không tính nhà thầu Phần thô) -> cộng đủ 100%
   var ncc=ns.slice(0,6).map(function(g){ var p=g.t.von/tv*100;
       return '<div class="cpn" title="'+esc(g.ten)+': '+money(g.t.von)+' đ giá vốn"><span class="cpn-n">'+esc(g.ten)+'</span>'
         +'<span class="cpn-bar"><i style="width:'+p.toFixed(1)+'%"></i></span><span class="cpn-p">'+p.toFixed(1)+'%</span></div>'; }).join('')
@@ -521,11 +521,15 @@ async function cpXuatExcel_(btn){
       out.push({group:(ROMAN_[gi]||(gi+1))+'. '+g.ten+'   —   vốn '+money(g.t.von)+' · bán '+money(g.t.ban)+' · lợi nhuận '+money(g.t.ln)});
       them(g.list,(gi+1)+'.'); });
   else them(rows,'');
-  var T=cpTotOf_(rows), vp=Number(S.cur.vat)||0, vat=Math.round(T.ban*vp/100);
+  // Đang lọc / tìm: tổng của đúng các dòng xuất ra. Không lọc: đúng dải tổng của trang (gồm Phần thô, trừ CK báo giá).
+  var loc=!!(S._cpQ||S._cpFlt), T=loc?cpTotOf_(rows):cpTong_(rows,hmGet_()), vp=Number(S.cur.vat)||0;
+  var banT=loc?T.ban:T.net, vat=Math.round(banT*vp/100);
+  var tongX=[['Tổng giá vốn',T.von]].concat(!loc&&T.ptBan?[['  trong đó Phần thô (giá bán)',T.ptBan]]:[]).concat(!loc&&T.ck?[['Chiết khấu báo giá',-T.ck]]:[])
+    .concat([['Tổng giá bán',banT],['Lợi nhuận',loc?T.ln:T.ln],['VAT '+vp+'%',vat],['Tổng thanh toán',banT+vat]]);
   if(btn){ btn.disabled=true; }
   try{
     await taiFile_('/export/bang',{ ten:'BẢNG CHI PHÍ — '+(S.cur.ten||S.cur.maDA)+(hmGet_()?(' · '+nodeName(hmGet_())):''), sheet:'Chi phi', cols:cols, rows:out,
-      tong:[['Tổng giá vốn',T.von],['Tổng giá bán',T.ban],['Lợi nhuận',T.ln],['VAT '+vp+'%',vat],['Tổng thanh toán',T.ban+vat]] },
+      tong:tongX },
       'chi-phi-'+S.cur.maDA+'.xlsx');
     toast('Đã xuất '+rows.length+' dòng ra Excel');
   }catch(e){ toast('Lỗi xuất Excel: '+e.message); }

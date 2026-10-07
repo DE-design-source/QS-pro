@@ -152,8 +152,11 @@ function renderDash(){
   // Nhóm biểu đồ gom về cấp 3 (VD 3.2.6.1 + 3.2.6.2 -> 3.2.6) cho khỏi vụn thành nhiều cột lẻ.
   var von=0,ban=0,groups={}; S.lines.forEach(function(l){ von+=ttVon_(l);ban+=ttBan_(l);
     var k=String(l.nhom||'').split('.').slice(0,3).join('.')||'Khác'; (groups[k]=groups[k]||{ban:0}).ban+=ttBan_(l); });
-  var vatPct=Number(S.cur.vat)||0, vat=Math.round(ban*vatPct/100);
-  var lnT=ban-von, bien=ban>0?(lnT/ban*100):0, gr=currentGroup();
+  // CÙNG một hàm tổng với tab Chi phí / Báo giá (cpTong_): dòng sản phẩm + Phần thô − chiết khấu báo giá -> VAT.
+  // Trước đây chỉ cộng dòng sản phẩm nên dự án có Phần thô hiện số khác hẳn Chi phí.
+  var TT=cpTong_(S.lines,''); von=TT.von; ban=TT.net; if(TT.ptBan) groups['3.1']={ban:TT.ptBan};
+  var vatPct=TT.vatPct, vat=TT.vat;
+  var lnT=TT.ln, bien=TT.bien, gr=currentGroup();
   // ---- HERO ----
   var hero='<div class="dh-hero"><div class="dh-hero-l">'
     +'<div class="dh-eyebrow"><span class="dh-dot"></span> ĐANG LÀM VIỆC</div>'

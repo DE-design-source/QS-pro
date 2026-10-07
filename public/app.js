@@ -438,7 +438,9 @@ function renderCard(){
   // KPI nhanh về dự án (bản nháp đang mở)
   var kp=document.getElementById('pcKpi');
   if(kp){
-    var von=0,ban=0; (S.lines||[]).forEach(function(l){ von+=ttVon_(l); ban+=ttBan_(l); });   // cùng công thức tab Chi phí
+    var von=0,ban=0;
+    if(S.cur && typeof cpTong_==='function'){ var TT=cpTong_(S.lines||[],''); von=TT.von; ban=TT.net; }   // đúng số tab Chi phí: gồm Phần thô, đã trừ CK báo giá
+    else (S.lines||[]).forEach(function(l){ von+=ttVon_(l); ban+=ttBan_(l); });
     function kpi(l,v){ return '<div class="pck"><span class="pck-v">'+v+'</span><span class="pck-l">'+l+'</span></div>'; }
     kp.innerHTML = S.cur ? (kpi('Hạng mục',(S.lines||[]).length)+kpi('Tổng giá bán',money(ban)+'đ')+kpi('Lợi nhuận',money(ban-von)+'đ')) : '';
   }
@@ -1929,7 +1931,10 @@ function cellInput(l,key){
 }
 function setVat(v){
   v=Number(v)||0; if(!S.cur) return;
-  S.cur.vat=v; veLaiSauSua_();
+  S.cur.vat=v;
+  // VAT Phần thô đi theo VAT dự án (trước chỉ ptSetVat đồng bộ 2 số -> đổi VAT ở tab khác thì thanh tổng Phần thô vẫn tính % cũ)
+  S.ptVat=v; projDataSet_('ptVat', v);
+  veLaiSauSua_();
   api('updateProject', S.cur.maDA, {vat:v}).then(function(p){ if(p){ p.vat=v; syncProj(p); } })
     .catch(function(e){ luuLoi_(e,'VAT của dự án'); });
 }
