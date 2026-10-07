@@ -3,7 +3,7 @@
      · Form Nhập dữ liệu / modal Sửa SP (public/app.js)  -> chỉ hiện thông số của hạng mục đang chọn
      · File mẫu nhập hàng loạt (server tạo động /mau-nhap-thiet-bi-ve-sinh.xlsx) -> 1 sheet "San pham"
        phẳng như file mẫu đèn; cột HẠNG MỤC của từng dòng quyết định thông số được nhận
-     · Server (store_supa) -> map cột DB, lọc thông số khi nhập, ghép cột "Thông tin chính" /
+     · Server (components/san-pham) -> map cột DB, lọc thông số khi nhập, ghép cột "Thông tin chính" /
        "Thông số thiết kế" cho bảng bóc tách & báo giá
    Sửa danh sách ở ĐÂY là cả 3 nơi đổi theo -> không còn lệch nhau.
    Cột DB mới: db/thiet_bi_ve_sinh_v2.sql                                                  */

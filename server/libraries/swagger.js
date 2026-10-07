@@ -1,7 +1,7 @@
 'use strict';
 /************************************************************
  * Swagger UI cho QS Pro — /api-docs (giao diện) + /api-docs.json (OpenAPI)
- *  - Tài liệu SINH TỰ ĐỘNG từ REGISTRY của server/index.js: thêm hàm vào REGISTRY
+ *  - Tài liệu SINH TỰ ĐỘNG từ REGISTRY (libraries/rpc.js gom từ các <domain>.routes.js): thêm hàm vào fns của domain
  *    là có ngay trên Swagger, không phải viết tay.
  *  - Tên tham số trong "args" đọc từ chữ ký hàm (bỏ "actor" với các hàm ACTOR_FNS).
  ************************************************************/
@@ -92,13 +92,13 @@ function buildSpec(o) {
     openapi: '3.0.3',
     info: {
       title: 'QS Pro API',
-      version: require('../package.json').version,
+      version: require('../../package.json').version,
       description: 'Mọi hàm nghiệp vụ gọi qua `POST /api/{tên hàm}` với body `{"args":[...]}`.\n\n' +
-        '**Cách dùng:** gọi `login` -> chép token trong kết quả -> bấm **Authorize** -> dán token.\n\n' +
+        '**Cách dùng:** gọi `login` một lần — server đặt cookie phiên (HttpOnly), các hàm khác tự chạy được, không cần dán token.\n\n' +
         'Tài khoản super có thể thêm header `x-view-company` để xem như một công ty.'
     },
-    components: { securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer' } } },
-    security: [{ bearerAuth: [] }],
+    components: { securitySchemes: { cookieAuth: { type: 'apiKey', in: 'cookie', name: 'qs_sess' } } },
+    security: [{ cookieAuth: [] }],
     paths: Object.assign(paths, otherPaths_())
   };
 }
@@ -108,7 +108,7 @@ function mount(app, o) {
   app.get('/api-docs.json', function (req, res) { res.json(buildSpec(o)); });
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(null, {
     customSiteTitle: 'QS Pro API',
-    swaggerOptions: { url: '/api-docs.json', persistAuthorization: true, filter: true, docExpansion: 'none', tryItOutEnabled: true }
+    swaggerOptions: { url: '/api-docs.json', filter: true, docExpansion: 'none', tryItOutEnabled: true }
   }));
 }
 

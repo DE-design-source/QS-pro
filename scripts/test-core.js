@@ -2,7 +2,7 @@
 // tổng tờ bìa (mục cha = tổng con), mã tờ bìa khớp cây hạng mục Bóc tách.   Chạy: npm test
 'use strict';
 const fs = require('fs'), path = require('path'), assert = require('assert');
-const shared = require('../server/shared');
+const shared = Object.assign({}, require('../server/libraries/vn-number'), require('../server/components/du-an/cover-template'));
 
 // Lấy vài hàm client từ public/app.js (file là script toàn cục, không phải module)
 const app = fs.readFileSync(path.join(__dirname, '..', 'public', 'app.js'), 'utf8');
@@ -81,17 +81,17 @@ Object.keys(shared.S32_SUPPLIERS).forEach(k => assert(tree.includes(k), 'NCC ' +
 assert(shared.inCode('3.2.6.1', '3.2.6') && shared.inCode('3.2.6', '3.2.6') && !shared.inCode('3.2.60', '3.2.6'));
 
 // mọi khoá client lưu bằng projDataSet_ phải có trong danh sách server cho phép (thiếu -> server từ chối, dữ liệu mất khi F5)
-const srv = fs.readFileSync(path.join(__dirname, '..', 'server', 'store_supa.js'), 'utf8');
+const srv = fs.readFileSync(path.join(__dirname, '..', 'server', 'components', 'du-an', 'du-an.repository.js'), 'utf8');
 const choPhep = eval(srv.match(/const PROJ_DATA_KEYS = (\[[^\]]*\]);/)[1]);
 fs.readdirSync(path.join(__dirname, '..', 'public')).filter(f => f.endsWith('.js')).forEach(f => {
   const t = fs.readFileSync(path.join(__dirname, '..', 'public', f), 'utf8');
-  [...t.matchAll(/projDataSet_\('([A-Za-z]+)'/g)].forEach(m => assert(choPhep.includes(m[1]), f + ': khoá "' + m[1] + '" chưa có trong PROJ_DATA_KEYS (server/store_supa.js)'));
+  [...t.matchAll(/projDataSet_\('([A-Za-z]+)'/g)].forEach(m => assert(choPhep.includes(m[1]), f + ': khoá "' + m[1] + '" chưa có trong PROJ_DATA_KEYS (server/components/du-an/du-an.repository.js)'));
 });
 
 // xuất bảng Excel (tab Chi phí): nhóm gộp ô, số giữ kiểu số, dòng tổng ở 2 cột cuối
 (async () => {
   const ExcelJS = require('exceljs');
-  const buf = await require('../server/export').buildBangXlsx({ ten: 'BẢNG CHI PHÍ', sheet: 'Chi phi',
+  const buf = await require('../server/components/xuat-file/bao-gia.export').buildBangXlsx({ ten: 'BẢNG CHI PHÍ', sheet: 'Chi phi',
     cols: [{ label: 'STT' }, { label: 'Tên' }, { label: 'Thành tiền', num: true }],
     rows: [{ group: 'I. Thiết bị đèn' }, { cells: ['1.1', 'Đèn 9W', 7680000] }], tong: [['Tổng', 7680000]] });
   const wb = new ExcelJS.Workbook(); await wb.xlsx.load(buf);
@@ -103,7 +103,7 @@ fs.readdirSync(path.join(__dirname, '..', 'public')).filter(f => f.endsWith('.js
   assert.strictEqual(ws.getCell('B7').value, 'Tổng'); assert.strictEqual(ws.getCell('C7').value, 7680000);
   // báo giá Excel: trang "Tổng cộng" đúng hộp tổng PDF, dòng cuối là TỔNG THANH TOÁN
   const wb2 = new ExcelJS.Workbook(), ws2 = wb2.addWorksheet('Tổng cộng');
-  require('../server/export').buildTongSheet(ws2, { ten: 'Villa' }, [['Cộng (chưa VAT)', 2000000], ['Chiết khấu 10%', -200000], ['Sau chiết khấu', 1800000], ['VAT 10%', 180000], ['TỔNG THANH TOÁN', 1980000]]);
+  require('../server/components/xuat-file/bao-gia.export').buildTongSheet(ws2, { ten: 'Villa' }, [['Cộng (chưa VAT)', 2000000], ['Chiết khấu 10%', -200000], ['Sau chiết khấu', 1800000], ['VAT 10%', 180000], ['TỔNG THANH TOÁN', 1980000]]);
   assert.strictEqual(ws2.getCell('B4').value, -200000); assert.strictEqual(ws2.getCell('A7').value, 'TỔNG THANH TOÁN'); assert.strictEqual(ws2.getCell('B7').value, 1980000);
   console.log('test-core: tất cả đạt');
 })().catch(e => { console.error(e); process.exit(1); });

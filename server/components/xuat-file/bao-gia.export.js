@@ -6,9 +6,11 @@
  * (PDF được xử lý phía client bằng chức năng In của trình duyệt.)
  ************************************************************/
 const ExcelJS = require('exceljs');
-const shared = require('./shared');            // mẫu tờ bìa, NCC 3.2, đọc số
-const dataStore = require('./store_supa');
-const lark = require('./lark');
+const { toNumber_ } = require('../../libraries/vn-number');
+const { S32_SUPPLIERS, S32_SUBS, coverComputed_ } = require('../du-an/cover-template');   // mẫu tờ bìa, NCC 3.2
+const { getQuote } = require('../du-an/du-an.service');
+const { getCoverOrInit } = require('../du-an/khai-toan.repository');
+const lark = require('../../libraries/lark');
 
 const NAVY = 'FF1F3864';
 const NAVY2 = 'FF12314F';
@@ -87,7 +89,7 @@ function border(cell) {
 
 /*** ===== Tờ bìa ===== ***/
 function buildCoverSheet(ws, p, cover) {
-  const comp = shared.coverComputed_(cover);
+  const comp = coverComputed_(cover);
   const cost = comp.cost, total = comp.total;
   ws.columns = [{ width: px(52) }, { width: px(380) }, { width: px(190) }, { width: px(120) }];
   let r = 1;
@@ -175,11 +177,11 @@ function buildSection32(ws, p, cover) {
   const ncol = COL.length;
   ws.columns = COL.map(function (c) { return { width: px(c.w) }; });
   const byStt = {}, covBy = {};
-  const cost = shared.coverComputed_(cover).cost;   // mục có con = tổng mục con (như màn hình)
+  const cost = coverComputed_(cover).cost;   // mục có con = tổng mục con (như màn hình)
   cover.forEach(function (c) { byStt[c.stt] = cost[c.stt] || 0; covBy[c.stt] = c; });
-  const subs = shared.S32_SUBS;
+  const subs = S32_SUBS;
   var total32 = 0; subs.forEach(function (s) { total32 += byStt[s] || 0; });
-  const kl = shared.toNumber_(p.dtBaoGia) || shared.toNumber_(p.tongDT) || 0;
+  const kl = toNumber_(p.dtBaoGia) || toNumber_(p.tongDT) || 0;
 
   let r = 1;
   ws.mergeCells(r, 1, r, ncol);
@@ -200,7 +202,7 @@ function buildSection32(ws, p, cover) {
   const data = [];
   data.push(['3.2', 'PHẦN HOÀN THIỆN CƠ BẢN', '', 'm2', kl, (kl > 0 ? total32 / kl : 0), total32, 1, '']);
   subs.forEach(function (s) {
-    const cov = covBy[s] || {}, chiPhi = byStt[s] || 0, sup = shared.S32_SUPPLIERS[s] || [];
+    const cov = covBy[s] || {}, chiPhi = byStt[s] || 0, sup = S32_SUPPLIERS[s] || [];
     const first = sup.length ? sup[0] : null;
     data.push([s, cov.hangMuc || s, cov.moTa || '', 'gói', 1, '', chiPhi, total32 > 0 ? chiPhi / total32 : 0,
       first ? (first[0] + ' — ' + first[1]) : '']);
@@ -447,7 +449,7 @@ function buildTongSheet(ws, p, tong) {
 
 /*** ===== ENTRY: exportBaoGia(maDA, cols, format) ===== ***/
 async function exportBaoGia(maDA, cols, format, nodes, phanTho, anMuc, tong) {
-  const q = await dataStore.getQuote(maDA);
+  const q = await getQuote(maDA);
   const p = q.project || {};
   // chỉ xuất các hạng mục được tích ở tab Xuất báo giá (rỗng = xuất hết)
   if (nodes && nodes.length) {
@@ -469,7 +471,7 @@ async function exportBaoGia(maDA, cols, format, nodes, phanTho, anMuc, tong) {
   const wb = new ExcelJS.Workbook();
   // mục lớn người dùng đã ẩn khỏi tờ bìa (chip ở tab Xuất báo giá) -> file Excel cũng bỏ, khớp bản PDF
   const an = {}; (Array.isArray(anMuc) ? anMuc : []).forEach(function (k) { an[String(k)] = 1; });
-  const cover = (await dataStore.getCoverOrInit(maDA)).filter(function (c) { return !an[String(c.stt).split('.')[0]]; });
+  const cover = (await getCoverOrInit(maDA)).filter(function (c) { return !an[String(c.stt).split('.')[0]]; });
   buildCoverSheet(wb.addWorksheet('Tờ bìa'), p, cover);
   if (Array.isArray(tong) && tong.length) buildTongSheet(wb.addWorksheet('Tổng cộng'), p, tong);
   buildSection32(wb.addWorksheet('3.2 Phần hoàn thiện'), p, cover);

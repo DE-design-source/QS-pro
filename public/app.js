@@ -1,12 +1,13 @@
 /* DECOX QS Pro — logic giao diện mới, nối backend /api/:fn */
 'use strict';
 
-/* ===== AUTH token ===== */
-function authToken(){ try{ return localStorage.getItem('qs_token')||''; }catch(e){ return ''; } }
-function setAuthToken(t){ try{ if(t) localStorage.setItem('qs_token',t); else localStorage.removeItem('qs_token'); }catch(e){} }
+/* ===== AUTH =====
+   Phiên đăng nhập nằm trong cookie HttpOnly do server đặt: trình duyệt tự gửi kèm mọi request,
+   JavaScript không đọc được và KHÔNG lưu token ở localStorage. Đã đăng nhập hay chưa = S.me. */
+try{ localStorage.removeItem('qs_token'); }catch(e){}   // dọn token bản cũ còn sót trên máy người dùng
 // Báo server trước rồi mới xoá phiên -> nhật ký hệ thống có dòng "Đăng xuất" (trước đây không)
 function authLogout_(){
-  var xong=function(){ setAuthToken(''); try{ localStorage.removeItem('qs_user'); }catch(e){} location.reload(); };
+  var xong=function(){ try{ localStorage.removeItem('qs_user'); }catch(e){} location.reload(); };
   try{ Promise.resolve(api('logout')).then(xong, xong); }catch(e){ xong(); }
 }
 
@@ -16,7 +17,7 @@ function authLogout_(){
 (function(){
   var gui={}, n=0;
   function bao(msg, src){
-    msg=String(msg||'').slice(0,300); if(!msg || gui[msg] || n>=20 || !authToken()) return;
+    msg=String(msg||'').slice(0,300); if(!msg || gui[msg] || n>=20 || typeof S==='undefined' || !S.me) return;
     gui[msg]=1; n++;
     var tab=(document.querySelector('.nav a.active')||{}).textContent||'';
     try{ api('logClientError',{msg:msg, src:src||'', tab:String(tab).trim()}).catch(function(){}); }catch(e){}
@@ -38,7 +39,7 @@ function banMoi_(v){
 }
 // Header chung cho MỌI request lên server (api + tải file xuất Excel)
 function apiHeaders_(){
-  var h={'Content-Type':'application/json'}; var t=authToken(); if(t) h['Authorization']='Bearer '+t;
+  var h={'Content-Type':'application/json'};
   // Super admin đang "xem như" 1 công ty -> server lọc dữ liệu theo công ty đó
   if(S._viewAs===undefined){ try{ S._viewAs=localStorage.getItem('qs_viewAs')||''; }catch(e){ S._viewAs=''; } }
   if(S._viewAs) h['x-view-company']=S._viewAs;
@@ -57,7 +58,7 @@ function api(fn){
   var h=apiHeaders_();
   return fetch('/api/'+encodeURIComponent(fn),{method:'POST',headers:h, body:JSON.stringify({args:args})})
     .then(function(r){ banMoi_(r.headers.get('x-app-ver')); return r.json().catch(function(){ return {error:'HTTP '+r.status}; }).then(function(d){ d=d||{}; d._status=r.status; return d; }); })
-    .then(function(d){ if(d && d.code==='NOAUTH'){ setAuthToken(''); if(typeof showLogin_==='function') showLogin_('Phiên đã hết, mời đăng nhập lại.'); throw new Error('Chưa đăng nhập'); }
+    .then(function(d){ if(d && d.code==='NOAUTH'){ S.me=null; if(typeof showLogin_==='function') showLogin_('Phiên đã hết, mời đăng nhập lại.'); throw new Error('Chưa đăng nhập'); }
       if(d&&d.error) throw new Error(d.error); return d?d.result:null; });
 }
 function money(n){ return (Math.round(Number(n)||0)).toLocaleString('vi-VN'); }
@@ -2529,11 +2530,10 @@ function splashDone_(){
 }
 /* ===================== AUTH & ADMIN ===================== */
 async function authStart_(){
-  var t=authToken();
-  if(!t){ showLogin_(); return; }
+  // Cookie phiên là HttpOnly nên trang không tự biết đã đăng nhập chưa -> hỏi server; chưa thì hiện form (không báo lỗi)
   splashStep_('Đang xác thực tài khoản…');
   try{ var u=await api('me'); S.me=u; S.congTy=u.congTy||null; onAuthed_(); }
-  catch(e){ setAuthToken(''); showLogin_(); }
+  catch(e){ showLogin_(); }
 }
 function showLogin_(msg){
   splashDone_();
@@ -2548,7 +2548,7 @@ async function doLogin_(){
   function err(t){ if(msg){ msg.style.display='block'; msg.textContent=t; } }
   if(!user||!pw){ err('Nhập tên đăng nhập và mật khẩu'); return; }
   btn.disabled=true; btn.textContent='Đang đăng nhập…';
-  try{ var r=await api('login',user,pw); setAuthToken(r.token); S.me=r.user; S.congTy=r.congTy||null;
+  try{ var r=await api('login',user,pw); S.me=r.user; S.congTy=r.congTy||null;
     document.getElementById('loginPw').value=''; onAuthed_(); }
   catch(e){ err(e.message||'Đăng nhập thất bại'); }
   btn.disabled=false; btn.textContent='Đăng nhập';

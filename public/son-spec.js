@@ -2,7 +2,7 @@
    Cùng cách làm với public/vs-spec.js (thiết bị vệ sinh). Dùng chung cho:
      · Form Nhập dữ liệu / modal Sửa SP (public/app.js) -> chỉ hiện thông số của hạng mục đang chọn
      · File mẫu nhập hàng loạt (server tạo động /mau-nhap-son-nuoc.xlsx) — 1 sheet "San pham" phẳng
-     · Server (store_supa) -> map cột DB, lọc thông số khi nhập, ghép cột "Thông tin chính" /
+     · Server (components/san-pham) -> map cột DB, lọc thông số khi nhập, ghép cột "Thông tin chính" /
        "Thông số thiết kế" cho bảng bóc tách & báo giá
    Bộ trường lấy theo file bóc tách sơn nước của Dezon: khối "Key Product Info", khối
    "Tính năng sản phẩm" và khối "IX. Các tính chất vật lý và hoá học".

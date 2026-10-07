@@ -1,5 +1,5 @@
 'use strict';
-/* Test hồi quy THIẾT BỊ VỆ SINH (không gọi Supabase thật — server/supa được thay bằng DB giả trong bộ nhớ).
+/* Test hồi quy THIẾT BỊ VỆ SINH (không gọi Supabase thật — server/libraries/supa được thay bằng DB giả trong bộ nhớ).
    Chạy: npm run test:vs   (từ thư mục gốc dự án). Thoát mã 1 nếu có lỗi.
    Phủ: vs-spec nhất quán + khớp migration, file mẫu -> đọc -> lưu, tự nhận ngành theo hạng mục,
    lọc cột theo hạng mục, lỗi trả về theo chỉ số dòng, prodToObj, khoá biến thể. */
@@ -11,8 +11,8 @@ const fake={ eq:(c,v)=>c+'=eq.'+encodeURIComponent(v),
   insert:async(t,r)=>{ if(t==='db_san_pham'){ const row=Object.assign({id:db.length+1},r); db.push(row); return [row]; } if(t==='db_san_pham_history') hist.push(r); return [{}]; },
   update:async(t,f,p)=>{ if(t==='db_san_pham'){ const id=+String(f).split('eq.')[1]; const r=db.find(x=>x.id===id); Object.assign(r,p); return [r]; } return [{}]; },
   remove:async()=>{} };
-require.cache[require.resolve(R('server/supa'))]={id:'x',filename:'x',loaded:true,exports:new Proxy(fake,{get:(o,k)=>o[k]||(async()=>[])})};
-const VS=require(R('public/vs-spec.js')), st=require(R('server/store_supa')), store=require(R('server/shared')), tpl=require(R('server/vs-template'));
+require.cache[require.resolve(R('server/libraries/supa'))]={id:'x',filename:'x',loaded:true,exports:new Proxy(fake,{get:(o,k)=>o[k]||(async()=>[])})};
+const VS=require(R('public/vs-spec.js')), SP=p=>require(R('server/components/san-pham/'+p)), st=Object.assign({},SP('san-pham.repository'),SP('san-pham.combo'),SP('san-pham.import')), store=SP('san-pham.import'), tpl=require(R('server/components/xuat-file/vs-template'));
 (async()=>{
   console.log('1. vs-spec nhất quán');
   const cols=Object.values(VS.METRIC).map(m=>m[0]); ok(new Set(cols).size===cols.length,'trùng cột DB trong METRIC');
@@ -69,7 +69,7 @@ const VS=require(R('public/vs-spec.js')), st=require(R('server/store_supa')), st
   ok(db.length===2 && u.updated && db.every(x=>x.nganh==='vs'),'biến thể theo màu, cập nhật khi trùng '+db.length);
 
   console.log('7. Sơn nước (public/son-spec.js)');
-  const SON=require(R('public/son-spec.js')), tplS=require(R('server/son-template'));
+  const SON=require(R('public/son-spec.js')), tplS=require(R('server/components/xuat-file/son-template'));
   const cS=Object.values(SON.METRIC).map(m=>m[0]); ok(new Set(cS).size===cS.length,'trùng cột DB trong METRIC sơn');
   for(const hm of SON.HANG_MUC){ const h=SON.HM[hm];
     [...h.chinh,...h.tk,...h.req,...Object.keys(h.opt)].forEach(lb=>ok(SON.METRIC[lb],hm+': nhãn lạ '+lb));

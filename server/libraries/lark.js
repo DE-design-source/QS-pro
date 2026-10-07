@@ -3,7 +3,7 @@
  * Lark Open API — chỉ còn TẢI ẢNH cũ (file_token) cho /media và xuất Excel.
  * Ảnh mới lưu trên Supabase Storage (URL http), không đi qua đây.
  ************************************************************/
-const config = require('./config');
+const config = require('../config');
 
 let _token = null;      // { value, exp } exp = epoch ms hết hạn
 async function tenantToken(force) {
@@ -28,7 +28,7 @@ async function mediaDownload(fileToken) {
   const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
   if (!res.ok) throw new Error('Tải media lỗi HTTP ' + res.status);
   const buf = Buffer.from(await res.arrayBuffer());
-  return { buffer: buf, contentType: res.headers.get('content-type') || 'application/octet-stream' };
+  return { buffer: buf, contentType: res.headers.get('content-type') || 'application/.octet-stream' };
 }
 
 module.exports = { mediaDownload };
