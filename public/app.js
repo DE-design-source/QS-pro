@@ -1898,7 +1898,9 @@ function editLineMoney_(id,f,v){ var d={}; d[f]=tkNum_(v); editLine(id,d); }
 function cellInput(l,key){
   if(key==='moTa') return '<td class="wrap"><textarea class="cin" rows="1" oninput="autoGrow(this)" onchange="editLine(\''+l.lineId+'\',{moTa:this.value})">'+esc(l.moTa||'')+'</textarea></td>';
   if(key==='kichThuoc') return '<td class="wrap"><textarea class="cin" rows="1" oninput="autoGrow(this)" onchange="editLine(\''+l.lineId+'\',{kichThuoc:this.value})">'+esc(l.kichThuoc||'')+'</textarea></td>';
-  if(key==='ten') return '<td class="td-ten"><div style="display:flex;gap:2px;align-items:center"><input class="cin" value="'+esc(l.ten||'')+'" onchange="editLine(\''+l.lineId+'\',{ten:this.value})">'
+  // tên SP: ô TỰ XUỐNG DÒNG, hiện đủ tên (trước là input 1 dòng nên tên dài bị cắt). Enter = xong, không chèn xuống dòng vào tên.
+  if(key==='ten') return '<td class="td-ten"><div style="display:flex;gap:2px;align-items:center"><textarea class="cin" rows="1" title="'+esc(l.ten||'')+'" oninput="autoGrow(this)"'
+      +' onkeydown="if(event.key===\'Enter\'){event.preventDefault();this.blur();}" onchange="editLine(\''+l.lineId+'\',{ten:this.value.replace(/\\s*\\n\\s*/g,\' \')})">'+esc(l.ten||'')+'</textarea>'
     +lnDiffChip_(l)
     +'<button class="pick" title="Chọn sản phẩm từ danh mục" onclick="openPick(\''+l.lineId+'\',event)">⌕</button></div></td>';
   if(TXT_COL[key]){ var f=TXT_COL[key];

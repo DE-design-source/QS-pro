@@ -224,7 +224,7 @@ function focusNewLine(id){
   setTimeout(function(){
     var tr=document.querySelector('#tkTable tr.drow[data-id="'+id+'"]'); if(!tr) return;
     try{ tr.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){}
-    var inp=tr.querySelector('.td-ten input')||tr.querySelector('input.cin'); if(inp){ inp.focus(); inp.select&&inp.select(); }
+    var inp=tr.querySelector('.td-ten textarea, .td-ten input')||tr.querySelector('input.cin'); if(inp){ inp.focus(); inp.select&&inp.select(); }
     var old=tr.style.background; tr.style.transition='background .4s'; tr.style.background='#fff6c9';
     setTimeout(function(){ tr.style.background=old||''; },1300);
   },70);
@@ -568,7 +568,7 @@ function renderTable(){
   var _w=t.closest('.tbl-wrap'), _sT=_w?_w.scrollTop:0, _sL=_w?_w.scrollLeft:0;
   t.innerHTML=colg+head+body;
   if(_w && (_sT||_sL)){ _w.scrollTop=_sT; _w.scrollLeft=_sL; }
-  t.querySelectorAll('td.wrap textarea').forEach(autoGrow);   // ô "Thông tin chính" tự giãn hết dòng
+  t.querySelectorAll('td.wrap textarea, td.td-ten textarea').forEach(autoGrow);   // ô "Thông tin chính" tự giãn hết dòng
   if(t.rows[0]) t.style.setProperty('--thH', t.rows[0].offsetHeight+'px');  // để dòng tầng dính ngay dưới header
   markBlocks_('#tkTable');   // kẻ dọc liền trong 1 tầng, hở giữa các tầng
   tkSelPrune_();       // bỏ khỏi vùng chọn những dòng không còn trên bảng

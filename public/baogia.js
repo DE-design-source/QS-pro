@@ -799,6 +799,7 @@ function drawBaogia(){
       +'<div class="b grand"><div class="tt">TỔNG CỘNG</div><div class="tv">'+money(q.total)+' đ</div></div></div></div></div>';
   box.innerHTML=sechd+card1+card2+bgAreaHTML()+card4;
   markBlocks_('#v-export table.tk');
+  document.querySelectorAll('#v-export td.td-ten textarea').forEach(autoGrow);     // ô tên SP xuống dòng, hiện đủ tên
 }
 // Feature 2: tự điền chi phí tờ bìa từ dữ liệu bóc tách (map theo mã nhóm)
 // Bỏ mọi số sửa tay: mục nào có dòng bóc tách thì lấy lại đúng số của bóc tách

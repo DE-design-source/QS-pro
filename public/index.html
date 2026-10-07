@@ -6473,6 +6473,11 @@ body:has(#v-boc.on) #qbar{display:none}
 #v-boc .tk-panel:has(#tkToolBox.pt) .tk-frame-hm>#tkColsHr{display:none!important}      /* Phần thô có chip cột riêng */
 body.bt-tk.fold-cols #v-boc #tkToolBox:not(.pt){display:none}                             /* bảng tính + chip đang gập: khối dưới trống -> ẩn hẳn */
 body.bt-tk #v-boc #tkToolBox .colchips{padding:6px 12px}
+
+/* Bảng thường: ô Tên sản phẩm xuống dòng, hiện đủ tên */
+table.tk td.td-ten textarea.cin{flex:1;width:100%;min-width:0;min-height:0;box-sizing:border-box;border:1px solid transparent;background:transparent;font:inherit;
+  line-height:1.35;white-space:pre-wrap;overflow:hidden;resize:none;padding:2px 4px;border-radius:5px;display:block}
+table.tk td.td-ten textarea.cin:focus{border-color:var(--blue);background:#fff;outline:none}
 </style>
 
 <!-- ===== TOP NAV ===== -->
