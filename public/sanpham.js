@@ -2458,6 +2458,17 @@ async function spEditSave(luuVaDuyet){
         dong:BT_TRUC.map(function(t){ return t[1]; }) });
       return;
     }
+    // Tổ hợp trục vừa nhập đã thuộc về 1 biến thể KHÁC cùng mã -> máy chủ sẽ GHI ĐÈ biến thể đó (giá, ảnh, thông số). Chặn trước.
+    var maMoi=String(data['MÃ SẢN PHẨM']||'').trim(), chuan=function(v){ return String(v==null?'':v).trim().toLowerCase(); };
+    var dung=(S.products||[]).filter(function(x){ return !x.spChung && x.ma===maMoi && String(x.recordId)!==String(S._spEditRecId)
+      && BT_TRUC.every(function(t){ var e=ov.querySelector('[data-col="'+t[0]+'"]'); return chuan(e?e.value:goc[t[0]])===chuan((x.raw||{})[t[0]]); }); })[0];
+    if(dung){
+      lai();
+      await baoLoi_({ title:'Biến thể này đã có', ok:'Đã hiểu', nguyHiem:false,
+        note:'Mã '+maMoi+' đã có một biến thể đúng các thông số này — lưu sẽ ghi đè lên nó. Đổi ít nhất một mục sau cho khác, hoặc mở biến thể đó ra để sửa:',
+        dong:BT_TRUC.map(function(t){ var e=ov.querySelector('[data-col="'+t[0]+'"]'); return t[1]+': '+(String(e?e.value:'').trim()||'(trống)'); }) });
+      return;
+    }
     try{
       var rn=await api('saveDbProduct', data);
       S.products=await api('getProducts')||S.products; spViewTabs_(); spFilter();

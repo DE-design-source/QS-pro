@@ -60,7 +60,8 @@ function toNumber_(v) {
   if (typeof v === 'number') return v;
   if (v == null || v === '') return 0;
   var s = String(v).replace(/[^\d,.-]/g, '');
-  if (s.indexOf(',') > -1 && s.indexOf('.') > -1) s = s.replace(/\./g, '').replace(',', '.');
+  if ((s.match(/,/g) || []).length > 1 && s.indexOf('.') < 0) s = s.replace(/,/g, '');          // "1,234,567" (kiểu Anh) -> 1234567
+  else if (s.indexOf(',') > -1 && s.indexOf('.') > -1) s = s.replace(/\./g, '').replace(',', '.');
   else if ((s.match(/\./g) || []).length > 1) s = s.replace(/\./g, '');
   else if (/\.\d{3}$/.test(s)) s = s.replace(/\./g, '');
   s = s.replace(',', '.');                     // "12,5" -> 12.5 (cùng luật với tkNum_ ở client)
@@ -121,7 +122,10 @@ function matchAlias_(h) {
   }
   return null;
 }
-function pick2_(row, idx) { return (idx == null) ? '' : String(row[idx] == null ? '' : row[idx]).trim(); }
+/* Ô SỐ của Excel có phần thập phân -> ghi kiểu VN (dấu phẩy thập phân). Nếu để "12.125" thì toNumber_ hiểu dấu chấm
+   là hàng nghìn (12125) — chiết khấu 12.125% thành 12125, giá 1234.567 thành 1234567. Số nguyên và ô chữ giữ nguyên. */
+function oChu_(v) { return v == null ? '' : (typeof v === 'number' && isFinite(v) && v % 1 !== 0 ? String(v).replace('.', ',') : String(v)).trim(); }
+function pick2_(row, idx) { return (idx == null) ? '' : oChu_(row[idx]); }
 async function importParse(base64, ext, nganh) {
   const ExcelJS = require('exceljs');
   const buf = Buffer.from(String(base64 || ''), 'base64');
@@ -165,7 +169,7 @@ async function importParse(base64, ext, nganh) {
       var row = grid[r]; var ten = pick2_(row, map.ten); if (!ten) continue;
       if (vs && ten.indexOf(VS.VD) === 0) continue;               // dòng ví dụ của file mẫu
       // _raw: giữ nguyên MỌI cột theo tiêu đề gốc để importCommit map đầy đủ trường (thông số đèn / vệ sinh)
-      var raw = {}; headers.forEach(function (h, ci) { if (h) raw[h] = String(row[ci] == null ? '' : row[ci]).trim(); });
+      var raw = {}; headers.forEach(function (h, ci) { if (h) raw[h] = oChu_(row[ci]); });
       if (vs) {
         if (!raw['HẠNG MỤC'] && hmSheet) raw['HẠNG MỤC'] = hmSheet;
         if (raw['HẠNG MỤC']) raw['HẠNG MỤC'] = VS.chuanHM(raw['HẠNG MỤC']) || raw['HẠNG MỤC'];

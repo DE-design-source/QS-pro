@@ -519,8 +519,10 @@ async function saveDbProduct(actor, data, opts) {
       const v = row[col];
       return (v == null || v === '') ? 'or(' + col + '.is.null,' + col + '.eq.)' : col + '.eq.' + encodeURIComponent('"' + String(v).replace(/["\\]/g, '\\$&') + '"');
     }).join(',') + ')';
-    const ex = await supa.select('db_san_pham', { select: 'id', filter: filter, limit: 1 });
+    const ex = await supa.select('db_san_pham', { select: 'id,da_duyet', filter: filter, limit: 1 });
     if (ex.length) {
+      // nội dung SP đã duyệt bị đổi qua đường này cũng phải duyệt lại (như updateDbProductTracked)
+      if (ex[0].da_duyet === true) { row.da_duyet = false; row.nguoi_duyet = null; row.ngay_duyet = null; }
       if (who && _hasWhoCol !== false) { row.nguoi_sua = who; row.ngay_cap_nhat = new Date().toISOString(); }
       try { await supa.update('db_san_pham', supa.eq('id', ex[0].id), row); }
       catch (e) { if (whoColMissing_(e)) { delete row.nguoi_sua; await supa.update('db_san_pham', supa.eq('id', ex[0].id), row); } else throw colErr_(e); }
@@ -530,6 +532,7 @@ async function saveDbProduct(actor, data, opts) {
       return { updated: true, ma: ma, ten: ten, id: ex[0].id };
     }
   }
+  Object.keys(opts.macDinh || {}).forEach(function (c) { if (row[c] == null || row[c] === '') row[c] = opts.macDinh[c]; });   // mặc định chỉ áp khi TẠO MỚI
   if (who && _hasWhoCol !== false) { row.nguoi_tao = who; row.ngay_tao = new Date().toISOString(); }
   let res;
   try { res = await supa.insert('db_san_pham', row); }
@@ -1027,11 +1030,15 @@ async function importCommit(actor, products) {
     const data = Object.assign({}, p._raw || {}); // cột từ file (tiêu đề = nhãn DB trong file mẫu)
     fill(data, 'TÊN SẢN PHẨM', p.ten); fill(data, 'MÃ SẢN PHẨM', p.ma); fill(data, 'DÒNG SẢN PHẨM', p.nhom);
     fill(data, 'HẠNG MỤC', p.hangMuc); fill(data, 'THƯƠNG HIỆU', p.thuongHieu); fill(data, 'NHÀ CUNG CẤP', p.ncc);
-    fill(data, 'GIÁ BÁN LẺ', p.gia); fill(data, 'GHI CHÚ', p.moTa);
+    if (n(p.gia) > 0) fill(data, 'GIÁ BÁN LẺ', p.gia);      // giá trống trong file (parse ra 0) thì KHÔNG ghi 0 đè lên giá đang có
+    fill(data, 'GHI CHÚ', p.moTa);
     delete data['GIÁ ĐẠI LÝ']; // cột tự tính (generated)
     data['ẢNH SẢN PHẨM'] = s(p.hinhAnh); // ảnh người dùng tải (ghi đè mọi cột ảnh trong file)
-    if (!s(data['ĐƠN VỊ TÍNH']).trim()) data['ĐƠN VỊ TÍNH'] = p.dvt || 'Cái';
-    if (!s(data['TRẠNG THÁI']).trim()) data['TRẠNG THÁI'] = 'Đang kinh doanh';
+    // ĐVT / trạng thái mặc định CHỈ dùng khi TẠO MỚI (saveDbProduct, opts.macDinh) — nhập lại để cập nhật thông số
+    // không được trả "Ngừng kinh doanh" về "Đang kinh doanh" hay đổi ĐVT về "Cái".
+    const macDinh = {};
+    if (!s(data['ĐƠN VỊ TÍNH']).trim()) macDinh.dvt = p.dvt || 'Cái';
+    if (!s(data['TRẠNG THÁI']).trim()) macDinh.trang_thai = 'Đang kinh doanh';
     if (!s(data['TÊN SẢN PHẨM']).trim()) continue;
     if (s(data['TÊN SẢN PHẨM']).trim().indexOf(VS.VD) === 0) continue;   // dòng ví dụ của file mẫu
     // Ngành có bộ thông số theo hạng mục: vệ sinh ('vs') · sơn nước ('son') -> tự nhận theo hạng mục
@@ -1050,7 +1057,7 @@ async function importCommit(actor, products) {
       const thieu = SPEC.HM[hm].req.filter(function (lb) { return !s(data[lb]).trim(); });
       if (thieu.length) { errors.push({ i: i, ten: s(data['TÊN SẢN PHẨM']), error: hm + ' thiếu: ' + thieu.map(function (lb) { return SPEC.METRIC[lb][1]; }).join(', ') }); continue; }
     }
-    try { const r = await saveDbProduct(actor, data, { noAudit: true }); if (r && r.updated) updated++; else inserted++; }
+    try { const r = await saveDbProduct(actor, data, { noAudit: true, macDinh: macDinh }); if (r && r.updated) updated++; else inserted++; }
     catch (e) { errors.push({ i: i, ten: s(data['TÊN SẢN PHẨM']), error: e && e.message }); }
   }
   _cacheClear_();

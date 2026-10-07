@@ -2602,7 +2602,8 @@ function lineOf_(id){ return (S.lines||[]).filter(function(x){ return x.lineId==
 
 /* ---------- ghi giá trị vào 1 ô theo khoá cột ---------- */
 function tkNum_(v){ var t=String(v==null?'':v).replace(/[^\d,.\-]/g,'');
-  if(/,\d{1,2}$/.test(t)&&t.indexOf('.')>=0) t=t.replace(/\./g,'').replace(',','.');    // 1.234,5
+  if((t.match(/,/g)||[]).length>1&&t.indexOf('.')<0) t=t.replace(/,/g,'');                 // 1,234,567 (kiểu Anh)
+  else if(/,\d{1,3}$/.test(t)&&t.indexOf('.')>=0) t=t.replace(/\./g,'').replace(',','.');    // 1.234,5 · 1.234,567
   else if((t.match(/\./g)||[]).length>1) t=t.replace(/\./g,'');                          // 1.234.000
   else if(/\.\d{3}$/.test(t)) t=t.replace(/\./g,'');
   t=t.replace(',','.');
