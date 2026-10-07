@@ -1849,7 +1849,7 @@ async function pdLoadCombo_(p, idx, dich, boxId, them){
   try{ list=await api('getCombo', String(p.recordId||p.ma))||[]; }catch(e){ list=[]; }
   if(seq!==S._pdComboSeq) return;                  // đã mở sản phẩm khác trong lúc chờ
   S._pdCombo=list; S._pdComboBox={idx:idx, dich:dich, boxId:boxId||'pdCombo', p:(idx!=null||them)?p:null};   // p = SP chính để "Thêm combo"
-  if(S._catCb) S._catCb[catCbKey_(p)]=list;      // thẻ danh mục dùng lại đúng bản mới nhất
+  if(S._catCb) S._catCb[catCbKey_(p)]=list.map(function(x){ return Object.assign({},x); });   // bản SAO: sửa SL tạm trong panel không được đổi số trên thẻ danh mục
   S._pdComboBo=1;                       // mỗi lần mở sản phẩm khác thì số bộ về 1
   pdComboVe_();
 }
@@ -2469,7 +2469,7 @@ async function spEditSave(luuVaDuyet){
   try{
     var r=await api('updateDbProductTracked', S._spEditMa, data);
 
-    try{ await api('setCombo', S._spEditMa, (S._combo||[]).map(function(x){ return {id:x.recordId, soLuong:x.comboSL}; })); S._catCb={}; }   // bỏ bản combo đã nhớ -> Bóc tách hiện đúng bản vừa lưu
+    try{ await api('setCombo', S._spEditMa, (S._combo||[]).map(function(x){ return {id:x.recordId, soLuong:x.comboSL}; })); S._catCb={}; S._catCbOpen={}; }   // bỏ bản combo đã nhớ + gập các thẻ đang bung (nếu không sẽ kẹt "Đang tải…") -> mở lại là bản vừa lưu
     catch(e){ toast('Lưu sản phẩm đi kèm lỗi: '+e.message.slice(0,90)); }
     try{ await api('setBienThe', S._spEditMa, (S._bt||[]).map(function(x){ return {id:x.recordId}; })); }
     catch(e){ toast('Lưu nhóm biến thể lỗi: '+e.message.slice(0,90)); }

@@ -586,7 +586,7 @@ async function pendingCommitRun_(ds, btn){
     try{
       var rs=await api('saveDbProduct', it.data); ok++;
       if(it.combo && it.combo.length && rs && rs.id){
-        try{ await api('setCombo', String(rs.id), it.combo.map(function(x){ return {id:x.recordId, soLuong:Number(x.comboSL)||1}; })); S._catCb={}; }
+        try{ await api('setCombo', String(rs.id), it.combo.map(function(x){ return {id:x.recordId, soLuong:Number(x.comboSL)||1}; })); S._catCb={}; S._catCbOpen={}; }
         catch(e4){ toast('Lưu "'+it.ten+'" OK nhưng combo lỗi: '+e4.message); } }
       sessionAdd_({ten:it.ten+(it.bienThe?' ('+it.bienThe+')':''), ma:it.ma, thuongHieu:it.thuongHieu, ncc:it.ncc, hinhAnh:it.hinhAnh});
       // ghi danh vào dự án: để DÀNH LẠI, chạy sau khi tải lại danh mục (lấy đúng SP vừa lưu)
