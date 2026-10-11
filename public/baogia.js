@@ -484,52 +484,86 @@ function bgDocHTML(){
   var pages=bgBuildPages();
   if(!S.bgPage||S.bgPage>pages.length) S.bgPage=1;
   ensureDocCss_();
-  var pg=pages[S.bgPage-1], m=(pg&&pg.meta)||{};
-  /* Khung xem KÉO ĐƯỢC: thanh công cụ đứng yên, chỉ vùng trang giấy cuộn bên trong.
-     Kéo mép dưới để chỉnh chiều cao khung, nhớ theo máy (qs_bgH).                    */
-  return '<div class="bgvp-hd">'
-      +'<span class="bgvp-t">'+esc(m.ten||'Trang '+S.bgPage)+'</span>'
-      +(m.dong?('<span class="bgvp-n">'+m.dong+' dòng</span><span class="bgvp-tien">'+money(m.tien||0)+' đ</span>'):'')
-      +'<span style="flex:1"></span>'+bgSeg_()      // nút chuyển Xem trước / Chỉnh sửa nằm ngay trên khung xem (bỏ hàng tiêu đề riêng)
-      +'<span class="bgvp-p">Trang '+S.bgPage+' / '+pages.length+'</span>'
+  var pg=pages[S.bgPage-1], m=(pg&&pg.meta)||{}, vp=Number(S.cur&&S.cur.vat)||0, z=String(S.bgZoom||'fit');
+  // thanh trên khung xem: tên trang + chip trạng thái | mức phóng | Xem trước / Chỉnh sửa
+  return '<div class="bgx-bar">'
+      +'<b class="bgx-ten">'+esc(m.ten||'Trang '+S.bgPage)+'</b>'
+      +(S.bgPage===1?'<span class="bgx-chip">'+(S.coverMau==='m1'?'Mẫu 1':'Mẫu 2')+'</span>':'')
+      +(m.dong?('<span class="bgx-chip">'+m.dong+' dòng · '+money(m.tien||0)+' đ</span>'):'')
+      +'<span class="bgx-chip">'+(vp?('VAT '+vp+'%'):'Chưa VAT')+'</span>'
+      +'<span class="bgx-chip">A4 · Ngang</span>'
+      +'<span style="flex:1"></span>'
+      +'<div class="bgx-seg" title="Phóng to / thu nhỏ trang xem trước (không ảnh hưởng file xuất)">'
+        +[['fit','Vừa khung'],['75','75%'],['100','100%'],['125','125%']].map(function(o){
+            return '<button class="'+(z===o[0]?'on':'')+'" onclick="bgSetZoom_(\''+o[0]+'\')">'+o[1]+'</button>'; }).join('')+'</div>'
+      +bgSeg_()
     +'</div>'
-    +'<div class="bgvp" id="bgViewport"><div class="qs-doc" id="qsDoc">'+pg.html+'</div>'
-      +'<div class="bgvp-grip" id="bgVpGrip" title="Kéo để chỉnh chiều cao khung xem"></div></div>'
-    +bgPager(pages.length,S.bgPage);
+    +'<div class="bgvp" id="bgViewport"><div class="qs-doc" id="qsDoc">'+pg.html+'</div></div>'
+    +'<div class="bgx-foot">'+bgPager(pages.length,S.bgPage)+'<span class="bgx-pn">Trang '+S.bgPage+' / '+pages.length+'</span></div>';
+}
+/* ═══ CỘT TRÁI của "Xem trước & Xuất": các thẻ đánh số — mỗi thẻ 1 nhóm thiết lập ═══ */
+function bgThe_(so, ten, phu, than){
+  return '<section class="bgx-card"><header><i>'+so+'</i><div><b>'+ten+'</b>'+(phu?'<span>'+phu+'</span>':'')+'</div></header>'+than+'</section>';
+}
+function bgCongTac_(on, nhan, js, tip){      // công tắc bật / tắt
+  return '<label class="bgx-sw"'+(tip?' title="'+esc(tip)+'"':'')+'><span>'+nhan+'</span><input type="checkbox"'+(on?' checked':'')+' onchange="'+js+'"><em></em></label>';
+}
+var BG_MAU_DS=['#0f2942','#2563eb','#0d9488','#16a34a','#b7791f','#dc2626','#7c3aed','#1f2937'];
+function bgMau_(){ var m=String(((S._projData&&S._projData.bgCfg)||{}).mau||'').trim(); return /^#[0-9a-f]{6}$/i.test(m)?m.toLowerCase():BG_MAU_DS[0]; }
+function bgMauDat_(m){ bgOptSet_('mau', m===BG_MAU_DS[0]?null:m); }
+function bgColMo_(){ S._bgColMo=!S._bgColMo; drawBaogia(); }
+function bgSideHTML_(){
+  var vi=bgVerInfo_(), nHist=bgHist_().length, pages=bgBuildPages().length, soDong=bgLines_().length+bgPTRows_();
+  var gr=null, nhap=''; try{ gr=currentGroup(); nhap=draftName_(S.cur, gr?gr.idx:0); }catch(e){}
+  var nCot=COLS.filter(function(c){ return S.cols[c[0]]; }).length, mau=bgMau_();
+  var the1=bgThe_(1,'Phiên bản báo giá', esc(nhap||'Bản nháp')+' · '+soDong+' dòng đã bóc',
+      '<div class="bgx-ma" title="Mã báo giá · phiên bản. Sửa mã ở chế độ Chỉnh sửa (ô Mã báo giá số)"><span>Mã</span><b>'+esc(vi.ma)+'</b><em>v'+vi.ver+'</em></div>'
+     +'<div class="bgx-row2">'
+       +'<button class="btn ghost sm" '+(vi.trung?'disabled title="Nội dung chưa đổi so với bản đã chốt"':'onclick="bgChotBtn_()" title="Lưu nội dung báo giá hiện tại thành 1 phiên bản"')+'>'+icon('check',14)+' '+(vi.trung?'Đã chốt v'+vi.ver:'Chốt v'+vi.ver)+'</button>'
+       +'<button class="btn ghost sm" onclick="bgHistOpen_()" title="Xem lại / so sánh các phiên bản đã chốt hoặc đã xuất">'+icon('layers',14)+' Lịch sử'+(nHist?' ('+nHist+')':'')+'</button></div>');
+  var the2=bgThe_(2,'Nội dung các trang','',
+      '<label class="bgx-lb">Trang 1 · Tờ bìa</label>'
+     +'<div class="bgx-seg full"><button class="'+(S.coverMau==='m1'?'on':'')+'" onclick="setCoverMau(\'m1\')">Mẫu 1</button>'
+       +'<button class="'+(S.coverMau==='m1'?'':'on')+'" onclick="setCoverMau(\'m2\')">Mẫu 2</button></div>'
+     +'<label class="bgx-lb">Trang 2+ · Bảng chi tiết</label>'+bgNodeBtn_('bgNodeBtn1')
+     +'<div class="bgx-row2 lb"><div><label class="bgx-lb">Dòng / trang</label>'
+         +'<select class="bgx-in" title="Số dòng tối đa trên mỗi trang giấy" onchange="bgSetPer_(this.value)">'
+         +[['0','Tự động'],['8','8'],['10','10'],['12','12'],['15','15'],['18','18'],['20','20'],['25','25'],['30','30']].map(function(o){
+             return '<option value="'+o[0]+'"'+((Number(S.bgPer)||0)===Number(o[0])?' selected':'')+'>'+o[1]+'</option>'; }).join('')+'</select></div>'
+       +'<div><label class="bgx-lb">Số trang</label><div class="bgx-in ro">'+pages+' trang</div></div></div>'
+     +bgCongTac_(bgPerSec_(),'Mỗi hạng mục một trang mới','bgTogglePerSec_()','Mỗi hạng mục bắt đầu ở một trang mới')
+     +(bgColTuyBien_()?'<button class="btn ghost sm bgx-full" onclick="bgColReset_()" title="Trả rộng và thứ tự cột về mặc định">'+icon('close',13)+' Đặt lại rộng / thứ tự cột</button>':''));
+  var nb=bgNoiBoBat_();
+  var the3=bgThe_(3,'Cột xuất','Đang in '+nCot+' / '+COLS.length+' cột',
+      '<div class="bgx-preset">'+csQuickBtn_('tk','bgPresetBtn')+'</div>'
+     +'<button class="bgx-link" onclick="bgColMo_()">Bật / tắt từng cột <i>'+(S._bgColMo?'▴':'▾')+'</i></button>'
+     +(S._bgColMo?'<div class="colchips bg-colchips">'+COLS.map(function(c){ return '<span class="chip'+(S.cols[c[0]]?' on':'')+'" onclick="toggleCol(\''+c[0]+'\')">'+esc(c[1])+'</span>'; }).join('')+'</div>':'')
+     +bgCongTac_(bgNoiBoXuat_(),'Xuất kèm cột nội bộ (bản nội bộ)','bgNoiBoDat_(this.checked)','Giá bán lẻ NCC, CK đại lý, giá đại lý, lợi nhuận… — không gửi khách')
+     +'<p class="bgx-note'+(bgNoiBoXuat_()?' warn':'')+'">'+icon('lock',12)+' '+(bgNoiBoXuat_()
+        ? 'ĐANG in kèm cột nội bộ'+(nb.length?' ('+nb.map(function(k){ return BG_NOI_BO[k]; }).join(', ')+')':'')+' và giá nhà thầu Phần thô — không gửi bản này cho khách.'
+        : 'Cột Giá bán lẻ NCC, CK đại lý, Giá đại lý, % lợi nhuận, Margin, Lợi nhuận (VNĐ) không in trên báo giá gửi khách.')+'</p>');
+  var the4=bgThe_(4,'Giao diện báo giá','Không bắt buộc · áp dụng cho cả bản in.',
+      '<div class="bgx-mau-h"><label class="bgx-lb">Màu tiêu đề &amp; bảng</label><code>'+mau.toUpperCase()+'</code>'
+       +'<input type="color" value="'+mau+'" title="Chọn màu khác" onchange="bgMauDat_(this.value)"></div>'
+     +'<div class="bgx-mau">'+BG_MAU_DS.map(function(m){ return '<button class="'+(m===mau?'on':'')+'" style="background:'+m+'" title="'+m.toUpperCase()+'" onclick="bgMauDat_(\''+m+'\')"></button>'; }).join('')+'</div>');
+  return bgBiaCanh_()+the1+the2+the3+the4
+    +'<section class="bgx-card tk"><header><i>5</i><div><b>Tổng kết &amp; điều khoản</b><span>VAT · chiết khấu · thanh toán · ghi chú</span></div></header>'
+      +'<div class="bgx-vat"><label class="bgx-lb">VAT của dự án</label><span><input class="bgx-in" type="number" step="any" min="0" value="'+(Number(S.cur&&S.cur.vat)||0)+'" onchange="setVat(this.value)" title="Dùng chung với Bóc tách / Chi phí"> %</span></div>'
+      +bgTkPanel_()+'</section>'
+    +'<div class="bgx-xuat">'
+      +'<button class="btn green sm" onclick="doExport(\'xlsx\',this)">'+icon('download',15)+' Xuất Excel</button>'
+      +'<button class="btn red sm" onclick="printDoc()">'+icon('download',15)+' Xuất PDF / In</button></div>';
 }
 /* kéo mép dưới khung xem để chỉnh chiều cao */
 function bgVpApply_(){
-  var v=document.getElementById('bgViewport'); if(!v) return;
-  // Đã kéo tay (nhớ theo máy, khoá qs_bgH2) -> giữ; chưa thì khung TỰ CAO TỚI ĐÁY MÀN HÌNH (trang không cuộn)
-  var h=Number(S.bgVpH||0); if(!h){ try{ h=Number(localStorage.getItem('qs_bgH2'))||0; }catch(e){} }
-  if(h){ S.bgVpH=h; v.style.height=h+'px'; return; }
-  // dời đúng phần chênh giữa đáy tab và đáy cửa sổ (số đo màn hình đã nhân zoom của app -> chia lại)
-  var zf=(typeof btZf_==='function')?btZf_(v):1, view=v.closest('.view')||v;
-  v.style.height=Math.max(320, Math.floor(v.offsetHeight+(window.innerHeight-28-(view.getBoundingClientRect().bottom+(window.pageYOffset||0)))/zf))+'px';
+  var x=document.getElementById('bgX'); if(!x||!x.offsetParent) return;
+  if(window.innerWidth<=900){ x.style.height=''; return; }                 // màn hẹp: xếp dọc, trang cuộn tự nhiên
+  var zf=(typeof btZf_==='function')?btZf_(x):1;
+  x.style.height=Math.max(420, Math.floor((window.innerHeight-12-(x.getBoundingClientRect().top+(window.pageYOffset||0)))/zf))+'px';
   if(!bgVpApply_._b){ bgVpApply_._b=1; window.addEventListener('resize',function(){ clearTimeout(bgVpApply_._t);
-    bgVpApply_._t=setTimeout(function(){ if(!S.bgVpH){ bgVpApply_(); if(typeof bgZoomApply_==='function') bgZoomApply_(); } },120); }); }
+    bgVpApply_._t=setTimeout(function(){ bgVpApply_(); if(typeof bgZoomApply_==='function') bgZoomApply_(); },120); }); }
 }
-function bgVpBind_(){
-  var g=document.getElementById('bgVpGrip'), v=document.getElementById('bgViewport');
-  if(!g||!v||g.dataset.b==='1') return;
-  g.dataset.b='1';
-  g.addEventListener('mousedown',function(e){
-    e.preventDefault();
-    var y0=e.clientY, h0=v.getBoundingClientRect().height;
-    document.body.style.cursor='ns-resize';
-    function mv(ev){ var h=Math.max(260, Math.min(window.innerHeight*2, h0+(ev.clientY-y0)));
-      S.bgVpH=Math.round(h); v.style.height=S.bgVpH+'px'; }
-    function up(){ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up);
-      document.body.style.cursor='';
-      try{ localStorage.setItem('qs_bgH2', String(S.bgVpH||'')); }catch(e){}
-      bgZoomApply_(); }
-    document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
-  });
-  g.addEventListener('dblclick',function(){       // bấm đúp = trả về chiều cao mặc định
-    S.bgVpH=0; try{ localStorage.removeItem('qs_bgH2'); }catch(e){}
-    bgVpApply_(); bgZoomApply_(); toast('Đã trả khung xem về vừa khít màn hình');
-  });
-}
+function bgVpBind_(){}
 var QS_DOC_CSS=''
 +'.qs-doc{display:flex;justify-content:center;margin:16px 0 4px;overflow-x:auto;padding-bottom:6px}'
 +'.qs-page{width:1123px;min-height:794px;background:#fff;border:1px solid #e6e9ee;border-radius:10px;box-shadow:0 8px 30px rgba(20,40,80,.10);padding:54px 60px 48px;box-sizing:border-box;position:relative;font-family:Arial,Helvetica,sans-serif;color:#1f2937}'
@@ -635,13 +669,16 @@ var QS_DOC_CSS=''
 +'.qx-dot th{font-size:9px;font-weight:600;color:#6b7785;text-align:left;padding:6px 12px;border-top:1px solid #eef1f4}'
 +'.qx-dot td{padding:6px 12px;border-top:1px solid #eef1f4;color:#1f2d3d}'
 +'.qx-dot .num{text-align:right;font-variant-numeric:tabular-nums}';
-function ensureDocCss_(){ if(document.getElementById('qsDocCss')) return; var s=document.createElement('style'); s.id='qsDocCss'; s.textContent=QS_DOC_CSS; document.head.appendChild(s); }
+// CSS tài liệu theo MÀU người dùng chọn (thẻ "Giao diện báo giá"): thay 3 sắc navy mặc định bằng màu đó — dùng cho cả màn hình lẫn bản in
+function bgDocCss_(){ var m=bgMau_(); return m===BG_MAU_DS[0]?QS_DOC_CSS:QS_DOC_CSS.replace(/#0f2942|#12233a|#12314f/gi, m); }
+function ensureDocCss_(){ var s=document.getElementById('qsDocCss'); if(!s){ s=document.createElement('style'); s.id='qsDocCss'; document.head.appendChild(s); }
+  var css=bgDocCss_(); if(s.textContent!==css) s.textContent=css; }
 function printDoc(pages){
   if(!S.cur){ toast('Chưa chọn dự án'); return; }
   if(!Array.isArray(pages)){ bgChot_('pdf'); drawBaogia(); pages=bgBuildPages(); }   // mỗi lần in nội dung mới = 1 phiên bản
   var p=S.cur||{};
   var html=pages.map(function(pg){return pg.html;}).join('');
-  var pcss=QS_DOC_CSS
+  var pcss=bgDocCss_()
     +'@page{size:A4 landscape;margin:0}'
     +'body{margin:0;background:#fff}'
     +'.qs-doc{margin:0;display:block}'
@@ -756,11 +793,11 @@ function drawBaogia(){
   // ---- Chế độ tài liệu (xem trước phân trang + xuất) ----
   if(S.bgView==='doc'){
     bgCfgLoad_();
-    box.innerHTML=bgCtlBar_()
-      +bgTkPanel_()
-      +bgDocHTML();
-    foldChipsSync_(); bgVpApply_(); bgVpBind_(); bgZoomApply_();
-    requestAnimationFrame(function(){ if(!S.bgVpH){ bgVpApply_(); bgZoomApply_(); } });      // khối phía trên xếp xong -> canh lại đáy   // nút thu gọn vừa vẽ lại -> trả đúng trạng thái
+    var sd=document.querySelector('#bgX .bgx-side'), sT=sd?sd.scrollTop:0;        // giữ chỗ đang cuộn ở cột trái khi vẽ lại
+    box.innerHTML='<div class="bgx" id="bgX"><aside class="bgx-side">'+bgSideHTML_()+'</aside><main class="bgx-main">'+bgDocHTML()+'</main></div>';
+    sd=document.querySelector('#bgX .bgx-side'); if(sd) sd.scrollTop=sT;
+    bgVpApply_(); bgZoomApply_();
+    setTimeout(function(){ bgVpApply_(); bgZoomApply_(); },60);
     return;
   }
   var comp=coverCosts(), p=S.cur||{}, q0=bgTong_(computeQuoteLocal().subtotal), q={subtotal:q0.sub, vatPct:q0.vatPct, vat:q0.vat, total:q0.total, ck:q0.ck};
@@ -972,47 +1009,6 @@ function bgSeg_(){
   return '<div class="bgseg"><button class="'+(S.bgView==='doc'?'on':'')+'" onclick="bgSetView(\'doc\')">'+icon('eye',14)+' Xem trước & Xuất</button>'
     +'<button class="'+(S.bgView==='edit'?'on':'')+'" onclick="bgSetView(\'edit\')">'+icon('sliders',14)+' Chỉnh sửa</button></div>';
 }
-function bgCtlBar_(){
-  var pages=bgBuildPages().length, vp=Number(S.cur&&S.cur.vat)||0;
-  return bgNoiBoCanh_()+bgBiaCanh_()+'<div class="bgctl">'
-    +'<span class="bgctl-mau" title="Trang 1 luôn là tờ bìa — chọn kiểu">'
-      +'<label>Trang 1 · Tờ bìa</label>'
-      +'<button class="'+(S.coverMau==='m1'?'on':'')+'" onclick="setCoverMau(\'m1\')">Mẫu 1</button>'
-      +'<button class="'+(S.coverMau==='m1'?'':'on')+'" onclick="setCoverMau(\'m2\')">Mẫu 2</button>'
-    +'</span>'
-    +'<span class="bgctl-lbl">Trang 2+</span>'+bgNodeBtn_('bgNodeBtn1')
-    +'<button class="btn ghost sm'+(bgPerSec_()?' on':'')+'" onclick="bgTogglePerSec_()" '
-      +'title="Mỗi hạng mục bắt đầu ở một trang mới">'+icon('doc',14)+' Mỗi phần 1 trang</button>'
-    +'<span class="bgctl-sel" title="Số dòng tối đa trên mỗi trang giấy"><label>Dòng/trang</label>'
-      +'<select onchange="bgSetPer_(this.value)">'
-      +[['0','Tự động'],['8','8'],['10','10'],['12','12'],['15','15'],['18','18'],['20','20'],['25','25'],['30','30']].map(function(o){
-          return '<option value="'+o[0]+'"'+((Number(S.bgPer)||0)===Number(o[0])?' selected':'')+'>'+o[1]+'</option>'; }).join('')
-      +'</select></span>'
-    +'<span class="bgctl-sel" title="Phóng to / thu nhỏ trang xem trước (không ảnh hưởng file xuất)"><label>Phóng</label>'
-      +'<select onchange="bgSetZoom_(this.value)">'
-      +[['fit','Vừa khung'],['60','60%'],['75','75%'],['100','100%'],['125','125%'],['150','150%']].map(function(o){
-          return '<option value="'+o[0]+'"'+(String(S.bgZoom||'fit')===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join('')
-      +'</select></span>'
-    +(bgColTuyBien_()?'<button class="btn ghost sm" onclick="bgColReset_()" title="Trả rộng và thứ tự cột về mặc định">'+icon('close',13)+' Đặt lại cột</button>':'')
-    +'<span class="bgctl-sel" title="Thuế VAT của dự án — dùng chung với Bóc tách / Chi phí"><label>VAT</label>'
-      +'<input class="bgctl-vat" type="number" step="any" min="0" value="'+vp+'" onchange="setVat(this.value)">%</span>'
-    +'<span class="bgctl-n">'+icon('doc',13)+' Số trang <b>'+pages+'</b></span>'
-    +'<span style="flex:1"></span>'
-    +bgVerBar_()
-    +'<span class="bgctl-xuat">'
-      +'<button class="btn green sm" onclick="doExport(\'xlsx\',this)">'+icon('download',15)+' Xuất Excel</button>'
-      +'<button class="btn red sm" onclick="printDoc()">'+icon('download',15)+' Xuất PDF / In</button></span>'
-  +'</div>'
-  // khối "Cột xuất" đóng khung giống Bóc tách / Chi phí / Dự án cho cả app đồng bộ
-  +'<div class="pg-cols bg-cols">'
-    +'<div class="tk-frame-hr"><span class="tk-frame-h">Cột xuất <b>'+COLS.filter(function(c){ return S.cols[c[0]]; }).length+'/'+COLS.length+'</b></span>'
-      +csQuickBtn_('tk','bgPresetBtn')+'</div>'
-    +'<div class="colchips bg-colchips">'
-      +COLS.map(function(c){ return '<span class="chip'+(S.cols[c[0]]?' on':'')+'" onclick="toggleCol(\''+c[0]+'\')">'+esc(c[1])+'</span>'; }).join('')
-    +'</div>'
-  +'</div>';
-}
-
 /* ═══════════ THƯƠNG HIỆU · TỔNG KẾT & ĐIỀU KHOẢN · TỜ BÌA TỰ ĐIỀN · PHIÊN BẢN ═══════════
    Lưu trong du_an_data:
      bgOrg  (theo CÔNG TY)  tên / logo / địa chỉ / ĐT / email / website hiện trên báo giá
