@@ -240,7 +240,7 @@ async function buildDetailSheet(wb, ws, items, p, EXCOLS, catName) {
 
   let r = 1;
   ws.mergeCells(r, 1, r, ncol);
-  var h1 = ws.getCell(r, 1); h1.value = 'CÔNG TY THIẾT KẾ & THI CÔNG DEZON';
+  var h1 = ws.getCell(r, 1); h1.value = String((p && p._org) || 'CÔNG TY THIẾT KẾ & THI CÔNG DEZON').toUpperCase();   // tên công ty đang in trên báo giá (client gửi) — trước ghi cứng Dezon cho mọi công ty
   h1.font = { name: 'Arial', bold: true, size: 13, color: { argb: WHITE } };
   h1.alignment = { horizontal: 'center', vertical: 'middle' }; setFill(h1, NAVY); ws.getRow(r).height = 24; r++;
   ws.mergeCells(r, 1, r, ncol);
@@ -447,9 +447,10 @@ function buildTongSheet(ws, p, tong) {
 }
 
 /*** ===== ENTRY: exportBaoGia(maDA, cols, format) ===== ***/
-async function exportBaoGia(maDA, cols, format, nodes, phanTho, anMuc, tong) {
+async function exportBaoGia(maDA, cols, format, nodes, phanTho, anMuc, tong, org) {
   const q = await dataStore.getQuote(maDA);
   const p = q.project || {};
+  if (org && String(org).trim()) p._org = String(org).trim().slice(0, 120);
   // chỉ xuất các hạng mục được tích ở tab Xuất báo giá (rỗng = xuất hết)
   if (nodes && nodes.length) {
     q.lines = (q.lines || []).filter(function (l) {

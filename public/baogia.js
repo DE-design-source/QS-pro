@@ -39,11 +39,11 @@ function coverEdit(i,field,value){ var c=S.cover[i]; if(!c)return;
   else if(field==='stt') c.stt=String(value).replace(/[^\d.]/g,'');
   else c[field]=value; drawBaogia(); }
 function coverDel(i){ S.cover.splice(i,1); drawBaogia(); }
-function coverAddBig(){ var n=(S.cover||[]).filter(function(c){return coverDepth(c.stt)===1;}).length+1; S.cover.push({stt:String(n),hangMuc:'Mục mới',moTa:'',chiPhi:0}); drawBaogia(); }
+function coverAddBig(){ var n=(S.cover||[]).filter(function(c){return coverDepth(c.stt)===1;}).reduce(function(m,c){ return Math.max(m,parseInt(c.stt,10)||0); },0)+1; S.cover.push({stt:String(n),hangMuc:'Mục mới',moTa:'',chiPhi:0}); drawBaogia(); }
 function coverAddSmall(){
   var secs=(S.cover||[]).filter(function(c){return coverDepth(c.stt)===1;}).sort(coverSortFn);
   var last=secs[secs.length-1], stt='1.1';
-  if(last){ var kids=(S.cover||[]).filter(function(c){return c.stt!==last.stt && String(c.stt).indexOf(last.stt+'.')===0 && coverDepth(c.stt)===2;}); stt=last.stt+'.'+(kids.length+1); }
+  if(last){ var kids=(S.cover||[]).filter(function(c){return c.stt!==last.stt && String(c.stt).indexOf(last.stt+'.')===0 && coverDepth(c.stt)===2;}); stt=last.stt+'.'+(kids.reduce(function(m,c){ return Math.max(m,parseInt(String(c.stt).split('.')[1],10)||0); },0)+1); }
   S.cover.push({stt:stt,hangMuc:'Mục nhỏ',moTa:'',chiPhi:0}); drawBaogia();
 }
 async function coverReload(btn){ if(btn)btn.disabled=true; try{ S.cover=await api('buildCoverFromTemplate',S.cur.maDA)||[]; S._coverDA=S.cur.maDA; drawBaogia(); toast('Đã nạp mẫu + tự cộng chi phí'); }catch(e){ toast('Lỗi: '+e.message); } if(btn)btn.disabled=false; }
@@ -362,13 +362,14 @@ document.addEventListener('mousedown',function(e){
 });
 /* Số dòng mỗi trang · phóng to thu nhỏ · rộng/thứ tự cột — nhớ theo máy */
 function bgCfgSave_(){ try{ localStorage.setItem('qs_bgdoc', JSON.stringify({
-    per:Number(S.bgPer)||0, zoom:S.bgZoom||'fit', w:S.bgColW||{}, ord:S.bgColOrder||null })); }catch(e){} }
+    per:Number(S.bgPer)||0, zoom:S.bgZoom||'fit', w:S.bgColW||{}, ord:S.bgColOrder||null, sec:bgPerSec_() })); }catch(e){} }
 function bgCfgLoad_(){
   if(S._bgCfg) return; S._bgCfg=1;
   var o=null; try{ o=JSON.parse(localStorage.getItem('qs_bgdoc')||'null'); }catch(e){}
   if(!o) return;
   if(o.per!=null) S.bgPer=Number(o.per)||0;
-  if(o.zoom) S.bgZoom=o.zoom;
+  if(o.zoom) S.bgZoom=['fit','75','100','125'].indexOf(String(o.zoom))>=0?String(o.zoom):'fit';
+  if(o.sec===false) S.bgPerSec=false;
   if(o.w&&typeof o.w==='object') S.bgColW=o.w;
   if(Array.isArray(o.ord)&&o.ord.length) S.bgColOrder=o.ord;
 }
@@ -428,7 +429,7 @@ function bgSecRow_(cols, nhan, tien, keyTT){
 function bgPTOn_(){
   var sel=bgSelCodes_();
   if(!sel.length) return true;                       // không tích gì = xuất tất cả
-  return sel.some(function(c){ return c==='3.1' || String(c).indexOf('3.1.')===0; });
+  return sel.some(function(c){ c=String(c); return c==='3.1' || c.indexOf('3.1.')===0 || '3.1'.indexOf(c+'.')===0; });   // tích nút cha "3" cũng gồm Phần thô (3.1), như cách lọc dòng
 }
 function bgPTSecs_(){
   if(!bgPTOn_()||!S.cur) return [];
@@ -510,12 +511,16 @@ function bgCongTac_(on, nhan, js, tip){      // công tắc bật / tắt
 }
 var BG_MAU_DS=['#0f2942','#2563eb','#0d9488','#16a34a','#b7791f','#dc2626','#7c3aed','#1f2937'];
 function bgMau_(){ var m=String(((S._projData&&S._projData.bgCfg)||{}).mau||'').trim(); return /^#[0-9a-f]{6}$/i.test(m)?m.toLowerCase():BG_MAU_DS[0]; }
-function bgMauDat_(m){ bgOptSet_('mau', m===BG_MAU_DS[0]?null:m); }
+function bgMauDat_(m){
+  var h=String(m||'').replace('#',''), sang=(parseInt(h.slice(0,2),16)*299+parseInt(h.slice(2,4),16)*587+parseInt(h.slice(4,6),16)*114)/1000;
+  if(sang>150){ toast('Màu này quá nhạt — tiêu đề chữ trắng sẽ khó đọc. Chọn màu đậm hơn.'); drawBaogia(); return; }
+  bgOptSet_('mau', m===BG_MAU_DS[0]?null:m);
+}
 function bgColMo_(){ S._bgColMo=!S._bgColMo; drawBaogia(); }
 function bgSideHTML_(){
   var vi=bgVerInfo_(), nHist=bgHist_().length, pages=bgBuildPages().length, soDong=bgLines_().length+bgPTRows_();
   var gr=null, nhap=''; try{ gr=currentGroup(); nhap=draftName_(S.cur, gr?gr.idx:0); }catch(e){}
-  var nCot=COLS.filter(function(c){ return S.cols[c[0]]; }).length, mau=bgMau_();
+  var nCot=bgDocCols_().length, mau=bgMau_();
   var the1=bgThe_(1,'Phiên bản báo giá', esc(nhap||'Bản nháp')+' · '+soDong+' dòng đã bóc',
       '<div class="bgx-ma" title="Mã báo giá · phiên bản. Sửa mã ở chế độ Chỉnh sửa (ô Mã báo giá số)"><span>Mã</span><b>'+esc(vi.ma)+'</b><em>v'+vi.ver+'</em></div>'
      +'<div class="bgx-row2">'
@@ -534,7 +539,7 @@ function bgSideHTML_(){
      +bgCongTac_(bgPerSec_(),'Mỗi hạng mục một trang mới','bgTogglePerSec_()','Mỗi hạng mục bắt đầu ở một trang mới')
      +(bgColTuyBien_()?'<button class="btn ghost sm bgx-full" onclick="bgColReset_()" title="Trả rộng và thứ tự cột về mặc định">'+icon('close',13)+' Đặt lại rộng / thứ tự cột</button>':''));
   var nb=bgNoiBoBat_();
-  var the3=bgThe_(3,'Cột xuất','Đang in '+nCot+' / '+COLS.length+' cột',
+  var the3=bgThe_(3,'Cột xuất','Đang in '+nCot+' cột',
       '<div class="bgx-preset">'+csQuickBtn_('tk','bgPresetBtn')+'</div>'
      +'<button class="bgx-link" onclick="bgColMo_()">Bật / tắt từng cột <i>'+(S._bgColMo?'▴':'▾')+'</i></button>'
      +(S._bgColMo?'<div class="colchips bg-colchips">'+COLS.map(function(c){ return '<span class="chip'+(S.cols[c[0]]?' on':'')+'" onclick="toggleCol(\''+c[0]+'\')">'+esc(c[1])+'</span>'; }).join('')+'</div>':'')
@@ -554,7 +559,7 @@ function bgSideHTML_(){
       +'<button class="btn green sm" onclick="doExport(\'xlsx\',this)">'+icon('download',15)+' Xuất Excel</button>'
       +'<button class="btn red sm" onclick="printDoc()">'+icon('download',15)+' Xuất PDF / In</button></div>';
 }
-/* kéo mép dưới khung xem để chỉnh chiều cao */
+/* khung 2 cột cao vừa tới đáy cửa sổ */
 function bgVpApply_(){
   var x=document.getElementById('bgX'); if(!x||!x.offsetParent) return;
   if(window.innerWidth<=900){ x.style.height=''; return; }                 // màn hẹp: xếp dọc, trang cuộn tự nhiên
@@ -563,7 +568,6 @@ function bgVpApply_(){
   if(!bgVpApply_._b){ bgVpApply_._b=1; window.addEventListener('resize',function(){ clearTimeout(bgVpApply_._t);
     bgVpApply_._t=setTimeout(function(){ bgVpApply_(); if(typeof bgZoomApply_==='function') bgZoomApply_(); },120); }); }
 }
-function bgVpBind_(){}
 var QS_DOC_CSS=''
 +'.qs-doc{display:flex;justify-content:center;margin:16px 0 4px;overflow-x:auto;padding-bottom:6px}'
 +'.qs-page{width:1123px;min-height:794px;background:#fff;border:1px solid #e6e9ee;border-radius:10px;box-shadow:0 8px 30px rgba(20,40,80,.10);padding:54px 60px 48px;box-sizing:border-box;position:relative;font-family:Arial,Helvetica,sans-serif;color:#1f2937}'
@@ -670,7 +674,7 @@ var QS_DOC_CSS=''
 +'.qx-dot td{padding:6px 12px;border-top:1px solid #eef1f4;color:#1f2d3d}'
 +'.qx-dot .num{text-align:right;font-variant-numeric:tabular-nums}';
 // CSS tài liệu theo MÀU người dùng chọn (thẻ "Giao diện báo giá"): thay 3 sắc navy mặc định bằng màu đó — dùng cho cả màn hình lẫn bản in
-function bgDocCss_(){ var m=bgMau_(); return m===BG_MAU_DS[0]?QS_DOC_CSS:QS_DOC_CSS.replace(/#0f2942|#12233a|#12314f/gi, m); }
+function bgDocCss_(){ var m=bgMau_(); return m===BG_MAU_DS[0]?QS_DOC_CSS:QS_DOC_CSS.replace(/#0f2942|#12233a|#12314f|#0e2740|#0b2438/gi, m); }
 function ensureDocCss_(){ var s=document.getElementById('qsDocCss'); if(!s){ s=document.createElement('style'); s.id='qsDocCss'; document.head.appendChild(s); }
   var css=bgDocCss_(); if(s.textContent!==css) s.textContent=css; }
 function printDoc(pages){
@@ -794,15 +798,17 @@ function drawBaogia(){
   if(S.bgView==='doc'){
     bgCfgLoad_();
     var sd=document.querySelector('#bgX .bgx-side'), sT=sd?sd.scrollTop:0;        // giữ chỗ đang cuộn ở cột trái khi vẽ lại
+    var vp0=document.getElementById('bgViewport'), vT=vp0?vp0.scrollTop:0, vL=vp0?vp0.scrollLeft:0, trang0=S._bgTrangVe;
     box.innerHTML='<div class="bgx" id="bgX"><aside class="bgx-side">'+bgSideHTML_()+'</aside><main class="bgx-main">'+bgDocHTML()+'</main></div>';
     sd=document.querySelector('#bgX .bgx-side'); if(sd) sd.scrollTop=sT;
+    S._bgTrangVe=S.bgPage; var vp1=document.getElementById('bgViewport'); if(vp1&&trang0===S.bgPage){ vp1.scrollTop=vT; vp1.scrollLeft=vL; }
     bgVpApply_(); bgZoomApply_();
     setTimeout(function(){ bgVpApply_(); bgZoomApply_(); },60);
     return;
   }
   var comp=coverCosts(), p=S.cur||{}, q0=bgTong_(computeQuoteLocal().subtotal), q={subtotal:q0.sub, vatPct:q0.vatPct, vat:q0.vat, total:q0.total, ck:q0.ck};
   var secs=(S.cover||[]).filter(function(c){return coverDepth(c.stt)===1;}).sort(coverSortFn);
-  var chips=secs.map(function(s){ return '<span class="bgchip'+(bgAn_()[s.stt]?' off':'')+'" onclick="bgToggle(\''+s.stt+'\')">'+esc(s.hangMuc||s.stt)+'</span>'; }).join('')||'<span class="hint" style="color:#889">Chưa có mục. Bấm ↻ Nạp lại mẫu.</span>';
+  var chips=secs.map(function(s){ return '<span class="bgchip'+(bgAn_()[s.stt]?' off':'')+'" onclick="bgToggle(\''+escJs_(s.stt)+'\')">'+esc(s.hangMuc||s.stt)+'</span>'; }).join('')||'<span class="hint" style="color:#889">Chưa có mục. Bấm ↻ Nạp lại mẫu.</span>';
   var covTable=S.coverMau==='m1'?coverTableM1(comp):coverTableM2(comp);
   var colChips=COLS.map(function(c){return '<span class="chip'+(S.cols[c[0]]?' on':'')+'" onclick="toggleCol(\''+c[0]+'\')">'+esc(c[1])+'</span>';}).join('');
 
@@ -867,8 +873,9 @@ async function doExport(fmt,btn){
       dong:lech.slice(0,30).map(function(x){ return (x.l.ten||'')+': '+money(x.cu)+' → '+money(x.von); }) });
     if(!tl){ giaSyncRun_(); return; }
   }
-  var cols=bgExportCols_(), nodes=bgSelCodes_();
-  var o=btn.textContent; btn.disabled=true; btn.textContent='Đang xuất…';
+  if(S._bgDangXuat){ toast('Đang xuất, vui lòng chờ…'); return; }      // nút bị vẽ lại giữa chừng (mất trạng thái disabled) -> chặn bằng cờ
+  var cols=bgExportCols_(), nodes=bgSelCodes_(), ma0=S.cur.maDA;
+  var o=btn.textContent; btn.disabled=true; btn.textContent='Đang xuất…'; S._bgDangXuat=1;
   try{
     // PDF dùng CHUNG bản tài liệu với "Xem trước & Xuất" (printDoc): đúng tờ bìa, đúng bộ
     // cột đang chọn, đúng khổ ngang. Bản in cũ chỉ có 7 cột cứng, khác hẳn
@@ -883,17 +890,19 @@ async function doExport(fmt,btn){
       var cc=coverCosts();
       if((S.cover||[]).length){
         S.cover.forEach(function(c){ if(!coverHasChild(c.stt)) c.chiPhi=cc.cost[c.stt]; });
-        S.cover=await api('saveCover',S.cur.maDA,S.cover)||S.cover;
+        var cv=await api('saveCover',ma0,S.cover);
+        if(!S.cur||S.cur.maDA!==ma0){ toast('Đã đổi dự án trong lúc xuất — huỷ lần xuất này'); return; }
+        S.cover=cv||S.cover;
       }
-      bgChot_('excel'); drawBaogia();
       var an=Object.keys(bgAn_()).filter(function(k){ return bgAn_()[k]; });   // mục đã ẩn khỏi tờ bìa
       var t=bgTong_(bgSub_()), tong=[['Cộng (chưa VAT)',t.sub]];   // trang Tổng cộng của Excel = đúng hộp tổng trang cuối PDF
       if(t.ck) tong.push(['Chiết khấu'+(bgOpt_().ckKieu==='pct'?' '+bgOpt_().ck+'%':''),-t.ck],['Sau chiết khấu',t.sau]);
       tong.push(['VAT '+t.vatPct+'%',t.vat],['TỔNG THANH TOÁN',t.total]);
-      var r=await api('exportBaoGia',S.cur.maDA,cols,'xlsx',nodes,pt,an,tong);
-      dl(r); toast('Đã xuất Excel · '+cols.length+' cột'+(nodes.length?(' · '+nodes.length+' hạng mục'):'')+(pt.length?(' · kèm phần thô'):''));
+      var r=await api('exportBaoGia',ma0,cols,'xlsx',nodes,pt,an,tong,bgOrg_().ten);
+      dl(r); if(S.cur&&S.cur.maDA===ma0){ bgChot_('excel'); drawBaogia(); }      // chỉ ghi phiên bản khi file đã xuất xong
+      toast('Đã xuất Excel · '+cols.length+' cột'+(nodes.length?(' · '+nodes.length+' hạng mục'):'')+(pt.length?(' · kèm phần thô'):''));
     }
-  }catch(e){ toast('Lỗi: '+e.message); } btn.disabled=false; btn.textContent=o;
+  }catch(e){ toast('Lỗi: '+e.message); } finally{ S._bgDangXuat=0; btn.disabled=false; btn.textContent=o; }
 }
 function dl(res){ var b=atob(res.base64),a=new Uint8Array(b.length); for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);
   var u=URL.createObjectURL(new Blob([a],{type:res.mimeType})); var el=document.createElement('a'); el.href=u; el.download=res.name; el.click(); setTimeout(function(){URL.revokeObjectURL(u);},1500); }
@@ -982,7 +991,7 @@ function bgSelAll_(on){
 }
 /* --- mỗi hạng mục 1 trang --- */
 function bgPerSec_(){ return S.bgPerSec!==false; }
-function bgTogglePerSec_(){ S.bgPerSec=!bgPerSec_(); S.bgPage=1; drawBaogia(); }
+function bgTogglePerSec_(){ S.bgPerSec=!bgPerSec_(); S.bgPage=1; bgCfgSave_(); drawBaogia(); }
 /* --- chọn cột sẽ xuất (dùng chung S.cols với bảng Bóc tách) --- */
 // Cột nội bộ (giá vốn, CK đại lý, lợi nhuận): bật ở Bóc tách là cũng vào PDF / Excel gửi khách -> cảnh báo + ẩn nhanh
 var BG_NOI_BO={giaNCC:'Giá bán lẻ NCC', chietKhau:'CK đại lý', giaDaiLy:'Giá đại lý', lnPct:'% lợi nhuận', markup:'Markup', margin:'Margin', lnVnd:'Lợi nhuận (VND)'};
@@ -990,11 +999,6 @@ var BG_NOI_BO={giaNCC:'Giá bán lẻ NCC', chietKhau:'CK đại lý', giaDaiLy:
 function bgNoiBoXuat_(){ return !!(((S._projData&&S._projData.bgCfg)||{}).noiBo); }
 function bgNoiBoBat_(){ return Object.keys(BG_NOI_BO).filter(function(k){ return S.cols&&S.cols[k]; }); }
 function bgNoiBoDat_(on){ bgOptSet_('noiBo', !!on); toast(on?'Báo giá sẽ in kèm cột nội bộ (giá vốn / lợi nhuận)':'Đã ẩn cột nội bộ khỏi báo giá'); }
-function bgNoiBoCanh_(){ var ks=bgNoiBoBat_(); if(!ks.length) return '';
-  if(!bgNoiBoXuat_()) return '<div class="bg-noibo an">'+icon('lock',15)+'<span>Cột nội bộ ('+ks.map(function(k){ return BG_NOI_BO[k]; }).join(', ')
-    +') đang bật ở Bóc tách nhưng <b>không in</b> trên báo giá gửi khách.</span><button class="btn ghost sm" onclick="bgNoiBoDat_(1)">Xuất kèm (bản nội bộ)</button></div>';
-  return '<div class="bg-noibo">'+icon('bell',15)+'<span><b>Đang xuất kèm cột nội bộ:</b> '+ks.map(function(k){ return BG_NOI_BO[k]; }).join(', ')
-    +' — chỉ dùng cho bản nội bộ, KHÔNG gửi khách.</span><button class="btn sm" onclick="bgNoiBoDat_(0)">Ẩn khỏi báo giá</button></div>'; }
 // Tờ bìa cộng TOÀN dự án (kể cả mục không chọn xuất, số sửa tay); trang cuối chỉ cộng phần đang xuất -> báo khi 2 số khác nhau
 function bgBiaCanh_(){
   if(!(S.cover||[]).length) return '';
@@ -1029,7 +1033,7 @@ function bgOpt_(){
     hieuLuc:c.hieuLuc==null?30:Math.max(0,Number(c.hieuLuc)||0),
     dot:Array.isArray(c.dot)?c.dot:BG_DOT_MAC, ghiChu:c.ghiChu==null?null:String(c.ghiChu), tay:c.tay||{} };
 }
-function bgOptSet_(k,v){ var c=Object.assign({},(S._projData&&S._projData.bgCfg)||{}); c[k]=v; projDataSet_('bgCfg',c); drawBaogia(); }
+function bgOptSet_(k,v){ var c=Object.assign({},(S._projData&&S._projData.bgCfg)||{}); if(v==null) delete c[k]; else c[k]=v; projDataSet_('bgCfg',c); drawBaogia(); }
 // Giá trị 1 mục LÁ của tờ bìa: có dòng bóc tách thuộc mục -> tự cộng; đã sửa tay hoặc không có dòng -> số đang ghi
 function coverAutoOf_(stt){ var n=0, t=0;
   (S.lines||[]).forEach(function(l){ var c=String(l.nhom||'').trim(); if(c===stt||c.indexOf(stt+'.')===0){ n++; t+=ttBan_(l); } });
@@ -1162,11 +1166,12 @@ function bgSnap_(){
   var cc=coverCosts();
   return { lines:(S.lines||[]).map(function(l){ var o={}; BG_SNAP_F.forEach(function(k){ if(l[k]!=null&&l[k]!=='') o[k]=l[k]; }); return o; }),
     cover:(S.cover||[]).map(function(c){ return {stt:c.stt, hangMuc:c.hangMuc, moTa:c.moTa, chiPhi:coverHasChild(c.stt)?0:cc.cost[c.stt]}; }),
-    opt:Object.assign({ngay:bgOpt_().ngay},(S._projData&&S._projData.bgCfg)||{}), nodes:bgSelCodes_(),
+    opt:Object.assign({},(S._projData&&S._projData.bgCfg)||{}), nodes:bgSelCodes_(),
     pt:(function(){ try{ ptEnsure(); return JSON.parse(JSON.stringify(S.phanTho||[])); }catch(e){ return []; } })(),   // BẢN SAO: sửa Phần thô sau khi chốt không được làm đổi bản đã chốt
     proj:{vat:S.cur.vat, khachHang:S.cur.khachHang, ten:S.cur.ten} };
 }
-function bgSnapKey_(sn){ return JSON.stringify([sn.lines,sn.cover,sn.opt,sn.nodes,sn.proj,sn.pt]); }
+function bgXep_(v){ if(Array.isArray(v)) return v.map(bgXep_); if(v&&typeof v==='object'){ var o={}; Object.keys(v).sort().forEach(function(k){ if(v[k]!=null) o[k]=bgXep_(v[k]); }); return o; } return v; }
+function bgSnapKey_(sn){ return JSON.stringify(bgXep_([sn.lines,sn.cover,sn.opt,sn.nodes,sn.proj,sn.pt])); }
 function bgVerInfo_(){
   if(S._bgVerXem) return {ma:S._bgVerXem.ma, ver:S._bgVerXem.ver, nhan:'v'+S._bgVerXem.ver+' (đã chốt)', trung:true};
   var h=bgHist_(), last=h[h.length-1], ma=bgMa_();
@@ -1198,6 +1203,7 @@ function bgHistOpen_(){
     +'<button class="pd-x" onclick="document.getElementById(\'bgHistOv\').remove()">✕</button></div><div class="bghist-b">'
     +(h.length?'<table class="cpcmp-t"><tr><th>Phiên bản</th><th>Thời điểm</th><th>Người lập</th><th>Lý do</th><th class="num">Số dòng</th><th class="num">Tổng</th><th class="num">So với hiện tại</th><th></th></tr>'
       +h.map(function(v){ var d=cur-v.tong;
+        v=Object.assign({},v,{ver:Number(v.ver)||0, n:Number(v.n)||0});      // dữ liệu lưu: ép số trước khi chèn vào HTML / onclick
         return '<tr><td><b>v'+v.ver+'</b></td><td>'+esc(fmtDateTime_(v.at))+'</td><td>'+esc(v.by||'')+'</td><td>'+esc(BG_LYDO[v.lyDo]||v.lyDo||'')+'</td>'
           +'<td class="num">'+(v.n||0)+'</td><td class="num"><b>'+money(v.tong)+'</b></td>'
           +'<td class="num">'+(d?cpSigned_(d):'<span class="muted">bằng nhau</span>')+'</td>'
@@ -1252,10 +1258,4 @@ function bgHistDiff_(ver){
       +them.length+' dòng thêm · '+bo.length+' dòng bỏ · '+doi.length+' dòng đổi số lượng / giá'
       +(dong.length?'':'\nKhông khác nhau về dòng hàng (có thể khác tờ bìa / điều khoản).'),
     dong:dong });
-}
-function bgVerBar_(){
-  var vi=bgVerInfo_(), n=bgHist_().length;
-  return '<span class="bgver-chip" title="Mã báo giá · phiên bản. Sửa mã ở chế độ Chỉnh sửa (ô Mã báo giá số)">'+icon('doc',13)+' <b>'+esc(vi.ma)+'</b> · '+esc(vi.nhan)+'</span>'
-    +(vi.trung?'':'<button class="btn ghost sm" onclick="bgChotBtn_()" title="Lưu lại nội dung báo giá hiện tại thành 1 phiên bản">'+icon('check',14)+' Chốt v'+vi.ver+'</button>')
-    +'<button class="btn ghost sm" onclick="bgHistOpen_()" title="Xem lại / so sánh các phiên bản đã chốt hoặc đã xuất">'+icon('layers',14)+' Lịch sử'+(n?' ('+n+')':'')+'</button>';
 }
