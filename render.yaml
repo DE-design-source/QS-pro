@@ -14,7 +14,11 @@ services:
     envVars:
       - key: LARK_DOMAIN
         value: https://open.larksuite.com
-      # Supabase (nguồn dữ liệu chính). Publishable key — Supabase ghi rõ an toàn công khai.
+      # PostgreSQL (nguồn dữ liệu chính): chuỗi kết nối nhập trên Dashboard, KHÔNG commit.
+      # Phải là máy chủ Postgres mà Render truy cập được qua Internet (không phải localhost).
+      - key: DATABASE_URL
+        sync: false
+      # Supabase: chỉ còn dùng làm kho FILE (Storage). Publishable key — Supabase ghi rõ an toàn công khai.
       - key: SUPABASE_URL
         value: https://xcjnpjpkmwhekkabpjzw.supabase.co
       - key: SUPABASE_BUCKET

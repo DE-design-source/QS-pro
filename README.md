@@ -1,7 +1,7 @@
 # QS Pro (Dezon Pro) – Bóc tách khối lượng / báo giá
 
 Web app Node.js + Express: danh mục sản phẩm, dự án, bóc tách hạng mục, chi phí, tờ bìa (khái toán), xuất báo giá, mua hàng.
-Nhiều công ty dùng chung (multi-tenant), dữ liệu trên **Supabase**.
+Nhiều công ty dùng chung (multi-tenant), dữ liệu trên **PostgreSQL** (nối trực tiếp qua `DATABASE_URL`); file ảnh / tài liệu vẫn lưu trên Supabase Storage.
 
 ## Kiến trúc
 ```
@@ -19,13 +19,17 @@ public/vs-spec.js      Thông số thiết bị vệ sinh theo hạng mục (dù
 public/son-spec.js     Thông số sơn nước theo hạng mục
 server/index.js        Express: /api/:fn (whitelist REGISTRY + phân quyền), /export/*, /media, thẻ Lark, lịch báo cáo
 server/auth.js         Đăng nhập, phiên (token + đối chiếu DB), tài khoản, công ty, duyệt đơn/đề xuất/yêu cầu xoá
-server/store_supa.js   Nghiệp vụ trên Supabase: sản phẩm, dự án, dòng bóc tách, tờ bìa, công tác, mua hàng
-server/supa.js         Client PostgREST + Storage; TỰ lọc theo công ty cho các bảng trong TENANT_TABLES
+server/store_supa.js   Nghiệp vụ: sản phẩm, dự án, dòng bóc tách, tờ bìa, công tác, mua hàng
+server/supa.js         Tầng dữ liệu PostgreSQL (pg) — giữ giao diện select/insert/update/remove + chuỗi lọc kiểu PostgREST;
+                       dịch tên bảng/cột tiếng Việt trong code <-> tiếng Anh trong DB; TỰ lọc theo công ty (TENANT_TABLES)
+server/db-map.json     Bảng đối chiếu tên bảng / cột: tiếng Việt (code) -> tiếng Anh (database)
 server/tenant.js       Ngữ cảnh công ty theo request (AsyncLocalStorage)
 server/shared.js       Hàm thuần: mẫu tờ bìa, NCC 3.2, đọc số VN, đọc file nhập hàng loạt
 server/export.js       Xuất Excel báo giá (ExcelJS)
 server/lark.js         Chỉ còn tải ảnh cũ lưu trên Lark cho /media
-db/*.sql               Migration — chạy tay trong Supabase SQL Editor
+db/postgres/schema.sql Schema PostgreSQL hiện hành (tên tiếng Anh) — dựng database mới: psql -d <db> -f db/postgres/schema.sql
+db/*.sql               Migration cũ thời Supabase (tên tiếng Việt) — chỉ để tham khảo
+scripts/sync-from-supabase.js  Chép toàn bộ dữ liệu Supabase -> PostgreSQL (xoá rồi nạp lại, cần --yes)
 ```
 
 Quy ước quan trọng:
@@ -41,7 +45,11 @@ npm install
 npm start          # http://localhost:3000
 npm test           # kiểm tra hàm thuần + luồng nhập thiết bị vệ sinh / sơn (DB giả, không đụng dữ liệu thật)
 ```
-Lưu ý: chạy local vẫn nối **Supabase production** (URL/key ghi sẵn trong `server/supa.js`). Muốn trỏ project khác: `SUPABASE_URL_OVERRIDE` / `SUPABASE_KEY_OVERRIDE`.
+Cần file `.env` có `DATABASE_URL=postgresql://user:pass@host:port/db` (xem `.env.example`).
+
+Thêm cột / bảng mới: viết `ALTER TABLE` cho PostgreSQL rồi cập nhật `db/postgres/schema.sql`. Cột đặt tên tiếng Anh thì thêm cặp `"ten_trong_code": "name_in_db"` vào `server/db-map.json`; cột không có trong file này được dùng nguyên tên.
+
+File tải lên (ảnh SP, tài liệu) vẫn đi Supabase Storage — URL/key ghi sẵn trong `server/supa.js`, đổi project bằng `SUPABASE_URL_OVERRIDE` / `SUPABASE_KEY_OVERRIDE`.
 
 ## Deploy
-Render (`render.yaml`), tự deploy khi push `main`. Biến bí mật nhập trên Render Dashboard: `LARK_APP_ID`, `LARK_APP_SECRET` (tải ảnh cũ), `REPORT_WEBHOOK`, `PURCHASE_WEBHOOK`, `AUTH_SECRET`.
+Render (`render.yaml`), tự deploy khi push `main`. Biến bí mật nhập trên Render Dashboard: `DATABASE_URL` (PostgreSQL mà Render truy cập được — không phải localhost), `LARK_APP_ID`, `LARK_APP_SECRET` (tải ảnh cũ), `REPORT_WEBHOOK`, `PURCHASE_WEBHOOK`, `AUTH_SECRET`.

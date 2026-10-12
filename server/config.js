@@ -1,7 +1,7 @@
 'use strict';
 require('dotenv').config();
 
-// Dữ liệu nằm trên Supabase (server/supa.js). Lark chỉ còn dùng để tải ảnh cũ qua /media.
+// Dữ liệu nằm trên PostgreSQL (server/supa.js, biến DATABASE_URL). Lark chỉ còn dùng để tải ảnh cũ qua /media.
 module.exports = {
   port: Number(process.env.PORT) || 3000,
   larkDomain: (process.env.LARK_DOMAIN || 'https://open.larksuite.com').replace(/\/+$/, ''),
