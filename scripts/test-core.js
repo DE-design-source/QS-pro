@@ -109,5 +109,14 @@ fs.readdirSync(path.join(__dirname, '..', 'public')).filter(f => f.endsWith('.js
   const hd = function (pt) { const w = new ExcelJS.Workbook().addWorksheet('pt'); require('../server/export').buildPhanThoSheet(w, { ten: 'V' }, pt); return w.getRow(4).values.join('|'); };
   assert.ok(!/NHÀ THẦU/.test(hd([{ ten: 'A', tt: 350, items: [{ n: 'x', kl: 100, dg: 3.5, tt: 350 }] }])), 'sheet Phần thô lộ cột nhà thầu');
   assert.ok(/NHÀ THẦU/.test(hd([{ ten: 'A', tt: 350, items: [{ n: 'x', kl: 100, dg: 3.5, tt: 350, dgnt: 3, ttnt: 300 }] }])));
+  // ảnh báo giá: không tải địa chỉ nội bộ (SSRF)
+  for (const u of ['http://localhost:3000/x.png', 'http://169.254.169.254/latest/meta-data', 'http://192.168.1.5/a.jpg', 'http://10.0.0.1/a', 'http://[::1]/a'])
+    assert.strictEqual(await require('../server/export').fetchImage(u), null, 'phải chặn ' + u);
+  // sheet 3.2: nhà cung cấp lấy từ dòng của dự án, không ghi cứng
+  const w32 = new ExcelJS.Workbook().addWorksheet('32');
+  require('../server/export').buildSection32(w32, { ten: 'P' }, [{ stt: '3.2.2', hangMuc: 'Sơn nước', chiPhi: 100 }],
+    [{ nhom: '3.2.2', thuongHieu: 'ThuongHieuX', ncc: 'DaiLyY' }, { nhom: '3.2.5', thuongHieu: 'Toto' }]);
+  let chu32 = ''; w32.eachRow(function (r) { chu32 += '|' + r.values.join('|'); });
+  assert.ok(/ThuongHieuX — DaiLyY/.test(chu32) && /Toto/.test(chu32) && !/Boral|Daikin|Kohler/.test(chu32), 'sheet 3.2 phải dùng NCC của dự án');
   console.log('test-core: tất cả đạt');
 })().catch(e => { console.error(e); process.exit(1); });

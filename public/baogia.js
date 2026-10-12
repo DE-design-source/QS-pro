@@ -33,21 +33,33 @@ function bgToggle(stt){ var a=Object.assign({},bgAn_()); if(a[stt]) delete a[stt
 function setCoverMau(m){ S.coverMau=m; try{localStorage.setItem('qs_covermau',m);}catch(e){} drawBaogia(); }
 function coverInfo(field,value){ if(!S.cur)return; var f={}; f[field]=value; api('updateProject',S.cur.maDA,f).then(syncProj).catch(function(e){toast('Lỗi: '+e.message);}); }
 function ic(field){ var v=(S.cur&&S.cur[field])||''; return '<td><input class="cin" value="'+esc(v)+'" onchange="coverInfo(\''+field+'\',this.value)"></td>'; }
+/* Lưu tờ bìa: gom các thay đổi trong 0,6s; mỗi lúc CHỈ 1 lần ghi (máy chủ ghi kiểu "chèn mới rồi xoá cũ" — 2 lần ghi chồng nhau
+   làm tờ bìa nhân đôi); đang ghi mà có thay đổi mới thì ghi tiếp 1 lần nữa khi xong. Nhớ đúng dự án lúc sửa. */
+function coverLuu_(){
+  var ma=S.cur&&S.cur.maDA; if(!ma) return;
+  S._cvCho=ma; clearTimeout(S._cvT);
+  S._cvT=setTimeout(function chay(){
+    if(S._cvDang){ S._cvT=setTimeout(chay,300); return; }
+    var m=S._cvCho; S._cvCho=null; if(!m||!S.cur||S.cur.maDA!==m) return;      // đã đổi dự án: bỏ (dữ liệu trong bộ nhớ không còn là của dự án đó)
+    S._cvDang=1;
+    api('saveCover',m,S.cover).catch(function(e){ toast('Lỗi lưu tờ bìa: '+e.message); }).then(function(){ S._cvDang=0; });
+  },600);
+}
 function coverEdit(i,field,value){ var c=S.cover[i]; if(!c)return;
-  if(field==='chiPhi'){ c.chiPhi=tkNum_(value); coverTaySet_(c.stt,true);
-    var ma=S.cur&&S.cur.maDA; if(ma) api('saveCover',ma,S.cover).catch(function(e){ toast('Lỗi lưu tờ bìa: '+e.message); }); }
+  if(field==='chiPhi'){ c.chiPhi=tkNum_(value); coverTaySet_(c.stt,true); }
   else if(field==='stt') c.stt=String(value).replace(/[^\d.]/g,'');
-  else c[field]=value; drawBaogia(); }
-function coverDel(i){ S.cover.splice(i,1); drawBaogia(); }
-function coverAddBig(){ var n=(S.cover||[]).filter(function(c){return coverDepth(c.stt)===1;}).reduce(function(m,c){ return Math.max(m,parseInt(c.stt,10)||0); },0)+1; S.cover.push({stt:String(n),hangMuc:'Mục mới',moTa:'',chiPhi:0}); drawBaogia(); }
+  else c[field]=value;
+  coverLuu_(); drawBaogia(); }
+function coverDel(i){ S.cover.splice(i,1); coverLuu_(); drawBaogia(); }
+function coverAddBig(){ var n=(S.cover||[]).filter(function(c){return coverDepth(c.stt)===1;}).reduce(function(m,c){ return Math.max(m,parseInt(c.stt,10)||0); },0)+1; S.cover.push({stt:String(n),hangMuc:'Mục mới',moTa:'',chiPhi:0}); coverLuu_(); drawBaogia(); }
 function coverAddSmall(){
   var secs=(S.cover||[]).filter(function(c){return coverDepth(c.stt)===1;}).sort(coverSortFn);
   var last=secs[secs.length-1], stt='1.1';
   if(last){ var kids=(S.cover||[]).filter(function(c){return c.stt!==last.stt && String(c.stt).indexOf(last.stt+'.')===0 && coverDepth(c.stt)===2;}); stt=last.stt+'.'+(kids.reduce(function(m,c){ return Math.max(m,parseInt(String(c.stt).split('.')[1],10)||0); },0)+1); }
-  S.cover.push({stt:stt,hangMuc:'Mục nhỏ',moTa:'',chiPhi:0}); drawBaogia();
+  S.cover.push({stt:stt,hangMuc:'Mục nhỏ',moTa:'',chiPhi:0}); coverLuu_(); drawBaogia();
 }
-async function coverReload(btn){ if(btn)btn.disabled=true; try{ S.cover=await api('buildCoverFromTemplate',S.cur.maDA)||[]; S._coverDA=S.cur.maDA; drawBaogia(); toast('Đã nạp mẫu + tự cộng chi phí'); }catch(e){ toast('Lỗi: '+e.message); } if(btn)btn.disabled=false; }
-async function coverSave(btn){ btn.disabled=true; try{ S.cover=await api('saveCover',S.cur.maDA,S.cover)||S.cover; toast('Đã lưu tờ bìa'); drawBaogia(); }catch(e){ toast('Lỗi: '+e.message); } btn.disabled=false; }
+async function coverReload(btn){ if(btn)btn.disabled=true; var ma=S.cur.maDA; try{ var cv=await api('buildCoverFromTemplate',ma)||[]; if(!S.cur||S.cur.maDA!==ma) return; S.cover=cv; S._coverDA=ma; drawBaogia(); toast('Đã nạp mẫu + tự cộng chi phí'); }catch(e){ toast('Lỗi: '+e.message); } if(btn)btn.disabled=false; }
+async function coverSave(btn){ btn.disabled=true; var ma=S.cur.maDA; try{ clearTimeout(S._cvT); S._cvCho=null; var cv=await api('saveCover',ma,S.cover); if(!S.cur||S.cur.maDA!==ma) return; S.cover=cv||S.cover; toast('Đã lưu tờ bìa'); drawBaogia(); }catch(e){ toast('Lỗi: '+e.message); } btn.disabled=false; }
 
 /* ===== BẢNG TÍNH HỆ SỐ DIỆN TÍCH (theo tab 0.NHẬP THÔNG TIN) ===== */
 var AREA_TEMPLATE=[
@@ -214,7 +226,11 @@ function bgBuildPages(){
   // Tổng phải ĐÚNG phạm vi đang xuất: chỉ cộng các dòng đã lọc theo hạng mục + phần thô
   // (trước đây luôn cộng cả dự án nên chọn 1 hạng mục mà tổng vẫn ra tiền của hạng mục khác).
   var subBG=lines.reduce(function(a,l){ return a+ttBan_(l); },0)+ptTong;     // = bgSub_() (dùng cho Excel + kiểm tra tờ bìa)
-  inners[inners.length-1]+=bgTongKetHTML_(bgTong_(subBG), org);
+  /* Khối tổng kết cao cỡ 5–8 dòng bảng. Trang chi tiết cuối còn ít chỗ (đã quá nửa số dòng / trang) thì cho khối này sang
+     trang riêng "Tổng kết" — trước đây luôn nối vào trang cuối nên trang đầy bị tràn khổ A4, số trang ở chân in sai. */
+  var cuoi=metas[metas.length-1]||{}, PERc=PER;      // cùng số dòng / trang với bảng chi tiết (có ảnh 8, không ảnh 13, hoặc số người dùng chọn)
+  if(inners.length>1 && (cuoi.dong||0) > PERc*0.5){ inners.push(bgTongKetHTML_(bgTong_(subBG), org)); metas.push({ten:'Tổng kết'}); }
+  else inners[inners.length-1]+=bgTongKetHTML_(bgTong_(subBG), org);
   var N=inners.length;
   return inners.map(function(inner,idx){
     var m=metas[idx]||{};
@@ -252,8 +268,11 @@ function bgCoverPage_(comp){
         var val=cost[c.stt]||0, pct=total>0?(val/total*100):0;
         var lead = ki===0 ? '<td class="ct" rowspan="'+kids.length+'">'+esc(sec.stt)+'</td>'
             +'<td class="hm" rowspan="'+kids.length+'">'+esc(sec.hangMuc||'')+'</td>' : '';
-        return '<tr>'+lead+'<td>'+esc(c===sec?'':(c.hangMuc||''))+'</td>'
-          +'<td class="num">'+money(val)+'</td><td class="num">'+pct.toFixed(2)+'%</td>'
+        // mục CÓ CON (vd 3.2) là dòng cộng gộp của các mục dưới nó: in đậm; mục con (3.2.1…) thụt vào + chữ nhạt hơn
+        // -> đọc ra ngay "3.2 = tổng các dòng thụt bên dưới", cột chi phí không còn như bị cộng 2 lần
+        var gop=c!==sec && coverHasChild(c.stt), sau=Math.max(0,coverDepth(c.stt)-2);
+        return '<tr>'+lead+'<td style="'+(sau?'padding-left:'+(8+sau*14)+'px;color:#5b6b7b':'')+(gop?';font-weight:700':'')+'">'+esc(c===sec?'':(c.hangMuc||''))+(gop?' <i style="font-weight:400;color:#94a3b8">(gồm các mục dưới)</i>':'')+'</td>'
+          +'<td class="num" style="'+(gop?'font-weight:700':(sau?'color:#5b6b7b':''))+'">'+money(val)+'</td><td class="num" style="'+(sau?'color:#5b6b7b':'')+'">'+pct.toFixed(2)+'%</td>'
           +'<td class="it">'+esc(c.moTa||'')+'</td></tr>';
       }).join('');
     }).join('');
@@ -677,12 +696,12 @@ var QS_DOC_CSS=''
 function bgDocCss_(){ var m=bgMau_(); return m===BG_MAU_DS[0]?QS_DOC_CSS:QS_DOC_CSS.replace(/#0f2942|#12233a|#12314f|#0e2740|#0b2438/gi, m); }
 function ensureDocCss_(){ var s=document.getElementById('qsDocCss'); if(!s){ s=document.createElement('style'); s.id='qsDocCss'; document.head.appendChild(s); }
   var css=bgDocCss_(); if(s.textContent!==css) s.textContent=css; }
-function printDoc(pages){
+function printDoc(pages, css){        // css: CSS tài liệu của bản chụp (khi in lại 1 phiên bản cũ)
   if(!S.cur){ toast('Chưa chọn dự án'); return; }
   if(!Array.isArray(pages)){ bgChot_('pdf'); drawBaogia(); pages=bgBuildPages(); }   // mỗi lần in nội dung mới = 1 phiên bản
   var p=S.cur||{};
   var html=pages.map(function(pg){return pg.html;}).join('');
-  var pcss=bgDocCss_()
+  var pcss=(css||bgDocCss_())
     +'@page{size:A4 landscape;margin:0}'
     +'body{margin:0;background:#fff}'
     +'.qs-doc{margin:0;display:block}'
@@ -731,7 +750,7 @@ function coverTableM1(comp){
         : '';
       var price=leaf?'<td class="num"><input class="cin num" value="'+money(val)+'" onchange="coverEdit('+i+',\'chiPhi\',this.value)">'+coverTag_(c)+'</td>':'<td class="num">'+money(val)+'</td>';
       return '<tr>'+lead
-        +'<td><input class="cin" value="'+esc(c.hangMuc||'')+'" onchange="coverEdit('+i+',\'hangMuc\',this.value)"></td>'
+        +'<td style="padding-left:'+(Math.max(0,coverDepth(c.stt)-2)*14)+'px"><input class="cin" style="'+((c!==sec&&!leaf)?'font-weight:700':'')+'" value="'+esc(c.hangMuc||'')+'" onchange="coverEdit('+i+',\'hangMuc\',this.value)"></td>'
         +price+'<td class="num">'+pct.toFixed(2)+'%</td>'
         +'<td><input class="cin desc2" placeholder="mô tả…" value="'+esc(c.moTa||'')+'" onchange="coverEdit('+i+',\'moTa\',this.value)"></td></tr>';
     }).join('');
@@ -1168,10 +1187,12 @@ function bgSnap_(){
     cover:(S.cover||[]).map(function(c){ return {stt:c.stt, hangMuc:c.hangMuc, moTa:c.moTa, chiPhi:coverHasChild(c.stt)?0:cc.cost[c.stt]}; }),
     opt:Object.assign({},(S._projData&&S._projData.bgCfg)||{}), nodes:bgSelCodes_(),
     pt:(function(){ try{ ptEnsure(); return JSON.parse(JSON.stringify(S.phanTho||[])); }catch(e){ return []; } })(),   // BẢN SAO: sửa Phần thô sau khi chốt không được làm đổi bản đã chốt
-    proj:{vat:S.cur.vat, khachHang:S.cur.khachHang, ten:S.cur.ten} };
+    proj:{vat:S.cur.vat, khachHang:S.cur.khachHang, ten:S.cur.ten},
+    gd:{ cols:Object.assign({},S.cols), ord:(S.colOrder||[]).slice(), bgOrd:(S.bgColOrder||[]).slice(), w:Object.assign({},S.bgColW||{}),
+         bia:S.coverMau, sec:bgPerSec_(), per:Number(S.bgPer)||0, org:(S._projData&&S._projData.bgOrg)||null } };
 }
 function bgXep_(v){ if(Array.isArray(v)) return v.map(bgXep_); if(v&&typeof v==='object'){ var o={}; Object.keys(v).sort().forEach(function(k){ if(v[k]!=null) o[k]=bgXep_(v[k]); }); return o; } return v; }
-function bgSnapKey_(sn){ return JSON.stringify(bgXep_([sn.lines,sn.cover,sn.opt,sn.nodes,sn.proj,sn.pt])); }
+function bgSnapKey_(sn){ return JSON.stringify(bgXep_([sn.lines,sn.cover,sn.opt,sn.nodes,sn.proj,sn.pt,sn.gd||null])); }
 function bgVerInfo_(){
   if(S._bgVerXem) return {ma:S._bgVerXem.ma, ver:S._bgVerXem.ver, nhan:'v'+S._bgVerXem.ver+' (đã chốt)', trung:true};
   var h=bgHist_(), last=h[h.length-1], ma=bgMa_();
@@ -1216,24 +1237,29 @@ function bgHistOpen_(){
 // Dựng trang tài liệu từ 1 bản chụp: tạm thay dữ liệu đang mở rồi trả lại nguyên trạng
 function bgWithSnap_(sn, fn){
   var L=S.lines, C=S.cover, P=S.cur, D=S._projData, N=S.bgNodes, T=S.phanTho;
+  var G={cols:S.cols, ord:S.colOrder, bgOrd:S.bgColOrder, w:S.bgColW, bia:S.coverMau, sec:S.bgPerSec, per:S.bgPer}, gd=sn.gd;
   S.lines=sn.lines; S.cover=sn.cover; S.cur=Object.assign({},P,sn.proj||{}); if(sn.pt) S.phanTho=sn.pt;
-  S._projData=Object.assign({},D,{bgCfg:sn.opt||{}});
+  S._projData=Object.assign({},D,{bgCfg:sn.opt||{}}, (gd&&gd.org)?{bgOrg:gd.org}:{});
   S.bgNodes={}; (sn.nodes||[]).forEach(function(k){ S.bgNodes[k]=1; });
-  try{ return fn(); } finally{ S.lines=L; S.cover=C; S.cur=P; S._projData=D; S.bgNodes=N; S.phanTho=T; }
+  if(gd){ S.cols=gd.cols||S.cols; if(gd.ord&&gd.ord.length) S.colOrder=gd.ord; S.bgColOrder=(gd.bgOrd&&gd.bgOrd.length)?gd.bgOrd:null; S.bgColW=gd.w||{};
+    S.coverMau=gd.bia||S.coverMau; S.bgPerSec=gd.sec!==false; S.bgPer=gd.per||0; }     // bản chụp cũ (chưa có gd) dùng thiết lập hiện tại như trước
+  try{ return fn(); } finally{ S.lines=L; S.cover=C; S.cur=P; S._projData=D; S.bgNodes=N; S.phanTho=T;
+    S.cols=G.cols; S.colOrder=G.ord; S.bgColOrder=G.bgOrd; S.bgColW=G.w; S.coverMau=G.bia; S.bgPerSec=G.sec; S.bgPer=G.per; }
 }
 function bgHistGet_(ver){ return bgHist_().filter(function(v){ return v.ver===ver; })[0]; }
 function bgHistView_(ver){
   var v=bgHistGet_(ver); if(!v||!v.snap) return;
   S._bgVerXem=v;
-  try{ var pages=bgWithSnap_(v.snap, function(){ return bgBuildPages(); }); } finally{ S._bgVerXem=null; }
-  S._bgViewPages=pages;
+  // dựng trang VÀ CSS (màu chủ đạo) trong trạng thái của bản chụp -> xem / in ra đúng màu, đúng cột của bản đã chốt
+  try{ var kq=bgWithSnap_(v.snap, function(){ return {pages:bgBuildPages(), css:bgDocCss_()}; }); } finally{ S._bgVerXem=null; }
+  var pages=kq.pages; S._bgViewPages=pages; S._bgViewCss=kq.css;
   ensureDocCss_();
   var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='bgVerOv';
   ov.onclick=function(e){ if(e.target===ov) ov.remove(); };
   ov.innerHTML='<div class="sp-modal bgver pd"><div class="pd-head"><h3>'+icon('eye',16)+' '+esc(v.ma)+' · v'+v.ver+' — '+esc(fmtDateTime_(v.at))+'</h3>'
-    +'<button class="btn red sm" onclick="printDoc(S._bgViewPages)">'+icon('download',14)+' In / PDF bản này</button>'
+    +'<button class="btn red sm" onclick="printDoc(S._bgViewPages,S._bgViewCss)">'+icon('download',14)+' In / PDF bản này</button>'
     +'<button class="pd-x" onclick="document.getElementById(\'bgVerOv\').remove()">✕</button></div>'
-    +'<div class="bgver-b"><div class="qs-doc">'+pages.map(function(p){ return p.html; }).join('')+'</div></div></div>';
+    +'<div class="bgver-b"><style>'+kq.css+'</style><div class="qs-doc">'+pages.map(function(p){ return p.html; }).join('')+'</div></div></div>';
   document.body.appendChild(ov);
 }
 function bgHistDiff_(ver){

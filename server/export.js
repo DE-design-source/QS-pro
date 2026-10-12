@@ -164,7 +164,7 @@ function buildCoverSheet(ws, p, cover) {
 }
 
 /*** ===== 3.2 Phần hoàn thiện ===== ***/
-function buildSection32(ws, p, cover) {
+function buildSection32(ws, p, cover, lines) {
   const COL = [
     { label: 'NO', w: 44, al: 'center' }, { label: 'HẠNG MỤC', w: 170, al: 'left', bold: true },
     { label: 'MÔ TẢ CHI TIẾT', w: 250, al: 'left', wrap: true }, { label: 'DVT', w: 44, al: 'center' },
@@ -200,11 +200,19 @@ function buildSection32(ws, p, cover) {
   const data = [];
   data.push(['3.2', 'PHẦN HOÀN THIỆN CƠ BẢN', '', 'm2', kl, (kl > 0 ? total32 / kl : 0), total32, 1, '']);
   subs.forEach(function (s) {
-    const cov = covBy[s] || {}, chiPhi = byStt[s] || 0, sup = shared.S32_SUPPLIERS[s] || [];
+    const cov = covBy[s] || {}, chiPhi = byStt[s] || 0;
+    // thương hiệu / NCC thật sự có trong hạng mục này của dự án (không trùng, tối đa 8)
+    const sup = [], daCo = {};
+    (lines || []).forEach(function (l) {
+      const c = String(l.nhom || ''); if (c !== s && c.indexOf(s + '.') !== 0) return;
+      const th = String(l.thuongHieu || '').trim(), nc = String(l.ncc || '').trim(); if (!th && !nc) return;
+      const k = (th + '|' + nc).toLowerCase(); if (daCo[k] || sup.length >= 8) return; daCo[k] = 1;
+      sup.push(th && nc && th.toLowerCase() !== nc.toLowerCase() ? [th, nc] : [th || nc, '']);
+    });
     const first = sup.length ? sup[0] : null;
     data.push([s, cov.hangMuc || s, cov.moTa || '', 'gói', 1, '', chiPhi, total32 > 0 ? chiPhi / total32 : 0,
-      first ? (first[0] + ' — ' + first[1]) : '']);
-    for (var k = 1; k < sup.length; k++) data.push(['', '', '', '', '', '', '', '', sup[k][0] + ' — ' + sup[k][1]]);
+      first ? (first[0] + (first[1] ? ' — ' + first[1] : '')) : '']);
+    for (var k = 1; k < sup.length; k++) data.push(['', '', '', '', '', '', '', '', sup[k][0] + (sup[k][1] ? ' — ' + sup[k][1] : '')]);
   });
   const firstData = r;
   data.forEach(function (row) {
@@ -283,7 +291,8 @@ async function buildDetailSheet(wb, ws, items, p, EXCOLS, catName) {
         if (c.bold) cell.font = { name: 'Arial', bold: true };
       });
       if (idx % 2 === 1) for (var s = 1; s <= ncol; s++) if (!ws.getCell(r, s).fill) setFill(ws.getCell(r, s), STRIPE);
-      if (imgCol && String(l.hinhAnh || '')) imgList.push({ row: r, url: String(l.hinhAnh) });
+      const anh1 = String(l.hinhAnh || '').split(/\r?\n/).map(function (x) { return x.trim(); }).filter(Boolean)[0];   // ô nhiều ảnh: lấy ảnh đầu (như màn hình)
+      if (imgCol && anh1) imgList.push({ row: r, url: anh1 });
       ws.getRow(r).height = 40; r++;
     });
   });
@@ -324,6 +333,10 @@ async function fetchImage(url) {
       const dl = await lark.mediaDownload(decodeURIComponent(m[1]));
       buffer = dl.buffer; contentType = dl.contentType;
     } else if (url.indexOf('http') === 0) {
+      // URL do người dùng nhập: KHÔNG tải địa chỉ nội bộ / máy chủ (localhost, mạng riêng, metadata đám mây) — tránh dùng máy chủ để đọc trộm
+      let host = ''; try { host = new URL(url).hostname.toLowerCase(); } catch (e) { return null; }
+      if (!host || host === 'localhost' || /\.(local|internal)$/.test(host) || host.indexOf(':') >= 0 ||
+          /^(127\.|10\.|0\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host)) return null;
       // URL ảnh do người dùng nhập: giới hạn thời gian + dung lượng để 1 link treo/khổng lồ không chặn cả file xuất
       const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
       if (!res.ok || Number(res.headers.get('content-length') || 0) > IMG_MAX) return null;
@@ -331,8 +344,11 @@ async function fetchImage(url) {
       if (buffer.length > IMG_MAX) return null;
       contentType = res.headers.get('content-type') || '';
     } else return null;
-    if (/webp|gif|svg/i.test(contentType)) return null;      // ExcelJS chỉ nhúng được png/jpeg — nhúng webp là file báo hỏng
-    const ext = contentType.indexOf('png') > -1 ? 'png' : 'jpeg';
+    // ExcelJS chỉ nhúng được png / jpeg. Nhận theo CHỮ KÝ FILE (không tin content-type): trang HTML / webp nhúng vào là file Excel báo hỏng
+    const laPng = buffer.length > 8 && buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
+    const laJpg = buffer.length > 3 && buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF;
+    if (!laPng && !laJpg) return null;
+    const ext = laPng ? 'png' : 'jpeg';
     return { buffer: buffer, ext: ext };
   } catch (e) { return null; }
 }
@@ -474,7 +490,7 @@ async function exportBaoGia(maDA, cols, format, nodes, phanTho, anMuc, tong, org
   const cover = (await dataStore.getCoverOrInit(maDA)).filter(function (c) { return !an[String(c.stt).split('.')[0]]; });
   buildCoverSheet(wb.addWorksheet('Tờ bìa'), p, cover);
   if (Array.isArray(tong) && tong.length) buildTongSheet(wb.addWorksheet('Tổng cộng'), p, tong);
-  buildSection32(wb.addWorksheet('3.2 Phần hoàn thiện'), p, cover);
+  buildSection32(wb.addWorksheet('3.2 Phần hoàn thiện'), p, cover, q.lines);
   if (Array.isArray(phanTho) && phanTho.length) buildPhanThoSheet(wb.addWorksheet('3.1 Phần thô'), p, phanTho);
 
   const cats = []; const cmap = {};
@@ -551,4 +567,5 @@ async function buildBangXlsx(b) {
 }
 
 exportBaoGia.buildBangXlsx = buildBangXlsx;
+exportBaoGia.fetchImage = fetchImage; exportBaoGia.buildSection32 = buildSection32;   // cho test
 module.exports = exportBaoGia;
