@@ -527,7 +527,7 @@ function nhomOptions(){ var s={}; S.products.forEach(function(p){ var n=prodNhom
 // Lọc "Hạng mục sản phẩm" -> dùng cột "Hạng mục" của Lark (Đèn nội thất / ngoại thất)
 function prodHmuc_(p){ var h=(p&&p.hangMuc)||'';                     // vệ sinh / sơn: chuẩn hoá tên ("bồn cầu" = "Bồn cầu")
   var ng=nganhCuaSP_(p);
-  return (h && (ng==='vs'||ng==='son') && specNganh_(ng).chuanHM(h)) || h; }
+  return (h && (coSpec_(ng)) && specNganh_(ng).chuanHM(h)) || h; }
 function hmucOptions(){ var s={}, ngF=vsFltNganh_();   // đề mục có spec riêng: chỉ liệt kê hạng mục của ngành đó
   S.products.forEach(function(p){ if(ngF&&nganhCuaSP_(p)!==ngF) return; var n=prodHmuc_(p); if(n) s[n]=(s[n]||0)+1; }); return s; }
 /* ═══ BỘ LỌC THIẾT BỊ VỆ SINH (panel trái tab Bóc tách, đề mục 3.2.5) ═══
@@ -538,7 +538,7 @@ function hmucOptions(){ var s={}, ngF=vsFltNganh_();   // đề mục có spec r
      · Giá trị chip = giá trị THẬT có trong dữ liệu, kèm số SP. Trạng thái: S.fVs = {cột DB: {giá trị: 1}}. */
 /* Đề mục nào có bộ thông số riêng thì panel trái dùng bộ lọc sinh từ spec của ngành đó:
    3.2.5 -> thiết bị vệ sinh (vs-spec) · 3.2.2 -> sơn nước (son-spec).                  */
-var VS_FLT_NODE={'3.2.5':'vs','3.2.2':'son'};
+var VS_FLT_NODE={'3.2.5':'vs','3.2.2':'son','3.2.6.2':'ct'};
 function vsFltNganh_(){ return VS_FLT_NODE[S.node]||''; }
 function vsFltOn_(){ return !!vsFltNganh_(); }
 function vsFltSpec_(){ return specNganh_(vsFltNganh_()||'vs'); }
@@ -548,7 +548,7 @@ function vsFltHM_(){   // hạng mục đang lọc (chỉ khi chọn đúng 1)
 }
 function vsFltKeys_(){
   var SP=vsFltSpec_(), hm=vsFltHM_();
-  if(!hm) return (vsFltNganh_()==='son')?['BỀ MẶT HOÀN THIỆN','KÍCH THƯỚC']:['MÀU SẮC','KIỂU LẮP ĐẶT'];
+  if(!hm) return (vsFltNganh_()==='son')?['BỀ MẶT HOÀN THIỆN','KÍCH THƯỚC']:((vsFltNganh_()==='ct')?['LOẠI CẤU KIỆN','MÀU SẮC','KIỂU LẮP ĐẶT']:['MÀU SẮC','KIỂU LẮP ĐẶT']);
   return SP.labelsOf(hm).filter(function(lb){ return SP.METRIC[lb][2]==='sel'; });
 }
 function vsProds_(){ var ng=vsFltNganh_()||'vs'; return (S.products||[]).filter(function(p){ return nganhCuaSP_(p)===ng; }); }
@@ -1093,7 +1093,7 @@ function pdSection_(title, rows){
 // Ảnh (gallery nhiều ảnh) + mã + tên + Key Product Info — bám Figma
 function pdMedia_(p){
   var cong=p.congSuat||parseWatt(p.ten), nd=p.nhietDo||parseKelvin(p.ten);
-  var keyItems=(nganhCuaSP_(p)==='son') ? []        // sơn nước: khối Key Product Info do pdSpecsSon_ vẽ (dạng bảng nhãn / giá trị)
+  var keyItems=(nganhCuaSP_(p)==='son'||nganhCuaSP_(p)==='ct') ? []        // sơn nước: khối Key Product Info do pdSpecsSon_ vẽ (dạng bảng nhãn / giá trị)
     : (nganhCuaSP_(p)==='vs')
     ? vsChip_(p)
     : [
@@ -1155,6 +1155,7 @@ function pdGoImg_(d){ pdSetImg_((S._pdIdx||0)+d); }
 function pdSpecs_(p){
   if(nganhCuaSP_(p)==='vs') return pdSpecsVS_(p);
   if(nganhCuaSP_(p)==='son') return pdSpecsSon_(p);
+  if(nganhCuaSP_(p)==='ct') return pdSpecsCT_(p);
   return pdSection_('Design Specifications|Thông số thiết kế',[
       ['Chất liệu',p.chatLieu],['Chiều cao',p.chieuCao],['Đường kính',p.duongKinh],
       ['Góc nghiêng / góc chỉnh hướng',p.gocNghieng],['Dòng sản phẩm',p.dongSanPham||p.nhom]])
@@ -1199,6 +1200,21 @@ function pdSpecsSon_(p){
     +(String(p.tinhNang||'').trim()
       ? '<div class="pd-block"><div class="pd-sec">Tính năng sản phẩm</div>'+pdBullets_(p.tinhNang)+'</div>' : '')
     +pdSection_(SON_SPEC.TEN_TK, rows(g.tk));
+}
+/* Công tắc - ổ cắm — trang thông tin SP theo file THIẾT_BỊ_Ổ_CẮM_CÔNG_TẮC.xlsx: 4 khối (Thông tin chính · Điện & an toàn ·
+   USB / Tín hiệu / Thông minh · Lắp đặt) của module ứng với hạng mục; hạng mục lạ -> chia 2 khối chinh / tk như ngành khác. */
+function pdSpecsCT_(p){
+  var h=CT_SPEC.hmOf(p.hangMuc), raw=p.raw||{};
+  function rows(ds){ return ds.map(function(lb){ return CT_SPEC.dong(lb, function(c){ return raw[c]; })||['','']; }); }
+  var tinhNang=String(p.tinhNang||'').trim() ? '<div class="pd-block"><div class="pd-sec">Features <i>(Tính năng)</i></div>'+pdBullets_(p.tinhNang)+'</div>' : '';
+  var chung=[['Dòng sản phẩm',p.dongSanPham||p.nhom],['Hạng mục',CT_SPEC.chuanHM(p.hangMuc)||p.hangMuc],['Thời gian bảo hành',p.baoHanh]];
+  if(!h){ var g=vsNhom_(p); return pdSection_('Key Product Info|Thông tin chính', rows(g.chinh).concat(chung))+pdSection_('Design Specifications|Thông số thiết kế', rows(g.tk))+tinhNang; }
+  var M=h.nhom;
+  return pdSection_('Key Product Info|Thông tin chính', rows(M.chinh).concat(chung))
+    +pdSection_('Electrical Specifications|Thông số điện & an toàn', rows(M.dien))
+    +pdSection_((h.loai==='oc'?'USB / Signal / Smart|':'Smart & Control|')+M.tenTm, rows(M.tm))
+    +pdSection_('Installation Specifications|Thông số lắp đặt', rows(['KIỂU LẮP ĐẶT','SỐ MODULE CHIẾM (ô)','@KT','LOẠI ĐẾ TƯƠNG THÍCH','ĐỘ SÂU HỘP ÂM TỐI THIỂU (mm)','TIẾT DIỆN DÂY TỐI ĐA (mm²)']))
+    +tinhNang;
 }
 // 4 thông số nổi bật của SP vệ sinh (chip Key Product Info / cột Thông số trong danh sách)
 function vsChip_(p){
@@ -2652,7 +2668,7 @@ function catVarHtml_(list,G){
     var lbl=catVarLbl_(x) || x.ten || '';
     var phu=[x.thuongHieu, (catVarLbl_(x)?'':ccSpecTxt_(x)), (x.comboN?('Combo '+x.comboN):'')].map(function(t){ return String(t||'').trim(); }).filter(Boolean).join(' · ');
     var ng=nganhCuaSP_(x);      // sơn / vệ sinh: dòng biến thể cũng ghi đủ Tên - Màu - Kích thước; đèn giữ nhãn thông số (W · K · góc)
-    return ccRow_(head+'.'+(k+2), Object.assign({},x,{_ten:(ng==='son'||ng==='vs')?spTenDay_(x):lbl}), phu,
+    return ccRow_(head+'.'+(k+2), Object.assign({},x,{_ten:(coSpec_(ng))?spTenDay_(x):lbl}), phu,
       'showDetail('+ix+')', 'addProduct('+ix+')',
       ' draggable="true" ondragstart="prodDragStart(event,'+ix+')" ondragend="prodDragEnd()"');
   }).join('');

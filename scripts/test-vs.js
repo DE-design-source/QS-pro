@@ -105,6 +105,31 @@ const VS=require(R('public/vs-spec.js')), st=require(R('server/store_supa')), st
   ok(pS2.moTa==='Màu sắc: Màu trắng\nBề mặt hoàn thiện: Bề mặt bóng\nĐộ phủ: 13 m²/lít\nDòng sản phẩm: Sơn ngoại thất\nHạng mục: Sơn nước\nKích thước: 18L','thông tin chính sơn '+JSON.stringify(pS2.moTa));
   ok(pS2.kichThuoc==='Chống nấm mốc\nChống bám bụi' && !/pH/.test(pS2.moTa+pS2.kichThuoc),'cột 2 sơn = tính năng '+JSON.stringify(pS2.kichThuoc));
 
+  console.log('9. Công tắc - ổ cắm (public/ct-spec.js)');
+  { const CT=require(R('public/ct-spec.js')), tplC=require(R('server/ct-template'));
+    const colsC=Object.values(CT.METRIC).map(m=>m[0]); ok(new Set(colsC).size===colsC.length,'ct: trùng cột DB');
+    for(const hm of CT.HANG_MUC){ const h=CT.HM[hm];
+      [...h.chinh,...h.tk,...h.req].forEach(lb=>ok(CT.METRIC[lb],hm+': nhãn lạ '+lb));
+      [...h.nhom.ttc,...h.nhom.tsk].forEach(lb=>ok(lb[0]==='@'||CT.METRIC[lb],hm+': nhãn bảng lạ '+lb));
+      ok(h.chinh.concat(h.tk).filter((x,i,a)=>a.indexOf(x)!==i).length===0, hm+': thông số lặp');
+      ok(h.req.every(lb=>h.mau[lb]), hm+': dòng mẫu thiếu bắt buộc');
+      ok(!VS.chuanHM(hm) && !require(R('public/son-spec.js')).chuanHM(hm), hm+': trùng tên hạng mục ngành khác'); }
+    const sqlC=require('fs').readFileSync(R('db/cong_tac_o_cam.sql'),'utf8')+sql+require('fs').readFileSync(R('db/thiet_bi_ve_sinh_v2.sql'),'utf8');
+    colsC.forEach(c=>ok(new RegExp('\\b'+c+'\\b').test(sqlC),'ct: cột '+c+' không có trong migration'));
+    // file mẫu -> đọc lại: dòng ví dụ tự bỏ qua
+    const bufC=Buffer.from(await tplC.buildCtTemplate());
+    const rC=await store.importParse(bufC.toString('base64'),'xlsx','ct'); ok(rC.count===0,'ct: dòng ví dụ phải tự bỏ qua, thực tế '+rC.count);
+    // nhập: tự nhận ngành theo hạng mục, bỏ cột của module kia, chặn thiếu bắt buộc
+    db=[]; const cC=await st.importCommit(null,[
+      {ten:'CT 2 nút',_raw:{'TÊN SẢN PHẨM':'CT 2 nút','MÃ SẢN PHẨM':'CT2','HẠNG MỤC':'công tắc cơ','LOẠI CẤU KIỆN':'Hạt / nhân thiết bị','MÀU SẮC':'Trắng','SỐ NÚT (gang)':'2','SỐ Ổ CẮM (ổ)':'9','DÒNG ĐIỆN ĐỊNH MỨC (A)':'16','CHIỀU RỘNG MẶT (mm)':'86','CHIỀU CAO MẶT (mm)':'86','BẢO HÀNH (năm)':'2'}},
+      {ten:'Thiếu',_nganh:'ct',_raw:{'TÊN SẢN PHẨM':'Thiếu','MÃ SẢN PHẨM':'OC1','HẠNG MỤC':'Ổ cắm điện'}}]);
+    ok(cC.inserted===1 && cC.errors && cC.errors.length===1 && cC.errors[0].i===1,'ct: commit '+JSON.stringify(cC));
+    ok(db[0].nganh==='ct' && db[0].hang_muc==='Công tắc cơ' && db[0].so_nut==='2' && !db[0].so_o_cam,'ct: đóng dấu ngành + bỏ cột module khác '+JSON.stringify(db[0]));
+    const pC=(await st.getProducts())[0];
+    ok(pC.nganh==='ct' && pC.muc==='Công tắc - ổ cắm','ct: prodToObj '+pC.nganh+'/'+pC.muc);
+    ok(pC.moTa==='Loại cấu kiện: Hạt / nhân thiết bị\nSố nút: 2\nMàu sắc: Trắng\nBảo hành: 2 năm','ct: thông tin chính '+JSON.stringify(pC.moTa));
+    ok(pC.kichThuoc==='Dòng điện định mức (A): 16\nKích thước mặt (R x C x D): 86 x 86 x — mm','ct: thông số thiết kế '+JSON.stringify(pC.kichThuoc)); }
+
   console.log('8. Combo 2 chiều: số lượng đặt ở phía nào hiện đúng ở phía đó');
   { let cb=[], cid=0; const sp=[{id:1,ma_sp:'A',ten_sp:'A'},{id:2,ma_sp:'B',ten_sp:'B'}];
     const idOf=(f,c)=>{ const m=new RegExp('(?:^|&)'+c+'=eq\\.(\\d+)').exec(f||''); return m?+m[1]:null; };

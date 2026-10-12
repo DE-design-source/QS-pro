@@ -8,16 +8,18 @@ const tenant = require('./tenant');
 const shared = require('./shared');     // hàm thuần: importParse, mẫu tờ bìa
 const VS = require('../public/vs-spec.js');  // thông số thiết bị vệ sinh theo từng hạng mục (nguồn chung)
 const SON = require('../public/son-spec.js'); // thông số sơn nước theo từng hạng mục (nguồn chung)
+const CT = require('../public/ct-spec.js');   // thông số công tắc - ổ cắm theo từng hạng mục (nguồn chung)
 /* NGÀNH HÀNG của 1 sản phẩm: 'den' (mặc định) · 'vs' (thiết bị vệ sinh) · 'son' (sơn nước).
    Chưa đóng dấu ngành thì đoán theo tên HẠNG MỤC — mỗi ngành có danh sách hạng mục riêng. */
 function nganhCua_(nganh, hangMuc) {
   const n = String(nganh == null ? '' : nganh).trim();
   if (n) return n;
   if (SON.chuanHM(hangMuc)) return 'son';
+  if (CT.chuanHM(hangMuc)) return 'ct';
   return VS.chuanHM(hangMuc) ? 'vs' : 'den';
 }
-function specNganh_(ng) { return ng === 'vs' ? VS : (ng === 'son' ? SON : null); }
-const MUC_NGANH = { vs: 'Thiết bị vệ sinh', son: 'Sơn nước', den: 'Thiết bị đèn' };
+function specNganh_(ng) { return ng === 'vs' ? VS : (ng === 'son' ? SON : (ng === 'ct' ? CT : null)); }
+const MUC_NGANH = { vs: 'Thiết bị vệ sinh', son: 'Sơn nước', den: 'Thiết bị đèn', ct: CT.MUC };
 
 /*** ===== HELPERS ===== ***/
 // Số từ client / file nhập: số giữ nguyên; chuỗi đọc kiểu VN ("12.500.000", "12,5", "30%") — Number() cho 0
@@ -81,6 +83,15 @@ function prodToObj(r) {
     if (bh) a.push('Bảo hành: ' + bh);
     moTa = a.join('\n'); if (s(r.ghi_chu)) moTa += (moTa ? '\n' : '') + s(r.ghi_chu);
     thongSoTK = tk.map(line).filter(Boolean).join('\n');
+    if (nganh === 'ct') {
+      /* CÔNG TẮC - Ổ CẮM — theo file THIẾT_BỊ_Ổ_CẮM_CÔNG_TẮC.xlsx (cột THÔNG TIN CHÍNH / THÔNG SỐ THIẾT KẾ của sheet báo giá):
+           Ổ cắm : Loại cấu kiện · Số ổ cắm · Kiểu chấu · Màu sắc · Chất liệu · Bảo hành  |  Dòng ĐM · Điện áp · Công suất tối đa · IP · Kích thước mặt · Loại đế
+           Công tắc: Loại cấu kiện · Số nút · Kiểu mạch · Kiểu thao tác · Màu sắc · Bảo hành |  Dòng ĐM · Điện áp · Công suất tải tối đa · IP · Kích thước mặt · Giao thức
+         Hạng mục lạ -> in mọi thông số có giá trị (như các ngành khác). */
+      const get = function (c) { return r[c]; };
+      const ghep = function (ds) { return ds.map(function (lb) { const d = CT.dong(lb, get); return d ? d[0] + ': ' + d[1] : ''; }).filter(Boolean).join('\n'); };
+      if (h) { moTa = ghep(h.nhom.ttc); thongSoTK = ghep(h.nhom.tsk); }
+    }
     if (nganh === 'son') {
       /* SƠN NƯỚC — theo file "sơn nước.xlsx" (khối HIỂN THỊ TRÊN TRANG DỰ TOÁN):
            THÔNG TIN CHÍNH   = Bề mặt · Độ phủ · Thời gian khô · Số lớp · Dòng sản phẩm · Hạng mục (Sơn nước) · Kích thước
@@ -452,6 +463,8 @@ Object.assign(DB_LABEL2COL, { 'THÔNG SỐ KỸ THUẬT': 'thong_so_file', 'HƯ�
 Object.keys(VS.METRIC).forEach(function (lb) { if (!DB_LABEL2COL[lb]) DB_LABEL2COL[lb] = VS.METRIC[lb][0]; });
 // Thông số RIÊNG từng hạng mục sơn nước (public/son-spec.js — nguồn chung với form & file mẫu)
 Object.keys(SON.METRIC).forEach(function (lb) { if (!DB_LABEL2COL[lb]) DB_LABEL2COL[lb] = SON.METRIC[lb][0]; });
+// Thông số RIÊNG từng hạng mục công tắc - ổ cắm (public/ct-spec.js)
+Object.keys(CT.METRIC).forEach(function (lb) { if (!DB_LABEL2COL[lb]) DB_LABEL2COL[lb] = CT.METRIC[lb][0]; });
 // Migration chạy tay -> nếu DB chưa có cột thì đổi lỗi kỹ thuật thành hướng dẫn cụ thể
 const COL_SQL = { ten_chip_led: 'db/chip_name.sql', gia_ban_bo_nguon: 'db/gia_bo_nguon.sql', da_duyet: 'db/sp_duyet_status.sql',
   nguoi_duyet: 'db/sp_duyet_status.sql', ngay_duyet: 'db/sp_duyet_status.sql',
@@ -463,6 +476,7 @@ const COL_SQL = { ten_chip_led: 'db/chip_name.sql', gia_ban_bo_nguon: 'db/gia_bo
 // Mọi cột thông số vệ sinh chưa có trong bảng trên -> trỏ về migration v2 (thêm metric mới thì nhớ thêm SQL)
 Object.keys(VS.METRIC).forEach(function (lb) { const c = VS.METRIC[lb][0]; if (!COL_SQL[c]) COL_SQL[c] = 'db/thiet_bi_ve_sinh_v2.sql'; });
 Object.keys(SON.METRIC).forEach(function (lb) { const c = SON.METRIC[lb][0]; if (!COL_SQL[c]) COL_SQL[c] = 'db/son_nuoc.sql'; });
+Object.keys(CT.METRIC).forEach(function (lb) { const c = CT.METRIC[lb][0]; if (!COL_SQL[c]) COL_SQL[c] = 'db/cong_tac_o_cam.sql'; });
 function colErr_(e) {
   const m = (e && e.message) || '';
   for (const col in COL_SQL) {
@@ -1042,7 +1056,7 @@ async function importCommit(actor, products) {
     if (!s(data['TÊN SẢN PHẨM']).trim()) continue;
     if (s(data['TÊN SẢN PHẨM']).trim().indexOf(VS.VD) === 0) continue;   // dòng ví dụ của file mẫu
     // Ngành có bộ thông số theo hạng mục: vệ sinh ('vs') · sơn nước ('son') -> tự nhận theo hạng mục
-    const ngRow = (p._nganh === 'vs' || p._nganh === 'son') ? p._nganh
+    const ngRow = (p._nganh === 'vs' || p._nganh === 'son' || p._nganh === 'ct') ? p._nganh
       : nganhCua_(data['NGÀNH HÀNG'], data['HẠNG MỤC']);
     const SPEC = specNganh_(ngRow);
     if (SPEC) {

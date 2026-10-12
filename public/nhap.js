@@ -103,18 +103,51 @@ var DB_GROUPS_SON=[
     ['HƯỚNG DẪN CÀI ĐẶT','Hướng dẫn thi công','doc',0],['FILE BẢN VẼ','Bảng màu / File bản vẽ','doc',0] ]},
 ];
 var DB_FLAT_SON=[]; DB_GROUPS_SON.forEach(function(gr){ gr.f.forEach(function(f){ DB_FLAT_SON.push(f); }); });
+/* ═══ CÔNG TẮC - Ổ CẮM (đề mục 3.2.6.2) — cùng cách làm với vệ sinh / sơn nước ═══
+   Thông số khai báo DUY NHẤT ở public/ct-spec.js (CT_SPEC): 2 module Ổ CẮM / CÔNG TẮC, mỗi module 4 khối.
+   Chọn hạng mục -> form chỉ hiện thông số của module đó (vsApplyHM_).                                    */
+function ctField_(lb){ var m=CT_SPEC.METRIC[lb]; return [lb, m[1], m[2], 0, [], m[3]||'', 'vs']; }
+function ctKhoi_(k){ var out=[]; CT_SPEC.HANG_MUC.forEach(function(h){ CT_SPEC.HM[h].nhom[k].forEach(function(lb){ if(out.indexOf(lb)<0) out.push(lb); }); }); return out; }
+var DB_GROUPS_CT=[
+  {g:'Thông tin cơ bản', f:[
+    ['THƯƠNG HIỆU','Thương hiệu','text',1],['NHÀ CUNG CẤP','Nhà cung cấp','text',1],
+    ['HẠNG MỤC','Hạng mục','hm',1,CT_SPEC.HANG_MUC],
+    ['DÒNG SẢN PHẨM','Dòng sản phẩm','text',1,null,'VD: Ổ cắm đôi 3 chấu · Công tắc 2 nút 1 chiều'],
+    ['NHÓM SẢN PHẨM','Nhóm sản phẩm (series)','text',0,null,'Tên series của NCC — để trống = lấy theo Dòng sản phẩm'],
+    ['TÊN SẢN PHẨM','Tên sản phẩm','text',1],['MÃ SẢN PHẨM','Mã sản phẩm','text',1,null,'Hãng bán rời mặt / hạt / đế: mỗi cấu kiện 1 mã'] ]},
+  {g:'Thông tin giá bán', note:'Giá đại lý tự tính = Giá bán lẻ × (1 − %Chiết khấu).', f:[
+    ['GIÁ BÁN LẺ','Giá bán lẻ','num',1],['CHIẾT KHẤU ĐẠI LÝ (%)','%Chiết khấu','num',1],['GIÁ ĐẠI LÝ','Giá đại lý','calc',0] ]},
+  {g:'Key Product Info (Thông tin chính)', vs:1, note:'Thông số theo hạng mục đã chọn — lên cột "Thông tin chính" của bảng bóc tách.', f:ctKhoi_('chinh').map(ctField_)},
+  {g:'Electrical Specifications (Thông số điện & an toàn)', vs:1, f:ctKhoi_('dien').map(ctField_)},
+  {g:'USB / Tín hiệu / Thông minh & điều khiển', vs:1, f:ctKhoi_('tm').map(ctField_)},
+  {g:'Installation Specifications (Thông số lắp đặt)', vs:1, note:'Rộng × Cao × Dày ghép thành "Kích thước mặt" trên bảng bóc tách.', f:ctKhoi_('lap').map(ctField_)},
+  {g:'Tính năng', note:'Mỗi dòng một tính năng — hiện ở phần Thông tin sản phẩm (mở rộng).', f:[
+    ['TÍNH NĂNG','Tính năng','area',0,null,'• Chống giật\n• Mặt phẳng chống bám bụi'] ]},
+  {g:'Thương mại', f:[
+    ['BẢO HÀNH (năm)','Bảo hành (năm)','num',0],
+    ['ĐƠN VỊ TÍNH','Đơn vị tính','sel',1,['Cái','Bộ','Hộp']],
+    ['TRẠNG THÁI','Trạng thái','sel',0,['Đang kinh doanh','Ngưng kinh doanh','Đặt hàng']],
+    ['GHI CHÚ','Ghi chú','area',0] ]},
+  {g:'Tài liệu', note:'Tải file lên (PDF, ảnh, ZIP…) hoặc dán link — hiện thành nút mở trong Thông tin sản phẩm.', f:[
+    ['LINK DATASHEET','Tài liệu kỹ thuật / Catalogue','doc',0],['THÔNG SỐ KỸ THUẬT','Thông số kỹ thuật','doc',0],
+    ['HƯỚNG DẪN CÀI ĐẶT','Hướng dẫn lắp đặt','doc',0],['FILE BẢN VẼ','File bản vẽ','doc',0] ]},
+];
+var DB_FLAT_CT=[]; DB_GROUPS_CT.forEach(function(gr){ gr.f.forEach(function(f){ DB_FLAT_CT.push(f); }); });
+/* Ngành có BỘ THÔNG SỐ THEO HẠNG MỤC (khác đèn): vệ sinh · sơn nước · công tắc - ổ cắm */
+function coSpec_(n){ return n==='vs'||n==='son'||n==='ct'; }
 /* Ngành hàng đang chọn ở trang Nhập dữ liệu -> bộ trường / bộ nhóm tương ứng */
-function impGroups_(){ var l=impLoai_(); return l==='son'?DB_GROUPS_SON:(l==='vs'?DB_GROUPS_VS:DB_GROUPS); }
-function impFlat_(){ var l=impLoai_(); return l==='son'?DB_FLAT_SON:(l==='vs'?DB_FLAT_VS:DB_FLAT); }
+function impGroups_(){ var l=impLoai_(); return l==='son'?DB_GROUPS_SON:(l==='ct'?DB_GROUPS_CT:(l==='vs'?DB_GROUPS_VS:DB_GROUPS)); }
+function impFlat_(){ var l=impLoai_(); return l==='son'?DB_FLAT_SON:(l==='ct'?DB_FLAT_CT:(l==='vs'?DB_FLAT_VS:DB_FLAT)); }
 /* Bộ thông số theo ngành — mọi chỗ cần "hạng mục nào có thông số gì" đều đi qua đây */
-function specNganh_(ng){ return ng==='son'?SON_SPEC:VS_SPEC; }
+function specNganh_(ng){ return ng==='son'?SON_SPEC:(ng==='ct'?CT_SPEC:VS_SPEC); }
 function nganhCuaSP_(p){
   if(!p) return 'den';
-  var n=String(p.nganh||'').trim(); if(n==='son'||n==='vs') return n;
+  var n=String(p.nganh||'').trim(); if(coSpec_(n)) return n;
   if(!n && SON_SPEC.chuanHM(p.hangMuc)) return 'son';
+  if(!n && CT_SPEC.chuanHM(p.hangMuc)) return 'ct';
   return VS_SPEC.nganhOf(p.nganh,p.hangMuc)==='vs'?'vs':'den';
 }
-function groupsCuaSP_(p){ var ng=nganhCuaSP_(p); return ng==='son'?DB_GROUPS_SON:(ng==='vs'?DB_GROUPS_VS:DB_GROUPS); }
+function groupsCuaSP_(p){ var ng=nganhCuaSP_(p); return ng==='son'?DB_GROUPS_SON:(ng==='ct'?DB_GROUPS_CT:(ng==='vs'?DB_GROUPS_VS:DB_GROUPS)); }
 function dbInput(f){
   var i=impFlat_().indexOf(f), lark=f[0], label=f[1], type=f[2], req=f[3], opts=f[4]||[];
   var ph=f[5]||label;                       // gợi ý nhập riêng (nếu có)
@@ -228,7 +261,7 @@ async function docPick_(btn){
 function vsApplyHM_(box, hmRaw, hienHetKhiTrong, ng){
   if(!box) return;
   // Hạng mục quyết định luôn bộ thông số: tên thuộc sơn nước -> SON_SPEC, còn lại -> VS_SPEC
-  var VS_SPEC=SON_SPEC.chuanHM(hmRaw) ? SON_SPEC : specNganh_(ng||impLoai_());
+  var VS_SPEC=SON_SPEC.chuanHM(hmRaw) ? SON_SPEC : (CT_SPEC.chuanHM(hmRaw) ? CT_SPEC : specNganh_(ng||impLoai_()));
   var hm=VS_SPEC.chuanHM(hmRaw), cho=hm?VS_SPEC.labelsOf(hm):(hienHetKhiTrong?VS_SPEC.ALL:[]);
   box.querySelectorAll('[data-vs]').forEach(function(w){
     var lb=w.getAttribute('data-vs'), on=cho.indexOf(lb)>=0;
@@ -513,7 +546,7 @@ function pendItemData_(it){
   if(p.hinhAnh) d['ẢNH SẢN PHẨM']=p.hinhAnh;
   return d;
 }
-function pendNganhLoai_(it){ var n=it.nganh||pendItemData_(it)['NGÀNH HÀNG']; return (n==='vs'||n==='son')?n:'sp'; }
+function pendNganhLoai_(it){ var n=it.nganh||pendItemData_(it)['NGÀNH HÀNG']; return (coSpec_(n))?n:'sp'; }
 async function pendingEdit_(i){
   var it=(S._pending||[])[i]; if(!it) return;
   if(S._committing){ toast('Đang lưu vào Database — đợi xong rồi sửa'); return; }
@@ -529,11 +562,11 @@ function pendFillForm_(it){
   var box=document.getElementById('v-import');
   impFlat_().forEach(function(f){
     var el=document.getElementById(dbIdOf(f[0])); if(!el) return;
-    var v=d[f[0]]; if(f[0]==='HẠNG MỤC' && S._impLoai==='vs') v=VS_SPEC.chuanHM(v)||v;
+    var v=d[f[0]]; if(f[0]==='HẠNG MỤC' && coSpec_(S._impLoai)) v=specNganh_(S._impLoai).chuanHM(v)||v;
     if(v!=null && v!=='' && f[2]==='num') v=tkNum_(v);   // "1.200.000" / "12,5" -> ô kiểu số nhận được
     if(v!=null && v!=='') el.value=String(v);
   });
-  if(S._impLoai==='vs'||S._impLoai==='son') vsApplyHM_(box, d['HẠNG MỤC'], 0, S._impLoai);
+  if(coSpec_(S._impLoai)) vsApplyHM_(box, d['HẠNG MỤC'], 0, S._impLoai);
   dbCalcDaiLy();
   document.querySelectorAll('#v-import .docf').forEach(docRender_);           // hiện danh sách file tài liệu
   S._impCombo=(it.combo||[]).map(function(x){ return Object.assign({},x); }); impCbRender_();
@@ -688,12 +721,12 @@ function impLoai_(){ return S._impLoai||'sp'; }
 function impSetLoai(v){ S._impLoai=v; renderImport(); }
 // Chọn hạng mục để nhập — gộp thẳng vào ô "Ngành hàng" (trước đây là 1 hàng tab riêng)
 var IMP_LOAI=[['sp','Thiết bị đèn · sản phẩm'],['vs','Thiết bị vệ sinh · sản phẩm'],
-  ['son','Sơn nước · sản phẩm'],['pt','Xây dựng · công tác phần thô']];
+  ['son','Sơn nước · sản phẩm'],['ct','Công tắc - ổ cắm · sản phẩm'],['pt','Xây dựng · công tác phần thô']];
 /* Ô chọn NGÀNH HÀNG ở trang Nhập dữ liệu — dựng đúng dáng ô chọn hạng mục
    (nhãn + ô viền tròn kèm số đếm) để cả web chỉ còn một kiểu ô chọn. */
 function impNganhDem_(v){
   if(v==='pt') return (typeof spPTAll_==='function')?spPTAll_().length:0;   // thư viện công tác
-  var ng=(v==='vs'||v==='son')?v:'den';
+  var ng=(coSpec_(v))?v:'den';
   return (S.products||[]).filter(function(p){ return nganhCuaSP_(p)===ng; }).length;
 }
 function impNganhSel_(){
@@ -754,7 +787,7 @@ function impCbAdd_(rid){
 function impCbSearch_(q){
   var box=document.getElementById('impCbSug'); if(!box) return;
   q=String(q||'').trim().toLowerCase();
-  var l1=impLoai_(), ng=(l1==='vs'||l1==='son')?l1:'den', chon={}; (S._impCombo||[]).forEach(function(x){ chon[String(x.recordId)]=1; });
+  var l1=impLoai_(), ng=(coSpec_(l1))?l1:'den', chon={}; (S._impCombo||[]).forEach(function(x){ chon[String(x.recordId)]=1; });
   var hit, tieuDe='';
   if(!q){
     var hmEl=document.getElementById(dbIdOf('HẠNG MỤC')), h=(ng==='vs'&&hmEl)?VS_SPEC.hmOf(hmEl.value):null;
@@ -794,7 +827,8 @@ function renderImport(){
     +dbCard_('Nhập biến thể (tuỳ chọn)','sliders','Nhập nhiều giá trị cách nhau bằng dấu phẩy — hệ thống tạo 1 sản phẩm cho MỖI tổ hợp (cùng mã SP, khác thông số).',
       '<div class="dbgrid">'
       // Ba trục dưới chỉ có nghĩa với ĐÈN — ngành vệ sinh chỉ tách biến thể theo MÀU
-      +((impLoai_()==='son')
+      +((impLoai_()==='ct') ? ''
+        :(impLoai_()==='son')
         ?'<div class="field"><label>Quy cách (dung tích)</label><input id="varSize" placeholder="VD: 1L, 5L, 18L" oninput="varPreview_()"></div>'
         :(impLoai_()==='vs')
         ?'<div class="field"><label>Kích thước</label><input id="varSize" placeholder="VD: L580 x W380, L620 x W390" oninput="varPreview_()"></div>'
@@ -818,6 +852,8 @@ function renderImport(){
       '<div class="imp-file-row" id="impFileRow">'
       +((impLoai_()==='vs')
         ?'<a class="btn ghost sm" href="/mau-nhap-thiet-bi-ve-sinh.xlsx" download="Mau-nhap-thiet-bi-ve-sinh-DezonQS.xlsx">'+icon('download',14)+' Tải file mẫu thiết bị vệ sinh</a>'
+        :(impLoai_()==='ct')
+        ?'<a class="btn ghost sm" href="/mau-nhap-cong-tac-o-cam.xlsx" download="Mau-nhap-cong-tac-o-cam-DezonQS.xlsx" title="1 file cho cả ổ cắm và công tắc — cột HẠNG MỤC quyết định bộ thông số">'+icon('download',14)+' Tải file mẫu công tắc - ổ cắm</a>'
         :(impLoai_()==='son'
           ? sonTplBtn_()
           :'<a class="btn ghost sm" href="/mau-nhap-hang-loat.xlsx" download="Mau-nhap-hang-loat-DezonQS.xlsx">'+icon('download',14)+' Tải file mẫu</a>'))
@@ -828,7 +864,7 @@ function renderImport(){
       +'<span class="imp-sub">Thêm sản phẩm vào danh mục · <b>*</b> bắt buộc</span></div>'
     +impLoaiTabs_()+impStatBar()
     +'<div class="imp-layout">'+form+'<div class="imp-recent" id="impRecentBox">'+impRecentList()+'</div></div>';
-  if(impLoai_()==='vs'||impLoai_()==='son') vsApplyHM_(box,'',0,impLoai_());
+  if(coSpec_(impLoai_())) vsApplyHM_(box,'',0,impLoai_());
   impCbRender_(); box.querySelectorAll('.docf').forEach(docRender_);
   if(suaIt) pendFillForm_(suaIt);            // nạp lại dữ liệu dòng đang sửa (sau đổi tab / vẽ lại)
 }
@@ -1115,12 +1151,12 @@ async function impPick(input){
   var reader=new FileReader();
   reader.onload=async function(){
     try{ var b64=String(reader.result).split(',')[1];
-      var l0=impLoai_(); S._impNganh=(l0==='vs'||l0==='son')?l0:'';
+      var l0=impLoai_(); S._impNganh=(coSpec_(l0))?l0:'';
       var res=await api('importParse',b64,ext,S._impNganh);
       // File vệ sinh / sơn nước mà ô Ngành hàng đang để Thiết bị đèn -> tự nhận theo cột HẠNG MỤC
       if(!S._impNganh){
         var ps=res.products||[], hmRaw=function(p){ return (p._raw||{})['HẠNG MỤC']||p.hangMuc; };
-        var doan=[['vs',VS_SPEC,'THIẾT BỊ VỆ SINH','Thiết bị vệ sinh'],['son',SON_SPEC,'SƠN NƯỚC','Sơn nước']].filter(function(x){
+        var doan=[['vs',VS_SPEC,'THIẾT BỊ VỆ SINH','Thiết bị vệ sinh'],['son',SON_SPEC,'SƠN NƯỚC','Sơn nước'],['ct',CT_SPEC,'CÔNG TẮC - Ổ CẮM','Công tắc - ổ cắm']].filter(function(x){
           return ps.length && ps.filter(function(p){ return x[1].chuanHM(hmRaw(p)); }).length*2>=ps.length; })[0];
         if(doan){ S._impNganh=doan[0]; ps.forEach(function(p){ p._nganh=doan[0]; });
           S._impLoai=doan[0]; renderImport(); pv=document.getElementById('impPreview');
@@ -1149,7 +1185,7 @@ function impImgCell2_(p,i){
 }
 function impCellVal_(p,h){ var v=(p._raw&&p._raw[h]); return v==null?'':String(v); }
 /* Thiết bị vệ sinh: kiểm tra 1 dòng theo hạng mục của nó -> {hm, loi:[...], na:{nhãn:1}, thieu:{nhãn:1}} */
-function impSpec_(){ return specNganh_(S._impNganh==='son'?'son':'vs'); }
+function impSpec_(){ return specNganh_(coSpec_(S._impNganh)?S._impNganh:'vs'); }
 function impVsCheck_(p){
   var VS_SPEC=impSpec_();
   var raw=p._raw||{}, hm=VS_SPEC.chuanHM(raw['HẠNG MỤC']), out={hm:hm, loi:[], na:{}, thieu:{}};
@@ -1160,7 +1196,7 @@ function impVsCheck_(p){
   return out;
 }
 function impRow_(p,i){
-  var heads=S._impHeaders||[], vs=(S._impNganh==='vs'||S._impNganh==='son'), ck=vs?impVsCheck_(p):null;
+  var heads=S._impHeaders||[], vs=(coSpec_(S._impNganh)), ck=vs?impVsCheck_(p):null;
   return '<tr'+(ck&&ck.loi.length?' class="iierr" title="'+esc((ck.hm||'')+(ck.hm?': ':'')+ck.loi.join(', '))+'"':'')+'><td class="iisttd">'+(i+1)
       +(ck&&ck.loi.length?'<span class="iiwarn" title="'+esc(ck.loi.join(', '))+'">!</span>':'')+'</td><td class="iiimgtd" id="impimg_'+i+'">'+impImgCell2_(p,i)+'</td>'
     +heads.map(function(h){
@@ -1177,7 +1213,7 @@ function impRerow_(i){
   impVsSummary_();
 }
 function impVsSummary_(){
-  var el=document.getElementById('impVsSum'); if(!el||!(S._impNganh==='vs'||S._impNganh==='son')) return;
+  var el=document.getElementById('impVsSum'); if(!el||!(coSpec_(S._impNganh))) return;
   var loi=(S._impProducts||[]).filter(function(p){ return impVsCheck_(p).loi.length; }).length;
   el.innerHTML=loi?('<b style="color:#c33">'+loi+'</b> dòng thiếu thông số bắt buộc / sai hạng mục (ô viền đỏ) — sẽ KHÔNG được nhập nếu chưa sửa')
     :'<span style="color:#1a7f37">Mọi dòng đủ thông số bắt buộc theo hạng mục</span>';
@@ -1186,7 +1222,7 @@ function impEdit(el){
   var i=+el.getAttribute('data-i'), h=el.getAttribute('data-h'), p=S._impProducts[i]; if(!p) return;
   if(!p._raw) p._raw={}; p._raw[h]=el.textContent;
   // đồng bộ vài trường cơ bản để danh sách "vừa nhập" hiển thị đúng
-  if((S._impNganh==='vs'||S._impNganh==='son') && impSpec_().METRIC[h]){ el.classList.toggle('iimiss', !el.textContent.trim() && impVsCheck_(p).thieu[h]===1); impVsSummary_(); }
+  if((coSpec_(S._impNganh)) && impSpec_().METRIC[h]){ el.classList.toggle('iimiss', !el.textContent.trim() && impVsCheck_(p).thieu[h]===1); impVsSummary_(); }
   if(h==='TÊN SẢN PHẨM') p.ten=el.textContent;
   else if(h==='THƯƠNG HIỆU') p.thuongHieu=el.textContent;
   else if(h==='MÃ SẢN PHẨM') p.ma=el.textContent;
@@ -1236,7 +1272,7 @@ function impShow(res){
   pv.innerHTML=
     '<div class="imp-pv-info"><div class="imp-pv-h">Đọc được <b>'+res.count+'</b> sản phẩm · <b>'+heads.length+'</b> cột từ file</div>'
     +'<div class="imp-pv-sub">'+icon('image',15)+' Tải <b>ảnh chính</b> và <b>ảnh chi tiết</b> cho từng SP ở cột đầu — <b id="impImgCount">0</b>/'+res.count+' đã có ảnh</div>'
-    +((S._impNganh==='vs'||S._impNganh==='son')?'<div class="imp-pv-sub" id="impVsSum"></div>':'')+'</div>'
+    +((coSpec_(S._impNganh))?'<div class="imp-pv-sub" id="impVsSum"></div>':'')+'</div>'
     +'<div class="imp-pv-wrap"><table class="imp-pvtbl"><thead><tr><th class="iistth">STT</th><th class="iiimgth">Ảnh (chính + chi tiết)</th>'
       +heads.map(function(h){return '<th>'+esc(h)+'</th>';}).join('')+'</tr></thead><tbody id="impBody">'+rows+'</tbody></table></div>'
     +'<div class="imp-pv-foot"><button class="btn blue" onclick="impCommit(this)">'+icon('check',15)+' Đưa '+res.count+' sản phẩm vào danh sách chờ</button>'
@@ -1249,7 +1285,7 @@ async function impCommit(btn){
   var missing=S._impProducts.filter(function(p){return !p.hinhAnh;}).length;
   if(missing>0 && !await xacNhan_('Còn '+missing+' sản phẩm CHƯA có ảnh.\nBạn nên bấm ô ＋ ở cột Ảnh để tải hình cho từng SP.\n\nVẫn tiếp tục?')) return;
   // KHÔNG lưu ngay: đưa cả lô vào danh sách CHỜ LƯU — bấm "Thêm sản phẩm" ở panel phải mới ghi vào Database
-  var ng=(S._impNganh==='vs'||S._impNganh==='son')?S._impNganh:'';
+  var ng=(coSpec_(S._impNganh))?S._impNganh:'';
   pendingAdd_(S._impProducts.map(function(p){
     if(ng) p._nganh=ng;   // server đóng dấu ngành + lọc thông số theo hạng mục
     return {kind:'file', prod:p, ten:p.ten, ma:p.ma, thuongHieu:p.thuongHieu, ncc:p.ncc, hinhAnh:p.hinhAnh, nganh:ng||'den'};
@@ -1296,7 +1332,7 @@ function varPreview_(){
 async function tdSave(btn){
   var data={};
   // Ngành có bộ thông số theo hạng mục: vệ sinh (VS_SPEC) và sơn nước (SON_SPEC)
-  var ngIn=impLoai_(), laVS=(ngIn==='vs'||ngIn==='son'), SPEC=specNganh_(ngIn);
+  var ngIn=impLoai_(), laVS=(coSpec_(ngIn)), SPEC=specNganh_(ngIn);
   var hmVS=laVS?SPEC.chuanHM((document.getElementById(dbIdOf('HẠNG MỤC'))||{}).value):'';
   impFlat_().forEach(function(f,i){ var e=document.getElementById('dbf_'+i); if(!e) return;
     if(laVS && f[6]==='vs' && SPEC.labelsOf(hmVS).indexOf(f[0])<0) return;   // thông số của hạng mục khác
@@ -1304,7 +1340,7 @@ async function tdSave(btn){
   data['NGÀNH HÀNG']=laVS?ngIn:'den';        // đóng dấu ngành -> SP về đúng đề mục trên cây
   var ten=String(data['TÊN SẢN PHẨM']||'').trim(); if(!ten){ toast('Nhập Tên sản phẩm'); return; }
   if(laVS){
-    if(!hmVS){ toast('Chọn Hạng mục '+(ngIn==='son'?'sơn nước':'thiết bị vệ sinh')); return; }
+    if(!hmVS){ toast('Chọn Hạng mục '+(ngIn==='son'?'sơn nước':(ngIn==='ct'?'công tắc - ổ cắm':'thiết bị vệ sinh'))); return; }
     var thieu=SPEC.HM[hmVS].req.filter(function(lb){ return !data[lb]; });
     // biến thể theo màu / kích thước điền ở khối Biến thể thì không tính là thiếu
     if(varList_('varColor').length) thieu=thieu.filter(function(lb){ return lb!=='MÀU SẮC'; });
@@ -1345,7 +1381,7 @@ async function tdSave(btn){
     var gia=Number(data['GIÁ BÁN LẺ'])||0, qty=Math.max(1,Number(sl&&sl.value)||1);
     // Đề mục theo NGÀNH đang nhập: vệ sinh -> 3.2.5, đèn -> 3.2.6.1 (trước đây luôn ghi vào
     // 3.2.6.1 nên SP vệ sinh ghi danh xong vào tab Dự án lọc 3.2.5 lại không thấy).
-    var ndGhi=(impLoai_()==='son')?'3.2.2':((impLoai_()==='vs')?'3.2.5':'3.2.6.1');
+    var ndGhi=(impLoai_()==='son')?'3.2.2':((impLoai_()==='ct')?'3.2.6.2':((impLoai_()==='vs')?'3.2.5':'3.2.6.1'));
     items[0].ghi={ maDA:ps.value, qty:qty, prod:{ ten:ten, ma:data['MÃ SẢN PHẨM']||'', thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'',
       moTa:data['MÔ TẢ']||'', kichThuoc:data['KÍCH THƯỚC']||'', dvt:data['ĐƠN VỊ TÍNH']||'Cái', hinhAnh:data['ẢNH SẢN PHẨM']||'',
       donGiaVon:gia, donGiaBan:gia, nhom:ndGhi, hangMuc:nodeName(ndGhi), loai:nodeName(ndGhi), tang:'', extra:{nganh:data['DÒNG SẢN PHẨM']||''} } };

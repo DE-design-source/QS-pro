@@ -203,6 +203,7 @@ function spNganhCur_(){
   var nd=((S._spFilters||{}).node)||'';
   if(nd==='3.2.5') return 'vs';
   if(nd==='3.2.2') return 'son';
+  if(nd==='3.2.6.2') return 'ct';
   if(nd==='3.2.6'||nd==='3.2.6.1') return 'den';
   return '';
 }
@@ -210,8 +211,9 @@ function spColFlat_(){
   var ng=spNganhCur_();
   if(ng==='vs') return DB_FLAT_VS;
   if(ng==='son') return DB_FLAT_SON;
+  if(ng==='ct') return DB_FLAT_CT;
   if(ng==='den') return DB_FLAT;
-  return DB_FLAT.concat(DB_FLAT_VS).concat(DB_FLAT_SON);
+  return DB_FLAT.concat(DB_FLAT_VS).concat(DB_FLAT_SON).concat(DB_FLAT_CT);
 }
 function spAllCols_(){
   if(spPTMode_()) return spPTCols_();
@@ -722,16 +724,17 @@ function spColW_(k){ if(spPTMode_()) return (S._ptW2&&S._ptW2[k])||PT_SPDEFW[k]|
 function spColsDefault_(ng){
   var b={thumb:1,ten:1,duyet:1,sku:1,thuong_hieu:1,hang_muc:1,giaDaiLy:1};
   if(ng==='vs'){ b.kich_thuoc=1; b.mau_sac=1; b.kieu_lap_dat=1; b.he_thong_xa=1; return b; }
+  if(ng==='ct'){ b.thanh_phan=1; b.mau_sac=1; b.dong_dm_a=1; b.kieu_lap_dat=1; return b; }      // công tắc - ổ cắm
   if(ng==='son'){ b.mau_sac=1; b.be_mat=1; b.do_phu=1; b.kich_thuoc=1; return b; }      // sơn nước: không có công suất / K / CRI
   b.cong_suat_w=1; b.nhiet_do_mau_k=1; b.cri=1; b.goc_chieu_deg=1; return b;
 }
 function spColsSync_(){
   if(spPTMode_()) return;
-  var ng=spNganhCur_(); if(ng!=='vs'&&ng!=='son') ng='den';     // mỗi ngành 1 bộ cột riêng
+  var ng=spNganhCur_(); if(!coSpec_(ng)) ng='den';     // mỗi ngành 1 bộ cột riêng
   if(S._spColsNganh===ng && S._spCols) return;
   S._spColsNganh=ng;
   var luu=null;
-  try{ var j=JSON.parse(localStorage.getItem('qs_spcolcfg')||'{}'); luu=(ng==='vs')?j.onVs:(ng==='son'?j.onSon:j.on); }catch(e){}
+  try{ var j=JSON.parse(localStorage.getItem('qs_spcolcfg')||'{}'); luu=(ng==='vs')?j.onVs:(ng==='son'?j.onSon:(ng==='ct'?j.onCt:j.on)); }catch(e){}
   S._spCols=(luu&&Object.keys(luu).length)?luu:spColsDefault_(ng);
 }
 function spOrder_(){
@@ -757,7 +760,7 @@ function spSaveCols_(){
       var j={}; try{ j=JSON.parse(localStorage.getItem('qs_spcolcfg')||'{}')||{}; }catch(e2){}
       j.order=S._spOrder; j.w=S._spW||{};
       var on=(S._spEdit&&S._spColsBak)||S._spCols||{};   // đang Edit (bật hết cột) -> lưu bộ cột thật của người dùng
-      if(S._spColsNganh==='vs') j.onVs=on; else if(S._spColsNganh==='son') j.onSon=on; else j.on=on;
+      if(S._spColsNganh==='vs') j.onVs=on; else if(S._spColsNganh==='son') j.onSon=on; else if(S._spColsNganh==='ct') j.onCt=on; else j.on=on;
       localStorage.setItem('qs_spcolcfg',JSON.stringify(j));
     }
   }catch(e){}
@@ -1954,6 +1957,7 @@ var DB_LABEL2COL_={
 };
 Object.keys(VS_SPEC.METRIC).forEach(function(lb){ if(!DB_LABEL2COL_[lb]) DB_LABEL2COL_[lb]=VS_SPEC.METRIC[lb][0]; });
 Object.keys(SON_SPEC.METRIC).forEach(function(lb){ if(!DB_LABEL2COL_[lb]) DB_LABEL2COL_[lb]=SON_SPEC.METRIC[lb][0]; });
+Object.keys(CT_SPEC.METRIC).forEach(function(lb){ if(!DB_LABEL2COL_[lb]) DB_LABEL2COL_[lb]=CT_SPEC.METRIC[lb][0]; });
 Object.assign(DB_LABEL2COL_,{'THÔNG SỐ KỸ THUẬT':'thong_so_file','HƯỚNG DẪN CÀI ĐẶT':'huong_dan_lap_dat','FILE BẢN VẼ':'file_ban_ve'});   // db/tai_lieu_sp.sql
 var SP_COL2LABEL_={}; Object.keys(DB_LABEL2COL_).forEach(function(k){ SP_COL2LABEL_[DB_LABEL2COL_[k]]=k; });
 // Dựng 1 ô nhập trong modal Sửa theo ĐÚNG định nghĩa của form Nhập (nhãn, kiểu, gợi ý, danh sách chọn)
@@ -2023,7 +2027,7 @@ function cbAdd_(recordId){
 /* SP đang sửa là thiết bị vệ sinh? -> chữ hướng dẫn, gợi ý & nhãn theo ngành vệ sinh */
 function cbVS_(){ return nganhCuaSP_(S._spEditP)==='vs'; }
 function cbLbl_(p){ var ng=nganhCuaSP_(p);
-  return (ng==='vs'||ng==='son')
+  return (coSpec_(ng))
     ? [specNganh_(ng).chuanHM(p.hangMuc)||p.hangMuc, p.mauSac].filter(Boolean).join(' · ')
     : [p.congSuat, p.nhietDo].filter(Boolean).join(' · '); }
 function cbSearch_(q){
@@ -2368,7 +2372,7 @@ async function spEditModal(i, nhanBan){
   if(S._speCopy){ var maIn=ov.querySelector('[data-col="ma_sp"]');            // mã mới: mở khoá, để trống, đặt con trỏ vào
     if(maIn){ maIn.readOnly=false; maIn.value=''; maIn.placeholder='Mã mới, VD: '+(p.ma||'')+'-2'; setTimeout(function(){ maIn.focus(); },50); } }
   var ngSP=nganhCuaSP_(p);
-  if(ngSP==='vs'||ngSP==='son'){ var hmSel=ov.querySelector('[data-col="hang_muc"]'); vsApplyHM_(ov, hmSel?hmSel.value:raw.hang_muc, 1, ngSP); }
+  if(coSpec_(ngSP)){ var hmSel=ov.querySelector('[data-col="hang_muc"]'); vsApplyHM_(ov, hmSel?hmSel.value:raw.hang_muc, 1, ngSP); }
   ov.querySelectorAll('.docf').forEach(docRender_);
   cbRender_(); btRender_(); cbTab_((S._btNhom||[]).length&&!(S._combo||[]).length?'bt':'combo');
   document.addEventListener('mousedown',cbOutside_);

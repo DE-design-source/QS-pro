@@ -34,7 +34,7 @@ const S0=stub();
 const ctx={ console, setTimeout:()=>0, clearTimeout(){}, setInterval:()=>0, Promise, JSON, Math, Date, Object, Array, String, Number, RegExp, Error,
   document:S0, localStorage:{getItem:()=>null,setItem(){},removeItem(){}}, sessionStorage:{getItem:()=>null,setItem(){}},
   navigator:S0, location:S0, fetch:()=>new Promise(()=>{}), requestAnimationFrame:()=>0, getComputedStyle:()=>S0,
-  VS_SPEC:{METRIC:{}}, SON_SPEC:{METRIC:{}}, matchMedia:()=>S0, history:S0, URL, Blob:function(){}, FormData:function(){}, Image:function(){}, alert(){}, confirm:()=>false };
+  VS_SPEC:{METRIC:{}}, SON_SPEC:{METRIC:{}}, CT_SPEC:{METRIC:{},HM:{},HANG_MUC:[],CHINH_ALL:[],TK_ALL:[]}, matchMedia:()=>S0, history:S0, URL, Blob:function(){}, FormData:function(){}, Image:function(){}, alert(){}, confirm:()=>false };
 ctx.window=ctx; vm.createContext(ctx);
 const files = [...fs.readFileSync(path.join(PUB, 'index.html'), 'utf8').matchAll(/<script src="([\w.-]+\.js)">/g)]
   .map(m => m[1]).filter(f => !/-spec\.js$/.test(f)).map(f => path.join(PUB, f));
