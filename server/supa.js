@@ -45,7 +45,10 @@ function ok() { return !!(URL && KEY); }
 function headers(extra) {
   return Object.assign({ apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' }, extra || {});
 }
+// Có DATABASE_URL -> chạy trên Postgres riêng (schema qs: view tên cũ, xem db/pg/compat_views.sql); ảnh vẫn ở Supabase Storage
+const PG = process.env.DATABASE_URL ? require('./pgrest') : null;
 async function rest(method, path, { body, prefer } = {}) {
+  if (PG) return PG.rest(method, path, { body: body, prefer: prefer });
   const res = await fetch(URL + '/rest/v1/' + path, {
     method: method,
     headers: headers(prefer ? { Prefer: prefer } : null),

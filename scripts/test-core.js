@@ -118,5 +118,11 @@ fs.readdirSync(path.join(__dirname, '..', 'public')).filter(f => f.endsWith('.js
     [{ nhom: '3.2.2', thuongHieu: 'ThuongHieuX', ncc: 'DaiLyY' }, { nhom: '3.2.5', thuongHieu: 'Toto' }]);
   let chu32 = ''; w32.eachRow(function (r) { chu32 += '|' + r.values.join('|'); });
   assert.ok(/ThuongHieuX — DaiLyY/.test(chu32) && /Toto/.test(chu32) && !/Boral|Daikin|Kohler/.test(chu32), 'sheet 3.2 phải dùng NCC của dự án');
+  // bộ dịch PostgREST -> SQL (dùng khi có DATABASE_URL): tham số hoá, lọc lồng and/or, chặn tên cột lạ
+  const pgq = require('../server/pgrest').phanTich;
+  const q1 = pgq('db_san_pham?select=id&ma_sp=eq.' + encodeURIComponent("A'; drop table x;--") + '&and=(or(mau_sac.is.null,mau_sac.eq.))&id=in.(1,2)&order=id.desc&limit=5');
+  assert.strictEqual(q1.where.join(' AND '), '("ma_sp"::text = $1) AND (("mau_sac" IS NULL OR ("mau_sac"::text = $2))) AND "id"::text IN ($3,$4)');
+  assert.deepStrictEqual(q1.P, ["A'; drop table x;--", '', '1', '2']); assert.strictEqual(q1.limit, 5);
+  assert.throws(function () { pgq('users?select=id;drop'); }); assert.throws(function () { pgq('users?x=foo.1'); });
   console.log('test-core: tất cả đạt');
 })().catch(e => { console.error(e); process.exit(1); });
