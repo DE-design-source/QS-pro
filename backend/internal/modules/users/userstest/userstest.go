@@ -14,6 +14,7 @@ import (
 
 	"qspro-backend/internal/platform/database"
 	"qspro-backend/internal/shared/actor"
+	"qspro-backend/internal/shared/goonly"
 	"qspro-backend/internal/shared/jsval"
 	"qspro-backend/internal/shared/omap"
 	"qspro-backend/internal/shared/tenant"
@@ -164,7 +165,8 @@ func Norm(v any, key string) any {
 			parts := strings.Split(str, ".")
 			b, _ := base64.RawURLEncoding.DecodeString(parts[0])
 			p, _ := omap.Decode(b)
-			return omap.Of("payload", Norm(p, ""), "parts", float64(len(parts)))
+			// sid (id phiên, M1.2) chỉ bản Go có: bỏ trước khi so với golden Node (ARCHITECTURE 10.4)
+			return omap.Of("payload", Norm(goonly.Strip(p, "sid"), ""), "parts", float64(len(parts)))
 		case key == "password_hash":
 			if reBcrypt.MatchString(str) {
 				return str[:7] + "<" + jsval.ToString(float64(len(str))) + ">"

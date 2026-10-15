@@ -4,6 +4,7 @@ package middleware
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"regexp"
 	"sync"
@@ -12,6 +13,7 @@ import (
 
 	"qspro-backend/internal/platform/logger"
 	"qspro-backend/internal/shared/actor"
+	"qspro-backend/internal/shared/response"
 )
 
 // SessionResolver: token -> người đăng nhập (auth.sessionActor của Node: token hợp lệ + tài khoản còn mở /
@@ -58,8 +60,16 @@ func BearerToken(r *http.Request) string {
 	return reBearer.ReplaceAllString(r.Header.Get("Authorization"), "")
 }
 
+// SessionStoreError: kho phiên đăng nhập không dùng được vì cấu trúc database (vd chưa chạy migration 0014 -
+// thiếu bảng user_sessions). ActorOf trả 500 kèm thông báo đích danh và dừng request, thay vì coi như chưa
+// đăng nhập (401 mù mờ, giao diện chỉ thấy "Phiên đã hết").
+type SessionStoreError struct{ Msg string }
+
+func (e *SessionStoreError) Error() string { return e.Msg }
+
 // ActorOf: người đăng nhập của request (actorOf_ của Node). Token lấy từ header Authorization,
-// không có thì từ body.token. Lỗi khi kiểm tra phiên -> ghi log và coi như chưa đăng nhập.
+// không có thì từ body.token. Lỗi khi kiểm tra phiên -> ghi log và coi như chưa đăng nhập;
+// riêng SessionStoreError -> trả 500 + thông báo và c.Abort() (nơi gọi phải kiểm c.IsAborted()).
 func ActorOf(c *gin.Context, s SessionResolver) *actor.Actor {
 	var tok any = BearerToken(c.Request)
 	if tok == "" {
@@ -72,6 +82,10 @@ func ActorOf(c *gin.Context, s SessionResolver) *actor.Actor {
 	a, err := s.SessionActor(context.WithoutCancel(c.Request.Context()), str)
 	if err != nil {
 		logger.Error("auth", "kiểm tra phiên lỗi:", err.Error())
+		var se *SessionStoreError
+		if errors.As(err, &se) {
+			response.Fail(c, 500, se.Msg)
+		}
 		return nil
 	}
 	return a

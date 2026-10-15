@@ -17,6 +17,8 @@ import PCard from './components/project/PCard'
 import QuickBar from './components/project/QuickBar'
 import NotificationBell from './components/notifications/NotificationBell'
 import ModalHost from './components/common/ModalHost'
+import ExpiryBanner from './components/common/ExpiryBanner'
+import UpdateBanner from './components/common/UpdateBanner'
 import StatusView from './components/common/StatusView'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import { QsDataProvider } from './state/QsData'
@@ -108,6 +110,8 @@ function QsRoot() {
   else if (me) {
     body = (
       <>
+        {/* Dải nhắc gia hạn cho admin (M17.3): tự ẩn khi không phải admin hoặc hạn dùng còn > 30 ngày */}
+        {guard('expiry', <ExpiryBanner />)}
         {!NO_PCARD[tab] && guard('pcard', <PCard />)}
         {QB_TABS[tab] && guard('qbar', <QuickBar tab={tab} />)}
         {/* Các tab luôn được mount (ẩn bằng display) để giữ trạng thái bộ lọc, giống bản HTML */}
@@ -157,6 +161,8 @@ function QsRoot() {
       </div>
 
       <ModalHost />
+      {/* Dải nhắc "Đã có bản cập nhật mới" (M1.1): hiện cả ở màn đăng nhập như bản gốc */}
+      <UpdateBanner />
       {import.meta.env.DEV && ready && <DevSheetProbe />}
 
       <Dezbot

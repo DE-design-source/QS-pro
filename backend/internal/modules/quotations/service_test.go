@@ -122,6 +122,11 @@ func (r *fakeRepo) CoverIDs(_ context.Context, maDA any) ([]*omap.Map, error) {
 }
 
 func (r *fakeRepo) InsertCover(_ context.Context, rows []*omap.Map) error {
+	for _, x := range rows { // giả ràng buộc ck_cost_estimate_lines_cost: cả lệnh hỏng, không ghi dòng nào (chữ như golden save-neg)
+		if jsval.ToNumber(x.Val("chi_phi")) < 0 {
+			return errors.New(`DB POST khai_toan -> 409 {"code":"23514","message":"new row for relation \"cost_estimate_lines\" violates check constraint \"ck_cost_estimate_lines_cost\""}`)
+		}
+	}
 	for _, x := range rows {
 		r.nextID++
 		r.rows = append(r.rows, omap.Assign(omap.Of("id", r.nextID), x))
@@ -448,7 +453,7 @@ func runSteps(t *testing.T, cs *caseSpec, svc *Service, st *stubs, ctx context.C
 			}
 			save(name, buf)
 			st.media, st.fetched = []any{}, []any{}
-			wb, _, err := svc.buildBaoGia(ctx, arg(args, 0), arg(args, 1), arg(args, 3), arg(args, 4), arg(args, 5), arg(args, 6), arg(args, 7))
+			wb, _, err := svc.buildBaoGia(ctx, arg(args, 0), arg(args, 1), arg(args, 3), arg(args, 4), arg(args, 5), arg(args, 6), arg(args, 7), arg(args, 8))
 			if err != nil {
 				t.Fatalf("%s: %v", name, err)
 			}
@@ -642,7 +647,7 @@ func TestDBDiff(t *testing.T) {
 	st.media, st.fetched = []any{}, []any{}
 	rctx := tenant.With(bg, tenant.Ctx{UID: fx.Val("uid"), Role: "admin", CongTyID: fx.Val("congTyId")})
 	a := jsval.AsArray(fx.Val("args"))
-	file, err := svc.ExportBaoGia(rctx, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7])
+	file, err := svc.ExportBaoGia(rctx, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], jsval.Undefined)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -118,8 +118,8 @@
 
 ## D-09. Cột không còn dùng
 
-- **Danh sách** (bằng chứng ở audit mục 4.4): `quotation_lines.zone`, `line_no`, `markup_pct`, `margin_pct`, `profit_amount`, `is_manual_entry`, `is_saved_to_catalog`; `companies.last_reminder_date`, `reminder_milestone`; `favorite_products.product_code`.
-- **Đưa ra khỏi danh sách (2026-10-15):** `delete_requests.note` - migration 0010 dùng lại làm lý do xoá do người gửi nhập (M15.2, chú thích cột đã đổi); `product_combos.note` - giao diện React ghi và hiện ghi chú sản phẩm đi kèm (M10.2), chú thích cột vẫn còn chữ `DEPRECATED` của 0008 cho tới migration sửa chú thích kế tiếp.
+- **Danh sách** (bằng chứng ở audit mục 4.4): `quotation_lines.zone`, `line_no`, `markup_pct`, `margin_pct`, `profit_amount`, `is_manual_entry`, `is_saved_to_catalog`; `favorite_products.product_code`.
+- **Đưa ra khỏi danh sách (2026-10-15):** `delete_requests.note` - migration 0010 dùng lại làm lý do xoá do người gửi nhập (M15.2, chú thích cột đã đổi); `product_combos.note` - giao diện React ghi và hiện ghi chú sản phẩm đi kèm (M10.2), migration 0013 đổi chú thích cột (bỏ `DEPRECATED`); `companies.last_reminder_date`, `reminder_milestone` - nhắc gia hạn trong ứng dụng (M17.3, giả định chờ chủ sản phẩm xác nhận) dùng lại, migration 0012 đổi chú thích cột (bỏ `DEPRECATED`, không CHECK).
 - **Đề xuất, 2 bước:**
   1. Đợt 1: đánh dấu `DEPRECATED` trong chú thích cột; không đổi gì khác.
   2. Đợt 3 (sau ít nhất một chu kỳ phát hành ổn định): `supa.js` bỏ qua các cột này khi ghi, rồi mới `DROP COLUMN`, sau khi đã sao lưu.

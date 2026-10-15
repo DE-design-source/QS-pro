@@ -151,8 +151,7 @@ function EditDialog({ p0, md, products, canDuyetProp, onClose, onSaved }) {
       // tách anh_sp: ảnh đầu = đại diện, còn lại = ảnh chi tiết/mô tả
       const imgsRaw = String(raw.anh_sp || '').split('\n').map(s => s.trim()).filter(Boolean)
       const i0 = { main: imgsRaw[0] || '', list: imgsRaw.slice(1) }
-      // ghi chú của liên kết (comboGhiChu, M10.2): cbItem_ không mang theo nên gắn thêm ở đây
-      const c0 = (got[2] || []).map(x => ({ ...cbItem_(x), comboGhiChu: String(x.comboGhiChu == null ? '' : x.comboGhiChu) }))
+      const c0 = (got[2] || []).map(cbItem_)   // cbItem_ giữ cả ghi chú liên kết (comboGhiChu, M10.2)
       const b0 = (got[3] || []).map(btItem_)
       setData({ raw, hist, histErr, specs, groups, L2C, C2L })
       setVals(v0); setImgs(i0); setCombo(c0); setBt(b0); setOkRel({ combo: cOk, bt: bOk })

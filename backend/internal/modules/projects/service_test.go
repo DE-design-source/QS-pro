@@ -232,6 +232,7 @@ func TestUnitGolden(t *testing.T) {
 		svc.RegisterRPC(reg)
 		res, err := callFn(svc, reg, ctxOf(c.Val("ctx")), jsval.AsString(c.Val("fn")), actorOf(c.Val("actor")), jsval.AsArray(c.Val("args")))
 		got := omap.Assign(omap.Of("log", f.log), resultOf(res, err))
+		got = jsval.AsMap(stripGoOnlyResult(t, name, got))
 		if g, w := mustJSON(t, got), mustJSON(t, c.Val("expect")); g != w {
 			t.Errorf("%s\n  go:   %s\n  node: %s", name, g, w)
 		}
@@ -383,10 +384,46 @@ var (
 // -> bỏ khỏi kết quả và khỏi chi tiết lỗi "Failing row contains" trước khi so (backend/docs/ARCHITECTURE.md 10.4).
 // Chỉ bỏ khi giá trị là null (goonly.StripNull): cột chỉ ghi khi client gửi khoá, ca golden không gửi, nên giá trị
 // khác null = ghi sai và phép so báo khác.
+//
+// Khoá kết quả chỉ bản Go: hienTrang (projToObj đọc từ hien_trang). Ca golden không ghi cột này nên khoá luôn là chuỗi rỗng;
+// stripGoOnlyResult kiểm điều đó rồi mới bỏ khoá (giá trị khác rỗng = đọc / ghi sai, test báo lỗi).
 var (
-	goOnlyKeys = []string{"hien_trang"}
-	goOnlyCols = map[string]int{"projects": 1}
+	goOnlyKeys       = []string{"hien_trang"}
+	goOnlyCols       = map[string]int{"projects": 1}
+	goOnlyResultKeys = []string{"hienTrang"}
 )
+
+// stripGoOnlyResult: khoá kết quả chỉ bản Go phải rỗng ở mọi chỗ, rồi bỏ khỏi v trước khi so với golden.
+func stripGoOnlyResult(t *testing.T, where string, v any) any {
+	t.Helper()
+	var walk func(x any)
+	walk = func(x any) {
+		switch m := x.(type) {
+		case *omap.Map:
+			if m == nil {
+				return
+			}
+			m.Each(func(k string, e any) {
+				for _, g := range goOnlyResultKeys {
+					if k == g && !jsval.StrictEquals(e, "") {
+						t.Errorf("%s: khoá chỉ bản Go %s = %s, golden không ghi nên phải rỗng", where, k, mustJSON(t, e))
+					}
+				}
+				walk(e)
+			})
+		case []any:
+			for _, e := range m {
+				walk(e)
+			}
+		case []*omap.Map:
+			for _, e := range m {
+				walk(e)
+			}
+		}
+	}
+	walk(v)
+	return goonly.Strip(v, goOnlyResultKeys...)
+}
 
 type diffRun struct {
 	t     *testing.T
@@ -608,7 +645,7 @@ func TestDiffDB(t *testing.T) {
 			out = omap.Of("error", err.Error())
 		}
 		want := jsval.AsString(jsval.Get(raw, "out"))
-		got := goonly.StripFailingRow(d.norm(goonly.StripNull(out, goOnlyKeys...)), goOnlyCols)
+		got := goonly.StripFailingRow(d.norm(stripGoOnlyResult(t, "bước "+jsval.ToString(float64(i)), goonly.StripNull(out, goOnlyKeys...))), goOnlyCols)
 		if st.Has("pick") {
 			// getProjData không sắp xếp: thứ tự khoá theo thứ tự dòng database trả về (đổi theo kế hoạch truy vấn,
 			// ở Node cũng vậy - bước 38 và 45 của diff.json ra hai kiểu) -> so không kể thứ tự khoá

@@ -23,23 +23,30 @@ import (
 	"qspro-backend/internal/shared/omap"
 )
 
-// Deps: do internal/server/routes.go truyền vào. Ba interface đều do module users cài.
+// Deps: do internal/server/routes.go truyền vào. Ba interface đầu do module users cài; Admins do module notifications cài,
+// chỉ dùng cho nhắc gia hạn trong ứng dụng (M17.3, expiry.go) - thiếu thì không có admin nào để gửi.
 type Deps struct {
 	DB            *database.DB
 	Cfg           *config.Config
 	UserCreator   contracts.UserCreator
 	UserFormatter contracts.UserFormatter
 	Auditor       contracts.Auditor
+	Admins        contracts.AdminLister
 }
 
 // Service: nghiệp vụ công ty.
 type Service struct {
 	repo    Repository
+	db      *database.DB // D-13: transaction cho thao tác nhiều bước; nil (repo giả trong test unit) -> chạy thẳng
 	cfg     *config.Config
 	creator contracts.UserCreator
 	fmtUser contracts.UserFormatter
 	auditor contracts.Auditor
 	now     func() time.Time
+
+	// nhắc gia hạn (M17.3)
+	admins contracts.AdminLister
+	nhacMu sync.Mutex
 
 	// _shareCol (A:93): nil = chưa dò; dò 1 lần rồi giữ suốt đời tiến trình, kể cả khi lần dò lỗi.
 	shareMu  sync.Mutex
@@ -50,8 +57,16 @@ var _ contracts.CompanyReader = (*Service)(nil)
 
 // New tạo service.
 func New(d Deps) *Service {
-	return &Service{repo: newPgRepo(d.DB), cfg: d.Cfg, creator: d.UserCreator, fmtUser: d.UserFormatter,
-		auditor: d.Auditor, now: time.Now}
+	return &Service{repo: newPgRepo(d.DB), db: d.DB, cfg: d.Cfg, creator: d.UserCreator, fmtUser: d.UserFormatter,
+		auditor: d.Auditor, now: time.Now, admins: d.Admins}
+}
+
+// tx: chạy fn trong 1 transaction (D-13). Repo giả trong test unit không có DB -> chạy thẳng.
+func (s *Service) tx(ctx context.Context, fn func(ctx context.Context) error) error {
+	if s.db == nil {
+		return fn(ctx)
+	}
+	return s.db.Tx(ctx, fn)
 }
 
 func roleOf(a *actor.Actor) string {
@@ -300,22 +315,31 @@ func (s *Service) CreateCongTy(ctx context.Context, a *actor.Actor, data any) (*
 			return nil, apperr.New(`Tên đăng nhập "` + adminUser + `" đã có người dùng — chọn tên khác`)
 		}
 	}
-	res, err := s.repo.InsertCongTy(ctx, row)
+	// D-13: chèn công ty + tạo tài khoản chủ trong 1 transaction. AdminCreateUser (module users) dùng CÙNG *DB nên tự
+	// vào transaction; audit create_user nó ghi bên trong cũng rollback theo. Khác Node (A:146-152) CHỈ khi lỗi (kể cả request bị huỷ): Node để
+	// lại công ty mồ côi khi tạo tài khoản chủ lỗi, bản Go nay không còn công ty đó. Audit create_company ghi SAU commit.
+	var ct *omap.Map
+	err = s.tx(ctx, func(ctx context.Context) error {
+		res, err := s.repo.InsertCongTy(ctx, row)
+		if err != nil {
+			return err
+		}
+		if len(res) == 0 {
+			return apperr.New("Cannot read properties of undefined (reading 'id')")
+		}
+		ct = ctOut(res[0])
+		if coChu {
+			if _, err := s.creator.AdminCreateUser(ctx, a, omap.Of(
+				"username", adminUser, "password", get("adminPass"), "role", "admin", "congTyId", ct.Val("id"),
+				"hoTen", jsval.Or(get("adminHoTen"), "Quản trị "+ten),
+				"email", jsval.Or(get("adminEmail"), get("email"), ""))); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
-	}
-	if len(res) == 0 {
-		return nil, apperr.New("Cannot read properties of undefined (reading 'id')")
-	}
-	ct := ctOut(res[0])
-	// Tạo SAU khi đã chèn công ty: lỗi ở đây để lại công ty (đúng như Node, A:146-152).
-	if coChu {
-		if _, err := s.creator.AdminCreateUser(ctx, a, omap.Of(
-			"username", adminUser, "password", get("adminPass"), "role", "admin", "congTyId", ct.Val("id"),
-			"hoTen", jsval.Or(get("adminHoTen"), "Quản trị "+ten),
-			"email", jsval.Or(get("adminEmail"), get("email"), ""))); err != nil {
-			return nil, err
-		}
 	}
 	s.audit(ctx, a, "create_company", "Tạo công ty "+ten)
 	return ct, nil
@@ -449,9 +473,19 @@ func (s *Service) UpdateCongTy(ctx context.Context, a *actor.Actor, id, data any
 	if patch.Len() == 0 {
 		return s.GetCongTy(ctx, id)
 	}
+	// M17.3 (chỉ bản Go): đọc mốc nhắc gia hạn trước khi đổi hạn dùng; lỗi đọc thì bỏ qua (không đổi hành vi của Node)
+	var truoc *omap.Map
+	if patch.Has("han_dung") {
+		if rows, err := s.repo.CongTyByID(ctx, id); err == nil && len(rows) > 0 {
+			truoc = rows[0]
+		}
+	}
 	res, err := s.repo.UpdateCongTy(ctx, id, patch)
 	if err != nil {
 		return nil, err
+	}
+	if len(res) > 0 {
+		s.xoaMocNeuDoiHan(ctx, id, truoc, res[0])
 	}
 	s.audit(ctx, a, "update_company", "Cập nhật công ty "+jsval.ToString(jsval.Or(patch.Val("ten"), id)))
 	if len(res) > 0 {
@@ -476,10 +510,15 @@ func (s *Service) DeleteCongTy(ctx context.Context, a *actor.Actor, id any) (*om
 		return nil, apperr.New(msgNotFound)
 	}
 	f := "cong_ty_id=eq." + jsval.EncodeURIComponent(id)
-	for _, t := range tenantTablesOrder {
-		_ = s.repo.RemoveTenantRows(ctx, t, f) // bỏ qua bảng chưa có cột
-	}
-	if err := s.repo.RemoveCongTy(ctx, id); err != nil {
+	// D-13: xoá dữ liệu các bảng + xoá công ty trong 1 transaction. Lỗi từng bảng vẫn bị nuốt như Node (mỗi lệnh có
+	// savepoint riêng nên lệnh hỏng không làm hỏng transaction). Khác Node CHỈ khi xoá công ty lỗi (kể cả request bị
+	// huỷ giữa chừng): Node đã xoá mất dữ liệu các bảng, bản Go nay rollback hết. Audit ghi SAU commit.
+	if err := s.tx(ctx, func(ctx context.Context) error {
+		for _, t := range tenantTablesOrder {
+			_ = s.repo.RemoveTenantRows(ctx, t, f) // bỏ qua bảng chưa có cột
+		}
+		return s.repo.RemoveCongTy(ctx, id)
+	}); err != nil {
 		return nil, err
 	}
 	ten := jsval.ToString(ct.Val("ten"))

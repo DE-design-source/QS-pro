@@ -28,8 +28,8 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	// ═══ JOB NỀN: báo cáo nhập SP tự động; REPORT_JOB=0 thì không bật ═══
-	worker := jobs.Start(ctx, jobs.Deps{Reports: srv.Reports(), Cfg: cfg})
+	// ═══ JOB NỀN: báo cáo nhập SP tự động + nhắc gia hạn công ty trong ứng dụng (M17.3); REPORT_JOB=0 thì không bật ═══
+	worker := jobs.Start(ctx, jobs.Deps{Reports: srv.Reports(), Expiry: srv.Expiry(), Cfg: cfg})
 	srv.OnShutdown(worker.Stop)
 
 	if err := srv.Run(ctx); err != nil {

@@ -4,7 +4,7 @@ import { isAbort } from '../../api/http'
 import { money } from '../../lib/format'
 import QsIcon from '../common/QsIcon'
 import AdmDlg from './AdmDlg'
-import { PUR_CLS, fmtDateTime_, imgSrc1_ } from './adminUtil'
+import { PUR_CLS, fmtDateTime_, imgSrc1_, larkLbl_, larkCls_ } from './adminUtil'
 
 /* Chi tiết đơn mua hàng khi Admin bấm vào 1 đơn (port purDetail / purDetailHtml_, PUB/admin.js:66-113).
    Props: code (maDon), onClose(), onResolve(maDon, approve) — Duyệt / Từ chối rồi đóng như bản gốc. */
@@ -46,6 +46,8 @@ function PurBody({ o, onClose, onResolve }) {
           <Info k="Hạng mục" v={o.hangMuc} /><Info k="Ngày gửi" v={fmtDateTime_(o.at)} />
           {o.nguoiDuyet ? <Info k="Người duyệt" v={o.nguoiDuyet} /> : null}
           {o.ngayDuyet ? <Info k="Ngày duyệt" v={fmtDateTime_(o.ngayDuyet)} /> : null}
+          <div className="qsa-pur-i"><span>Kết quả gửi Lark</span>
+            <b><span className={`qsa-lark ${larkCls_(o.ketQuaGui)}`} title={o.kenhGui ? ('Kênh gửi: ' + o.kenhGui) : undefined}>{larkLbl_(o.ketQuaGui)}</span></b></div>
         </div>
         {o.ghiChu ? <div className="qsa-pur-note"><QsIcon name="doc" size={12} /> {o.ghiChu}</div> : null}
       </div>

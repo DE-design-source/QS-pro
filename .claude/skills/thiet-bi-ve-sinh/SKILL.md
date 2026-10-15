@@ -5,8 +5,9 @@ description: Thêm/sửa/bỏ thông số (metric) của ngành Thiết bị v�
 
 # Thiết bị vệ sinh — thông số theo hạng mục
 
-## Nguồn DUY NHẤT: `public/vs-spec.js`
-Module UMD (`window.VS_SPEC` ở trình duyệt, `require('../public/vs-spec.js')` ở server). Mọi nơi đọc từ đây — **không** khai báo lại danh sách thông số ở chỗ khác.
+## Nguồn DUY NHẤT: `backend/internal/shared/specs/js/vs-spec.js`
+Module UMD (`window.VS_SPEC` ở trình duyệt; server Go nhúng file bằng `go:embed` và phục vụ ở `/vs-spec.js`, dữ liệu cho Go nằm ở `backend/internal/shared/specs/data/*.json` sinh từ file JS). Mọi nơi đọc từ đây — **không** khai báo lại danh sách thông số ở chỗ khác.
+Sửa bất kỳ `*-spec.js` nào xong phải chạy `node backend/scripts/gen-specs.js` (sinh lại `specs/data/*.json` và golden), rồi từ `backend/`: `go test ./internal/shared/specs ./internal/server`.
 
 - `METRIC[NHÃN] = [cột DB, nhãn hiển thị, kiểu 'text'|'sel'|'area', gợi ý nhập]` — NHÃN cũng là tiêu đề cột Excel và khoá của `DB_LABEL2COL`.
 - `HM[hạng mục] = { chinh:[…], tk:[…], req:[…], opt:{NHÃN:[lựa chọn]}, mau:{dòng ví dụ} }`
@@ -17,7 +18,7 @@ Module UMD (`window.VS_SPEC` ở trình duyệt, `require('../public/vs-spec.js'
 - Helper: `chuanHM` (chuẩn hoá tên hạng mục), `labelsOf`, `optsOf`, `isReq`, `nganhOf(nganh, hangMuc)` (ngành trống + hạng mục vệ sinh ⇒ 'vs' — dùng ở CẢ client & server), `CHINH_ALL`/`TK_ALL`/`gom` (hợp thông số, dùng cho bảng, file mẫu, prodToObj), `CHUNG` (trường chung — import vệ sinh bỏ mọi cột ngoài CHUNG + thông số hạng mục), `kem` (hạng mục gợi ý combo), `VD` = tiền tố `[VÍ DỤ]` của dòng ví dụ trong file mẫu (tự bỏ qua khi nhập).
 
 ## Nơi tiêu thụ (tự đổi theo khi sửa vs-spec.js)
-File client nằm trong `public/` (`app.js` = lõi dùng chung, còn lại mỗi tab 1 file). Hàm có thể được dời file khi tách tab — không thấy ở file ghi dưới đây thì grep theo tên hàm.
+Lưu ý: bảng dưới ghi vị trí trong app Node cũ (`public/`, `server/`), đã gỡ khỏi repo. Bản hiện hành là Go (`backend/internal/`) và React (`frontend/src/pages/QS`) — grep theo tên hàm / nhãn để tìm chỗ tương ứng.
 
 | Chỗ | File / hàm |
 |---|---|
@@ -33,12 +34,12 @@ File client nằm trong `public/` (`app.js` = lõi dùng chung, còn lại mỗi
 ## Checklist khi THÊM thông số mới
 1. Thêm vào `METRIC` (cột DB snake_case, kiểu `text` — cột mới luôn là **text**, không đưa vào `DB_NUM`).
 2. Gắn vào `chinh`/`tk` (+ `req`/`opt` nếu cần) của các hạng mục liên quan.
-3. Viết migration `infra/db/migrations/NNNN_ten.sql` (tên cột TIẾNG ANH): `alter table product_sanitary_specs add column … text` (cột dùng cho từ 2 ngành trở lên thì thêm vào `products`), rồi `drop view product_catalog` và tạo lại view kèm cột mới (chép định nghĩa trong `infra/db/schema.sql`). Thêm cặp `"cot_trong_code": "column_in_db"` vào `db_san_pham.columns` của `server/db-map.json` rồi đồng bộ sang `backend/internal/platform/database/db-map.json`.
-4. Chạy `npm run migrate` (database ở `DATABASE_URL`), khởi động lại server, sinh lại `infra/db/schema.sql`. Quy trình đầy đủ: `docs/02-ky-thuat/database/ket-qua-trien-khai.md` mục 7.
-5. Kiểm tra: `node --check` các file `public/*.js` vừa sửa, **`npm run test:vs`** và `node scripts/check-load.js` (thứ tự nạp file giao diện) (test hồi quy, DB giả — thêm ca test khi thêm logic mới).
+3. Viết migration `infra/db/migrations/NNNN_ten.sql` (tên cột TIẾNG ANH): `alter table product_sanitary_specs add column … text` (cột dùng cho từ 2 ngành trở lên thì thêm vào `products`), rồi `drop view product_catalog` và tạo lại view kèm cột mới (chép định nghĩa trong `infra/db/schema.sql`). Thêm cặp `"cot_trong_code": "column_in_db"` vào `db_san_pham.columns` của `backend/internal/platform/database/db-map.json` (bản duy nhất).
+4. Chạy `go run ./cmd/migrate` từ `backend/` (database ở `DATABASE_URL`), khởi động lại server, sinh lại `infra/db/schema.sql`. Quy trình đầy đủ: `docs/02-ky-thuat/database/ket-qua-trien-khai.md` mục 7.
+5. Kiểm tra: `node --check backend/internal/shared/specs/js/<ngành>-spec.js`, `node backend/scripts/gen-specs.js`, rồi từ `backend/`: `go test ./internal/shared/specs ./internal/server` (thêm ca test khi thêm logic mới).
 
 ## Ngành SƠN NƯỚC — cùng khuôn, khác spec
-`public/son-spec.js` (`SON_SPEC`) là bản song song của vs-spec cho đề mục **3.2.2 Sơn nước**: cùng API (`METRIC`/`HM`/`HANG_MUC`/`CHUNG`/`chuanHM`/`labelsOf`/`optsOf`/`isReq`/`CHINH_ALL`/`TK_ALL`/`VD`), hạng mục = dòng sơn (Sơn nội thất · ngoại thất · lót · chống thấm · Bả matit · hiệu ứng · sàn epoxy · Dung môi), `chinh` = Key Product Info, `tk` = mục IX tính chất lý hoá. File mẫu `server/son-template.js` → `GET /mau-nhap-son-nuoc.xlsx`; bảng `product_paint_specs` (migration `infra/db/migrations/0006_product_spec_tables.sql`).
+`backend/internal/shared/specs/js/son-spec.js` (`SON_SPEC`) là bản song song của vs-spec cho đề mục **3.2.2 Sơn nước**: cùng API (`METRIC`/`HM`/`HANG_MUC`/`CHUNG`/`chuanHM`/`labelsOf`/`optsOf`/`isReq`/`CHINH_ALL`/`TK_ALL`/`VD`), hạng mục = dòng sơn (Sơn nội thất · ngoại thất · lót · chống thấm · Bả matit · hiệu ứng · sàn epoxy · Dung môi), `chinh` = Key Product Info, `tk` = mục IX tính chất lý hoá. File mẫu `server/son-template.js` → `GET /mau-nhap-son-nuoc.xlsx`; bảng `product_paint_specs` (migration `infra/db/migrations/0006_product_spec_tables.sql`).
 
 Chỗ chọn spec theo ngành (thêm ngành mới thì sửa đúng mấy chỗ này):
 | Nơi | Hàm |
@@ -46,7 +47,7 @@ Chỗ chọn spec theo ngành (thêm ngành mới thì sửa đúng mấy chỗ 
 | Client | `nhap.js`: `specNganh_(ng)`, `nganhCuaSP_(p)`, `impGroups_`/`impFlat_`, `DB_GROUPS_SON`, `vsApplyHM_(box,hm,hienHet,ng)`, `impSpec_` · `app.js`: `spSpec_(p)` |
 | Server | `nganhCua_`, `specNganh_`, `MUC_NGANH` (`san-pham.mapper.js`) và tham số `nganh` của `importParse` (`san-pham.import.js`) |
 
-Nhãn TRÙNG giữa 2 spec phải trỏ **cùng một cột DB** (MÀU SẮC · KÍCH THƯỚC · BỀ MẶT HOÀN THIỆN · LƯU Ý) — `npm run test:vs` có kiểm.
+Nhãn TRÙNG giữa 2 spec phải trỏ **cùng một cột DB** (MÀU SẮC · KÍCH THƯỚC · BỀ MẶT HOÀN THIỆN · LƯU Ý).
 
 ## Lưu ý / bẫy
 - Nhãn phải DUY NHẤT toàn hệ thống (đèn + vệ sinh dùng chung `DB_LABEL2COL` trong `san-pham.mapper.js`); dùng lại nhãn đèn đã có (vd `CHẤT LIỆU`, `MÀU SẮC`) thì trùng cột là đúng ý.

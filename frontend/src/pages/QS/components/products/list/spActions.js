@@ -7,11 +7,12 @@ import { downloadPost } from '../../../api/files'
 import {
   getState, setState, subscribe, addLine, updateLine, deleteLines, reloadProducts, refreshNotifCount, newTmpId,
 } from '../../../state/store'
-import { qsToast as toast, qsConfirm, qsAlert } from '../../common/dialogs'
+import { qsToast as toast, qsConfirm, qsAlert, qsAsk } from '../../common/dialogs'
 import { money } from '../../../lib/format.js'
 import { addProdSame_, addProdBuild_, addProdSl_, addProdFloor_, prodNode_ } from '../../../lib/calc.js'
 import { floorsList } from '../../../lib/sheetModel.js'
 import { spKey_, spPatchLocal_, spNhomBienThe_ } from './spModel'
+import { LY_DO_MAX } from '../../admin/adminUtil'
 
 const S = () => getState()
 const errMsg = e => String((e && e.message) || e || '')
@@ -259,13 +260,25 @@ export async function spBulkDelete(sel, selCount) {
   toast('Đã xóa ' + ok + ' sản phẩm' + (err ? (' · ' + (keys.length - ok) + ' lỗi: ' + err.slice(0, 70)) : ''))
   return true
 }
-/* Nhân viên không có quyền xoá: gửi yêu cầu cho Admin. selKeys = khoá đang tick */
+/* Nhân viên không có quyền xoá: gửi yêu cầu cho Admin. selKeys = khoá đang tick.
+   Hỏi lý do (tuỳ chọn, ≤500 ký tự, M15.2) - Huỷ thì không gửi; quá dài thì mở lại hộp với nội dung đã gõ. */
 export async function spBulkRequest(selKeys) {
   const byKey = {}; (S().products || []).forEach(p => { byKey[spKey_(p)] = p })
   const items = selKeys.map(k => { const p = byKey[k] || {}; return { maSP: p.ma || k, id: p.recordId || '', ten: p.ten || '' } })
   if (!items.length) return false
+  let lyDo = ''
+  for (;;) {
+    lyDo = await qsAsk({
+      title: 'Gửi yêu cầu xóa ' + items.length + ' sản phẩm',
+      note: 'Admin sẽ duyệt trước khi xóa. Lý do (nếu có, tối đa ' + LY_DO_MAX + ' ký tự) được gửi kèm thông báo.',
+      label: 'Lý do xóa (tuỳ chọn)', value: lyDo, placeholder: 'VD: trùng mã, ngừng kinh doanh…', required: false, confirmText: 'Gửi yêu cầu',
+    })
+    if (lyDo == null) return false
+    if ([...lyDo].length <= LY_DO_MAX) break
+    toast('Lý do tối đa ' + LY_DO_MAX + ' ký tự (đang có ' + [...lyDo].length + ')')
+  }
   try {
-    const r = await api.requestDeleteProducts(items)
+    const r = await api.requestDeleteProducts(items, lyDo)
     refreshNotifCount()
     toast('Đã gửi yêu cầu xóa ' + ((r && r.count) != null ? r.count : items.length) + ' sản phẩm tới Admin')
     return true
@@ -278,6 +291,48 @@ export async function spDelete(p) {
     await reloadProducts()
     toast('Đã xoá: ' + p.ten)
   } catch (e) { toast('Lỗi xoá: ' + errMsg(e)) }
+}
+
+/* ---------- Tạo bản sao riêng từ kho chung Dezon (M10.1) ----------
+   Hỏi lại -> route chỉ bản Go -> tải lại danh mục -> trả SP bản sao (bản riêng che bản kho chung) để mở; huỷ -> null.
+   Lỗi -> vẫn tải lại danh mục; lỗi trùng mà tìm được đúng 1 bản riêng cùng mã + trục biến thể thì trả bản đó để mở, không thì null. */
+const pcBusy = {}
+export async function spPrivateCopy(p) {
+  if (!p || !p.spChung) return null
+  const key = String(p.recordId || '')
+  if (!key) { toast('Sản phẩm kho chung chưa có ID dòng — không tạo được bản sao'); return null }
+  if (pcBusy[key]) return null
+  if (!await qsConfirm({
+    title: 'Tạo bản sao riêng cho công ty bạn?',
+    note: '"' + (p.ten || p.ma || '') + '"' + (p.ma ? ' (mã ' + p.ma + ')' : '') + ' sẽ được chép sang danh mục của công ty bạn:'
+      + ' giữ mã, tên, thông số, ảnh, tài liệu; trạng thái Chưa duyệt; không kèm sản phẩm đi kèm (combo) hay biến thể.'
+      + ' Bản sao sửa được và thay cho bản kho chung trong danh sách.',
+    ok: 'Tạo bản sao',
+  })) return null
+  pcBusy[key] = 1
+  try {
+    const r = await api.privateCopyProduct(key)
+    await reloadProducts()
+    const id = r && r.id != null ? String(r.id) : ''
+    const np = id ? (S().products || []).filter(x => String(x.recordId || '') === id)[0] : null
+    toast('Đã tạo bản sao riêng: ' + ((r && (r.ten || r.ma)) || p.ten || ''))
+    return np || null
+  } catch (e) {
+    const msg = errMsg(e)
+    // Danh mục có thể đã cũ (bản sao vừa được tạo ở nơi khác): tải lại để dòng kho chung bị che biến mất
+    try { await reloadProducts() } catch (e2) { /* giữ danh sách cũ */ }
+    if (/^Công ty bạn đã có sản phẩm mã /.test(msg)) {
+      const truc = x => [x.ma, x.congSuat, x.nhietDo, x.gocChieu, x.mauSac, x.kichThuocVS].map(v => String(v == null ? '' : v)).join('|')
+      const k = truc(p)
+      const own = (S().products || []).filter(x => !x.spChung && truc(x) === k)
+      if (own.length === 1) {
+        toast(msg + ' — mở bản riêng đã có')
+        return own[0]
+      }
+    }
+    toast('Không tạo được bản sao: ' + msg)
+    return null
+  } finally { delete pcBusy[key] }
 }
 
 /* Quyền sửa / duyệt (spLoadPerm_): lỗi -> coi như được cả hai, như bản gốc */

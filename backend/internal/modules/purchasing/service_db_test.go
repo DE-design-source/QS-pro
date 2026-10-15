@@ -41,9 +41,12 @@ var (
 // Cột chỉ bản Go (migration 0009, M15.1: purchase_orders.resolver_name / resolved_at = don_mua_hang.nguoi_duyet /
 // ngay_duyet): golden Node không có -> bỏ khỏi dòng don_mua_hang đọc lại và khỏi chi tiết lỗi "Failing row contains"
 // trước khi so (backend/docs/ARCHITECTURE.md 10.4). CHỈ áp cho dòng đơn mua: de_xuat có sẵn nguoi_duyet / ngay_duyet
-// từ trước và golden có chúng. Chỉ bỏ khi giá trị là null (goonly.StripNull): ca golden không có bước nào được ghi hai cột
-// này, nên giá trị khác null = ghi sai và phép so báo khác. Khi M15.1 ghi hai cột lúc đổi trạng thái: thêm khẳng định
-// riêng cho giá trị đúng (người đổi, có thời điểm) ở các bước đổi trạng thái và null ở mọi bước khác, rồi mới bỏ khoá.
+// từ trước và golden có chúng. Đơn đã được resolvePurchaseRequest duyệt / từ chối thành công: khẳng định riêng (goCheck)
+// người duyệt = ho_ten || username của người thao tác và có thời điểm, rồi mới bỏ hai khoá; mọi đơn khác chỉ bỏ khi null
+// (goonly.StripNull) nên ghi nhầm vẫn bị phép so bắt.
+// Khoá kết quả chỉ bản Go nối cuối (getPurchaseOrders: nguoiDuyet, ngayDuyet, ketQuaGui; getPurchaseOrder: kenhGui,
+// ketQuaGui; listPurchaseRequests: resolver, resolvedAt) cũng được khẳng định rồi bỏ. Cột ket_qua_gui (M9.1) bản Go ghi
+// lại "ok" / "loi" sau khi gửi thẻ: khẳng định đúng theo trả lời của webhook giả, rồi đặt lại giá trị lúc lưu như Node.
 var (
 	goOnlyKeys = []string{"nguoi_duyet", "ngay_duyet"}
 	goOnlyCols = map[string]int{"purchase_orders": 2}
@@ -129,6 +132,8 @@ func TestDBDiff(t *testing.T) {
 		t.Fatalf("database thử không có tài khoản nào thuộc công ty: %v", err)
 	}
 	a := &actor.Actor{UID: us[0].Val("id"), U: actorName, R: "admin", CT: us[0].Val("cong_ty_id")}
+	resolverName := jsval.S(jsval.Or(us[0].Val("ho_ten"), us[0].Val("username")))
+	gc := &goCheck{t: t, resolver: resolverName, ketQua: map[string][2]string{}, resolved: map[string]bool{}}
 	ctx := tenant.With(bg, tenant.Ctx{UID: a.UID, Role: a.R, CongTyID: a.CT})
 	like := "ma_du_an=like." + prefix + "*"
 	inList := func(col string, rows []*omap.Map, key string) string {
@@ -244,7 +249,7 @@ func TestDBDiff(t *testing.T) {
 			if len(heads) > 0 {
 				items = sel(tblDonCT, inList("ma_don", heads, "ma_don"), "id.asc")
 			}
-			emit(name, omap.Of("heads", goonly.StripNull(strip(heads), goOnlyKeys...), "items", strip(items)))
+			emit(name, omap.Of("heads", goonly.StripNull(gc.heads(name, strip(heads)), goOnlyKeys...), "items", strip(items)))
 			continue
 		case "proposals":
 			heads := sel(tblDeXuat, like, "id.asc")
@@ -274,6 +279,7 @@ func TestDBDiff(t *testing.T) {
 		if err != nil {
 			emit(name, omap.Of("err", err.Error()))
 		} else {
+			gc.track(fn, hook, args, res)
 			for _, m := range jsval.AsArray(jsval.Get(res, "saved")) {
 				mas = append(mas, jsval.S(m))
 			}
@@ -292,6 +298,7 @@ func TestDBDiff(t *testing.T) {
 			if jsval.IsUndefined(res) {
 				res = nil
 			}
+			gc.result(name, fn, res)
 			emit(name, omap.Of("ok", res))
 		}
 		emit(name+"#audit", au.recs)
@@ -340,6 +347,121 @@ func TestDBDiff(t *testing.T) {
 	}
 	if bad == 0 && len(lines) == len(want) {
 		t.Logf("khớp Node: %d dòng (%d bước)", len(lines), len(jsval.AsArray(spec.Val("steps"))))
+	}
+}
+
+// goCheck: khẳng định giá trị của cột / khoá chỉ bản Go rồi bỏ chúng (hoặc trả về giá trị Node) trước khi so với golden.
+type goCheck struct {
+	t        *testing.T
+	resolver string
+	ketQua   map[string][2]string // mã đơn -> {giá trị bản Go phải ghi, giá trị lúc lưu như Node}
+	resolved map[string]bool      // mã đơn đã duyệt / từ chối thành công
+}
+
+// track ghi nhận bước thành công: đơn vừa gửi (kết quả gửi Lark mong đợi) và đơn vừa xử lý.
+func (g *goCheck) track(fn, hook string, args []any, res any) {
+	switch fn {
+	case "sendPurchaseRequest":
+		// "ok" chỉ khi webhook giả trả thành công VÀ thẻ dựng được (res.lark); ngược lại "loi"
+		want := kqGuiLoi
+		if jsval.Get(res, "lark") == true {
+			want = kqGuiOk
+			if hook != "ok" && hook != "status0" {
+				g.errorf(fn, "lark = true khi webhook giả trả %q", hook)
+			}
+		}
+		var arg0 any
+		if len(args) > 0 {
+			arg0 = args[0]
+		}
+		orig := "pending"
+		if k := jsval.S(jsval.Get(jsval.AsMap(arg0), "ketQua")); k != "" {
+			orig = k
+		}
+		for _, m := range jsval.AsArray(jsval.Get(res, "saved")) {
+			g.ketQua[jsval.S(m)] = [2]string{want, orig}
+		}
+	case "resolvePurchaseRequest":
+		if len(args) > 0 {
+			g.resolved[jsval.S(args[0])] = true
+		}
+	}
+}
+
+func (g *goCheck) errorf(step, format string, a ...any) {
+	g.t.Helper()
+	g.t.Errorf(step+": "+format, a...)
+}
+
+// heads: dòng don_mua_hang đọc lại.
+func (g *goCheck) heads(step string, rows []any) []any {
+	for _, r := range rows {
+		m := r.(*omap.Map)
+		ma := jsval.S(m.Val("ma_don"))
+		if kq, ok := g.ketQua[ma]; ok {
+			if got := jsval.S(m.Val("ket_qua_gui")); got != kq[0] {
+				g.errorf(step, "%s ket_qua_gui = %q, muốn %q", ma, got, kq[0])
+			}
+			m.Set("ket_qua_gui", kq[1])
+		}
+		if g.resolved[ma] {
+			if got := jsval.S(m.Val("nguoi_duyet")); got != g.resolver || !jsval.Truthy(m.Val("ngay_duyet")) {
+				g.errorf(step, "%s nguoi_duyet = %q (muốn %q), ngay_duyet = %v", ma, got, g.resolver, m.Val("ngay_duyet"))
+			}
+			m.Delete("nguoi_duyet")
+			m.Delete("ngay_duyet")
+		}
+	}
+	return rows
+}
+
+// result: khoá kết quả chỉ bản Go của các hàm đọc đơn.
+func (g *goCheck) result(step, fn string, res any) {
+	pop := func(m *omap.Map, k string) any {
+		if !m.Has(k) {
+			g.errorf(step, "thiếu khoá %s", k)
+		}
+		v := m.Val(k)
+		m.Delete(k)
+		return v
+	}
+	each := func(f func(m *omap.Map)) {
+		if m := jsval.AsMap(res); m != nil {
+			f(m)
+			return
+		}
+		for _, r := range jsval.AsArray(res) {
+			f(jsval.AsMap(r))
+		}
+	}
+	switch fn {
+	case "getPurchaseOrders":
+		each(func(m *omap.Map) {
+			ma := jsval.S(m.Val("maDon"))
+			nd, ngay, kq := pop(m, "nguoiDuyet"), pop(m, "ngayDuyet"), pop(m, "ketQuaGui")
+			if want, ok := g.ketQua[ma]; ok && kq != want[0] {
+				g.errorf(step, "%s ketQuaGui = %v, muốn %q", ma, kq, want[0])
+			}
+			if g.resolved[ma] != (nd == g.resolver && ngay != "") || (!g.resolved[ma] && (nd != "" || ngay != "")) {
+				g.errorf(step, "%s nguoiDuyet = %v ngayDuyet = %v (đã xử lý: %v)", ma, nd, ngay, g.resolved[ma])
+			}
+		})
+	case "listPurchaseRequests":
+		each(func(m *omap.Map) {
+			ma := jsval.S(m.Val("maDon"))
+			rs, at := pop(m, "resolver"), pop(m, "resolvedAt")
+			if g.resolved[ma] != (rs == g.resolver && jsval.Truthy(at)) || (!g.resolved[ma] && (rs != nil || at != nil)) {
+				g.errorf(step, "%s resolver = %v resolvedAt = %v (đã xử lý: %v)", ma, rs, at, g.resolved[ma])
+			}
+		})
+	case "getPurchaseOrder":
+		each(func(m *omap.Map) {
+			ma := jsval.S(m.Val("maDon"))
+			kenh, kq := pop(m, "kenhGui"), pop(m, "ketQuaGui")
+			if want, ok := g.ketQua[ma]; !ok || kq != want[0] || kenh != "Lark" {
+				g.errorf(step, "%s kenhGui = %v ketQuaGui = %v (muốn %v)", ma, kenh, kq, want)
+			}
+		})
 	}
 }
 

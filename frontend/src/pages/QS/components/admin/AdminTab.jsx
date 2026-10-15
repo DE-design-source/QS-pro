@@ -12,7 +12,7 @@ import CompanyCard from './CompanyCard'
 import PurDetail from './PurDetail'
 import DxDetail from './DxDetail'
 import {
-  admActionLabel_, fmtDateTime_, PUR_CLS, DRQ_LBL, ROLE_LBL, DX_TEN_, DX_ICO_, dxStatusCls_,
+  admActionLabel_, fmtDateTime_, PUR_CLS, DRQ_LBL, ROLE_LBL, DX_TEN_, DX_ICO_, dxStatusCls_, LY_DO_MAX,
 } from './adminUtil'
 import './admin.css'
 
@@ -21,7 +21,8 @@ import './admin.css'
    admReqCard_/drqResolve 134-155, admLogCard_ 156-159, admResetPw/admToggleActive/admDelete 273-278)
    + admDxCard_/dxResolve PUB/muahang.js:359-391.
    Tải lại TOÀN BỘ danh sách mỗi lần tab được mở (visibleSeq), như renderAdmin.
-   Ý định điều hướng (từ thông báo): {purDetail: maDon} mở chi tiết đơn; {highlightDrq: id} làm nổi yêu cầu xoá. */
+   Ý định điều hướng (từ thông báo): {purDetail: maDon} mở chi tiết đơn; {highlightDrq: id} làm nổi yêu cầu xoá;
+   {dxDetail: ma} mở chi tiết phiếu đề xuất (M13.1). */
 export default function AdminTab() {
   const { visibleSeq, panelVisible, consumeIntent, reloadProducts, congTy } = useQsData()
   const { me, isAdmin, isSuper, viewAs } = useQsSession()
@@ -40,6 +41,7 @@ export default function AdminTab() {
     // StrictMode chạy effect 2 lần: ý định đọc 1 lần vào ref để lần chạy sau vẫn còn
     const it = consumeIntent('admin')
     if (it && it.purDetail) setPurCode(String(it.purDetail))
+    if (it && it.dxDetail) setDxMa(String(it.dxDetail))
     if (it && it.highlightDrq != null) pendingHl.current = String(it.highlightDrq)
     const ac = new AbortController()
     const sig = ac.signal
@@ -106,8 +108,20 @@ export default function AdminTab() {
     }, e => qsToast('Lỗi: ' + e.message))
   }
   async function drqResolve(id, approve) {
-    if (!approve && !await qsConfirm('Từ chối yêu cầu xóa này?')) return
-    api.resolveDeleteRequest(id, approve).then(r => {
+    let lyDo = ''
+    if (!approve) {
+      // M15.2: hỏi lý do từ chối (tuỳ chọn) thay cho hộp xác nhận; Huỷ = không từ chối; quá dài thì mở lại hộp với nội dung đã gõ
+      for (;;) {
+        lyDo = await qsAsk({
+          title: 'Từ chối yêu cầu xóa này?', note: 'Lý do (nếu có, tối đa ' + LY_DO_MAX + ' ký tự) được gửi kèm thông báo cho người yêu cầu.',
+          label: 'Lý do từ chối (tuỳ chọn)', value: lyDo, placeholder: 'VD: sản phẩm vẫn đang dùng trong dự án', required: false, confirmText: 'Từ chối',
+        })
+        if (lyDo == null) return
+        if ([...lyDo].length <= LY_DO_MAX) break
+        qsToast('Lý do tối đa ' + LY_DO_MAX + ' ký tự (đang có ' + [...lyDo].length + ')')
+      }
+    }
+    api.resolveDeleteRequest(id, approve, lyDo).then(r => {
       qsToast(approve ? ('Đã duyệt & xóa ' + ((r && r.deleted) || 0) + ' sản phẩm' + (r && r.loi ? (' — có sản phẩm không xoá được: ' + r.loi) : '')) : 'Đã từ chối yêu cầu')
       reload(); refreshNotifCount()
       if (approve) reloadProducts().catch(e => qsToast('Lỗi tải lại danh sách sản phẩm: ' + e.message))
@@ -305,7 +319,9 @@ function ReqCard({ reqs, onResolve }) {
           <RqItem key={r.id} cls={r.status} drq={String(r.id)} icon="trash"
             title={<><b>{r.requester || ''}</b> yêu cầu xóa {items.length} sản phẩm</>}
             meta={<>{items.map((it, i) => <span key={i} className="it">{it.ten || it.maSP}</span>)}
-              {r.status !== 'pending' && r.resolver ? <span className="qsa-rq-by">Xử lý bởi {r.resolver}</span> : null}</>}
+              {r.status !== 'pending' && r.resolver ? <span className="qsa-rq-by">Xử lý bởi {r.resolver}</span> : null}
+              {r.lyDo ? <span className="qsa-rq-why"><b>Lý do:</b> {r.lyDo}</span> : null}
+              {r.status === 'rejected' && r.lyDoTuChoi ? <span className="qsa-rq-why no"><b>Lý do từ chối:</b> {r.lyDoTuChoi}</span> : null}</>}
             badgeCls={r.status} badgeText={DRQ_LBL[r.status] || r.status}
             actions={r.status === 'pending' ? <>
               <button type="button" className="qsa-btn blue xs" onClick={() => onResolve(r.id, true)}>Duyệt &amp; xóa</button>
@@ -328,7 +344,8 @@ function PurCard({ purs, onOpen, onResolve }) {
           <RqItem key={r.maDon} cls={scls} clickable icon="cart" onClick={() => onOpen(r.maDon)}
             title={<><b>{r.maDon}</b> · {r.supplier || '—'} · <span className="qsa-rq-amt">{money(r.total)}đ</span>
               <span className="qsa-rq-view"><QsIcon name="eye" size={12} /> Xem chi tiết</span></>}
-            meta={<>Người gửi <b>{r.requester || '—'}</b>{r.phongBan ? (' · ' + r.phongBan) : ''} · Dự án {r.project || '—'} · {r.soSp || 0} SP</>}
+            meta={<>Người gửi <b>{r.requester || '—'}</b>{r.phongBan ? (' · ' + r.phongBan) : ''} · Dự án {r.project || '—'} · {r.soSp || 0} SP
+              {r.resolver ? <span className="qsa-rq-by">Xử lý bởi {r.resolver}{r.resolvedAt ? ' · ' + fmtDateTime_(r.resolvedAt) : ''}</span> : null}</>}
             badgeCls={scls} badgeText={r.status || ''}
             actions={scls === 'pending' ? <>
               <button type="button" className="qsa-btn blue xs" onClick={e => { e.stopPropagation(); onResolve(r.maDon, true) }}>Duyệt</button>

@@ -14,7 +14,7 @@ import { giaDaiLy_, donGiaCK_, ttBan_, lnVnd_, markup_, margin_ } from '../../li
 import { nodeName } from '../../lib/tree.js'
 import { visCols } from '../../lib/columns.js'
 import {
-  coverCosts, coverDepth, coverSortFn, coverHasChild, bgHidden, bgLines_, bgPTSecs_, bgOrg_, bgOpt_, bgTong_, bgGhiChu_,
+  coverCosts, coverDepth, coverSortFn, coverHasChild, bgHidden, bgLines_, bgPTSecs_, bgOrg_, bgOpt_, bgTong_, bgTongKetData_,
   docSoVN_, fmtVN_, bgNoiBoXuat_, BG_NOI_BO, bgDocW_,
 } from '../../lib/quote.js'
 import { API_BASE } from '../../api/http'
@@ -204,14 +204,13 @@ export function bgTongKetHTML_(q, org, ctx, me) {
     + (q.ck ? row('CHIẾT KHẤU' + (o.ckKieu === 'pct' ? ' ' + o.ck + '%' : '') + ':', -q.ck) + row('SAU CHIẾT KHẤU:', q.sau) : '')
     + row('VAT ' + q.vatPct + '%:', q.vat) + row('THÀNH TIỀN SAU THUẾ:', q.total, 'grand') + '</table>'
     + '<div class="qx-bangchu"><i>Bằng chữ:</i> <b>' + esc(docSoVN_(q.total)) + '</b></div>'
-  const dot = (o.dot || []).filter(function (d) { return d && String(d[0] || '').trim() })
-  const tt = dot.length ? '<div class="qx-dot"><div class="h">Tiến độ thanh toán</div><table><tr><th>Đợt</th><th>Nội dung</th><th class="num">Tỷ lệ</th><th class="num">Số tiền</th></tr>'
-    + dot.map(function (d, i) { const pct = Number(d[1]) || 0; return '<tr><td>' + (i + 1) + '</td><td>' + esc(d[0]) + '</td><td class="num">' + pct + '%</td><td class="num">' + money(Math.round(q.total * pct / 100)) + ' đ</td></tr>' }).join('')
+  // chữ / số của khối tổng kết: cùng một hàm với opts.tongKet của file Excel (M8.1)
+  const tk = bgTongKetData_(q, ctx.bgCfg, me)
+  const tt = tk.dot.length ? '<div class="qx-dot"><div class="h">Tiến độ thanh toán</div><table><tr><th>Đợt</th><th>Nội dung</th><th class="num">Tỷ lệ</th><th class="num">Số tiền</th></tr>'
+    + tk.dot.map(function (d, i) { return '<tr><td>' + (i + 1) + '</td><td>' + esc(d.noiDung) + '</td><td class="num">' + d.pct + '%</td><td class="num">' + money(d.soTien) + ' đ</td></tr>' }).join('')
     + '</table></div>' : ''
-  const het = new Date(o.ngay); het.setDate(het.getDate() + o.hieuLuc)
-  const ghi = bgGhiChu_(q, ctx.bgCfg).concat(o.hieuLuc ? ['Báo giá có hiệu lực ' + o.hieuLuc + ' ngày kể từ ngày ' + fmtVN_(o.ngay) + ' (đến hết ngày ' + fmtVN_(het) + ').'] : [])
-  const notes = '<div class="qx-notes"><div class="h">Ghi chú & điều khoản:</div><ol>' + ghi.map(function (x) { return '<li>' + esc(x) + '</li>' }).join('') + '</ol></div>'
-  const nguoi = (me && (me.hoTen || me.username)) || ''
+  const notes = '<div class="qx-notes"><div class="h">Ghi chú & điều khoản:</div><ol>' + tk.ghiChu.map(function (x) { return '<li>' + esc(x) + '</li>' }).join('') + '</ol></div>'
+  const nguoi = tk.nguoi
   const sign = '<div class="qx-sign"><div class="col"><div class="hd">KHÁCH HÀNG / CUSTOMER</div><div class="sp"></div>'
     + '<div class="nm">' + esc((ctx.cur && ctx.cur.khachHang) || '') + '</div></div>'
     + '<div class="col"><div class="hd">' + esc(String(org.ten).toUpperCase()) + '</div><div class="sp"></div>'
@@ -236,7 +235,9 @@ export function bgBuildPages(ctx, ui, ver, me) {
       + '<div class="t3">Mã: <b>' + esc(ver.ma) + '</b> · ' + esc(ver.nhan) + ' · Ngày ' + esc(fmtVN_(opt.ngay)) + '</div></div></div>'
   function ip(k, v) { return '<td class="k">' + k + '</td><td class="v">' + esc(v || '') + '</td>' }
   const infoBlock = '<table class="qx-info">'
-    + '<tr>' + ip('Khách hàng', p.khachHang) + ip('Hiện trạng', p.hienTrang) + '</tr>'
+    // Hiện trạng nhập bằng textarea (M8.3): giữ xuống dòng như Excel (service_export_opts.go writeHienTrang)
+    + '<tr>' + ip('Khách hàng', p.khachHang) + '<td class="k">Hiện trạng</td><td class="v">'
+      + esc(p.hienTrang || '').replace(/\r\n?/g, '\n').replace(/\n/g, '<br>') + '</td></tr>'
     + '<tr>' + ip('Tên dự án', p.ten) + ip('Quy mô', p.quyMo) + '</tr>'
     + '<tr>' + ip('DT sử dụng', p.tongDT ? p.tongDT + ' m²' : '') + ip('Nhu cầu', p.nhuCau) + '</tr>'
     + '<tr>' + ip('Phong cách', p.phanKhuc) + ip('DT báo giá [nhân hệ số]', p.dtBaoGia ? p.dtBaoGia + ' m²' : '') + '</tr>'
@@ -333,11 +334,22 @@ export function bgBuildPages(ctx, ui, ver, me) {
   })
 }
 
-/* Cột đưa vào file Excel = đúng các chip cột đang bật của bảng Bóc tách (bgExportCols_) */
+/* Cột đưa vào file Excel = đúng các chip cột đang bật của bảng Bóc tách (bgExportCols_), xếp theo thứ tự đã kéo trên
+   bản xem trước (ui.bgColOrder, như bgDocCols_) và kèm bề rộng đã kéo (w = px của ui.bgColW, chỉ cột đã chỉnh; M8.2).
+   Máy chủ chỉ dùng w khi request có opts. */
 export function bgExportCols_(ctx, ui) {
   const vis = visCols(ui.colOrder, ui.cols, ui.nganh)
-  const cols = vis.map(function (c) { return { key: c[0], label: String(c[1]).toUpperCase() } })
+  let cols = vis.map(function (c) { return { key: c[0], label: String(c[1]).toUpperCase() } })
     .filter(function (c) { return c.key !== 'stt' && c.key !== 'taiLieu' && (bgNoiBoXuat_(ctx.bgCfg) || !BG_NOI_BO[c.key]) })
+  const ord = ui.bgColOrder || []
+  if (ord.length) {
+    const by = {}; cols.forEach(function (c) { by[c.key] = c })
+    const out = []; ord.forEach(function (k) { if (by[k]) { out.push(by[k]); delete by[k] } })
+    cols.forEach(function (c) { if (by[c.key]) out.push(c) })
+    cols = out
+  }
+  const bw = ui.bgColW || {}
+  cols = cols.map(function (c) { const n = Number(bw[c.key]); return n > 0 ? Object.assign({}, c, { w: bgDocW_(c.key, bw) }) : c })
   cols.unshift({ key: 'stt', label: 'STT' })
   if (!cols.some(function (c) { return c.key === 'ten' })) cols.splice(1, 0, { key: 'ten', label: 'TÊN SẢN PHẨM' })
   return cols

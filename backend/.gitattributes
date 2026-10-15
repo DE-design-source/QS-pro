@@ -4,3 +4,6 @@ internal/shared/specs/js/*.js -text
 internal/server/assets/* -text
 internal/modules/categories/assets/* binary
 internal/modules/estimates/assets/* binary
+internal/shared/specs/data/*.json -text
+# gofmt và TestDataRoundTrip đòi LF; Git for Windows mặc định core.autocrlf=true sẽ đổi sang CRLF khi clone.
+*.go text eol=lf

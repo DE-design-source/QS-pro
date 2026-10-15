@@ -118,7 +118,9 @@ func (s *Service) GetCombo(ctx context.Context, key any) ([]any, error) {
 	return out, nil
 }
 
-// SetCombo = setCombo (S:855-896): ghi đè danh sách sản phẩm đi kèm. Các bước KHÔNG nằm trong một transaction (như Node).
+// SetCombo = setCombo (S:855-896): ghi đè danh sách sản phẩm đi kèm.
+// D-13: các bước ghi sp_combo (ghiCombo) chạy trong 1 transaction - lỗi giữa chừng không còn combo ghi dở
+// (Node để lại phần đã ghi). Lịch sử / audit / cacheClear chạy SAU khi commit, như thứ tự cũ.
 func (s *Service) SetCombo(ctx context.Context, a *actor.Actor, key any, items any) (*omap.Map, error) {
 	cur, err := s.GetDbProduct(ctx, key)
 	if err != nil {
@@ -154,7 +156,7 @@ func (s *Service) SetCombo(ctx context.Context, a *actor.Actor, key any, items a
 	for _, x := range list {
 		keep[jsval.ToString(x.Val("id"))] = x
 	}
-	if err := s.ghiCombo(ctx, curID, list, keep); err != nil {
+	if err := s.tx(ctx, func(ctx context.Context) error { return s.ghiCombo(ctx, curID, list, keep) }); err != nil {
 		return nil, tblErr(err, "sp_combo")
 	}
 	ma, n := jsval.S(cur.Val("ma_sp")), jsval.ToString(float64(len(list)))
@@ -281,6 +283,8 @@ func (s *Service) GetBienThe(ctx context.Context, key any) ([]any, error) {
 }
 
 // SetBienThe = setBienThe (S:913-949): ghi đè nhóm biến thể (ids = sản phẩm cùng nhóm, không kể chính nó).
+// D-13: ghiBienThe (trả SP bị bỏ về không nhóm rồi gán nhóm mới) chạy trong 1 transaction - lỗi ở lệnh sau không còn
+// để SP cũ đã rời nhóm mà nhóm mới chưa gán (Node để lại). Lịch sử / audit / cacheClear SAU khi commit.
 func (s *Service) SetBienThe(ctx context.Context, a *actor.Actor, key any, ids any) (*omap.Map, error) {
 	cur, err := s.GetDbProduct(ctx, key)
 	if err != nil {
@@ -313,7 +317,7 @@ func (s *Service) SetBienThe(ctx context.Context, a *actor.Actor, key any, ids a
 		return nil, apperr.New("Danh sách biến thể không hợp lệ (thiếu id) — không thay đổi nhóm. Tải lại trang rồi thử lại.")
 	}
 	cu := jsval.Trim(jsval.S(cur.Val("nhom_bt")))
-	if err := s.ghiBienThe(ctx, cur, cu, list, seen); err != nil {
+	if err := s.tx(ctx, func(ctx context.Context) error { return s.ghiBienThe(ctx, cur, cu, list, seen) }); err != nil {
 		if btMissing(err) {
 			return nil, apperr.New("Chưa có cột nhom_bt. " + apperr.HDMig)
 		}

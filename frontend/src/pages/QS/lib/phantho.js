@@ -97,7 +97,7 @@ export function ctItemArr_(c){
    Như bản gốc, cờ 'an' được gán lên chính các hạng mục dựng sẵn của tpl truyền vào. */
 export function ctSyncTemplate_(tpl, congTac){
   var out=(tpl||[]).filter(function(s){ return !s.db; });
-  var list=congTac||[], secs={}, order=[];
+  var list=ctSortThuTu_(congTac), secs={}, order=[];
   list.forEach(function(c){
     var loai=c.loai||'kt_chitiet', t=c.hangMuc||'CHƯA PHÂN NHÓM';
     var dm=String(c.deMuc||'').trim(), k=loai+'|'+t+'|'+dm;   // khác đề mục = nhóm khác (mỗi nhóm 1 đề mục)
@@ -581,3 +581,49 @@ export const DT_BO=[{
   ]
 }];
 export const PT_CONTRACTORS=['H77','Decox','TTP','Unicons'];
+
+/* ===== Thứ tự + nhà thầu của công tác CSDL (roadmap M5.2, M5.3 - không có trong bản gốc) ===== */
+/* Sắp công tác như máy chủ (ctList: loai, thu_tu, ngay_tao) nhưng làm lại ở máy: sửa Thứ tự xong (cache chỉ thay 1 dòng)
+   thư viện đổi chỗ ngay mà không cần tải lại. Cùng loại + thứ tự thì giữ thứ tự máy chủ trả. Nhóm của thư viện đứng theo
+   công tác đầu tiên của nó trong cùng loại. */
+export function ctSortThuTu_(congTac){
+  var lo=function(c){ return String(c.loai||''); };
+  return (congTac||[]).map(function(c,i){ return [c,i]; })
+    .sort(function(x,y){
+      var a=lo(x[0]), b=lo(y[0]);
+      if(a!==b) return a<b?-1:1;
+      return ((Number(x[0].thuTu)||0)-(Number(y[0].thuTu)||0)) || (x[1]-y[1]);
+    })
+    .map(function(x){ return x[0]; });
+}
+/* Ô Thứ tự: '' = không đổi / không đặt; còn lại phải là số nguyên không âm (ràng buộc cột sort_order). Trả '' | số | null (sai) */
+export function ctThuTuIn_(v){
+  var t=String(v==null?'':v).trim();
+  if(t==='') return '';
+  return /^[0-9]+$/.test(t) && Number(t)<=2147483647 ? Number(t) : null;
+}
+/* Khoá so khớp nhà thầu: cắt khoảng trắng, không phân biệt hoa thường */
+export function ptNccKey_(v){ return String(v==null?'':v).trim().toLowerCase(); }
+/* Danh sách nhà thầu của ô "Tên nhà thầu" = ncc khác rỗng của công tác công ty ∪ PT_CONTRACTORS (tên của Dezon, giữ như bản gốc).
+   Trả [{ten, n}] - n = số công tác của nhà thầu đó trong loại báo giá loai (bỏ trống loai = mọi loại). PT_CONTRACTORS đứng đầu theo
+   thứ tự cũ, nhà thầu khác xếp theo tên; trùng (không phân biệt hoa thường) thì giữ cách viết gặp trước. */
+export function ptNccList_(congTac,loai){
+  var by={}, out=[], them=[];
+  PT_CONTRACTORS.forEach(function(t){ var k=ptNccKey_(t); if(!by[k]){ by[k]={ten:t,n:0}; out.push(by[k]); } });
+  (congTac||[]).forEach(function(c){
+    var t=String(c.ncc||'').trim(), k=ptNccKey_(t); if(!k) return;
+    if(!by[k]){ by[k]={ten:t,n:0}; them.push(by[k]); }
+    if(!loai || ptLoaiGop_(c.loai)===ptLoaiGop_(loai)) by[k].n++;
+  });
+  them.sort(function(a,b){ return a.ten.localeCompare(b.ten,'vi'); });
+  return out.concat(them);
+}
+/* Các dòng của 1 nhóm thư viện hiện với nhà thầu đang chọn: [{a, ii}] giữ chỉ số gốc ii (panel chi tiết dùng {si, ii}).
+   Không chọn nhà thầu = mọi dòng; có chọn = chỉ công tác CSDL có ncc trùng (dòng dựng sẵn không có nhà thầu nên bị ẩn). */
+export function ptSecItemsNcc_(sec,ncc){
+  var k=ptNccKey_(ncc);
+  return (sec.items||[]).map(function(a,ii){ return {a:a,ii:ii}; }).filter(function(x){
+    if(!k) return true;
+    var c=ctOf_(x.a); return !!c && ptNccKey_(c.ncc)===k;
+  });
+}

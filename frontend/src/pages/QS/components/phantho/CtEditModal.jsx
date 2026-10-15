@@ -5,7 +5,7 @@ import { qsToast as toast } from '../common/dialogs'
 import { mediaUrl } from '../../api/files'
 import * as api from '../../api/qsApi'
 import { money, ptN, ptMoneyN_, fmtDate } from '../../lib/format.js'
-import { PT_LOAI, PT_CONTRACTORS, ptLoaiGop_ } from '../../lib/phantho.js'
+import { PT_LOAI, ptLoaiGop_, ptNccList_, ctThuTuIn_ } from '../../lib/phantho.js'
 import { nodeName } from '../../lib/tree.js'
 import { useQsStore } from '../../state/store'
 import { congTacActions } from '../../state/useCongTac'
@@ -37,7 +37,7 @@ function initForm(c) {
     ten: s_(c.ten), hangMuc: s_(c.hangMuc), deMuc: s_(c.deMuc), maNhom: s_(c.maNhom), loai: ptLoaiGop_(c.loai), ncc: s_(c.ncc), dvt: s_(c.dvt),
     mode: c.mode || 'item', kl: s_(c.kl), dt: s_(c.dt), hs: s_(c.hs),
     dg: dg ? money(dg) : '', ck: ck === '' ? '' : String(ck), dgnt: dgnt ? money(dgnt) : '',
-    gc: s_(c.gc), phamVi: s_(c.phamVi), linkTaiLieu: s_(c.linkTaiLieu), hinhAnh: s_(c.hinhAnh),
+    gc: s_(c.gc), phamVi: s_(c.phamVi), linkTaiLieu: s_(c.linkTaiLieu), hinhAnh: s_(c.hinhAnh), thuTu: s_(c.thuTu),
   }
   return giaSync(f, '')   // ctFormInit_ -> ctModeSync_ -> ctGiaSync_(pre,'')
 }
@@ -166,12 +166,15 @@ export default function CtEditModal({ ctId, onClose, onSaved }) {
       ncc: f.ncc.trim(), dvt: f.dvt.trim(), kl: num(f.kl), dt: num(f.dt), hs: num(f.hs),
       dgnt: ptMoneyN_(f.dgnt.trim()), dg: ptMoneyN_(f.dg.trim()),
       gc: f.gc.trim(), thongSo: ctGrpText_(grps).trim(), phamVi: f.phamVi.trim(), linkTaiLieu: f.linkTaiLieu.trim(), hinhAnh: f.hinhAnh.trim(),
+      thuTu: ctThuTuIn_(f.thuTu),
     }
   }
   async function save() {
     const d = read()
     if (!d.ten) { toast('Nhập nội dung công việc'); return }
     if (!d.hangMuc) { toast('Nhập hạng mục'); return }
+    if (d.thuTu === null) { toast('Thứ tự phải là số nguyên không âm (để trống = giữ nguyên)'); return }
+    if (d.thuTu === '') delete d.thuTu
     setBusy(true)
     try {
       const out = await congTacActions.ctUpdate(c.id, d)
@@ -228,17 +231,21 @@ export default function CtEditModal({ ctId, onClose, onSaved }) {
                       </select>
                     </div>
                     {Fld({ span: 2, k: 'maNhom', lbl: 'Số hạng mục', ph: 'II' })}
-                    <div className="qspt-f qspt-f-5">
+                    <div className="qspt-f qspt-f-4">
                       <label htmlFor="qsptctmloai">Loại báo giá<b className="req">*</b></label>
                       <select id="qsptctmloai" value={f.loai} onChange={e => set('loai', e.target.value)}>
                         {PT_LOAI.map(x => <option key={x[0]} value={x[0]}>{x[1]}</option>)}
                       </select>
                     </div>
-                    {Fld({ span: 6, k: 'ncc', lbl: 'Nhà thầu · nhà cung cấp', ph: 'VD: H77', list: 'qspt-dl-ncc' })}
+                    {Fld({ span: 5, k: 'ncc', lbl: 'Nhà thầu · nhà cung cấp', ph: 'VD: H77', list: 'qspt-dl-ncc' })}
+                    <div className="qspt-f qspt-f-3">
+                      <label htmlFor="qsptctmthuTu" title="Thư viện sắp công tác theo số này trong cùng loại báo giá (nhỏ đứng trước)">Thứ tự</label>
+                      <input id="qsptctmthuTu" type="number" min="0" step="1" value={f.thuTu} placeholder="0" onChange={e => set('thuTu', e.target.value)} />
+                    </div>
                     {Fld({ span: 6, k: 'dvt', lbl: 'Đơn vị tính', ph: 'VD: m · m2 · tim · gói', req: 1, list: 'qspt-dl-dvt' })}
                   </div>
                   <datalist id="qspt-dl-hm">{hmList.map(v => <option key={v} value={v} />)}</datalist>
-                  <datalist id="qspt-dl-ncc">{PT_CONTRACTORS.map(v => <option key={v} value={v} />)}</datalist>
+                  <datalist id="qspt-dl-ncc">{ptNccList_(congTac).map(v => <option key={v.ten} value={v.ten} />)}</datalist>
                   <datalist id="qspt-dl-dvt">{CT_DVT.map(v => <option key={v} value={v} />)}</datalist>
                 </section>
 

@@ -115,13 +115,14 @@ function DraftCard({ p, idx, many, onSaved }) {
   const [f, setF] = useState({
     tenBanNhap: s(p.tenBanNhap), trangThai: s(p.trangThai), vat: s(p.vat), maBaoGia: s(p.maBaoGia), quyMo: s(p.quyMo),
     tongDT: s(p.tongDT), dtBaoGia: s(p.dtBaoGia), nhuCau: s(p.nhuCau), phanKhuc: s(p.phanKhuc), ghiChu: s(p.ghiChu),
+    hienTrang: s(p.hienTrang),
   })
   const [prog, setProg] = useState(Number(p.tienDo) || 0)
   const [busy, setBusy] = useState(false)
   const set = k => v => setF(x => ({ ...x, [k]: v }))
   /* Trạng thái lạ (không thuộc 3 lựa chọn): như bản gốc, ô chọn hiện và lưu lựa chọn đầu */
   const tt = TRANG_THAI.indexOf(f.trangThai) >= 0 ? f.trangThai : TRANG_THAI[0]
-  async function save() { setBusy(true); const ok = await saveDraftInfo({ ...f, trangThai: tt }); setBusy(false); onSaved(ok) }
+  async function save() { setBusy(true); const ok = await saveDraftInfo({ ...f, trangThai: tt }, p); setBusy(false); onSaved(ok) }
   return (
     <div className="qs-pi-card">
       <div className="qs-pi-card-h">
@@ -146,6 +147,10 @@ function DraftCard({ p, idx, many, onSaved }) {
           <Field label="DT báo giá (m²)" value={f.dtBaoGia} onChange={set('dtBaoGia')} />
           <Field label="Nhu cầu" value={f.nhuCau} onChange={set('nhuCau')} />
           <Field label="Phân khúc" value={f.phanKhuc} onChange={set('phanKhuc')} />
+          <Field label="Hiện trạng" wide>
+            <textarea className="qs-pi-ht" placeholder="Hiện trạng công trình / mặt bằng (in trên tờ bìa báo giá)" value={f.hienTrang}
+              onChange={e => set('hienTrang')(e.target.value)} />
+          </Field>
         </div>
         <label className="qs-field qs-pi-gc">
           <span>Ghi chú</span>

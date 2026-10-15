@@ -15,6 +15,7 @@ import (
 
 	"qspro-backend/internal/platform/database"
 	"qspro-backend/internal/server/rpc"
+	"qspro-backend/internal/shared/goonly"
 	"qspro-backend/internal/shared/jsval"
 	"qspro-backend/internal/shared/omap"
 	"qspro-backend/internal/shared/tenant"
@@ -267,6 +268,47 @@ func sortJSON(v any) any {
 // TestDiffDB chạy kịch bản của testdata/diff.json (sinh bằng gen_diff.js trên qspro_nodetest, hàm Node thật) trên
 // qspro_gotest qua cổng rpc của module rồi so từng bước: kết quả, lỗi, và các dòng database sau khi ghi
 // (db_san_pham, lịch sử, combo, yêu thích, yêu cầu xoá, thông báo, audit). Bỏ qua khi thiếu TEST_DATABASE_URL.
+// goOnlyKeys: khoá kết quả chỉ bản Go của module (backend/docs/ARCHITECTURE.md 10.4) - listDeleteRequests nối lyDo (cột note),
+// lyDoTuChoi (cột resolution_note, migration 0010) - golden Node không có.
+var goOnlyKeys = []string{"lyDo", "lyDoTuChoi"}
+
+// d13KhacNode: bước có kết quả KHÁC Node có chủ ý vì D-13 (transaction) - Node để lại dữ liệu dở khi lỗi giữa chừng,
+// bản Go rollback. Mỗi mục kiểm đúng bước (fn / bảng / filter) rồi bỏ ĐÚNG dòng chỉ bản Go còn; dòng đó thiếu thì báo lỗi.
+type d13Khac struct {
+	table, filter string
+	dong          string // dòng (đã chuẩn hoá) chỉ có ở bản Go
+}
+
+var d13KhacNode = map[int]d13Khac{
+	// bước 80 setCombo(p1, [id không tồn tại]): Node xoá liên kết ngược p3->p1 rồi hỏng ở lệnh chèn (23503) -> mất p3->p1.
+	// Bản Go: ghiCombo chạy trong transaction -> rollback, p3->p1 còn nguyên.
+	86: {"sp_combo", "sp_id=in.({{p1}},{{p3}},{{p4}})", `{"sp_id":"<p3>","sp_kem_id":"<p1>","so_luong":4,"ghi_chu":"ngược có SL","sort_no":0}`},
+}
+
+func (k d13Khac) ap(t *testing.T, i int, st *omap.Map, got any) any {
+	t.Helper()
+	if st.Val("op") != "rows" || st.Val("table") != k.table || st.Val("filter") != k.filter {
+		t.Errorf("bước %d không còn là bước D-13 đã khai (%s) - kịch bản đổi, sửa d13KhacNode", i, js(st))
+		return got
+	}
+	m := jsval.AsMap(got)
+	rows := jsval.AsArray(m.Val("rows"))
+	out := []any{}
+	bo := 0
+	for _, r := range rows {
+		if js(r) == k.dong && bo == 0 {
+			bo++
+			continue
+		}
+		out = append(out, r)
+	}
+	if bo != 1 {
+		t.Errorf("bước %d: thiếu dòng D-13 %s (rollback không giữ dữ liệu cũ)", i, k.dong)
+		return got
+	}
+	return omap.Of("rows", out)
+}
+
 func TestDiffDB(t *testing.T) {
 	url := os.Getenv("TEST_DATABASE_URL")
 	if url == "" {
@@ -328,6 +370,13 @@ func TestDiffDB(t *testing.T) {
 	for i, raw := range steps {
 		st := jsval.AsMap(raw)
 		want, got := normDiff(st.Val("out"), "", nodeIDs), normDiff(goOuts[i], "", goIDs)
+		if st.Val("fn") == "listDeleteRequests" {
+			// khoá chỉ bản Go (M15.2): kịch bản không gửi lý do nên phải là null; khác null thì phép so vẫn báo khác
+			got = goonly.StripNull(got, goOnlyKeys...)
+		}
+		if khac, ok := d13KhacNode[i]; ok {
+			got = khac.ap(t, i, st, got)
+		}
 		if st.Val("sort") == true {
 			want = omap.Of("result", sortJSON(jsval.Get(want, "result")))
 			got = omap.Of("result", sortJSON(jsval.Get(got, "result")))

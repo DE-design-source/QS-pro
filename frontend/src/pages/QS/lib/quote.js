@@ -134,6 +134,10 @@ export function areaCompute_(d){ d=d||{}; var rows=[], dtBG=0, dtSD=0, groundAre
 // areaApply_: trường PATCH dự án
 export function areaApplyFields_(c){ return { dtBaoGia:String(c.dtBaoGia||''), tongDT:String(c.dtSuDung||'') }; }
 export function fmtM2_(n){ n=Math.round((Number(n)||0)*100)/100; return String(n).replace('.',','); }
+/* M6.1 - GIẢ ĐỊNH, chờ chủ sản phẩm xác nhận (QT-11 không định nghĩa): đơn giá phần thô / m² đất = chi phí mục 3.1 trên tờ bìa
+   ÷ diện tích khu đất (areaCompute_().groundArea = dài × rộng của khu_dat). Chỉ hiển thị ở thẻ bảng tính diện tích.
+   Diện tích ≤ 0, chi phí âm hoặc không phải số -> 0 (giao diện hiện '—'). */
+export function donGiaPhanTho_(cost31, groundArea){ var a=Number(groundArea), c=Number(cost31||0); return isFinite(a) && a>0 && isFinite(c) && c>=0 ? Math.round(c/a) : 0; }
 
 /* ===== MÀU CHỦ ĐẠO (bgCfg.mau) ===== */
 export const BG_MAU_DS=['#0f2942','#2563eb','#0d9488','#16a34a','#b7791f','#dc2626','#7c3aed','#1f2937'];
@@ -196,6 +200,17 @@ export function bgGhiChu_(q, bgCfg){
   return ['Khối lượng trên là tạm tính, khối lượng quyết toán theo thực tế thi công.',
     'Giá trên chưa bao gồm nhân công hoàn thiện.',
     q.vatPct?('Đơn giá chưa gồm VAT; thuế VAT '+q.vatPct+'% đã tính ở phần tổng.'):'Giá trên chưa bao gồm thuế VAT.'];
+}
+/* Nội dung khối tổng kết của trang cuối (bgTongKetHTML_ 1102-1123, phần chữ / số): dùng CHUNG cho bản xem trước và
+   opts.tongKet của file Excel (M8.1) để hai bên luôn cùng chữ, cùng số. q = bgTong_(...) · me = người đang đăng nhập.
+   dot[i].soTien = Math.round(q.total * pct / 100) như bản gốc; ghiChu đã gồm câu hiệu lực. */
+export function bgTongKetData_(q, bgCfg, me, now){
+  var o=bgOpt_(bgCfg, now);
+  var dot=(o.dot||[]).filter(function(d){ return d && String(d[0]||'').trim(); }).map(function(d){
+    var pct=Number(d[1])||0; return {noiDung:d[0], pct:pct, soTien:Math.round(q.total*pct/100)}; });
+  var het=new Date(o.ngay); het.setDate(het.getDate()+o.hieuLuc);
+  var ghi=bgGhiChu_(q, bgCfg).concat(o.hieuLuc?['Báo giá có hiệu lực '+o.hieuLuc+' ngày kể từ ngày '+fmtVN_(o.ngay)+' (đến hết ngày '+fmtVN_(het)+').']:[]);
+  return {ngay:fmtVN_(o.ngay), hieuLuc:o.hieuLuc, dot:dot, ghiChu:ghi, nguoi:(me&&(me.hoTen||me.username))||''};
 }
 // Tờ bìa cộng TOÀN dự án; trang cuối chỉ cộng phần đang xuất -> cảnh báo khi lệch >= 1000 đ. null = không cảnh báo.
 export function bgBiaCanh_(ctx){

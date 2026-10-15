@@ -21,9 +21,16 @@ func (s *Service) sign(data string) string {
 }
 
 // makeToken = makeToken (A:20-24). u là dòng thô users. Thứ tự khoá uid, u, r, ct, exp như object literal của Node.
-func (s *Service) makeToken(u *omap.Map) string {
+// Token KHÔNG có sid: SessionActor từ chối (chỉ dùng cho test đối chiếu golden Node).
+func (s *Service) makeToken(u *omap.Map) string { return s.makeTokenSid(u, "") }
+
+// makeTokenSid: như makeToken, thêm khoá "sid" (id phiên user_sessions, M1.2) ở cuối khi sid khác rỗng.
+func (s *Service) makeTokenSid(u *omap.Map, sid string) string {
 	payload := omap.Of("uid", u.Val("id"), "u", u.Val("username"), "r", u.Val("role"),
 		"ct", jsval.Or(u.Val("cong_ty_id"), nil), "exp", s.now()+tokenTTLMs)
+	if sid != "" {
+		payload.Set("sid", sid)
+	}
 	js, _ := omap.Marshal(payload)
 	body := b64url(js)
 	return body + "." + s.sign(body)
@@ -62,7 +69,7 @@ func nodeBase64(str string) []byte {
 	return out
 }
 
-// VerifyToken = verifyToken (A:25-34): chữ ký đúng và chưa hết hạn -> payload {uid, u, r, ct, exp}; sai -> nil.
+// VerifyToken = verifyToken (A:25-34): chữ ký đúng và chưa hết hạn -> payload {uid, u, r, ct, exp, sid}; sai -> nil.
 func (s *Service) VerifyToken(token string) *omap.Map {
 	if token == "" || !strings.Contains(token, ".") {
 		return nil

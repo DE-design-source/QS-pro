@@ -58,7 +58,8 @@ func (s *Server) routes() {
 
 	// REST: xác định người đăng nhập + ngữ cảnh công ty cho mọi route; chặn theo quyền ở từng route
 	// (middleware.RequireLogin / RequireAdmin / RequireSuper).
-	v1 := e.Group("/api/v1", middleware.Auth(d.Sessions), middleware.Tenant())
+	// AppVer đứng đầu: mọi response REST (kể cả 401/403) có x-app-ver như cổng /api/:fn (M1.1).
+	v1 := e.Group("/api/v1", middleware.AppVer(d.Cfg.AppVer), middleware.Auth(d.Sessions), middleware.Tenant())
 	// Route lẻ: /media và 3 file mẫu là CÔNG KHAI ở Node (không gọi actorOf_) nên không tra phiên đăng nhập
 	// (không đụng database, không ghi log lỗi phiên); các route còn lại tra như v1.
 	rootAuth := middleware.Auth(d.Sessions)
@@ -99,14 +100,16 @@ func (s *Server) modules() []Module {
 	sys := system.New(system.Deps{DB: d.DB, Cfg: d.Cfg})
 
 	usersSvc := users.New(users.Deps{DB: d.DB, Cfg: d.Cfg})
-	compSvc := companies.New(companies.Deps{DB: d.DB, Cfg: d.Cfg, UserCreator: usersSvc, UserFormatter: usersSvc, Auditor: usersSvc})
+	// notifications dựng trước companies: nhắc gia hạn (M17.3) lấy admin đang hoạt động qua Admins
+	notifSvc := notifications.New(notifications.Deps{DB: d.DB, Cfg: d.Cfg, Users: usersSvc, Auditor: usersSvc})
+	compSvc := companies.New(companies.Deps{DB: d.DB, Cfg: d.Cfg, UserCreator: usersSvc, UserFormatter: usersSvc, Auditor: usersSvc,
+		Admins: notifSvc})
 	authSvc := auth.New(auth.Deps{DB: d.DB, Cfg: d.Cfg, Users: usersSvc, UserFormatter: usersSvc, Auditor: usersSvc, Companies: compSvc})
 	usersSvc.SetCompanyReader(compSvc)
 	usersSvc.SetSessionInvalidator(authSvc)
 	// cổng /api/:fn và REST nhận ra người đăng nhập qua auth
 	d.Sessions.Set(authSvc)
 
-	notifSvc := notifications.New(notifications.Deps{DB: d.DB, Cfg: d.Cfg, Users: usersSvc, Auditor: usersSvc})
 	catSvc := categories.New(categories.Deps{})
 	filesSvc := files.New(files.Deps{Cfg: d.Cfg})
 	matSvc := materials.New(materials.Deps{DB: d.DB, Cfg: d.Cfg, Auditor: usersSvc, Users: usersSvc, UserFmt: usersSvc,
@@ -118,8 +121,9 @@ func (s *Server) modules() []Module {
 	purchSvc := purchasing.New(purchasing.Deps{DB: d.DB, Cfg: d.Cfg, PurchaseNotifier: notifSvc, Notifier: notifSvc,
 		Users: usersSvc, Auditor: usersSvc})
 	reportsSvc := reports.New(reports.Deps{DB: d.DB, Cfg: d.Cfg})
-	// job nền (cmd/api/main.go) lấy qua Server.Reports()
+	// job nền (cmd/api/main.go) lấy qua Server.Reports() / Server.Expiry()
 	s.reports = reportsSvc
+	s.expiry = compSvc
 
 	return []Module{
 		sys,

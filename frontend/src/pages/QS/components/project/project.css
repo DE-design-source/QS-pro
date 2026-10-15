@@ -108,6 +108,7 @@ a.qs-bd-bar-link{text-decoration:none;}
 .qs-pi-dlg .qs-field textarea{min-height:56px; padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font:inherit; font-size:13.5px; outline:none; resize:vertical;}
 .qs-pi-dlg .qs-field select:focus, .qs-pi-dlg .qs-field textarea:focus{border-color:var(--dash-accent);}
 .qs-pi-gc{margin-top:14px;}
+.qs-pi-dlg .qs-field textarea.qs-pi-ht{width:100%; min-height:44px;}   /* Hiện trạng (M8.3) */
 .qs-pi-link{display:flex; gap:8px; align-items:center;}
 .qs-pi-link input{flex:1;}
 .qs-pi-link a{text-decoration:none; height:34px;}

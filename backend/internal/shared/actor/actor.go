@@ -18,6 +18,9 @@ type Actor struct {
 	R   string  `json:"r"`   // role: "user" | "admin" | "super"
 	CT  any     `json:"ct"`  // cong_ty_id hoặc nil
 	Exp float64 `json:"exp"` // hạn token (ms)
+	// SID: id phiên (user_sessions.id) trong token - đăng xuất thu hồi đúng phiên này (M1.2).
+	// Không ra JSON / Map(): kết quả trả client và golden Node giữ nguyên dạng {uid, u, r, ct, exp}.
+	SID string `json:"-"`
 }
 
 // IsAdmin: r là "admin" hoặc "super" ("super" có mọi quyền của admin).
@@ -42,6 +45,7 @@ func FromMap(m *omap.Map) *Actor {
 	a := &Actor{UID: nilIfUndef(m.Val("uid")), CT: nilIfUndef(m.Val("ct"))}
 	a.U = jsval.AsString(m.Val("u"))
 	a.R = jsval.AsString(m.Val("r"))
+	a.SID = jsval.AsString(m.Val("sid"))
 	if f, ok := m.Val("exp").(float64); ok {
 		a.Exp = f
 	}

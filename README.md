@@ -18,10 +18,9 @@ Trình duyệt  --->  Frontend (React + Vite)  --->  Backend (Go + Gin)  --->  D
 | `infra/db/migrations/` | Các file thay đổi cấu trúc database, đánh số `NNNN_ten.sql`. Nguồn duy nhất, backend đọc thẳng thư mục này |
 | `infra/db/schema.sql` | Cấu trúc database hiện hành (không có dữ liệu), dùng khi muốn dựng database trống |
 | `infra/export/qspro_dev.sql` | **Bản dữ liệu dùng để phát triển** (cấu trúc + dữ liệu: sản phẩm, dự án, công ty, tài khoản) |
-| `infra/export/qspro_seed.sql` | Bản dữ liệu cũ hơn (13/10). Dùng `qspro_dev.sql` |
-| `infra/export/supabase-2026-10-07/` | Bản xuất gốc từ Supabase, schema cũ. Người mới không cần |
+| `infra/export/qspro_seed.sql` | Bản dữ liệu cũ hơn (13/10), chỉ dùng để đặt lại database thử `qspro_gotest` cho test Go (xem `backend/README.md` mục Kiểm thử). Phát triển thì dùng `qspro_dev.sql` |
 | `infra/docker/` | Dockerfile của backend |
-| `infra/scripts/` | Script vận hành cũ (Node), không cần để chạy dự án |
+| `infra/scripts/` | Script Node chép dữ liệu Supabase sang Postgres trống (`sync-from-supabase.js`, gọi `migrate.js`), dùng khi chuyển production. Không cần để chạy dự án |
 | `docs/` | Tài liệu: `03-san-pham/roadmap.md` (lộ trình, trạng thái tính năng), `03-san-pham/flows/` (quy trình nghiệp vụ), `02-ky-thuat/` (kỹ thuật, database) |
 
 Bản Node.js cũ (`server/`, `public/`) đã gỡ khỏi repo; backend Go thay thế hoàn toàn.

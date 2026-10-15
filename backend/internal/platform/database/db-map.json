@@ -38,6 +38,15 @@
    "ui_prefs": "ui_preferences"
   }
  },
+ "phien_dang_nhap": {
+  "table": "user_sessions",
+  "columns": {
+   "id": "id",
+   "user_id": "user_id",
+   "tao_luc": "created_at",
+   "het_han": "expires_at"
+  }
+ },
  "audit_log": {
   "table": "audit_logs",
   "columns": {

@@ -12,7 +12,7 @@ import (
 	"qspro-backend/internal/shared/validator"
 )
 
-// RegisterRPC: 11 hàm /api/:fn. getPurchaseOrders và getDeXuatList không thuộc ACTOR_FNS; 6 hàm duyệt thuộc ADMIN_FNS (I:118-135).
+// RegisterRPC: 11 hàm /api/:fn + 1 route chỉ bản Go (getMyDeXuat). getPurchaseOrders và getDeXuatList không thuộc ACTOR_FNS; 6 hàm duyệt thuộc ADMIN_FNS (I:118-135).
 func (s *Service) RegisterRPC(reg *rpc.Registry) {
 	reg.Register("sendPurchaseRequest", rpc.Login, func(ctx context.Context, a *actor.Actor, args rpc.Args) (any, error) {
 		return s.SendPurchaseRequest(ctx, a, args.ArgU(0))
@@ -47,6 +47,9 @@ func (s *Service) RegisterRPC(reg *rpc.Registry) {
 	reg.Register("resolveDeXuat", rpc.Admin, func(ctx context.Context, a *actor.Actor, args rpc.Args) (any, error) {
 		return s.ResolveDeXuat(ctx, a, args.ArgU(0), args.ArgU(1))
 	})
+	reg.RegisterGoRoute(rpc.GoRoute{Name: "getMyDeXuat", Method: "GET", Path: "/my-proposals/:code", Perm: rpc.Login,
+		Tag: "Mua hàng", Summary: "Chi tiết phiếu đề xuất của chính mình (admin / super: mọi phiếu của công ty)",
+		Fields: []rpc.GoField{{Name: "code", In: "path", Desc: "Mã phiếu đề xuất (CK-... / TT-...)"}}})
 }
 
 // RegisterRoutes: REST /api/v1 (PORTING_MAP mục A), gọi đúng các phương thức mà cổng rpc gọi.
@@ -83,6 +86,12 @@ func (s *Service) RegisterRoutes(v1 *gin.RouterGroup) {
 	})
 	po.POST("/:code/resolve", admin, func(c *gin.Context) {
 		r, err := s.ResolvePurchaseRequest(c.Request.Context(), actor.FromGin(c), c.Param("code"), bodyKey(c, "approve"))
+		response.Result(c, r, err)
+	})
+
+	// route chỉ bản Go (M13.1), khai ở RegisterRPC
+	v1.GET("/my-proposals/:code", login, func(c *gin.Context) {
+		r, err := s.GetMyDeXuat(c.Request.Context(), actor.FromGin(c), c.Param("code"))
 		response.Result(c, r, err)
 	})
 

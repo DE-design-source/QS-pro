@@ -12,6 +12,8 @@ const patch = (path, body, signal) => request('PATCH', path, { body: body === un
 const del = (path, signal) => request('DELETE', path, { signal })
 const yes = v => v !== false
 const truthy = v => !!v
+/* Lý do tuỳ chọn (chỉ bản Go, M15.2): chỉ gửi khoá lyDo khi có chữ */
+const withLyDo = (body, lyDo) => (String(lyDo == null ? '' : lyDo).trim() ? { ...body, lyDo: String(lyDo).trim() } : body)
 
 /* ---- Auth / phiên ---- */
 export const login = (username, password, signal) => post('/auth/login', { username, password }, signal)
@@ -60,11 +62,13 @@ export const getProductHistory = (maSP, signal) => get('/products/' + enc(maSP) 
 export const setSpDuyet = (keys, approve, signal) => post('/product-approvals', { keys: keys || [], approve: yes(approve) }, signal)
 export const setYeuThich = (keys, on, signal) => post('/product-favorites', { keys: keys || [], on: yes(on) }, signal)
 export const spMyPerms = signal => get('/product-permissions', null, signal)
-export const requestDeleteProducts = (items, signal) => post('/product-delete-requests', { items: items || [] }, signal)
+export const requestDeleteProducts = (items, lyDo, signal) => post('/product-delete-requests', withLyDo({ items: items || [] }, lyDo), signal)
 export const uploadImage = (base64, fileName, signal) => post('/uploads/images', { base64, fileName }, signal)
 export const uploadFile = (base64, fileName, signal) => post('/uploads/files-base64', { base64, fileName }, signal)
 export const importParse = (base64, ext, nganh, signal) => post('/product-imports/parse', { base64, ext, nganh }, signal)
 export const importCommit = (products, signal) => post('/product-imports/commit', { products: products || [] }, signal)
+/* Route chỉ bản Go (M10.1): bản sao riêng của SP kho chung Dezon (key = recordId) -> {ok, id, ma, ten} */
+export const privateCopyProduct = (key, signal) => post('/products/' + enc(key) + '/private-copy', {}, signal)
 
 /* ---- Công tác (phần thô) ---- */
 export const ctList = signal => get('/work-items', null, signal)
@@ -90,6 +94,8 @@ export const setPurchaseStatus = (code, status, signal) => patch('/purchase-orde
 export const sendDeXuat = (dx, signal) => post('/proposals', dx || {}, signal)
 export const getDeXuatList = (maDA, signal) => get('/projects/' + enc(maDA) + '/proposals', null, signal)
 export const getDeXuat = (ma, signal) => get('/proposals/' + enc(ma), null, signal)
+/* Route chỉ bản Go (M13.1): phiếu của chính mình; admin / super: mọi phiếu của công ty */
+export const getMyDeXuat = (code, signal) => get('/my-proposals/' + enc(code), null, signal)
 export const listDeXuat = (loai, signal) => get('/proposals', loai ? { loai } : null, signal)
 export const resolveDeXuat = (ma, approve, signal) => post('/proposals/' + enc(ma) + '/resolve', { approve: truthy(approve) }, signal)
 
@@ -102,7 +108,8 @@ export const adminSetActive = (id, active, signal) => put('/users/' + enc(id) + 
 export const adminDeleteUser = (id, signal) => del('/users/' + enc(id), signal)
 export const getAuditLog = (n, signal) => get('/audit-log', { limit: n }, signal)
 export const listDeleteRequests = signal => get('/product-delete-requests', null, signal)
-export const resolveDeleteRequest = (id, approve, signal) => post('/product-delete-requests/' + enc(id) + '/resolve', { approve: truthy(approve) }, signal)
+export const resolveDeleteRequest = (id, approve, lyDo, signal) =>
+  post('/product-delete-requests/' + enc(id) + '/resolve', withLyDo({ approve: truthy(approve) }, approve ? '' : lyDo), signal)
 export const listPurchaseRequests = signal => get('/purchase-orders', null, signal)
 export const getPurchaseOrder = (code, signal) => get('/purchase-orders/' + enc(code), null, signal)
 export const resolvePurchaseRequest = (code, approve, signal) => post('/purchase-orders/' + enc(code) + '/resolve', { approve: truthy(approve) }, signal)

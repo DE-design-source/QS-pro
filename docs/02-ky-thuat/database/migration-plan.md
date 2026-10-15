@@ -31,7 +31,7 @@ Riêng việc xoá cột (đợt 3) theo kiểu expand-and-contract: ngừng ghi
 
 - File migration đánh số trong `infra/db/migrations/`, được Git quản lý.
 - `infra/db/schema.sql` sinh lại.
-- Bộ SQL đầy đủ (schema + dữ liệu) xuất ra `export/supabase-2026-10-07/sql-en2/` theo yêu cầu, để import vào một database trống. Thư mục `export/` không commit vì chứa dữ liệu khách hàng.
+- Bộ SQL đầy đủ (schema + dữ liệu) xuất ra `export/supabase-2026-10-07/sql-en2/` theo yêu cầu, để import vào một database trống (nay thay bằng `infra/export/qspro_dev.sql`; bộ cũ đã chuyển khỏi repo ngày 2026-10-15). Thư mục `export/` không commit vì chứa dữ liệu khách hàng.
 - Báo cáo đợt: số dòng trước/sau từng bảng, ràng buộc đã thêm, ràng buộc không thêm được và lý do, kết quả test.
 
 ## 4. Việc phải làm trước mọi đợt
@@ -122,7 +122,7 @@ Toàn bộ mục 3-6 của [migration-test-plan.md](migration-test-plan.md) đ�
 
 ## 8. Đợt 3 - thu gọn
 
-1. `supa.js` bỏ qua 12 cột DEPRECATED khi ghi; phát hành; chạy ổn định ít nhất một chu kỳ.
+1. `supa.js` bỏ qua 8 cột DEPRECATED còn trong danh sách D-09 khi ghi; phát hành; chạy ổn định ít nhất một chu kỳ.
 2. `pg_dump`; kiểm tra lại bằng grep rằng không code nào đọc các cột này.
 3. `DROP COLUMN`. Quay lui chỉ bằng khôi phục từ bản sao lưu (các cột đều là dẫn xuất, rỗng hoặc đã chết, nên mất mát thực tế bằng không).
 

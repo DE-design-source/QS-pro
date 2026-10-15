@@ -4,16 +4,21 @@ import (
 	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"io/fs"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"qspro-backend/internal/config"
+	"qspro-backend/internal/middleware"
 	"qspro-backend/internal/modules/users"
 	"qspro-backend/internal/modules/users/userstest"
+	"qspro-backend/internal/platform/database"
 	"qspro-backend/internal/server/rpc"
 	"qspro-backend/internal/shared/actor"
+	"qspro-backend/internal/shared/goonly"
 	"qspro-backend/internal/shared/jsval"
 	"qspro-backend/internal/shared/omap"
 )
@@ -150,6 +155,8 @@ func TestHashSync(t *testing.T) {
 
 // TestInteropOut: đặt INTEROP_OUT=<file> để ghi token + hash do Go sinh ra, rồi kiểm bằng Node:
 // AUTH_SECRET=zz-authusers-test-secret node testdata/interop-node.js <file>.
+// Chỉ còn kiểm định dạng + chữ ký + bcrypt: từ M1.2 token không có "sid" (token của Node, makeToken ở đây) bị
+// SessionActor từ chối, nên token Node và Go KHÔNG còn dùng lẫn để đăng nhập được.
 func TestInteropOut(t *testing.T) {
 	out := os.Getenv("INTEROP_OUT")
 	if out == "" {
@@ -229,12 +236,56 @@ type fakeRepo struct {
 	rows  []*omap.Map
 	err   error
 	calls int
+
+	phien    map[string]string // sid -> uid (bảng phiên giả)
+	phienErr error             // lỗi của mọi lệnh trên bảng phiên
+	alive    int               // số lần SessionAlive
+	onRemove func()            // chạy ngay sau khi RemoveUserSessions xoá dòng (giả lập request xen giữa)
 }
 
 func (f *fakeRepo) SessionUser(context.Context, any) ([]*omap.Map, error) {
 	f.calls++
 	return f.rows, f.err
 }
+
+func (f *fakeRepo) SessionAlive(_ context.Context, sid string, uid any, _ string) (bool, error) {
+	f.alive++
+	if f.phienErr != nil {
+		return false, f.phienErr
+	}
+	u, ok := f.phien[sid]
+	return ok && u == jsval.ToString(uid), nil
+}
+
+func (f *fakeRepo) RemoveSession(_ context.Context, sid string) error {
+	if f.phienErr != nil {
+		return f.phienErr
+	}
+	delete(f.phien, sid)
+	return nil
+}
+
+func (f *fakeRepo) RemoveUserSessions(_ context.Context, uid any, keep string) ([]string, error) {
+	if f.phienErr != nil {
+		return nil, f.phienErr
+	}
+	ids := []string{}
+	for sid, u := range f.phien {
+		if u == jsval.ToString(uid) && sid != keep {
+			delete(f.phien, sid)
+			ids = append(ids, sid)
+		}
+	}
+	if f.onRemove != nil {
+		f.onRemove()
+	}
+	return ids, nil
+}
+
+const (
+	sid1 = "11111111-1111-4111-8111-111111111111"
+	sid2 = "22222222-2222-4222-8222-222222222222"
+)
 
 type fakeCompanies struct {
 	ct      *omap.Map
@@ -253,10 +304,11 @@ func TestSessionCache(t *testing.T) {
 	repo := &fakeRepo{rows: []*omap.Map{omap.Of("id", "u1", "username", "moi", "role", "admin", "active", true, "cong_ty_id", "c1")}}
 	comp := &fakeCompanies{ct: omap.Of("id", "c1", "active", true, "hanDung", "")}
 	s := New(Deps{Cfg: &config.Config{AuthSecret: testSecret}, Companies: comp})
+	repo.phien = map[string]string{sid1: "u1"}
 	s.repo = repo
 	s.now = func() float64 { return now }
 	ctx := context.Background()
-	tok := s.makeToken(omap.Of("id", "u1", "username", "cu", "role", "staff", "cong_ty_id", nil))
+	tok := s.makeTokenSid(omap.Of("id", "u1", "username", "cu", "role", "staff", "cong_ty_id", nil), sid1)
 	exp := now + tokenTTLMs
 
 	get := func() *actor.Actor {
@@ -269,7 +321,7 @@ func TestSessionCache(t *testing.T) {
 	}
 	// payload của token bị đè bởi r / ct / u trong database
 	a := get()
-	if a == nil || a.UID != "u1" || a.U != "moi" || a.R != "admin" || a.CT != "c1" || a.Exp != exp {
+	if a == nil || a.UID != "u1" || a.U != "moi" || a.R != "admin" || a.CT != "c1" || a.Exp != exp || a.SID != sid1 {
 		t.Fatalf("actor = %+v", a)
 	}
 	if got := js(a); got != `{"uid":"u1","u":"moi","r":"admin","ct":"c1","exp":1790604800000}` {
@@ -336,14 +388,13 @@ func TestSessionCache(t *testing.T) {
 	if a, err := s.SessionActor(ctx, tok+"x"); a != nil || err != nil || repo.calls != n {
 		t.Error("token sai chữ ký")
 	}
-	// uid dạng số: khoá cache là String(uid)
-	s.ForgetSession(12.0)
+	// uid dạng số: so theo String(uid)
 	s.mu.Lock()
-	s.sess["12"] = sessEntry{at: now}
+	s.sess[sid2] = sessEntry{at: now, uid: "12"}
 	s.mu.Unlock()
 	s.ForgetSession(12.0)
-	if _, ok := s.sess["12"]; ok {
-		t.Error("ForgetSession(12) không xoá khoá \"12\"")
+	if _, ok := s.sess[sid2]; ok {
+		t.Error("ForgetSession(12) không xoá phiên của uid \"12\"")
 	}
 }
 
@@ -383,10 +434,16 @@ func TestDiffNode(t *testing.T) {
 					return nil, err
 				}
 				return act, nil
-			case "$verifyToken":
-				return orNil(svc.VerifyToken(jsval.AsString(a.Arg(0)))), nil
+			case "$verifyToken": // khoá sid chỉ bản Go (M1.2, ARCHITECTURE 10.4)
+				return goonly.Strip(orNil(svc.VerifyToken(jsval.AsString(a.Arg(0)))), "sid"), nil
 			case "$makeToken":
-				return omap.Of("token", svc.makeToken(a.Map(0))), nil
+				// Từ M1.2 token phải mang phiên còn dòng: mở phiên thật; uid không mở được phiên (không phải uuid /
+				// không có tài khoản) thì gắn sid ngẫu nhiên - các ca đó dừng ở bước đọc tài khoản như Node.
+				tok, err := svc.openSession(w.Ctx, a.Map(0))
+				if err != nil {
+					tok = svc.makeTokenSid(a.Map(0), "99999999-9999-4999-8999-999999999999")
+				}
+				return omap.Of("token", tok), nil
 			case "$forget":
 				svc.ForgetSession(a.Arg(0))
 				return nil, nil
@@ -420,5 +477,184 @@ func TestRoutes(t *testing.T) {
 	}
 	for k := range want {
 		t.Errorf("thiếu route: %s", k)
+	}
+}
+
+func (f *fakeRepo) InsertSession(_ context.Context, uid any, _ string) (string, error) {
+	if f.phienErr != nil {
+		return "", f.phienErr
+	}
+	sid := sid1
+	if _, ok := f.phien[sid1]; ok {
+		sid = sid2
+	}
+	f.phien[sid] = jsval.ToString(uid)
+	return sid, nil
+}
+
+func (f *fakeRepo) RemoveExpiredSessions(context.Context, any, string) error { return f.phienErr }
+
+// ───────────── phiên lưu phía máy chủ (M1.2) ─────────────
+
+func TestPhienDangNhap(t *testing.T) {
+	now := 1790000000000.0
+	repo := &fakeRepo{rows: []*omap.Map{omap.Of("id", "u1", "username", "a", "role", "super", "active", true)}, phien: map[string]string{}}
+	s := New(Deps{Cfg: &config.Config{AuthSecret: testSecret}, Auditor: &auditRec{}})
+	s.repo = repo
+	s.now = func() float64 { return now }
+	ctx := context.Background()
+	u := omap.Of("id", "u1", "username", "a", "role", "super")
+	get := func(tok string) *actor.Actor {
+		t.Helper()
+		a, err := s.SessionActor(ctx, tok)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return a
+	}
+
+	// token cũ không có sid: từ chối, không đọc database
+	if get(s.makeToken(u)) != nil || repo.calls != 0 {
+		t.Fatal("token không có sid phải bị từ chối mà không đọc database")
+	}
+	// sid sai dạng: từ chối
+	if get(s.makeTokenSid(u, "khong-phai-uuid")) != nil || repo.calls != 0 {
+		t.Fatal("sid sai dạng phải bị từ chối")
+	}
+
+	// 2 nơi đăng nhập -> 2 phiên
+	tokA, err := s.openSession(ctx, u)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tokB, _ := s.openSession(ctx, u)
+	if s.VerifyToken(tokA).Val("sid") != sid1 || s.VerifyToken(tokB).Val("sid") != sid2 {
+		t.Fatalf("token không mang sid: %s / %s", js(s.VerifyToken(tokA)), js(s.VerifyToken(tokB)))
+	}
+	a := get(tokA)
+	if a == nil || a.SID != sid1 || get(tokB) == nil {
+		t.Fatal("phiên mới phải hợp lệ")
+	}
+	// sid của phiên này nhưng uid khác (không xảy ra với token thật) -> không hợp lệ
+	if get(s.makeTokenSid(omap.Of("id", "u2", "username", "x", "role", "super"), sid1)) != nil {
+		t.Error("phiên của u1 không được dùng cho u2")
+	}
+
+	// đăng xuất ở A: A bị từ chối NGAY (không chờ hết 30 giây cache), B vẫn chạy
+	if _, err := s.Logout(ctx, a); err != nil {
+		t.Fatal(err)
+	}
+	if get(tokA) != nil {
+		t.Error("token đã đăng xuất vẫn được nhận")
+	}
+	if get(tokB) == nil {
+		t.Error("đăng xuất một nơi làm nơi kia mất phiên")
+	}
+
+	// request đang đọc database lúc đăng xuất không được ghi lại kết quả dương vào cache
+	tokC, _ := s.openSession(ctx, u) // sid1 trống lại -> dùng sid1
+	repo.phien[sid1] = "u1"
+	s.revokeCache(func(string, sessEntry) bool { return false }, sid1) // thu hồi xen giữa (dòng vẫn còn)
+	if get(tokC) != nil {
+		t.Error("phiên vừa thu hồi không được ghi cache dương")
+	}
+	now += 2*sessionCacheMs + 1
+	s.revokeCache(func(string, sessEntry) bool { return false }) // dọn danh sách thu hồi cũ
+	if _, ok := s.revoked[sid1]; ok {
+		t.Error("danh sách thu hồi không được dọn")
+	}
+
+	// đổi mật khẩu: thu hồi mọi phiên KHÁC, giữ phiên đang dùng
+	repo.phien = map[string]string{sid1: "u1", sid2: "u1"}
+	s.ForgetSession("u1")
+	if get(tokA) == nil || get(tokB) == nil {
+		t.Fatal("chuẩn bị: 2 phiên phải hợp lệ")
+	}
+	if err := s.closeOtherSessions(ctx, "u1", sid2); err != nil {
+		t.Fatal(err)
+	}
+	if get(tokA) != nil || get(tokB) == nil {
+		t.Error("đổi mật khẩu phải thu hồi phiên khác và giữ phiên hiện tại")
+	}
+
+	// race khi thu hồi theo tài khoản: phiên A CHƯA có trong cache, request của A đọc "còn dòng" trước lệnh xoá và ghi
+	// cache dương ngay sau lệnh xoá -> vẫn bị bỏ, và sid A nằm trong danh sách thu hồi (request ghi muộn hơn cũng bị chặn)
+	repo.phien = map[string]string{sid1: "u1", sid2: "u1"}
+	s.ForgetSession("u1")
+	repo.onRemove = func() {
+		s.mu.Lock()
+		s.sess[sid1] = sessEntry{at: now, uid: "u1", u: omap.Of("r", "super", "ct", nil, "u", "a")}
+		s.mu.Unlock()
+	}
+	if err := s.RevokeUserSessions(ctx, "u1", ""); err != nil { // admin đặt lại mật khẩu: thu hồi hết
+		t.Fatal(err)
+	}
+	repo.onRemove = nil
+	if _, ok := s.revoked[sid1]; !ok {
+		t.Error("sid vừa xoá trong database phải vào danh sách thu hồi")
+	}
+	if get(tokA) != nil || get(tokB) != nil {
+		t.Error("thu hồi mọi phiên mà token vẫn được nhận")
+	}
+
+	// cache không phình theo số lần đăng nhập: mục quá 30 giây bị dọn ở lần ghi kế tiếp
+	s.mu.Lock()
+	for i := 0; i < 100; i++ {
+		s.sess["cu-"+jsval.ToString(float64(i))] = sessEntry{at: now, uid: "x"}
+	}
+	s.mu.Unlock()
+	now += sessionCacheMs
+	repo.phien = map[string]string{sid2: "u1"}
+	s.revoked = map[string]float64{}
+	if get(tokB) == nil {
+		t.Fatal("phiên B mở lại phải hợp lệ")
+	}
+	if n := len(s.sess); n != 1 {
+		t.Errorf("cache còn %d mục, muốn 1 (chỉ phiên vừa ghi)", n)
+	}
+
+	// database chưa chạy 0014: lỗi đích danh (SessionStoreError), không phải nil
+	repo.phienErr = &database.Error{Msg: "DB GET phien_dang_nhap -> 404 ...", Code: "PGRST205", Status: 404}
+	s.ForgetSession("u1")
+	var se *middleware.SessionStoreError
+	if _, err := s.SessionActor(ctx, tokB); !errors.As(err, &se) || se.Msg != msgSessTable {
+		t.Errorf("thiếu bảng phiên: err = %v", err)
+	}
+	if _, err := s.openSession(ctx, u); !errors.As(err, &se) {
+		t.Errorf("đăng nhập khi thiếu bảng phiên: err = %v", err)
+	}
+	if _, err := s.Logout(ctx, &actor.Actor{UID: "u1", SID: sid2}); !errors.As(err, &se) {
+		t.Errorf("đăng xuất khi thiếu bảng phiên: err = %v", err)
+	}
+	// lỗi khác của database giữ nguyên
+	repo.phienErr = errors.New("mất kết nối")
+	if _, err := s.SessionActor(ctx, tokB); err == nil || errors.As(err, &se) {
+		t.Errorf("lỗi thường bị đổi: %v", err)
+	}
+}
+
+// Bảng phiên không có company_id và không nằm trong TenantTables (bảng hệ thống, mọi truy vấn noScope - xem
+// data-dictionary.md). Lớp dữ liệu không có lọc dự phòng, nên chỉ module auth được chạm tới bảng: code mới ở
+// chỗ khác phải đi qua auth (SessionInvalidator), không tự đọc / xoá phiên của mọi công ty.
+func TestPhienChiTruyCapQuaAuth(t *testing.T) {
+	root := filepath.Join("..", "..")
+	err := filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() || !strings.HasSuffix(p, ".go") || strings.HasSuffix(p, "_test.go") {
+			return err
+		}
+		if strings.HasPrefix(filepath.ToSlash(p), "../../modules/auth/") { // chủ của bảng
+			return nil
+		}
+		b, err := os.ReadFile(p)
+		if err != nil {
+			return err
+		}
+		if s := string(b); strings.Contains(s, `"phien_dang_nhap"`) || strings.Contains(s, `"user_sessions"`) {
+			t.Errorf("%s truy cập thẳng bảng phiên đăng nhập; dùng contracts.SessionInvalidator của auth", p)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
 	}
 }

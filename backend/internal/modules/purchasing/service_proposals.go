@@ -75,21 +75,23 @@ func (s *Service) SaveDeXuat(ctx context.Context, dxV any) (*omap.Map, error) {
 	if loai == "ck" {
 		vat = qscore.Round0(tongDx * vatPct / 100)
 	}
-	if err := s.repo.InsertProposal(ctx, omap.Of(
-		"ma_de_xuat", ma, "loai", loai, "ma_du_an", jsval.S(dx.Val("maDA")), "ten_du_an", jsval.S(dx.Val("project")),
-		"hang_muc", jsval.S(dx.Val("hangMuc")), "nha_cung_cap", jsval.S(dx.Val("supplier")), "so_dong", soDong,
-		"tong_goc", qscore.Round0(tongGoc), "tong_de_xuat", qscore.Round0(tongDx),
-		"tien_giam", qscore.Round0(math.Max(0, tongGoc-tongDx)),
-		"vat_pct", vatPct, "vat", vat, "tong_cong", qscore.Round0(tongDx+vat),
-		"trang_thai", ttChoDuyet, "nguoi_gui", jsval.S(dx.Val("nguoiGui")), "phong_ban", jsval.S(dx.Val("phongBan")),
-		"ghi_chu", jsval.S(dx.Val("ghiChu")), "requester_id", jsval.Or(dx.Val("requesterId"), nil),
-	)); err != nil {
-		if dxThieuBang(err) {
-			return nil, apperr.New(errThieuBangDX + apperr.HDMig)
+	// D-13: phiếu + các dòng của nó trong 1 transaction. Dòng hỏng -> rollback cả phiếu (thay cho bước bù trừ
+	// "xoá phiếu, nuốt lỗi xoá" của Node: S:1262-1266). loiPhieu giữ lỗi của lệnh chèn phiếu để chỉ lỗi ĐÓ được đổi
+	// thành thông báo thiếu bảng như trước (Tx trả nguyên lỗi, không bọc).
+	var loiPhieu error
+	err := s.tx(ctx, func(ctx context.Context) error {
+		if err := s.repo.InsertProposal(ctx, omap.Of(
+			"ma_de_xuat", ma, "loai", loai, "ma_du_an", jsval.S(dx.Val("maDA")), "ten_du_an", jsval.S(dx.Val("project")),
+			"hang_muc", jsval.S(dx.Val("hangMuc")), "nha_cung_cap", jsval.S(dx.Val("supplier")), "so_dong", soDong,
+			"tong_goc", qscore.Round0(tongGoc), "tong_de_xuat", qscore.Round0(tongDx),
+			"tien_giam", qscore.Round0(math.Max(0, tongGoc-tongDx)),
+			"vat_pct", vatPct, "vat", vat, "tong_cong", qscore.Round0(tongDx+vat),
+			"trang_thai", ttChoDuyet, "nguoi_gui", jsval.S(dx.Val("nguoiGui")), "phong_ban", jsval.S(dx.Val("phongBan")),
+			"ghi_chu", jsval.S(dx.Val("ghiChu")), "requester_id", jsval.Or(dx.Val("requesterId"), nil),
+		)); err != nil {
+			loiPhieu = err
+			return err
 		}
-		return nil, err
-	}
-	err := func() error {
 		if loai == "ck" && len(items) > 0 {
 			rows := make([]*omap.Map, len(items))
 			for i, it := range items {
@@ -120,9 +122,11 @@ func (s *Service) SaveDeXuat(ctx context.Context, dxV any) (*omap.Map, error) {
 			}
 		}
 		return nil
-	}()
+	})
 	if err != nil {
-		_ = s.repo.DeleteProposal(ctx, ma) // không để phiếu rỗng; Node nuốt lỗi xoá
+		if loiPhieu != nil && dxThieuBang(loiPhieu) {
+			return nil, apperr.New(errThieuBangDX + apperr.HDMig)
+		}
 		return nil, err
 	}
 	return omap.Of("ma", ma, "loai", loai, "total", qscore.Round0(tongDx+vat)), nil
@@ -206,6 +210,23 @@ func (s *Service) GetDeXuat(ctx context.Context, _ *actor.Actor, ma any) (*omap.
 	}
 	if h == nil {
 		return nil, apperr.New(errKhongThayDX)
+	}
+	return s.dxFull(ctx, h, ma)
+}
+
+// GetMyDeXuat: route chỉ bản Go GET /my-proposals/:code (M13.1) - mở chi tiết phiếu từ thông báo de_xuat*.
+// Admin / super: như GetDeXuat (mọi phiếu của công ty, getDeXuat giữ quyền Admin như Node). Người khác: chỉ phiếu có
+// requester_id là mình; phiếu không có hoặc của người khác đều báo errKhongThayPhieu.
+func (s *Service) GetMyDeXuat(ctx context.Context, a *actor.Actor, ma any) (*omap.Map, error) {
+	if a.IsAdmin() {
+		return s.GetDeXuat(ctx, a, ma)
+	}
+	h, err := s.repo.ProposalByCode(ctx, ma)
+	if err != nil {
+		return nil, err
+	}
+	if h == nil || a == nil || !jsval.Truthy(h.Val("requester_id")) || jsval.ToString(h.Val("requester_id")) != jsval.ToString(a.UID) {
+		return nil, apperr.New(errKhongThayPhieu)
 	}
 	return s.dxFull(ctx, h, ma)
 }

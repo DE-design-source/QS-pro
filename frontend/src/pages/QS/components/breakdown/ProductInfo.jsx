@@ -212,6 +212,9 @@ function PdCombo({ product, onAdd, toast, onDragProduct, onDragEnd }) {
               <div className="qs-bdc-pcb-m">
                 <b>{x.ten || ''}{x.comboNguoc && <span className="rev"> ↔</span>}</b>
                 <span>{x.ma || ''}{x.ma ? ' · ' : ''}{money(dg)} đ</span>
+                {String(x.comboGhiChu || '').trim() && (
+                  <span className="qs-bdc-ccr-gc" title="Ghi chú của sản phẩm đi kèm">Ghi chú: {String(x.comboGhiChu).trim()}</span>
+                )}
               </div>
               <div className="qs-bdc-pcb-p">
                 <b>{money(dg * slTong)} đ</b>

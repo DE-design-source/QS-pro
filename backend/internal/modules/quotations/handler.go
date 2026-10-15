@@ -36,7 +36,7 @@ func (s *Service) RegisterRPC(reg *rpc.Registry) {
 	})
 	reg.Register("exportBaoGia", rpc.Login, func(ctx context.Context, _ *actor.Actor, args rpc.Args) (any, error) {
 		return s.ExportBaoGia(ctx, args.ArgU(0), args.ArgU(1), args.ArgU(2), args.ArgU(3), args.ArgU(4), args.ArgU(5),
-			args.ArgU(6), args.ArgU(7))
+			args.ArgU(6), args.ArgU(7), args.ArgU(8)) // tham số 9 (opts) chỉ bản Go
 	})
 }
 
@@ -54,11 +54,11 @@ func (s *Service) RegisterRoutes(v1 *gin.RouterGroup) {
 	p.PUT("/:id/cover", func(c *gin.Context) {
 		b := readSaveCoverBody(c)
 		r, err := s.SaveCover(c.Request.Context(), c.Param("id"), b.Rows)
-		response.Result(c, r, err)
+		response.Result(c, r, doiLoiChiPhiAm(err, b.Rows))
 	})
 	p.POST("/:id/quotation/export", func(c *gin.Context) {
 		b := readExportBody(c)
-		r, err := s.ExportBaoGia(c.Request.Context(), c.Param("id"), b.Cols, b.Format, b.Nodes, b.PhanTho, b.AnMuc, b.Tong, b.Org)
+		r, err := s.ExportBaoGia(c.Request.Context(), c.Param("id"), b.Cols, b.Format, b.Nodes, b.PhanTho, b.AnMuc, b.Tong, b.Org, b.Opts)
 		response.Result(c, r, err)
 	})
 }

@@ -4,7 +4,7 @@ Backend này là bản chuyển 1:1 của `server/` (Node + Express). Mã Node l
 cùng JSON trả về (kể cả thứ tự khoá), cùng thông báo lỗi tiếng Việt, cùng tác động lên database.
 Giao diện cũ `public/` (đã gỡ khỏi repo cùng app Node) gọi `POST /api/<tênHàm>` với thân `{"args":[...]}`; cổng này giữ nguyên.
 Giao diện React (`frontend/src/pages/QS`) dùng REST `/api/v1` và tải file nhúng trong binary (mục 10.4): hiện dùng 3 file
-`*-spec.js`, `/logo.svg` và `/mau-nhap-hang-loat.xlsx`; `/mau-nhap-cong-tac.xlsx` server đã phục vụ nhưng React chưa có lối tải (M5.1).
+`*-spec.js`, `/logo.svg`, `/mau-nhap-hang-loat.xlsx` và `/mau-nhap-cong-tac.xlsx` (nút "Tải file mẫu" ở Nhập dữ liệu > Phần thô, M5.1).
 Ngoài ra bản Go mở thêm REST dưới `/api/v1`, dùng chung service.
 
 Module Go: `qspro-backend` - Go 1.25. Thư viện đã có sẵn trong `go.mod` (không cần sửa): gin, pgx/v5,
@@ -24,7 +24,7 @@ internal/server/assets.go        file nhúng go:embed ở gốc (AssetModule; lo
 internal/server/routes.go        NƠI DUY NHẤT nối các module (khối "MODULE WIRING")
 internal/server/rest.go          bảng RestRoutes (hàm rpc -> route REST) và RootRoutes (route lẻ)
 internal/server/swagger.go       /api-docs.json và Swagger UI (bản chuyển của server/swagger.js)
-internal/server/apidocs/         mô tả API nhúng (api-docs.json, meta.json; sinh bằng scripts/sync-api-docs.js)
+internal/server/apidocs/         mô tả API nhúng (api-docs.json, meta.json; chép từ bản Node, đóng băng)
 internal/server/rpc/             cổng tương thích POST /api/:fn + Registry
 internal/middleware/             auth, tenant, rbac, cors, rate_limit, body (đọc thân JSON)
 internal/platform/database/      tầng dữ liệu = server/supa.js (Select / Insert / Update / Remove) + db-map.json
@@ -42,10 +42,10 @@ internal/shared/httpx/           gọi HTTP ra ngoài như fetch của Node (One
 internal/modules/<module>/       nghiệp vụ (mỗi module 1 gói)
 internal/modules/users/userstest/  đồ nghề test đối chiếu Node <-> Go của users và auth (chỉ file test import)
 internal/jobs/                   job nền
-scripts/                         sync-api-docs.js, gen-specs.js, http-diff.sh, sync-test-sequences.sh, check-node-sync.sh
-tests/fixtures/                  dữ liệu + script đối chiếu tầng dữ liệu, registry, swagger (gen-*.js, db-diff-*.js, jsref.js)
-tests/integration/               test Go trên server đã nối đủ module (server_test.go) + smoke.js (Node, so hai server đang chạy)
-tests/e2e/                       test-api-go.js và bộ so vi sai Node <-> Go (diff/)
+scripts/                         gen-specs.js (sinh internal/shared/specs/data từ *-spec.js)
+tests/fixtures/                  dữ liệu đối chiếu tầng dữ liệu, registry, swagger (đóng băng) + jsref.js
+tests/integration/               test Go trên server đã nối đủ module (server_test.go)
+tests/e2e/                       test-api-go.js (E2E trên server Go đang chạy)
 docs/                            ARCHITECTURE, API, DATABASE, PORTING_MAP (bảng đối chiếu hàm Node -> module Go, bảng làm việc lúc chuyển mã)
 ```
 
@@ -183,6 +183,7 @@ type Actor struct {
     R   string  `json:"r"`     // role
     CT  any     `json:"ct"`    // cong_ty_id hoặc nil
     Exp float64 `json:"exp"`
+    SID string  `json:"-"`     // id phiên (user_sessions.id) từ khoá "sid" của token - M1.2; không ra JSON / Map()
 }
 func (a *Actor) IsAdmin() bool;  func (a *Actor) IsSuper() bool   // an toàn với nil
 func (a *Actor) Map() *omap.Map;  func FromMap(m *omap.Map) *Actor
@@ -219,6 +220,44 @@ var TenantTables map[string]bool
 - Khoá có giá trị `jsval.Undefined` trong dòng ghi: cột vẫn được liệt kê nhưng giá trị bị bỏ khỏi JSON (thành NULL) - đúng như Node.
 - Chỗ Node viết `/42703|PGRST204/.test(e.message)` hoặc `e.code === '23505'` -> `strings.Contains(err.Error(), ...)` / `database.CodeOf(err)`.
 - Đã đối chiếu với `server/supa.js` bằng 110 ca (xem mục 9).
+
+#### Transaction (D-13, `tx.go`)
+
+```go
+func (d *DB) Tx(ctx, fn func(ctx context.Context) error) error // commit khi fn trả nil; rollback khi lỗi / panic
+func (d *DB) AfterCommit(ctx, f func(ctx context.Context))     // chạy f sau khi transaction ngoài cùng commit
+func (d *DB) InTx(ctx) bool
+```
+
+- `Tx` đặt transaction vào `ctx`. Mọi `Select / Insert / Update / Remove` của CÙNG `*DB` nhận `ctx` đó (hoặc ctx con, kể cả
+  ctx đã đổi `tenant.With`) tự chạy trong transaction -> repository KHÔNG đổi chữ ký. Lọc công ty, dịch tên, dạng lỗi
+  `DB <METHOD> <bảng> -> ...` giữ nguyên; bảng tách (`db_san_pham`) khoá dòng lõi dưới 1 savepoint của transaction.
+- fn trả lỗi -> rollback, trả NGUYÊN lỗi đó (không bọc). fn panic -> rollback rồi panic lại.
+  Lồng `Tx` trong `Tx` -> savepoint: Tx trong hỏng chỉ huỷ phần của nó, Tx ngoài quyết định cuối cùng.
+- Mỗi lệnh trong transaction chạy dưới savepoint riêng (gửi chung 1 gói với lệnh): lệnh hỏng mà code nuốt lỗi
+  (`_ = s.repo.X(...)`, thử cột mới rồi lùi khi 42703 / PGRST204) KHÔNG làm hỏng transaction - hành vi như khi chưa bọc.
+- Việc phụ cố ý nuốt lỗi và mọi lời gọi mạng (Lark, Storage, xoá cache, thông báo, audit) đặt SAU `Tx` hoặc trong
+  `d.AfterCommit(ctx, ...)` - không gọi mạng khi đang giữ transaction. Ngoài transaction, `AfterCommit` chạy f ngay.
+- Không chạy goroutine dùng ctx của fn (lệnh bị xếp hàng trên 1 kết nối; ctx của Tx đã kết thúc -> lỗi `tx is closed`,
+  không lặng lẽ ghi ra ngoài). `Pool()` là pool thô, truy vấn qua nó KHÔNG nằm trong transaction.
+- Service giữ `*database.DB` để gọi `Tx`; repo giả trong test unit không có DB -> helper trong service:
+  `if s.db == nil { return fn(ctx) }; return s.db.Tx(ctx, fn)`.
+- Ví dụ:
+
+```go
+err := s.db.Tx(ctx, func(ctx context.Context) error {
+	if err := s.repo.InsertOrder(ctx, don); err != nil {
+		return err
+	}
+	return s.repo.InsertOrderItems(ctx, dong) // hỏng -> đơn ở trên cũng không còn
+})
+if err != nil {
+	return nil, err
+}
+s.auditor.Audit(ctx, a, "...", "...", nil) // việc phụ: sau commit
+```
+
+- Kế hoạch bọc từng hàm service theo module: `C:/demo/qs-fe-work/D13-PLAN.md`. Test: `tx_test.go` (cần `TEST_DATABASE_URL`).
 
 ### 3.6 `storage`, `logger`, `config`
 
@@ -319,7 +358,8 @@ Handler trả `nil` hoặc `jsval.Undefined` -> client nhận `"result": null`.
 type SessionResolver interface { SessionActor(ctx context.Context, token string) (*actor.Actor, error) }
 type SessionHolder struct{ ... };  func NewSessionHolder() *SessionHolder;  func (h *SessionHolder) Set(r SessionResolver)
 func BearerToken(r *http.Request) string
-func ActorOf(c *gin.Context, s SessionResolver) *actor.Actor      // actorOf_ của Node
+func ActorOf(c *gin.Context, s SessionResolver) *actor.Actor      // actorOf_ của Node; SessionStoreError -> 500 + c.Abort()
+type SessionStoreError struct{ Msg string }                       // kho phiên hỏng (thiếu bảng user_sessions) - M1.2
 func Auth(s SessionResolver) gin.HandlerFunc                      // gắn actor vào gin.Context, không chặn
 func RequestContext(r *http.Request, a *actor.Actor) context.Context
 func Tenant() gin.HandlerFunc                                     // c.Request.Context() mang tenant + actor
@@ -336,6 +376,22 @@ const MsgRateLimited = "Quá nhiều yêu cầu, vui lòng thử lại sau"   //
 Thông báo: 401 `{"error":"Chưa đăng nhập","code":"NOAUTH"}`, 403 `Không có quyền (chỉ Admin)`, 403 `Chỉ quản trị hệ thống`.
 Module auth cài `SessionResolver` (bản chuyển của `auth.sessionActor`) và phần nối gọi `d.Sessions.Set(authSvc)`.
 
+**Phiên lưu phía máy chủ (M1.2, migration 0014, bảng code `phien_dang_nhap` = `user_sessions`).** `login` mở 1 dòng phiên và ký
+token có thêm khoá `sid` (cuối payload). `SessionActor`: token đúng chữ ký, chưa hết hạn, có `sid` dạng uuid -> cache theo `sid`
+(30 giây, mục cache nhớ `uid` để `ForgetSession(uid)` bỏ mọi phiên của tài khoản) -> đọc tài khoản -> công ty -> phiên còn dòng và
+`het_han` > bây giờ. Thứ tự tài khoản TRƯỚC phiên để golden Node (uid hỏng -> lỗi database 22P02) giữ nguyên. Token không có `sid`
+(phát trước 0014) bị từ chối không đọc database. `logout` xoá dòng của `actor.SID`; `changePassword` xoá mọi phiên khác của tài
+khoản (actor không có SID - chỉ có ở lời gọi nội bộ / test - thì không xoá); `users.AdminSetPassword` gọi
+`SessionInvalidator.RevokeUserSessions(uid, keep)` xoá mọi phiên của tài khoản (keep = phiên của admin khi tự đặt lại cho mình).
+Thu hồi ghi `sid` vào danh sách `revoked` 60 giây để request đang đọc database song song không ghi lại cache dương; thu hồi theo
+tài khoản đánh dấu cả các `sid` có trong cache (trước lệnh xoá) lẫn các `sid` database vừa xoá (`DELETE ... RETURNING`, sau lệnh
+xoá) nên phiên chưa có trong cache cũng không lọt. Cache khoá theo `sid` được dọn mục quá 30 giây (`sweepCache`, tối đa 1 lần /
+30 giây) để không phình theo số lần đăng nhập. Chỉ module auth chạm bảng phiên (test `TestPhienChiTruyCapQuaAuth`): bảng
+không nằm trong `TenantTables` nên lớp dữ liệu không có lọc công ty dự phòng. Mọi truy vấn bảng phiên `NoScope` (chưa biết công ty, như đăng
+nhập; bảng không có `company_id`). Thiếu bảng (PGRST205 / 42P01) -> `middleware.SessionStoreError` với thông báo đích danh:
+`ActorOf` trả 500 + thông báo và dừng request (cổng `/api/:fn` kiểm `c.IsAborted()`), `login` trả cùng thông báo; không thành 401.
+Khoá tài khoản KHÔNG xoá phiên (mở khoá lại thì token cũ dùng tiếp, golden `s_staff_unlocked_immediately`).
+
 ### 3.10 `qspro-backend/internal/server`
 
 ```go
@@ -345,7 +401,7 @@ type Module interface { RegisterRPC(reg *rpc.Registry); RegisterRoutes(v1 *gin.R
 type RootModule interface { RegisterRoot(root *gin.RouterGroup) }   // route lẻ: /export/..., /upload/file, /media
 func New(d *Deps) *Server;  func (s *Server) Engine() *gin.Engine;  func (s *Server) Run(ctx) error
 func (s *Server) OnShutdown(fn func(context.Context))
-func (s *Server) Deps() *Deps;  func (s *Server) Reports() contracts.ReportRunner;  func (s *Server) SwaggerOn() bool
+func (s *Server) Deps() *Deps;  func (s *Server) Reports() contracts.ReportRunner;  func (s *Server) Expiry() contracts.ExpiryReminder;  func (s *Server) SwaggerOn() bool
 type RestRoute struct { Fn, Method, Path string };  var RestRoutes []RestRoute;  var RootRoutes [][2]string   // rest.go
 ```
 
@@ -374,9 +430,16 @@ func InCode(nhom, stt any) bool           // inCode
 func Normalize(v any) string              // normalize_
 func CoverComputed(cover []any) *omap.Map // coverComputed_
 func ImportParse(base64Data, ext, nganh any) (*omap.Map, error)   // importParse
+
+// sheetrows.go - chỉ bản Go (M5.1, route POST /api/v1/work-items/import/parse của estimates)
+type SheetRow struct{ Dong int; Cells []any }   // Dong = số dòng thật trong file (tính cả dòng trống xen giữa)
+func SheetRows(buf []byte, ext string) ([]SheetRow, error)   // sheet đầu; xlsx qua readXLSX của importParse, CSV giữ chuỗi gốc của ô
+func DecodeBase64(s string) []byte        // bộ giải base64 của importParse
 ```
 
-`csv.go` và `xlsx.go` không xuất hàm nào: bộ đọc CSV / xlsx (kể cả `importCell_`) chỉ được gọi qua `ImportParse`.
+`csv.go` và `xlsx.go` không xuất hàm nào: bộ đọc CSV / xlsx (kể cả `importCell_`) chỉ được gọi qua `ImportParse` và `SheetRows`.
+`SheetRows` không thêm thư viện: xlsx lấy `Dong` từ `<row r>` của sheet đầu (không đối chiếu được số dòng với `readXLSX` thì đánh số
+liên tiếp 1..n); CSV đếm cả dòng trống và ô xuống dòng trong ngoặc kép, ô giữ nguyên chuỗi (không đổi sang số).
 
 ### 3.12 `qspro-backend/internal/shared/specs` - thông số theo ngành (nguồn: `js/*-spec.js`, trước đây `public/*-spec.js`)
 
@@ -611,29 +674,20 @@ ghi thành `null`. Muốn trả mảng rỗng luôn tạo bằng `make` / `[]any
   (`-p 1` vì các gói dùng chung `qspro_gotest`; `./...` gồm cả `tests/integration`). Lệnh đầy đủ và hạ tầng thử: `backend/README.md` mục Kiểm thử.
 - Test đơn vị: repository giả cài interface trong `repository.go`; giá trị mong đợi của phép ép kiểu / định dạng lấy bằng `node -e`.
 - Test tích hợp: đọc `TEST_DATABASE_URL`, `t.Skip` khi rỗng; chỉ dùng database thử (`qspro_gotest`); tự dọn dữ liệu mình tạo.
-- Đối chiếu tầng dữ liệu (đã chạy, 110 ca, 0 khác):
-  1. `node tests/fixtures/db-diff-node.js > node.txt` (bắt buộc `DATABASE_URL` trỏ `qspro_nodetest`)
-  2. `DIFF_OUT=/repo/backend/tests/fixtures/.out/go.txt go test ./internal/platform/database/ -run TestDiffDump`
-  3. `node tests/fixtures/db-diff-compare.js node.txt go.txt`
-  hoặc `DIFF_GOLDEN=/repo/backend/tests/fixtures/db-diff-golden.txt go test ./internal/platform/database/ -run TestDiffGolden`.
-  Đường dẫn trong `DIFF_OUT` / `DIFF_GOLDEN` phải TUYỆT ĐỐI (`go test` đứng ở thư mục của gói, đường dẫn tương đối báo
-  `no such file or directory`). Cả hai cần `TEST_DATABASE_URL`; `TestDiffGolden` chỉ khớp trên database vừa đặt lại về seed.
-- Đối chiếu lớp HTTP: chạy hai server trên database thử, CÙNG giá trị `RENDER_GIT_COMMIT` (header `x-app-ver` được so; để trống thì
-  mỗi server lấy thời điểm khởi động và 13 / 30 request báo khác), rồi `scripts/http-diff.sh <url node> <url go>` (đúng: `30 request, 0 khác`).
-- Bản sao chép tay từ bản Node (`db-map.json`): `sh scripts/check-node-sync.sh` (xem `DATABASE.md`).
-  Các bước đối chiếu với Node ở mục này cần app Node đã gỡ khỏi repo (commit `83d264e`), xem "Việc còn mở".
-- Module nên có đối chiếu riêng theo cùng cách: gọi hàm Node (qua `tenant.run`) và hàm Go với cùng tham số, so JSON.
-- So sánh vi sai đầu-cuối Node <-> Go: `powershell -ExecutionPolicy Bypass -File backend/tests/e2e/diff/run.ps1 [-Filter area1/02] [-ShowAll]`.
-  Script reset `qspro_nodetest` + `qspro_gotest` về cùng seed, bật 2 server (Node 3997, Go 3998) với env an toàn, gửi cùng chuỗi request
-  tới cả hai, so mã HTTP + header + thân JSON thô (thứ tự khoá, cách viết số) + file xlsx (ExcelJS), và sau mỗi kịch bản so mọi bảng
-  của 2 database. Mỗi hàm được gọi qua `/api/<fn>` ở cả hai phía và qua route REST của Go (so với kết quả rpc của Node).
-  Kịch bản: `backend/tests/e2e/diff/scenarios/**.js`; REST của hàm mới khai trong `lib/rest-map.js`; báo cáo ở `.out/`
-  (`report.txt`, `coverage.txt`: mỗi hàm đã đi qua những nhánh lỗi nào). `node backend/tests/e2e/diff/selftest.js` tự kiểm bộ so sánh.
+- Đối chiếu tầng dữ liệu với golden Node (đã chạy với bản Node, 110 ca, 0 khác):
+  `DIFF_GOLDEN=/repo/backend/tests/fixtures/db-diff-golden.txt go test ./internal/platform/database/ -run TestDiffGolden`
+  (`DIFF_OUT=<đường dẫn>.txt ... -run TestDiffDump` ghi kết quả bản Go để xem). Đường dẫn trong `DIFF_OUT` / `DIFF_GOLDEN` phải TUYỆT ĐỐI
+  (`go test` đứng ở thư mục của gói, đường dẫn tương đối báo `no such file or directory`). Cả hai cần `TEST_DATABASE_URL`;
+  `TestDiffGolden` chỉ khớp trên database vừa đặt lại về seed.
+- Công cụ đối chiếu chạy cùng app Node (bộ so vi sai `tests/e2e/diff`, `smoke.js`, `http-diff.sh`, `check-node-sync.sh`,
+  `db-diff-node.js`, `db-diff-compare.js`, các `gen*.js` / `noderef.js` trong `testdata/`) đã chuyển khỏi repo ngày 2026-10-15
+  (bản sao: `C:/demo/qs-unused-backup-2026-10-15/`, hoặc `git show 83d264e:<đường dẫn>`). Các kết quả đã ghi trong tài liệu này là của
+  những lượt chạy trước đó.
 
 ## 10. Khác biệt so với server Node
 
 Mọi khác biệt đã biết giữa hai bản nằm ở đây. Ngoài danh sách này, khác với Node là lỗi phải sửa.
-Bộ so vi sai (`tests/e2e/diff`) chỉ được chấp nhận một khác biệt khi nó có trong mục này.
+Bộ so vi sai `tests/e2e/diff` (nay đã gỡ) chỉ chấp nhận một khác biệt khi nó có trong mục này.
 
 ### 10.1 Lớp HTTP và JSON (có chủ ý)
 
@@ -643,7 +697,7 @@ Bộ so vi sai (`tests/e2e/diff`) chỉ được chấp nhận một khác biệ
 - Thân JSON lồng sâu quá 2000 tầng: 400 (Node đọc được). Thân mã hoá UTF-16 thật: 400 (Node đọc được).
 - Panic trong handler rpc -> 500 với nội dung panic (Node trả message của exception). Panic ngoài cổng rpc -> trang HTML 500 kiểu Express.
 - `/media#x?token=a` (dấu `#` đứng trước `?`, chỉ client thô gửi được): Node khớp route, Go trả 404.
-- REST `/api/v1`: tham số query luôn là chuỗi (`GET /bootstrap?maDA=0` = rpc `bootstrap("0")`); response không có header `x-app-ver`.
+- REST `/api/v1`: tham số query luôn là chuỗi (`GET /bootstrap?maDA=0` = rpc `bootstrap("0")`); response có header `x-app-ver` như cổng rpc (M1.1).
 - Chuỗi Go không giữ được surrogate lẻ. Escape surrogate lẻ trong thân JSON (`"\ud83d"`) thành U+FFFD ngay khi đọc thân:
   Go GHI được dòng chứa U+FFFD, còn Node gửi `\ud83d` xuống Postgres và bị từ chối (22P02 - `audit` nuốt lỗi, nơi khác trả 500).
   Cơ chế đã kiểm chứng trên Postgres (`'{"a":"\ud83d"}'::json` -> 22P02); chưa chạy đối chiếu qua từng hàm.
@@ -728,10 +782,23 @@ materials:
   |---|---|---|---|
   | `nguoi_duyet` | dòng `don_mua_hang` | `purchase_orders.resolver_name` | người đổi trạng thái đơn mua hàng |
   | `ngay_duyet` | dòng `don_mua_hang` | `purchase_orders.resolved_at` | lúc đổi trạng thái |
-  | `nguoiDuyet`, `ngayDuyet` | kết quả đơn mua hàng (`getPurchaseOrder`, `GET /api/v1/purchase-orders/:code`) | hai cột trên | như trên, phía client |
+  | `nguoiDuyet`, `ngayDuyet` | kết quả đơn mua hàng (`getPurchaseOrder`, `GET /api/v1/purchase-orders/:code`) | hai cột trên | như trên, phía client (khoá có từ Node, nay có giá trị - M15.1) |
+  | `nguoiDuyet`, `ngayDuyet`, `ketQuaGui` | từng đơn của `getPurchaseOrders` (`GET /api/v1/projects/:id/purchase-orders`), nối CUỐI object | `resolver_name`, `resolved_at`, `send_result` | người / lúc duyệt, kết quả gửi Lark (chuỗi, `""` khi null) - M15.1, M9.1 |
+  | `kenhGui`, `ketQuaGui` | `getPurchaseOrder` (`GET /api/v1/purchase-orders/:code`), nối CUỐI | `send_channel`, `send_result` | kênh gửi, kết quả gửi Lark - M9.1 |
+  | `resolver`, `resolvedAt` | từng đơn của `listPurchaseRequests` (`GET /api/v1/purchase-orders`), nối CUỐI | `resolver_name`, `resolved_at` | giá trị cột nguyên dạng, null khi chưa duyệt - M15.1 |
+  | `ket_qua_gui` | dòng `don_mua_hang` | `purchase_orders.send_result` | Go ghi `ok` / `loi` sau khi gửi thẻ Lark (lệnh riêng, M9.1); test khẳng định rồi đặt lại giá trị lúc lưu như Node |
   | `resolution_note` | dòng `delete_requests` | `delete_requests.resolution_note` | lý do từ chối yêu cầu xoá |
+  | `lyDo`, `lyDoTuChoi` | từng dòng của `listDeleteRequests` (`GET /api/v1/product-delete-requests`), nối CUỐI | `note`, `resolution_note` | lý do gửi / lý do từ chối, giá trị cột nguyên dạng - M15.2 |
   | `hien_trang` | dòng `du_an` | `projects.current_condition` | hiện trạng dự án |
-  | `hienTrang` | kết quả dự án (khi module trả ra, M8.3) | `projects.current_condition` | như trên, phía client |
+  | `sid` | payload token (`login.token`, `$verifyToken`, `$makeToken` trong `auth/service_test.go`) | `user_sessions.id` | id phiên (M1.2); `userstest.Norm` bỏ khoá này khi giải token, `auth/service_test.go` bỏ ở `$verifyToken`; `$makeToken` mở phiên thật (uid không mở được -> sid giả) |
+  | `hienTrang` | object dự án (`getProjects`, `getProject`, `createProject`, `updateProject`, `duplicateProject`, `bootstrap.projects`, REST `/projects*`), nối CUỐI sau `linkDezon` | `projects.current_condition` | như trên, phía client (M8.3); `projects/service_test.go` `goOnlyResultKeys` kiểm rỗng rồi mới bỏ |
+
+  Cách test giữ golden của đợt 2: `purchasing/service_db_test.go` khẳng định đơn đã resolve có `nguoi_duyet` = người thao tác + có
+  `ngay_duyet` (đơn khác chỉ `StripNull`), `ket_qua_gui` = `ok` khi `res.lark` / `loi` khi không, và khẳng định các khoá kết quả mới của 3 hàm
+  đọc rồi mới bỏ; `materials/diff_test.go` `goOnlyKeys` = `lyDo`, `lyDoTuChoi` (`StripNull`, kịch bản không gửi lý do). Test riêng không golden:
+  `purchasing/service_goonly_test.go`, `materials/service_lydo_test.go`, `projects/hientrang_test.go`, `quotations/export_opts_test.go`,
+  `estimates/service_import_test.go`, `qscore/sheetrows_test.go`, `auth/service_test.go` (`TestPhienDangNhap`),
+  `middleware/auth_session_test.go`, `server/rpc/session_test.go`. Không fixture / testdata nào bị sửa.
 
   CẢNH BÁO: `nguoi_duyet` / `ngay_duyet` (và `nguoiDuyet` / `ngayDuyet`) cũng là cột / khoá Node có thật của `db_san_pham`
   (`products.approved_by/approved_at`), `de_xuat` (`purchase_proposals.resolver_name/resolved_at`) và `cong_tac`
@@ -744,14 +811,24 @@ materials:
   - `Strip(v, keys...)`: bỏ khoá ở mọi cấp lồng, bất kể giá trị.
   - `StripNull(v, keys...)`: chỉ bỏ khoá khi giá trị là null (nil hoặc `omap.Undefined`); khoá có giá trị được giữ nên phép so golden báo
     khác (bắt bản Go ghi sai chỗ). ĐÃ CHỌN: `purchasing/service_db_test.go` (dòng `don_mua_hang`) và `projects/service_test.go` (kết quả)
-    dùng `StripNull`, không dùng `Strip`. Hệ quả cho M15.1: khi ghi `resolver_name` / `resolved_at` lúc đổi trạng thái đơn, `TestDBDiff`
-    sẽ báo khác ở bước duyệt / từ chối; phải thêm khẳng định riêng (đúng giá trị ở bước đổi trạng thái, null ở mọi bước khác) rồi mới bỏ
-    khoá - không che bằng `Strip`.
+    dùng `StripNull`, không dùng `Strip`. M15.1 (đợt 2) đã làm đúng cách này: `goCheck` khẳng định `resolver_name` / `resolved_at` ở bước
+    duyệt / từ chối (người thao tác + có thời điểm) rồi mới bỏ khoá; mọi bước khác vẫn `StripNull` - không che bằng `Strip`.
   - `StripWrites(log, keys...)`: bỏ khoá khỏi payload từng lệnh ghi. Cả lệnh bị bỏ CHỈ khi một PAYLOAD (object con trực tiếp của lệnh,
     hoặc object là phần tử trực tiếp của mảng con trực tiếp) chỉ còn khoá Go; object lồng sâu hơn (vd giá trị cột JSON) bị bỏ hết khoá
     thì chỉ thành `{}` và lệnh được giữ.
   - `StripFailingRow(s, map[bảng DB]số cột mới)`: bỏ tối đa n giá trị `null` ở cuối "Failing row contains (...)" của bảng đó (cột
     `ADD COLUMN` đứng cuối dòng); giá trị khác null được giữ.
+- Tham số / ghi mới trên hàm rpc cũ của đợt 2 (chỉ bản Go; chi tiết ở `API.md` mục 2.1):
+  - `requestDeleteProducts` tham số cuối `lyDo` (rpc args[1]) -> `delete_requests.note` trong cùng lệnh chèn khi khác rỗng;
+    `resolveDeleteRequest` tham số cuối `lyDo` (rpc args[2], chỉ khi từ chối) -> `resolution_note` bằng lệnh RIÊNG sau lệnh giành quyền
+    (lỗi chỉ ghi log). Trim; > 500 ký tự Unicode -> `Lý do tối đa 500 ký tự`; lý do nối ": <lyDo>" vào thông báo.
+  - `resolvePurchaseRequest`: sau khi đổi trạng thái, lệnh RIÊNG ghi `nguoi_duyet` (ho_ten || username) + `ngay_duyet` (ISO); lỗi chỉ ghi log.
+  - `sendPurchaseRequest`: sau khi gửi thẻ Lark, lệnh RIÊNG ghi `ket_qua_gui` = `ok` (lark = true) / `loi` cho mọi mã vừa lưu; lỗi chỉ ghi log.
+    GIẢ ĐỊNH M9.1: dòng `ok` có sẵn trước bản này là giá trị mặc định lúc lưu (`strOr(ketQua,'ok')` cũ), không phải xác nhận đã tới Lark.
+  - `exportBaoGia` tham số thứ 9 `opts` (REST: khoá thân `opts`) - M8.1 / M8.2 / M8.3; không có `opts` -> file giống từng byte như trước
+    (`TestExportKhongOptsGiuNguyenByte`). Mã: `quotations/service_export_opts.go`.
+  - `updateProject` ghi `hien_trang` chỉ khi client gửi khoá `hienTrang` (kể cả rỗng); `createProject` ghi khi khác rỗng. Database chưa chạy
+    0011 -> lỗi 42703 báo đích danh cột (`apperr.ColErr`).
 - Tham số / kiểm tra mới trên hàm rpc cũ (chỉ bản Go, M14.1 / M17.2):
   - `adminUpdateUser` / `PATCH /api/v1/users/:id` nhận khoá `email` (Node bỏ qua email khi sửa). Email gửi lên trùng email đang lưu
     (so sau trim + chữ thường ở cả hai phía) = không đổi: không kiểm dạng, không ghi (giữ nguyên văn bản cũ, kể cả email sai dạng do
@@ -767,10 +844,45 @@ materials:
     `Màu chính phải dạng #RRGGBB` (Node nhận mọi chuỗi). Kiểm `String(v)` với MỌI kiểu (số, boolean, mảng...). Lỗi quyền vẫn báo TRƯỚC lỗi
     màu. `createCongTy` vẫn KHÔNG lưu `mau_chinh` (như Node, golden s04 trả `""`): React `CongTyForm` lưu màu bằng `updateCongTy` ngay sau
     khi tạo.
-  - Khác biệt đã biết với kịch bản so vi sai (đóng băng): `tests/e2e/diff/scenarios/area1/04-companies.js:89` gửi `updateCongTy
+  - Khác biệt đã biết với kịch bản so vi sai (bộ so đã gỡ): `tests/e2e/diff/scenarios/area1/04-companies.js:89` gửi `updateCongTy
     {mauChinh: 0}` bằng admin A; Node lưu `"0"` (200), Go trả 500 `Màu chính phải dạng #RRGGBB`. Hai bước #1655 [rpc] và #1656 [rest]
     của `.out/report.txt` sẽ khác Node: khác biệt có chủ ý của M17.2.
-- Biến `REPORT_JOB` (tắt job báo cáo), `STATIC_DIR`, `VENDOR_DIR`, `CORS_ORIGINS`, `RATE_LIMIT_RPS`, `TRUSTED_PROXIES`, `REDIS_URL`, `DEBUG`,
+  - `PUT /api/v1/projects/:id/cover` (REST, KHÔNG phải rpc `saveCover`): dòng có `chiPhi` < 0 -> 400
+    `Chi phí dự kiến không được âm (mục <stt>).` (`(dòng <n>)` khi thiếu stt), không ghi gì. Lỗi được đổi SAU `SaveCover` (lỗi ràng buộc
+    `ck_cost_estimate_lines_cost` -> 400) nên thứ tự kiểm giống rpc (dự án mất / khác công ty báo trước). Mã: `quotations/dto.go`
+    `doiLoiChiPhiAm`, gọi ở route PUT cover của `handler.go`. rpc `saveCover` giữ lỗi ràng buộc DB (500) như Node vì golden `save-neg` đóng
+    băng. Ngoại lệ REST khác kết quả rpc, ghi cả ở `API.md` (luật chung + mục 2.1).
+- Đợt 3 của backlog (M10.1, M17.3; chi tiết route ở `API.md` mục 2.1). Không có cột mới, không có khoá kết quả mới trên hàm rpc cũ, không
+  đổi fixture / golden (`TestRestRoutes` chỉ thêm đường dẫn mới vào danh sách route chỉ bản Go):
+  - Route `POST /api/v1/products/:key/private-copy` (`copySharedProduct`, materials, `service_private_copy.go`): bản sao riêng Chưa duyệt
+    của SP kho chung Dezon. Quyền làm lại `canTab('sanpham')` của giao diện ở máy chủ (GIẢ ĐỊNH M10.1: `SpPerms` cho mọi nhân viên quyền sửa,
+    nên route xét thêm tính năng công ty + tab `sanpham`; các hàm `...Gated` cũ không xét). Lỗi unique (23505) khi chèn -> cùng câu trùng mã.
+    Test: `TestCopySharedProduct`, `TestCopySharedProductNhanh`, `TestCopySharedProductRoute`, `TestCopySharedProductDB` (có database).
+  - KHÁC NODE - danh mục: `getProducts` của Node ẩn dòng kho chung khi công ty có SP riêng trùng `ma|congSuat|nhietDo|gocChieu|mauSac`,
+    nên một SP riêng che MỌI biến thể kích thước cùng mã (chép sơn 2IN1 15L làm mất 1L / 5L). Bản Go (`ghepKhoChung`, `biDe`,
+    `coTrucKichThuoc` trong `service_catalog.go`) so thêm `kich_thuoc` khi dòng kho chung có trục này (ngành vs / son, hoặc có `kich_thuoc`;
+    ngành trống suy từ hạng mục như `SaveDbProduct`) - đúng khoá kiểm trùng của bản sao riêng. Test `TestGhepKhoChungKichThuoc`.
+    Golden `getProducts` không đổi (dữ liệu golden không có SP riêng trùng mã kho chung khác kích thước).
+  - Route `POST /api/v1/companies/expiry-reminders` (`nhacGiaHan`, companies, `expiry.go`, chỉ super): nhắc gia hạn trong ứng dụng (M17.3,
+    tính năng chỉ bản Go; bản Node gửi Lark ở 7e0804d đã gỡ ở 42af44d; bản này không Lark, không email). Chỉ gửi thật khi `dryRun === false`.
+  - Job nền thứ 2 trong `internal/jobs` (`worker.go` `runNhac`): gọi `NhacGiaHan` lúc 8h05 giờ VN MỖI NGÀY; 70 giây sau khởi động gửi bù nếu
+    hôm nay đã qua 8h05. Chung công tắc `REPORT_JOB` (=0 tắt CẢ HAI job). `jobs.Deps.Expiry contracts.ExpiryReminder`, `cmd/api/main.go`
+    truyền `srv.Expiry()`.
+  - Chống gửi trùng bằng cột `companies.reminder_milestone` (`nhac_moc`, mỗi mốc 30/14/7/3/1/0 một lần; giá trị ngoài tập coi như null),
+    không dùng audit: GIÀNH mốc trước bằng một UPDATE có điều kiện
+    (`id=eq.X&or=(nhac_moc.is.null,nhac_moc.not.in.(0,1,3,7,14,30),nhac_moc.gt.<mốc>)`), chỉ gửi khi UPDATE trả về dòng. Hai tiến trình trên
+    cùng database chỉ một bên gửi (Postgres khoá dòng và xét lại điều kiện); mutex trong tiến trình vẫn giữ. Không chèn được thông báo nào ->
+    trả lại `nhac_moc` / `nhac_lan_cuoi` cũ (chỉ khi dòng vẫn đúng mốc + ngày vừa giành).
+  - companies chèn thẳng bảng `notifications` (`repo.ChenThongBao`, cùng dạng dòng với `notifications.Notify`, trong phạm vi công ty của ctx)
+    để biết lỗi chèn (`contracts.Notifier.Notify` nuốt lỗi). `companies.Deps` chỉ thêm `Admins contracts.AdminLister` (notifications cài),
+    không có `Notifier`.
+  - `updateCongTy`: patch có `han_dung` thì đọc `cong_ty` trước update (lỗi đọc bỏ qua); super đổi sang ngày khác -> lệnh RIÊNG đặt
+    `nhac_moc` = `nhac_lan_cuoi` = NULL (chỉ khi đang khác null; lỗi chỉ ghi log). Kết quả / nhật ký không đổi, golden companies qua nguyên vẹn.
+  - Test: `companies/expiry_test.go` (`TestNhacGiaHanLoiChen`, `TestNhacGiaHanHaiTienTrinh`; `TestNhacGiaHanDB` nối `AdminLister` THẬT của
+    notifications - import chỉ trong test - và chạy 2 Service song song trên `qspro_gotest`), `jobs/worker_test.go`. Khoá golden mới: không có.
+  - Migration 0012 (chú thích 2 cột nhắc gia hạn, bỏ `DEPRECATED`) và 0013 (chú thích `product_combos.note` - M10.2, `purchase_orders.send_result`
+    - M9.1) chỉ đổi COMMENT; code không phụ thuộc hai migration này.
+- Biến `REPORT_JOB` (tắt job báo cáo và job nhắc gia hạn), `STATIC_DIR`, `VENDOR_DIR`, `CORS_ORIGINS`, `RATE_LIMIT_RPS`, `TRUSTED_PROXIES`, `REDIS_URL`, `DEBUG`,
   `DB_POOL_MAX`, `DB_SORT_COLLATION`, `DOTENV`. CORS, giới hạn tần suất, Redis mặc định tắt.
 - `TRUSTED_PROXIES` mặc định không tin proxy nào: đứng sau reverse proxy mà không đặt thì mọi client chung một giới hạn tần suất.
   Ảnh hưởng: không có khi `RATE_LIMIT_RPS` tắt (mặc định).
@@ -862,11 +974,11 @@ Ngữ nghĩa chi tiết (nuốt lỗi, null, thứ tự khoá) nằm trong chú 
 | `UserReader` | `GetByID(ctx, id any) (*omap.Map, error)` | users | getUserById A:212-215 | auth, materials, notifications, purchasing |
 | `UserFormatter` | `UserOut(row *omap.Map) *omap.Map`, `PermsArr(v any) []any` | users | userOut A:73-77, permsArr_ A:72 | auth, companies, materials (PermsArr) |
 | `UserCreator` | `AdminCreateUser(ctx, a, data *omap.Map) (*omap.Map, error)` | users | adminCreateUser A:319-362 | companies |
-| `SessionInvalidator` | `ForgetSession(uid any)` | auth | forgetSession_ A:39 | users |
+| `SessionInvalidator` | `ForgetSession(uid any)`, `RevokeUserSessions(ctx, uid any, keep string) error` (M1.2) | auth | forgetSession_ A:39 + thu hồi phiên | users |
 | `middleware.SessionResolver` | `SessionActor(ctx, token string) (*actor.Actor, error)` | auth | sessionActor A:43-56 | middleware, server (đã có ở mục 3.9, không nằm trong `contracts`) |
 | `CompanyReader` | `GetCongTy(ctx, id any) (*omap.Map, error)`, `HetHan(ct *omap.Map) bool` | companies | getCongTy A:107-111, hetHan_ A:42 | auth, users |
 | `Notifier` | `Notify(ctx, userID any, kind, title, body string, refID any)` | notifications | notify_ A:451-454 | materials, purchasing |
-| `AdminLister` | `ActiveAdmins(ctx) ([]any, error)` | notifications | getAdmins_ A:450 | materials |
+| `AdminLister` | `ActiveAdmins(ctx) ([]any, error)` | notifications | getAdmins_ A:450 | materials, companies (nhắc gia hạn) |
 | `PurchaseNotifier` | `NotifyPurchaseAdmins(ctx, a, orders []any) error`, `NotifyDeXuatAdmins(ctx, a, dx *omap.Map) error`, `DeXuatTen(loai string) string` | notifications | A:605-616, A:670-680, DX_TEN A:669 | purchasing |
 | `ProductPerms` | `SpPerms(ctx, a) (edit, duyet, admin bool, err error)` | materials | spPerms_ A:517-526 | takeoff, estimates |
 | `ProductSaver` | `SaveDbProduct(ctx, a, data, opts *omap.Map) (*omap.Map, error)` | materials | saveDbProduct S:503-560 | takeoff |
@@ -877,6 +989,7 @@ Ngữ nghĩa chi tiết (nuốt lỗi, null, thứ tự khoá) nằm trong chú 
 | `MediaDownloader` | `MediaDownload(ctx, fileToken string) (buf []byte, contentType string, err error)` | files | lark.mediaDownload lark.js:25-32 | quotations (fetchImage X:333) |
 | `Uploader` | `Upload(ctx, buf []byte, path, contentType string) (url string, err error)` | platform/storage (`*storage.Client`) | uploadToStorage supa.js:461-469 | materials |
 | `ReportRunner` | `BaoCaoNhapSP(ctx, a, opts *omap.Map) (*omap.Map, error)`, `DaGuiHomNay(ctx) bool` | reports | I:451-552, I:554-564 | jobs |
+| `ExpiryReminder` (file `expiry.go`) | `NhacGiaHan(ctx, dryRun bool) (*omap.Map, error)` | companies | không có (chỉ bản Go, M17.3) | jobs |
 
 `a` là `*actor.Actor`, `ctx` là `context.Context`. `categories` là gói dữ liệu thuần, được `materials` và `reports` import trực tiếp
 (không qua interface) - ngoại lệ duy nhất của luật 2.7.
@@ -919,9 +1032,9 @@ Hai trường tương ứng KHÔNG nằm trong `users.Deps`. Gọi cả hai tron
 | # | Module | Nhận qua `Deps` (ngoài `DB`, `Cfg`) |
 |---|---|---|
 | 1 | users | không có; sau đó `SetCompanyReader(companies)`, `SetSessionInvalidator(auth)` |
-| 2 | companies | users: `UserCreator`, `UserFormatter`, `Auditor` |
-| 3 | auth | users: `UserReader`, `UserFormatter`, `Auditor`; companies: `CompanyReader`. Rồi `d.Sessions.Set(authSvc)` |
-| 4 | notifications | users: `UserReader`, `Auditor` |
+| 2 | notifications | users: `UserReader`, `Auditor` (dựng trước companies từ M17.3) |
+| 3 | companies | users: `UserCreator`, `UserFormatter`, `Auditor`; notifications: `AdminLister` (`Admins`, M17.3) |
+| 4 | auth | users: `UserReader`, `UserFormatter`, `Auditor`; companies: `CompanyReader`. Rồi `d.Sessions.Set(authSvc)` |
 | 5 | categories | `Deps` rỗng (`categories.New(categories.Deps{})`); được dựng vì có 3 route lẻ file mẫu; `materials` / `reports` import trực tiếp |
 | 6 | files | không có (chỉ `Cfg`) |
 | 7 | materials | users: `Auditor`, `UserReader`, `UserFormatter`; notifications: `Notifier`, `AdminLister`; `Uploader` = `d.Storage` |
@@ -931,11 +1044,15 @@ Hai trường tương ứng KHÔNG nằm trong `users.Deps`. Gọi cả hai tron
 | 11 | estimates | materials: `ProductPerms`; users: `Auditor` |
 | 12 | purchasing | notifications: `PurchaseNotifier`, `Notifier`; users: `UserReader`, `Auditor` |
 | 13 | reports | không có (đọc database trực tiếp, import `categories`) |
-| 14 | jobs | reports: `ReportRunner` |
+| 14 | jobs | reports: `ReportRunner`; companies: `ExpiryReminder` (qua `Server.Reports()` / `Server.Expiry()` trong `cmd/api/main.go`) |
+
+Thứ tự dựng đổi ở M17.3 (notifications lên trước companies); thứ tự trả về của `modules()` không đổi.
 
 ```go
 usersSvc := users.New(users.Deps{DB: d.DB, Cfg: d.Cfg})
-compSvc := companies.New(companies.Deps{DB: d.DB, Cfg: d.Cfg, UserCreator: usersSvc, UserFormatter: usersSvc, Auditor: usersSvc})
+notifSvc := notifications.New(notifications.Deps{DB: d.DB, Cfg: d.Cfg, Users: usersSvc, Auditor: usersSvc})
+compSvc := companies.New(companies.Deps{DB: d.DB, Cfg: d.Cfg, UserCreator: usersSvc, UserFormatter: usersSvc, Auditor: usersSvc,
+    Admins: notifSvc})
 authSvc := auth.New(auth.Deps{DB: d.DB, Cfg: d.Cfg, Users: usersSvc, UserFormatter: usersSvc, Auditor: usersSvc, Companies: compSvc})
 usersSvc.SetCompanyReader(compSvc)
 usersSvc.SetSessionInvalidator(authSvc)
@@ -947,8 +1064,9 @@ Một `*Service` có thể cài nhiều interface (users cài `Auditor`, `UserRe
 
 ## 12. Nối module, tài liệu API và kiểm tra tích hợp
 
-- `internal/server/routes.go` (khối MODULE WIRING) dựng `system` rồi 13 module nghiệp vụ theo đúng thứ tự mục 11.2; `Server.Reports()` trả module reports
-  cho `cmd/api/main.go` bật job nền (`jobs.Start`, tắt bằng `REPORT_JOB=0`, dừng qua `srv.OnShutdown`).
+- `internal/server/routes.go` (khối MODULE WIRING) dựng `system` rồi 13 module nghiệp vụ theo đúng thứ tự mục 11.2; `Server.Reports()` trả module reports,
+  `Server.Expiry()` trả phần nhắc gia hạn của companies, cho `cmd/api/main.go` bật job nền (`jobs.Start`: báo cáo + nhắc gia hạn, tắt cả hai
+  bằng `REPORT_JOB=0`, dừng qua `srv.OnShutdown`).
 - `internal/server/rest.go`: bảng `RestRoutes` (80 hàm rpc -> route REST) và `RootRoutes` (9 route lẻ). Hai bảng này ĐÓNG BĂNG cùng 80 hàm
   của Node; route mới là route chỉ bản Go do module tự khai (dưới đây).
 - `internal/server/swagger.go`: bản chuyển của `server/swagger.js`. `GET /api-docs.json` = spec của Node (80 path `/api/<fn>` + 9 route lẻ,
@@ -956,17 +1074,15 @@ Một `*Service` có thể cài nhiều interface (users cài `Auditor`, `UserRe
   `REST - <Tag> (chỉ bản Go)`) và đoạn cuối `info.description`. `GET /api-docs/` là Swagger UI
   nhúng sẵn (`github.com/swaggo/files/v2`, không gọi CDN). Bật / tắt như Node: `SWAGGER_DOCS=0` tắt, `NODE_ENV=production` cần `SWAGGER_DOCS=1`.
   Image Docker đặt sẵn `NODE_ENV=production` nên trong image tài liệu API mặc định TẮT.
-- Mô tả API nhúng trong `internal/server/apidocs/` (LỊCH SỬ, chỉ áp dụng khi còn app Node, tới commit `83d264e`): trước đây sau khi sửa
-  `server/api-docs.json`, `server/index.js` (REGISTRY) hoặc version của `package.json` thì chạy `node backend/scripts/sync-api-docs.js`,
-  `node backend/tests/fixtures/gen-registry.js`, `node backend/tests/fixtures/gen-swagger.js`. Nay `server/` đã gỡ: các file này
-  ĐÓNG BĂNG, không chạy lại, không sửa tay (mục 12.1); tài liệu route mới sinh từ `GoRoute`.
+- Mô tả API nhúng trong `internal/server/apidocs/`, `tests/fixtures/registry.json` và `swagger-node.json` trước đây được sinh từ bản Node
+  (`sync-api-docs.js`, `gen-registry.js`, `gen-swagger.js`, đã gỡ cùng app Node, tới commit `83d264e`). Nay các file này
+  ĐÓNG BĂNG, không sinh lại, không sửa tay (mục 12.1); tài liệu route mới sinh từ `GoRoute`.
 - Test trong `internal/server/wiring_test.go` (không cần database): `TestRegistryParity` (tên + quyền = REGISTRY / *_FNS của Node),
   `TestRootRoutes`, `TestRestRoutes` (đủ 80 route, route ngoài bảng phải là route chỉ bản Go đã khai, chặn quyền như cổng rpc / theo `Perm`;
   route chỉ bản Go: token đủ quyền không bị middleware chặn),
   `TestGoRoutes` (module giả chỉ có trong test: khai + gắn 3 route chỉ bản Go, có trong tài liệu, chặn quyền; module khai sai bị bắt),
   `TestSwaggerSpecNode` (phần Node giống từng byte; số thao tác REST = 80 + số route chỉ bản Go), `TestSwaggerEnabled`.
   `internal/server/rpc/rpc_test.go`: `TestRegisterGoRoute` (thứ tự, bản sao, panic khi trùng tên / route / tham số, field `path` không có trong `Path`, `Path` có `*`).
-- Kiểm tra hai server đang chạy: `node backend/tests/integration/smoke.js <url go> <url node> <admin> <nhân viên> <mật khẩu>`.
 - Test có database dùng chung `qspro_gotest`: chạy `go test -race -count=1 -p 1 ./...` để các gói không chạy song song trên cùng database
   (chạy song song thỉnh thoảng lệch vì gói này thấy dòng tạm của gói kia).
 
@@ -998,7 +1114,7 @@ App Node đã gỡ khỏi repo (commit cuối còn Node: `83d264e`): mọi fixtu
   `Strip` bỏ khoá ở mọi cấp lồng, nên gọi trên dữ liệu lẫn bảng khác (vd `nguoi_duyet` của sản phẩm / đề xuất / công tác) sẽ che ca vỡ thật.
   Không che ca vỡ vì lý do khác.
 - Thêm khoá chỉ bản Go: ghi vào bảng mục 10.4 (qua steward) cùng lúc với migration / thay đổi kết quả.
-- `tests/e2e/diff` (so Go với Node chạy thật) không chạy được khi không có Node: đóng băng; kịch bản sẽ thấy các khoá mới ở trên.
+- `tests/e2e/diff` (so Go với Node chạy thật) đã gỡ khỏi repo ngày 2026-10-15 vì không chạy được khi không có Node.
 
 **Migrate trước khi chạy bản mới:**
 
@@ -1011,7 +1127,8 @@ App Node đã gỡ khỏi repo (commit cuối còn Node: `83d264e`): mọi fixtu
 
 Đã biết, chưa làm (khác biệt đã chấp nhận nằm ở mục 10, không lặp lại ở đây):
 
-- Nguồn gốc file seed `/tmp/qspro_seed.sql` (trong container `qspro-postgres`) CHƯA RÕ; cần người dựng môi trường đưa file hoặc script sinh vào repo.
+- Nguồn gốc file seed `/tmp/qspro_seed.sql` (trong container `qspro-postgres`) CHƯA RÕ; bản sao bền đã có ở `infra/export/qspro_seed.sql`
+  (cùng md5), chưa có script sinh.
 - Job báo cáo tự động (Node `server/index.js:554-594`, Go `internal/jobs`) chưa có bước so vi sai đầu-cuối: chỉ chạy thứ 4 / thứ 7 sau 8h00 và
   không có cách kích hoạt; cần đồng hồ tiêm vào được ở phía Node. Bộ so vi sai hiện chặn job của Node (mục 10.6).
 - Nhánh chỉ chạy khi database THIẾU CỘT (`nguoi_tao`, `nguoi_sua`, `nhom_bt`, `da_duyet`, `dung_sp_dezon`, `ui_prefs`, `phong_ban`, `perms`,
@@ -1028,14 +1145,13 @@ App Node đã gỡ khỏi repo (commit cuối còn Node: `83d264e`): mọi fixtu
 - Bảng chữ hoa / thường của `categories/template.go`, `materials/service_upload.go`, `reports` (`jsLower`) chưa đối chiếu 27 cặp Unicode 16.
 - Bộ nhớ khi đọc danh mục: mỗi request vẫn cấp phát khoảng 6 lần cỡ thân (mục 10.5); chưa có cache byte đã mã hoá.
 - Truy vấn database và lúc nạp danh mục cột không có hạn thời gian (giống Node); thêm hạn sẽ sinh lỗi mà Node không có.
-- Công cụ đối chiếu với bản Node chỉ còn là LỊCH SỬ vì app Node đã gỡ khỏi repo: `scripts/check-node-sync.sh` (thiếu `server/db-map.json`,
-  luôn in `KHÁC`), `scripts/sync-api-docs.js` (lỗi `ENOENT` `server/index.js`), `scripts/http-diff.sh`, `tests/integration/smoke.js`,
-  `tests/e2e/diff/run.ps1`, `tests/e2e/test-api-go.js` (cần gói `pg`, `bcryptjs` ở `node_modules` gốc), `tests/fixtures/gen-registry.js`,
-  `gen-swagger.js`, `db-diff-node.js` và các `gen*.js` / `noderef.js` trong `testdata/` (trừ `scripts/gen-specs.js`). Chạy lại phải lấy mã Node
-  của commit `83d264e` ra thư mục riêng (xem mục Kiểm thử của `backend/README.md`). Chưa quyết: giữ, xoá, hay viết lại để đọc mã Node qua
-  `git show`; dữ liệu mong đợi đã sinh vẫn trong repo nên `go test` không bị ảnh hưởng.
-- `docs/README.md` ở gốc repo chưa nhắc tới `backend/` (`README.md` gốc và `render.yaml` đã gỡ cùng app Node; ngoài phạm vi sửa của `backend/`;
-  đề xuất 1 dòng mục lục trong `docs/README.md` trỏ tới `backend/README.md`).
-- `backend/migrations/` (0001-0008 và `schema/`) là bản sao cũ giống hệt `infra/db/migrations/`, không còn được dùng (`cmd/migrate` mặc định
-  `../infra/db/migrations`); trái với "một thư mục migration duy nhất". Xoá cần user duyệt.
+- Các mục "so vi sai" ở trên ghi lại giới hạn của bộ so vi sai Node <-> Go đã gỡ; không còn công cụ trong repo để làm tiếp.
+- Đã gỡ khỏi repo ngày 2026-10-15 (chỉ chạy được cùng app Node): `scripts/{check-node-sync.sh,sync-api-docs.js,http-diff.sh,sync-test-sequences.sh}`,
+  `tests/integration/smoke.js`, `tests/e2e/{diff/,diff-db.js,diff-dump.js}`, `tests/fixtures/{gen-registry,gen-swagger,db-diff-node,db-diff-compare}.js`,
+  các `gen*.js` / `noderef.js` / `compare.js` / `xlsx-*.js` trong `internal/**/testdata/` và `users/userstest/diff-node.js`, cùng bản sao
+  `backend/migrations/`. Bản sao để khôi phục: `C:/demo/qs-unused-backup-2026-10-15/` (`MANIFEST.txt`). Dữ liệu mong đợi đã sinh vẫn trong
+  repo nên `go test` không bị ảnh hưởng. Còn giữ: `scripts/gen-specs.js`, `tests/e2e/test-api-go.js` (cần gói `pg`, `bcryptjs` cài riêng,
+  xem `backend/README.md`), `tests/fixtures/jsref.js`, `quotations/testdata/gen-case.js`.
+- `docs/README.md` ở gốc repo chưa nhắc tới `backend/` (`README.md` gốc đã có bảng thư mục trỏ tới `backend/README.md`; `render.yaml` đã gỡ
+  cùng app Node; ngoài phạm vi sửa của `backend/`; đề xuất 1 dòng mục lục trong `docs/README.md` trỏ tới `backend/README.md`).
 - `docs/PORTING_MAP.md` vẫn là bảng làm việc tiếng Anh (đã ghi rõ ở đầu file).

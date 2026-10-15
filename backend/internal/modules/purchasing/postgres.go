@@ -29,14 +29,6 @@ func (r *pgRepo) InsertOrderItems(ctx context.Context, rows []*omap.Map) error {
 	return err
 }
 
-func (r *pgRepo) DeleteOrder(ctx context.Context, maDon any) error {
-	if _, err := r.db.Remove(ctx, tblDonCT, database.Eq("ma_don", maDon)); err != nil {
-		return err
-	}
-	_, err := r.db.Remove(ctx, tblDon, database.Eq("ma_don", maDon))
-	return err
-}
-
 func (r *pgRepo) OrdersOfProject(ctx context.Context, maDA any) ([]*omap.Map, error) {
 	return r.db.Select(ctx, tblDon, database.SelectOpt{Filter: database.Eq("ma_du_an", maDA), Order: "ngay_gui.desc"})
 }
@@ -59,6 +51,11 @@ func (r *pgRepo) UpdateOrderStatus(ctx context.Context, maDon any, from string, 
 	return len(upd), err
 }
 
+func (r *pgRepo) PatchOrder(ctx context.Context, maDon any, patch *omap.Map) error {
+	_, err := r.db.Update(ctx, tblDon, database.Eq("ma_don", maDon), patch)
+	return err
+}
+
 func (r *pgRepo) InsertProposal(ctx context.Context, row *omap.Map) error {
 	_, err := r.db.InsertOne(ctx, tblDeXuat, row)
 	return err
@@ -66,11 +63,6 @@ func (r *pgRepo) InsertProposal(ctx context.Context, row *omap.Map) error {
 
 func (r *pgRepo) InsertProposalItems(ctx context.Context, table string, rows []*omap.Map) error {
 	_, err := r.db.Insert(ctx, table, rows)
-	return err
-}
-
-func (r *pgRepo) DeleteProposal(ctx context.Context, ma any) error {
-	_, err := r.db.Remove(ctx, tblDeXuat, database.Eq("ma_de_xuat", ma))
 	return err
 }
 

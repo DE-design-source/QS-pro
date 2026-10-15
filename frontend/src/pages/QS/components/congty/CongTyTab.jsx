@@ -9,6 +9,7 @@ import { qsToast, qsAsk } from '../common/dialogs'
 import QsIcon from '../common/QsIcon'
 import CongTyForm from './CongTyForm'
 import ReportCard from './ReportCard'
+import ExpiryCard from './ExpiryCard'
 import { CT_FEATURES, ngayConLai } from '../admin/adminUtil'
 import '../admin/admin.css'
 import './congty.css'
@@ -17,7 +18,8 @@ import './congty.css'
    Port PUB/congty.js: renderCongTy 8-80, ctViewAs 82-87, ctCreate/ctEdit 88-89, ctDelete 259-267.
    Tải lại danh sách mỗi lần tab được mở (visibleSeq); "Xem dữ liệu" đổi công ty xem (x-view-company) qua setViewAs của phiên,
    phiên nạp lại dữ liệu rồi tăng visibleSeq nên danh sách tự tải lại.
-   Thẻ báo cáo sản phẩm nhập mới (ReportCard, M18.1) là con thứ 4, nằm ngoài phần tải lại nên giữ kết quả chạy thử. */
+   Thẻ báo cáo sản phẩm nhập mới (ReportCard, M18.1) là con thứ 4, nằm ngoài phần tải lại nên giữ kết quả chạy thử.
+   Thẻ nhắc gia hạn (ExpiryCard, M17.3 - giả định) là con thứ 5, cũng nằm ngoài phần tải lại. */
 export default function CongTyTab() {
   const { visibleSeq, panelVisible } = useQs()
   const { isSuper, viewAs, setViewAs } = useQsSession()
@@ -65,6 +67,7 @@ export default function CongTyTab() {
       {st.phase === 'ready' ? null : <div className="qsa-empty" style={{ padding: 26 }}>{st.phase === 'error' ? st.err : 'Đang tải…'}</div>}
       {formEl}
       {isSuper ? <ReportCard /> : null}
+      {isSuper ? <ExpiryCard /> : null}
     </div>
   )
 }

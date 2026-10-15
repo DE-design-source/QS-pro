@@ -79,13 +79,19 @@ func (s *Service) RegisterRPC(reg *rpc.Registry) {
 		return s.ImportGated(ctx, a, args.ArgU(0))
 	})
 	reg.Register("requestDeleteProducts", rpc.Login, func(ctx context.Context, a *actor.Actor, args rpc.Args) (any, error) {
-		return s.RequestDeleteProducts(ctx, a, args.ArgU(0))
+		return s.RequestDeleteProducts(ctx, a, args.ArgU(0), args.ArgU(1))
 	})
 	reg.Register("listDeleteRequests", rpc.Admin, func(ctx context.Context, a *actor.Actor, _ rpc.Args) (any, error) {
 		return s.ListDeleteRequests(ctx, a)
 	})
 	reg.Register("resolveDeleteRequest", rpc.Admin, func(ctx context.Context, a *actor.Actor, args rpc.Args) (any, error) {
-		return s.ResolveDeleteRequest(ctx, a, args.ArgU(0), args.ArgU(1))
+		return s.ResolveDeleteRequest(ctx, a, args.ArgU(0), args.ArgU(1), args.ArgU(2))
+	})
+	// Route chỉ bản Go (roadmap M10.1): tạo bản sao riêng từ sản phẩm kho chung Dezon.
+	reg.RegisterGoRoute(rpc.GoRoute{
+		Name: "copySharedProduct", Method: "POST", Path: "/products/:key/private-copy", Perm: rpc.Login, Tag: "Sản phẩm",
+		Summary: "Tạo bản sao riêng (Chưa duyệt, không combo / biến thể) của sản phẩm kho chung Dezon cho công ty mình -> {ok, id, ma, ten}",
+		Fields:  []rpc.GoField{{Name: "key", In: "path", Type: "string", Required: true, Desc: "id dòng của sản phẩm trong kho chung Dezon"}},
 	})
 }
 
@@ -136,6 +142,11 @@ func (s *Service) RegisterRoutes(v1 *gin.RouterGroup) {
 		r, err := s.GetProductHistory(ctx(c), c.Param("key"))
 		response.Result(c, r, err)
 	})
+	// route chỉ bản Go (M10.1), khai ở RegisterRPC
+	p.POST("/:key/private-copy", login, func(c *gin.Context) {
+		r, err := s.CopySharedProduct(ctx(c), actor.FromGin(c), c.Param("key"))
+		response.Result(c, r, err)
+	})
 
 	v1.POST("/product-approvals", login, func(c *gin.Context) {
 		r, err := s.SetSpDuyetGated(ctx(c), actor.FromGin(c), bodyVal(c, "keys"), bodyVal(c, "approve"))
@@ -168,7 +179,7 @@ func (s *Service) RegisterRoutes(v1 *gin.RouterGroup) {
 
 	d := v1.Group("/product-delete-requests")
 	d.POST("", login, func(c *gin.Context) {
-		r, err := s.RequestDeleteProducts(ctx(c), actor.FromGin(c), bodyVal(c, "items"))
+		r, err := s.RequestDeleteProducts(ctx(c), actor.FromGin(c), bodyVal(c, "items"), bodyVal(c, "lyDo"))
 		response.Result(c, r, err)
 	})
 	d.GET("", admin, func(c *gin.Context) {
@@ -176,7 +187,7 @@ func (s *Service) RegisterRoutes(v1 *gin.RouterGroup) {
 		response.Result(c, r, err)
 	})
 	d.POST("/:id/resolve", admin, func(c *gin.Context) {
-		r, err := s.ResolveDeleteRequest(ctx(c), actor.FromGin(c), c.Param("id"), bodyVal(c, "approve"))
+		r, err := s.ResolveDeleteRequest(ctx(c), actor.FromGin(c), c.Param("id"), bodyVal(c, "approve"), bodyVal(c, "lyDo"))
 		response.Result(c, r, err)
 	})
 }

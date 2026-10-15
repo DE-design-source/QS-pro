@@ -94,7 +94,7 @@ func runCase(d *DB, ctx context.Context, c *omap.Map) ([]*omap.Map, error) {
 }
 
 // dumpCases chạy mọi ca trong tests/fixtures/db-diff-cases.json, trả mỗi ca 1 dòng "tên<TAB>json"
-// (cùng định dạng với tests/fixtures/db-diff-node.js).
+// (cùng định dạng với tests/fixtures/db-diff-golden.txt do bản Node sinh).
 func dumpCases(t *testing.T, d *DB) string {
 	raw, err := os.ReadFile("../../../tests/fixtures/db-diff-cases.json")
 	if err != nil {

@@ -3,6 +3,8 @@
 > **Cập nhật 2026-10-12:** đề xuất này ĐÃ được triển khai trên database local `qspro_en2`, có điều chỉnh. Cấu trúc đang chạy: [schema-hien-hanh.md](schema-hien-hanh.md). Những gì đã làm và khác gì so với bản dưới đây: [ket-qua-trien-khai.md](ket-qua-trien-khai.md). Nội dung bên dưới là bản đề xuất gốc, giữ lại để tra lý do.
 >
 > **Cập nhật 2026-10-15 (migration 0009-0011, không đổi quan hệ / khoá ngoại):** `purchase_orders` + `resolver_name`, `resolved_at` (người và lúc duyệt / từ chối đơn, M15.1); `delete_requests` + `resolution_note` (lý do từ chối, M15.2), `note` = lý do xoá do người gửi nhập (thôi DEPRECATED); `projects` + `current_condition` (hiện trạng in ở tờ bìa, M8.3). Chi tiết cột: [data-dictionary.md](data-dictionary.md).
+>
+> **Cập nhật 2026-10-15 (migration 0014, thêm 1 quan hệ):** bảng mới `user_sessions` (phiên đăng nhập, M1.2) - `users ||--o{ user_sessions : "user_id CASCADE"`; không có `company_id` (bảng hệ thống xuyên công ty). Chi tiết: [schema-hien-hanh.md](schema-hien-hanh.md), [data-dictionary.md](data-dictionary.md).
 
 - Sơ đồ 1 vẽ từ catalog thật của `qspro_en` ngày 2026-10-12 (25 khoá ngoại trong `pg_constraint`) cộng các quan hệ logic đã xác minh trong code nhưng chưa có khoá ngoại.
 - Sơ đồ 2 là schema **đề xuất** ([proposed-schema.md](proposed-schema.md)), chưa tồn tại.

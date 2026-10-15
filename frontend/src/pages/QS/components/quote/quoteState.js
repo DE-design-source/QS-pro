@@ -89,19 +89,40 @@ export async function coverEnsure(maDA, force) {
   }
 }
 /* coverLuu_: gom thay đổi trong 0,6 s; mỗi lúc CHỈ 1 lần ghi (máy chủ "chèn mới rồi xoá cũ" - 2 lần ghi chồng nhau làm
-   tờ bìa nhân đôi); đang ghi mà có thay đổi mới thì ghi tiếp 1 lần khi xong. Nhớ đúng dự án lúc sửa. */
-let cvT = null; let cvCho = null; let cvDang = false
-export function coverLuu_() {
+   tờ bìa nhân đôi); đang ghi mà có thay đổi mới thì ghi tiếp 1 lần khi xong. Nhớ đúng dự án lúc sửa.
+   Lưu lỗi (vd chi phí âm -> 400) mà không còn sửa mới chờ ghi: báo lỗi rồi ô quay về bản đã lưu trên máy chủ (coverVeBanLuu_).
+   xong(maDA, ok): gọi khi có kết quả cuối (không còn sửa mới chờ ghi) - tab dùng để hoàn tác "sửa tay". */
+let cvT = null; let cvCho = null; let cvDang = false; let cvXong = null
+export function coverLuu_(xong) {
   const ma = getState().cur && getState().cur.maDA; if (!ma) return
   cvCho = ma; clearTimeout(cvT)
+  if (xong) cvXong = xong
   cvT = setTimeout(function chay() {
     if (cvDang) { cvT = setTimeout(chay, 300); return }
     const m = cvCho; cvCho = null
     const c = getState().cur
     if (!m || !c || c.maDA !== m || coverOf().maDA !== m) return
     cvDang = true
-    api.saveCover(m, coverOf().rows).catch(e => toast('Lỗi lưu tờ bìa: ' + e.message)).then(() => { cvDang = false })
+    api.saveCover(m, coverOf().rows).then(() => true, e => { toast('Lỗi lưu tờ bìa: ' + e.message); return false }).then(ok => {
+      cvDang = false
+      if (cvCho) return // còn sửa mới chờ ghi: lần ghi sau quyết định
+      const f = cvXong; cvXong = null
+      if (f) f(m, ok)
+      if (!ok) coverVeBanLuu_(m)
+    })
   }, 600)
+}
+/* coverVeBanLuu_: lưu tờ bìa lỗi -> nạp lại bản đã lưu trên máy chủ (chưa lưu lần nào thì là bản dựng từ mẫu, như lúc mở tab)
+   để ô không giữ số vừa bị từ chối. Bỏ khi đã đổi dự án, đang ghi, hoặc có sửa mới chờ ghi (kể cả sửa trong lúc đang nạp). */
+export async function coverVeBanLuu_(maDA) {
+  const conDung = () => !cvCho && !cvDang && getState().cur && getState().cur.maDA === maDA && coverOf().maDA === maDA
+  if (!conDung()) return false
+  try {
+    const cv = (await api.getCoverOrInit(maDA)) || []
+    if (!conDung()) return false
+    setCoverRows(maDA, cv)
+    return true
+  } catch (e) { return false }
 }
 /* coverSave / doExport: huỷ lần lưu đang chờ trước khi ghi tay */
 export function coverCancelPending() { clearTimeout(cvT); cvCho = null }

@@ -177,3 +177,11 @@
 .qsq-ver-b .qsd-pg{margin:0 auto 16px;}
 .qs-qt-ed-table.detail td textarea{field-sizing:content; resize:none; overflow:hidden;}
 html[data-theme="dark"] .qsq-pgr button.on{background:var(--dash-accent); border-color:var(--dash-accent);}
+/* Ô "Hiện trạng" ở đầu tờ bìa (M8.3): textarea để giữ xuống dòng như hộp Thông tin dự án; cùng dáng ô input bên cạnh */
+.qs-qt-ed-field textarea.qsq-ht{width:100%; min-width:0; min-height:36px; padding:8px 12px; border:1px solid transparent; border-radius:4px; background:none; color:var(--text); font:inherit; font-size:13px; line-height:1.4; outline:none; resize:vertical;}
+.qs-qt-ed-field textarea.qsq-ht:hover{border-color:var(--border);}
+.qs-qt-ed-field textarea.qsq-ht:focus{border-color:var(--dash-accent); background:var(--surface);}
+/* Dòng chỉ đọc "Đơn giá phần thô / m² đất (giả định)" (M6.1) dưới dòng TỔNG của bảng tính diện tích */
+.qs-qt-area.qsq-areatbl tr.qsq-dgpt td{background:var(--surface); color:var(--text); font-size:12.5px; cursor:help; border-top:1px dashed var(--border);}
+.qs-qt-area.qsq-areatbl tr.qsq-dgpt td i{color:var(--text-muted); font-weight:400;}
+.qsq-hint[data-dgpt-note]{margin-top:4px;}

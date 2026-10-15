@@ -2,7 +2,7 @@
    ctBulkEditRun_ / ctDeleteBulk_; PUB/sanpham.js:1209-1254 ptOvrSave / ptResetOvr_ / ptBulkAdd_, 1309-1323 ptExportXlsx).
    Ghi CSDL qua useCongTac (congTacActions: gọi API, kiểm kết quả, nạp lại cache); chữ thông báo giữ như bản gốc. */
 import { congTacActions } from '../../../state/useCongTac'
-import { ctOf_, ptBase_, ptOvrSet_ } from '../../../lib/phantho.js'
+import { ctOf_, ptBase_, ptOvrSet_, ctThuTuIn_ } from '../../../lib/phantho.js'
 import { ptN, ptMoneyN_ } from '../../../lib/format.js'
 import { downloadPost } from '../../../api/files'
 import { qsToast, qsConfirm } from '../../common/dialogs'
@@ -67,11 +67,24 @@ export async function ctDeleteBulk_(rows) {
   catch (e) { if (!isAuth(e)) qsToast('Lỗi: ' + msg(e)) }
 }
 
+/* Ô Thứ tự (M5.3): chỉ công tác CSDL; số nguyên không âm, gửi kèm đủ trường như các ô khác (ctPatchOf_). Máy chủ bỏ duyệt khi sửa. */
+async function ctThuTuSave_(r, raw) {
+  const c = ctOf_(r.a)
+  if (!c) { qsToast('Chỉ sửa được thứ tự của công tác đã lưu trong cơ sở dữ liệu'); return false }
+  const v = ctThuTuIn_(raw)
+  if (v === '' || v === null) { qsToast('Thứ tự phải là số nguyên không âm'); return false }
+  const patch = ctPatchOf_(c); patch.thuTu = v
+  try { await congTacActions.ctUpdate(c.id, patch) }
+  catch (x) { if (!isAuth(x)) qsToast('Lỗi lưu: ' + msg(x)); return false }
+  qsToast('Đã lưu thứ tự ' + v + ' — thư viện sắp lại theo số này')
+  return true
+}
 /* Sửa 1 ô của bảng ở chế độ Edit (ptOvrSave): công tác CSDL -> lưu thẳng; bản dựng sẵn -> giá sửa tay qs_ptovr.
    Trả true nếu đã lưu, false nếu lỗi (ô trả lại giá trị cũ). */
 export async function ptOvrSave(r, e, raw) {
   const f = e.f
   raw = String(raw || '').trim()
+  if (f === 'thuTu') return ctThuTuSave_(r, raw)
   const v = e.money ? (raw === '' ? '' : ptMoneyN_(raw)) : (['kl', 'dt', 'hs'].indexOf(f) >= 0 ? (raw === '' ? '' : ptN(raw)) : raw)
   const c = ctOf_(r.a)
   if (c) {                                   // công tác trong CSDL -> lưu thẳng

@@ -5,6 +5,7 @@ import { isAbort } from '../../api/http'
 import { useQsStore, refreshNotifCount, isAdminRole_, showTab } from '../../state/store'
 import { qsToast } from '../common/dialogs'
 import QsIcon from '../common/QsIcon'
+import { EXPIRY_SHOW_EVENT } from '../common/ExpiryBanner'
 import { fmtDateTime_ } from '../admin/adminUtil'
 import './notifications.css'
 
@@ -13,7 +14,11 @@ import './notifications.css'
    Mở chuông -> tải 30 thông báo mới nhất. Bấm 1 thông báo -> đánh dấu đã đọc và mở đúng đối tượng:
      purchase_* : Admin -> tab Admin + chi tiết đơn ({purDetail}); người khác -> tab Mua hàng
      delete_*   : Admin -> tab Admin + làm nổi yêu cầu ({highlightDrq}); người khác -> Danh sách SP
+     de_xuat*   : Admin -> tab Admin + chi tiết phiếu ({dxDetail}); người khác -> tab Mua hàng + chi tiết phiếu ({dxDetail},
+                  đọc qua GET /my-proposals/:code - chỉ phiếu của chính mình) (M13.1)
      sp_edit*   : Danh sách SP tìm mã và mở sản phẩm ({spSearch, openFirst})
+     expiry_*   : nhắc gia hạn công ty (M17.3, chỉ bản Go; chỉ admin nhận) -> tab Admin và hiện lại dải nhắc gia hạn
+                  (common/ExpiryBanner, sự kiện EXPIRY_SHOW_EVENT) - thẻ Thông tin công ty chưa có hạn dùng
    Props cố định: {} (Batch 0). */
 export default function NotificationBell() {
   const unread = useQsStore(s => s.notifUnread)
@@ -51,12 +56,21 @@ export default function NotificationBell() {
       else { showTab('muahang'); qsToast(refId ? ('Đơn ' + refId) : 'Mở tab Mua hàng') }
       return
     }
+    if (/^de_xuat/.test(kind)) {
+      if (!refId) { showTab(isAdmin ? 'admin' : 'muahang'); return }
+      showTab(isAdmin ? 'admin' : 'muahang', { dxDetail: refId })
+      return
+    }
     if (/^delete_/.test(kind)) {
       if (isAdmin) showTab('admin', { highlightDrq: refId })
       else { showTab('sanpham'); qsToast('Yêu cầu xoá sản phẩm ' + (kind === 'delete_approved' ? 'đã được duyệt' : kind === 'delete_rejected' ? 'bị từ chối' : 'đang chờ duyệt')) }
       return
     }
-    if (/^sp_edit/.test(kind)) { showTab('sanpham', refId ? { spSearch: refId, openFirst: true } : undefined) }
+    if (/^sp_edit/.test(kind)) { showTab('sanpham', refId ? { spSearch: refId, openFirst: true } : undefined); return }
+    if (/^expiry_/.test(kind)) {
+      if (isAdmin) { showTab('admin'); window.dispatchEvent(new Event(EXPIRY_SHOW_EVENT)) }
+      else qsToast('Liên hệ quản trị hệ thống để gia hạn')
+    }
   }
 
   function markAll(e) {
@@ -87,8 +101,8 @@ export default function NotificationBell() {
 
 function NotifItem({ n, onClick }) {
   const k = n.kind || ''
-  const cls = /_approved$/.test(k) ? 'ok' : (/_rejected$/.test(k) ? 'no' : 'req')
-  let ic = /^purchase_/.test(k) ? 'cart' : (/^delete_/.test(k) ? 'trash' : (/^sp_edit/.test(k) ? 'edit' : 'bell'))
+  const cls = /_approved$/.test(k) ? 'ok' : (/_rejected$/.test(k) ? 'no' : (/^expiry_/.test(k) ? 'warn' : 'req'))
+  let ic = /^purchase_/.test(k) ? 'cart' : (/^delete_/.test(k) ? 'trash' : (/^de_xuat/.test(k) ? 'gauge' : (/^sp_edit/.test(k) ? 'edit' : (/^expiry_/.test(k) ? 'clock' : 'bell'))))
   if (/_approved$/.test(k)) ic = 'check'; else if (/_rejected$/.test(k)) ic = 'x'
   return (
     <div className={`qsn-item${n.read ? '' : ' unread'}`} title="Bấm để xem chi tiết" onClick={onClick}>

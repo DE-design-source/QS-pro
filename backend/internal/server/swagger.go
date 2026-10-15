@@ -2,7 +2,7 @@ package server
 
 // Tài liệu API (Swagger UI) - bản chuyển của server/swagger.js:  GET /api-docs  (spec thô: /api-docs.json).
 //   - Danh sách hàm + quyền lấy từ registry của bản Go; mô tả tham số lấy từ apidocs/api-docs.json
-//     (bản chép của server/api-docs.json, cập nhật bằng scripts/sync-api-docs.js).
+//     (bản chép của server/api-docs.json, đóng băng từ khi gỡ app Node).
 //   - Phần /api/<fn> và 9 route lẻ dựng giống hệt bản Node; bản Go thêm các route REST /api/v1.
 //   - Giao diện Swagger UI nhúng sẵn trong file chạy (github.com/swaggo/files/v2), không gọi CDN.
 

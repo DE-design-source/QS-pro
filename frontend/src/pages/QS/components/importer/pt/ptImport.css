@@ -65,3 +65,13 @@ html[data-theme="dark"] .qsip-prev b{color:var(--text);}
 .qsip-ghck.qsi-ghck{margin:0 0 10px;}
 .qsi-pc-tag.qsip-kt{margin-left:4px; background:#e0f2fe; color:#075985;}
 html[data-theme="dark"] .qsi-pc-tag.qsip-kt{background:var(--dash-accent-tint); color:var(--dash-accent);}
+/* Nhập công tác từ file (PtFileImport, M5.1) */
+.qsip-pick{cursor:pointer;}
+.qsip-pick.dis{opacity:.6; pointer-events:none;}
+.qsip-fmsg{margin-top:12px; padding:10px 12px; border:1px solid var(--border); border-radius:9px; background:var(--dash-soft); font-size:12.5px; line-height:1.5; color:var(--text);}
+.qsip-fmsg.ok{border-color:#9fd3b3; background:var(--success-tint);}
+.qsip-fmsg.warn{border-color:#f1c27d; background:rgba(245,158,11,.08);}
+.qsip-fmsg.err{border-color:#f0b4b4; background:rgba(229,72,77,.07); color:#b42318;}
+html[data-theme="dark"] .qsip-fmsg.err{color:#ff8a8a;}
+.qsip-fmsg ul{margin:6px 0 0; padding-left:18px;}
+.qsip-fmsg li{margin:2px 0;}

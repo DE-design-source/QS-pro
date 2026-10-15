@@ -14,9 +14,10 @@ import { donGiaCK_, ttBan_ } from '../../lib/calc.js'
 import {
   bgOptSet_ as bgOptNew_, bgToggleAn_, bgMauDat_ as bgMauChon_, coverTayMap_, bgOpt_, coverEditVal_, coverAddBig_, coverAddSmall_,
   coverCosts, coverHasChild, areaSetVal_, areaCompute_, areaApplyFields_, bgChot_ as bgChotNew_, bgTong_, computeQuoteLocal,
-  bgSelCodes_, bgPTSecs_, bgNoiBoXuat_, bgAn_, bgSub_, bgOrg_, bgHist_,
+  bgSelCodes_, bgPTSecs_, bgNoiBoXuat_, bgAn_, bgSub_, bgOrg_, bgHist_, bgTongKetData_,
 } from '../../lib/quote.js'
-import { getQ, setQ, setCoverRows, coverLuu_, coverCancelPending, setColOrder } from './quoteState'
+import { exportBaoGiaOpts, logoXuat_ } from './quoteApi'
+import { getQ, setQ, setCoverRows, coverLuu_, coverCancelPending, coverVeBanLuu_, setColOrder } from './quoteState'
 import { freshModel } from './quoteModel'
 import { bgDocCols_, bgExportCols_ } from './docModel'
 import { bgDocCss_, printCss_ } from './docCss'
@@ -59,27 +60,42 @@ function coverRowsOfCur() {
   const q = getQ(); const c = curNow()
   return c && q.cover.maDA === c.maDA ? q.cover.rows : null
 }
+/* "Sửa tay" bật do sửa chi phí kể từ lần lưu tờ bìa có kết quả gần nhất: {maDA, cu: {stt: trạng thái trước khi sửa}}.
+   Lưu lỗi -> ô quay về số đã lưu trên máy chủ (coverVeBanLuu_) và nhãn tay / tự cộng cũng trả về như trước khi sửa. */
+let tayCu = { maDA: '', cu: {} }
+function coverLuuXong_(ma, ok) {
+  const t = tayCu; tayCu = { maDA: '', cu: {} }
+  if (ok || t.maDA !== ma || !curNow() || curNow().maDA !== ma) return
+  let tay = bgOpt_(pdNow().bgCfg).tay; let doi = false
+  Object.keys(t.cu).forEach(stt => { if (!!tay[stt] !== t.cu[stt]) { tay = coverTayMap_({ tay }, stt, t.cu[stt]); doi = true } })
+  if (doi) bgOptSet('tay', tay)
+}
 export function coverEdit(i, field, value) {
   const rows = coverRowsOfCur(); if (!rows || !rows[i]) return
+  const ma = curNow().maDA
   const nr = rows.slice(); const c = { ...nr[i] }
   c[field] = coverEditVal_(field, value)
   nr[i] = c
-  setCoverRows(curNow().maDA, nr)
-  if (field === 'chiPhi') coverTaySet(c.stt, true)
-  coverLuu_()
+  setCoverRows(ma, nr)
+  if (field === 'chiPhi') {
+    if (tayCu.maDA !== ma) tayCu = { maDA: ma, cu: {} }
+    if (!Object.prototype.hasOwnProperty.call(tayCu.cu, c.stt)) tayCu.cu[c.stt] = !!bgOpt_(pdNow().bgCfg).tay[c.stt]
+    coverTaySet(c.stt, true)
+  }
+  coverLuu_(coverLuuXong_)
 }
 export function coverDel(i) {
   const rows = coverRowsOfCur(); if (!rows) return
   const nr = rows.slice(); nr.splice(i, 1)
-  setCoverRows(curNow().maDA, nr); coverLuu_()
+  setCoverRows(curNow().maDA, nr); coverLuu_(coverLuuXong_)
 }
 export function coverAddBig() {
   const rows = coverRowsOfCur(); if (!rows) return
-  setCoverRows(curNow().maDA, rows.concat([coverAddBig_(rows)])); coverLuu_()
+  setCoverRows(curNow().maDA, rows.concat([coverAddBig_(rows)])); coverLuu_(coverLuuXong_)
 }
 export function coverAddSmall() {
   const rows = coverRowsOfCur(); if (!rows) return
-  setCoverRows(curNow().maDA, rows.concat([coverAddSmall_(rows)])); coverLuu_()
+  setCoverRows(curNow().maDA, rows.concat([coverAddSmall_(rows)])); coverLuu_(coverLuuXong_)
 }
 export async function coverReload() {
   const ma = curNow() && curNow().maDA; if (!ma) return
@@ -95,9 +111,10 @@ export async function coverSave() {
   try {
     coverCancelPending()
     const cv = await api.saveCover(ma, rows)
+    coverLuuXong_(ma, true)
     if (!curNow() || curNow().maDA !== ma) return
     setCoverRows(ma, cv || rows); toast('Đã lưu tờ bìa')
-  } catch (e) { toast('Lỗi: ' + e.message) }
+  } catch (e) { toast('Lỗi: ' + e.message); coverLuuXong_(ma, false); coverVeBanLuu_(ma) }
 }
 /* Ô thông tin dự án trên tờ bìa (maBaoGia, khachHang, quyMo, tongDT, nhuCau, dtBaoGia, phanKhuc) */
 export function coverInfo(field, value) {
@@ -200,7 +217,15 @@ export async function doExport(fmt, lech) {
     const tong = [['Cộng (chưa VAT)', t.sub]]
     if (t.ck) tong.push(['Chiết khấu' + (o.ckKieu === 'pct' ? ' ' + o.ck + '%' : ''), -t.ck], ['Sau chiết khấu', t.sau])
     tong.push(['VAT ' + t.vatPct + '%', t.vat], ['TỔNG THANH TOÁN', t.total])
-    const r = await api.exportBaoGia(ma0, cols, 'xlsx', nodes, pt, an, tong, bgOrg_(m.ctx.congTy, m.ctx.bgOrg).ten)
+    /* opts (M8.1, M8.2, M8.3): bố cục tờ bìa, công ty, tổng kết lấy đúng từ các hàm của bản xem trước (bgOrg_, bgTongKetData_
+       trên cùng tổng t) nên chữ / số trong Excel trùng trang in */
+    const org = bgOrg_(m.ctx.congTy, m.ctx.bgOrg)
+    const opts = {
+      coverMau: m.ui.coverMau === 'm1' ? 'm1' : 'm2',
+      org: { ten: org.ten, logo: logoXuat_(org.logo), lines: org.lines },
+      tongKet: bgTongKetData_(t, m.ctx.bgCfg, getState().me),
+    }
+    const r = await exportBaoGiaOpts(ma0, cols, 'xlsx', nodes, pt, an, tong, org.ten, opts)
     saveBase64(r)
     if (curNow() && curNow().maDA === ma0) bgChot('excel')       // chỉ ghi phiên bản khi file đã xuất xong
     toast('Đã xuất Excel · ' + cols.length + ' cột' + (nodes.length ? (' · ' + nodes.length + ' hạng mục') : '') + (pt.length ? ' · kèm phần thô' : ''))

@@ -69,6 +69,20 @@ export function reportClientError(msg, src, tab) {
 let currentTab = ''
 export function setErrorTab(t) { currentTab = t || '' }
 
+/* ---- Phiên bản máy chủ (M1.1, port banMoi_ PUB/app.js:30-38): header x-app-ver của mọi response /api/v1.
+   Nhớ giá trị ĐẦU TIÊN thấy được; response sau mang giá trị khác = máy chủ vừa deploy bản mới -> báo cho dải nhắc.
+   Giữ ở cấp module (không theo phiên đăng nhập) như S._appVer của bản gốc: rời /qs rồi quay lại vẫn còn. ---- */
+let appVer = ''
+const verSubs = new Set()
+export function noteAppVer(v) {
+  if (!v) return
+  if (!appVer) { appVer = v; return }
+  if (v === appVer) return
+  // Bản gốc: đã đóng dải (✕) mà response sau vẫn khác -> hiện lại; báo mọi lần lệch, dải tự bỏ qua khi đang hiện
+  verSubs.forEach(fn => { try { fn(v) } catch (e) { /* bỏ qua */ } })
+}
+export function onNewAppVer(fn) { verSubs.add(fn); return () => verSubs.delete(fn) }
+
 function buildUrl(path, query) {
   let url = API_BASE + '/api/v1' + path
   if (query) {
@@ -79,6 +93,15 @@ function buildUrl(path, query) {
     if (qs) url += '?' + qs
   }
   return url
+}
+
+/* Trang đang tải lại / rời đi (pagehide): trình duyệt cắt các fetch đang dở -> fetch hỏng (thành 'Không kết nối được')
+   hoặc đọc thân hỏng (thành 'HTTP 200'). Đó là huỷ, không phải lỗi: tái hiện bằng Playwright tải lại liên tục
+   (scripts/d13-projects/reload-check.cjs), mọi lỗi đều rơi SAU pagehide. pageshow (về từ bfcache) thì bỏ cờ. */
+let roiTrang = false
+if (typeof window !== 'undefined') {
+  window.addEventListener('pagehide', () => { roiTrang = true })
+  window.addEventListener('pageshow', () => { roiTrang = false })
 }
 
 /* request(method, path, {body, query, signal}) -> result (đã bóc {ok,result}) */
@@ -95,13 +118,14 @@ export async function request(method, path, opts = {}) {
       signal,
     })
   } catch (e) {
-    if (isAbort(e) || (signal && signal.aborted)) throw new QsAbortError()
+    if (isAbort(e) || (signal && signal.aborted) || roiTrang) throw new QsAbortError()
     throw new QsUnreachableError()
   }
+  noteAppVer(res.headers.get('x-app-ver'))
   let d
   try { d = await res.json() } catch (e) {
-    // huỷ giữa lúc đang tải thân (rời /qs) không phải lỗi 'HTTP 200'
-    if (isAbort(e) || (signal && signal.aborted)) throw new QsAbortError()
+    // huỷ giữa lúc đang tải thân (rời /qs, tải lại trang) không phải lỗi 'HTTP 200'
+    if (isAbort(e) || (signal && signal.aborted) || roiTrang) throw new QsAbortError()
     d = null
   }
   if (d && d.code === 'NOAUTH') throw noAuth()

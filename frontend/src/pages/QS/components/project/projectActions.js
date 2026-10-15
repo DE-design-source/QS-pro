@@ -148,13 +148,15 @@ export async function saveProjectShared(f) {
   } catch (e) { if (!isAuth(e)) toast('Lỗi: ' + errMsg(e)); return false }
 }
 
-/* Lưu thông tin của riêng bản nháp đang mở */
-export async function saveDraftInfo(f) {
+/* Lưu thông tin của riêng bản nháp đang mở. hienTrang (M8.3, cột chỉ bản Go) chỉ gửi khi khác giá trị đang có (cu = dự án
+   lúc mở form): máy chủ chỉ ghi cột này khi có khoá, nên lưu bản nháp không đụng tới nó khi người dùng không sửa. */
+export async function saveDraftInfo(f, cu) {
   const S = getState(); if (!S.cur) return false
   const data = {
     tenBanNhap: f.tenBanNhap, trangThai: f.trangThai, vat: Number(f.vat) || 0, maBaoGia: f.maBaoGia, quyMo: f.quyMo,
     tongDT: f.tongDT, dtBaoGia: f.dtBaoGia, nhuCau: f.nhuCau, phanKhuc: f.phanKhuc, ghiChu: f.ghiChu,
   }
+  if (f.hienTrang != null && String(f.hienTrang) !== String((cu && cu.hienTrang) || '')) data.hienTrang = String(f.hienTrang)
   try { await updateProject(S.cur.maDA, data); toast('Đã lưu bản nháp'); return true } catch (e) { if (!isAuth(e)) toast('Lỗi: ' + errMsg(e)); return false }
 }
 

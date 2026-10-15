@@ -8,9 +8,11 @@ import { DX_TEN_, dxStatusCls_ } from '../../lib/purchase'
 import { fmtDateTime_ } from './purchaseUi'
 
 /* Chi tiết phiếu đề xuất #dxOv (port dxDetail / dxDetailHtml_, PUB/muahang.js:392-450).
-   Lấy phiếu từ danh sách của dự án (đã có items) [F7]; không có mới gọi getDeXuat (chỉ Admin).
-   Props: ma, list (phiếu của dự án đang mở), onClose(), onResolve(ma, approve) (đã đóng hộp trước, như bản gốc). */
-export default function ProposalDetail({ ma, list, onClose, onResolve }) {
+   Lấy phiếu từ danh sách của dự án (đã có items) [F7]; không có thì Admin gọi getDeXuat, người khác gọi getMyDeXuat
+   (route chỉ bản Go GET /my-proposals/:code - chỉ phiếu của chính mình, M13.1: mở từ thông báo de_xuat*).
+   Nút Duyệt / Từ chối chỉ hiện cho Admin (máy chủ chỉ cho Admin duyệt).
+   Props: ma, list (phiếu của dự án đang mở), isAdmin, onClose(), onResolve(ma, approve) (đã đóng hộp trước, như bản gốc). */
+export default function ProposalDetail({ ma, list, isAdmin, onClose, onResolve }) {
   const [st, setSt] = useState(() => {
     const o = (list || []).filter(r => r.ma === ma)[0]
     return o ? { o } : { loading: true }
@@ -19,13 +21,14 @@ export default function ProposalDetail({ ma, list, onClose, onResolve }) {
   useEffect(() => {
     if (!st.loading) return undefined
     const ctl = new AbortController()
-    api.getDeXuat(ma, ctl.signal)
+    const load = isAdmin ? api.getDeXuat : api.getMyDeXuat
+    load(ma, ctl.signal)
       .then(o => setSt({ o }))
       .catch(e => { if (!isAbort(e)) setSt({ err: e.message }) })
     return () => ctl.abort()
-    // chỉ tải 1 lần khi mở
+    // chỉ tải 1 lần khi mở (st.loading chặn tải lại)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ma])
+  }, [ma, isAdmin])
 
   useEffect(() => {
     const k = e => { if (e.key === 'Escape') onClose() }
@@ -36,7 +39,7 @@ export default function ProposalDetail({ ma, list, onClose, onResolve }) {
   let body
   if (st.loading) body = <div className="qs-po-dx-empty">Đang tải…</div>
   else if (st.err != null) body = <div className="qs-po-dx-empty">Lỗi tải phiếu: {st.err}</div>
-  else body = <DetailBody o={st.o || {}} onResolve={(approve) => { onClose(); onResolve(st.o.ma, approve) }} />
+  else body = <DetailBody o={st.o || {}} canResolve={!!isAdmin} onResolve={(approve) => { onClose(); onResolve(st.o.ma, approve) }} />
 
   return (
     <MrootPortal>
@@ -53,7 +56,7 @@ export default function ProposalDetail({ ma, list, onClose, onResolve }) {
   )
 }
 
-function DetailBody({ o, onResolve }) {
+function DetailBody({ o, canResolve, onResolve }) {
   const scls = dxStatusCls_(o.status)
   const isCK = o.loai !== 'tt'
   const info = (k, v) => (v ? <div className="qs-po-dx-i" key={k}><span>{k}</span><b>{v}</b></div> : null)
@@ -113,7 +116,7 @@ function DetailBody({ o, onResolve }) {
       </div>
       <div className="qs-po-dx-tblwrap"><table className="qs-po-dx-tbl"><thead>{head}</thead><tbody>{rows}</tbody></table></div>
       <div className="qs-po-dx-tot">{tot}</div>
-      {o.status === 'Chờ duyệt' && (
+      {canResolve && o.status === 'Chờ duyệt' && (
         <div className="qs-po-dx-act">
           <button type="button" className="qsc-btn qs-po-danger" onClick={() => onResolve(false)}>Từ chối</button>
           <button type="button" className="qsc-btn blue" onClick={() => onResolve(true)}><Icon name="check" size={15} /> Duyệt phiếu</button>

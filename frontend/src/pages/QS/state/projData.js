@@ -93,7 +93,8 @@ export async function projDataLoad_(maDA) {
     if (d.ptInfo == null && inf && typeof inf === 'object' && Object.keys(inf).length) { projDataSet_('ptInfo', inf); day.push('thông tin công tác') }
     if (day.length) toast('Đã đưa ' + day.join(' · ') + ' lên máy chủ — từ giờ máy khác cũng xem được')
   } catch (e) {
-    try { console.error('getProjData', e) } catch (x) { /* bỏ qua */ }   // tải lỗi: pdOk vẫn null -> không lưu đè
+    // tải lỗi: pdOk vẫn null -> không lưu đè; huỷ (tải lại trang giữa lúc nạp) không ghi lỗi console
+    if (!isAbort(e)) try { console.error('getProjData', e) } catch (x) { /* bỏ qua */ }
     // Báo lỗi cho giao diện (status.pdErr) thay vì để "Đang tải…" mãi; huỷ do rời trang thì không phải lỗi
     const S2 = getState()
     if (!isAbort(e) && S2.cur && S2.cur.maDA === maDA) setState({ pdErr: { maDA, msg: 'Không tải được dữ liệu dự án: ' + String((e && e.message) || e) } })

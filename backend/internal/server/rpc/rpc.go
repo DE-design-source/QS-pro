@@ -279,6 +279,9 @@ func (r *Registry) Handle(sessions middleware.SessionResolver, appVer string) gi
 		}
 		// ---- Xác thực & phân quyền ----
 		a := middleware.ActorOf(c, sessions)
+		if c.IsAborted() { // kho phiên hỏng (vd chưa chạy migration 0014): ActorOf đã trả 500 kèm thông báo
+			return
+		}
 		if e.perm&Public == 0 {
 			if st, msg, code := middleware.Deny(a, e.perm&Admin != 0, e.perm&Super != 0); st != 0 {
 				response.Fail(c, st, msg, code)

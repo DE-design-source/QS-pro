@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"io"
 	"net/http/httptest"
 	"os"
@@ -17,6 +18,7 @@ import (
 	"qspro-backend/internal/middleware"
 	"qspro-backend/internal/server/rpc"
 	"qspro-backend/internal/shared/actor"
+	apperr "qspro-backend/internal/shared/errors"
 	"qspro-backend/internal/shared/jsval"
 	"qspro-backend/internal/shared/omap"
 )
@@ -232,6 +234,18 @@ func TestRESTRoutes(t *testing.T) {
 		strings.TrimSpace(w.Body.String()) != `{"error":"(rows || []).map is not a function"}` {
 		t.Errorf("PUT cover sai kiểu: %d %s", w.Code, w.Body.String())
 	}
+	// chi phí âm -> 400 tiếng Việt, không ghi gì (tờ bìa vẫn là bản save-2)
+	for body, want := range map[string]string{
+		`{"rows":[{"stt":"1","hangMuc":"a","chiPhi":5},{"stt":"1.1","hangMuc":"âm","chiPhi":-5}]}`: `{"error":"Chi phí dự kiến không được âm (mục 1.1)."}`,
+		`{"rows":[{"hangMuc":"âm","chiPhi":"-12,5"}]}`:                                             `{"error":"Chi phí dự kiến không được âm (dòng 1)."}`,
+	} {
+		if w := do(e, "PUT", "/api/v1/projects/ZZ_quotations_P1/cover", body, true); w.Code != 400 || strings.TrimSpace(w.Body.String()) != want {
+			t.Errorf("PUT cover chi phí âm: %d %s", w.Code, w.Body.String())
+		}
+	}
+	if w := do(e, "GET", "/api/v1/projects/ZZ_quotations_P1/cover", "", true); strings.TrimSpace(w.Body.String()) != golden("save-2") {
+		t.Errorf("GET cover sau PUT chi phí âm phải giữ bản cũ: %d %.300s", w.Code, w.Body.String())
+	}
 	w = do(e, "POST", "/api/v1/projects/ZZ_quotations_P1/quotation/export", `{"cols":[{"key":"ten"},{"key":"thanhTienBan"}],"tong":[["Cộng",1]],"org":"Cty"}`, true)
 	if w.Code != 200 {
 		t.Fatalf("POST quotation/export: %d %.300s", w.Code, w.Body.String())
@@ -258,5 +272,24 @@ func TestRESTRoutes(t *testing.T) {
 	defer f.Close()
 	if got := strings.Join(f.GetSheetList(), "|"); got != "Tờ bìa|Tổng cộng|3.2 Phần hoàn thiện|3.2.4|3.2.4.1|3.2.40|3.2.8.2" {
 		t.Errorf("danh sách sheet: %s", got)
+	}
+}
+
+// doiLoiChiPhiAm chỉ đổi lỗi ràng buộc chi phí; lỗi trước đó (dự án mất / khác công ty) giữ nguyên như rpc.
+func TestDoiLoiChiPhiAm(t *testing.T) {
+	am := []any{omap.Of("stt", " ", "chiPhi", -1e-9)}
+	ck := errors.New(`DB POST khai_toan -> 409 {"code":"23514","message":"violates check constraint \"ck_cost_estimate_lines_cost\""}`)
+	if got := doiLoiChiPhiAm(ck, am); got == nil || got.Error() != "Chi phí dự kiến không được âm (dòng 1)." {
+		t.Errorf("lỗi ràng buộc: %v", got)
+	}
+	mat := apperr.New(apperr.DAMat)
+	if got := doiLoiChiPhiAm(mat, am); got != mat {
+		t.Errorf("dự án mất phải giữ nguyên: %v", got)
+	}
+	if got := doiLoiChiPhiAm(nil, am); got != nil {
+		t.Errorf("không lỗi: %v", got)
+	}
+	if got := doiLoiChiPhiAm(ck, []any{omap.Of("chiPhi", 0)}); got != ck {
+		t.Errorf("không tìm được dòng âm phải giữ lỗi gốc: %v", got)
 	}
 }

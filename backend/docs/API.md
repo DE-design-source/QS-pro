@@ -26,7 +26,8 @@ Response (luôn kèm header `x-app-ver`):
 |---|---|---|
 | Thành công | 200 | `{"ok":true,"result":<giá trị>}` (hàm không trả gì -> `null`) |
 | Tên hàm không có | 404 | `{"error":"Không hỗ trợ hàm: <tên>"}` |
-| Chưa đăng nhập / token sai / tài khoản bị khoá | 401 | `{"error":"Chưa đăng nhập","code":"NOAUTH"}` |
+| Chưa đăng nhập / token sai / tài khoản bị khoá / phiên đã đăng xuất hoặc bị thu hồi (M1.2) | 401 | `{"error":"Chưa đăng nhập","code":"NOAUTH"}` |
+| Database chưa chạy migration 0014 (thiếu bảng phiên) và request có token | 500 | `{"error":"Cơ sở dữ liệu chưa có bảng \"user_sessions\" (phiên đăng nhập, migration 0014). Hãy chạy \"go run ./cmd/migrate\" rồi khởi động lại server."}` |
 | Hàm chỉ Admin | 403 | `{"error":"Không có quyền (chỉ Admin)"}` |
 | Hàm chỉ quản trị hệ thống | 403 | `{"error":"Chỉ quản trị hệ thống"}` |
 | Hàm báo lỗi | 500 | `{"error":"<thông báo>"}` (không có thông báo -> `Lỗi máy chủ`) |
@@ -34,6 +35,28 @@ Response (luôn kèm header `x-app-ver`):
 | Thân JSON quá 30 MB | 413 | trang lỗi HTML (`Payload Too Large`) |
 
 Cổng này LUÔN trả 500 cho lỗi của hàm, kể cả khi service trả lỗi có mã 4xx.
+
+### Phiên đăng nhập (M1.2)
+
+Áp dụng như nhau cho `/api/<fn>`, `/api/v1` và route lẻ cần đăng nhập (`/export/*`, `/upload/file`).
+
+- `login` mở một phiên (1 dòng bảng `user_sessions`, migration 0014) và trả token có thêm khoá `sid` (id phiên) trong payload.
+  Token vẫn sống 7 ngày; phiên hết hạn cùng lúc.
+- Mỗi request: token đúng chữ ký + chưa hết hạn + tài khoản / công ty còn mở + **phiên còn dòng và chưa quá hạn**. Kết quả giữ
+  30 giây trong bộ nhớ của tiến trình (như trước), nhưng đăng xuất / đổi mật khẩu / admin đặt lại mật khẩu bỏ cache ngay trên
+  tiến trình xử lý.
+- `logout` xoá đúng phiên của token đang gửi: request kế tiếp bằng token đó -> 401 `NOAUTH`. Phiên ở máy / trình duyệt
+  khác của cùng tài khoản vẫn chạy.
+- `changePassword` thu hồi mọi phiên KHÁC của tài khoản; phiên đang dùng giữ nguyên.
+- Khoá tài khoản / đổi vai trò / đổi công ty / xoá tài khoản: có hiệu lực ngay như trước (bỏ cache). Khoá KHÔNG xoá phiên:
+  mở khoá lại thì token cũ dùng tiếp (giữ hành vi bản Node). Xoá tài khoản xoá luôn phiên (khoá ngoại `ON DELETE CASCADE`).
+- Admin đặt lại mật khẩu (`adminSetPassword`, `PUT /users/:id/password`) thu hồi MỌI phiên của tài khoản đó (mật khẩu cũ có thể
+  đã lộ: khoá -> đặt lại mật khẩu -> mở khoá thì token kẻ gian đang giữ không dùng tiếp được). Admin tự đặt lại cho chính mình
+  thì giữ phiên đang dùng, các phiên khác bị thu hồi.
+- Token phát trước 0014 (không có `sid`) bị từ chối: 401 `NOAUTH`, người dùng đăng nhập lại một lần sau khi nâng cấp.
+- Chạy nhiều tiến trình server: tiến trình khác có thể còn nhận token đã đăng xuất tối đa 30 giây (cache cục bộ).
+- Database chưa chạy 0014: đăng nhập và mọi request có token trả 500 kèm thông báo đích danh ở bảng trên (không phải 401 mù mờ).
+  Phải chạy `go run ./cmd/migrate` TRƯỚC khi chạy bản server có M1.2.
 
 ### Quyền của từng hàm (theo `server/index.js`)
 
@@ -54,9 +77,11 @@ Chỉ bản Go có. Cùng cách xác thực (`Authorization: Bearer <token>`, `x
 - thành công: `{"ok":true,"result":...}`
 - lỗi: `{"error":"...","code":"..."}`; mã HTTP lấy từ lỗi của service (4xx nếu service đặt), lỗi thường là 500
 - chưa đăng nhập 401 `{"error":"Chưa đăng nhập","code":"NOAUTH"}`; sai quyền 403 như cổng rpc
-- response REST KHÔNG có header `x-app-ver` (chỉ cổng `/api/:fn` gắn header này)
+- mọi response REST (kể cả 401 / 403 và 404 khi đường dẫn `/api/v1/...` không có route) có header `x-app-ver`, cùng giá trị với cổng `/api/:fn` (`RENDER_GIT_COMMIT`, không đặt thì là thời điểm khởi động);
+  giao diện React QS so giá trị này để nhắc "Đã có bản cập nhật mới" (M1.1). Khi bật `CORS_ORIGINS`, header nằm trong `Access-Control-Expose-Headers`
 
 Mỗi route gọi đúng phương thức service mà hàm rpc tương ứng gọi, nên kết quả và quy tắc nghiệp vụ giống nhau.
+Ngoại lệ: `PUT /projects/:id/cover` đổi lỗi chi phí âm thành 400 tiếng Việt (mục 2.1); rpc `saveCover` vẫn trả lỗi ràng buộc DB (500) như Node.
 
 Quy ước truyền tham số:
 
@@ -176,24 +201,23 @@ Từ khi gỡ app Node, tính năng mới KHÔNG thêm hàm `POST /api/<tênHàm
 func (s *Service) RegisterRPC(reg *rpc.Registry) {
     // ... các reg.Register(...) cũ giữ nguyên ...
     reg.RegisterGoRoute(rpc.GoRoute{
-        Name: "productPrivateCopy", Method: "POST", Path: "/products/:key/private-copy", Perm: rpc.Login,
-        Tag: "Sản phẩm", Summary: "Chép sản phẩm kho chung sang công ty mình",
+        Name: "copySharedProduct", Method: "POST", Path: "/products/:key/private-copy", Perm: rpc.Login,
+        Tag: "Sản phẩm", Summary: "Tạo bản sao riêng của sản phẩm kho chung Dezon cho công ty mình -> {ok, id, ma, ten}",
         Fields: []rpc.GoField{
-            {Name: "key", In: "path", Desc: "Khoá sản phẩm"},
-            {Name: "ghiChu", In: "body", Type: "string", Desc: "Ghi chú (tuỳ chọn)"},
+            {Name: "key", In: "path", Type: "string", Required: true, Desc: "id dòng của sản phẩm trong kho chung Dezon"},
         },
     })
 }
 
 func (s *Service) RegisterRoutes(v1 *gin.RouterGroup) {
     v1.POST("/products/:key/private-copy", middleware.RequireLogin(), func(c *gin.Context) {
-        r, err := s.PrivateCopy(c.Request.Context(), actor.FromGin(c), c.Param("key"), middleware.BodyMap(c))
+        r, err := s.CopySharedProduct(c.Request.Context(), actor.FromGin(c), c.Param("key"))
         response.Result(c, r, err)
     })
 }
 ```
 
-(Ví dụ minh hoạ cách khai; tên hàm service là giả định.)
+(Rút gọn từ route M10.1 thật, `internal/modules/materials/handler.go`: module gắn route trên nhóm `/products` của nó.)
 
 - `GoField.In`: `path` | `query` | `body` (body = một khoá của thân JSON object); `Type` là kiểu OpenAPI, bỏ trống được.
   Tham số đường dẫn không khai trong `Fields` vẫn được ghi vào tài liệu (kiểu `string`); field `In: "path"` luôn bắt buộc
@@ -211,7 +235,76 @@ func (s *Service) RegisterRoutes(v1 *gin.RouterGroup) {
 - Cột database mới: chạy `go run ./cmd/migrate` TRƯỚC khi chạy bản server mới (server không tự migrate). Lệnh ghi cột mới là lệnh RIÊNG,
   chạy sau lệnh chính; gặp lỗi `42703` (database chưa migrate) thì ghi log và bỏ qua, không làm hỏng thao tác chính.
 
-Route chỉ bản Go hiện có: chưa có (các đơn vị của backlog sẽ thêm; danh sách đầy đủ luôn ở `/api-docs.json`, nhóm `(chỉ bản Go)`).
+Route chỉ bản Go hiện có (danh sách đầy đủ luôn ở `/api-docs.json`, nhóm `(chỉ bản Go)`):
+
+| Method | Đường dẫn | `Name` | `Perm` | Module | Ý nghĩa |
+|---|---|---|---|---|---|
+| `GET` | `/my-proposals/:code` | `getMyDeXuat` | `rpc.Login` | purchasing | Chi tiết phiếu đề xuất của chính mình (M13.1) |
+| `POST` | `/work-items/import/parse` | `ctImportParse` | `rpc.Login` | estimates | Đọc file nhập công tác -> `{rows, loi}` (M5.1) |
+| `POST` | `/products/:key/private-copy` | `copySharedProduct` | `rpc.Login` | materials | Tạo bản sao riêng từ sản phẩm kho chung Dezon (M10.1) |
+| `POST` | `/companies/expiry-reminders` | `nhacGiaHan` | `rpc.Super` | companies | Nhắc gia hạn công ty trong ứng dụng: chạy thử / gửi tay (M17.3) |
+
+`GET /my-proposals/:code` (tag "Mua hàng"):
+- admin / super: như `GET /proposals/:code` (`getDeXuat`) - mọi phiếu của công ty; không có -> `Không tìm thấy đề xuất`.
+- người khác: chỉ phiếu có `requester_id` = uid của phiên; không có HOẶC của người khác -> `Không tìm thấy phiếu` (cùng một câu, không lộ
+  phiếu của người khác có tồn tại). Lỗi nghiệp vụ trả HTTP 500 như mọi lỗi `apperr` khác, không phải 404.
+- Kết quả = đúng object của `getDeXuat` (đầu phiếu + `items`). `GET /proposals/:code` vẫn chỉ Admin (nhân viên 403).
+
+`POST /work-items/import/parse` (tag "Công tác"): quyền như `ctSave` (`spPerms.edit`, không có -> `Tài khoản không có quyền thêm dữ liệu`,
+HTTP 500 như `ctSave`). Thân `{base64: string (bắt buộc), ext: "xlsx" | "csv" (mặc định xlsx)}` -> `{rows: [...], loi: [{dong, msg, ten, row}]}`.
+Máy chủ KHÔNG ghi gì; lưu vẫn qua `POST /work-items` (`ctSave`).
+- Chỉ đọc sheet đầu (`qscore.SheetRows`, cùng bộ đọc với `importParse`). Dòng tiêu đề tìm trong 15 dòng đầu, so không phân biệt hoa thường
+  và khoảng trắng (chuẩn hoá NFC). 16 cột của file mẫu `/mau-nhap-cong-tac.xlsx`: Nội dung công việc->`ten`, Hạng mục->`hangMuc`,
+  Số hạng mục->`maNhom`, Loại báo giá->`loai`, Cách tính->`mode`, ĐVT->`dvt`, Khối lượng->`kl`, Diện tích->`dt`, Hệ số->`hs`,
+  Nhà thầu->`ncc`, Giá bán lẻ->`dg`, Đơn giá nhà thầu->`dgnt`, Ghi chú->`gc`, Thông số kỹ thuật->`thongSo`, Phạm vi ứng dụng->`phamVi`,
+  Ảnh->`hinhAnh`. Cột "Thứ tự"->`thuTu` tuỳ chọn (file mẫu không có): số nguyên ≥ 0, sai thì vào `loi`.
+- Loại báo giá: Khái toán chi tiết / Khái toán sơ bộ / Dự toán · Nhân công / Dự toán · Vật tư; Cách tính: Khối lượng × đơn giá /
+  Diện tích × hệ số / Chỉ tính khối lượng / Chỉ liệt kê. Hai cột này cũng nhận thẳng mã (`kt_chitiet`, `item`...). Ô trống ->
+  `kt_chitiet` / `item`. Nhãn lạ -> `loi`, trường đó để trống trong `row`.
+- Bỏ qua: dòng không có tên, dòng có cột A bắt đầu "Ghi chú:" mà các ô khác trống (dòng 5 của file mẫu). Thiếu Hạng mục -> `loi`.
+  Tối đa 2000 công tác; quá số đó thêm 1 `loi` không kèm `row`.
+- Số (`kl`, `dt`, `hs`, `dg`, `dgnt`): ô số của xlsx giữ nguyên; chuỗi (mọi ô CSV, ô chữ xlsx) đọc kiểu VN như form (`qscore.N`):
+  `"450.000"` = 450000, `"1.234,5"` = 1234.5; bỏ khoảng trắng và đuôi đ / ₫ / vnđ / vnd; `1.2E+03` đọc như số JS; ô trống -> `""`.
+  Chữ khác -> `"<Tiêu đề cột> 'abc' không phải số"`; số âm -> `"<Tiêu đề cột> '-5' không được âm"` (ràng buộc `ck_work_items_* >= 0`); ô sai
+  để `""` trong `row`.
+- `dong` = số dòng thật trong file, tính cả dòng trống xen giữa (xlsx: `<row r>` của sheet đầu; CSV: đếm cả dòng trống và ô xuống dòng
+  trong ngoặc kép).
+- Lỗi file trả HTTP 400: `Chưa có nội dung file`, `Không tìm thấy dòng tiêu đề có cột 'Nội dung công việc' - hãy dùng file mẫu`,
+  `File không có sheet dữ liệu`, `Không đọc được file Excel (.xlsx) - file hỏng hoặc không phải .xlsx. ...`, `Không đọc được file CSV - ...`.
+
+`POST /products/:key/private-copy` (tag "Sản phẩm", `materials/service_private_copy.go` `CopySharedProduct`). Thân: không có (bỏ qua).
+Kết quả `{ok: true, id, ma, ten}` (`id` = id dòng mới). Lỗi nghiệp vụ trả HTTP 500 `{error}` như mọi lỗi `apperr.New` của module.
+- `:key` = id dòng (toàn chữ số) của sản phẩm trong kho chung Dezon (`recordId` của dòng `spChung` trong `GET /products`). Mã SP không dùng
+  làm khoá (nhiều biến thể cùng mã); khoá không phải số -> `Không tìm thấy sản phẩm trong kho chung`.
+- Quyền = `canTab('sanpham')` của giao diện, làm lại ở máy chủ (GIẢ ĐỊNH M10.1): super được; công ty có danh sách tính năng (`tinh_nang`)
+  mà thiếu `sanpham` -> không ai được (kể cả admin); admin được; nhân viên cần `SpPerms.edit` VÀ tab `sanpham` trong perms. Không đủ ->
+  `Tài khoản không có quyền thêm dữ liệu`. Điều kiện này chỉ có ở route này: `createProductGated` / `importGated` / `updateProductGated`
+  không xét tab hay tính năng.
+- Công ty hiện hành không bật `dung_sp_dezon` / chính là Dezon / super không xem công ty nào -> `Công ty chưa được dùng kho chung Dezon`.
+- Đọc `db_san_pham` (noScope) `id=:key` và `cong_ty_id` = id Dezon; không có -> `Không tìm thấy sản phẩm trong kho chung`.
+- Dòng mới chép mọi cột có giá trị TRỪ `id`, `cong_ty_id`, `da_duyet`, `nguoi_duyet`, `ngay_duyet`, `nguoi_tao`, `ngay_tao`, `nguoi_sua`,
+  `ngay_cap_nhat`, `nhom_bt`, `gia_dai_ly` (cột sinh); công ty = công ty hiện hành, `da_duyet` mặc định false (Chưa duyệt), `nguoi_tao` /
+  `ngay_tao` = người chép (như `SaveDbProduct`, cùng nhánh thiếu cột). Không chép combo, biến thể (`nhom_bt`), yêu thích.
+- Trùng mã SP + trục biến thể (`nhiet_do_mau_k`, `cong_suat_w`, `goc_chieu_deg`, `mau_sac`, thêm `kich_thuoc` khi ngành vs / son hoặc có
+  `kich_thuoc`; ngành trống thì suy từ hạng mục như `SaveDbProduct`; `''` = null) trong công ty hiện hành -> `Công ty bạn đã có sản phẩm mã <mã>`,
+  không ghi gì. Hai yêu cầu cùng qua phép kiểm thì lần chèn sau vấp unique index (23505) và trả đúng câu đó. SP kho chung không có mã thì
+  không kiểm trùng.
+- Ghi thêm: lịch sử `db_san_pham_history` trường `SAO CHÉP TỪ KHO DEZON` (`<tên> (từ SP #<key> kho Dezon) (bởi <user>)`); nhật ký
+  `sao_chep_sp_dezon`; xoá cache danh mục. Sau đó `GET /products` của công ty trả bản riêng và ẩn dòng kho chung trùng ĐỦ khoá kiểm trùng ở
+  trên (khác Node, `ARCHITECTURE.md` mục 10.4). Bản sao sửa / xoá / duyệt như sản phẩm thường.
+
+`POST /companies/expiry-reminders` (tag "Công ty", `companies/expiry.go`; không có hàm `/api/:fn` tương ứng, parity 80 hàm giữ nguyên):
+- Thân `{dryRun?: boolean}`. CHỈ gửi thật khi `dryRun === false` (boolean); thiếu `dryRun`, thân rỗng / `{}` / không phải object, hay
+  giá trị khác (vd chuỗi `"false"`) = CHẠY THỬ: không gửi, không ghi gì.
+- Quét mọi công ty `active` khác false có `han_dung` trong [hôm nay, hôm nay + 30] (giờ VN), không giới hạn số dòng.
+- Kết quả `{dryRun, ngay: "YYYY-MM-DD" (giờ VN), soCongTy (số công ty tới mốc chưa nhắc), soThongBao (số thông báo đã gửi),
+  ds: [{id, ten, hanDung, conLai, moc, mocCu, soAdmin, canGui, daGui, loi?}]}`, `ds` sắp theo `conLai` tăng dần. `mocCu` null khi chưa nhắc
+  hoặc giá trị cũ ngoài tập {30,14,7,3,1,0}. `loi` có thể là `Không gửi được thông báo: ...` (mốc đã được trả lại, lần sau gửi lại),
+  `Chỉ gửi được k/n admin: ...` (giữ mốc), `Không ghi được mốc, chưa gửi: ...`, `Không đọc được danh sách admin`.
+- Thông báo kind `expiry_notice` cho mỗi admin đang hoạt động (role admin, active) của công ty: tiêu đề `Công ty sắp hết hạn sử dụng`
+  (ngày 0: `Công ty hết hạn hôm nay`), thân `Gói của <tên> hết hạn ngày dd/mm/yyyy (còn N ngày). Liên hệ quản trị hệ thống để gia hạn.`,
+  `refId` = id công ty. Nhật ký `audit_log` action `nhac_gia_han` (công ty = công ty được nhắc).
+- Job nền gọi cùng hàm lúc 8h05 giờ VN mỗi ngày (`ARCHITECTURE.md` mục 10.4).
 
 Tham số / kiểm tra mới trên route cũ (chỉ bản Go; chi tiết ở `ARCHITECTURE.md` mục 10.4):
 
@@ -220,6 +313,41 @@ Tham số / kiểm tra mới trên route cũ (chỉ bản Go; chi tiết ở `AR
   `Email đã dùng cho tài khoản khác trong công ty`. `POST /users` (`adminCreateUser`) không đổi.
 - `POST /companies`, `PATCH /companies/:id` (`createCongTy`, `updateCongTy`): `mauChinh` khác null phải là `""`, `#RGB` hoặc `#RRGGBB`,
   khác -> `Màu chính phải dạng #RRGGBB`. `createCongTy` không lưu màu (như Node): lưu bằng `updateCongTy` sau khi tạo.
+- `PATCH /companies/:id` (`updateCongTy`), M17.3: patch có `hanDung` thì đọc `cong_ty` trước khi update (lỗi đọc bỏ qua); super đổi `hanDung`
+  sang ngày khác thì một lệnh RIÊNG đặt `nhac_moc` = `nhac_lan_cuoi` = NULL (chỉ khi đang khác null; lỗi chỉ ghi log). Kết quả trả về và
+  nhật ký không đổi.
+- `POST /product-delete-requests` (`requestDeleteProducts`): khoá thân `lyDo` (rpc args[1]), tuỳ chọn. Trim; rỗng / thiếu / không phải chuỗi
+  = không ghi gì (lệnh chèn y như Node). Có chữ: ghi `delete_requests.note` trong CÙNG lệnh chèn và nối `": <lyDo>"` vào thông báo gửi admin.
+  > 500 ký tự (đếm theo ký tự Unicode) -> `Lý do tối đa 500 ký tự`.
+- `POST /product-delete-requests/:id/resolve` (`resolveDeleteRequest`): khoá thân `lyDo` (rpc args[2]), tuỳ chọn, chỉ dùng khi
+  `approve = false`. Có chữ: lệnh RIÊNG (sau lệnh giành quyền) ghi `resolution_note`, lỗi lệnh này (vd 42703 khi chưa chạy 0010) chỉ ghi
+  log; nối `": <lyDo>"` vào thông báo `delete_rejected`. Kiểm độ dài như trên, TRƯỚC khi giành quyền.
+- `GET /product-delete-requests` (`listDeleteRequests`): mỗi dòng nối cuối `lyDo` (cột `note`), `lyDoTuChoi` (cột `resolution_note`).
+- `POST /purchase-orders/:code/resolve` (`resolvePurchaseRequest`): sau khi đổi trạng thái thành công, lệnh RIÊNG ghi `nguoi_duyet`
+  (ho_ten || username của người duyệt; không đọc được tài khoản -> username của phiên) + `ngay_duyet` (ISO). Lỗi chỉ ghi log
+  `[mua hàng] ghi người duyệt lỗi: ...`, việc duyệt vẫn trả `{ok:true}`.
+- `POST /purchase-orders` (`sendPurchaseRequest`): sau khi gửi thẻ Lark, lệnh RIÊNG ghi `ket_qua_gui` = `"ok"` (lark = true) / `"loi"`
+  (webhook lỗi, không có URL, thẻ không dựng được) cho MỌI mã vừa lưu (đè `"pending"` mặc định hoặc `ketQua` client gửi). Lỗi chỉ ghi log
+  `[mua hàng] ghi kết quả gửi Lark lỗi: ...`. Kết quả trả về không đổi.
+- Khoá kết quả mới (nối CUỐI object): `getPurchaseOrders` (`GET /projects/:id/purchase-orders`) `nguoiDuyet`, `ngayDuyet`, `ketQuaGui`
+  (chuỗi, `""` khi null); `getPurchaseOrder` (`GET /purchase-orders/:code`) `kenhGui`, `ketQuaGui`; `listPurchaseRequests`
+  (`GET /purchase-orders`) `resolver`, `resolvedAt` (nguyên dạng, null khi chưa duyệt).
+- `POST /projects/:id/quotation/export` (`exportBaoGia`): khoá thân `opts` (tuỳ chọn; rpc: tham số thứ 9, 8 tham số cũ giữ nguyên thứ tự):
+  `{coverMau: 'm1'|'m2', org: {ten, logo, lines: [string]}, tongKet: {ngay: 'dd/mm/yyyy', hieuLuc: số ngày, dot: [{noiDung, pct, soTien}],
+  ghiChu: [string], nguoi}}`. Client dựng mọi chữ / số bằng đúng hàm của bản xem trước (`bgOrg_`, `bgTongKetData_` trong `lib/quote.js`);
+  máy chủ chỉ in, không tính lại. Có `opts`: tờ bìa có tên + dòng địa chỉ / liên hệ công ty (logo nhúng nếu tải được PNG/JPG qua http(s)
+  hoặc `/media?token=`; SVG, địa chỉ nội bộ, `data:` -> bỏ, không lỗi), dòng "Hiện trạng" (nhiều dòng giữ xuống dòng), Mẫu 1 khi
+  `coverMau='m1'` (6 cột NO | HẠNG MỤC | NỘI DUNG | CHI PHÍ DỰ KIẾN | TỶ TRỌNG | MÔ TẢ, ô NO / HẠNG MỤC gộp dọc theo mục lớn);
+  `cols[i].w` (px) -> bề rộng cột sheet chi tiết (px/7); sheet "Tổng cộng" thêm "Ngày báo giá · Hiệu lực", TIẾN ĐỘ THANH TOÁN, GHI CHÚ &
+  ĐIỀU KHOẢN, Người lập. Giới hạn: chuỗi ≤ 500 ký tự, ≤ 10 dòng công ty, ≤ 20 đợt, ≤ 30 ghi chú, w ≤ 2000 px. Không có `opts` (thiếu / null /
+  không phải object): file giống TỪNG BYTE như trước (`w` trong `cols` bị bỏ qua như Node).
+- `PUT /projects/:id/cover` (`saveCover`): dòng có `chiPhi` < 0 -> HTTP 400 `Chi phí dự kiến không được âm (mục <stt>).`
+  (`(dòng <n>)` khi thiếu stt), không ghi gì. Chỉ route REST; rpc `saveCover` giữ lỗi ràng buộc của DB như Node (golden `save-neg`).
+  Đổi lỗi SAU khi gọi `saveCover` (lỗi ràng buộc `ck_cost_estimate_lines_cost` -> 400) nên thứ tự kiểm giống rpc: dự án không tồn tại /
+  khác công ty vẫn báo `Bản nháp không còn tồn tại...` trước, kể cả khi có chi phí âm.
+- Object dự án (`getProjects`, `getProject`, `createProject`, `updateProject`, `duplicateProject`, `bootstrap.projects`, REST `/projects*`):
+  nối cuối khoá `hienTrang` (cột `projects.current_condition`, migration 0011). `updateProject` chỉ ghi khi client gửi khoá `hienTrang`
+  (kể cả rỗng); `createProject` ghi khi khác rỗng.
 
 Tài liệu Swagger của 80 route cũ là dữ liệu Node đóng băng nên KHÔNG ghi các khoá mới này.
 
@@ -240,6 +368,7 @@ Route lẻ của nghiệp vụ (giữ nguyên đường dẫn của bản Node, 
 | `GET /healthz` | không | `{"ok":true}` |
 
 Route lẻ cần đăng nhập nhận token ở header hoặc `token` trong thân; thiếu thì trả 401 `{"error":"Chưa đăng nhập"}` (không có `code`).
+Token đã đăng xuất / bị thu hồi cũng 401 như vậy (kiểm phiên như mục 1, M1.2).
 
 Tài liệu API (Swagger), bật / tắt như bản Node: `SWAGGER_DOCS=0` tắt; `NODE_ENV=production` thì cần `SWAGGER_DOCS=1` mới bật.
 Image Docker đặt sẵn `NODE_ENV=production`, nên trong image các route dưới đây trả 404 cho tới khi đặt `SWAGGER_DOCS=1`.

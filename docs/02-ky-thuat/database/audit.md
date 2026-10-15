@@ -109,7 +109,7 @@ Các quan hệ còn lại (users->companies, combo->products, tờ bìa->dự á
 | `quotation_lines.line_no` (`stt`) | Luôn bằng `String(sort_order)`; chỉ ghi | `store_supa.js:355,385,319` |
 | `quotation_lines.markup_pct`, `margin_pct`, `profit_amount` | Dẫn xuất, chỉ ghi, không đọc; client tự tính lại | `store_supa.js:362,399` |
 | `quotation_lines.is_manual_entry`, `is_saved_to_catalog` | Luôn 0; client không đọc không ghi | 545/545 dòng bằng 0 |
-| `companies.last_reminder_date`, `reminder_milestone` | Tính năng nhắc hạn đã gỡ khỏi code | commit `42af44d` |
+| `companies.last_reminder_date`, `reminder_milestone` | Tính năng nhắc hạn đã gỡ khỏi code. Cập nhật 2026-10-15: dùng lại cho nhắc gia hạn trong ứng dụng (M17.3, migration 0012), ra khỏi danh sách xoá D-09 | commit `42af44d` |
 | `delete_requests.note`, `product_combos.note`, `favorite_products.product_code` | Không đọc; hai cột đầu cũng không ghi giá trị thật | truy vết code |
 | `work_items.sort_order` (`thu_tu`) | Dùng để sắp xếp nhưng client không bao giờ gửi; luôn 0 | `public/sanpham.js:1230-1234` |
 | Index | 64 index trên 5 MB dữ liệu. Với kích thước này planner chủ yếu quét tuần tự | [query-performance.md](query-performance.md) |

@@ -6,7 +6,8 @@ QS Pro (Dezon Pro): web app bóc tách khối lượng / báo giá, nhiều côn
 Node.js + Express (CommonJS, không TypeScript, không bundler), dữ liệu trên PostgreSQL qua `DATABASE_URL`;
 file ảnh / tài liệu vẫn lưu trên Supabase Storage. Quy tắc chi tiết trong `.claude/rules/` (tự nạp).
 Tên trong code, chú thích, chuỗi giao diện là tiếng Việt: giữ nguyên khi sửa. `export/` chứa dump dữ liệu thật, đã gitignore, không commit.
-Sửa thông số theo ngành (`public/*-spec.js`): dùng skill `thiet-bi-ve-sinh`.
+Sửa thông số theo ngành (`backend/internal/shared/specs/js/*-spec.js`): dùng skill `thiet-bi-ve-sinh`; sửa xong chạy
+`node backend/scripts/gen-specs.js` rồi `go test ./internal/shared/specs ./internal/server` (từ `backend/`).
 
 ## Lệnh
 
@@ -67,9 +68,8 @@ Code chạy ngay lúc nạp chỉ được gọi file nạp trước (`scripts/c
 - Hạ tầng gom ở `infra/`: `infra/db/` (migration, `schema.sql`, `baseline.sql`), `infra/docker/` (Dockerfile bản Go),
   `infra/scripts/` (migrate, sync-from-supabase). `render.yaml` giữ ở gốc vì Render đọc Blueprint ở gốc.
 - Thêm cột / bảng: file mới `infra/db/migrations/NNNN_ten.sql` (không sửa file đã chạy, migrate kiểm checksum)
-  -> `npm run migrate` -> sinh lại `infra/db/schema.sql` -> thêm cặp `"ten_trong_code": "name_in_db"` vào `server/db-map.json`.
-  Bản Node và bản Go dùng CHUNG một thư mục migration; `db-map.json` thì có 2 bản (server/ và backend/internal/platform/database/),
-  kiểm khớp bằng `sh backend/scripts/check-node-sync.sh`.
+  -> `go run ./cmd/migrate` (từ `backend/`) -> sinh lại `infra/db/schema.sql` -> thêm cặp `"ten_trong_code": "name_in_db"` vào
+  `backend/internal/platform/database/db-map.json` (bản duy nhất; bản Node `server/db-map.json` đã gỡ).
 - Bảng con không có `company_id`: công ty lấy qua bảng cha (khoá `tenant` trong `db-map.json`).
 - Quy tắc thiết kế bảng: `docs/02-ky-thuat/database/database-rules.md`. Schema đang chạy: `docs/02-ky-thuat/database/schema-hien-hanh.md`.
 

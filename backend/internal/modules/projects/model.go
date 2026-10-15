@@ -3,11 +3,14 @@ package projects
 import "regexp"
 
 // projMap = PROJ_MAP (store_supa.js:223-226): khoá của client -> cột du_an, giữ đúng thứ tự khoá.
+// hienTrang (cột projects.current_condition, migration 0011, M8.3) là khoá CHỈ BẢN GO, nối cuối: tạo / sửa chỉ ghi khi
+// client gửi khoá này, kết quả dự án có thêm hienTrang (backend/docs/ARCHITECTURE.md 10.4).
 var projMap = [][2]string{
 	{"ten", "ten_du_an"}, {"khachHang", "khach_hang"}, {"diaChi", "dia_chi"}, {"sdt", "sdt"}, {"trangThai", "trang_thai"},
 	{"vat", "vat_pct"}, {"tienDo", "tien_do_pct"}, {"ghiChu", "ghi_chu"}, {"quyMo", "quy_mo"}, {"tongDT", "tong_dt"},
 	{"dtBaoGia", "dt_bao_gia"}, {"nhuCau", "nhu_cau"}, {"phanKhuc", "phan_khuc"}, {"maBaoGia", "ma_bao_gia"},
 	{"nhomTuTao", "nhom_tu_tao"}, {"tangTuTao", "tang_tu_tao"}, {"tenBanNhap", "ten_ban_nhap"}, {"linkDezon", "link_dezon"},
+	{"hienTrang", "hien_trang"},
 }
 
 // projCol: tra nhanh khoá client -> cột.

@@ -12,11 +12,12 @@ import { coSpec_, nganhCuaSP_, prodDocs_ } from '../../../lib/productFields.js'
 import { pdImgs_, pdKeyItems_, pdSpecBlocks_ } from '../../breakdown/catalog/catalogModel'
 import { putCombo } from '../../breakdown/catalog/comboCache'
 import { spKey_ } from './spModel'
-import { spAddToProject, spAddCombo } from './spActions'
+import { spAddToProject, spAddCombo, spPrivateCopy } from './spActions'
 
 /* Modal "Thông tin sản phẩm" của tab Danh sách SP (spModal, PUB/sanpham.js:1827-1848): ảnh + thông số (pdMedia_ / pdSpecs_ /
    pdPriceFoot_, app.js:1076-1282), khối "Sản phẩm đi kèm" ghi vào DỰ ÁN (pdLoadCombo_ / pdComboVe_ / pdCbBoSet_ / pdCbSL_ /
    pdAddCombo_, sanpham.js:1849-1930), ←/→ lật ảnh, Esc đóng (spModalKey_).
+   SP kho chung Dezon (spChung, chỉ xem): nút "Tạo bản sao riêng" (M10.1) chép sang công ty mình rồi mở form sửa bản sao.
    Props: product, specs ({VS_SPEC,...} | null), specErr, canEdit, onClose(), onEdit(product). */
 export default function SpModal({ product, specs, specErr, canEdit, onClose, onEdit }) {
   const p = product || {}
@@ -24,6 +25,7 @@ export default function SpModal({ product, specs, specErr, canEdit, onClose, onE
   const [idx, setIdx] = useState(0)
   const [view, setView] = useState('')
   const [bad, setBad] = useState('')
+  const [pcBusy, setPcBusy] = useState(false)
   const n = imgs.length
   const at = n ? (((idx % n) + n) % n) : 0
   const go = d => { if (n > 1) setIdx(i => (((i + d) % n) + n) % n) }
@@ -50,6 +52,14 @@ export default function SpModal({ product, specs, specErr, canEdit, onClose, onE
   const docs = prodDocs_(p)
   const specMissing = coSpec_(ng) && !specs
   const main = imgs[at]
+
+  async function privateCopy() {
+    if (pcBusy) return
+    setPcBusy(true)
+    let np = null
+    try { np = await spPrivateCopy(p) } finally { setPcBusy(false) }
+    if (np) { onClose(); onEdit(np) }
+  }
 
   return (
     <MrootPortal>
@@ -117,6 +127,12 @@ export default function SpModal({ product, specs, specErr, canEdit, onClose, onE
           <div className="qspl-pd-actions">
             <button type="button" className="qsc-btn" onClick={onClose}>Đóng</button>
             {canEdit && !p.spChung && <button type="button" className="qsc-btn" onClick={() => { onClose(); onEdit(p) }}><QsIcon name="edit" size={14} /> Cập nhật</button>}
+            {canEdit && p.spChung && (
+              <button type="button" className="qsc-btn qspl-pcopy" disabled={pcBusy} onClick={privateCopy}
+                title="Sản phẩm kho chung Dezon chỉ xem — chép thành sản phẩm riêng của công ty bạn để sửa">
+                <QsIcon name="copy" size={14} /> {pcBusy ? 'Đang tạo bản sao…' : 'Tạo bản sao riêng'}
+              </button>
+            )}
             <button type="button" className="qsc-btn blue" onClick={() => spAddToProject(p)}><QsIcon name="plus" size={15} /> Thêm vào dự án</button>
           </div>
         </div>

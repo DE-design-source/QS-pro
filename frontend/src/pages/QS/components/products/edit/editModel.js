@@ -91,7 +91,7 @@ export function btCungMa_(p, btNhom, products){
   return (p&&p.ma)?(products||[]).filter(function(x){ return x.ma===p.ma && String(x.recordId)!==String(p.recordId) && !gom[String(x.recordId)]; }):[];
 }
 export const cbItem_=function(x){ return {recordId:x.recordId, ma:x.ma, ten:x.ten, hinhAnh:x.hinhAnh, donGiaBan:x.donGiaBan, comboSL:x.comboSL||1,
-  comboNguoc:!!x.comboNguoc, comboBoSL:x.comboBoSL}; };
+  comboNguoc:!!x.comboNguoc, comboBoSL:x.comboBoSL, comboGhiChu:String(x.comboGhiChu==null?'':x.comboGhiChu)}; };
 export const btItem_=function(x){ return {recordId:x.recordId, ma:x.ma, ten:x.ten, hinhAnh:x.hinhAnh, donGiaBan:x.donGiaBan,
   congSuat:x.congSuat, nhietDo:x.nhietDo, gocChieu:x.gocChieu, mauSac:x.mauSac, nganh:x.nganh, raw:x.raw}; };
 

@@ -5,7 +5,7 @@ import { money, ptQty } from '../../../lib/format.js'
 import { ctOf_, ptVal_, ptCanEditF_, ptDaCo_ } from '../../../lib/phantho.js'
 import { fmtDateTime_ } from '../list/spModel'
 import { ptLoaiLabel_, ptLoaiNgan_, ptInfo_ } from './ptCore'
-import { ptColW_, ptSelKey_, ptCellEditable_, ptAnh1Raw_ } from './ptModel'
+import { ptColW_, ptSelKey_, ptCellEditable_, ptCellVal_, ptAnh1Raw_ } from './ptModel'
 
 /* Bảng công tác của Danh sách SP chế độ 3.1 - CÙNG khung bảng sản phẩm (markup / lớp qspl-* của list/SpTable): ô tích chọn,
    3 cột đầu đóng băng, kéo đổi chỗ / kéo giãn cột, sửa nhanh, hàng nút thao tác, thanh kéo ngang.
@@ -150,7 +150,8 @@ export default function PtTable({ cols, rows, no0, w, sel, edit, ovr, phanTho, p
               const key = ptSelKey_(r), isSel = !!sel[key]
               const da = ptDaCo_(r.sec, r.a, phanTho)
               return (
-                <tr key={key} className={`qspl-row qsppt-row${da ? ' da' : ''}${isSel ? ' selrow' : ''}${edit ? ' editrow' : ''}`}
+                // khoá React theo id công tác: sửa Thứ tự làm dòng đổi chỗ (si/ii đổi) mà ô đang sửa vẫn đi theo đúng công tác
+                <tr key={(ctOf_(r.a) && ctOf_(r.a).id) || key} className={`qspl-row qsppt-row${da ? ' da' : ''}${isSel ? ' selrow' : ''}${edit ? ' editrow' : ''}`}
                   onClick={edit ? undefined : () => on.open(r)}>
                   <td className="qspl-selcol qspl-frz" style={{ left: 0 }} onClick={e => e.stopPropagation()}>
                     <input type="checkbox" className="qspl-ck" checked={isSel} onChange={e => on.selToggle(key, e.target.checked)} />
@@ -158,7 +159,7 @@ export default function PtTable({ cols, rows, no0, w, sel, edit, ovr, phanTho, p
                   {cols.map((c, k) => (
                     <td key={c.k} className={`${c.cls}${edit && ptCellEditable_(c, r) ? ' edt' : ''}${frzCls(k)}`} style={frz(k)}>
                       {edit && ptCellEditable_(c, r)
-                        ? <PtInp r={r} e={c.e} val={ptVal_(r.sec, r.a, c.e.f, ovr)} save={on.save} />
+                        ? <PtInp r={r} e={c.e} val={ptCellVal_(r, c.e.f, ovr)} save={on.save} />
                         : <Cell c={c} r={r} i={i} no0={no0} ovr={ovr} da={da} projData={projData} on={on} />}
                     </td>
                   ))}
@@ -233,6 +234,7 @@ function Cell({ c, r, i, no0, ovr, da, projData, on }) {
       if (r.sec.mode === 'area') return <span title="Đơn giá chung của cả hạng mục">{money(r.dg)}<span className="unit">đ</span></span>
       return <NumCell r={r} f="dg" isMoney ovr={ovr} />
     case 'gc': return <span className="qsppt-gc">{ptVal_(r.sec, r.a, 'gc', ovr)}</span>
+    case 'thuTu': { const ct = ctOf_(r.a); return ct ? String(Number(ct.thuTu) || 0) : <Dash /> }
     default: return null
   }
 }

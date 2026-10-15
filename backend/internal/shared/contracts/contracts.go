@@ -63,12 +63,17 @@ type UserCreator interface {
 	AdminCreateUser(ctx context.Context, a *actor.Actor, data *omap.Map) (*omap.Map, error)
 }
 
-// SessionInvalidator - chủ: auth. forgetSession_ (A:39).
+// SessionInvalidator - chủ: auth. forgetSession_ (A:39) + thu hồi phiên (M1.2).
 //
-// Xoá mục cache phiên của String(uid) (cache 30 giây của sessionActor). Không đụng database, không lỗi,
+// ForgetSession: xoá mục cache phiên của String(uid) (cache 30 giây của sessionActor). Không đụng database, không lỗi,
 // an toàn khi gọi song song. users gọi sau khi sửa / khoá / xoá tài khoản (A:407, 422, 431).
+//
+// RevokeUserSessions: xoá mọi phiên đăng nhập (bảng phien_dang_nhap) của uid trừ phiên keep ("" -> tất cả) và bỏ cache
+// của chúng -> token đang giữ hết hiệu lực ngay. users gọi sau khi admin đặt lại mật khẩu. Thiếu bảng phiên ->
+// *middleware.SessionStoreError.
 type SessionInvalidator interface {
 	ForgetSession(uid any)
+	RevokeUserSessions(ctx context.Context, uid any, keep string) error
 }
 
 // CompanyReader - chủ: companies. getCongTy (A:107-111), hetHan_ (A:42, dùng todayVN_ A:41).

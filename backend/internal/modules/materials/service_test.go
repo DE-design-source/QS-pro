@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"testing"
 
@@ -454,7 +455,8 @@ func TestRESTRoutes(t *testing.T) {
 		"GET /products/:key/combo", "PUT /products/:key/combo", "GET /products/:key/variants", "PUT /products/:key/variants",
 		"GET /products/:key/history", "POST /product-approvals", "POST /product-favorites", "GET /product-permissions",
 		"POST /uploads/images", "POST /uploads/files-base64", "POST /product-imports/parse", "POST /product-imports/commit",
-		"POST /product-delete-requests", "GET /product-delete-requests", "POST /product-delete-requests/:id/resolve"} {
+		"POST /product-delete-requests", "GET /product-delete-requests", "POST /product-delete-requests/:id/resolve",
+		"POST /products/:key/private-copy"} { // route chỉ bản Go M10.1
 		method, path, _ := strings.Cut(k, " ")
 		want[method+" /api/v1"+path] = true
 	}
@@ -572,5 +574,476 @@ func TestUploadRouteNode(t *testing.T) {
 		if g, w := upNorm(js(got)), js(m.Val("up")); g != w {
 			t.Errorf("%s: kho nhận\n  go:   %s\n  node: %s", name, g, w)
 		}
+	}
+}
+
+// ───────────── M10.1: tạo bản sao riêng từ kho chung Dezon (chỉ bản Go, không có golden Node) ─────────────
+
+// pcRepo: kho giả - Select trả dòng theo hàm sel (bảng, lọc, NoScope), ghi lại mọi lệnh.
+type pcRepo struct {
+	sel    func(table, filter string, noScope bool) []*omap.Map
+	selErr func(table, filter string) error  // nil = không lỗi
+	ins    func(table string, lan int) error // lỗi cho lần InsertOne thứ lan (đếm từ 1) vào bảng; nil = không lỗi
+	nIns   map[string]int
+	calls  []string
+}
+
+func (r *pcRepo) Select(_ context.Context, table string, opt ...database.SelectOpt) ([]*omap.Map, error) {
+	o := database.SelectOpt{}
+	if len(opt) > 0 {
+		o = opt[0]
+	}
+	r.calls = append(r.calls, "select "+table+" "+o.Filter)
+	if r.selErr != nil {
+		if err := r.selErr(table, o.Filter); err != nil {
+			return nil, err
+		}
+	}
+	return r.sel(table, o.Filter, o.NoScope), nil
+}
+func (r *pcRepo) Insert(_ context.Context, table string, rows []*omap.Map, _ ...database.Opt) ([]*omap.Map, error) {
+	r.calls = append(r.calls, "insert "+table+" "+js(rows))
+	return rows, nil
+}
+func (r *pcRepo) InsertOne(_ context.Context, table string, row *omap.Map, _ ...database.Opt) ([]*omap.Map, error) {
+	if r.ins != nil {
+		if r.nIns == nil {
+			r.nIns = map[string]int{}
+		}
+		r.nIns[table]++
+		if err := r.ins(table, r.nIns[table]); err != nil {
+			return nil, err
+		}
+	}
+	r.calls = append(r.calls, "insert "+table+" "+js(row))
+	return []*omap.Map{row.Clone().Set("id", 9001.0)}, nil
+}
+func (r *pcRepo) Update(_ context.Context, table, _ string, _ *omap.Map, _ ...database.Opt) ([]*omap.Map, error) {
+	r.calls = append(r.calls, "update "+table)
+	return nil, nil
+}
+func (r *pcRepo) Remove(_ context.Context, table, _ string, _ ...database.Opt) ([]*omap.Map, error) {
+	r.calls = append(r.calls, "remove "+table)
+	return nil, nil
+}
+
+func (r *pcRepo) ghi() []string {
+	out := []string{}
+	for _, c := range r.calls {
+		if !strings.HasPrefix(c, "select ") {
+			out = append(out, c)
+		}
+	}
+	return out
+}
+
+func TestCopySharedProduct(t *testing.T) {
+	src := omap.Of("id", 55.0, "ma_sp", "DZ-1", "ten_sp", "Đèn Dezon", "cong_ty_id", "dz", "nganh", "den", "nhiet_do_mau_k", "3000K",
+		"cong_suat_w", "", "gia_ban_le", 100000.0, "gia_dai_ly", 90000.0, "ck_dai_ly_pct", 10.0, "anh_sp", "https://x/a.png",
+		"datasheet", "https://x/a.pdf", "da_duyet", true, "nguoi_duyet", "dz_admin", "ngay_duyet", "2026-01-01", "nguoi_tao", "dz",
+		"ngay_tao", "2026-01-01", "nguoi_sua", "dz", "ngay_cap_nhat", "2026-01-02", "nhom_bt", "BT1", "ghi_chu", nil)
+	type tc struct {
+		name                 string
+		a                    *actor.Actor
+		key                  any
+		perms                string
+		dungKho, coSP, trung bool
+		loi                  string
+	}
+	admin := &actor.Actor{UID: "A1", U: "zz_admin", R: "admin"}
+	nv := &actor.Actor{UID: "U2", U: "nv", R: "staff"}
+	cases := []tc{
+		{name: "nhân viên không có tab sanpham", a: nv, key: "55", perms: "boc,duan", dungKho: true, coSP: true, loi: "Tài khoản không có quyền thêm dữ liệu"},
+		{name: "nhân viên được sửa nhưng thiếu tab", a: nv, key: "55", perms: "boc,sp_edit", dungKho: true, coSP: true, loi: "Tài khoản không có quyền thêm dữ liệu"},
+		{name: "công ty chưa bật kho chung", a: admin, key: "55", dungKho: false, coSP: true, loi: "Công ty chưa được dùng kho chung Dezon"},
+		{name: "không có trong kho chung", a: admin, key: "55", dungKho: true, coSP: false, loi: "Không tìm thấy sản phẩm trong kho chung"},
+		{name: "khoá không phải id", a: admin, key: "DZ-1", dungKho: true, coSP: true, loi: "Không tìm thấy sản phẩm trong kho chung"},
+		{name: "trùng mã + biến thể", a: admin, key: "55", dungKho: true, coSP: true, trung: true, loi: "Công ty bạn đã có sản phẩm mã DZ-1"},
+		{name: "admin sao chép", a: admin, key: " 55 ", dungKho: true, coSP: true},
+		{name: "nhân viên có tab sanpham", a: nv, key: 55.0, perms: "boc,sanpham", dungKho: true, coSP: true},
+	}
+	for _, c := range cases {
+		var dupFilter string
+		r := &pcRepo{sel: func(table, filter string, noScope bool) []*omap.Map {
+			switch {
+			case table == "users":
+				return []*omap.Map{omap.Of("id", "U2", "perms", c.perms)}
+			case table == "cong_ty" && filter == "id=eq.c1":
+				return []*omap.Map{omap.Of("id", "c1", "dung_sp_dezon", c.dungKho)}
+			case table == "cong_ty" && filter == "ma=eq.dezon":
+				return []*omap.Map{omap.Of("id", "dz")}
+			case table == "db_san_pham" && noScope:
+				if !c.coSP || filter != "id=eq.55&cong_ty_id=eq.dz" {
+					return nil
+				}
+				return []*omap.Map{src.Clone()}
+			case table == "db_san_pham":
+				dupFilter = filter
+				if c.trung {
+					return []*omap.Map{omap.Of("id", 3.0)}
+				}
+			}
+			return nil
+		}}
+		s, _ := newSvc(r, nil)
+		ctx := tenant.With(context.Background(), tenant.Ctx{UID: c.a.UID, Role: c.a.R, CongTyID: "c1"})
+		out, err := s.CopySharedProduct(ctx, c.a, c.key)
+		if c.loi != "" {
+			if err == nil || err.Error() != c.loi {
+				t.Errorf("%s: lỗi %v, muốn %q", c.name, err, c.loi)
+			}
+			if w := r.ghi(); len(w) > 0 {
+				t.Errorf("%s: không được ghi: %v", c.name, w)
+			}
+			continue
+		}
+		if err != nil {
+			t.Fatalf("%s: %v", c.name, err)
+		}
+		if g := js(out); g != `{"ok":true,"id":9001,"ma":"DZ-1","ten":"Đèn Dezon"}` {
+			t.Errorf("%s: kết quả %s", c.name, g)
+		}
+		if want := "ma_sp=eq.DZ-1&and=(nhiet_do_mau_k.eq.%223000K%22,or(cong_suat_w.is.null,cong_suat_w.eq.)," +
+			"or(goc_chieu_deg.is.null,goc_chieu_deg.eq.),or(mau_sac.is.null,mau_sac.eq.))"; dupFilter != want {
+			t.Errorf("%s: lọc trùng\n  %s\n  %s", c.name, dupFilter, want)
+		}
+		w := r.ghi()
+		if len(w) != 3 {
+			t.Fatalf("%s: lệnh ghi %v", c.name, w)
+		}
+		if want := `insert db_san_pham {"ma_sp":"DZ-1","ten_sp":"Đèn Dezon","nganh":"den","nhiet_do_mau_k":"3000K","gia_ban_le":100000,` +
+			`"ck_dai_ly_pct":10,"anh_sp":"https://x/a.png","datasheet":"https://x/a.pdf","nguoi_tao":"` + c.a.U + `","ngay_tao":"<ts>"}`; tsNorm(w[0]) != want {
+			t.Errorf("%s: dòng mới\n  %s\n  %s", c.name, tsNorm(w[0]), want)
+		}
+		if want := `insert db_san_pham_history [{"ma_sp":"DZ-1","field":"SAO CHÉP TỪ KHO DEZON","old_value":"","new_value":"Đèn Dezon (từ SP #55 kho Dezon) (bởi ` +
+			c.a.U + `)","changed_by":"` + c.a.UID.(string) + `","changed_by_name":"` + c.a.U + `"}]`; w[1] != want {
+			t.Errorf("%s: lịch sử\n  %s\n  %s", c.name, w[1], want)
+		}
+		if !strings.HasPrefix(w[2], `insert audit_log {"user_id":"`+c.a.UID.(string)+`","username":"`+c.a.U+`","action":"sao_chep_sp_dezon"`) {
+			t.Errorf("%s: nhật ký %s", c.name, w[2])
+		}
+	}
+}
+
+// Các nhánh phụ của CopySharedProduct: tính năng công ty (canTab), trục kích thước khi kiểm trùng, cột người tạo chưa có,
+// lỗi đọc công ty, unique index 23505 khi hai yêu cầu cùng qua phép kiểm trùng.
+func TestCopySharedProductNhanh(t *testing.T) {
+	type tc struct {
+		name     string
+		a        *actor.Actor
+		perms    string
+		tinhNang string
+		src      *omap.Map
+		selErr   func(table, filter string) error
+		ins      func(table string, lan int) error
+		loi      string
+		dup      string // lọc kiểm trùng mong đợi ("" = không kiểm)
+		dong     string // dòng chèn mong đợi ("" = không kiểm)
+	}
+	admin := &actor.Actor{UID: "A1", U: "zz_admin", R: "admin"}
+	nv := &actor.Actor{UID: "U2", U: "nv", R: "staff"}
+	super := &actor.Actor{UID: "S1", U: "zz_super", R: "super"}
+	den := omap.Of("id", 55.0, "ma_sp", "DZ-1", "ten_sp", "Đèn Dezon", "cong_ty_id", "dz", "nganh", "den")
+	son := omap.Of("id", 55.0, "ma_sp", "2IN1", "ten_sp", "Sơn 2IN1", "cong_ty_id", "dz", "nganh", "son", "kich_thuoc", "15L")
+	denKT := omap.Of("id", 55.0, "ma_sp", "DZ-1", "ten_sp", "Đèn Dezon", "cong_ty_id", "dz", "nganh", "den", "kich_thuoc", "D90")
+	sonRong := omap.Of("id", 55.0, "ma_sp", "2IN1", "ten_sp", "Sơn 2IN1", "cong_ty_id", "dz", "nganh", "son")
+	dupDen := "ma_sp=eq.DZ-1&and=(or(nhiet_do_mau_k.is.null,nhiet_do_mau_k.eq.),or(cong_suat_w.is.null,cong_suat_w.eq.)," +
+		"or(goc_chieu_deg.is.null,goc_chieu_deg.eq.),or(mau_sac.is.null,mau_sac.eq.))"
+	dup2in1 := "ma_sp=eq.2IN1&and=(or(nhiet_do_mau_k.is.null,nhiet_do_mau_k.eq.),or(cong_suat_w.is.null,cong_suat_w.eq.)," +
+		"or(goc_chieu_deg.is.null,goc_chieu_deg.eq.),or(mau_sac.is.null,mau_sac.eq.),"
+	thieuCot := errors.New(`DB POST products -> 400 {"code":"PGRST204","message":"Could not find the 'nguoi_tao' column in the schema cache"}`)
+	trungIdx := &database.Error{Msg: "duplicate key value violates unique constraint", Code: "23505", Status: 409}
+	cases := []tc{
+		{name: "tính năng công ty thiếu sanpham: admin", a: admin, tinhNang: "boc, duan", src: den, loi: "Tài khoản không có quyền thêm dữ liệu"},
+		{name: "tính năng công ty thiếu sanpham: nhân viên có tab", a: nv, perms: "sanpham", tinhNang: "boc,duan", src: den, loi: "Tài khoản không có quyền thêm dữ liệu"},
+		{name: "tính năng công ty có sanpham", a: nv, perms: "sanpham", tinhNang: "boc, sanpham", src: den, dup: dupDen},
+		{name: "super không xét tính năng", a: super, tinhNang: "boc", src: den, dup: dupDen},
+		{name: "sơn: kích thước là trục biến thể", a: admin, src: son, dup: dup2in1 + "kich_thuoc.eq.%2215L%22)"},
+		{name: "sơn kích thước rỗng", a: admin, src: sonRong, dup: dup2in1 + "or(kich_thuoc.is.null,kich_thuoc.eq.))"},
+		{name: "đèn có kích thước", a: admin, src: denKT, dup: strings.TrimSuffix(dupDen, ")") + ",kich_thuoc.eq.%22D90%22)"},
+		{name: "lỗi đọc công ty", a: admin, src: den, loi: "boom",
+			selErr: func(table, filter string) error {
+				if table == "cong_ty" && filter == "ma=eq.dezon" {
+					return errors.New("boom")
+				}
+				return nil
+			}},
+		{name: "unique index 23505", a: admin, src: den, loi: "Công ty bạn đã có sản phẩm mã DZ-1",
+			ins: func(table string, _ int) error {
+				if table == "db_san_pham" {
+					return trungIdx
+				}
+				return nil
+			}},
+		{name: "23505 sau khi bỏ cột người tạo", a: admin, src: den, loi: "Công ty bạn đã có sản phẩm mã DZ-1",
+			ins: func(table string, lan int) error {
+				if table != "db_san_pham" {
+					return nil
+				}
+				if lan == 1 {
+					return thieuCot
+				}
+				return trungIdx
+			}},
+		{name: "thiếu cột người tạo: chèn lại không có", a: admin, src: den, dup: dupDen,
+			dong: `insert db_san_pham {"ma_sp":"DZ-1","ten_sp":"Đèn Dezon","nganh":"den"}`,
+			ins: func(table string, lan int) error {
+				if table == "db_san_pham" && lan == 1 {
+					return thieuCot
+				}
+				return nil
+			}},
+	}
+	for _, c := range cases {
+		var dupFilter string
+		r := &pcRepo{selErr: c.selErr, ins: c.ins, sel: func(table, filter string, noScope bool) []*omap.Map {
+			switch {
+			case table == "users":
+				return []*omap.Map{omap.Of("id", "U2", "perms", c.perms)}
+			case table == "cong_ty" && filter == "id=eq.c1":
+				return []*omap.Map{omap.Of("id", "c1", "dung_sp_dezon", true, "tinh_nang", c.tinhNang)}
+			case table == "cong_ty" && filter == "ma=eq.dezon":
+				return []*omap.Map{omap.Of("id", "dz")}
+			case table == "db_san_pham" && noScope:
+				return []*omap.Map{c.src.Clone()}
+			case table == "db_san_pham":
+				dupFilter = filter
+			}
+			return nil
+		}}
+		s, _ := newSvc(r, nil)
+		ctx := tenant.With(context.Background(), tenant.Ctx{UID: c.a.UID, Role: c.a.R, CongTyID: "c1"})
+		_, err := s.CopySharedProduct(ctx, c.a, "55")
+		if c.loi != "" {
+			if err == nil || err.Error() != c.loi {
+				t.Errorf("%s: lỗi %v, muốn %q", c.name, err, c.loi)
+			}
+			if w := r.ghi(); len(w) > 0 {
+				t.Errorf("%s: không được ghi: %v", c.name, w)
+			}
+			continue
+		}
+		if err != nil {
+			t.Fatalf("%s: %v", c.name, err)
+		}
+		if c.dup != "" && dupFilter != c.dup {
+			t.Errorf("%s: lọc trùng\n  %s\n  %s", c.name, dupFilter, c.dup)
+		}
+		w := r.ghi()
+		if len(w) != 3 {
+			t.Fatalf("%s: lệnh ghi %v", c.name, w)
+		}
+		if c.dong != "" && w[0] != c.dong {
+			t.Errorf("%s: dòng mới\n  %s\n  %s", c.name, w[0], c.dong)
+		}
+		if c.dong != "" && !s.whoColMissing.Load() {
+			t.Errorf("%s: phải nhớ whoColMissing", c.name)
+		}
+	}
+}
+
+// Danh mục: sản phẩm riêng chỉ che dòng kho chung trùng ĐỦ khoá kiểm trùng (thêm kích thước khi có trục này).
+func TestGhepKhoChungKichThuoc(t *testing.T) {
+	dz := func(id float64, ma, nganh, kt string) *omap.Map {
+		return omap.Of("id", id, "ma_sp", ma, "ten_sp", ma+" "+kt, "cong_ty_id", "dz", "nganh", nganh, "kich_thuoc", kt)
+	}
+	shared := []*omap.Map{dz(1, "2IN1", "son", "1L"), dz(2, "2IN1", "son", "5L"), dz(3, "2IN1", "son", "15L"),
+		dz(4, "DEN-A", "den", ""), dz(5, "DEN-B", "den", "D90"), dz(6, "DEN-B", "den", "D120"), dz(7, "DEN-C", "den", "")}
+	own := []*omap.Map{
+		omap.Of("id", 101.0, "ma_sp", "2IN1", "ten_sp", "2IN1 riêng", "nganh", "son", "kich_thuoc", "15L"),
+		omap.Of("id", 102.0, "ma_sp", "DEN-A", "ten_sp", "DEN-A riêng", "nganh", "den"),
+		omap.Of("id", 103.0, "ma_sp", "DEN-B", "ten_sp", "DEN-B riêng", "nganh", "den", "kich_thuoc", "D90"),
+		// dòng kho chung DEN-C không có trục kích thước: phép kiểm trùng của nó bỏ qua kích thước -> bị che
+		omap.Of("id", 104.0, "ma_sp", "DEN-C", "ten_sp", "DEN-C riêng", "nganh", "den", "kich_thuoc", "X"),
+	}
+	r := &pcRepo{sel: func(table, filter string, noScope bool) []*omap.Map {
+		switch {
+		case table == "cong_ty" && filter == "id=eq.c1":
+			return []*omap.Map{omap.Of("id", "c1", "dung_sp_dezon", true)}
+		case table == "cong_ty" && filter == "ma=eq.dezon":
+			return []*omap.Map{omap.Of("id", "dz")}
+		case table == "db_san_pham" && noScope:
+			return shared
+		case table == "db_san_pham":
+			return own
+		}
+		return nil
+	}}
+	s, _ := newSvc(r, nil)
+	ctx := tenant.With(context.Background(), tenant.Ctx{UID: "A1", Role: "admin", CongTyID: "c1"})
+	list, err := s.GetProducts(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	chung := []string{}
+	for _, p := range list {
+		if m := p.(*omap.Map); m.Val("spChung") == true {
+			chung = append(chung, jsval.ToString(m.Val("recordId")))
+		}
+	}
+	sort.Strings(chung)
+	if g := strings.Join(chung, ","); g != "1,2,6" {
+		t.Errorf("dòng kho chung còn hiện: %s, muốn 1,2,6 (1L, 5L của 2IN1 và DEN-B D120)", g)
+	}
+}
+
+// Route chỉ bản Go: khai trong registry (Login) + route gin cùng đường dẫn; không thành hàm /api/:fn.
+func TestCopySharedProductRoute(t *testing.T) {
+	r := &pcRepo{sel: func(string, string, bool) []*omap.Map { return nil }}
+	s, reg := newSvc(r, nil)
+	gr := reg.GoRoutes()
+	if len(gr) != 1 || gr[0].Name != "copySharedProduct" || gr[0].Method != "POST" || gr[0].Path != "/products/:key/private-copy" || gr[0].Perm != rpc.Login {
+		t.Fatalf("route chỉ bản Go: %+v", gr)
+	}
+	if _, ok := reg.PermOf("copySharedProduct"); ok {
+		t.Error("route chỉ bản Go không được thành hàm /api/:fn")
+	}
+	e := testEngine(s, &actor.Actor{UID: "A1", U: "ad", R: "admin"})
+	if w := do(e, "POST", "/api/v1/products/55/private-copy", "", nil, false); w.Code != 401 {
+		t.Errorf("chưa đăng nhập: %d %s", w.Code, w.Body)
+	}
+	// ngữ cảnh không có công ty (super xem toàn hệ thống): không có kho chung để chép
+	if w := do(e, "POST", "/api/v1/products/55/private-copy", "", nil, true); w.Code == 200 || !strings.Contains(w.Body.String(), "Công ty chưa được dùng kho chung Dezon") {
+		t.Errorf("không có công ty: %d %s", w.Code, w.Body)
+	}
+}
+
+// Trên qspro_gotest: công ty ZZ bật kho chung chép một SP ZZ của Dezon -> SP riêng của ZZ (Chưa duyệt, sửa được, không spChung,
+// che bản kho chung trong danh mục); lần 2 báo trùng; tắt kho chung -> lỗi. Dọn sạch ở cuối.
+func TestCopySharedProductDB(t *testing.T) {
+	url := os.Getenv("TEST_DATABASE_URL")
+	if url == "" {
+		t.Skip("chưa đặt TEST_DATABASE_URL")
+	}
+	if !regexp.MustCompile(`/qspro_gotest(\?|$)`).MatchString(url) {
+		t.Fatal("TEST_DATABASE_URL phải trỏ tới database thử qspro_gotest")
+	}
+	db := database.New(database.Config{URL: url})
+	defer db.Close()
+	root := tenant.With(context.Background(), tenant.Ctx{Role: "super"})
+	ns := database.Opt{NoScope: true}
+	dz, err := db.Select(root, "cong_ty", database.SelectOpt{Filter: database.Eq("ma", "dezon"), Limit: 1, NoScope: true})
+	if err != nil || len(dz) == 0 {
+		t.Skipf("qspro_gotest không có công ty dezon: %v", err)
+	}
+	dzID := dz[0].Val("id")
+	const ma, maKT, maCT = "ZZ_GOTEST_PCOPY", "ZZ_GOTEST_PCOPY_KT", "zz-gotest-pcopy"
+	var ctID any
+	don := func() {
+		for _, m := range []string{ma, maKT} {
+			_, _ = db.Remove(root, "db_san_pham", database.Eq("ma_sp", m), ns)
+			_, _ = db.Remove(root, "db_san_pham_history", database.Eq("ma_sp", m), ns)
+		}
+		if ctID != nil {
+			_, _ = db.Remove(root, "audit_log", database.Eq("cong_ty_id", ctID), ns)
+		}
+		_, _ = db.Remove(root, "cong_ty", database.Eq("ma", maCT), ns)
+	}
+	don()
+	defer don()
+	ct, err := db.InsertOne(root, "cong_ty", omap.Of("ten", "ZZ_GOTEST_PCOPY", "ma", maCT, "dung_sp_dezon", true), ns)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctID = ct[0].Val("id")
+	sp, err := db.InsertOne(root, "db_san_pham", omap.Of("ma_sp", ma, "ten_sp", "ZZ đèn kho chung", "cong_ty_id", dzID, "nganh", "den",
+		"nhiet_do_mau_k", "4000K", "gia_ban_le", 250000.0, "ck_dai_ly_pct", 20.0, "anh_sp", "https://example.invalid/zz.png",
+		"da_duyet", true, "nguoi_duyet", "zz", "nhom_bt", "ZZ_BT"), ns)
+	if err != nil {
+		t.Fatal(err)
+	}
+	spID := jsval.ToString(sp[0].Val("id"))
+
+	deps := stubDeps{repo: db}
+	s := New(Deps{DB: db, Auditor: deps, Users: deps, UserFmt: deps, Notifier: deps, Admins: deps, Uploader: &fakeUploader{}})
+	a := &actor.Actor{U: "zz_pcopy_admin", R: "admin"}
+	ctx := tenant.With(context.Background(), tenant.Ctx{Role: "admin", CongTyID: ctID})
+	demMa := func(maSP string) (chung, rieng int) {
+		list, err := s.GetProducts(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, p := range list {
+			if m := p.(*omap.Map); m.Val("ma") == maSP {
+				if m.Val("spChung") == true {
+					chung++
+				} else {
+					rieng++
+				}
+			}
+		}
+		return
+	}
+	dem := func() (int, int) { return demMa(ma) }
+	if c, r := dem(); c != 1 || r != 0 {
+		t.Fatalf("trước khi chép: kho chung %d, riêng %d", c, r)
+	}
+	out, err := s.CopySharedProduct(ctx, a, spID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if out.Val("ok") != true || out.Val("ma") != ma || out.Val("ten") != "ZZ đèn kho chung" || !jsval.Truthy(out.Val("id")) {
+		t.Fatalf("kết quả %s", js(out))
+	}
+	newID := out.Val("id")
+	rows, err := db.Select(root, "db_san_pham", database.SelectOpt{Select: "*", Filter: database.Eq("id", newID), Limit: 1, NoScope: true})
+	if err != nil || len(rows) != 1 {
+		t.Fatalf("đọc bản sao: %v %d", err, len(rows))
+	}
+	r := rows[0]
+	if jsval.ToString(r.Val("cong_ty_id")) != jsval.ToString(ctID) || r.Val("da_duyet") == true || jsval.Truthy(r.Val("nguoi_duyet")) ||
+		jsval.Truthy(r.Val("nhom_bt")) || r.Val("nhiet_do_mau_k") != "4000K" || jsval.ToNumber(r.Val("gia_ban_le")) != 250000 ||
+		jsval.ToNumber(r.Val("gia_dai_ly")) != 200000 || r.Val("anh_sp") != "https://example.invalid/zz.png" || r.Val("nguoi_tao") != "zz_pcopy_admin" {
+		t.Errorf("bản sao sai: %s", js(r))
+	}
+	if c, rr := dem(); c != 0 || rr != 1 {
+		t.Errorf("sau khi chép: kho chung %d, riêng %d (bản riêng phải che bản kho chung)", c, rr)
+	}
+	if _, err := s.CopySharedProduct(ctx, a, spID); err == nil || err.Error() != "Công ty bạn đã có sản phẩm mã "+ma {
+		t.Errorf("lần 2: %v", err)
+	}
+	// bản sao sửa được (guardSpChung không chặn)
+	up, err := s.UpdateProductGated(ctx, a, jsval.ToString(newID), omap.Of("GIÁ BÁN LẺ", "260000"))
+	if err != nil || up.Val("updated") != true {
+		t.Errorf("sửa bản sao: %v %s", err, js(up))
+	}
+	hist, _ := db.Select(root, "db_san_pham_history", database.SelectOpt{
+		Filter: database.Eq("ma_sp", ma) + "&" + database.Eq("field", "SAO CHÉP TỪ KHO DEZON"), NoScope: true})
+	if len(hist) != 1 {
+		t.Errorf("lịch sử sao chép: %d dòng", len(hist))
+	}
+	// hai biến thể kích thước (sơn 1L / 5L) cùng mã: chép 5L chỉ che 5L, 1L vẫn hiện và chép được
+	kt := map[string]string{}
+	for _, size := range []string{"1L", "5L"} {
+		v, err := db.InsertOne(root, "db_san_pham", omap.Of("ma_sp", maKT, "ten_sp", "ZZ sơn "+size, "cong_ty_id", dzID, "nganh", "son",
+			"kich_thuoc", size, "gia_ban_le", 100000.0), ns)
+		if err != nil {
+			t.Fatal(err)
+		}
+		kt[size] = jsval.ToString(v[0].Val("id"))
+	}
+	if c, rr := demMa(maKT); c != 2 || rr != 0 {
+		t.Fatalf("biến thể kích thước trước khi chép: kho chung %d, riêng %d", c, rr)
+	}
+	if _, err := s.CopySharedProduct(ctx, a, kt["5L"]); err != nil {
+		t.Fatal(err)
+	}
+	if c, rr := demMa(maKT); c != 1 || rr != 1 {
+		t.Errorf("sau khi chép 5L: kho chung %d, riêng %d (1L phải còn hiện)", c, rr)
+	}
+	if _, err := s.CopySharedProduct(ctx, a, kt["1L"]); err != nil {
+		t.Errorf("chép 1L sau 5L: %v", err)
+	}
+	if c, rr := demMa(maKT); c != 0 || rr != 2 {
+		t.Errorf("sau khi chép 1L: kho chung %d, riêng %d", c, rr)
+	}
+	if _, err := s.CopySharedProduct(ctx, a, kt["5L"]); err == nil || err.Error() != "Công ty bạn đã có sản phẩm mã "+maKT {
+		t.Errorf("chép lại 5L: %v", err)
+	}
+	if _, err := db.Update(root, "cong_ty", database.Eq("id", ctID), omap.Of("dung_sp_dezon", false), ns); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.CopySharedProduct(ctx, a, spID); err == nil || err.Error() != "Công ty chưa được dùng kho chung Dezon" {
+		t.Errorf("chưa bật kho chung: %v", err)
 	}
 }

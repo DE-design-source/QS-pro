@@ -30,6 +30,7 @@ type Deps struct {
 }
 
 type Service struct {
+	db       *database.DB // D-13: mở transaction cho SaveCover; nil (repo giả trong test unit) -> chạy thẳng
 	repo     Repository
 	lines    contracts.LineReader
 	projects contracts.ProjectReader
@@ -38,7 +39,7 @@ type Service struct {
 }
 
 func New(d Deps) *Service {
-	s := &Service{repo: d.Repo, lines: d.Lines, projects: d.Projects, media: d.Media, http: d.HTTP}
+	s := &Service{db: d.DB, repo: d.Repo, lines: d.Lines, projects: d.Projects, media: d.Media, http: d.HTTP}
 	if s.repo == nil {
 		s.repo = newPgRepo(d.DB)
 	}
@@ -108,23 +109,41 @@ func (s *Service) GetCoverOrInit(ctx context.Context, maDA any) ([]any, error) {
 	return s.BuildCoverFromTemplate(ctx, maDA)
 }
 
-// SaveCover = saveCover (S:430-440). Ghi bản mới TRƯỚC rồi mới xoá bản cũ: lỗi giữa chừng không làm mất tờ bìa.
+// tx: chạy fn trong 1 transaction (D-13). Repo giả trong test unit không có DB -> chạy thẳng.
+func (s *Service) tx(ctx context.Context, fn func(ctx context.Context) error) error {
+	if s.db == nil {
+		return fn(ctx)
+	}
+	return s.db.Tx(ctx, fn)
+}
+
+// SaveCover = saveCover (S:430-440). Ghi bản mới TRƯỚC rồi mới xoá bản cũ. D-13: đọc id cũ + chèn + xoá chạy trong 1
+// transaction -> lỗi giữa chừng (vd xoá bản cũ hỏng) không để lại cả bản mới lẫn bản cũ; thành công thì y như trước.
+// Lỗi trả nguyên (KhongCoCha -> DAMat ánh xạ ngay trong fn). Đọc lại tờ bìa SAU commit.
 func (s *Service) SaveCover(ctx context.Context, maDA, rows any) ([]any, error) {
+	if err := s.tx(ctx, func(ctx context.Context) error { return s.ghiCover(ctx, maDA, rows) }); err != nil {
+		return nil, err
+	}
+	return s.GetCover(ctx, maDA) // client gán thẳng S.cover = kết quả -> phải là mảng dòng
+}
+
+// ghiCover: phần ghi của SaveCover (chạy trong transaction), thứ tự kiểm / lỗi giữ như saveCover.
+func (s *Service) ghiCover(ctx context.Context, maDA, rows any) error {
 	old, err := s.repo.CoverIDs(ctx, maDA)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	var list []any
 	if jsval.Truthy(rows) {
 		var ok bool
 		if list, ok = rows.([]any); !ok {
-			return nil, apperr.New("(rows || []).map is not a function")
+			return apperr.New("(rows || []).map is not a function")
 		}
 	}
 	arr := make([]*omap.Map, len(list))
 	for i, r := range list {
 		if jsval.IsNullish(r) {
-			return nil, typeErrRead(r, "stt")
+			return typeErrRead(r, "stt")
 		}
 		arr[i] = omap.Of("ma_da", maDA, "stt", jsval.S(prop(r, "stt")), "hang_muc", jsval.S(prop(r, "hangMuc")),
 			"mo_ta", jsval.S(prop(r, "moTa")), "chi_phi", qscore.N(prop(r, "chiPhi")), "sort_no", float64(i))
@@ -132,9 +151,9 @@ func (s *Service) SaveCover(ctx context.Context, maDA, rows any) ([]any, error) 
 	if len(arr) > 0 {
 		if err := s.repo.InsertCover(ctx, arr); err != nil {
 			if apperr.KhongCoCha(err) {
-				return nil, apperr.New(apperr.DAMat)
+				return apperr.New(apperr.DAMat)
 			}
-			return nil, err
+			return err
 		}
 	}
 	if len(old) > 0 {
@@ -143,11 +162,9 @@ func (s *Service) SaveCover(ctx context.Context, maDA, rows any) ([]any, error) 
 			ids[i] = r.Val("id")
 		}
 		// Array.join: null / undefined thành rỗng
-		if err := s.repo.RemoveCover(ctx, jsval.ToString(ids)); err != nil {
-			return nil, err
-		}
+		return s.repo.RemoveCover(ctx, jsval.ToString(ids))
 	}
-	return s.GetCover(ctx, maDA) // client gán thẳng S.cover = kết quả -> phải là mảng dòng
+	return nil
 }
 
 // Quote: kết quả của getQuote - {maDA, project, lines, subtotal, vatPct, vat, total}.

@@ -19,10 +19,12 @@ export const PT_COLS = [
   { k: 'dgnt', label: 'Đơn giá (nhà thầu)', cls: 'num sp-price', e: { f: 'dgnt', num: 1, money: 1 } },
   { k: 'dg', label: 'Đơn giá', cls: 'num sp-price', e: { f: 'dg', num: 1, money: 1 } },
   { k: 'gc', label: 'Ghi chú', cls: '', e: { f: 'gc' } },
+  // M5.3: thứ tự trong thư viện (cùng loại báo giá), chỉ công tác CSDL sửa được
+  { k: 'thuTu', label: 'Thứ tự', cls: 'num', e: { f: 'thuTu', num: 1 } },
 ]
-export const PT_SPDEFW = { stt: 52, thumb: 56, duyet: 120, ten: 300, loai: 126, nhom: 180, dvt: 70, kl: 116, dt: 112, hs: 80, dgnt: 156, dg: 140, gc: 260 }
+export const PT_SPDEFW = { stt: 52, thumb: 56, duyet: 120, ten: 300, loai: 126, nhom: 180, dvt: 70, kl: 116, dt: 112, hs: 80, dgnt: 156, dg: 140, gc: 260, thuTu: 84 }
 export const ptColW_ = (w, k) => (w && w[k]) || PT_SPDEFW[k] || 124
-const PT_ON0 = ['thumb', 'duyet', 'loai', 'nhom', 'dvt', 'kl', 'dgnt', 'dg', 'gc']
+const PT_ON0 = ['thumb', 'duyet', 'loai', 'nhom', 'dvt', 'kl', 'dgnt', 'dg', 'gc', 'thuTu']
 
 /* thứ tự + độ rộng + cột hiện của BẢNG CÔNG TÁC, lưu riêng ở qs_ptcolcfg (ptOrder2_, sanpham.js:769-781) */
 export function ptCfgLoad_() {
@@ -109,7 +111,12 @@ export function ptXlsRows_(rows) {
     heSo: (r.mode !== 'item' && r.mode !== 'none' ? r.hs : ''), dgnt: (r.mode === 'item' ? r.dgnt : ''), dg: r.dg, ghiChu: r.gc }))
 }
 /* Ô sửa được ở chế độ Edit (spCellEditable_ nhánh Phần thô) */
-export const ptCellEditable_ = (c, r) => !!c.e && ptCanEditF_(r.sec, c.e.f)
+export const ptCellEditable_ = (c, r) => !!c.e && (c.e.f === 'thuTu' ? !!ctOf_(r.a) : ptCanEditF_(r.sec, c.e.f))
+/* Giá trị đang có của 1 ô sửa được: Thứ tự lấy từ công tác CSDL, còn lại theo ptVal_ (có giá sửa tay) */
+export function ptCellVal_(r, f, ovr) {
+  if (f === 'thuTu') { const c = ctOf_(r.a); return c ? (Number(c.thuTu) || 0) : '' }
+  return ptVal_(r.sec, r.a, f, ovr)
+}
 /* Ảnh đầu của công tác: bản CSDL lấy hinhAnh, bản dựng sẵn lấy ptInfo (ptAnh_ / ptAnh1_) */
 export function ptAnh1Raw_(r, info) {
   const c = ctOf_(r.a)

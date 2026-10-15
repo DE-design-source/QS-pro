@@ -7,7 +7,8 @@ import { ctSecDeMuc_ } from '../breakdown/catalog/catalogModel'
 import { money, ptQty, ptR0 } from '../../lib/format.js'
 import { nodeName } from '../../lib/tree.js'
 import {
-  PT_LOAI, PT_MAU, PT_CONTRACTORS, DT_BO, ptSecsOfLoai_, ptLoaiCount_, ptLibDg_, ptDaCo_, ctOf_, dtCalc_, dtApplied_, dtTien_,
+  PT_LOAI, PT_MAU, DT_BO, ptSecsOfLoai_, ptLoaiCount_, ptLibDg_, ptDaCo_, ctOf_, dtCalc_, dtApplied_, dtTien_,
+  ptNccList_, ptNccKey_, ptSecItemsNcc_,
 } from '../../lib/phantho.js'
 import { useQsStore } from '../../state/store'
 import { qsToast as toast } from '../common/dialogs'
@@ -28,7 +29,10 @@ import './phantho.css'
 export function usePtLibCount() {
   const tpl = usePtTemplate()
   const loai = usePtLoai()
-  return ptLibCount_(ptSecsOfLoai_(tpl, loai)) + ' công việc'
+  const ncc = usePtUi(s => s.contractor)
+  const secs = ptSecsOfLoai_(tpl, loai)
+  if (!ncc) return ptLibCount_(secs) + ' công việc'
+  return secs.reduce((n, sec) => n + ptSecItemsNcc_(sec, ncc).length, 0) + ' công việc · ' + ncc
 }
 
 const OUT_TXT = { kt_chitiet: 'Ra báo giá theo m2 / md / cái', kt_sobo: 'Ra đơn giá theo đơn gói', dt_nhancong: 'Ra báo giá theo m2 / md / cái', dt_vattu: 'Ra báo giá vật tư' }
@@ -53,6 +57,7 @@ function MselPop({ kind, anchor, onClose }) {
   const tpl = usePtTemplate()
   const lo = usePtLoai()
   const cur = usePtUi(s => s.contractor)
+  const congTac = useQsStore(s => s.congTac)
   const It = ({ on, onClick, nm, cn, sub }) => (
     <div className={`qspt-mi${on ? ' on' : ''}`} onClick={onClick}>
       <span className="nm">{nm}{sub ? <i className="qspt-isub">{sub}</i> : null}</span>
@@ -73,11 +78,14 @@ function MselPop({ kind, anchor, onClose }) {
     ))
   } else if (kind === 'ncc') {
     title = 'Tên nhà thầu'
-    const pick = v => { onClose(); setPtUi({ contractor: v || '' }); toast(v ? ('Đơn giá theo nhà thầu: ' + v) : 'Bỏ chọn nhà thầu') }
+    const pick = v => { onClose(); setPtUi({ contractor: v || '' }); toast(v ? ('Thư viện chỉ hiện công tác của nhà thầu: ' + v) : 'Bỏ chọn nhà thầu - thư viện hiện mọi công tác') }
     body = (
       <>
         <It on={!cur} onClick={() => pick('')} nm="Tất cả nhà thầu" />
-        {PT_CONTRACTORS.map(c => <It key={c} on={cur === c} onClick={() => pick(c)} nm={c} />)}
+        {ptNccList_(congTac, lo).map(c => (
+          <It key={ptNccKey_(c.ten)} on={ptNccKey_(cur) === ptNccKey_(c.ten)} onClick={() => pick(c.ten)} nm={c.ten} cn={c.n ? (c.n + ' công tác') : 'chưa có'} />
+        ))}
+        <p className="qspt-hint">Chọn nhà thầu thì thư viện chỉ hiện công tác có đúng nhà thầu đó (cột Nhà thầu của công tác). Giá các dòng đã có trong bảng không đổi.</p>
       </>
     )
   } else {
@@ -214,6 +222,7 @@ export function PtLibrary() {
   const ctError = useQsStore(s => s.ctError)
   const libCol = usePtUi(s => s.libCol)
   const detail = usePtUi(s => s.detail)
+  const ncc = usePtUi(s => s.contractor)
   const [dragK, setDragK] = useState('')
   const mroot = useMroot()
   const secs = ptSecsOfLoai_(tpl, loai)
@@ -251,9 +260,12 @@ export function PtLibrary() {
       {loai.indexOf('dt_') === 0 && (
         <p className="qspt-dthint">Danh sách dưới đây là các công tác <b>trong bộ dự toán</b> — chỉ dùng khi cần thêm lẻ một dòng bị xoá.</p>
       )}
-      {secs.map(sec => {
-        const si = tpl.indexOf(sec)
+      {secs.map(sec0 => {
+        const si = tpl.indexOf(sec0)
         const col = !!libCol[si]
+        // M5.2: có chọn nhà thầu thì nhóm chỉ còn công tác của nhà thầu đó (bản sao nông, dùng cả cho nút thêm cả nhóm)
+        const shown = ptSecItemsNcc_(sec0, ncc)
+        const sec = ncc ? { ...sec0, items: shown.map(x => x.a) } : sec0
         const nDaCo = sec.items.filter(a => ptDaCo_(sec, a, phanTho)).length
         const dm = ctSecDeMuc_(sec)
         return (
@@ -265,11 +277,14 @@ export function PtLibrary() {
               <span className={`qspt-shn${nDaCo ? ' on' : ''}`} title={nDaCo ? ('Đã thêm ' + nDaCo + '/' + sec.items.length + ' công tác') : (sec.items.length + ' công tác')}>
                 {nDaCo ? (nDaCo + '/' + sec.items.length) : sec.items.length}
               </span>
-              <button className="qspt-secadd" title="Thêm cả nhóm vào bảng" onClick={e => { e.stopPropagation(); ptAddToSec(sec) }}><QsIcon name="plus" size={14} /></button>
+              {sec.items.length > 0 && <button className="qspt-secadd" title={ncc ? ('Thêm cả nhóm (công tác của ' + ncc + ') vào bảng') : 'Thêm cả nhóm vào bảng'} onClick={e => { e.stopPropagation(); ptAddToSec(sec) }}><QsIcon name="plus" size={14} /></button>}
             </div>
-            {!col && (
+            {!col && ncc && !shown.length && (
+              <div className="qspt-nccempty">Nhà thầu {ncc} chưa có đơn giá cho mục này</div>
+            )}
+            {!col && shown.length > 0 && (
               <div className="qspt-items">
-                {sec.items.map((a, ii) => {
+                {shown.map(({ a, ii }) => {
                   const dg = ptLibDg_(sec, a, ovr)
                   const on = !!(detail && detail.si === si && detail.ii === ii)
                   const inf = ptInfo_(infoU, String(a[0]))

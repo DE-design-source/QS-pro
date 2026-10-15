@@ -149,5 +149,21 @@ func (s *Service) SendPurchaseRequest(ctx context.Context, a *actor.Actor, order
 	if err != nil {
 		logger.Error("mua hàng", "webhook Lark lỗi:", err.Error())
 	}
+	s.ghiKetQuaGui(ctx, savedMa, larkOk)
 	return omap.Of("ok", true, "saved", savedMa, "lark", larkOk), nil
+}
+
+// ghiKetQuaGui (M9.1): lệnh RIÊNG sau khi gửi thẻ Lark, ghi ket_qua_gui "ok" / "loi" cho các đơn vừa lưu (đè giá trị lúc lưu:
+// "pending" mặc định hoặc ketQua client gửi). Lỗi chỉ ghi log - đơn đã lưu, không báo hỏng.
+func (s *Service) ghiKetQuaGui(ctx context.Context, savedMa []any, larkOk bool) {
+	kq := kqGuiLoi
+	if larkOk {
+		kq = kqGuiOk
+	}
+	for _, ma := range savedMa {
+		if err := s.repo.PatchOrder(ctx, ma, omap.Of("ket_qua_gui", kq)); err != nil {
+			logger.Error("mua hàng", "ghi kết quả gửi Lark lỗi:", err.Error())
+			return
+		}
+	}
 }

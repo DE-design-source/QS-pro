@@ -150,9 +150,14 @@ func TestAuditRow(t *testing.T) {
 
 // ───────────── đối chiếu với Node trên database thử ─────────────
 
-type forgetRec struct{ uids []string }
+type forgetRec struct{ uids, revoked []string }
 
 func (f *forgetRec) ForgetSession(uid any) { f.uids = append(f.uids, jsval.ToString(uid)) }
+
+func (f *forgetRec) RevokeUserSessions(_ context.Context, uid any, _ string) error {
+	f.revoked = append(f.revoked, jsval.ToString(uid))
+	return nil
+}
 
 // TestDiffNode chạy testdata/diff-cases.json qua cổng rpc của module (qspro_gotest) và so từng ca với kết quả của
 // server/auth.js trên qspro_nodetest (testdata/diff-golden.txt, sinh bằng userstest/diff-node.js u 1 ...).
@@ -162,7 +167,7 @@ func TestDiffNode(t *testing.T) {
 	su.Diff(t, "testdata/diff-cases.json", "testdata/diff-golden.txt", func() func(userstest.Case, userstest.Who, []any) (any, error) {
 		svc := New(Deps{DB: su.DB})
 		svc.SetCompanyReader(userstest.Companies{DB: su.DB})
-		rec.uids = nil
+		rec.uids, rec.revoked = nil, nil
 		svc.SetSessionInvalidator(rec)
 		reg := rpc.NewRegistry()
 		svc.RegisterRPC(reg)
@@ -189,6 +194,10 @@ func TestDiffNode(t *testing.T) {
 	// forgetSession_ được gọi sau mỗi lần sửa / khoá / xoá thành công (A:407, 422, 431)
 	if len(rec.uids) < 10 {
 		t.Errorf("ForgetSession được gọi %d lần", len(rec.uids))
+	}
+	// M1.2: admin đặt lại mật khẩu thành công -> thu hồi phiên của tài khoản đó
+	if len(rec.revoked) == 0 {
+		t.Error("AdminSetPassword không thu hồi phiên")
 	}
 }
 

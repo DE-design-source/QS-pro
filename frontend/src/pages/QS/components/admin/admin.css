@@ -95,6 +95,15 @@ html[data-theme="dark"] .qsa-permchip{color:#a5b4fc;}
 .qsa-rq-meta b{color:var(--text); font-weight:600;}
 .qsa-rq-meta .it{background:var(--surface-alt); border-radius:6px; padding:2px 8px; font-size:11px;}
 .qsa-rq-by{color:var(--text-muted); opacity:.8;}
+/* lý do xoá / lý do từ chối (M15.2) */
+.qsa-rq-why{flex-basis:100%; font-size:11.5px; color:var(--text-muted); overflow-wrap:anywhere;}
+.qsa-rq-why b{font-weight:600; color:var(--text);}
+.qsa-rq-why.no b{color:var(--danger);}
+/* kết quả gửi Lark (M9.1) */
+.qsa-pur-i b .qsa-lark{display:inline-block; font-size:11px; letter-spacing:0; text-transform:none; font-weight:600; padding:1px 8px; border-radius:6px;}
+.qsa-lark.ok{background:var(--success-tint); color:var(--success);}
+.qsa-lark.loi{background:var(--danger-tint); color:var(--danger);}
+.qsa-lark.unk{background:var(--surface-alt); color:var(--text-muted);}
 .qsa-rq-side{display:flex; align-items:center; gap:12px; flex:none;}
 .qsa-rq-act{display:flex; gap:6px;}
 .qsa-rq-time{font-size:11px; color:var(--text-muted); white-space:nowrap; min-width:92px; text-align:right;}
@@ -193,6 +202,7 @@ html[data-theme="dark"] .qsa-permchip{color:#a5b4fc;}
 /* ---------- Thẻ Thông tin công ty (CompanyCard, M17.1) + ô Màu chính (M17.2) ---------- */
 .qsa-co{display:grid; grid-template-columns:260px minmax(0, 1fr); gap:18px; align-items:start;}
 .qsa-co-logo .qsco-logo-box{height:132px;}
+.qsa-co-han{display:flex; align-items:center; min-height:35px; padding:0 2px;}
 .qsa-co-ft{display:flex; justify-content:flex-end; gap:9px; margin-top:14px; padding-top:12px; border-top:1px solid var(--border);}
 .qsa-mau-row{display:flex; align-items:center; gap:8px;}
 .qsa-mau input.qsa-mau-pick, .qsco-f input.qsa-mau-pick{flex:none; width:40px; height:34px; padding:2px; border:1px solid var(--border); border-radius:8px; background:var(--surface); cursor:pointer;}

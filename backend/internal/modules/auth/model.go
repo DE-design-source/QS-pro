@@ -34,6 +34,8 @@ const (
 	msgPrefsCol   = `Cơ sở dữ liệu chưa có cột "ui_prefs". Hãy chạy "npm run migrate" rồi khởi động lại server.`
 	msgOldPw      = "Mật khẩu hiện tại không đúng"
 	msgNewPwMin   = "Mật khẩu mới tối thiểu 4 ký tự"
+	// msgSessTable: database chưa chạy migration 0014 (M1.2) - báo đích danh như lỗi thiếu cột.
+	msgSessTable = `Cơ sở dữ liệu chưa có bảng "user_sessions" (phiên đăng nhập, migration 0014). Hãy chạy "go run ./cmd/migrate" rồi khởi động lại server.`
 )
 
 var (
@@ -41,6 +43,7 @@ var (
 	reWildcard = regexp.MustCompile(`[*%\\]`)
 	reColErr   = regexp.MustCompile(`(?i)(column|schema cache|PGRST204)`)
 	reSrcHost  = regexp.MustCompile(`^https?://[^/]+/`)
+	reSid      = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
 )
 
 // toLowerCase = String.prototype.toLowerCase (đủ quy tắc Unicode). Caser có trạng thái nên tạo mới mỗi lần.

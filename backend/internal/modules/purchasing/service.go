@@ -12,6 +12,7 @@ import (
 
 	"qspro-backend/internal/config"
 	"qspro-backend/internal/platform/database"
+	"qspro-backend/internal/platform/logger"
 	"qspro-backend/internal/shared/actor"
 	"qspro-backend/internal/shared/contracts"
 	apperr "qspro-backend/internal/shared/errors"
@@ -36,6 +37,7 @@ type Deps struct {
 // Service: nghiệp vụ mua hàng.
 type Service struct {
 	repo    Repository
+	db      *database.DB // transaction (D-13); nil khi test unit dùng repo giả
 	cfg     *config.Config
 	pn      contracts.PurchaseNotifier
 	notify  contracts.Notifier
@@ -57,8 +59,16 @@ func New(d Deps) *Service {
 		// fetch của Node không đặt hạn riêng; undici tự cắt sau 300 giây chờ header
 		hc = &http.Client{Timeout: 300 * time.Second}
 	}
-	return &Service{repo: repo, cfg: d.Cfg, pn: d.PurchaseNotifier, notify: d.Notifier, users: d.Users,
+	return &Service{repo: repo, db: d.DB, cfg: d.Cfg, pn: d.PurchaseNotifier, notify: d.Notifier, users: d.Users,
 		auditor: d.Auditor, http: hc, now: time.Now, rnd: rand.Float64}
+}
+
+// tx: chạy fn trong transaction (D-13). Repo giả trong test unit không có DB -> chạy thẳng.
+func (s *Service) tx(ctx context.Context, fn func(ctx context.Context) error) error {
+	if s.db == nil {
+		return fn(ctx)
+	}
+	return s.db.Tx(ctx, fn)
 }
 
 // typeErr: đọc thuộc tính key của v khi v là null / undefined -> TypeError như V8; ngược lại nil.
@@ -113,12 +123,13 @@ func (s *Service) genMaDon() string { return "MH-" + s.maSuffix() }
 func (s *Service) SavePurchaseOrder(ctx context.Context, orderV any) (*omap.Map, error) {
 	order := objOr(orderV)
 	orders := arrOf(order.Val("orders"))
-	saved := []any{}
-	dang := ""
-	err := func() error {
+	var saved []any
+	// D-13: mọi đơn + dòng hàng của lần gửi trong 1 transaction. Lỗi giữa chừng -> rollback, không còn phiếu dở
+	// (thay cho bước bù trừ "xoá các phiếu đã chèn, nuốt lỗi xoá" của Node: S:1184-1189).
+	err := s.tx(ctx, func(ctx context.Context) error {
+		saved = []any{}
 		for _, od := range orders {
 			maDon := s.genMaDon()
-			dang = maDon
 			if err := typeErr(od, "items"); err != nil {
 				return err
 			}
@@ -155,16 +166,8 @@ func (s *Service) SavePurchaseOrder(ctx context.Context, orderV any) (*omap.Map,
 			saved = append(saved, maDon)
 		}
 		return nil
-	}()
+	})
 	if err != nil {
-		// lỗi giữa chừng -> gỡ các phiếu của lần gửi này (không để phiếu thiếu dòng hàng / gửi lại bị trùng)
-		xoa := append([]any{}, saved...)
-		if dang != "" {
-			xoa = append(xoa, dang) // khi có lỗi thì dang chưa nằm trong saved
-		}
-		for _, m := range xoa {
-			_ = s.repo.DeleteOrder(ctx, m) // Node nuốt lỗi xoá
-		}
 		return nil, err
 	}
 	return omap.Of("saved", saved), nil
@@ -193,7 +196,9 @@ func (s *Service) GetPurchaseOrders(ctx context.Context, maDA any) ([]any, error
 			"soSP", qscore.N(h.Val("so_sp")), "tongTruocVat", qscore.N(h.Val("tong_truoc_vat")), "vatPct", qscore.N(h.Val("vat_pct")),
 			"vat", qscore.N(h.Val("vat")), "tongCong", qscore.N(h.Val("tong_cong")), "trangThai", jsval.S(h.Val("trang_thai")),
 			"nguoiGui", jsval.S(h.Val("nguoi_gui")), "phongBan", jsval.S(h.Val("phong_ban")), "ghiChu", jsval.S(h.Val("ghi_chu")),
-			"ngayGui", jsval.S(h.Val("ngay_gui")), "items", items))
+			"ngayGui", jsval.S(h.Val("ngay_gui")), "items", items,
+			// khoá chỉ bản Go (M15.1, M9.1), nối cuối
+			"nguoiDuyet", jsval.S(h.Val("nguoi_duyet")), "ngayDuyet", jsval.S(h.Val("ngay_duyet")), "ketQuaGui", jsval.S(h.Val("ket_qua_gui"))))
 	}
 	return out, nil
 }
@@ -208,7 +213,9 @@ func (s *Service) ListPurchaseRequests(ctx context.Context, _ *actor.Actor) ([]a
 	for i, r := range rows {
 		out[i] = omap.Of("maDon", r.Val("ma_don"), "project", r.Val("ten_du_an"), "supplier", r.Val("nha_cung_cap"),
 			"soSp", jsval.Num0(r.Val("so_sp")), "total", jsval.Num0(r.Val("tong_cong")), "status", r.Val("trang_thai"),
-			"requester", r.Val("nguoi_gui"), "phongBan", r.Val("phong_ban"), "at", r.Val("ngay_gui"))
+			"requester", r.Val("nguoi_gui"), "phongBan", r.Val("phong_ban"), "at", r.Val("ngay_gui"),
+			// khoá chỉ bản Go (M15.1), nối cuối; giá trị cột giữ nguyên như các khoá trên
+			"resolver", r.Val("nguoi_duyet"), "resolvedAt", r.Val("ngay_duyet"))
 	}
 	return out, nil
 }
@@ -238,7 +245,9 @@ func (s *Service) GetPurchaseOrder(ctx context.Context, _ *actor.Actor, maDon an
 		"hangMuc", st(h.Val("hang_muc")), "soSp", n(h.Val("so_sp")), "tongTruocVat", n(h.Val("tong_truoc_vat")), "vatPct", n(h.Val("vat_pct")),
 		"vat", n(h.Val("vat")), "total", n(h.Val("tong_cong")), "status", st(h.Val("trang_thai")), "requester", st(h.Val("nguoi_gui")),
 		"phongBan", st(h.Val("phong_ban")), "ghiChu", st(h.Val("ghi_chu")), "at", st(h.Val("ngay_gui")),
-		"nguoiDuyet", st(h.Val("nguoi_duyet")), "ngayDuyet", st(h.Val("ngay_duyet")), "items", items), nil
+		"nguoiDuyet", st(h.Val("nguoi_duyet")), "ngayDuyet", st(h.Val("ngay_duyet")), "items", items,
+		// khoá chỉ bản Go (M9.1), nối cuối
+		"kenhGui", st(h.Val("kenh_gui")), "ketQuaGui", st(h.Val("ket_qua_gui"))), nil
 }
 
 // ngoac: x ? " (" + x + ")" : "".
@@ -271,12 +280,35 @@ func (s *Service) ResolvePurchaseRequest(ctx context.Context, a *actor.Actor, ma
 	if n == 0 {
 		return nil, apperr.New(errDonDaXuLy)
 	}
+	s.ghiNguoiDuyet(ctx, a, maDon)
 	ma := jsval.ToString(maDon)
 	if jsval.Truthy(r.Val("requester_id")) {
 		s.notify.Notify(ctx, r.Val("requester_id"), kind, title, "Đơn "+ma+ngoac(r.Val("nha_cung_cap")), ma)
 	}
 	s.auditor.Audit(ctx, a, action, status+" đơn "+ma+" của "+jsval.ToString(jsval.Or(r.Val("nguoi_gui"), "")), nil)
 	return omap.Of("ok", true), nil
+}
+
+// ghiNguoiDuyet (M15.1): lệnh RIÊNG, chạy sau khi đổi trạng thái thành công, ghi người duyệt (ho_ten || username như
+// ResolveDeXuat; không đọc được tài khoản thì username của phiên) và thời điểm duyệt. Lỗi - kể cả database chưa chạy
+// migration 0009 (42703 / PGRST204) - chỉ ghi log: việc duyệt đã xong, không được báo hỏng (ARCHITECTURE 10.4).
+func (s *Service) ghiNguoiDuyet(ctx context.Context, a *actor.Actor, maDon any) {
+	var resolver any = ""
+	if a != nil {
+		resolver = a.U
+		if s.users != nil {
+			me, err := s.users.GetByID(ctx, a.UID)
+			if err != nil {
+				logger.Error("mua hàng", "đọc người duyệt lỗi:", err.Error())
+			} else if me != nil {
+				resolver = jsval.Or(me.Val("ho_ten"), me.Val("username"))
+			}
+		}
+	}
+	patch := omap.Of("nguoi_duyet", resolver, "ngay_duyet", jsval.ToISOString(s.now()))
+	if err := s.repo.PatchOrder(ctx, maDon, patch); err != nil {
+		logger.Error("mua hàng", "ghi người duyệt lỗi:", err.Error())
+	}
 }
 
 // SetPurchaseStatus: Đã duyệt -> Đã đặt hàng -> Đã nhận hàng, mỗi lần đúng 1 bước (A:660-666).

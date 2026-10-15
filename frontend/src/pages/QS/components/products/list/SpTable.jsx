@@ -4,7 +4,7 @@ import ProductThumb from '../../common/ProductThumb'
 import { mediaUrl } from '../../../api/files'
 import { money, fmtDate, safeUrl_, ptQty } from '../../../lib/format.js'
 import { SP_ALWAYS, spColVal_, spEditRaw_, spColW_, spKey_, fmtDateTime_, spMauCss_ } from './spModel'
-import { spInlineSave } from './spActions'
+import { spInlineSave, spPrivateCopy } from './spActions'
 
 /* Bảng Danh sách SP (spRenderHead_ / spFilter / spAllCols_ / spInp_ / spNameEdit_ / spEditCell_ / spRowActions_ / spFreeze_ /
    spInitCols_, PUB/sanpham.js:218-293, 597-600, 616-655, 803-856, 920-950, 1488-1666).
@@ -274,6 +274,9 @@ function NameCell({ p, r, on }) {
           {r.m.k === 'cb' && <span className="qspl-cbq2" title="Số lượng đi kèm cho mỗi sản phẩm chính">×{ptQty(r.m.sl)}</span>}
         </span>
       ) : null}
+      {r.m.k === 'cb' && String(p.comboGhiChu || '').trim() && (
+        <span className="qspl-cbgc" title="Ghi chú của sản phẩm đi kèm">Ghi chú: {String(p.comboGhiChu).trim()}</span>
+      )}
     </>
   )
 }
@@ -349,7 +352,8 @@ function SpInp({ p, e, val, bare, code, placeholder }) {
   return <span className={`qspl-spin-wrap${e.num ? '' : ' tx'}`} onClick={ev => ev.stopPropagation()}>{input}{e.sfx && <i>{e.sfx}</i>}</span>
 }
 
-/* Hàng nút thao tác: ♡ · ⊕ · ✓ duyệt · sửa · sao chép · xem · xoá (spRowActions_, sanpham.js:1497-1505) */
+/* Hàng nút thao tác: ♡ · ⊕ · ✓ duyệt · sửa · sao chép · xem · xoá (spRowActions_, sanpham.js:1497-1505);
+   dòng kho chung Dezon thay sửa / sao chép bằng "Tạo bản sao riêng" (M10.1, chỉ bản Go) */
 function RowActions({ p, canEdit, canDuyet, isAdmin, on }) {
   return (
     <>
@@ -358,6 +362,8 @@ function RowActions({ p, canEdit, canDuyet, isAdmin, on }) {
       {canDuyet && !p.spChung && <button type="button" className={`qspl-act ${p.daDuyet ? 'undo' : 'ok'}`} title={p.daDuyet ? 'Bỏ duyệt' : 'Duyệt sản phẩm này'} onClick={() => on.duyet(p)}><QsIcon name="check" size={16} /></button>}
       {!p.spChung && <button type="button" className="qspl-act edit" title="Cập nhật sản phẩm" onClick={() => on.editP(p)}><QsIcon name="edit" size={16} /></button>}
       {(p.ma && canEdit && !p.spChung) ? <button type="button" className="qspl-act copy" title="Sao chép: tạo sản phẩm mới / biến thể / nhiều màu" onClick={e => on.copy(e, p)}><QsIcon name="copy" size={16} /></button> : null}
+      {(canEdit && p.spChung) ? <button type="button" className="qspl-act pcopy" title="Tạo bản sao riêng: chép sản phẩm kho chung Dezon sang công ty bạn để sửa"
+        onClick={async () => { const np = await spPrivateCopy(p); if (np) on.editP(np) }}><QsIcon name="copy" size={16} /></button> : null}
       <button type="button" className="qspl-act" title="Xem chi tiết" onClick={() => on.open(p)}><QsIcon name="eye" size={16} /></button>
       {isAdmin && !p.spChung && <button type="button" className="qspl-act del" title="Xoá" onClick={() => on.del(p)}><QsIcon name="trash" size={16} /></button>}
     </>

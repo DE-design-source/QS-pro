@@ -1,5 +1,6 @@
-// Package auth: đăng nhập, phiên (token HMAC tự ký + đối chiếu database), cài đặt giao diện theo tài khoản -
-// bản chuyển 1:1 từ server/auth.js. Token do Node và Go phát ra dùng lẫn cho nhau được (cùng AUTH_SECRET).
+// Package auth: đăng nhập, phiên (token HMAC tự ký mang id phiên + bảng user_sessions), cài đặt giao diện theo
+// tài khoản - chuyển từ server/auth.js. Từ M1.2 token phải có id phiên còn dòng trong user_sessions: token cũ của
+// Node / Go trước 0014 (không có sid) bị từ chối.
 package auth
 
 import (
@@ -40,8 +41,10 @@ type Service struct {
 	companies contracts.CompanyReader
 	now       func() float64 // Date.now() - thay được trong test
 
-	mu   sync.Mutex
-	sess map[string]sessEntry // _sess (A:37)
+	mu      sync.Mutex
+	sess    map[string]sessEntry // _sess (A:37), khoá = sid
+	revoked map[string]float64   // sid vừa thu hồi -> lúc thu hồi (xem revokeCache)
+	sweptAt float64              // lần dọn cache gần nhất (sweepCache)
 }
 
 var (
@@ -56,7 +59,7 @@ func New(d Deps) *Service {
 		secret = d.Cfg.AuthSecret
 	}
 	return &Service{repo: NewRepository(d.DB), secret: secret, users: d.Users, fmt: d.UserFormatter,
-		auditor: d.Auditor, companies: d.Companies, now: jsval.NowMs, sess: map[string]sessEntry{}}
+		auditor: d.Auditor, companies: d.Companies, now: jsval.NowMs, sess: map[string]sessEntry{}, revoked: map[string]float64{}}
 }
 
 // getUsersByName = getUsersByName_ (A:78-91): đăng nhập bằng TÊN ĐĂNG NHẬP hoặc EMAIL, trả mọi dòng trùng.
@@ -184,6 +187,11 @@ func (s *Service) Login(ctx context.Context, username, password any) (*omap.Map,
 			return nil, err
 		}
 	}
+	// Mở phiên TRƯỚC khi ghi last_login / nhật ký: thiếu bảng phiên thì đăng nhập báo lỗi đích danh, không ghi gì
+	token, err := s.openSession(ctx, u)
+	if err != nil {
+		return nil, err
+	}
 	if err := s.repo.UpdateUser(ctx, u.Val("id"), patch); err != nil {
 		return nil, err
 	}
@@ -193,7 +201,7 @@ func (s *Service) Login(ctx context.Context, username, password any) (*omap.Map,
 	}
 	s.auditor.Audit(ctx, &actor.Actor{UID: u.Val("id"), U: jsval.StrOr(u.Val("username"), "")}, "login", detail, u.Val("cong_ty_id"))
 	user := omap.Assign(s.fmt.UserOut(u), omap.Of("uiPrefs", prefsOf(u)))
-	return omap.Of("token", s.makeToken(u), "user", user, "congTy", orNull(ct)), nil
+	return omap.Of("token", token, "user", user, "congTy", orNull(ct)), nil
 }
 
 // Me = me (A:257-264).
@@ -265,13 +273,20 @@ func (s *Service) SetMyPref(ctx context.Context, a *actor.Actor, key, value any)
 	return omap.Of("ok", true, "uiPrefs", prefs), nil
 }
 
-// Logout = logout (A:288): chỉ ghi nhật ký.
+// Logout = logout (A:288) + thu hồi phiên của token đang dùng (M1.2): token đó bị từ chối ngay ở request kế tiếp;
+// phiên ở máy / trình duyệt khác của cùng tài khoản vẫn chạy.
 func (s *Service) Logout(ctx context.Context, a *actor.Actor) (*omap.Map, error) {
+	if a != nil {
+		if err := s.closeSession(ctx, a.SID); err != nil {
+			return nil, err
+		}
+	}
 	s.auditor.Audit(ctx, a, "logout", "Đăng xuất", nil)
 	return omap.Of("ok", true), nil
 }
 
 // ChangePassword = changePassword (A:289-296). Chỉ so bằng bcrypt: tài khoản còn mật khẩu chữ thường không tự đổi được.
+// Đổi xong thu hồi mọi phiên KHÁC của tài khoản (M1.2); phiên đang dùng giữ nguyên.
 func (s *Service) ChangePassword(ctx context.Context, a *actor.Actor, oldPw, newPw any) (*omap.Map, error) {
 	u, err := s.users.GetByID(ctx, a.UID)
 	if err != nil {
@@ -296,6 +311,12 @@ func (s *Service) ChangePassword(ctx context.Context, a *actor.Actor, oldPw, new
 	}
 	if err := s.repo.UpdateUser(ctx, u.Val("id"), omap.Of("password_hash", hash)); err != nil {
 		return nil, err
+	}
+	// actor không có SID chỉ gặp ở lời gọi nội bộ / test (SessionActor từ chối token không có phiên): không thu hồi
+	if a.SID != "" {
+		if err := s.closeOtherSessions(ctx, u.Val("id"), a.SID); err != nil {
+			return nil, err
+		}
 	}
 	s.auditor.Audit(ctx, a, "change_password", "Tự đổi mật khẩu", nil)
 	return omap.Of("ok", true), nil

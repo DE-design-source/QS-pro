@@ -5,6 +5,12 @@
 > `purchase_orders.resolver_name` / `resolved_at` (người và lúc duyệt / từ chối đơn), `delete_requests.resolution_note`
 > (lý do admin từ chối), `projects.current_condition` (hiện trạng, in ở tờ bìa). `delete_requests.note` thôi DEPRECATED
 > (0010): là lý do xoá do người gửi nhập. Số dòng của các bảng vẫn là số đếm trên `qspro_en2` ngày 2026-10-12.
+> Cập nhật 2026-10-15 (0012, chỉ chú thích): `companies.last_reminder_date` / `reminder_milestone` thôi DEPRECATED, dùng cho
+> nhắc gia hạn trong ứng dụng (M17.3, giả định): mốc đã nhắc trong {30,14,7,3,1,0}, giá trị ngoài tập coi như chưa nhắc; không CHECK.
+> Cập nhật 2026-10-15 (0013, chỉ chú thích): `product_combos.note` thôi DEPRECATED (ghi chú liên kết sản phẩm đi kèm, M10.2);
+> `purchase_orders.send_result` ghi rõ `pending` / `ok` / `loi` (M9.1).
+> Cập nhật 2026-10-15 (0014): bảng mới `user_sessions` (`phien_dang_nhap`) - phiên đăng nhập lưu phía máy chủ, đăng xuất thu hồi
+> token ngay (M1.2). Theo catalog của `qspro_gotest`; số dòng ghi 0 (bảng mới, `qspro_en2` chưa chạy 0014).
 > Ý nghĩa từng cột: chú thích cột trong [infra/db/schema.sql](../../../infra/db/schema.sql).
 > Đây là tài liệu mô tả cấu trúc ĐANG CHẠY. Bối cảnh và lý do: [ket-qua-trien-khai.md](ket-qua-trien-khai.md), [decisions.md](decisions.md).
 
@@ -15,6 +21,7 @@
 | Công ty, tài khoản | `companies` (`cong_ty`) | Công ty (tenant) và gói dịch vụ | 3 | - |
 | Công ty, tài khoản | `company_settings` (`cai_dat_cong_ty`) | Tài liệu cấu hình theo công ty (ptInfo, bgOrg) | 0 | trực tiếp: `company_id` -> `companies` |
 | Công ty, tài khoản | `users` (`users`) | Tài khoản, vai trò, quyền | 8 | trực tiếp: `company_id` -> `companies` |
+| Công ty, tài khoản | `user_sessions` (`phien_dang_nhap`) | Phiên đăng nhập: 1 dòng / lần đăng nhập, token mang id (M1.2) | 0 | xuyên công ty (chỉ truy cập noScope); công ty = công ty của `users` |
 | Nhật ký, thông báo | `audit_logs` (`audit_log`) | Nhật ký thao tác (chỉ thêm) | 2933 | `company_id` (tham chiếu mềm, không khoá ngoại) |
 | Nhật ký, thông báo | `notifications` (`notifications`) | Thông báo cho từng user | 24 | trực tiếp: `company_id` -> `companies` |
 | Danh mục sản phẩm | `products` (`db_san_pham`) | Sản phẩm / biến thể: định danh, giá, 5 trục biến thể, thuộc tính dùng chung, duyệt | 1093 | trực tiếp: `company_id` -> `companies` |
@@ -55,6 +62,7 @@ erDiagram
     products ||--o{ favorite_products : "product_id CASCADE"
     companies ||--o{ notifications : "company_id CASCADE"
     users ||--o{ notifications : "user_id CASCADE"
+    users ||--o{ user_sessions : "user_id CASCADE"
     products ||--o{ product_combos : "companion_product_id CASCADE"
     products ||--o{ product_combos : "product_id CASCADE"
     users ||--o{ product_histories : "changed_by_id SET NULL"
@@ -156,6 +164,22 @@ Tài khoản, vai trò, quyền. 8 dòng.
 | `email` | text | có |  |
 | `department` | text | có |  |
 | `ui_preferences` | jsonb | không | '{}'::jsonb |
+
+### `user_sessions` (`phien_dang_nhap`)
+
+Phiên đăng nhập lưu phía máy chủ (M1.2): 1 dòng / lần đăng nhập, token mang `id` (khoá `sid`); đăng xuất xoá dòng. 0 dòng.
+
+- CHECK `ck_user_sessions_expires_at`: `CHECK ((expires_at > created_at))`
+- FK `fk_user_sessions_user_id`: `FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE`
+- PK `pk_user_sessions`: `PRIMARY KEY (id)`
+- INDEX `INDEX idx_user_sessions_user_id (user_id)`
+
+| Cột | Kiểu | NULL | Mặc định |
+|---|---|---|---|
+| `id` | uuid | không | gen_random_uuid() |
+| `user_id` | uuid | không |  |
+| `created_at` | timestamp with time zone | không | now() |
+| `expires_at` | timestamp with time zone | không |  |
 
 ### `audit_logs` (`audit_log`)
 

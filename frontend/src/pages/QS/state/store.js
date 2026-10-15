@@ -186,7 +186,7 @@ export async function login(user, pw) {
   return r
 }
 
-/* Port authLogout_: báo server (chỉ ghi nhật ký) rồi xoá phiên; không tải lại trang */
+/* Port authLogout_: báo server (thu hồi phiên phía máy chủ, M1.2) rồi xoá token; không tải lại trang */
 export async function logout() {
   await projDataFlush_()   // gửi hết hàng đợi khi token còn (sau đó mới xoá token)
   try { await api.logout() } catch (e) { /* phiên đã hết thì thôi */ }

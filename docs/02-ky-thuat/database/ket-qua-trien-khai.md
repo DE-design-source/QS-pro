@@ -30,7 +30,7 @@ Bảy bảng con bỏ `company_id`: `quotation_lines`, `cost_estimate_lines`, `p
 | CHECK công thức so sánh bằng tuyệt đối | Cho phép lệch 1 đơn vị (hoặc 1 phần tỉ với số rất lớn) | JavaScript và PostgreSQL làm tròn khác nhau ở một số số lẻ; so bằng tuyệt đối sẽ chặn lệnh ghi hợp lệ |
 | `company_settings` khoá chính `(company_id, setting_key)` | `id` + unique `(company_id, setting_key)` coi NULL là trùng | Giữ được trường hợp cấu hình không thuộc công ty nào (trước là mã `__cty:0`) |
 | Transaction cho 6 thao tác nhiều bước (D-13) | Chưa làm | Các chỗ đang cố ý nuốt lỗi sẽ đổi hành vi khi nằm trong transaction; khoá ngoại `ON DELETE CASCADE` đã ngăn phần lớn dữ liệu dở dang |
-| Xoá 12 cột không dùng (đợt 3) | Chưa làm, chỉ đánh dấu `DEPRECATED` trong chú thích cột | Theo kế hoạch: chờ một chu kỳ chạy ổn định |
+| Xoá 12 cột không dùng (đợt 3) | Chưa làm, chỉ đánh dấu `DEPRECATED` trong chú thích cột. Từ 2026-10-15 danh sách D-09 còn 8 cột (4 cột dùng lại: M15.2, M10.2, M17.3) | Theo kế hoạch: chờ một chu kỳ chạy ổn định |
 
 ## 3. Dữ liệu được chuyển sang khu cách ly
 
@@ -120,7 +120,7 @@ File mới đặt ở `infra/db/migrations/NNNN_ten.sql`; không sửa file đã
 
 **Dựng database mới:**
 
-- Từ bộ xuất: `psql -d <db trống> -f export/supabase-2026-10-07/sql-en2/_all.sql` (cấu trúc + dữ liệu ngày 2026-10-12).
+- Từ bộ xuất: `psql -d <db trống> -f infra/export/qspro_dev.sql` (cấu trúc + dữ liệu). Bộ `export/supabase-2026-10-07/sql-en2/` cũ (dữ liệu ngày 2026-10-12) đã thay bằng file này và chuyển khỏi repo ngày 2026-10-15.
 - Chỉ cấu trúc: `psql -d <db trống> -f infra/db/schema.sql`.
 - Từ Supabase: `DATABASE_URL=<db trống> node infra/scripts/sync-from-supabase.js --yes`.
 
@@ -132,4 +132,4 @@ File mới đặt ở `infra/db/migrations/NNNN_ten.sql`; không sửa file đã
 2. Quyết định về 13 dòng bóc tách trong khu cách ly (mục 3).
 3. Kế hoạch cắt chuyển production: cần máy chủ PostgreSQL mà Render truy cập được; xem [migration-plan.md](migration-plan.md) mục 9.
 4. Các điểm bảo mật không thuộc phạm vi database, vẫn còn nguyên: `AUTH_SECRET` có giá trị dự phòng trong source, project Supabase cũ còn mở, đọc sản phẩm chéo công ty qua combo, webhook Lark dùng chung. Xem [tenant-security.md](tenant-security.md).
-5. Bọc transaction cho các thao tác nhiều bước (D-13) và xoá 12 cột `DEPRECATED` (D-09).
+5. Bọc transaction cho các thao tác nhiều bước (D-13) và xoá 8 cột `DEPRECATED` còn trong danh sách D-09 (ban đầu 12; `delete_requests.note`, `product_combos.note`, `companies.last_reminder_date`, `reminder_milestone` đã ra khỏi danh sách ngày 2026-10-15).

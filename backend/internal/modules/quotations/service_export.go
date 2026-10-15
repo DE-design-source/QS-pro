@@ -102,14 +102,23 @@ var (
 
 /*** ===== Tờ bìa ===== ***/
 
-// buildCoverSheet (X:89-164).
-func buildCoverSheet(ws *xSheet, p *omap.Map, cover []any) {
+// buildCoverSheet (X:89-164). o = tuỳ chọn chỉ bản Go (nil = đúng bố cục Node): khối công ty ở đầu sheet (logo nếu tải được),
+// dòng "Hiện trạng" ở khối thông tin, Mẫu 1 (6 cột) khi o.m1 - xem service_export_opts.go.
+func buildCoverSheet(ws *xSheet, p *omap.Map, cover []any, o *exportOpts, logo *imageData) {
 	comp := qscore.CoverComputed(cover)
 	cost, total := jsval.AsMap(comp.Val("cost")), jsval.ToNumber(comp.Val("total"))
-	ws.setWidths([]float64{px(52), px(380), px(190), px(120)})
+	ncol := coverNcol(o)
+	if ncol == 6 {
+		ws.setWidths([]float64{px(52), px(170), px(260), px(120), px(80), px(240)})
+	} else {
+		ws.setWidths([]float64{px(52), px(380), px(190), px(120)})
+	}
 	r := 1
+	if o != nil && o.org != nil {
+		r = writeOrgBlock(ws, o.org, ncol, logo)
+	}
 	// bigHeader
-	ws.merge(r, 1, r, 4)
+	ws.merge(r, 1, r, ncol)
 	c := ws.cell(r, 1)
 	c.set("BẢNG ƯỚC TÍNH CHI PHÍ DỰ ÁN")
 	c.font(xFont{Name: "Arial", Bold: true, Size: 16, Color: mauWhite})
@@ -118,7 +127,7 @@ func buildCoverSheet(ws *xSheet, p *omap.Map, cover []any) {
 	ws.row(r).ht = 30
 	r++
 	for _, t := range []string{"[Tư vấn thiết kế, thi công chuyên nghiệp]", plus("Mã báo giá số : ", jsval.Or(p.Val("maBaoGia"), ""))} {
-		ws.merge(r, 1, r, 4)
+		ws.merge(r, 1, r, ncol)
 		c := ws.cell(r, 1)
 		c.set(t)
 		c.font(xFont{Name: "Arial", Color: "FFC7D3E6"})
@@ -127,30 +136,37 @@ func buildCoverSheet(ws *xSheet, p *omap.Map, cover []any) {
 		r++
 	}
 	r++
+	half := ncol / 2
 	info := func(l1 string, v1 any, l2 string, v2 any) {
-		ws.merge(r, 1, r, 2)
-		ws.merge(r, 3, r, 4)
+		ws.merge(r, 1, r, half)
+		ws.merge(r, half+1, r, ncol)
 		ws.cell(r, 1).set([]xRun{{Text: l1 + ":  ", Font: &xFont{Bold: true}}, {Text: jsval.StrOr(v1, "")}})
-		ws.cell(r, 3).set([]xRun{{Text: l2 + ":  ", Font: &xFont{Bold: true}}, {Text: jsval.StrOr(v2, "")}})
+		ws.cell(r, half+1).set([]xRun{{Text: l2 + ":  ", Font: &xFont{Bold: true}}, {Text: jsval.StrOr(v2, "")}})
 		ws.cell(r, 1).align(xAlign{Wrap: true})
-		ws.cell(r, 3).align(xAlign{Wrap: true})
+		ws.cell(r, half+1).align(xAlign{Wrap: true})
 		r++
 	}
 	info("Khách hàng", p.Val("khachHang"), "Quy mô", p.Val("quyMo"))
 	info("Tổng diện tích XD (m²)", p.Val("tongDT"), "Nhu cầu", p.Val("nhuCau"))
 	info("DT báo giá [đã nhân hệ số] (m²)", p.Val("dtBaoGia"), "Phân khúc", p.Val("phanKhuc"))
+	if o != nil {
+		writeHienTrang(ws, r, ncol, p)
+		r++
+	}
 	r++
 
 	headerRow := r
-	for i, h := range []string{"NO", "HẠNG MỤC", "CHI PHÍ DỰ KIẾN", "TỶ TRỌNG"} {
-		c := ws.cell(r, i+1)
-		c.set(h)
-		c.font(fontHead)
-		c.align(xAlign{H: "center", V: "middle"})
-		c.fill(mauNavy2)
+	if ncol == 4 { // Mẫu 1 tự ghi đầu bảng 6 cột (buildCoverM1)
+		for i, h := range []string{"NO", "HẠNG MỤC", "CHI PHÍ DỰ KIẾN", "TỶ TRỌNG"} {
+			c := ws.cell(r, i+1)
+			c.set(h)
+			c.font(fontHead)
+			c.align(xAlign{H: "center", V: "middle"})
+			c.fill(mauNavy2)
+		}
+		ws.row(r).ht = 24
+		r++
 	}
-	ws.row(r).ht = 24
-	r++
 
 	ckey := func(s any) []float64 {
 		parts := strings.Split(jsval.ToString(s), ".")
@@ -179,6 +195,10 @@ func buildCoverSheet(ws *xSheet, p *omap.Map, cover []any) {
 		}
 		return false
 	})
+	if ncol == 6 {
+		buildCoverM1(ws, sorted, cost, total, r)
+		return
+	}
 	for _, cv := range sorted {
 		stt := jsval.Get(cv, "stt")
 		lvl := len(strings.Split(jsval.ToString(stt), "."))
@@ -840,7 +860,9 @@ func exCols(cols any) ([]exCol, error) {
 }
 
 // buildBaoGia dựng workbook của exportBaoGia (X:466-515); tách khỏi ExportBaoGia để test đọc được mô hình.
-func (s *Service) buildBaoGia(ctx context.Context, maDA, cols, nodes, phanTho, anMuc, tong, org any) (*xBook, *omap.Map, error) {
+// opts = tuỳ chọn chỉ bản Go (service_export_opts.go); không có thì workbook đúng như bản Node.
+func (s *Service) buildBaoGia(ctx context.Context, maDA, cols, nodes, phanTho, anMuc, tong, org, opts any) (*xBook, *omap.Map, error) {
+	o := parseExportOpts(opts)
 	q, err := s.GetQuote(ctx, maDA)
 	if err != nil {
 		return nil, nil, err
@@ -877,6 +899,18 @@ func (s *Service) buildBaoGia(ctx context.Context, maDA, cols, nodes, phanTho, a
 	if err != nil {
 		return nil, nil, err
 	}
+	var logo *imageData
+	if o != nil {
+		applyColWidths(excols, cols)
+		if o.org != nil {
+			if !p.Has("_org") && o.org.ten != "" {
+				p.Set("_org", jsval.Slice(o.org.ten, 0, 120))
+			}
+			if o.org.logo != "" {
+				logo = s.fetchImage(ctx, o.org.logo) // best-effort: SVG, địa chỉ nội bộ, lỗi tải -> không có logo
+			}
+		}
+	}
 
 	wb := &xBook{}
 	// mục lớn người dùng đã ẩn khỏi tờ bìa -> file Excel cũng bỏ, khớp bản PDF
@@ -899,13 +933,17 @@ func (s *Service) buildBaoGia(ctx context.Context, maDA, cols, nodes, phanTho, a
 	if err != nil {
 		return nil, nil, err
 	}
-	buildCoverSheet(ws, p, cover)
-	if tg := jsval.AsArray(tong); len(tg) > 0 {
+	buildCoverSheet(ws, p, cover, o, logo)
+	coTongKet := o != nil && o.tongKet != nil
+	if tg := jsval.AsArray(tong); len(tg) > 0 || coTongKet {
 		if ws, err = wb.addWorksheet("Tổng cộng"); err != nil {
 			return nil, nil, err
 		}
 		if err := buildTongSheet(ws, p, tg); err != nil {
 			return nil, nil, err
+		}
+		if coTongKet {
+			writeTongKet(ws, o.tongKet, 3+min(len(tg), 20)+1)
 		}
 	}
 	if ws, err = wb.addWorksheet("3.2 Phần hoàn thiện"); err != nil {
@@ -974,9 +1012,10 @@ func (s *Service) buildBaoGia(ctx context.Context, maDA, cols, nodes, phanTho, a
 
 // ExportBaoGia = exportBaoGia (X:466-522). format không được dùng (PDF do trình duyệt in).
 // Thứ tự sheet: Tờ bìa | Tổng cộng (nếu có) | 3.2 Phần hoàn thiện | 3.1 Phần thô (nếu có) | mỗi Nhóm 1 sheet.
-func (s *Service) ExportBaoGia(ctx context.Context, maDA, cols, format, nodes, phanTho, anMuc, tong, org any) (*ExportFile, error) {
+// opts (tham số thứ 9, chỉ bản Go): bố cục tờ bìa, thông tin công ty, tổng kết, độ rộng cột - service_export_opts.go.
+func (s *Service) ExportBaoGia(ctx context.Context, maDA, cols, format, nodes, phanTho, anMuc, tong, org, opts any) (*ExportFile, error) {
 	_ = format
-	wb, p, err := s.buildBaoGia(ctx, maDA, cols, nodes, phanTho, anMuc, tong, org)
+	wb, p, err := s.buildBaoGia(ctx, maDA, cols, nodes, phanTho, anMuc, tong, org, opts)
 	if err != nil {
 		return nil, err
 	}

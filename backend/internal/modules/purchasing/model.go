@@ -36,3 +36,14 @@ const (
 	errDXDaXuLy     = "Đề xuất đã được xử lý"
 	errThieuBangDX  = `Chưa có bảng "de_xuat" trong CSDL. `
 )
+
+// errKhongThayPhieu: route chỉ bản Go GET /my-proposals/:code - phiếu không có HOẶC không phải của người gọi (cùng một câu,
+// không lộ phiếu của người khác có tồn tại hay không).
+const errKhongThayPhieu = "Không tìm thấy phiếu"
+
+// Kết quả gửi thẻ Lark của đơn (cột ket_qua_gui, M9.1). Đơn tạo trước bản này mang "ok" / "pending" mặc định của lệnh lưu,
+// không phải kết quả thật.
+const (
+	kqGuiOk  = "ok"
+	kqGuiLoi = "loi"
+)

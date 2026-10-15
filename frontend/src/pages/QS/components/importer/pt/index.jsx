@@ -12,11 +12,12 @@ import * as api from '../../../api/qsApi'
 import { mediaUrl } from '../../../api/files'
 import { money, pad2, ptN, ptMoneyN_ } from '../../../lib/format.js'
 import { nodeName } from '../../../lib/tree.js'
-import { ctOf_, ptLoaiGop_, ptSecLoai_ } from '../../../lib/phantho.js'
+import { ctOf_, ptLoaiGop_, ptSecLoai_, ctThuTuIn_ } from '../../../lib/phantho.js'
 import { ptLoaiNgan_, ctDeMucCua_, ctGrpText_, ptTpl_, ptAddFromLib_ } from '../../products/pt/ptCore'
 import { setU } from '../../products/list/spStore'
 import { SP_FLT_EMPTY } from '../../products/list/spModel'
 import CtForm from './CtForm'
+import PtFileImport from './PtFileImport'
 import { useCtImp, ctGet, ctSet, ctForm, newForm_, ctPendUid_ } from './ctImpStore'
 import './ptImport.css'
 
@@ -37,10 +38,11 @@ function ctFormRead_(form) {
   const anh = [form.main].concat(form.list || []).filter(x => x && String(x).indexOf('data:') !== 0).join('\n')
   let loai = v('loai'); const goc = v('loaiGoc')
   if (goc && ptLoaiGop_(goc) === loai) loai = goc       // vẫn là loại cũ -> giữ giá trị gốc
-  return { loai, mode: v('mode') || 'item', maNhom: v('maNhom'), hangMuc: v('hangMuc'), deMuc: v('deMuc'), ten: v('ten'),
+  return { loai, mode: v('mode'), maNhom: v('maNhom'), hangMuc: v('hangMuc'), deMuc: v('deMuc'), ten: v('ten'),
     ncc: v('ncc'), dvt: v('dvt'), kl: num('kl'), dt: num('dt'), hs: num('hs'),
     dgnt: ptMoneyN_(v('dgnt')), dg: ptMoneyN_(v('dg')),
-    gc: v('gc'), thongSo: ctGrpText_(form.grps).trim(), phamVi: v('phamVi'), linkTaiLieu: v('linkTaiLieu'), hinhAnh: anh }
+    gc: v('gc'), thongSo: ctGrpText_(form.grps).trim(), phamVi: v('phamVi'), linkTaiLieu: v('linkTaiLieu'), hinhAnh: anh,
+    thuTu: ctThuTuIn_(d.thuTu) }
 }
 
 export default function ImportPt() {
@@ -73,6 +75,9 @@ export default function ImportPt() {
     const d = ctFormRead_(F)
     if (!d.ten) { qsToast('Nhập tên hạng mục / nội dung công việc'); return }
     if (!d.hangMuc) { qsToast('Nhập hạng mục'); return }
+    if (!d.loai) { qsToast('Chọn Loại báo giá'); return }
+    if (!d.mode) { qsToast('Chọn Cách tính'); return }
+    if (d.thuTu === null) { qsToast('Thứ tự phải là số nguyên không âm (hoặc để trống)'); return }
     const ghi = !!F.ghi
     const st = ctGet(), x = st.pendEdit ? st.pending.filter(p => p.uid === st.pendEdit)[0] : null
     if (x) {
@@ -88,7 +93,7 @@ export default function ImportPt() {
     const st = ctGet()
     if (st.committing) { qsToast('Đang lưu vào Database — đợi xong rồi sửa'); return }
     if (st.pendEdit && st.pendEdit !== x.uid && !await qsConfirm('Đang sửa một công tác khác — bỏ các thay đổi chưa cập nhật?')) return
-    ctSet({ pendEdit: x.uid, form: newForm_(x.d, x.ghi) })
+    ctSet({ pendEdit: x.uid, form: newForm_(x.d, x.ghi, !!x.chan) })
     const f = formRef.current; if (f && f.scrollIntoView) f.scrollIntoView({ behavior: 'smooth', block: 'start' })
     qsToast('Đã mở "' + x.d.ten + '" trong form — sửa xong bấm "Cập nhật vào danh sách chờ"')
   }
@@ -103,8 +108,9 @@ export default function ImportPt() {
   async function commit() {
     const st = ctGet()
     if (st.committing) return
-    const ds = st.pending.slice()
-    if (!ds.length) { qsToast('Chưa có công tác nào chờ lưu'); return }
+    // dòng nhập từ file còn lỗi (chan) ở lại danh sách chờ cho tới khi mở trong form và bấm Cập nhật
+    const ds = st.pending.filter(x => !x.chan)
+    if (!ds.length) { qsToast(st.pending.length ? 'Các công tác chờ đều còn lỗi — mở từng thẻ, sửa rồi bấm Cập nhật' : 'Chưa có công tác nào chờ lưu'); return }
     if (st.pendEdit && !await qsConfirm('Bạn đang sửa 1 công tác trong form nhưng chưa bấm "Cập nhật".\nLưu luôn bản CŨ của công tác đó?')) return
     ctSet({ committing: true, commitText: '' })
     try { await commitRun(ds) } finally { ctSet({ committing: false, commitText: '' }) }
@@ -164,7 +170,7 @@ export default function ImportPt() {
   const cards = pd.map((x, i) => {
     const c = x.d, dangSua = pendEdit === x.uid
     const dmC = ctDeMucCua_(c)
-    const phu = [c.hangMuc, dmC ? (dmC + ' ' + nodeName(dmC)) : '', c.dg ? (money(c.dg) + ' đ' + (c.dvt ? '/' + c.dvt : '')) : '', ptLoaiNgan_(c.loai)].filter(Boolean).join(' · ')
+    const phu = [c.hangMuc, dmC ? (dmC + ' ' + nodeName(dmC)) : '', c.dg ? (money(c.dg) + ' đ' + (c.dvt ? '/' + c.dvt : '')) : '', c.loai ? ptLoaiNgan_(c.loai) : '', c.ncc ? ('NT ' + c.ncc) : '', (c.thuTu !== '' && c.thuTu != null) ? ('Thứ tự ' + c.thuTu) : ''].filter(Boolean).join(' · ')
     return (
       <div key={x.uid} className={'qsi-pc' + (x.loi ? ' qsi-err' : '') + (dangSua ? ' qsi-editing' : '')}>
         {String(c.hinhAnh || '').split('\n')[0] ? <img className="qsi-pc-th" src={img1(c.hinhAnh)} alt="" onError={hideImg} /> : <span className="qsi-pc-th qsi-pc-noimg"><QsIcon name="image" size={14} /></span>}
@@ -186,8 +192,9 @@ export default function ImportPt() {
   return (
     <div className="qsi-layout">
       <div className="qsi-dbwrap qsip-wrap" ref={formRef}>
+        <PtFileImport />
         <ImgUpBlock key={form.seq} acc={acc} title="Ảnh công tác" moreLabel="Hình chi tiết công tác" mainOptional active={onTab} />
-        <CtForm form={form} set={setForm} hmList={hmList} />
+        <CtForm form={form} set={setForm} hmList={hmList} congTac={congTac} />
         <div className="qsi-savebar">
           {sua ? <div className="qsi-pe-note"><QsIcon name="edit" size={14} /> Đang sửa 1 công tác trong danh sách chờ — chỉnh xong bấm <b>Cập nhật</b></div> : null}
           <label className="qsi-ghck qsip-ghck"><input type="checkbox" checked={!!form.ghi}

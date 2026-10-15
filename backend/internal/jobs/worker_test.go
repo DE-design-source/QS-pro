@@ -257,3 +257,112 @@ func TestSleepCtx(t *testing.T) {
 		t.Error("ctx đã huỷ phải trả false")
 	}
 }
+
+// ═══════════════════ nhắc gia hạn (M17.3, chỉ bản Go) ═══════════════════
+
+type nhacGia struct {
+	mu    sync.Mutex
+	clock *int64
+	calls []string // giờ VN của mỗi lần gọi + dryRun
+}
+
+func (n *nhacGia) NhacGiaHan(_ context.Context, dryRun bool) (*omap.Map, error) {
+	n.mu.Lock()
+	defer n.mu.Unlock()
+	n.calls = append(n.calls, time.UnixMilli(*n.clock+vnOffsetMs).UTC().Format("2006-01-02 15:04")+fmt.Sprint(" dry=", dryRun))
+	return omap.Of("soThongBao", 1.0, "soCongTy", 1.0), nil
+}
+
+func TestNhacSchedule(t *testing.T) {
+	cases := []struct {
+		name, start string // giờ VN lúc server chạy
+		want        string
+	}{
+		// trước 8h05: không gửi bù, chờ tới 8h05 hôm nay
+		{"sang-som", "2026-10-15 06:00", "2026-10-15 08:05 dry=false|2026-10-16 08:05 dry=false|2026-10-17 08:05 dry=false"},
+		// sau 8h05: gửi bù 70 giây sau khi chạy, rồi 8h05 các ngày sau
+		{"buoi-chieu", "2026-10-15 14:30", "2026-10-15 14:31 dry=false|2026-10-16 08:05 dry=false|2026-10-17 08:05 dry=false"},
+		// đúng 8h04: 70 giây sau là 8h05:10 -> gửi bù
+		{"sat-gio", "2026-10-15 08:04", "2026-10-15 08:05 dry=false|2026-10-16 08:05 dry=false|2026-10-17 08:05 dry=false"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			st, err := time.Parse("2006-01-02 15:04", c.start)
+			if err != nil {
+				t.Fatal(err)
+			}
+			clock := st.UnixMilli() - vnOffsetMs
+			end := clock + 2*msNgay + 3*3600*1000 // chạy 2 ngày + 3 giờ
+			n := &nhacGia{clock: &clock}
+			w := newWorker(Deps{Expiry: n})
+			w.now = func() time.Time { return time.UnixMilli(clock) }
+			var logs []string
+			w.logf = func(tag string, args ...any) { logs = append(logs, dongLog(tag, args)) }
+			w.sleep = func(_ context.Context, d time.Duration) bool {
+				if clock+d.Milliseconds() > end {
+					return false
+				}
+				clock += d.Milliseconds()
+				return true
+			}
+			w.runNhac(context.Background())
+			if got := strings.Join(n.calls, "|"); got != c.want {
+				t.Errorf("lần nhắc\n có:  %s\n cần: %s", got, c.want)
+			}
+			if len(logs) == 0 || !strings.Contains(strings.Join(logs, "\n"), "lần nhắc kế tiếp sau") ||
+				!strings.Contains(strings.Join(logs, "\n"), "đã gửi 1 thông báo") {
+				t.Errorf("log: %v", logs)
+			}
+		})
+	}
+	// tới hạn đúng 8h05 thì hẹn sang ngày mai, không chạy 2 lần trong 1 phút
+	w := newWorker(Deps{})
+	at := time.Date(2026, 10, 15, 1, 5, 0, 0, time.UTC) // 8h05 VN
+	w.now = func() time.Time { return at }
+	if got := w.msToNextNhac(); got != msNgay {
+		t.Errorf("8h05 đúng: chờ %v ms, cần %v", got, msNgay)
+	}
+	if !daQuaGioNhac(w.nowVN()) || daQuaGioNhac(time.Date(2026, 10, 15, 8, 4, 59, 0, time.UTC)) {
+		t.Error("daQuaGioNhac sai")
+	}
+}
+
+type nhacDem struct {
+	mu sync.Mutex
+	n  int
+}
+
+func (n *nhacDem) NhacGiaHan(context.Context, bool) (*omap.Map, error) {
+	n.mu.Lock()
+	defer n.mu.Unlock()
+	n.n++
+	return nil, nil
+}
+
+func TestNhacStartSwitch(t *testing.T) {
+	// REPORT_JOB=0: job nhắc gia hạn cũng tắt
+	t.Setenv("REPORT_JOB", "0")
+	n := &nhacDem{}
+	if w := Start(context.Background(), Deps{Expiry: n}); w.cancel != nil {
+		t.Error("REPORT_JOB=0 mà vẫn bật job nhắc gia hạn")
+	}
+	if w := Start(context.Background(), Deps{Reports: &runnerDem{}, Expiry: n, Cfg: &config.Config{ReportJob: false}}); w.cancel != nil {
+		t.Error("Cfg.ReportJob = false mà vẫn bật job nhắc gia hạn")
+	}
+	// chỉ có Expiry: vẫn bật, Stop dừng được bộ hẹn giờ 70 giây
+	t.Setenv("REPORT_JOB", "")
+	w := Start(context.Background(), Deps{Expiry: n})
+	if w.cancel == nil {
+		t.Fatal("có Expiry mà job không bật")
+	}
+	done := make(chan struct{})
+	go func() { w.Stop(context.Background()); close(done) }()
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("Stop không dừng được job nhắc gia hạn")
+	}
+	if n.n != 0 {
+		t.Errorf("dừng trước 70 giây mà đã nhắc %d lần", n.n)
+	}
+}

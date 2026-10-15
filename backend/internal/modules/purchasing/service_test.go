@@ -126,12 +126,16 @@ type fakeRepo struct {
 	failOrderItems        error
 	failProposal          error
 	failProposalItems     error
-	failDelete            error
 	failList              error
 	failOrder             error
 	orders                []*omap.Map
 	proposals, orderItems []*omap.Map
 	ins                   []any // mọi lần chèn theo thứ tự: {t: bảng, rows: [...]}
+	// cho các ca chỉ bản Go (service_goonly_test.go); giá trị không đặt giữ hành vi cũ
+	order, proposal *omap.Map
+	updN            int
+	patches         []any // {ma, patch} của PatchOrder theo thứ tự
+	failPatch       error
 }
 
 func (f *fakeRepo) rec(table string, rows ...*omap.Map) {
@@ -159,17 +163,18 @@ func (f *fakeRepo) InsertOrderItems(_ context.Context, rows []*omap.Map) error {
 	f.orderItems = append(f.orderItems, rows...)
 	return f.failOrderItems
 }
-func (f *fakeRepo) DeleteOrder(_ context.Context, maDon any) error {
-	f.log("deleteOrder " + maMask(jsval.S(maDon)))
-	return f.failDelete
-}
 func (f *fakeRepo) OrdersOfProject(context.Context, any) ([]*omap.Map, error) { return f.orders, nil }
 func (f *fakeRepo) OrderItems(context.Context, any) ([]*omap.Map, error)      { return nil, nil }
 func (f *fakeRepo) ListOrders(context.Context) ([]*omap.Map, error)           { return f.orders, nil }
-func (f *fakeRepo) OrderByCode(context.Context, any) (*omap.Map, error)       { return nil, nil }
+func (f *fakeRepo) OrderByCode(context.Context, any) (*omap.Map, error)       { return f.order, nil }
 func (f *fakeRepo) UpdateOrderStatus(_ context.Context, _ any, from string, _ any) (int, error) {
 	f.log("updateStatus from " + from)
-	return 0, nil
+	return f.updN, nil
+}
+func (f *fakeRepo) PatchOrder(_ context.Context, maDon any, patch *omap.Map) error {
+	f.log("patchOrder " + maMask(jsval.S(maDon)))
+	f.patches = append(f.patches, omap.Of("ma", maMask(jsval.S(maDon)), "patch", patch))
+	return f.failPatch
 }
 func (f *fakeRepo) InsertProposal(_ context.Context, row *omap.Map) error {
 	f.log("insertProposal")
@@ -182,16 +187,12 @@ func (f *fakeRepo) InsertProposalItems(_ context.Context, table string, rows []*
 	f.rec(table, rows...)
 	return f.failProposalItems
 }
-func (f *fakeRepo) DeleteProposal(context.Context, any) error {
-	f.log("deleteProposal")
-	return f.failDelete
-}
 func (f *fakeRepo) ProposalsOfProject(context.Context, any) ([]*omap.Map, error) {
 	return nil, f.failList
 }
 func (f *fakeRepo) ProposalItems(context.Context, string, any) ([]*omap.Map, error) { return nil, nil }
 func (f *fakeRepo) ListProposals(context.Context, any) ([]*omap.Map, error)         { return nil, f.failList }
-func (f *fakeRepo) ProposalByCode(context.Context, any) (*omap.Map, error)          { return nil, nil }
+func (f *fakeRepo) ProposalByCode(context.Context, any) (*omap.Map, error)          { return f.proposal, nil }
 func (f *fakeRepo) ResolveProposal(context.Context, any, *omap.Map) (int, error)    { return 0, nil }
 
 var reMa = regexp.MustCompile(`(MH|CK|TT)-[0-9A-Z]+-\d+`)
@@ -274,10 +275,11 @@ func unitSvc(repo *fakeRepo, url string) (*Service, *fakePN, *fakeNotifier, *fak
 	return New(Deps{Repo: repo, Cfg: cfg, PurchaseNotifier: pn, Notifier: nt, Users: fakeUsers{}, Auditor: au}), pn, nt, au
 }
 
-// Lỗi giữa chừng: gỡ mọi phiếu của lần gửi (kể cả phiếu đang dở), lỗi xoá bị nuốt, trả đúng lỗi gốc (S:1184-1189).
+// Lỗi giữa chừng: dừng ngay, trả đúng lỗi gốc. Gỡ phiếu dở nay do transaction lo (D-13, kiểm trên DB thật ở
+// TestSaveTxRollback), không còn lệnh xoá bù trừ.
 func TestSavePurchaseOrderRollback(t *testing.T) {
 	boom := errors.New("DB POST chi_tiet_mua_hang -> 400 {}")
-	repo := &fakeRepo{failOrderItems: boom, failDelete: errors.New("xoá hỏng")}
+	repo := &fakeRepo{failOrderItems: boom}
 	s, _, _, _ := unitSvc(repo, "")
 	order := omap.Of("orders", []any{
 		omap.Of("supplier", "A"),
@@ -287,19 +289,19 @@ func TestSavePurchaseOrderRollback(t *testing.T) {
 	if _, err := s.SavePurchaseOrder(context.Background(), order); err != boom {
 		t.Fatalf("err = %v", err)
 	}
-	want := "insertOrder A|insertOrder B|insertItems|deleteOrder <ma>|deleteOrder <ma>"
+	want := "insertOrder A|insertOrder B|insertItems"
 	if got := strings.Join(repo.calls, "|"); got != want {
 		t.Errorf("calls = %s", got)
 	}
 
-	// phần tử null: mã đã sinh nhưng chưa chèn gì -> vẫn gọi xoá mã đang dở, lỗi là TypeError của V8
+	// phần tử null: chưa chèn gì, lỗi là TypeError của V8
 	repo = &fakeRepo{}
 	s, _, _, _ = unitSvc(repo, "")
 	_, err := s.SavePurchaseOrder(context.Background(), omap.Of("orders", []any{nil}))
 	if err == nil || err.Error() != "Cannot read properties of null (reading 'items')" {
 		t.Errorf("err = %v", err)
 	}
-	if got := strings.Join(repo.calls, "|"); got != "deleteOrder <ma>" {
+	if got := strings.Join(repo.calls, "|"); got != "" {
 		t.Errorf("calls = %s", got)
 	}
 }
@@ -318,12 +320,12 @@ func TestSaveDeXuatErrors(t *testing.T) {
 	if _, err := s.SaveDeXuat(context.Background(), nil); err != other {
 		t.Errorf("err = %v", err)
 	}
-	// dòng chi tiết hỏng -> xoá phiếu đầu (lỗi xoá bị nuốt), trả lỗi gốc
+	// dòng chi tiết hỏng -> trả lỗi gốc (phiếu đầu được transaction gỡ, D-13)
 	boom := errors.New("DB POST chi_tiet_de_xuat_tt -> 400 {}")
-	repo = &fakeRepo{failProposalItems: boom, failDelete: errors.New("x")}
+	repo = &fakeRepo{failProposalItems: boom}
 	s, _, _, _ = unitSvc(repo, "")
 	_, err = s.SaveDeXuat(context.Background(), omap.Of("loai", "tt", "dots", []any{omap.Of("tien", 5.0)}))
-	if err != boom || strings.Join(repo.calls, "|") != "insertProposal|insertProposalItems chi_tiet_de_xuat_tt|deleteProposal" {
+	if err != boom || strings.Join(repo.calls, "|") != "insertProposal|insertProposalItems chi_tiet_de_xuat_tt" {
 		t.Errorf("err = %v, calls = %v", err, repo.calls)
 	}
 }
@@ -584,6 +586,9 @@ func TestRegister(t *testing.T) {
 	if len(reg.Names()) != len(want) {
 		t.Errorf("số hàm rpc = %d", len(reg.Names()))
 	}
+	if g := reg.GoRoutes(); len(g) != 1 || g[0].Name != "getMyDeXuat" || g[0].Method != "GET" || g[0].Path != "/my-proposals/:code" || g[0].Perm != rpc.Login {
+		t.Errorf("route chỉ bản Go: %+v", g)
+	}
 	for name, perm := range want {
 		if p, ok := reg.PermOf(name); !ok || p != perm {
 			t.Errorf("%s: perm %v ok %v", name, p, ok)
@@ -602,7 +607,7 @@ func TestRegister(t *testing.T) {
 			n++
 		}
 	}
-	if n != 11 {
+	if n != 12 { // 11 route của hàm rpc + route chỉ bản Go GET /my-proposals/:code
 		t.Errorf("số route REST = %d", n)
 	}
 

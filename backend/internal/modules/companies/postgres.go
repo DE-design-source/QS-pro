@@ -2,6 +2,7 @@ package companies
 
 import (
 	"context"
+	"strconv"
 
 	"qspro-backend/internal/platform/database"
 	"qspro-backend/internal/shared/omap"
@@ -56,5 +57,39 @@ func (r *pgRepo) RemoveTenantRows(ctx context.Context, table, filter string) err
 
 func (r *pgRepo) RemoveCongTy(ctx context.Context, id any) error {
 	_, err := r.db.Remove(ctx, "cong_ty", database.Eq("id", id), database.Opt{NoScope: true})
+	return err
+}
+
+func (r *pgRepo) CongTyCanNhac(ctx context.Context, tu, den string) ([]*omap.Map, error) {
+	return r.db.Select(ctx, "cong_ty", database.SelectOpt{
+		Filter: "active=not.is.false&han_dung=gte." + tu + "&han_dung=lte." + den, Order: "han_dung.asc", NoScope: true})
+}
+
+// locMocChuaNhac: nhac_moc null, ngoài tập mốc (dữ liệu cũ -1, 5...) hoặc lớn hơn moc.
+func locMocChuaNhac(moc int) string {
+	ds := ""
+	for i, m := range mocNhac {
+		if i > 0 {
+			ds += ","
+		}
+		ds += strconv.Itoa(m)
+	}
+	return "or=(nhac_moc.is.null,nhac_moc.not.in.(" + ds + "),nhac_moc.gt." + strconv.Itoa(moc) + ")"
+}
+
+func (r *pgRepo) NhanMocNhac(ctx context.Context, id any, moc int, ngay string) (bool, error) {
+	rows, err := r.db.Update(ctx, "cong_ty", database.Eq("id", id)+"&"+locMocChuaNhac(moc),
+		omap.Of("nhac_moc", float64(moc), "nhac_lan_cuoi", ngay), database.Opt{NoScope: true})
+	return len(rows) > 0, err
+}
+
+func (r *pgRepo) TraMocNhac(ctx context.Context, id any, moc int, ngay string, mocCu, ngayCu any) error {
+	_, err := r.db.Update(ctx, "cong_ty", database.Eq("id", id)+"&"+database.Eq("nhac_moc", float64(moc))+"&"+database.Eq("nhac_lan_cuoi", ngay),
+		omap.Of("nhac_moc", mocCu, "nhac_lan_cuoi", ngayCu), database.Opt{NoScope: true})
+	return err
+}
+
+func (r *pgRepo) ChenThongBao(ctx context.Context, row *omap.Map) error {
+	_, err := r.db.InsertOne(ctx, "notifications", row)
 	return err
 }

@@ -310,6 +310,10 @@ func queryJ(ctx context.Context, q querier, sql string, params []any) ([]*omap.M
 		}
 		return nil, err
 	}
+	return decodeJ(j)
+}
+
+func decodeJ(j *string) ([]*omap.Map, error) {
 	if j == nil || *j == "" {
 		return []*omap.Map{}, nil
 	}
@@ -332,14 +336,24 @@ func (d *DB) staleCatalog(ctx context.Context, err error) {
 }
 
 func (d *DB) run(ctx context.Context, method string, t *table, sql string, params []any) ([]*omap.Map, error) {
-	p, err := d.Pool()
-	if err != nil {
-		return nil, err
+	st := txOf(ctx, d)
+	var p *pgxpool.Pool
+	if st == nil {
+		var err error
+		if p, err = d.Pool(); err != nil {
+			return nil, err
+		}
 	}
 	if err := nulParam(method, t.vi, params); err != nil {
 		return nil, err
 	}
-	out, err := queryJ(ctx, p, sql, params)
+	var out []*omap.Map
+	var err error
+	if st != nil { // đang trong d.Tx: chạy trên transaction đó
+		out, err = st.query(ctx, sql, params)
+	} else {
+		out, err = queryJ(ctx, p, sql, params)
+	}
 	if err != nil {
 		d.staleCatalog(ctx, err)
 		return nil, wrapPg(method, t.vi, err)
@@ -351,6 +365,18 @@ func (d *DB) run(ctx context.Context, method string, t *table, sql string, param
 // ghi cùng lúc lên một sản phẩm xếp hàng (không đụng khoá chính bảng vệ tinh) và điều kiện lọc được xét lại
 // sau khi chờ khoá - đúng như một câu UPDATE / DELETE đơn trên một bảng.
 func (d *DB) runLocked(ctx context.Context, method string, t *table, lockWhere string, lockParams []any, sql string, params []any) ([]*omap.Map, error) {
+	lockSQL := "select 1 from " + q(t.core) + ` c where c."id" in (select _t."id" from ` + q(t.en) + " _t" + lockWhere + `) order by c."id" for update of c`
+	if st := txOf(ctx, d); st != nil { // đang trong d.Tx: khoá + ghi dưới 1 savepoint của transaction đó
+		if err := nulParam(method, t.vi, lockParams, params); err != nil {
+			return nil, err
+		}
+		out, err := st.locked(ctx, lockSQL, lockParams, sql, params)
+		if err != nil {
+			d.staleCatalog(ctx, err)
+			return nil, wrapPg(method, t.vi, err)
+		}
+		return out, nil
+	}
 	p, err := d.Pool()
 	if err != nil {
 		return nil, err
@@ -367,7 +393,7 @@ func (d *DB) runLocked(ctx context.Context, method string, t *table, lockWhere s
 		d.staleCatalog(ctx, err)
 		return nil, wrapPg(method, t.vi, err)
 	}
-	if _, err := tx.Exec(ctx, "select 1 from "+q(t.core)+` c where c."id" in (select _t."id" from `+q(t.en)+" _t"+lockWhere+`) order by c."id" for update of c`, lockParams...); err != nil {
+	if _, err := tx.Exec(ctx, lockSQL, lockParams...); err != nil {
 		return fail(err)
 	}
 	out, err := queryJ(ctx, tx, sql, params)

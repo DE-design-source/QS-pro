@@ -89,10 +89,9 @@ Thêm thay đổi cấu trúc: viết file mới `infra/db/migrations/NNNN_ten.s
 
 ## Đồng bộ với bản Node
 
-Migration và `schema.sql` dùng chung ở `infra/db/`, không còn phải chép tay. Chỉ còn một BẢN SAO chép tay
-(`scripts/sync-api-docs.js` chỉ lo api-docs). Sửa bên Node thì chép lại, rồi kiểm bằng
-`sh backend/scripts/check-node-sync.sh` (so bằng `cmp`; không cần database; chưa nối vào `go test`). App Node đã gỡ khỏi repo nên
-script này hiện luôn in `KHÁC`; bản gốc lấy bằng `git show 83d264e:server/db-map.json`:
+Migration và `schema.sql` dùng chung ở `infra/db/`, không còn phải chép tay. `db-map.json` của bản Go vốn là bản sao chép tay
+của bản Node; app Node đã gỡ khỏi repo nên bản Go nay là bản DUY NHẤT (script so `check-node-sync.sh` đã gỡ ngày 2026-10-15).
+Bản gốc cũ lấy bằng `git show 83d264e:server/db-map.json`:
 
 | Bản gốc (Node) | Bản sao (Go) |
 |---|---|
@@ -100,9 +99,8 @@ script này hiện luôn in `KHÁC`; bản gốc lấy bằng `git show 83d264e:
 
 ## Database thử
 
-Test tích hợp và bộ so vi sai dùng hai database trong container `qspro-postgres` (cổng 5434 trên máy): `qspro_gotest` cho bản Go,
-`qspro_nodetest` cho bản Node. `tests/e2e/diff/run.ps1` tạo lại cả hai từ file seed `/tmp/qspro_seed.sql` trong container
-(nguồn gốc file seed chưa rõ, chưa có trong repo). Test Go có database phải chạy với `-p 1` vì mọi gói dùng chung `qspro_gotest`.
+Test tích hợp dùng database `qspro_gotest` trong container `qspro-postgres` (cổng 5434 trên máy), đặt lại từ file seed
+`/tmp/qspro_seed.sql` trong container (bản sao bền: `infra/export/qspro_seed.sql`). Test Go có database phải chạy với `-p 1` vì mọi gói dùng chung `qspro_gotest`.
 Chi tiết: mục Kiểm thử của `backend/README.md`.
 
 ## Đối chiếu với bản Node

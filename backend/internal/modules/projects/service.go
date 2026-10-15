@@ -31,6 +31,7 @@ type Deps struct {
 // Service: nghiệp vụ dự án.
 type Service struct {
 	repo    Repository
+	db      *database.DB // transaction (D-13); nil khi chạy repo giả
 	cfg     *config.Config
 	catalog contracts.CatalogReader
 	lines   contracts.LineReader
@@ -47,9 +48,17 @@ func New(d Deps) *Service {
 	if repo == nil {
 		repo = NewRepository(d.DB)
 	}
-	s := &Service{repo: repo, cfg: d.Cfg, catalog: d.Catalog, lines: d.Lines, now: jsval.NowISO, random: rand.Float64}
+	s := &Service{repo: repo, db: d.DB, cfg: d.Cfg, catalog: d.Catalog, lines: d.Lines, now: jsval.NowISO, random: rand.Float64}
 	s.genMa = func() string { return genMaDA(time.Now(), s.random()) }
 	return s
+}
+
+// tx: chạy fn trong transaction (D-13). Repo giả trong test unit không có DB -> chạy thẳng.
+func (s *Service) tx(ctx context.Context, fn func(ctx context.Context) error) error {
+	if s.db == nil {
+		return fn(ctx)
+	}
+	return s.db.Tx(ctx, fn)
 }
 
 // projToObj (S:227-231): dòng du_an -> object cho client.
@@ -197,21 +206,29 @@ func (s *Service) UpdateProject(ctx context.Context, maDA any, fields any) (*oma
 }
 
 // DeleteProject (S:266-273): xoá dòng bóc tách, tờ bìa, dữ liệu rời rồi mới tới dự án.
+// D-13: 4 lệnh xoá chung 1 transaction -> lỗi giữa chừng không còn cảnh mất dòng bóc tách / tờ bìa mà dự án vẫn còn
+// (Node để lại dữ liệu dở). Thành công thì kết quả và dữ liệu như cũ.
 func (s *Service) DeleteProject(ctx context.Context, maDA any) (*omap.Map, error) {
-	if err := s.repo.DeleteLines(ctx, maDA); err != nil {
-		return nil, err
-	}
-	if err := s.repo.DeleteCover(ctx, maDA); err != nil {
-		return nil, err
-	}
-	_ = s.repo.DeleteProjData(ctx, maDA) // Node nuốt mọi lỗi ở bước này (chưa có bảng)
-	if err := s.repo.DeleteProject(ctx, maDA); err != nil {
+	err := s.tx(ctx, func(ctx context.Context) error {
+		if err := s.repo.DeleteLines(ctx, maDA); err != nil {
+			return err
+		}
+		if err := s.repo.DeleteCover(ctx, maDA); err != nil {
+			return err
+		}
+		// Node nuốt mọi lỗi ở bước này (chưa có bảng); trong transaction mỗi lệnh có savepoint riêng
+		// nên lệnh hỏng ở đây không làm hỏng transaction, lệnh sau vẫn chạy
+		_ = s.repo.DeleteProjData(ctx, maDA)
+		return s.repo.DeleteProject(ctx, maDA)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return omap.Of("ok", true), nil
 }
 
 // DuplicateProject (S:275-312): chép dự án (mã mới) + dòng bóc tách + tờ bìa + dữ liệu rời.
+// D-13: chèn dự án + chép dòng con chung 1 transaction; hỏng giữa chừng -> rollback, không còn bản nháp dở.
 func (s *Service) DuplicateProject(ctx context.Context, maDA any, opts any) (*omap.Map, error) {
 	o := jsval.AsMap(opts)
 	cpBoc := !jsval.StrictEquals(o.Val("boc"), false)
@@ -227,17 +244,29 @@ func (s *Service) DuplicateProject(ctx context.Context, maDA any, opts any) (*om
 	projRow := srcRows[0].Clone()
 	projRow.Delete("id")
 	projRow.Set("ma_da", newMa).Set("ngay_tao", s.now()).Set("cap_nhat", s.now())
-	ins, err := s.repo.InsertProject(ctx, projRow)
+	var ins []*omap.Map
+	err = s.tx(ctx, func(ctx context.Context) error {
+		var err error
+		if ins, err = s.repo.InsertProject(ctx, projRow); err != nil {
+			return err
+		}
+		if err := s.copyChildren(ctx, maDA, newMa, cpBoc, cpCover, o); err != nil {
+			if s.db == nil {
+				// không có transaction (repo giả): bù trừ như Node - xoá bản nháp dở (lỗi của bước dọn bị nuốt).
+				// Có transaction thì rollback đã dọn; KHÔNG xoá theo newMa sau rollback vì có thể trúng
+				// bản nháp cùng mã của request khác vừa tạo.
+				_, _ = s.DeleteProject(ctx, newMa)
+			}
+			return err
+		}
+		if len(ins) == 0 || ins[0] == nil {
+			// trong transaction: lỗi này nay rollback cả bản nháp (Node để lại bản nháp đã chép)
+			return apperr.New("Cannot read properties of undefined (reading 'ma_da')")
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
-	}
-	if err := s.copyChildren(ctx, maDA, newMa, cpBoc, cpCover, o); err != nil {
-		// hỏng giữa chừng -> xoá bản nháp dở (lỗi của bước dọn bị nuốt), ném lại lỗi gốc
-		_, _ = s.DeleteProject(ctx, newMa)
-		return nil, err
-	}
-	if len(ins) == 0 || ins[0] == nil {
-		return nil, apperr.New("Cannot read properties of undefined (reading 'ma_da')")
 	}
 	return projToObj(ins[0]), nil
 }

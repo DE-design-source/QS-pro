@@ -1,0 +1,10 @@
+/* Dải nhắc bản cập nhật mới (UpdateBanner.jsx) - cùng dáng .banmoi của bản gốc (PUB/index.html:4829-4832).
+   Tiền tố qsc- như common.css; nằm trên mọi lớp của QS (kể cả màn đăng nhập) như z-index 9999 của bản gốc. */
+.qsc-banmoi{position:fixed; left:50%; bottom:22px; transform:translateX(-50%); z-index:9999; display:flex; align-items:center; gap:10px;
+  max-width:calc(100vw - 32px); background:var(--dash-navy, #0B2545); color:#fff; padding:10px 12px 10px 16px; border-radius:12px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25); font-size:13px;}
+.qsc-banmoi button{border:none; border-radius:8px; background:#fff; color:var(--dash-navy, #0B2545); font:inherit; font-weight:600; padding:6px 12px; cursor:pointer; white-space:nowrap;}
+.qsc-banmoi button.x{background:transparent; color:rgba(255,255,255,.7); padding:6px 8px;}
+.qsc-banmoi button:focus-visible{outline:2px solid #fff; outline-offset:2px;}
+/* Giao diện tối: --dash-navy không đổi nên nâng sáng nền + viền để dải không lẫn vào nền (như .qsc-toast ở common.css) */
+html[data-theme="dark"] .qsc-banmoi{background:#24477A; box-shadow:0 0 0 1px rgba(255,255,255,.16), 0 10px 30px rgba(0,0,0,.55);}

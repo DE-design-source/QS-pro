@@ -28,8 +28,8 @@ Công ty (tenant) + gói dịch vụ. 3 dòng.
 | `created_at` | `ngay_tao` | timestamp with time zone | có | now() |  | When the company was created |  |
 | `email` | `email` | text | có |  |  | Contact / billing email | **NHẠY CẢM (PII)** |
 | `phone` | `sdt` | text | có |  |  | Contact phone number | **NHẠY CẢM (PII)** |
-| `last_reminder_date` | `nhac_lan_cuoi` | date | có |  |  | Date the most recent expiry reminder was sent | **D - bỏ được**: Tính năng nhắc hạn đã gỡ khỏi code (commit 42af44d); không còn nơi đọc/ghi. |
-| `reminder_milestone` | `nhac_moc` | integer | có |  |  | Days-before-expiry milestone already reminded (30/14/7/3/1/0; -1 seen after expiry) | **D - bỏ được**: Như trên. |
+| `last_reminder_date` | `nhac_lan_cuoi` | date | có |  |  | Date (Vietnam time) the most recent in-app expiry reminder was sent | Từ migration 0012 (M17.3, giả định): nhắc gia hạn trong ứng dụng ghi cột này (server Go `companies.NhacGiaHan`); đổi `han_dung` thì xoá. Thôi DEPRECATED, ra khỏi danh sách xoá D-09. |
+| `reminder_milestone` | `nhac_moc` | integer | có |  |  | Days-before-expiry milestone already reminded (30/14/7/3/1/0); values outside that set (legacy -1, 5) = not reminded | Từ migration 0012 (M17.3): mỗi mốc gửi 1 lần cho admin đang hoạt động; không CHECK vì dữ liệu cũ có -1. Đổi `han_dung` thì xoá. Ra khỏi danh sách xoá D-09. |
 | `has_dezon_catalog_access` | `dung_sp_dezon` | boolean | có | false |  | Whether the company may use Dezon's shared product catalog |  |
 
 ## `users` (`users`)
@@ -51,6 +51,26 @@ Tài khoản đăng nhập, vai trò, quyền. 9 dòng.
 | `email` | `email` | text | có |  |  | User email; can be used to log in instead of the username | **NHẠY CẢM (PII)**: Dùng đăng nhập thay username; không có ràng buộc duy nhất. |
 | `department` | `phong_ban` | text | có |  |  | Department of the user (shown in the new-product Lark report) |  |
 | `ui_preferences` | `ui_prefs` | jsonb | không | '{}'::jsonb |  | Per-user UI preferences (saved column sets etc.); inner keys are not renamed |  |
+
+## `user_sessions` (`phien_dang_nhap`)
+
+Phiên đăng nhập lưu phía máy chủ - thêm bằng migration 0014 (2026-10-15, M1.2), không có trong mốc audit `qspro_en`.
+Mỗi lần đăng nhập 1 dòng; token ký HMAC mang `id` (khoá `sid`). Đăng xuất xoá dòng -> token hết hiệu lực ngay; tự đổi mật khẩu
+xoá các phiên khác của tài khoản; admin đặt lại mật khẩu xoá mọi phiên của tài khoản đó; xoá tài khoản xoá phiên (CASCADE). Dòng quá hạn bị bỏ qua và được dọn ở lần đăng nhập kế tiếp
+của tài khoản. **Xếp loại (quy tắc 25): bảng hệ thống, xuyên công ty** - kiểm phiên chạy trước khi biết công ty nên mọi truy vấn
+`noScope` (`backend/internal/modules/auth/postgres.go`), luôn lọc tường minh theo `id` / `user_id`; không có `company_id`
+(công ty của phiên = công ty của `users`), không khai `tenant` trong `db-map.json` và không vào `TenantTables` (super không có
+công ty; thêm vào `TenantTables` sẽ đổi thứ tự xoá dữ liệu khi xoá công ty). Thay cho lọc dự phòng: chỉ module auth được chạm bảng
+(test `TestPhienChiTruyCapQuaAuth` trong `backend/internal/modules/auth`); module khác thu hồi phiên qua
+`contracts.SessionInvalidator.RevokeUserSessions`. Ghi chú: chú thích trong file migration 0014 viết `RemoveSessions` - tên hàm
+thật là `RemoveSession` (đăng xuất) / `RemoveUserSessions` (thu hồi theo tài khoản); không sửa file migration vì đã áp (checksum).
+
+| Cột | Tên trong code | Kiểu | NULL | Mặc định | Ràng buộc | Ý nghĩa | Phân loại / ghi chú |
+|---|---|---|---|---|---|---|---|
+| `id` | `id` | uuid | không | gen_random_uuid() | PK | Session id, embedded in the token payload as "sid" | Không phải bí mật: token còn cần chữ ký `AUTH_SECRET`. |
+| `user_id` | `user_id` | uuid | không |  | FK CASCADE | Account that logged in; sessions are deleted with the account | Index `idx_user_sessions_user_id`: thu hồi theo tài khoản + dọn phiên quá hạn. |
+| `created_at` | `tao_luc` | timestamp with time zone | không | now() |  | Login time |  |
+| `expires_at` | `het_han` | timestamp with time zone | không |  | CHECK > `created_at` | Same as the token expiry (login time + 7 days) | **C (dẫn xuất)**: = `exp` của token; nguồn chuẩn là lúc server ký token. |
 
 ## `audit_logs` (`audit_log`)
 
@@ -275,7 +295,7 @@ Sản phẩm đi kèm (quan hệ N-N giữa 2 sản phẩm, có số lượng). 
 | `product_id` | `sp_id` | bigint | không |  | FK, CHECK | Main product (products.id) |  |
 | `companion_product_id` | `sp_kem_id` | bigint | không |  | FK, CHECK | Companion product sold/installed with the main one (products.id) |  |
 | `quantity` | `so_luong` | numeric | có | 1 | CHECK | Companion units needed per one main product (DEFAULT 1) |  |
-| `note` | `ghi_chu` | text | có |  |  | Note on the link, set by the product that owns the link (M10.2) | Từ 2026-10-15 (M10.2): React ghi ở form Cập nhật sản phẩm và hiện ở hộp xem sản phẩm; ra khỏi danh sách xoá D-09. Chú thích cột trong database vẫn ghi `DEPRECATED` (0008) tới migration sửa chú thích kế tiếp. |
+| `note` | `ghi_chu` | text | có |  |  | Note on the link, set by the product that owns the link (M10.2) | Từ 2026-10-15 (M10.2): React ghi ở form Cập nhật sản phẩm và hiện ở hộp xem sản phẩm; ra khỏi danh sách xoá D-09. Migration 0013 đổi chú thích cột (thôi `DEPRECATED`). |
 | `sort_order` | `sort_no` | integer | có | 0 | CHECK | Display order of the companion within the main product's combo (DEFAULT 0) |  |
 | `created_at` | `created_at` | timestamp with time zone | không | now() |  | Creation time (DEFAULT now()) |  |
 
@@ -467,7 +487,7 @@ Yêu cầu / đơn mua hàng gửi theo nhà cung cấp. 65 dòng.
 | `total_amount` | `tong_cong` | numeric | có | 0 | CHECK | Grand total = subtotal_before_vat + vat_amount | **C - tổng lưu sẵn**: Client tính, server không kiểm. |
 | `status` | `trang_thai` | text | có | 'Đã gửi'::text | CHECK | Workflow status: Chờ duyệt (pending) -> Đã duyệt (approved) / Từ chối (rejected) -> Đã đặt hàng (ordered) -> Đã nhận hàng (received); 'Đã gửi' (sent) is the legacy column default |  |
 | `send_channel` | `kenh_gui` | text | có | 'Lark'::text |  | Channel the request was sent through (Lark) | **Chỉ ghi**: Luôn 'Lark'. |
-| `send_result` | `ket_qua_gui` | text | có |  |  | Result of sending to the channel (ok / pending) | **Chỉ ghi**: Code hiện tại luôn ghi 'pending', không cập nhật. |
+| `send_result` | `ket_qua_gui` | text | có |  |  | Result of sending to the channel (ok / pending) | **Chỉ ghi**: lưu đơn ghi 'pending' (hoặc `ketQua` client gửi); sau khi gửi thẻ Lark, server Go ghi bằng lệnh riêng 'ok' (đã gửi) / 'loi' (gửi lỗi) - M9.1. GIẢ ĐỊNH M9.1: các dòng 'ok' tạo trước bản này là giá trị mặc định lúc lưu (`strOr(ketQua,'ok')` cũ), không phải xác nhận đã tới Lark. Chú thích cột (COMMENT) đổi ở migration 0013 (nhắc cả 'loi'). |
 | `sender_name` | `nguoi_gui` | text | có |  |  | Free-text name of the person who sent the order | **Gõ tay**: Không lấy từ tài khoản. |
 | `department` | `phong_ban` | text | có |  |  | Sender's department |  |
 | `note` | `ghi_chu` | text | có |  |  | Note |  |

@@ -19,8 +19,8 @@ import (
 //	POST  /uploads/images, /uploads/files-base64 {base64, fileName}
 //	POST  /product-imports/parse                 {base64, ext, nganh}
 //	POST  /product-imports/commit                {products}
-//	POST  /product-delete-requests               {items}
-//	POST  /product-delete-requests/:id/resolve   {approve}
+//	POST  /product-delete-requests               {items, lyDo}      (lyDo: chỉ bản Go, tuỳ chọn)
+//	POST  /product-delete-requests/:id/resolve   {approve, lyDo}    (lyDo: chỉ bản Go, lý do từ chối, tuỳ chọn)
 
 // bodyVal: thân[key]; thiếu khoá -> Undefined, như tham số bị bỏ của cổng rpc.
 func bodyVal(c *gin.Context, key string) any {

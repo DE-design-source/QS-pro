@@ -1,7 +1,7 @@
 import QsIcon from '../../common/QsIcon'
 import { qsToast } from '../../common/dialogs'
 import { money, ptN, ptQty, ptMoneyN_ } from '../../../lib/format.js'
-import { PT_LOAI, PT_CONTRACTORS } from '../../../lib/phantho.js'
+import { PT_LOAI, ptNccList_ } from '../../../lib/phantho.js'
 import { nodeName } from '../../../lib/tree.js'
 import { CT_DEMUC_CHON, ctDeMucNhan_ } from '../../products/pt/ptCore'
 import { ctGiaSync_ } from './ctImpStore'
@@ -9,7 +9,8 @@ import { ctGiaSync_ } from './ctImpStore'
 /* Form nhập công tác Phần thô của trang Nhập dữ liệu (ctFormHtml2_ pre 'imp' + ctGrpRenderCards_ / ctGrpAddCard_ / ctCardAdd_ /
    ctCardSave_ / ctRowDel_ / ctGrpDel_ / ctModePick_ / ctModeSync_ / ctGiaSync_ / ctPrev_ / ctDeMucSync_ / ctListOpen_, PUB/phantho.js:883-1067).
    Bố cục: Thông tin cơ bản → Thông tin giá bán → các khối "Đề mục lớn" (lưới thẻ "Đề mục nhỏ") → Thông tin khác.
-   Props: form {d, grps}, set(fn(form) -> patch), hmList (gợi ý hạng mục, ctHangMucList_) */
+   Props: form {d, grps}, set(fn(form) -> patch), hmList (gợi ý hạng mục, ctHangMucList_), congTac (gợi ý nhà thầu, ptNccList_ - M5.2)
+   Ô "Thứ tự" (M5.3): thư viện sắp công tác theo số này trong cùng loại báo giá; để trống = 0 (mặc định của máy chủ). */
 const MODES = [['item', 'Khối lượng × đơn giá'], ['area', 'Diện tích × hệ số'], ['area0', 'Chỉ tính khối lượng'], ['none', 'Chỉ liệt kê']]
 const DVT_LIST = ['m', 'm2', 'm3', 'md', 'tim', 'cái', 'bộ', 'gói', 'tấn', 'ngày', 'tháng', 'tầng', 'hệ', 'điểm', 'công', 'ca']
 const PLUS = <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 6v12M6 12h12" /></svg>
@@ -39,7 +40,7 @@ function Prev({ d }) {
   )
 }
 
-export default function CtForm({ form, set, hmList }) {
+export default function CtForm({ form, set, hmList, congTac }) {
   const d = form.d, grps = form.grps
   const m = d.mode || 'item'
   const upd = patch => set(F => ({ d: { ...F.d, ...patch } }))
@@ -134,13 +135,16 @@ export default function CtForm({ form, set, hmList }) {
         <div className="qsip-g">
           <div className="qsip-f"><Lbl t="Loại báo giá" req /><div className="qsip-i">
             <select value={d.loai} onChange={e => upd({ loai: e.target.value })}>
+              {d.loai === '' ? <option value="" disabled>— Chọn loại báo giá —</option> : null}
               {PT_LOAI.map(x => <option key={x[0]} value={x[0]}>{x[1]}</option>)}
             </select></div></div>
-          <div className="qsip-f"><Lbl t="Cách tính" /><div className="qsip-i">
-            <select value={m} onChange={e => mode(e.target.value)}>
+          <div className="qsip-f"><Lbl t="Cách tính" req={d.mode === ''} /><div className="qsip-i">
+            <select value={d.mode === '' ? '' : m} onChange={e => mode(e.target.value)}>
+              {d.mode === '' ? <option value="" disabled>— Chọn cách tính —</option> : null}
               {MODES.map(x => <option key={x[0]} value={x[0]}>{x[1]}</option>)}
             </select></div></div>
           {inp('maNhom', 'Số hạng mục', 'VD: II')}
+          <div className="qsip-f"><Lbl t="Thứ tự" /><div className="qsip-i"><input type="number" min="0" step="1" value={d.thuTu == null ? '' : d.thuTu} placeholder="VD: 1 — nhỏ đứng trước trong thư viện" onChange={e => upd({ thuTu: e.target.value })} /></div></div>
           {show.kl && <div className="qsip-f"><Lbl t="Khối lượng mẫu" /><div className="qsip-i"><input type="number" step="any" value={d.kl} placeholder="1" onChange={e => upd({ kl: e.target.value })} /></div></div>}
           {show.dt && <div className="qsip-f"><Lbl t="Diện tích mẫu (m²)" /><div className="qsip-i"><input type="number" step="any" value={d.dt} placeholder="0" onChange={e => upd({ dt: e.target.value })} /></div></div>}
           {show.hs && <div className="qsip-f"><Lbl t="Hệ số" /><div className="qsip-i"><input type="number" step="any" value={d.hs} placeholder="1" onChange={e => upd({ hs: e.target.value })} /></div></div>}
@@ -150,7 +154,7 @@ export default function CtForm({ form, set, hmList }) {
         </div>
       </section>
       <datalist id={DL.hm}>{(hmList || []).map(v => <option key={v} value={v} />)}</datalist>
-      <datalist id={DL.ncc}>{PT_CONTRACTORS.map(v => <option key={v} value={v} />)}</datalist>
+      <datalist id={DL.ncc}>{ptNccList_(congTac).map(v => <option key={v.ten} value={v.ten} />)}</datalist>
       <datalist id={DL.dvt}>{DVT_LIST.map(v => <option key={v} value={v} />)}</datalist>
     </div>
   )

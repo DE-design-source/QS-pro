@@ -227,14 +227,14 @@ COMMENT ON COLUMN public.companies.phone IS 'Contact phone number';
 -- Name: COLUMN companies.last_reminder_date; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON COLUMN public.companies.last_reminder_date IS 'DEPRECATED: expiry reminder feature was removed from the code.';
+COMMENT ON COLUMN public.companies.last_reminder_date IS 'In-app expiry reminder (M17.3): date (Vietnam time) the last reminder was sent. Cleared together with reminder_milestone when expiry_date changes.';
 
 
 --
 -- Name: COLUMN companies.reminder_milestone; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON COLUMN public.companies.reminder_milestone IS 'DEPRECATED: expiry reminder feature was removed from the code.';
+COMMENT ON COLUMN public.companies.reminder_milestone IS 'In-app expiry reminder (M17.3): last milestone sent, one of 30/14/7/3/1/0 days before expiry_date. NULL = not reminded yet; values outside that set (legacy -1, 5...) are treated as NULL. Cleared when expiry_date changes.';
 
 
 --
@@ -2084,7 +2084,7 @@ COMMENT ON COLUMN public.product_combos.quantity IS 'Companion units needed per 
 -- Name: COLUMN product_combos.note; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON COLUMN public.product_combos.note IS 'DEPRECATED: clients always send an empty string; never displayed.';
+COMMENT ON COLUMN public.product_combos.note IS 'Note for the companion-product link (M10.2): entered on the product that owns the link, shown read-only on the reverse (two-way) link.';
 
 
 --
@@ -2896,7 +2896,7 @@ COMMENT ON COLUMN public.purchase_orders.send_channel IS 'Channel the request wa
 -- Name: COLUMN purchase_orders.send_result; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON COLUMN public.purchase_orders.send_result IS 'Result of sending to the channel (ok / pending)';
+COMMENT ON COLUMN public.purchase_orders.send_result IS 'Lark send result: pending (saved, not sent yet) / ok (card sent) / loi (send failed). Rows "ok" created before M9.1 are a save-time default, not a confirmed delivery';
 
 
 --
@@ -3528,6 +3528,54 @@ CREATE TABLE public.schema_migrations (
     checksum text NOT NULL,
     applied_at timestamp with time zone DEFAULT now() NOT NULL
 );
+
+
+--
+-- Name: user_sessions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_sessions (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    expires_at timestamp with time zone NOT NULL,
+    CONSTRAINT ck_user_sessions_expires_at CHECK ((expires_at > created_at))
+);
+
+
+--
+-- Name: TABLE user_sessions; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.user_sessions IS 'Server-side login sessions (M1.2): one row per login; the signed token carries the row id (sid). Logout deletes the row so the token stops working immediately. Cross-company table, always accessed without company scope.';
+
+
+--
+-- Name: COLUMN user_sessions.id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_sessions.id IS 'Session id, embedded in the token payload as "sid"';
+
+
+--
+-- Name: COLUMN user_sessions.user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_sessions.user_id IS 'Account that logged in; sessions are deleted with the account';
+
+
+--
+-- Name: COLUMN user_sessions.created_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_sessions.created_at IS 'Login time';
+
+
+--
+-- Name: COLUMN user_sessions.expires_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_sessions.expires_at IS 'Same as the token expiry (login time + 7 days); rows past this time are ignored and cleaned up at the next login of the account';
 
 
 --
@@ -4402,6 +4450,14 @@ ALTER TABLE ONLY public.quotation_lines
 
 
 --
+-- Name: user_sessions pk_user_sessions; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_sessions
+    ADD CONSTRAINT pk_user_sessions PRIMARY KEY (id);
+
+
+--
 -- Name: users pk_users; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4668,6 +4724,13 @@ CREATE INDEX idx_purchase_proposals_requester_id ON public.purchase_proposals US
 --
 
 CREATE INDEX idx_quotation_lines_project_code_sort_order ON public.quotation_lines USING btree (project_code, sort_order);
+
+
+--
+-- Name: idx_user_sessions_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_user_sessions_user_id ON public.user_sessions USING btree (user_id);
 
 
 --
@@ -4957,6 +5020,14 @@ ALTER TABLE ONLY public.quotation_lines
 
 
 --
+-- Name: user_sessions fk_user_sessions_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_sessions
+    ADD CONSTRAINT fk_user_sessions_user_id FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
 -- Name: users fk_users_company_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4994,6 +5065,7 @@ ALTER TABLE ONLY public.work_items
 
 
 
+
 -- Các migration đã nằm sẵn trong schema này (để scripts/migrate.js không chạy lại)
 insert into public.schema_migrations (version, name, checksum) values ('0001', '0001_dealer_price_generated', '88ba91a42e051629a406c974bf01de3e715a9a5ed85fd13d1ccc2296e91b84e2');
 insert into public.schema_migrations (version, name, checksum) values ('0002', '0002_company_settings', '8b7c95337c1b6d0bf4fe5a64752c26cb1271c241cebf15ad6ce2b64c3187ff15');
@@ -5006,3 +5078,6 @@ insert into public.schema_migrations (version, name, checksum) values ('0008', '
 insert into public.schema_migrations (version, name, checksum) values ('0009', '0009_purchase_order_resolution', 'af239544eab39f433bf961dec8c61b09af5279cde3524a4fc6253c091bc6fb84');
 insert into public.schema_migrations (version, name, checksum) values ('0010', '0010_delete_request_resolution_note', '37ad60d8fba104ef9a7cfb88ba6744f43f814c83a24f51bf759c7be353103631');
 insert into public.schema_migrations (version, name, checksum) values ('0011', '0011_project_current_condition', '858be4473adf66112e2f45fe67ffc88910bb5b835ba4a40b83deb1d74b17697d');
+insert into public.schema_migrations (version, name, checksum) values ('0012', '0012_expiry_reminder_comments', '862fdbbac3001165bf79be58844a367fe79ad5788bb76c8424e88fc45758b54a');
+insert into public.schema_migrations (version, name, checksum) values ('0013', '0013_comment_updates', '1f2d684d6875a21f92d8c9014d6e87eec2f3d7d5b10723e781914b98377cadf9');
+insert into public.schema_migrations (version, name, checksum) values ('0014', '0014_user_sessions', 'f0c65059ae56509b9415ad2fee06796b0cfa51195779d695cfae9a17074596f1');

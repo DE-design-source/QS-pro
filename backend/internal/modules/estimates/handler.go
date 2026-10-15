@@ -48,6 +48,15 @@ func (s *Service) RegisterRPC(reg *rpc.Registry) {
 	reg.Register("ctHistory", rpc.Login, func(ctx context.Context, _ *actor.Actor, args rpc.Args) (any, error) {
 		return s.CtGetHistory(ctx, args.ArgU(0))
 	})
+	// Route chỉ bản Go (roadmap M5.1): đọc file mẫu nhập công tác, không ghi database.
+	reg.RegisterGoRoute(rpc.GoRoute{
+		Name: "ctImportParse", Method: "POST", Path: "/work-items/import/parse", Perm: rpc.Login, Tag: "Công tác",
+		Summary: "Đọc file nhập công tác (mẫu /mau-nhap-cong-tac.xlsx hoặc CSV cùng tiêu đề) -> {rows, loi}; cùng quyền với ctSave",
+		Fields: []rpc.GoField{
+			{Name: "base64", In: "body", Type: "string", Required: true, Desc: "nội dung file mã hoá base64"},
+			{Name: "ext", In: "body", Type: "string", Desc: "đuôi file: xlsx (mặc định) hoặc csv"},
+		},
+	})
 }
 
 // RegisterRoutes: REST /api/v1/work-items - gọi đúng các phương thức mà cổng rpc gọi.
@@ -84,6 +93,11 @@ func (s *Service) RegisterRoutes(v1 *gin.RouterGroup) {
 	g.POST("/favorites", func(c *gin.Context) {
 		b := readBatch(middleware.BodyMap(c), "on")
 		r, err := s.CtFavGated(c.Request.Context(), actor.FromGin(c), b.IDs, b.Flag)
+		response.Result(c, r, err)
+	})
+	g.POST("/import/parse", func(c *gin.Context) {
+		b := middleware.BodyMap(c)
+		r, err := s.CtImportParse(c.Request.Context(), actor.FromGin(c), b.Val("base64"), b.Val("ext"))
 		response.Result(c, r, err)
 	})
 	g.GET("/:id/history", func(c *gin.Context) {

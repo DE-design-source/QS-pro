@@ -10,6 +10,9 @@ import { MH_MEMO, mhMemoSet, useMhMemo, fmtDateTime_, imgSrc1_, foldGet_, foldTo
 import './purchase/purchase.css'
 import { useQs } from '../state/QsData'
 import { refreshNotifCount } from '../state/store'
+import { useQsSession } from '../session/QsSession'
+import { qsAlert } from './common/dialogs'
+import { larkLbl_, larkCls_ } from './admin/adminUtil'
 import * as api from '../api/qsApi'
 import { isAbort } from '../api/http'
 import { downloadPost } from '../api/files'
@@ -25,16 +28,20 @@ import {
 /* Tab "Mua hàng" (port PUB/muahang.js): dòng bóc tách của hạng mục dùng chung (hmNode, '' = tất cả) gom theo nhà cung cấp
    (ncc || thuongHieu || 'Khác'), cùng sản phẩm ở nhiều tầng gộp 1 dòng đơn. % giảm NCC lưu trên dòng (giamGiaNcc),
    % đề xuất lưu ở extra.dxGiam, kế hoạch thanh toán ở projData.mhPay. Gửi đơn / đề xuất qua API; đơn và phiếu đã gửi
-   tải lại khi đổi dự án và bằng nút tải lại. Mọi công thức ở lib/purchase.js. */
+   tải lại khi đổi dự án và bằng nút tải lại. Mọi công thức ở lib/purchase.js.
+   Ý định điều hướng (từ thông báo de_xuat*, M13.1): {dxDetail: ma} mở chi tiết phiếu - kể cả khi chưa mở dự án nào. */
 const TAB = 'muahang'
 const loadState = () => ({ ma: null, list: [], loading: false, err: '' })
 
 export default function PurchaseTab() {
   const {
     cur, lines, products, projData, setProjData, hmNode, setHmNode, mutate, toast, confirm, navigate, panelVisible, status,
+    visibleSeq, consumeIntent,
   } = useQs()
+  const { isAdmin } = useQsSession()
   const ma = cur ? cur.maDA : ''
   const visible = panelVisible(TAB)
+  const visN = visibleSeq(TAB)
 
   const { info, sel, payOpen } = useMhMemo()
   const [need, setNeed] = useState({})
@@ -95,6 +102,25 @@ export default function PurchaseTab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, ma, loadDon, loadDx])
 
+  /* Ý định từ thông báo: mở chi tiết phiếu (đọc lại mỗi lần tab được hiện) */
+  useEffect(() => {
+    if (!visible) return
+    const it = consumeIntent(TAB)
+    if (it && it.dxDetail) setDxOpen(String(it.dxDetail))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, visN])
+
+  /* dxResolve (muahang.js:383-391): từ tab Mua hàng thì tải lại phiếu của dự án */
+  const dxResolve = async (m, approve) => {
+    if (!approve && !await confirm('Từ chối phiếu ' + m + '?')) return
+    try {
+      await api.resolveDeXuat(m, approve)
+      toast(approve ? ('Đã duyệt phiếu ' + m) : ('Đã từ chối phiếu ' + m))
+      loadDx(ma)
+      refreshNotifCount()
+    } catch (e) { toast('Lỗi: ' + e.message) }
+  }
+
   /* ---------- Kế hoạch thanh toán (mhPayAll_ / mhPayOf_ / mhPaySave_) ---------- */
   const payRef = useRef({ key: null, data: {} })
   const payAll = () => {
@@ -114,7 +140,12 @@ export default function PurchaseTab() {
   const paySave = () => { const a = payAll(); setProjData('mhPay', a); payLsSet_(mhPayKey_(ma), a); setPayTick(t => t + 1) }
 
   if (!cur) {
-    return <div className="qs-card qs-po-empty">Chưa chọn dự án.</div>
+    return (
+      <>
+        <div className="qs-card qs-po-empty">Chưa chọn dự án.</div>
+        {dxOpen && <ProposalDetail ma={dxOpen} list={[]} isAdmin={isAdmin} onClose={() => setDxOpen(null)} onResolve={dxResolve} />}
+      </>
+    )
   }
 
   const mlines = mhLines_(lines, hmNode)
@@ -176,9 +207,13 @@ export default function PurchaseTab() {
   const sendOrders = async (list, key, okMsg) => {
     setBusyK(key, true)
     try {
-      await api.sendPurchaseRequest({ ...base(), orders: list.map(g => mhOrderOf(g, vatPct)) })
-      toast(okMsg)
+      const r = await api.sendPurchaseRequest({ ...base(), orders: list.map(g => mhOrderOf(g, vatPct)) })
       loadDon(ma)
+      // M9.1: đơn đã lưu (Admin vẫn thấy để duyệt) nhưng thẻ Lark không tới được
+      if (r && r.lark === false) {
+        qsAlert({ title: 'Đã lưu đơn nhưng gửi Lark thất bại', nguyHiem: false,
+          note: 'Đơn nằm trong "Đơn đã gửi" (Lark: Lỗi gửi Lark) và Admin vẫn thấy để duyệt. Báo nhà cung cấp / Admin qua kênh khác nếu cần.' })
+      } else toast(okMsg)
     } catch (e) { toast('Lỗi gửi: ' + e.message) }
     setBusyK(key, false)
   }
@@ -243,17 +278,6 @@ export default function PurchaseTab() {
       }, (d.maDon || 'don-mua-hang') + '.xlsx')
     } catch (e) { toast('Lỗi xuất Excel: ' + e.message) }
     setBusyK(key, false)
-  }
-
-  /* dxResolve (muahang.js:383-391): từ tab Mua hàng thì tải lại phiếu của dự án */
-  const dxResolve = async (m, approve) => {
-    if (!approve && !await confirm('Từ chối phiếu ' + m + '?')) return
-    try {
-      await api.resolveDeXuat(m, approve)
-      toast(approve ? ('Đã duyệt phiếu ' + m) : ('Đã từ chối phiếu ' + m))
-      loadDx(ma)
-      refreshNotifCount()
-    } catch (e) { toast('Lỗi: ' + e.message) }
   }
 
   /* ---------- Vẽ ---------- */
@@ -376,6 +400,10 @@ export default function PurchaseTab() {
                   <div key={d.maDon} className="qs-po-order">
                     <div><b>{d.maDon}</b><span className={`qs-po-tt ${MH_TT[d.trangThai] || ''}`}>{d.trangThai || ''}</span></div>
                     <small>{d.ncc} · {(d.items || []).length} SP · {money(d.tongCong)} đ{d.ngayGui ? ' · ' + fmtDate(d.ngayGui) : ''}</small>
+                    <div className="qs-po-order-meta">
+                      <span className={`qs-po-lark ${larkCls_(d.ketQuaGui)}`} title="Kết quả gửi thẻ Lark">Lark: {larkLbl_(d.ketQuaGui)}</span>
+                      {d.nguoiDuyet ? <span className="qs-po-duyet">{(d.trangThai === 'Từ chối' ? 'Từ chối bởi ' : 'Duyệt bởi ') + d.nguoiDuyet + (d.ngayDuyet ? ' · ' + fmtDateTime_(d.ngayDuyet) : '')}</span> : null}
+                    </div>
                     <div className="qs-po-order-act">
                       {buoc && <button type="button" className="qs-qt-btn" disabled={!!busy['buoc:' + d.maDon]} onClick={() => donBuoc(d, buoc)}><Icon name="check" size={12} />{buoc}</button>}
                       <button type="button" className="qs-qt-btn" disabled={!!busy['xls:' + d.maDon]} onClick={() => donXls(d)}><Icon name="download" size={12} />Excel</button>
@@ -417,7 +445,7 @@ export default function PurchaseTab() {
         <HmPicker anchor={hmPop} cur={hmNode} lines={lines} onClose={() => setHmPop(null)}
           onPick={code => { setHmPop(null); setHmNode(code) }} />
       )}
-      {dxOpen && <ProposalDetail ma={dxOpen} list={dxs} onClose={() => setDxOpen(null)} onResolve={dxResolve} />}
+      {dxOpen && <ProposalDetail ma={dxOpen} list={dxs} isAdmin={isAdmin} onClose={() => setDxOpen(null)} onResolve={dxResolve} />}
       {prodLine && (
         <ProductModal line={lineOf(prodLine.lineId) || prodLine} products={products} onClose={() => setProdLine(null)}
           onOpenBoc={() => { setProdLine(null); navigate('boc') }} />

@@ -51,8 +51,9 @@ type Server struct {
 	http   *http.Server
 	stop   []func(context.Context) // việc cần làm khi tắt (dừng job nền...)
 
-	reports   contracts.ReportRunner // module reports, cho job nền
-	swaggerOn bool                   // /api-docs có bật không
+	reports   contracts.ReportRunner   // module reports, cho job nền
+	expiry    contracts.ExpiryReminder // module companies: nhắc gia hạn trong ứng dụng (M17.3), cho job nền
+	swaggerOn bool                     // /api-docs có bật không
 
 	routesOnce sync.Once
 	routeList  [][2]string // {method, path} của các route đã đăng ký, cho looseMatch
@@ -199,6 +200,10 @@ func (s *Server) noRoute(c *gin.Context) {
 	if m, ok := r.Context().Value(retryKey{}).(string); ok {
 		method = m
 	}
+	// 404 dưới /api/v1 không qua middleware của group -> tự gắn x-app-ver như cổng /api/:fn (M1.1)
+	if p := strings.ToLower(r.URL.Path); p == "/api/v1" || strings.HasPrefix(p, "/api/v1/") {
+		c.Header("x-app-ver", s.deps.Cfg.AppVer)
+	}
 	response.HTMLError(c, http.StatusNotFound, "Cannot "+method+" "+r.URL.EscapedPath())
 }
 
@@ -271,6 +276,9 @@ func (s *Server) Deps() *Deps { return s.deps }
 
 // Reports trả module reports đã nối (job nền dùng).
 func (s *Server) Reports() contracts.ReportRunner { return s.reports }
+
+// Expiry trả phần nhắc gia hạn của module companies (job nền dùng, M17.3).
+func (s *Server) Expiry() contracts.ExpiryReminder { return s.expiry }
 
 // SwaggerOn: tài liệu API /api-docs có bật không.
 func (s *Server) SwaggerOn() bool { return s.swaggerOn }

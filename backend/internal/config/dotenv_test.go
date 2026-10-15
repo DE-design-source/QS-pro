@@ -30,6 +30,7 @@ func TestLoadDotenvKeepsExisting(t *testing.T) {
 	if err := os.WriteFile(f, []byte("QS_T_A=file\nQS_T_B=file\nQS_T_C=file\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
+	t.Setenv("DOTENV", "") // chạy được cả khi shell đang đặt DOTENV=0
 	t.Setenv("QS_T_A", "env")
 	t.Setenv("QS_T_B", "") // đặt rỗng vẫn tính là đã đặt
 	t.Setenv("QS_T_C", "x")

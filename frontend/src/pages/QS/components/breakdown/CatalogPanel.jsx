@@ -275,7 +275,7 @@ export default function CatalogPanel({ onAdd, onOpen, activeId, width, dragId, o
             rows={ds.map((x, j) => {
               const sl = Number(x.comboSL) || 1
               const phu = [x.thuongHieu, sl > 1 ? '×' + ptQty(sl) : '', ccSpecTxt_(x)].map(t => String(t || '').trim()).filter(Boolean).join(' · ')
-              return { stt: (i + 1) + '.' + (j + 1), x, phu, onOpen: () => open(x, { sl }), onAdd: () => addChild(x) }
+              return { stt: (i + 1) + '.' + (j + 1), x, phu, gc: String(x.comboGhiChu || '').trim(), onOpen: () => open(x, { sl }), onAdd: () => addChild(x) }
             })}
             foot={<div className="qs-bdc-ccfoot">Tổng combo · {ds.length} sản phẩm đi kèm <b>{money(tong)} đ</b></div>}
           />,

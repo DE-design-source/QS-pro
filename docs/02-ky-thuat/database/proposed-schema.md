@@ -96,7 +96,7 @@ Mỗi CHECK chỉ được thêm nếu truy vấn đếm vi phạm trên dữ li
 
 ### 4.4 Chú thích
 
-- Đánh dấu `DEPRECATED` 12 cột ở D-09.
+- Đánh dấu `DEPRECATED` 12 cột ở D-09 (từ 2026-10-15 danh sách còn 8 cột: 4 cột được dùng lại, migration 0010 / 0012 / 0013 đổi chú thích).
 - Ghi "soft reference - no FK by design" cho các cột ở 4.2.
 - Bổ sung chú thích tiếng Anh có nghĩa cho 39 cột Công tắc - Ổ cắm (hiện chỉ ghi tên cũ).
 
@@ -150,7 +150,7 @@ Cả hai: FK kép `(company_id, proposal_code)` -> `purchase_proposals`, CASCADE
 
 ## 6. Đợt 3 - thu gọn
 
-`DROP COLUMN` 12 cột ở D-09, sau khi: (1) đã chạy ổn định ít nhất một chu kỳ phát hành; (2) `supa.js` đã bỏ qua các cột này khi ghi; (3) có bản sao lưu đã thử khôi phục.
+`DROP COLUMN` 8 cột còn trong danh sách D-09, sau khi: (1) đã chạy ổn định ít nhất một chu kỳ phát hành; (2) `supa.js` đã bỏ qua các cột này khi ghi; (3) có bản sao lưu đã thử khôi phục.
 
 ## 7. Module và bảng sở hữu (sau đợt 2)
 

@@ -90,7 +90,7 @@ Cùng mô hình cho công tác: `work_items.is_approved`, đổi qua `ctDuyet`; 
 | `work_items.quotation_type` (`loai`) | `kt_chitiet`, `kt_sobo`, `dt_nhancong`, `dt_vattu` | Có CHECK |
 | `work_items.calculation_mode` (`che_do`) | `item`, `area`, `area0`, `none` | Có CHECK |
 | `notifications.kind` | `purchase_request` (21), `purchase_approved` (3), `delete_request` (1), `delete_rejected` (1); code còn tạo `purchase_rejected`, `delete_approved`, `de_xuat`, `de_xuat_approved`, `de_xuat_rejected` | Không CHECK |
-| `purchase_orders.send_result` (`ket_qua_gui`) | `ok` (36), `pending` (29) | Code hiện tại luôn ghi `pending` và không cập nhật |
+| `purchase_orders.send_result` (`ket_qua_gui`) | `ok` (36), `pending` (29); từ M9.1 thêm `loi` | Lưu đơn ghi `pending` (hoặc `ketQua` client gửi); sau khi gửi thẻ Lark, server Go ghi `ok` / `loi` bằng lệnh riêng (M9.1). GIẢ ĐỊNH: 36 dòng `ok` có sẵn là giá trị mặc định lúc lưu cũ, không phải xác nhận đã tới Lark. Giao diện: `ok` = Đã gửi, `loi` = Lỗi gửi Lark, khác (kể cả `pending`) = Chưa rõ |
 
 ## 7. Vấn đề cần người quyết định
 

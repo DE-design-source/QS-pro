@@ -5,7 +5,7 @@
           BASE_URL=http://localhost:3997 TEST_DATABASE_URL=postgresql://.../qspro_nodetest node backend/tests/e2e/test-api-go.js
    SERVER_LOG=<file log;file log> hoặc SERVER_LOG_CMD=<lệnh in log, vd "docker exec qspro-go cat /tmp/qsapi.log"> (tuỳ chọn)
    -> soi lỗi không mong đợi như bản gốc (chỉ in ra); thêm: log có panic thì tính là 1 lỗi. E2E_OUT=<file> -> ghi danh sách phép kiểm (so 2 server).
-   E2E_DUMP=<file> -> ghi thân trả lời nguyên văn của mọi lần gọi; so 2 file bằng backend/tests/e2e/diff-dump.js.
+   E2E_DUMP=<file> -> ghi thân trả lời nguyên văn của mọi lần gọi.
    LƯU Ý: test ĐỂ LẠI dữ liệu trong database tạm — chỉ chạy trên bản sao dùng xong bỏ. Thoát mã 1 nếu có lỗi. */
 const TEST_URL = process.env.TEST_DATABASE_URL || '';
 if (!TEST_URL) { console.error('Thiếu TEST_DATABASE_URL (database tạm mà server đang dùng).'); process.exit(2); }

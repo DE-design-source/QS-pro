@@ -21,3 +21,14 @@
 .qsn-tx i{font-size:11px; color:var(--text-muted); opacity:.8; font-style:normal;}
 .qsn-go{position:absolute; right:10px; top:50%; transform:translateY(-50%); color:var(--text-muted); opacity:0; transition:opacity .13s, transform .13s; display:flex;}
 .qsn-item:hover .qsn-go{opacity:1; transform:translateY(-50%) translateX(2px);}
+.qsn-ic.warn{background:var(--finance-tint); color:var(--finance);}
+
+/* Dải nhắc gia hạn cho admin (common/ExpiryBanner.jsx, M17.3 - giả định): còn <= 30 ngày hoặc đã hết hạn. */
+.qs-expb{display:flex; align-items:center; gap:10px; margin:0 0 10px; padding:10px 14px; border-radius:10px; font-size:13px;
+  background:var(--finance-tint); border:1px solid var(--finance); color:var(--text);}
+.qs-expb.het{background:var(--danger-tint); border-color:var(--danger);}
+.qs-expb svg{flex:none; color:var(--finance);}
+.qs-expb.het svg{color:var(--danger);}
+.qs-expb-tx{flex:1; min-width:0;}
+.qs-expb-tx b{font-weight:600;}
+.qs-expb-x{flex:none; border:none; background:none; color:var(--text-muted); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px;}

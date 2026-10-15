@@ -8,6 +8,7 @@ import (
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 
+	"qspro-backend/internal/modules/categories"
 	"qspro-backend/internal/platform/database"
 	"qspro-backend/internal/shared/jsval"
 	"qspro-backend/internal/shared/omap"
@@ -43,6 +44,34 @@ func khoaBienThe(p *omap.Map) string {
 		jsval.ToString(p.Val("gocChieu")) + "|" + jsval.ToString(p.Val("mauSac"))
 }
 
+// coTrucKichThuoc: kích thước là trục biến thể khi ngành vs / sơn hoặc dòng có kích thước - cùng điều kiện của
+// SaveDbProduct (service_write.go); ngành trống thì suy từ hạng mục như SaveDbProduct.
+func coTrucKichThuoc(r *omap.Map) bool {
+	ng := r.Val("nganh")
+	if !jsval.Truthy(ng) {
+		ng = categories.NganhCua("", r.Val("hang_muc"))
+	}
+	return ng == "vs" || ng == "son" || jsval.Truthy(r.Val("kich_thuoc"))
+}
+
+// biDe: dòng kho chung r (dạng cột) bị sản phẩm riêng che - kichThuocs là kích thước của các sản phẩm riêng cùng
+// khoaBienThe. Không có trục kích thước thì cùng khoaBienThe là đủ; có thì kích thước phải bằng nhau (rỗng = null).
+func biDe(kichThuocs []string, r *omap.Map) bool {
+	if len(kichThuocs) == 0 {
+		return false
+	}
+	if !coTrucKichThuoc(r) {
+		return true
+	}
+	kt := jsval.S(r.Val("kich_thuoc"))
+	for _, x := range kichThuocs {
+		if x == kt {
+			return true
+		}
+	}
+	return false
+}
+
 // ghepKhoChung: phần try của getProducts (S:181-194) - kèm kho chung của Dezon (chỉ đọc) nếu công ty được bật quyền.
 func (s *Service) ghepKhoChung(ctx context.Context, out []any) ([]any, error) {
 	dzID, err := s.spChungID(ctx)
@@ -54,13 +83,18 @@ func (s *Service) ghepKhoChung(ctx context.Context, out []any) ([]any, error) {
 	if err != nil {
 		return out, err
 	}
-	has := map[string]bool{}
+	// sản phẩm riêng đè kho chung khi trùng ĐỦ khoá kiểm trùng của bản sao riêng (trungBienThe): mã + 4 trục,
+	// thêm kích thước khi dòng kho chung có trục này. Chỉ so mã + 4 trục (như Node) thì sao chép biến thể 15L
+	// làm ẩn luôn biến thể 1L / 5L cùng mã (M10.1).
+	has := map[string][]string{}
 	for _, p := range out {
-		has[khoaBienThe(p.(*omap.Map))] = true
+		m := p.(*omap.Map)
+		k := khoaBienThe(m)
+		has[k] = append(has[k], jsval.S(m.Val("kichThuocVS")))
 	}
 	for _, r := range shared {
 		o := prodToObj(r)
-		if has[khoaBienThe(o)] { // sản phẩm riêng đè kho chung
+		if biDe(has[khoaBienThe(o)], r) {
 			continue
 		}
 		o.Set("spChung", true) // của kho chung: KHÔNG cho sửa / xoá

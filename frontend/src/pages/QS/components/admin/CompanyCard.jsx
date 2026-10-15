@@ -4,6 +4,8 @@ import { mediaUrl } from '../../api/files'
 import { qsToast } from '../common/dialogs'
 import QsIcon from '../common/QsIcon'
 import { downscaleImage_, uploadImg_ } from '../congty/logoUpload'
+import { fmtDate } from '../../lib/format'
+import { ngayConLai } from './adminUtil'
 import './admin.css'
 import '../congty/congty.css'
 
@@ -44,7 +46,17 @@ const pick = c => ({
   logo: (c && c.logoUrl) || '', mau: (c && c.mauChinh) || '',
 })
 
-/* Thẻ "Thông tin công ty" ở tab Admin (M17.1): tên, logo, email, điện thoại, màu chính.
+/* Hạn dùng gói, chỉ đọc (chỉ quản trị hệ thống gia hạn ở tab Công ty): cùng chữ / màu với thẻ công ty của tab Công ty
+   (public/congty.js:43-47 bản Node) - trống = "Không giới hạn". */
+function HanDung({ han }) {
+  if (!han) return <span className="qsco-han muted">Không giới hạn</span>
+  const d = ngayConLai(han)
+  if (d < 0) return <span className="qsco-han expired">Hết hạn {fmtDate(han)}</span>
+  if (d <= 30) return <span className="qsco-han warn">Còn {d} ngày · {fmtDate(han)}</span>
+  return <span className="qsco-han">Đến {fmtDate(han)}</span>
+}
+
+/* Thẻ "Thông tin công ty" ở tab Admin (M17.1): tên, logo, email, điện thoại, màu chính; hạn dùng chỉ xem.
    Props: c = công ty đang sửa (admin: công ty của phiên; super đang xem một công ty: bản lấy từ listCongTy);
    note = dòng ghi chú; onSaved(r) nhận công ty máy chủ trả về (AdminTab quyết định có áp vào phiên hay nạp lại danh sách). */
 export default function CompanyCard({ c, note, onSaved }) {
@@ -152,6 +164,8 @@ export default function CompanyCard({ c, note, onSaved }) {
               <input type="email" value={f.email} onChange={e => set('email', e.target.value)} placeholder="ketoan@congty.vn" /></div>
             <div className="qsco-f"><label>Điện thoại</label>
               <input value={f.sdt} onChange={e => set('sdt', e.target.value)} placeholder="09xx xxx xxx" /></div>
+            <div className="qsco-f" data-f="han"><label>Hạn dùng</label>
+              <div className="qsa-co-han" title="Chỉ quản trị hệ thống gia hạn được (tab Công ty)"><HanDung han={c.hanDung} /></div></div>
             <div className="qsco-f wide"><label>Màu chính</label>
               <MauChinhField value={f.mau} onChange={v => set('mau', v)} /></div>
           </div>

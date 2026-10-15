@@ -5,6 +5,7 @@ package materials
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"sync/atomic"
 
@@ -42,6 +43,7 @@ type Service struct {
 	notifier contracts.Notifier
 	admins   contracts.AdminLister
 	uploader contracts.Uploader
+	db       *database.DB // D-13: mở transaction; nil (repo giả trong test unit) -> chạy thẳng
 
 	// _cache / _cacheAt (S:157): danh mục theo từng công ty, xoá TOÀN BỘ khi có sản phẩm thay đổi
 	mu      sync.Mutex
@@ -66,8 +68,36 @@ func New(d Deps) *Service {
 		repo = NewRepository(d.DB)
 	}
 	return &Service{repo: repo, cfg: d.Cfg, aud: d.Auditor, users: d.Users, userFmt: d.UserFmt,
-		notifier: d.Notifier, admins: d.Admins, uploader: d.Uploader,
+		notifier: d.Notifier, admins: d.Admins, uploader: d.Uploader, db: d.DB,
 		cache: map[string][]any{}, cacheAt: map[string]float64{}}
+}
+
+// tx: chạy fn trong 1 transaction (D-13). Không có DB (repo giả trong test unit) -> chạy thẳng.
+// Việc phụ (lịch sử, audit, cacheClear) đặt SAU tx, không để trong fn.
+// Bọc Tx làm khoá dòng giữ tới commit -> 2 người cùng sửa 1 nhóm biến thể / combo có thể deadlock (40P01; Postgres
+// huỷ 1 bên, đã rollback sạch). Khi đó chạy lại fn (tối đa txThu lần) thay vì trả lỗi DB thô; fn đọc lại dữ liệu
+// từ đầu nên chạy lại an toàn. Đang trong Tx ngoài thì không thử lại (khoá của Tx ngoài vẫn giữ, Tx ngoài quyết).
+func (s *Service) tx(ctx context.Context, fn func(ctx context.Context) error) error {
+	if s.db == nil {
+		return fn(ctx)
+	}
+	var err error
+	for lan := 1; lan <= txThu; lan++ {
+		err = s.db.Tx(ctx, fn)
+		if lan == txThu || !laDeadlock(err) || s.db.InTx(ctx) || ctx.Err() != nil {
+			return err
+		}
+	}
+	return err
+}
+
+// txThu: số lần chạy tối đa của s.tx khi gặp deadlock.
+const txThu = 3
+
+// laDeadlock: lỗi deadlock của Postgres (40P01).
+func laDeadlock(err error) bool {
+	var de *database.Error
+	return errors.As(err, &de) && de.Code == "40P01"
 }
 
 // ckey = _ckey_ (S:166).

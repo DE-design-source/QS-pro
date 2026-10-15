@@ -9,7 +9,7 @@ import { bgToggle, coverEdit, coverDel, coverAddBig, coverAddSmall, coverReload,
    coverTableM2 718-736, coverTableM1 738-761). Giữ khung thẻ / bảng .qs-qt-* của bản clone.
    Props: ctx (lib/quote.js: cur, lines, cover, bgCfg, phanTho ...), comp = coverCosts(ctx), coverMau 'm1' | 'm2' */
 const INFO = [['khachHang', 'Khách hàng'], ['quyMo', 'Quy mô'], ['tongDT', 'Tổng diện tích XD (m²)'], ['nhuCau', 'Nhu cầu'],
-  ['dtBaoGia', 'DT báo giá [đã nhân hệ số] (m²)'], ['phanKhuc', 'Phân khúc']]
+  ['dtBaoGia', 'DT báo giá [đã nhân hệ số] (m²)'], ['phanKhuc', 'Phân khúc'], ['hienTrang', 'Hiện trạng']]   // hienTrang: M8.3
 const pct = (v, t) => (t > 0 ? (v / t * 100) : 0).toFixed(2) + '%'
 
 /* Nhãn cạnh ô chi phí (coverTag_ 1064-1069) */
@@ -127,7 +127,10 @@ export default function CoverEditor({ ctx, comp, coverMau }) {
             <div className="qs-qt-ed-info">
               {INFO.map(([k, label]) => (
                 <div key={k} className="qs-qt-ed-field"><span>{label}</span>
-                  <ChangeInput value={p[k] || ''} onCommit={v => coverInfo(k, v)} /></div>
+                  {k === 'hienTrang'   // textarea: <input> bỏ ký tự xuống dòng của giá trị nhập ở hộp Thông tin dự án
+                    ? <ChangeInput as="textarea" className="qsq-ht" rows={Math.min(6, Math.max(1, String(p[k] || '').split('\n').length))}
+                        value={p[k] || ''} onCommit={v => coverInfo(k, v)} />
+                    : <ChangeInput value={p[k] || ''} onCommit={v => coverInfo(k, v)} />}</div>
               ))}
             </div>
             <div style={{ overflowX: 'auto' }}>{coverMau === 'm1' ? <TableM1 ctx={ctx} comp={comp} /> : <TableM2 ctx={ctx} comp={comp} />}</div>

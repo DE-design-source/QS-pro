@@ -54,6 +54,14 @@ html[data-theme="dark"] .qs-po-amber{border-color:#7A5A16; background:#2E2710; c
 .qs-po-loadmsg.err{color:var(--danger);}
 .qs-po-loadmsg button{margin:6px auto 0;}
 .qs-po-order-act{display:flex; gap:6px; flex-wrap:wrap;}
+/* kết quả gửi Lark + người / ngày duyệt của đơn (M9.1, M15.1) */
+.qs-po-order-meta{display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:3px; font-size:11px;}
+.qs-po-lark{padding:1px 7px; border-radius:99px; font-weight:600; white-space:nowrap; background:var(--surface-alt); color:var(--text-muted);}
+.qs-po-lark.ok{background:#E6F4EA; color:#137333;}
+.qs-po-lark.loi{background:#FDECEA; color:#C5221F;}
+html[data-theme="dark"] .qs-po-lark.ok{background:#14301F; color:#4ADE80;}
+html[data-theme="dark"] .qs-po-lark.loi{background:#3A211E; color:#E0685A;}
+.qs-po-duyet{color:var(--text-muted);}
 .qs-po-order .qs-po-order-act .qs-qt-btn{margin-top:3px;}
 .qs-po-tt{margin-left:auto; padding:1px 8px; border-radius:99px; font-size:11px; font-weight:600; white-space:nowrap; background:var(--surface-alt); color:var(--text-muted);}
 .qs-po-tt.cho{background:#FFF4DC; color:#8A5A00;}

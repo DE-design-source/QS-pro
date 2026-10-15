@@ -34,7 +34,7 @@ func newWiredServer(t *testing.T, cfg *config.Config) *Server {
 	return s
 }
 
-// fixture đọc tests/fixtures/<tên> (sinh bằng gen-registry.js / gen-swagger.js từ mã Node).
+// fixture đọc tests/fixtures/<tên> (sinh từ mã Node trước khi gỡ app Node; đóng băng).
 func fixture(t *testing.T, name string) *omap.Map {
 	t.Helper()
 	b, err := os.ReadFile(filepath.Join("..", "..", "tests", "fixtures", name))
@@ -102,7 +102,7 @@ func TestRegistryParity(t *testing.T) {
 	// thứ tự nhúng cho /api-docs phải là thứ tự REGISTRY hiện tại của Node
 	_, order, _ := apiDocs()
 	if strings.Join(order, ",") != strings.Join(names, ",") {
-		t.Error("apidocs/meta.json lệch với server/index.js - chạy lại scripts/sync-api-docs.js")
+		t.Error("apidocs/meta.json lệch với REGISTRY của bản Node (registry Go đổi thứ tự hoặc meta.json bị sửa)")
 	}
 }
 

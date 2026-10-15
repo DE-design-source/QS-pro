@@ -31,7 +31,8 @@ export function ctGiaSync_(d, src) {
 }
 
 /* Form mới từ 1 công tác c (rỗng = form trống): ctFormHtml2_ + ctFormInit_ ('imp') */
-export function newForm_(c, ghi) {
+// trong = dòng nhập từ file còn lỗi (M5.1): Loại báo giá / Cách tính đọc không được thì để TRỐNG, bắt người dùng chọn lại
+export function newForm_(c, ghi, trong) {
   c = c || {}
   const dg = Number(c.dg) || 0, dgnt = Number(c.dgnt) || 0, ck = (dg && dgnt) ? ptR2((1 - dgnt / dg) * 100) : ''
   const anh = String(c.hinhAnh || '').split('\n').map(x => x.trim()).filter(Boolean)
@@ -40,9 +41,9 @@ export function newForm_(c, ghi) {
   const d = ctGiaSync_({
     ten: s_(c.ten), ncc: s_(c.ncc), hangMuc: s_(c.hangMuc), deMuc: s_(c.deMuc),
     dg: dg ? money(dg) : '', ck: ck === '' ? '' : String(ck), dgnt: dgnt ? money(dgnt) : '', dvt: s_(c.dvt),
-    loai: ptLoaiGop_(c.loai), loaiGoc: s_(c.loai), mode: c.mode || 'item', maNhom: s_(c.maNhom),
+    loai: (trong && !c.loai) ? '' : ptLoaiGop_(c.loai), loaiGoc: s_(c.loai), mode: c.mode || (trong ? '' : 'item'), maNhom: s_(c.maNhom),
     kl: c.kl == null ? '' : s_(c.kl), dt: c.dt == null ? '' : s_(c.dt), hs: c.hs == null ? '' : s_(c.hs),
-    gc: s_(c.gc), phamVi: s_(c.phamVi), linkTaiLieu: s_(c.linkTaiLieu),
+    gc: s_(c.gc), phamVi: s_(c.phamVi), linkTaiLieu: s_(c.linkTaiLieu), thuTu: c.thuTu == null ? '' : s_(c.thuTu),
   }, '')
   return { seq: ++formSeq, d, grps, main: anh[0] || '', list: anh.slice(1), ghi: !!ghi }
 }

@@ -18,6 +18,14 @@ export const DRQ_LBL = { pending: 'Chờ duyệt', approved: 'Đã duyệt', rej
 export const ROLE_LBL = { super: 'Quản trị hệ thống', admin: 'Admin công ty', staff: 'Nhân viên' }
 export const DX_TEN_ = { ck: 'Đề xuất chiết khấu', tt: 'Đề xuất thanh toán' }
 export const DX_ICO_ = { ck: 'gauge', tt: 'money' }
+/* Lý do xoá / lý do từ chối yêu cầu xoá: tối đa 500 ký tự (máy chủ cũng kiểm, M15.2) */
+export const LY_DO_MAX = 500
+
+/* Kết quả gửi thẻ Lark của đơn mua hàng (ket_qua_gui, M9.1). 'ok' của đơn tạo trước bản này là giá trị mặc định lúc lưu,
+   không phải xác nhận đã tới Lark (giả định ghi ở roadmap). */
+export function larkLbl_(v) { return v === 'ok' ? 'Đã gửi' : (v === 'loi' ? 'Lỗi gửi Lark' : 'Chưa rõ') }
+export function larkCls_(v) { return v === 'ok' ? 'ok' : (v === 'loi' ? 'loi' : 'unk') }
+
 export function dxStatusCls_(st) { return { 'Đã duyệt': 'approved', 'Từ chối': 'rejected', 'Chờ duyệt': 'pending' }[st] || 'pending' }
 
 /* Ảnh đầu tiên của ô nhiều dòng, URL tuyệt đối tới máy chủ Go (imgSrc1_ + mediaUrl) */

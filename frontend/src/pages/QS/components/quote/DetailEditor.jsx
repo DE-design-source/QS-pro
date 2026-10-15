@@ -1,25 +1,51 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Icon from '../../../../components/ui/Icon'
 import QsIcon from '../common/QsIcon'
 import ProductThumb from '../common/ProductThumb'
 import ChangeInput from './ChangeInput'
 import NodePicker from './NodePicker'
 import { mediaUrl } from '../../api/files'
-import { updateLine, deleteLines } from '../../state/store'
+import { updateLine, deleteLines, useQsStore } from '../../state/store'
 import { COLS, visCols, colW } from '../../lib/columns.js'
 import { money } from '../../lib/format.js'
 import { ttBan_ } from '../../lib/calc.js'
-import { areaCompute_, fmtM2_, bgLines_, bgTong_, computeQuoteLocal } from '../../lib/quote.js'
+import { areaCompute_, fmtM2_, bgLines_, bgTong_, computeQuoteLocal, coverCosts, donGiaPhanTho_ } from '../../lib/quote.js'
 import { lineText, lineApply, tkSheetSua_, TK_SO, TK_GIUA } from '../breakdown/sheet/tkModel'
 import { toggleCol } from '../breakdown/sheet/tkCols'
 import { areaLoad_, areaSet, areaApply } from './quoteActions'
 import { ROMAN_ } from './docModel'
+import { useQuoteUi } from './quoteState'
+import { ptState_ } from './quoteModel'
 
 /* Khối "Bảng tính diện tích (hệ số)" (bgAreaHTML PUB/baogia.js:102-124): đóng/mở, sửa số tầng / dài / rộng, "Áp vào tờ bìa".
-   Dữ liệu: projData.area (dự phòng localStorage qs_area_<maDA>). */
-export function AreaTable({ projData }) {
+   Dữ liệu: projData.area (dự phòng localStorage qs_area_<maDA>).
+   M6.1 (GIẢ ĐỊNH, chờ chủ sản phẩm xác nhận): dòng chỉ đọc "Đơn giá phần thô / m² đất" = chi phí mục 3.1 của tờ bìa (coverCosts, cùng số
+   với ô 3.1 ở tờ bìa) ÷ diện tích khu đất. Chỉ hiển thị: không lưu, không vào bản xem trước / Excel.
+   ctx (tuỳ chọn) = ngữ cảnh lib/quote.js của tab; không truyền thì tự dựng phần coverCosts cần, cùng nguồn như quoteModel.
+   Chỉ tính khi thẻ đang mở (dòng chỉ hiện lúc mở) để khỏi tính lại Phần thô mỗi lần sửa dòng. */
+export function AreaTable({ projData, ctx }) {
   const [open, setOpen] = useState(false)
+  const cur = useQsStore(s => s.cur)
+  const lines = useQsStore(s => s.lines)
+  const q = useQuoteUi()
   const c = areaCompute_(areaLoad_(projData))
+  const cost31 = useMemo(() => {
+    if (!open) return null
+    let x = ctx
+    if (!x) {
+      const pt = ptState_(cur, projData || {})
+      x = { cur, lines: lines || [], cover: q.cover.maDA === (cur && cur.maDA) ? q.cover.rows : [], bgCfg: (projData || {}).bgCfg || {}, phanTho: pt.phanTho, ptVat: pt.ptVat }
+    }
+    return coverCosts(x).cost['3.1']
+  }, [open, ctx, cur, lines, projData, q.cover])
+  const co31 = cost31 != null
+  const hienDg = co31 && cost31 >= 0 && c.groundArea > 0
+  const dg = hienDg ? donGiaPhanTho_(cost31, c.groundArea) : 0
+  const dgTitle = 'Giả định, chờ chủ sản phẩm xác nhận. Đơn giá phần thô / m² đất = Chi phí mục 3.1 trên tờ bìa ÷ Diện tích khu đất (Dài × Rộng)'
+    + (!co31 ? '. Tờ bìa chưa có mục 3.1.'
+      : cost31 < 0 ? '. Chi phí mục 3.1 đang âm.'
+      : c.groundArea > 0 ? ' = ' + money(cost31) + ' ÷ ' + fmtM2_(c.groundArea) + ' = ' + money(dg) + ' đ/m².' : '. Chưa nhập diện tích khu đất.')
+    + ' Chỉ hiển thị: không lưu, không đưa vào bản xem trước / Excel.'
   return (
     <div className="qs-card qs-qt-card">
       <div className={`qsq-area-h${open ? ' open' : ''}`} onClick={() => setOpen(o => !o)}>
@@ -49,10 +75,15 @@ export function AreaTable({ projData }) {
                   </tr>
                 ))}
                 <tr className="tot"><td colSpan={7} className="r">TỔNG (m²)</td><td className="r">{fmtM2_(c.dtBaoGia)}</td><td className="r">{fmtM2_(c.dtSuDung)}</td></tr>
+                <tr className="qsq-dgpt" title={dgTitle}>
+                  <td colSpan={7} className="r">Đơn giá phần thô / m² đất <i>(giả định)</i></td>
+                  <td colSpan={2} className="r" data-dgpt>{hienDg ? <><b>{money(dg)}</b> đ/m²</> : '—'}</td>
+                </tr>
               </tbody>
             </table>
           </div>
           <p className="qsq-hint">Công thức: Diện tích = Dài × Rộng · Tổng = Diện tích × Số tầng · DT báo giá = Tổng × Hệ số. Bấm “Áp vào tờ bìa” để điền DT báo giá &amp; DT sử dụng.</p>
+          <p className="qsq-hint" data-dgpt-note>Đơn giá phần thô / m² đất (giả định, chờ chủ sản phẩm xác nhận) = Chi phí mục 3.1 trên tờ bìa ÷ Diện tích khu đất (Dài × Rộng). Chỉ hiển thị: không lưu, không đưa vào bản xem trước / Excel.</p>
         </div>
       )}
     </div>

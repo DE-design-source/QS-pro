@@ -398,6 +398,17 @@ func (s *Service) AdminSetPassword(ctx context.Context, a *actor.Actor, id any, 
 	if _, err := s.repo.UpdateUser(ctx, id, omap.Of("password_hash", hash)); err != nil {
 		return nil, err
 	}
+	// M1.2: mật khẩu cũ có thể đã lộ -> thu hồi mọi phiên của tài khoản (token kẻ gian đang giữ hết hiệu lực ngay);
+	// admin tự đặt lại cho chính mình thì giữ phiên đang dùng.
+	if s.sessions != nil {
+		keep := ""
+		if a != nil && jsval.ToString(a.UID) == jsval.ToString(u.Val("id")) {
+			keep = a.SID
+		}
+		if err := s.sessions.RevokeUserSessions(ctx, u.Val("id"), keep); err != nil {
+			return nil, err
+		}
+	}
 	s.Audit(ctx, a, "reset_password", "Đặt lại mật khẩu cho "+jsval.ToString(u.Val("username")), nil)
 	return omap.Of("ok", true), nil
 }
