@@ -1,0 +1,420 @@
+po_send	{"ok":{"ok":true,"saved":["<ma1>","<ma2>"],"lark":true}}
+po_send#audit	[]
+po_send#notif	[]
+po_send#admins	[{"fn":"notifyPurchaseAdmins","uid":"<id1>","arg":[{"maDon":"<ma1>","supplier":"ZZ_purchasing_NCC A"},{"maDon":"<ma2>","supplier":"ZZ_purchasing_NCC B"}]}]
+po_send#hook	{"method":"POST","ct":"application/json","body":"{\"msg_type\":\"interactive\",\"card\":{\"config\":{\"wide_screen_mode\":true},\"header\":{\"template\":\"blue\",\"title\":{\"tag\":\"plain_text\",\"content\":\"🛒 YÊU CẦU MUA HÀNG\"},\"subtitle\":{\"tag\":\"plain_text\",\"content\":\"ZZ_purchasing_ Nhà phố Q7 — ZZ_purchasing_ Mai\"}},\"elements\":[{\"tag\":\"div\",\"fields\":[{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🏗 Dự án</font>\\n**ZZ_purchasing_ Nhà phố Q7**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🔖 Mã dự án</font>\\n**ZZ_purchasing_DA1**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>👤 Khách hàng</font>\\n**Anh Bình**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>📞 Điện thoại</font>\\n**0900**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🙋 Người gửi</font>\\n**ZZ_purchasing_ Mai**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🏢 Phòng ban</font>\\n**Mua hàng**\"}}]},{\"tag\":\"div\",\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>📝 Ghi chú</font>\\ngấp\"}},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"🏭 <font color='blue'>**ZZ_purchasing_NCC A**</font>　·　2 sản phẩm\"},{\"tag\":\"column_set\",\"flex_mode\":\"none\",\"horizontal_spacing\":\"small\",\"columns\":[{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":3,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**1. Đèn âm trần**\\n<font color='grey'>10 Cái × 450.000 đ　·　Phòng khách · Ades</font>\\n<font color='green'>▼ giảm 10% (gốc 500.000 đ)</font>\"}]},{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":1,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**4.500.000 đ**\",\"text_align\":\"right\"}]}]},{\"tag\":\"column_set\",\"flex_mode\":\"none\",\"horizontal_spacing\":\"small\",\"columns\":[{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":3,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**2. Đèn ray**\\n<font color='grey'>0  × 200 đ</font>\"}]},{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":1,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**0 đ**\",\"text_align\":\"right\"}]}]},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"<font color='grey'>Tạm tính</font>　　5.000.000 đ\\n<font color='grey'>VAT 8%</font>　　400.000 đ\\n**💰 TỔNG THANH TOÁN**　　<font color='red'>**5.400.000 đ**</font>\",\"text_align\":\"right\"},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"🏭 <font color='blue'>**ZZ_purchasing_NCC B**</font>　·　1 sản phẩm\"},{\"tag\":\"column_set\",\"flex_mode\":\"none\",\"horizontal_spacing\":\"small\",\"columns\":[{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":3,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**1. Sơn lót**\\n<font color='grey'>1  × 1.250.000 đ　·　Dulux</font>\"}]},{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":1,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**1.250.000 đ**\",\"text_align\":\"right\"}]}]},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"<font color='grey'>Tạm tính</font>　　1.250.000 đ\\n**💰 TỔNG THANH TOÁN**　　<font color='red'>**0 đ**</font>\",\"text_align\":\"right\"},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"💵 <font color='red'>**TỔNG CỘNG: 5.400.000 đ**</font>\",\"text_align\":\"right\"},{\"tag\":\"markdown\",\"content\":\"📦 2 nhà cung cấp　·　3 sản phẩm　·　⏳ <font color='orange'>**Chờ duyệt**</font>\"},{\"tag\":\"note\",\"elements\":[{\"tag\":\"plain_text\",\"content\":\"⚡ Gửi tự động từ Dezon QS Pro · <stamp>\"}]}]}}"}
+po_send#log	[]
+po_rows_1	{"heads":[{"ma_don":"<ma1>","ma_du_an":"ZZ_purchasing_DA1","ten_du_an":"ZZ_purchasing_ Nhà phố Q7","hang_muc":"3.2.6","nha_cung_cap":"ZZ_purchasing_NCC A","so_sp":2,"tong_truoc_vat":5000000,"vat_pct":8,"vat":400000,"tong_cong":5400000,"trang_thai":"Chờ duyệt","kenh_gui":"Lark","ket_qua_gui":"pending","nguoi_gui":"ZZ_purchasing_ Mai","phong_ban":"Mua hàng","ghi_chu":"gấp","ngay_gui":"<ts>","requester_id":"<id1>","cong_ty_id":"<id2>"},{"ma_don":"<ma2>","ma_du_an":"ZZ_purchasing_DA1","ten_du_an":"ZZ_purchasing_ Nhà phố Q7","hang_muc":"3.2.6","nha_cung_cap":"ZZ_purchasing_NCC B","so_sp":1,"tong_truoc_vat":1250000,"vat_pct":0,"vat":0,"tong_cong":1250000,"trang_thai":"Chờ duyệt","kenh_gui":"Lark","ket_qua_gui":"pending","nguoi_gui":"ZZ_purchasing_ Mai","phong_ban":"Mua hàng","ghi_chu":"gấp","ngay_gui":"<ts>","requester_id":"<id1>","cong_ty_id":"<id2>"}],"items":[{"ma_don":"<ma1>","ma_sp":"A1","ten_sp":"Đèn âm trần","thuong_hieu":"Ades","phong":"Phòng khách","dvt":"Cái","so_luong":10,"don_gia":450000,"thanh_tien":4500000,"hinh_anh":"h1\nh2","sort_no":0,"cong_ty_id":"<id2>"},{"ma_don":"<ma1>","ma_sp":"","ten_sp":"Đèn ray","thuong_hieu":"","phong":"","dvt":"Cái","so_luong":2.5,"don_gia":200000,"thanh_tien":500000,"hinh_anh":"","sort_no":1,"cong_ty_id":"<id2>"},{"ma_don":"<ma2>","ma_sp":"","ten_sp":"Sơn lót","thuong_hieu":"Dulux","phong":"","dvt":"Cái","so_luong":1,"don_gia":1250000,"thanh_tien":1250000,"hinh_anh":"","sort_no":0,"cong_ty_id":"<id2>"}]}
+po_get_da1	{"ok":[{"maDon":"<ma2>","ncc":"ZZ_purchasing_NCC B","hangMuc":"3.2.6","soSP":1,"tongTruocVat":1250000,"vatPct":0,"vat":0,"tongCong":1250000,"trangThai":"Chờ duyệt","nguoiGui":"ZZ_purchasing_ Mai","phongBan":"Mua hàng","ghiChu":"gấp","ngayGui":"<ts>","items":[{"ma":"","ten":"Sơn lót","thuongHieu":"Dulux","khuVuc":"","dvt":"Cái","sl":1,"donGia":1250000,"thanhTien":1250000,"hinhAnh":""}]},{"maDon":"<ma1>","ncc":"ZZ_purchasing_NCC A","hangMuc":"3.2.6","soSP":2,"tongTruocVat":5000000,"vatPct":8,"vat":400000,"tongCong":5400000,"trangThai":"Chờ duyệt","nguoiGui":"ZZ_purchasing_ Mai","phongBan":"Mua hàng","ghiChu":"gấp","ngayGui":"<ts>","items":[{"ma":"A1","ten":"Đèn âm trần","thuongHieu":"Ades","khuVuc":"Phòng khách","dvt":"Cái","sl":10,"donGia":450000,"thanhTien":4500000,"hinhAnh":"h1\nh2"},{"ma":"","ten":"Đèn ray","thuongHieu":"","khuVuc":"","dvt":"Cái","sl":2.5,"donGia":200000,"thanhTien":500000,"hinhAnh":""}]}]}
+po_get_da1#audit	[]
+po_get_da1#notif	[]
+po_get_da1#admins	[]
+po_get_da1#hook	null
+po_get_da1#log	[]
+po_get_none	{"ok":[]}
+po_get_none#audit	[]
+po_get_none#notif	[]
+po_get_none#admins	[]
+po_get_none#hook	null
+po_get_none#log	[]
+po_get_noarg	{"ok":[]}
+po_get_noarg#audit	[]
+po_get_noarg#notif	[]
+po_get_noarg#admins	[]
+po_get_noarg#hook	null
+po_get_noarg#log	[]
+po_get_null	{"ok":[]}
+po_get_null#audit	[]
+po_get_null#notif	[]
+po_get_null#admins	[]
+po_get_null#hook	null
+po_get_null#log	[]
+po_list	{"ok":[{"maDon":"<ma2>","project":"ZZ_purchasing_ Nhà phố Q7","supplier":"ZZ_purchasing_NCC B","soSp":1,"total":1250000,"status":"Chờ duyệt","requester":"ZZ_purchasing_ Mai","phongBan":"Mua hàng","at":"<ts>"},{"maDon":"<ma1>","project":"ZZ_purchasing_ Nhà phố Q7","supplier":"ZZ_purchasing_NCC A","soSp":2,"total":5400000,"status":"Chờ duyệt","requester":"ZZ_purchasing_ Mai","phongBan":"Mua hàng","at":"<ts>"}]}
+po_list#audit	[]
+po_list#notif	[]
+po_list#admins	[]
+po_list#hook	null
+po_list#log	[]
+po_one	{"ok":{"maDon":"<ma1>","project":"ZZ_purchasing_ Nhà phố Q7","maDA":"ZZ_purchasing_DA1","supplier":"ZZ_purchasing_NCC A","hangMuc":"3.2.6","soSp":2,"tongTruocVat":5000000,"vatPct":8,"vat":400000,"total":5400000,"status":"Chờ duyệt","requester":"ZZ_purchasing_ Mai","phongBan":"Mua hàng","ghiChu":"gấp","at":"<ts>","nguoiDuyet":"","ngayDuyet":"","items":[{"ma":"A1","ten":"Đèn âm trần","thuongHieu":"Ades","phong":"Phòng khách","dvt":"Cái","sl":10,"donGia":450000,"thanhTien":4500000,"hinhAnh":"h1\nh2"},{"ma":"","ten":"Đèn ray","thuongHieu":"","phong":"","dvt":"Cái","sl":2.5,"donGia":200000,"thanhTien":500000,"hinhAnh":""}]}}
+po_one#audit	[]
+po_one#notif	[]
+po_one#admins	[]
+po_one#hook	null
+po_one#log	[]
+po_one_b	{"ok":{"maDon":"<ma2>","project":"ZZ_purchasing_ Nhà phố Q7","maDA":"ZZ_purchasing_DA1","supplier":"ZZ_purchasing_NCC B","hangMuc":"3.2.6","soSp":1,"tongTruocVat":1250000,"vatPct":0,"vat":0,"total":1250000,"status":"Chờ duyệt","requester":"ZZ_purchasing_ Mai","phongBan":"Mua hàng","ghiChu":"gấp","at":"<ts>","nguoiDuyet":"","ngayDuyet":"","items":[{"ma":"","ten":"Sơn lót","thuongHieu":"Dulux","phong":"","dvt":"Cái","sl":1,"donGia":1250000,"thanhTien":1250000,"hinhAnh":""}]}}
+po_one_b#audit	[]
+po_one_b#notif	[]
+po_one_b#admins	[]
+po_one_b#hook	null
+po_one_b#log	[]
+po_one_missing	{"err":"Không tìm thấy đơn mua hàng"}
+po_one_missing#audit	[]
+po_one_missing#notif	[]
+po_one_missing#admins	[]
+po_one_missing#hook	null
+po_one_missing#log	[]
+po_one_noarg	{"err":"Không tìm thấy đơn mua hàng"}
+po_one_noarg#audit	[]
+po_one_noarg#notif	[]
+po_one_noarg#admins	[]
+po_one_noarg#hook	null
+po_one_noarg#log	[]
+st_too_early	{"err":"Đơn phải ở trạng thái \"Đã duyệt\" mới chuyển sang \"Đã đặt hàng\""}
+st_too_early#audit	[]
+st_too_early#notif	[]
+st_too_early#admins	[]
+st_too_early#hook	null
+st_too_early#log	[]
+st_invalid	{"err":"Trạng thái không hợp lệ"}
+st_invalid#audit	[]
+st_invalid#notif	[]
+st_invalid#admins	[]
+st_invalid#hook	null
+st_invalid#log	[]
+st_back	{"err":"Trạng thái không hợp lệ"}
+st_back#audit	[]
+st_back#notif	[]
+st_back#admins	[]
+st_back#hook	null
+st_back#log	[]
+st_noarg	{"err":"Trạng thái không hợp lệ"}
+st_noarg#audit	[]
+st_noarg#notif	[]
+st_noarg#admins	[]
+st_noarg#hook	null
+st_noarg#log	[]
+rs_approve	{"ok":{"ok":true}}
+rs_approve#audit	[{"user_id":"<id1>","username":"zz_purchasing_tester","action":"approve_purchase","detail":"Đã duyệt đơn <ma1> của ZZ_purchasing_ Mai"}]
+rs_approve#notif	[{"user_id":"<id1>","kind":"purchase_approved","title":"Đơn mua hàng đã được duyệt","body":"Đơn <ma1> (ZZ_purchasing_NCC A)","ref_id":"<ma1>","is_read":false}]
+rs_approve#admins	[]
+rs_approve#hook	null
+rs_approve#log	[]
+rs_again	{"err":"Đơn đã được xử lý"}
+rs_again#audit	[]
+rs_again#notif	[]
+rs_again#admins	[]
+rs_again#hook	null
+rs_again#log	[]
+rs_reject_noarg	{"ok":{"ok":true}}
+rs_reject_noarg#audit	[{"user_id":"<id1>","username":"zz_purchasing_tester","action":"reject_purchase","detail":"Từ chối đơn <ma2> của ZZ_purchasing_ Mai"}]
+rs_reject_noarg#notif	[{"user_id":"<id1>","kind":"purchase_rejected","title":"Đơn mua hàng bị từ chối","body":"Đơn <ma2> (ZZ_purchasing_NCC B)","ref_id":"<ma2>","is_read":false}]
+rs_reject_noarg#admins	[]
+rs_reject_noarg#hook	null
+rs_reject_noarg#log	[]
+rs_reject_again	{"err":"Đơn đã được xử lý"}
+rs_reject_again#audit	[]
+rs_reject_again#notif	[]
+rs_reject_again#admins	[]
+rs_reject_again#hook	null
+rs_reject_again#log	[]
+rs_missing	{"err":"Không tìm thấy đơn mua hàng"}
+rs_missing#audit	[]
+rs_missing#notif	[]
+rs_missing#admins	[]
+rs_missing#hook	null
+rs_missing#log	[]
+st_order	{"ok":{"ok":true,"status":"Đã đặt hàng"}}
+st_order#audit	[{"user_id":"<id1>","username":"zz_purchasing_tester","action":"purchase_status","detail":"Đã đặt hàng — đơn <ma1>"}]
+st_order#notif	[]
+st_order#admins	[]
+st_order#hook	null
+st_order#log	[]
+st_order_again	{"err":"Đơn phải ở trạng thái \"Đã duyệt\" mới chuyển sang \"Đã đặt hàng\""}
+st_order_again#audit	[]
+st_order_again#notif	[]
+st_order_again#admins	[]
+st_order_again#hook	null
+st_order_again#log	[]
+st_receive	{"ok":{"ok":true,"status":"Đã nhận hàng"}}
+st_receive#audit	[{"user_id":"<id1>","username":"zz_purchasing_tester","action":"purchase_status","detail":"Đã nhận hàng — đơn <ma1>"}]
+st_receive#notif	[]
+st_receive#admins	[]
+st_receive#hook	null
+st_receive#log	[]
+st_rejected	{"err":"Đơn phải ở trạng thái \"Đã duyệt\" mới chuyển sang \"Đã đặt hàng\""}
+st_rejected#audit	[]
+st_rejected#notif	[]
+st_rejected#admins	[]
+st_rejected#hook	null
+st_rejected#log	[]
+st_missing	{"err":"Đơn phải ở trạng thái \"Đã đặt hàng\" mới chuyển sang \"Đã nhận hàng\""}
+st_missing#audit	[]
+st_missing#notif	[]
+st_missing#admins	[]
+st_missing#hook	null
+st_missing#log	[]
+po_rows_2	{"heads":[{"ma_don":"<ma1>","ma_du_an":"ZZ_purchasing_DA1","ten_du_an":"ZZ_purchasing_ Nhà phố Q7","hang_muc":"3.2.6","nha_cung_cap":"ZZ_purchasing_NCC A","so_sp":2,"tong_truoc_vat":5000000,"vat_pct":8,"vat":400000,"tong_cong":5400000,"trang_thai":"Đã nhận hàng","kenh_gui":"Lark","ket_qua_gui":"pending","nguoi_gui":"ZZ_purchasing_ Mai","phong_ban":"Mua hàng","ghi_chu":"gấp","ngay_gui":"<ts>","requester_id":"<id1>","cong_ty_id":"<id2>"},{"ma_don":"<ma2>","ma_du_an":"ZZ_purchasing_DA1","ten_du_an":"ZZ_purchasing_ Nhà phố Q7","hang_muc":"3.2.6","nha_cung_cap":"ZZ_purchasing_NCC B","so_sp":1,"tong_truoc_vat":1250000,"vat_pct":0,"vat":0,"tong_cong":1250000,"trang_thai":"Từ chối","kenh_gui":"Lark","ket_qua_gui":"pending","nguoi_gui":"ZZ_purchasing_ Mai","phong_ban":"Mua hàng","ghi_chu":"gấp","ngay_gui":"<ts>","requester_id":"<id1>","cong_ty_id":"<id2>"}],"items":[{"ma_don":"<ma1>","ma_sp":"A1","ten_sp":"Đèn âm trần","thuong_hieu":"Ades","phong":"Phòng khách","dvt":"Cái","so_luong":10,"don_gia":450000,"thanh_tien":4500000,"hinh_anh":"h1\nh2","sort_no":0,"cong_ty_id":"<id2>"},{"ma_don":"<ma1>","ma_sp":"","ten_sp":"Đèn ray","thuong_hieu":"","phong":"","dvt":"Cái","so_luong":2.5,"don_gia":200000,"thanh_tien":500000,"hinh_anh":"","sort_no":1,"cong_ty_id":"<id2>"},{"ma_don":"<ma2>","ma_sp":"","ten_sp":"Sơn lót","thuong_hieu":"Dulux","phong":"","dvt":"Cái","so_luong":1,"don_gia":1250000,"thanh_tien":1250000,"hinh_anh":"","sort_no":0,"cong_ty_id":"<id2>"}]}
+po_override	{"ok":{"ok":true,"saved":["<ma3>"],"lark":false}}
+po_override#audit	[]
+po_override#notif	[]
+po_override#admins	[{"fn":"notifyPurchaseAdmins","uid":"<id1>","arg":[{"maDon":"<ma3>","supplier":"ZZ_purchasing_NCC C"}]}]
+po_override#hook	{"method":"POST","ct":"application/json","body":"{\"msg_type\":\"interactive\",\"card\":{\"config\":{\"wide_screen_mode\":true},\"header\":{\"template\":\"blue\",\"title\":{\"tag\":\"plain_text\",\"content\":\"🛒 YÊU CẦU MUA HÀNG\"},\"subtitle\":{\"tag\":\"plain_text\",\"content\":\"ZZ_purchasing_ P2 — ZZ_purchasing_ An\"}},\"elements\":[{\"tag\":\"div\",\"fields\":[{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🏗 Dự án</font>\\n**ZZ_purchasing_ P2**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🔖 Mã dự án</font>\\n**ZZ_purchasing_DA2**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🙋 Người gửi</font>\\n**ZZ_purchasing_ An**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🏢 Phòng ban</font>\\n**—**\"}}]},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"🏭 <font color='blue'>**ZZ_purchasing_NCC C**</font>　·　0 sản phẩm\"},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"<font color='grey'>Tạm tính</font>　　0 đ\\n**💰 TỔNG THANH TOÁN**　　<font color='red'>**100 đ**</font>\",\"text_align\":\"right\"},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"📦 1 nhà cung cấp　·　0 sản phẩm　·　⏳ <font color='orange'>**Chờ duyệt**</font>\"},{\"tag\":\"note\",\"elements\":[{\"tag\":\"plain_text\",\"content\":\"⚡ Gửi tự động từ Dezon QS Pro · <stamp>\"}]}]}}"}
+po_override#log	["[mua hàng] webhook Lark trả lỗi: param invalid"]
+rs_no_requester	{"ok":{"ok":true}}
+rs_no_requester#audit	[{"user_id":"<id1>","username":"zz_purchasing_tester","action":"approve_purchase","detail":"Đã duyệt đơn <ma3> của ZZ_purchasing_ An"}]
+rs_no_requester#notif	[]
+rs_no_requester#admins	[]
+rs_no_requester#hook	null
+rs_no_requester#log	[]
+po_empty	{"ok":{"ok":true,"saved":[],"lark":true}}
+po_empty#audit	[]
+po_empty#notif	[]
+po_empty#admins	[]
+po_empty#hook	{"method":"POST","ct":"application/json","body":"{\"msg_type\":\"interactive\",\"card\":{\"config\":{\"wide_screen_mode\":true},\"header\":{\"template\":\"blue\",\"title\":{\"tag\":\"plain_text\",\"content\":\"🛒 YÊU CẦU MUA HÀNG\"},\"subtitle\":{\"tag\":\"plain_text\",\"content\":\"ZZ_purchasing_ rỗng\"}},\"elements\":[{\"tag\":\"div\",\"fields\":[{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🏗 Dự án</font>\\n**ZZ_purchasing_ rỗng**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🔖 Mã dự án</font>\\n**ZZ_purchasing_DA2**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🙋 Người gửi</font>\\n**—**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🏢 Phòng ban</font>\\n**—**\"}}]},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"📦 0 nhà cung cấp　·　0 sản phẩm　·　⏳ <font color='orange'>**Chờ duyệt**</font>\"},{\"tag\":\"note\",\"elements\":[{\"tag\":\"plain_text\",\"content\":\"⚡ Gửi tự động từ Dezon QS Pro · <stamp>\"}]}]}}"}
+po_empty#log	[]
+po_null	{"ok":{"ok":true,"saved":[],"lark":false}}
+po_null#audit	[]
+po_null#notif	[]
+po_null#admins	[]
+po_null#hook	{"method":"POST","ct":"application/json","body":"{\"msg_type\":\"interactive\",\"card\":{\"config\":{\"wide_screen_mode\":true},\"header\":{\"template\":\"blue\",\"title\":{\"tag\":\"plain_text\",\"content\":\"🛒 YÊU CẦU MUA HÀNG\"},\"subtitle\":{\"tag\":\"plain_text\",\"content\":\"\"}},\"elements\":[{\"tag\":\"div\",\"fields\":[{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🏗 Dự án</font>\\n**—**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🔖 Mã dự án</font>\\n**—**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🙋 Người gửi</font>\\n**—**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🏢 Phòng ban</font>\\n**—**\"}}]},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"📦 0 nhà cung cấp　·　0 sản phẩm　·　⏳ <font color='orange'>**Chờ duyệt**</font>\"},{\"tag\":\"note\",\"elements\":[{\"tag\":\"plain_text\",\"content\":\"⚡ Gửi tự động từ Dezon QS Pro · <stamp>\"}]}]}}"}
+po_null#log	["[mua hàng] webhook Lark trả lỗi: HTTP 502"]
+po_noargs	{"ok":{"ok":true,"saved":[],"lark":false}}
+po_noargs#audit	[]
+po_noargs#notif	[]
+po_noargs#admins	[]
+po_noargs#hook	{"method":"POST","ct":"application/json","body":"{\"msg_type\":\"interactive\",\"card\":{\"config\":{\"wide_screen_mode\":true},\"header\":{\"template\":\"blue\",\"title\":{\"tag\":\"plain_text\",\"content\":\"🛒 YÊU CẦU MUA HÀNG\"},\"subtitle\":{\"tag\":\"plain_text\",\"content\":\"\"}},\"elements\":[{\"tag\":\"div\",\"fields\":[{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🏗 Dự án</font>\\n**—**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🔖 Mã dự án</font>\\n**—**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🙋 Người gửi</font>\\n**—**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🏢 Phòng ban</font>\\n**—**\"}}]},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"📦 0 nhà cung cấp　·　0 sản phẩm　·　⏳ <font color='orange'>**Chờ duyệt**</font>\"},{\"tag\":\"note\",\"elements\":[{\"tag\":\"plain_text\",\"content\":\"⚡ Gửi tự động từ Dezon QS Pro · <stamp>\"}]}]}}"}
+po_noargs#log	["[mua hàng] webhook Lark lỗi: <net>"]
+po_bad_od	{"err":"Cannot read properties of null (reading 'items')"}
+po_bad_od#audit	[]
+po_bad_od#notif	[]
+po_bad_od#admins	[]
+po_bad_od#hook	null
+po_bad_od#log	[]
+po_bad_item	{"err":"Cannot read properties of null (reading 'sl')"}
+po_bad_item#audit	[]
+po_bad_item#notif	[]
+po_bad_item#admins	[]
+po_bad_item#hook	null
+po_bad_item#log	[]
+po_bad_uuid	{"err":"DB POST don_mua_hang -> 400 {\"code\":\"22P02\",\"details\":null,\"hint\":null,\"message\":\"invalid input syntax for type uuid: \\\"not-a-uuid\\\"\"}"}
+po_bad_uuid#audit	[]
+po_bad_uuid#notif	[]
+po_bad_uuid#admins	[]
+po_bad_uuid#hook	null
+po_bad_uuid#log	[]
+po_check_total	{"err":"DB POST don_mua_hang -> 409 {\"code\":\"23514\",\"details\":\"Failing row contains (<n>, <ma4>, ZZ_purchasing_DA3, ZZ_purchasing_ P3, , ZZ_purchasing_NCC I, 0, -5, 0, 0, -5, Chờ duyệt, Lark, pending, , , , <ts>, <id1>, <id2>).\",\"hint\":null,\"message\":\"new row for relation \\\"purchase_orders\\\" violates check constraint \\\"ck_purchase_orders_subtotal_before_vat\\\"\"}"}
+po_check_total#audit	[]
+po_check_total#notif	[]
+po_check_total#admins	[]
+po_check_total#hook	null
+po_check_total#log	[]
+po_check_item	{"err":"DB POST chi_tiet_mua_hang -> 409 {\"code\":\"23514\",\"details\":\"Failing row contains (<n>, <ma5>, , âm, , , Cái, -1, 5, -5, , 0).\",\"hint\":null,\"message\":\"new row for relation \\\"purchase_order_items\\\" violates check constraint \\\"ck_purchase_order_items_amount\\\"\"}"}
+po_check_item#audit	[]
+po_check_item#notif	[]
+po_check_item#admins	[]
+po_check_item#hook	null
+po_check_item#log	[]
+po_rows_3	{"heads":[{"ma_don":"<ma1>","ma_du_an":"ZZ_purchasing_DA1","ten_du_an":"ZZ_purchasing_ Nhà phố Q7","hang_muc":"3.2.6","nha_cung_cap":"ZZ_purchasing_NCC A","so_sp":2,"tong_truoc_vat":5000000,"vat_pct":8,"vat":400000,"tong_cong":5400000,"trang_thai":"Đã nhận hàng","kenh_gui":"Lark","ket_qua_gui":"pending","nguoi_gui":"ZZ_purchasing_ Mai","phong_ban":"Mua hàng","ghi_chu":"gấp","ngay_gui":"<ts>","requester_id":"<id1>","cong_ty_id":"<id2>"},{"ma_don":"<ma2>","ma_du_an":"ZZ_purchasing_DA1","ten_du_an":"ZZ_purchasing_ Nhà phố Q7","hang_muc":"3.2.6","nha_cung_cap":"ZZ_purchasing_NCC B","so_sp":1,"tong_truoc_vat":1250000,"vat_pct":0,"vat":0,"tong_cong":1250000,"trang_thai":"Từ chối","kenh_gui":"Lark","ket_qua_gui":"pending","nguoi_gui":"ZZ_purchasing_ Mai","phong_ban":"Mua hàng","ghi_chu":"gấp","ngay_gui":"<ts>","requester_id":"<id1>","cong_ty_id":"<id2>"},{"ma_don":"<ma3>","ma_du_an":"ZZ_purchasing_DA2","ten_du_an":"ZZ_purchasing_ P2","hang_muc":"3.1","nha_cung_cap":"ZZ_purchasing_NCC C","so_sp":0,"tong_truoc_vat":100,"vat_pct":0,"vat":0,"tong_cong":100,"trang_thai":"Đã duyệt","kenh_gui":"Zalo","ket_qua_gui":"sent","nguoi_gui":"ZZ_purchasing_ An","phong_ban":"","ghi_chu":"","ngay_gui":"<ts>","requester_id":null,"cong_ty_id":"<id2>"}],"items":[{"ma_don":"<ma1>","ma_sp":"A1","ten_sp":"Đèn âm trần","thuong_hieu":"Ades","phong":"Phòng khách","dvt":"Cái","so_luong":10,"don_gia":450000,"thanh_tien":4500000,"hinh_anh":"h1\nh2","sort_no":0,"cong_ty_id":"<id2>"},{"ma_don":"<ma1>","ma_sp":"","ten_sp":"Đèn ray","thuong_hieu":"","phong":"","dvt":"Cái","so_luong":2.5,"don_gia":200000,"thanh_tien":500000,"hinh_anh":"","sort_no":1,"cong_ty_id":"<id2>"},{"ma_don":"<ma2>","ma_sp":"","ten_sp":"Sơn lót","thuong_hieu":"Dulux","phong":"","dvt":"Cái","so_luong":1,"don_gia":1250000,"thanh_tien":1250000,"hinh_anh":"","sort_no":0,"cong_ty_id":"<id2>"}]}
+po_items_notarray	{"ok":{"ok":true,"saved":["<ma6>"],"lark":false}}
+po_items_notarray#audit	[]
+po_items_notarray#notif	[]
+po_items_notarray#admins	[{"fn":"notifyPurchaseAdmins","uid":"<id1>","arg":[{"maDon":"<ma6>","supplier":"ZZ_purchasing_NCC F"}]}]
+po_items_notarray#hook	null
+po_items_notarray#log	["[mua hàng] webhook Lark lỗi: items.forEach is not a function"]
+po_notify_fail	{"ok":{"ok":true,"saved":["<ma7>","<ma8>"],"lark":true}}
+po_notify_fail#audit	[]
+po_notify_fail#notif	[]
+po_notify_fail#admins	[{"fn":"notifyPurchaseAdmins","uid":"<id1>","arg":[{"maDon":"<ma7>","supplier":""},{"maDon":"<ma8>"}]}]
+po_notify_fail#hook	{"method":"POST","ct":"application/json","body":"{\"msg_type\":\"interactive\",\"card\":{\"config\":{\"wide_screen_mode\":true},\"header\":{\"template\":\"blue\",\"title\":{\"tag\":\"plain_text\",\"content\":\"🛒 YÊU CẦU MUA HÀNG\"},\"subtitle\":{\"tag\":\"plain_text\",\"content\":\"ZZ_purchasing_ P3\"}},\"elements\":[{\"tag\":\"div\",\"fields\":[{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🏗 Dự án</font>\\n**ZZ_purchasing_ P3**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🔖 Mã dự án</font>\\n**ZZ_purchasing_DA3**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🙋 Người gửi</font>\\n**—**\"}},{\"is_short\":true,\"text\":{\"tag\":\"lark_md\",\"content\":\"<font color='grey'>🏢 Phòng ban</font>\\n**—**\"}}]},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"🏭 <font color='blue'>**—**</font>　·　1 sản phẩm\"},{\"tag\":\"column_set\",\"flex_mode\":\"none\",\"horizontal_spacing\":\"small\",\"columns\":[{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":3,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**1. một**\\n<font color='grey'>1  × 6 đ</font>\"}]},{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":1,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**6 đ**\",\"text_align\":\"right\"}]}]},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"<font color='grey'>Tạm tính</font>　　6 đ\\n<font color='grey'>VAT 10%%</font>　　1 đ\\n**💰 TỔNG THANH TOÁN**　　<font color='red'>**7 đ**</font>\",\"text_align\":\"right\"},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"🏭 <font color='blue'>**—**</font>　·　0 sản phẩm\"},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"<font color='grey'>Tạm tính</font>　　0 đ\\n**💰 TỔNG THANH TOÁN**　　<font color='red'>**0 đ**</font>\",\"text_align\":\"right\"},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"💵 <font color='red'>**TỔNG CỘNG: 7 đ**</font>\",\"text_align\":\"right\"},{\"tag\":\"markdown\",\"content\":\"📦 2 nhà cung cấp　·　1 sản phẩm　·　⏳ <font color='orange'>**Chờ duyệt**</font>\"},{\"tag\":\"note\",\"elements\":[{\"tag\":\"plain_text\",\"content\":\"⚡ Gửi tự động từ Dezon QS Pro · <stamp>\"}]}]}}"}
+po_notify_fail#log	["[mua hàng] notify lỗi: ZZ notify boom"]
+po_rows_4	{"heads":[{"ma_don":"<ma1>","ma_du_an":"ZZ_purchasing_DA1","ten_du_an":"ZZ_purchasing_ Nhà phố Q7","hang_muc":"3.2.6","nha_cung_cap":"ZZ_purchasing_NCC A","so_sp":2,"tong_truoc_vat":5000000,"vat_pct":8,"vat":400000,"tong_cong":5400000,"trang_thai":"Đã nhận hàng","kenh_gui":"Lark","ket_qua_gui":"pending","nguoi_gui":"ZZ_purchasing_ Mai","phong_ban":"Mua hàng","ghi_chu":"gấp","ngay_gui":"<ts>","requester_id":"<id1>","cong_ty_id":"<id2>"},{"ma_don":"<ma2>","ma_du_an":"ZZ_purchasing_DA1","ten_du_an":"ZZ_purchasing_ Nhà phố Q7","hang_muc":"3.2.6","nha_cung_cap":"ZZ_purchasing_NCC B","so_sp":1,"tong_truoc_vat":1250000,"vat_pct":0,"vat":0,"tong_cong":1250000,"trang_thai":"Từ chối","kenh_gui":"Lark","ket_qua_gui":"pending","nguoi_gui":"ZZ_purchasing_ Mai","phong_ban":"Mua hàng","ghi_chu":"gấp","ngay_gui":"<ts>","requester_id":"<id1>","cong_ty_id":"<id2>"},{"ma_don":"<ma3>","ma_du_an":"ZZ_purchasing_DA2","ten_du_an":"ZZ_purchasing_ P2","hang_muc":"3.1","nha_cung_cap":"ZZ_purchasing_NCC C","so_sp":0,"tong_truoc_vat":100,"vat_pct":0,"vat":0,"tong_cong":100,"trang_thai":"Đã duyệt","kenh_gui":"Zalo","ket_qua_gui":"sent","nguoi_gui":"ZZ_purchasing_ An","phong_ban":"","ghi_chu":"","ngay_gui":"<ts>","requester_id":null,"cong_ty_id":"<id2>"},{"ma_don":"<ma6>","ma_du_an":"ZZ_purchasing_DA3","ten_du_an":"ZZ_purchasing_ P3","hang_muc":"","nha_cung_cap":"ZZ_purchasing_NCC F","so_sp":0,"tong_truoc_vat":0,"vat_pct":0,"vat":0,"tong_cong":0,"trang_thai":"Chờ duyệt","kenh_gui":"Lark","ket_qua_gui":"pending","nguoi_gui":"","phong_ban":"","ghi_chu":"","ngay_gui":"<ts>","requester_id":"<id1>","cong_ty_id":"<id2>"},{"ma_don":"<ma7>","ma_du_an":"ZZ_purchasing_DA3","ten_du_an":"ZZ_purchasing_ P3","hang_muc":"","nha_cung_cap":"","so_sp":1,"tong_truoc_vat":6,"vat_pct":10,"vat":1,"tong_cong":7,"trang_thai":"Chờ duyệt","kenh_gui":"Lark","ket_qua_gui":"pending","nguoi_gui":"","phong_ban":"","ghi_chu":"","ngay_gui":"<ts>","requester_id":"<id1>","cong_ty_id":"<id2>"},{"ma_don":"<ma8>","ma_du_an":"ZZ_purchasing_DA3","ten_du_an":"ZZ_purchasing_ P3","hang_muc":"","nha_cung_cap":"","so_sp":0,"tong_truoc_vat":0,"vat_pct":0,"vat":0,"tong_cong":0,"trang_thai":"Chờ duyệt","kenh_gui":"Lark","ket_qua_gui":"pending","nguoi_gui":"","phong_ban":"","ghi_chu":"","ngay_gui":"<ts>","requester_id":"<id1>","cong_ty_id":"<id2>"}],"items":[{"ma_don":"<ma1>","ma_sp":"A1","ten_sp":"Đèn âm trần","thuong_hieu":"Ades","phong":"Phòng khách","dvt":"Cái","so_luong":10,"don_gia":450000,"thanh_tien":4500000,"hinh_anh":"h1\nh2","sort_no":0,"cong_ty_id":"<id2>"},{"ma_don":"<ma1>","ma_sp":"","ten_sp":"Đèn ray","thuong_hieu":"","phong":"","dvt":"Cái","so_luong":2.5,"don_gia":200000,"thanh_tien":500000,"hinh_anh":"","sort_no":1,"cong_ty_id":"<id2>"},{"ma_don":"<ma2>","ma_sp":"","ten_sp":"Sơn lót","thuong_hieu":"Dulux","phong":"","dvt":"Cái","so_luong":1,"don_gia":1250000,"thanh_tien":1250000,"hinh_anh":"","sort_no":0,"cong_ty_id":"<id2>"},{"ma_don":"<ma7>","ma_sp":"","ten_sp":"một","thuong_hieu":"","phong":"","dvt":"Cái","so_luong":1,"don_gia":6,"thanh_tien":6,"hinh_anh":"","sort_no":0,"cong_ty_id":"<id2>"}]}
+po_get_da3	{"ok":[{"maDon":"<ma8>","ncc":"","hangMuc":"","soSP":0,"tongTruocVat":0,"vatPct":0,"vat":0,"tongCong":0,"trangThai":"Chờ duyệt","nguoiGui":"","phongBan":"","ghiChu":"","ngayGui":"<ts>","items":[]},{"maDon":"<ma7>","ncc":"","hangMuc":"","soSP":1,"tongTruocVat":6,"vatPct":10,"vat":1,"tongCong":7,"trangThai":"Chờ duyệt","nguoiGui":"","phongBan":"","ghiChu":"","ngayGui":"<ts>","items":[{"ma":"","ten":"một","thuongHieu":"","khuVuc":"","dvt":"Cái","sl":1,"donGia":6,"thanhTien":6,"hinhAnh":""}]},{"maDon":"<ma6>","ncc":"ZZ_purchasing_NCC F","hangMuc":"","soSP":0,"tongTruocVat":0,"vatPct":0,"vat":0,"tongCong":0,"trangThai":"Chờ duyệt","nguoiGui":"","phongBan":"","ghiChu":"","ngayGui":"<ts>","items":[]}]}
+po_get_da3#audit	[]
+po_get_da3#notif	[]
+po_get_da3#admins	[]
+po_get_da3#hook	null
+po_get_da3#log	[]
+dx_ck	{"ok":{"ok":true,"ma":"<ma9>","loai":"ck","total":1944,"lark":true}}
+dx_ck#audit	[]
+dx_ck#notif	[]
+dx_ck#admins	[{"fn":"notifyDeXuatAdmins","uid":"<id1>","arg":{"ma":"<ma9>","loai":"ck","supplier":"ZZ_purchasing_NCC A"}}]
+dx_ck#hook	{"method":"POST","ct":"application/json","body":"{\"msg_type\":\"interactive\",\"card\":{\"config\":{\"wide_screen_mode\":true},\"header\":{\"template\":\"orange\",\"title\":{\"tag\":\"plain_text\",\"content\":\"💬 ĐỀ XUẤT CHIẾT KHẤU\"},\"subtitle\":{\"tag\":\"plain_text\",\"content\":\"ZZ_purchasing_ E2E — ZZ_purchasing_ Mai\"}},\"elements\":[{\"tag\":\"markdown\",\"content\":\"🏢 **ZZ_purchasing_NCC A**\\n<font color='grey'>Dự án: ZZ_purchasing_ E2E　·　3.2.6</font>\\n<font color='grey'>Phiếu: <ma9>　·　Người gửi: ZZ_purchasing_ Mai　·　Mua hàng</font>\"},{\"tag\":\"hr\"},{\"tag\":\"column_set\",\"flex_mode\":\"none\",\"horizontal_spacing\":\"small\",\"columns\":[{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":3,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**1. SP A1**\\n<font color='grey'>2 Cái × 1.000 đ</font>\\n<font color='orange'>đề xuất giảm 10% → 900 đ</font>\"}]},{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":1,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**1.800 đ**\",\"text_align\":\"right\"}]}]},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"<font color='grey'>Giá hiện tại</font>　　2.000 đ\\n<font color='orange'>Nếu chấp nhận đề xuất</font>　　**1.800 đ**\\n**💰 TIẾT KIỆM**　　<font color='green'>**200 đ**</font>\",\"text_align\":\"right\"},{\"tag\":\"markdown\",\"content\":\"<font color='grey'>Ghi chú: xin thêm</font>\"},{\"tag\":\"markdown\",\"content\":\"⏳ <font color='orange'>**Chờ duyệt**</font>\"},{\"tag\":\"note\",\"elements\":[{\"tag\":\"plain_text\",\"content\":\"⚡ Gửi tự động từ Dezon QS Pro · <stamp>\"}]}]}}"}
+dx_ck#log	[]
+dx_tt	{"ok":{"ok":true,"ma":"<ma10>","loai":"tt","total":2160,"lark":true}}
+dx_tt#audit	[]
+dx_tt#notif	[]
+dx_tt#admins	[{"fn":"notifyDeXuatAdmins","uid":"<id1>","arg":{"ma":"<ma10>","loai":"tt","supplier":"ZZ_purchasing_NCC A"}}]
+dx_tt#hook	{"method":"POST","ct":"application/json","body":"{\"msg_type\":\"interactive\",\"card\":{\"config\":{\"wide_screen_mode\":true},\"header\":{\"template\":\"turquoise\",\"title\":{\"tag\":\"plain_text\",\"content\":\"💳 ĐỀ XUẤT THANH TOÁN\"},\"subtitle\":{\"tag\":\"plain_text\",\"content\":\"ZZ_purchasing_ E2E\"}},\"elements\":[{\"tag\":\"markdown\",\"content\":\"🏢 **ZZ_purchasing_NCC A**\\n<font color='grey'>Dự án: ZZ_purchasing_ E2E　·　</font>\\n<font color='grey'>Phiếu: <ma10>　·　Người gửi: —</font>\"},{\"tag\":\"hr\"},{\"tag\":\"column_set\",\"flex_mode\":\"none\",\"horizontal_spacing\":\"small\",\"columns\":[{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":3,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**Đợt 1**　<font color='grey'>30%　·　2026-12-01</font>\\n<font color='grey'>cọc</font>\"}]},{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":1,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**648 đ**\",\"text_align\":\"right\"}]}]},{\"tag\":\"column_set\",\"flex_mode\":\"none\",\"horizontal_spacing\":\"small\",\"columns\":[{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":3,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**Đợt 2**　<font color='grey'>70%</font>\"}]},{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":1,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**1.512 đ**\",\"text_align\":\"right\"}]}]},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"<font color='grey'>Giá trị đơn hàng</font>　　2.160 đ\\n**💳 TỔNG ĐỀ XUẤT**　　<font color='red'>**2.160 đ**</font>\",\"text_align\":\"right\"},{\"tag\":\"markdown\",\"content\":\"⏳ <font color='orange'>**Chờ duyệt**</font>\"},{\"tag\":\"note\",\"elements\":[{\"tag\":\"plain_text\",\"content\":\"⚡ Gửi tự động từ Dezon QS Pro · <stamp>\"}]}]}}"}
+dx_tt#log	[]
+dx_other	{"ok":{"ok":true,"ma":"<ma11>","loai":"ck","total":866,"lark":false}}
+dx_other#audit	[]
+dx_other#notif	[]
+dx_other#admins	[{"fn":"notifyDeXuatAdmins","uid":"<id1>","arg":{"ma":"<ma11>","loai":"ck","supplier":"ZZ_purchasing_NCC B"}}]
+dx_other#hook	{"method":"POST","ct":"application/json","body":"{\"msg_type\":\"interactive\",\"card\":{\"config\":{\"wide_screen_mode\":true},\"header\":{\"template\":\"orange\",\"title\":{\"tag\":\"plain_text\",\"content\":\"💬 ĐỀ XUẤT CHIẾT KHẤU\"},\"subtitle\":{\"tag\":\"plain_text\",\"content\":\"ZZ_purchasing_ khác\"}},\"elements\":[{\"tag\":\"markdown\",\"content\":\"🏢 **ZZ_purchasing_NCC B**\\n<font color='grey'>Dự án: ZZ_purchasing_ khác　·　</font>\\n<font color='grey'>Phiếu: <ma11>　·　Người gửi: —</font>\"},{\"tag\":\"hr\"},{\"tag\":\"column_set\",\"flex_mode\":\"none\",\"horizontal_spacing\":\"small\",\"columns\":[{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":3,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**1. a**\\n<font color='grey'>0  × 1 đ</font>\"}]},{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":1,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**0 đ**\",\"text_align\":\"right\"}]}]},{\"tag\":\"column_set\",\"flex_mode\":\"none\",\"horizontal_spacing\":\"small\",\"columns\":[{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":3,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**2. b**\\n<font color='grey'>3 m2 × 100 đ</font>\"}]},{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":1,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**302 đ**\",\"text_align\":\"right\"}]}]},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"<font color='grey'>Giá hiện tại</font>　　300 đ\\n<font color='orange'>Nếu chấp nhận đề xuất</font>　　**302 đ**\\n**💰 TIẾT KIỆM**　　<font color='green'>**0 đ**</font>\",\"text_align\":\"right\"},{\"tag\":\"markdown\",\"content\":\"⏳ <font color='orange'>**Chờ duyệt**</font>\"},{\"tag\":\"note\",\"elements\":[{\"tag\":\"plain_text\",\"content\":\"⚡ Gửi tự động từ Dezon QS Pro · <stamp>\"}]}]}}"}
+dx_other#log	["[đề xuất] webhook Lark trả lỗi: param invalid"]
+dx_tt_min	{"ok":{"ok":true,"ma":"<ma12>","loai":"tt","total":1003,"lark":false}}
+dx_tt_min#audit	[]
+dx_tt_min#notif	[]
+dx_tt_min#admins	[{"fn":"notifyDeXuatAdmins","uid":"<id1>","arg":{"ma":"<ma12>","loai":"tt"}}]
+dx_tt_min#hook	{"method":"POST","ct":"application/json","body":"{\"msg_type\":\"interactive\",\"card\":{\"config\":{\"wide_screen_mode\":true},\"header\":{\"template\":\"turquoise\",\"title\":{\"tag\":\"plain_text\",\"content\":\"💳 ĐỀ XUẤT THANH TOÁN\"},\"subtitle\":{\"tag\":\"plain_text\",\"content\":\"ZZ_purchasing_ tối thiểu\"}},\"elements\":[{\"tag\":\"markdown\",\"content\":\"🏢 **—**\\n<font color='grey'>Dự án: ZZ_purchasing_ tối thiểu　·　</font>\\n<font color='grey'>Phiếu: <ma12>　·　Người gửi: —</font>\"},{\"tag\":\"hr\"},{\"tag\":\"column_set\",\"flex_mode\":\"none\",\"horizontal_spacing\":\"small\",\"columns\":[{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":3,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**Đợt 1**　<font color='grey'>0%</font>\"}]},{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":1,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**1 đ**\",\"text_align\":\"right\"}]}]},{\"tag\":\"column_set\",\"flex_mode\":\"none\",\"horizontal_spacing\":\"small\",\"columns\":[{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":3,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**Đợt 5**　<font color='grey'>0%</font>\"}]},{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":1,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**3 đ**\",\"text_align\":\"right\"}]}]},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"<font color='grey'>Giá trị đơn hàng</font>　　4 đ\\n**💳 TỔNG ĐỀ XUẤT**　　<font color='red'>**4 đ**</font>\",\"text_align\":\"right\"},{\"tag\":\"markdown\",\"content\":\"⏳ <font color='orange'>**Chờ duyệt**</font>\"},{\"tag\":\"note\",\"elements\":[{\"tag\":\"plain_text\",\"content\":\"⚡ Gửi tự động từ Dezon QS Pro · <stamp>\"}]}]}}"}
+dx_tt_min#log	["[đề xuất] webhook Lark trả lỗi: HTTP 502"]
+dx_empty_ck	{"ok":{"ok":true,"ma":"<ma13>","loai":"ck","total":0,"lark":true}}
+dx_empty_ck#audit	[]
+dx_empty_ck#notif	[]
+dx_empty_ck#admins	[{"fn":"notifyDeXuatAdmins","uid":"<id1>","arg":{"ma":"<ma13>","loai":"ck"}}]
+dx_empty_ck#hook	{"method":"POST","ct":"application/json","body":"{\"msg_type\":\"interactive\",\"card\":{\"config\":{\"wide_screen_mode\":true},\"header\":{\"template\":\"orange\",\"title\":{\"tag\":\"plain_text\",\"content\":\"💬 ĐỀ XUẤT CHIẾT KHẤU\"},\"subtitle\":{\"tag\":\"plain_text\",\"content\":\"ZZ_purchasing_ rỗng\"}},\"elements\":[{\"tag\":\"markdown\",\"content\":\"🏢 **—**\\n<font color='grey'>Dự án: ZZ_purchasing_ rỗng　·　</font>\\n<font color='grey'>Phiếu: <ma13>　·　Người gửi: —</font>\"},{\"tag\":\"hr\"},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"<font color='grey'>Giá hiện tại</font>　　0 đ\\n<font color='orange'>Nếu chấp nhận đề xuất</font>　　**0 đ**\\n**💰 TIẾT KIỆM**　　<font color='green'>**0 đ**</font>\",\"text_align\":\"right\"},{\"tag\":\"markdown\",\"content\":\"⏳ <font color='orange'>**Chờ duyệt**</font>\"},{\"tag\":\"note\",\"elements\":[{\"tag\":\"plain_text\",\"content\":\"⚡ Gửi tự động từ Dezon QS Pro · <stamp>\"}]}]}}"}
+dx_empty_ck#log	[]
+dx_bad_item	{"err":"Cannot read properties of null (reading 'sl')"}
+dx_bad_item#audit	[]
+dx_bad_item#notif	[]
+dx_bad_item#admins	[]
+dx_bad_item#hook	null
+dx_bad_item#log	[]
+dx_bad_dot	{"err":"Cannot read properties of null (reading 'tien')"}
+dx_bad_dot#audit	[]
+dx_bad_dot#notif	[]
+dx_bad_dot#admins	[]
+dx_bad_dot#hook	null
+dx_bad_dot#log	[]
+dx_bad_date	{"err":"DB POST chi_tiet_de_xuat_tt -> 400 {\"code\":\"22007\",\"details\":null,\"hint\":null,\"message\":\"invalid input syntax for type date: \\\"abc\\\"\"}"}
+dx_bad_date#audit	[]
+dx_bad_date#notif	[]
+dx_bad_date#admins	[]
+dx_bad_date#hook	null
+dx_bad_date#log	[]
+dx_bad_vat	{"err":"DB POST de_xuat -> 409 {\"code\":\"23514\",\"details\":\"Failing row contains (<n>, <ma14>, ck, ZZ_purchasing_DA3, ZZ_purchasing_ hỏng, , , 1, 0, 1, 0, 150, 2, 3, Chờ duyệt, , , , null, null, <id1>, <id2>, <ts>).\",\"hint\":null,\"message\":\"new row for relation \\\"purchase_proposals\\\" violates check constraint \\\"ck_purchase_proposals_vat_pct\\\"\"}"}
+dx_bad_vat#audit	[]
+dx_bad_vat#notif	[]
+dx_bad_vat#admins	[]
+dx_bad_vat#hook	null
+dx_bad_vat#log	[]
+dx_bad_uuid	{"err":"DB POST de_xuat -> 400 {\"code\":\"22P02\",\"details\":null,\"hint\":null,\"message\":\"invalid input syntax for type uuid: \\\"nope\\\"\"}"}
+dx_bad_uuid#audit	[]
+dx_bad_uuid#notif	[]
+dx_bad_uuid#admins	[]
+dx_bad_uuid#hook	null
+dx_bad_uuid#log	[]
+dx_notify_fail	{"ok":{"ok":true,"ma":"<ma15>","loai":"tt","total":10,"lark":false}}
+dx_notify_fail#audit	[]
+dx_notify_fail#notif	[]
+dx_notify_fail#admins	[{"fn":"notifyDeXuatAdmins","uid":"<id1>","arg":{"ma":"<ma15>","loai":"tt","supplier":"ZZ_purchasing_NCC K"}}]
+dx_notify_fail#hook	{"method":"POST","ct":"application/json","body":"{\"msg_type\":\"interactive\",\"card\":{\"config\":{\"wide_screen_mode\":true},\"header\":{\"template\":\"turquoise\",\"title\":{\"tag\":\"plain_text\",\"content\":\"💳 ĐỀ XUẤT THANH TOÁN\"},\"subtitle\":{\"tag\":\"plain_text\",\"content\":\"ZZ_purchasing_ P3 — ZZ_purchasing_ An\"}},\"elements\":[{\"tag\":\"markdown\",\"content\":\"🏢 **ZZ_purchasing_NCC K**\\n<font color='grey'>Dự án: ZZ_purchasing_ P3　·　</font>\\n<font color='grey'>Phiếu: <ma15>　·　Người gửi: ZZ_purchasing_ An</font>\"},{\"tag\":\"hr\"},{\"tag\":\"column_set\",\"flex_mode\":\"none\",\"horizontal_spacing\":\"small\",\"columns\":[{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":3,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**Đợt 1**　<font color='grey'>0%</font>\"}]},{\"tag\":\"column\",\"width\":\"weighted\",\"weight\":1,\"vertical_align\":\"center\",\"elements\":[{\"tag\":\"markdown\",\"content\":\"**10 đ**\",\"text_align\":\"right\"}]}]},{\"tag\":\"hr\"},{\"tag\":\"markdown\",\"content\":\"<font color='grey'>Giá trị đơn hàng</font>　　10 đ\\n**💳 TỔNG ĐỀ XUẤT**　　<font color='red'>**10 đ**</font>\",\"text_align\":\"right\"},{\"tag\":\"markdown\",\"content\":\"⏳ <font color='orange'>**Chờ duyệt**</font>\"},{\"tag\":\"note\",\"elements\":[{\"tag\":\"plain_text\",\"content\":\"⚡ Gửi tự động từ Dezon QS Pro · <stamp>\"}]}]}}"}
+dx_notify_fail#log	["[đề xuất] notify lỗi: <net>","[đề xuất] webhook lỗi: <net>"]
+dx_rows_1	{"heads":[{"ma_de_xuat":"<ma9>","loai":"ck","ma_du_an":"ZZ_purchasing_DA1","ten_du_an":"ZZ_purchasing_ E2E","hang_muc":"3.2.6","nha_cung_cap":"ZZ_purchasing_NCC A","so_dong":1,"tong_goc":2000,"tong_de_xuat":1800,"tien_giam":200,"vat_pct":8,"vat":144,"tong_cong":1944,"trang_thai":"Chờ duyệt","nguoi_gui":"ZZ_purchasing_ Mai","phong_ban":"Mua hàng","ghi_chu":"xin thêm","nguoi_duyet":null,"ngay_duyet":null,"requester_id":"<id1>","cong_ty_id":"<id2>","ngay_gui":"<ts>"},{"ma_de_xuat":"<ma10>","loai":"tt","ma_du_an":"ZZ_purchasing_DA1","ten_du_an":"ZZ_purchasing_ E2E","hang_muc":"","nha_cung_cap":"ZZ_purchasing_NCC A","so_dong":2,"tong_goc":2160,"tong_de_xuat":2160,"tien_giam":0,"vat_pct":8,"vat":0,"tong_cong":2160,"trang_thai":"Chờ duyệt","nguoi_gui":"","phong_ban":"","ghi_chu":"","nguoi_duyet":null,"ngay_duyet":null,"requester_id":"<id1>","cong_ty_id":"<id2>","ngay_gui":"<ts>"},{"ma_de_xuat":"<ma11>","loai":"ck","ma_du_an":"ZZ_purchasing_DA1","ten_du_an":"ZZ_purchasing_ khác","hang_muc":"","nha_cung_cap":"ZZ_purchasing_NCC B","so_dong":2,"tong_goc":1800,"tong_de_xuat":802,"tien_giam":998,"vat_pct":8,"vat":64,"tong_cong":866,"trang_thai":"Chờ duyệt","nguoi_gui":"","phong_ban":"","ghi_chu":"","nguoi_duyet":null,"ngay_duyet":null,"requester_id":null,"cong_ty_id":"<id2>","ngay_gui":"<ts>"},{"ma_de_xuat":"<ma12>","loai":"tt","ma_du_an":"ZZ_purchasing_DA2","ten_du_an":"ZZ_purchasing_ tối thiểu","hang_muc":"","nha_cung_cap":"","so_dong":2,"tong_goc":1003,"tong_de_xuat":1003,"tien_giam":0,"vat_pct":0,"vat":0,"tong_cong":1003,"trang_thai":"Chờ duyệt","nguoi_gui":"","phong_ban":"","ghi_chu":"","nguoi_duyet":null,"ngay_duyet":null,"requester_id":"<id1>","cong_ty_id":"<id2>","ngay_gui":"<ts>"},{"ma_de_xuat":"<ma13>","loai":"ck","ma_du_an":"ZZ_purchasing_DA2","ten_du_an":"ZZ_purchasing_ rỗng","hang_muc":"","nha_cung_cap":"","so_dong":0,"tong_goc":0,"tong_de_xuat":0,"tien_giam":0,"vat_pct":0,"vat":0,"tong_cong":0,"trang_thai":"Chờ duyệt","nguoi_gui":"","phong_ban":"","ghi_chu":"","nguoi_duyet":null,"ngay_duyet":null,"requester_id":"<id1>","cong_ty_id":"<id2>","ngay_gui":"<ts>"},{"ma_de_xuat":"<ma15>","loai":"tt","ma_du_an":"ZZ_purchasing_DA3","ten_du_an":"ZZ_purchasing_ P3","hang_muc":"","nha_cung_cap":"ZZ_purchasing_NCC K","so_dong":1,"tong_goc":10,"tong_de_xuat":10,"tien_giam":0,"vat_pct":0,"vat":0,"tong_cong":10,"trang_thai":"Chờ duyệt","nguoi_gui":"ZZ_purchasing_ An","phong_ban":"","ghi_chu":"","nguoi_duyet":null,"ngay_duyet":null,"requester_id":"<id1>","cong_ty_id":"<id2>","ngay_gui":"<ts>"}],"ck":[{"ma_de_xuat":"<ma9>","sort_no":0,"ma_sp":"A1","ten_sp":"SP A1","thuong_hieu":"X","phong":"P1","dvt":"Cái","so_luong":2,"don_gia_goc":1000,"ty_le_pct":10,"don_gia":900,"thanh_tien":1800,"hinh_anh":"h","cong_ty_id":"<id2>"},{"ma_de_xuat":"<ma11>","sort_no":0,"ma_sp":"","ten_sp":"a","thuong_hieu":"","phong":"","dvt":"Cái","so_luong":1.5,"don_gia_goc":1000,"ty_le_pct":12.5,"don_gia":333.335,"thanh_tien":500,"hinh_anh":"","cong_ty_id":"<id2>"},{"ma_de_xuat":"<ma11>","sort_no":1,"ma_sp":"","ten_sp":"b","thuong_hieu":"","phong":"","dvt":"m2","so_luong":3,"don_gia_goc":100,"ty_le_pct":0,"don_gia":100.5,"thanh_tien":302,"hinh_anh":"","cong_ty_id":"<id2>"}],"tt":[{"ma_de_xuat":"<ma10>","sort_no":0,"ten_sp":"Đợt 1","ty_le_pct":30,"thanh_tien":648,"ngay_du_kien":"2026-12-01","ghi_chu":"cọc","cong_ty_id":"<id2>"},{"ma_de_xuat":"<ma10>","sort_no":1,"ten_sp":"Đợt 2","ty_le_pct":70,"thanh_tien":1512,"ngay_du_kien":null,"ghi_chu":"","cong_ty_id":"<id2>"},{"ma_de_xuat":"<ma12>","sort_no":0,"ten_sp":"Đợt 1","ty_le_pct":0,"thanh_tien":1000,"ngay_du_kien":null,"ghi_chu":"","cong_ty_id":"<id2>"},{"ma_de_xuat":"<ma12>","sort_no":1,"ten_sp":"Đợt 5","ty_le_pct":50,"thanh_tien":3,"ngay_du_kien":null,"ghi_chu":"","cong_ty_id":"<id2>"},{"ma_de_xuat":"<ma15>","sort_no":0,"ten_sp":"Đợt 1","ty_le_pct":0,"thanh_tien":10,"ngay_du_kien":null,"ghi_chu":"","cong_ty_id":"<id2>"}]}
+dx_list_da1	{"ok":[{"ma":"<ma11>","loai":"ck","maDA":"ZZ_purchasing_DA1","project":"ZZ_purchasing_ khác","hangMuc":"","supplier":"ZZ_purchasing_NCC B","soDong":2,"tongGoc":1800,"tongDeXuat":802,"tienGiam":998,"vatPct":8,"vat":64,"total":866,"status":"Chờ duyệt","requester":"","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>","items":[{"ma":"","ten":"a","thuongHieu":"","phong":"","dvt":"Cái","sl":1.5,"donGiaGoc":1000,"pct":12.5,"donGia":333.335,"thanhTien":500,"ngay":"","ghiChu":"","hinhAnh":""},{"ma":"","ten":"b","thuongHieu":"","phong":"","dvt":"m2","sl":3,"donGiaGoc":100,"pct":0,"donGia":100.5,"thanhTien":302,"ngay":"","ghiChu":"","hinhAnh":""}]},{"ma":"<ma10>","loai":"tt","maDA":"ZZ_purchasing_DA1","project":"ZZ_purchasing_ E2E","hangMuc":"","supplier":"ZZ_purchasing_NCC A","soDong":2,"tongGoc":2160,"tongDeXuat":2160,"tienGiam":0,"vatPct":8,"vat":0,"total":2160,"status":"Chờ duyệt","requester":"","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>","items":[{"ma":"","ten":"Đợt 1","thuongHieu":"","phong":"","dvt":"","sl":0,"donGiaGoc":0,"pct":30,"donGia":0,"thanhTien":648,"ngay":"2026-12-01","ghiChu":"cọc","hinhAnh":""},{"ma":"","ten":"Đợt 2","thuongHieu":"","phong":"","dvt":"","sl":0,"donGiaGoc":0,"pct":70,"donGia":0,"thanhTien":1512,"ngay":"","ghiChu":"","hinhAnh":""}]},{"ma":"<ma9>","loai":"ck","maDA":"ZZ_purchasing_DA1","project":"ZZ_purchasing_ E2E","hangMuc":"3.2.6","supplier":"ZZ_purchasing_NCC A","soDong":1,"tongGoc":2000,"tongDeXuat":1800,"tienGiam":200,"vatPct":8,"vat":144,"total":1944,"status":"Chờ duyệt","requester":"ZZ_purchasing_ Mai","phongBan":"Mua hàng","ghiChu":"xin thêm","nguoiDuyet":"","ngayDuyet":"","at":"<ts>","items":[{"ma":"A1","ten":"SP A1","thuongHieu":"X","phong":"P1","dvt":"Cái","sl":2,"donGiaGoc":1000,"pct":10,"donGia":900,"thanhTien":1800,"ngay":"","ghiChu":"","hinhAnh":"h"}]}]}
+dx_list_da1#audit	[]
+dx_list_da1#notif	[]
+dx_list_da1#admins	[]
+dx_list_da1#hook	null
+dx_list_da1#log	[]
+dx_list_da2	{"ok":[{"ma":"<ma13>","loai":"ck","maDA":"ZZ_purchasing_DA2","project":"ZZ_purchasing_ rỗng","hangMuc":"","supplier":"","soDong":0,"tongGoc":0,"tongDeXuat":0,"tienGiam":0,"vatPct":0,"vat":0,"total":0,"status":"Chờ duyệt","requester":"","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>","items":[]},{"ma":"<ma12>","loai":"tt","maDA":"ZZ_purchasing_DA2","project":"ZZ_purchasing_ tối thiểu","hangMuc":"","supplier":"","soDong":2,"tongGoc":1003,"tongDeXuat":1003,"tienGiam":0,"vatPct":0,"vat":0,"total":1003,"status":"Chờ duyệt","requester":"","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>","items":[{"ma":"","ten":"Đợt 1","thuongHieu":"","phong":"","dvt":"","sl":0,"donGiaGoc":0,"pct":0,"donGia":0,"thanhTien":1000,"ngay":"","ghiChu":"","hinhAnh":""},{"ma":"","ten":"Đợt 5","thuongHieu":"","phong":"","dvt":"","sl":0,"donGiaGoc":0,"pct":50,"donGia":0,"thanhTien":3,"ngay":"","ghiChu":"","hinhAnh":""}]}]}
+dx_list_da2#audit	[]
+dx_list_da2#notif	[]
+dx_list_da2#admins	[]
+dx_list_da2#hook	null
+dx_list_da2#log	[]
+dx_list_none	{"ok":[]}
+dx_list_none#audit	[]
+dx_list_none#notif	[]
+dx_list_none#admins	[]
+dx_list_none#hook	null
+dx_list_none#log	[]
+dx_list_noarg	{"ok":[]}
+dx_list_noarg#audit	[]
+dx_list_noarg#notif	[]
+dx_list_noarg#admins	[]
+dx_list_noarg#hook	null
+dx_list_noarg#log	[]
+dx_admin_all	{"ok":[{"ma":"<ma15>","loai":"tt","maDA":"ZZ_purchasing_DA3","project":"ZZ_purchasing_ P3","hangMuc":"","supplier":"ZZ_purchasing_NCC K","soDong":1,"tongGoc":10,"tongDeXuat":10,"tienGiam":0,"vatPct":0,"vat":0,"total":10,"status":"Chờ duyệt","requester":"ZZ_purchasing_ An","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>"},{"ma":"<ma13>","loai":"ck","maDA":"ZZ_purchasing_DA2","project":"ZZ_purchasing_ rỗng","hangMuc":"","supplier":"","soDong":0,"tongGoc":0,"tongDeXuat":0,"tienGiam":0,"vatPct":0,"vat":0,"total":0,"status":"Chờ duyệt","requester":"","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>"},{"ma":"<ma12>","loai":"tt","maDA":"ZZ_purchasing_DA2","project":"ZZ_purchasing_ tối thiểu","hangMuc":"","supplier":"","soDong":2,"tongGoc":1003,"tongDeXuat":1003,"tienGiam":0,"vatPct":0,"vat":0,"total":1003,"status":"Chờ duyệt","requester":"","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>"},{"ma":"<ma11>","loai":"ck","maDA":"ZZ_purchasing_DA1","project":"ZZ_purchasing_ khác","hangMuc":"","supplier":"ZZ_purchasing_NCC B","soDong":2,"tongGoc":1800,"tongDeXuat":802,"tienGiam":998,"vatPct":8,"vat":64,"total":866,"status":"Chờ duyệt","requester":"","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>"},{"ma":"<ma10>","loai":"tt","maDA":"ZZ_purchasing_DA1","project":"ZZ_purchasing_ E2E","hangMuc":"","supplier":"ZZ_purchasing_NCC A","soDong":2,"tongGoc":2160,"tongDeXuat":2160,"tienGiam":0,"vatPct":8,"vat":0,"total":2160,"status":"Chờ duyệt","requester":"","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>"},{"ma":"<ma9>","loai":"ck","maDA":"ZZ_purchasing_DA1","project":"ZZ_purchasing_ E2E","hangMuc":"3.2.6","supplier":"ZZ_purchasing_NCC A","soDong":1,"tongGoc":2000,"tongDeXuat":1800,"tienGiam":200,"vatPct":8,"vat":144,"total":1944,"status":"Chờ duyệt","requester":"ZZ_purchasing_ Mai","phongBan":"Mua hàng","ghiChu":"xin thêm","nguoiDuyet":"","ngayDuyet":"","at":"<ts>"}]}
+dx_admin_all#audit	[]
+dx_admin_all#notif	[]
+dx_admin_all#admins	[]
+dx_admin_all#hook	null
+dx_admin_all#log	[]
+dx_admin_tt	{"ok":[{"ma":"<ma15>","loai":"tt","maDA":"ZZ_purchasing_DA3","project":"ZZ_purchasing_ P3","hangMuc":"","supplier":"ZZ_purchasing_NCC K","soDong":1,"tongGoc":10,"tongDeXuat":10,"tienGiam":0,"vatPct":0,"vat":0,"total":10,"status":"Chờ duyệt","requester":"ZZ_purchasing_ An","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>"},{"ma":"<ma12>","loai":"tt","maDA":"ZZ_purchasing_DA2","project":"ZZ_purchasing_ tối thiểu","hangMuc":"","supplier":"","soDong":2,"tongGoc":1003,"tongDeXuat":1003,"tienGiam":0,"vatPct":0,"vat":0,"total":1003,"status":"Chờ duyệt","requester":"","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>"},{"ma":"<ma10>","loai":"tt","maDA":"ZZ_purchasing_DA1","project":"ZZ_purchasing_ E2E","hangMuc":"","supplier":"ZZ_purchasing_NCC A","soDong":2,"tongGoc":2160,"tongDeXuat":2160,"tienGiam":0,"vatPct":8,"vat":0,"total":2160,"status":"Chờ duyệt","requester":"","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>"}]}
+dx_admin_tt#audit	[]
+dx_admin_tt#notif	[]
+dx_admin_tt#admins	[]
+dx_admin_tt#hook	null
+dx_admin_tt#log	[]
+dx_admin_ck	{"ok":[{"ma":"<ma13>","loai":"ck","maDA":"ZZ_purchasing_DA2","project":"ZZ_purchasing_ rỗng","hangMuc":"","supplier":"","soDong":0,"tongGoc":0,"tongDeXuat":0,"tienGiam":0,"vatPct":0,"vat":0,"total":0,"status":"Chờ duyệt","requester":"","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>"},{"ma":"<ma11>","loai":"ck","maDA":"ZZ_purchasing_DA1","project":"ZZ_purchasing_ khác","hangMuc":"","supplier":"ZZ_purchasing_NCC B","soDong":2,"tongGoc":1800,"tongDeXuat":802,"tienGiam":998,"vatPct":8,"vat":64,"total":866,"status":"Chờ duyệt","requester":"","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>"},{"ma":"<ma9>","loai":"ck","maDA":"ZZ_purchasing_DA1","project":"ZZ_purchasing_ E2E","hangMuc":"3.2.6","supplier":"ZZ_purchasing_NCC A","soDong":1,"tongGoc":2000,"tongDeXuat":1800,"tienGiam":200,"vatPct":8,"vat":144,"total":1944,"status":"Chờ duyệt","requester":"ZZ_purchasing_ Mai","phongBan":"Mua hàng","ghiChu":"xin thêm","nguoiDuyet":"","ngayDuyet":"","at":"<ts>"}]}
+dx_admin_ck#audit	[]
+dx_admin_ck#notif	[]
+dx_admin_ck#admins	[]
+dx_admin_ck#hook	null
+dx_admin_ck#log	[]
+dx_admin_zz	{"ok":[]}
+dx_admin_zz#audit	[]
+dx_admin_zz#notif	[]
+dx_admin_zz#admins	[]
+dx_admin_zz#hook	null
+dx_admin_zz#log	[]
+dx_admin_null	{"ok":[{"ma":"<ma15>","loai":"tt","maDA":"ZZ_purchasing_DA3","project":"ZZ_purchasing_ P3","hangMuc":"","supplier":"ZZ_purchasing_NCC K","soDong":1,"tongGoc":10,"tongDeXuat":10,"tienGiam":0,"vatPct":0,"vat":0,"total":10,"status":"Chờ duyệt","requester":"ZZ_purchasing_ An","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>"},{"ma":"<ma13>","loai":"ck","maDA":"ZZ_purchasing_DA2","project":"ZZ_purchasing_ rỗng","hangMuc":"","supplier":"","soDong":0,"tongGoc":0,"tongDeXuat":0,"tienGiam":0,"vatPct":0,"vat":0,"total":0,"status":"Chờ duyệt","requester":"","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>"},{"ma":"<ma12>","loai":"tt","maDA":"ZZ_purchasing_DA2","project":"ZZ_purchasing_ tối thiểu","hangMuc":"","supplier":"","soDong":2,"tongGoc":1003,"tongDeXuat":1003,"tienGiam":0,"vatPct":0,"vat":0,"total":1003,"status":"Chờ duyệt","requester":"","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>"},{"ma":"<ma11>","loai":"ck","maDA":"ZZ_purchasing_DA1","project":"ZZ_purchasing_ khác","hangMuc":"","supplier":"ZZ_purchasing_NCC B","soDong":2,"tongGoc":1800,"tongDeXuat":802,"tienGiam":998,"vatPct":8,"vat":64,"total":866,"status":"Chờ duyệt","requester":"","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>"},{"ma":"<ma10>","loai":"tt","maDA":"ZZ_purchasing_DA1","project":"ZZ_purchasing_ E2E","hangMuc":"","supplier":"ZZ_purchasing_NCC A","soDong":2,"tongGoc":2160,"tongDeXuat":2160,"tienGiam":0,"vatPct":8,"vat":0,"total":2160,"status":"Chờ duyệt","requester":"","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>"},{"ma":"<ma9>","loai":"ck","maDA":"ZZ_purchasing_DA1","project":"ZZ_purchasing_ E2E","hangMuc":"3.2.6","supplier":"ZZ_purchasing_NCC A","soDong":1,"tongGoc":2000,"tongDeXuat":1800,"tienGiam":200,"vatPct":8,"vat":144,"total":1944,"status":"Chờ duyệt","requester":"ZZ_purchasing_ Mai","phongBan":"Mua hàng","ghiChu":"xin thêm","nguoiDuyet":"","ngayDuyet":"","at":"<ts>"}]}
+dx_admin_null#audit	[]
+dx_admin_null#notif	[]
+dx_admin_null#admins	[]
+dx_admin_null#hook	null
+dx_admin_null#log	[]
+dx_one_ck	{"ok":{"ma":"<ma9>","loai":"ck","maDA":"ZZ_purchasing_DA1","project":"ZZ_purchasing_ E2E","hangMuc":"3.2.6","supplier":"ZZ_purchasing_NCC A","soDong":1,"tongGoc":2000,"tongDeXuat":1800,"tienGiam":200,"vatPct":8,"vat":144,"total":1944,"status":"Chờ duyệt","requester":"ZZ_purchasing_ Mai","phongBan":"Mua hàng","ghiChu":"xin thêm","nguoiDuyet":"","ngayDuyet":"","at":"<ts>","items":[{"ma":"A1","ten":"SP A1","thuongHieu":"X","phong":"P1","dvt":"Cái","sl":2,"donGiaGoc":1000,"pct":10,"donGia":900,"thanhTien":1800,"ngay":"","ghiChu":"","hinhAnh":"h"}]}}
+dx_one_ck#audit	[]
+dx_one_ck#notif	[]
+dx_one_ck#admins	[]
+dx_one_ck#hook	null
+dx_one_ck#log	[]
+dx_one_tt	{"ok":{"ma":"<ma10>","loai":"tt","maDA":"ZZ_purchasing_DA1","project":"ZZ_purchasing_ E2E","hangMuc":"","supplier":"ZZ_purchasing_NCC A","soDong":2,"tongGoc":2160,"tongDeXuat":2160,"tienGiam":0,"vatPct":8,"vat":0,"total":2160,"status":"Chờ duyệt","requester":"","phongBan":"","ghiChu":"","nguoiDuyet":"","ngayDuyet":"","at":"<ts>","items":[{"ma":"","ten":"Đợt 1","thuongHieu":"","phong":"","dvt":"","sl":0,"donGiaGoc":0,"pct":30,"donGia":0,"thanhTien":648,"ngay":"2026-12-01","ghiChu":"cọc","hinhAnh":""},{"ma":"","ten":"Đợt 2","thuongHieu":"","phong":"","dvt":"","sl":0,"donGiaGoc":0,"pct":70,"donGia":0,"thanhTien":1512,"ngay":"","ghiChu":"","hinhAnh":""}]}}
+dx_one_tt#audit	[]
+dx_one_tt#notif	[]
+dx_one_tt#admins	[]
+dx_one_tt#hook	null
+dx_one_tt#log	[]
+dx_one_missing	{"err":"Không tìm thấy đề xuất"}
+dx_one_missing#audit	[]
+dx_one_missing#notif	[]
+dx_one_missing#admins	[]
+dx_one_missing#hook	null
+dx_one_missing#log	[]
+dx_one_noarg	{"err":"Không tìm thấy đề xuất"}
+dx_one_noarg#audit	[]
+dx_one_noarg#notif	[]
+dx_one_noarg#admins	[]
+dx_one_noarg#hook	null
+dx_one_noarg#log	[]
+dx_approve	{"ok":{"ok":true}}
+dx_approve#audit	[{"user_id":"<id1>","username":"zz_purchasing_tester","action":"approve_de_xuat","detail":"Đã duyệt đề xuất chiết khấu <ma9> của ZZ_purchasing_ Mai"}]
+dx_approve#notif	[{"user_id":"<id1>","kind":"de_xuat_approved","title":"Đề xuất đã được duyệt","body":"Phiếu <ma9> (ZZ_purchasing_NCC A)","ref_id":"<ma9>","is_read":false}]
+dx_approve#admins	[]
+dx_approve#hook	null
+dx_approve#log	[]
+dx_approve_again	{"err":"Đề xuất đã được xử lý"}
+dx_approve_again#audit	[]
+dx_approve_again#notif	[]
+dx_approve_again#admins	[]
+dx_approve_again#hook	null
+dx_approve_again#log	[]
+dx_reject	{"ok":{"ok":true}}
+dx_reject#audit	[{"user_id":"<id1>","username":"zz_purchasing_tester","action":"reject_de_xuat","detail":"Từ chối đề xuất thanh toán <ma10> của "}]
+dx_reject#notif	[{"user_id":"<id1>","kind":"de_xuat_rejected","title":"Đề xuất bị từ chối","body":"Phiếu <ma10> (ZZ_purchasing_NCC A)","ref_id":"<ma10>","is_read":false}]
+dx_reject#admins	[]
+dx_reject#hook	null
+dx_reject#log	[]
+dx_approve_no_requester	{"ok":{"ok":true}}
+dx_approve_no_requester#audit	[{"user_id":"<id1>","username":"zz_purchasing_tester","action":"approve_de_xuat","detail":"Đã duyệt đề xuất chiết khấu <ma11> của "}]
+dx_approve_no_requester#notif	[]
+dx_approve_no_requester#admins	[]
+dx_approve_no_requester#hook	null
+dx_approve_no_requester#log	[]
+dx_reject_noarg	{"ok":{"ok":true}}
+dx_reject_noarg#audit	[{"user_id":"<id1>","username":"zz_purchasing_tester","action":"reject_de_xuat","detail":"Từ chối đề xuất thanh toán <ma12> của "}]
+dx_reject_noarg#notif	[{"user_id":"<id1>","kind":"de_xuat_rejected","title":"Đề xuất bị từ chối","body":"Phiếu <ma12>","ref_id":"<ma12>","is_read":false}]
+dx_reject_noarg#admins	[]
+dx_reject_noarg#hook	null
+dx_reject_noarg#log	[]
+dx_resolve_missing	{"err":"Không tìm thấy đề xuất"}
+dx_resolve_missing#audit	[]
+dx_resolve_missing#notif	[]
+dx_resolve_missing#admins	[]
+dx_resolve_missing#hook	null
+dx_resolve_missing#log	[]
+dx_resolve_noarg	{"err":"Không tìm thấy đề xuất"}
+dx_resolve_noarg#audit	[]
+dx_resolve_noarg#notif	[]
+dx_resolve_noarg#admins	[]
+dx_resolve_noarg#hook	null
+dx_resolve_noarg#log	[]
+dx_one_after	{"ok":{"ma":"<ma9>","loai":"ck","maDA":"ZZ_purchasing_DA1","project":"ZZ_purchasing_ E2E","hangMuc":"3.2.6","supplier":"ZZ_purchasing_NCC A","soDong":1,"tongGoc":2000,"tongDeXuat":1800,"tienGiam":200,"vatPct":8,"vat":144,"total":1944,"status":"Đã duyệt","requester":"ZZ_purchasing_ Mai","phongBan":"Mua hàng","ghiChu":"xin thêm","nguoiDuyet":"sao mai","ngayDuyet":"<ts>","at":"<ts>","items":[{"ma":"A1","ten":"SP A1","thuongHieu":"X","phong":"P1","dvt":"Cái","sl":2,"donGiaGoc":1000,"pct":10,"donGia":900,"thanhTien":1800,"ngay":"","ghiChu":"","hinhAnh":"h"}]}}
+dx_one_after#audit	[]
+dx_one_after#notif	[]
+dx_one_after#admins	[]
+dx_one_after#hook	null
+dx_one_after#log	[]
+dx_rows_2	{"heads":[{"ma_de_xuat":"<ma9>","loai":"ck","ma_du_an":"ZZ_purchasing_DA1","ten_du_an":"ZZ_purchasing_ E2E","hang_muc":"3.2.6","nha_cung_cap":"ZZ_purchasing_NCC A","so_dong":1,"tong_goc":2000,"tong_de_xuat":1800,"tien_giam":200,"vat_pct":8,"vat":144,"tong_cong":1944,"trang_thai":"Đã duyệt","nguoi_gui":"ZZ_purchasing_ Mai","phong_ban":"Mua hàng","ghi_chu":"xin thêm","nguoi_duyet":"sao mai","ngay_duyet":"<ts>","requester_id":"<id1>","cong_ty_id":"<id2>","ngay_gui":"<ts>"},{"ma_de_xuat":"<ma10>","loai":"tt","ma_du_an":"ZZ_purchasing_DA1","ten_du_an":"ZZ_purchasing_ E2E","hang_muc":"","nha_cung_cap":"ZZ_purchasing_NCC A","so_dong":2,"tong_goc":2160,"tong_de_xuat":2160,"tien_giam":0,"vat_pct":8,"vat":0,"tong_cong":2160,"trang_thai":"Từ chối","nguoi_gui":"","phong_ban":"","ghi_chu":"","nguoi_duyet":"sao mai","ngay_duyet":"<ts>","requester_id":"<id1>","cong_ty_id":"<id2>","ngay_gui":"<ts>"},{"ma_de_xuat":"<ma11>","loai":"ck","ma_du_an":"ZZ_purchasing_DA1","ten_du_an":"ZZ_purchasing_ khác","hang_muc":"","nha_cung_cap":"ZZ_purchasing_NCC B","so_dong":2,"tong_goc":1800,"tong_de_xuat":802,"tien_giam":998,"vat_pct":8,"vat":64,"tong_cong":866,"trang_thai":"Đã duyệt","nguoi_gui":"","phong_ban":"","ghi_chu":"","nguoi_duyet":"sao mai","ngay_duyet":"<ts>","requester_id":null,"cong_ty_id":"<id2>","ngay_gui":"<ts>"},{"ma_de_xuat":"<ma12>","loai":"tt","ma_du_an":"ZZ_purchasing_DA2","ten_du_an":"ZZ_purchasing_ tối thiểu","hang_muc":"","nha_cung_cap":"","so_dong":2,"tong_goc":1003,"tong_de_xuat":1003,"tien_giam":0,"vat_pct":0,"vat":0,"tong_cong":1003,"trang_thai":"Từ chối","nguoi_gui":"","phong_ban":"","ghi_chu":"","nguoi_duyet":"sao mai","ngay_duyet":"<ts>","requester_id":"<id1>","cong_ty_id":"<id2>","ngay_gui":"<ts>"},{"ma_de_xuat":"<ma13>","loai":"ck","ma_du_an":"ZZ_purchasing_DA2","ten_du_an":"ZZ_purchasing_ rỗng","hang_muc":"","nha_cung_cap":"","so_dong":0,"tong_goc":0,"tong_de_xuat":0,"tien_giam":0,"vat_pct":0,"vat":0,"tong_cong":0,"trang_thai":"Chờ duyệt","nguoi_gui":"","phong_ban":"","ghi_chu":"","nguoi_duyet":null,"ngay_duyet":null,"requester_id":"<id1>","cong_ty_id":"<id2>","ngay_gui":"<ts>"},{"ma_de_xuat":"<ma15>","loai":"tt","ma_du_an":"ZZ_purchasing_DA3","ten_du_an":"ZZ_purchasing_ P3","hang_muc":"","nha_cung_cap":"ZZ_purchasing_NCC K","so_dong":1,"tong_goc":10,"tong_de_xuat":10,"tien_giam":0,"vat_pct":0,"vat":0,"tong_cong":10,"trang_thai":"Chờ duyệt","nguoi_gui":"ZZ_purchasing_ An","phong_ban":"","ghi_chu":"","nguoi_duyet":null,"ngay_duyet":null,"requester_id":"<id1>","cong_ty_id":"<id2>","ngay_gui":"<ts>"}],"ck":[{"ma_de_xuat":"<ma9>","sort_no":0,"ma_sp":"A1","ten_sp":"SP A1","thuong_hieu":"X","phong":"P1","dvt":"Cái","so_luong":2,"don_gia_goc":1000,"ty_le_pct":10,"don_gia":900,"thanh_tien":1800,"hinh_anh":"h","cong_ty_id":"<id2>"},{"ma_de_xuat":"<ma11>","sort_no":0,"ma_sp":"","ten_sp":"a","thuong_hieu":"","phong":"","dvt":"Cái","so_luong":1.5,"don_gia_goc":1000,"ty_le_pct":12.5,"don_gia":333.335,"thanh_tien":500,"hinh_anh":"","cong_ty_id":"<id2>"},{"ma_de_xuat":"<ma11>","sort_no":1,"ma_sp":"","ten_sp":"b","thuong_hieu":"","phong":"","dvt":"m2","so_luong":3,"don_gia_goc":100,"ty_le_pct":0,"don_gia":100.5,"thanh_tien":302,"hinh_anh":"","cong_ty_id":"<id2>"}],"tt":[{"ma_de_xuat":"<ma10>","sort_no":0,"ten_sp":"Đợt 1","ty_le_pct":30,"thanh_tien":648,"ngay_du_kien":"2026-12-01","ghi_chu":"cọc","cong_ty_id":"<id2>"},{"ma_de_xuat":"<ma10>","sort_no":1,"ten_sp":"Đợt 2","ty_le_pct":70,"thanh_tien":1512,"ngay_du_kien":null,"ghi_chu":"","cong_ty_id":"<id2>"},{"ma_de_xuat":"<ma12>","sort_no":0,"ten_sp":"Đợt 1","ty_le_pct":0,"thanh_tien":1000,"ngay_du_kien":null,"ghi_chu":"","cong_ty_id":"<id2>"},{"ma_de_xuat":"<ma12>","sort_no":1,"ten_sp":"Đợt 5","ty_le_pct":50,"thanh_tien":3,"ngay_du_kien":null,"ghi_chu":"","cong_ty_id":"<id2>"},{"ma_de_xuat":"<ma15>","sort_no":0,"ten_sp":"Đợt 1","ty_le_pct":0,"thanh_tien":10,"ngay_du_kien":null,"ghi_chu":"","cong_ty_id":"<id2>"}]}

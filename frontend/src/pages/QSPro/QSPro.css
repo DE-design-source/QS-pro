@@ -1,0 +1,148 @@
+/* Trang QS Pro — iframe phủ kín + nút nổi / menu của Dezon */
+.qsp-page{position:fixed; inset:0; background:#0F1218; z-index:1; font-family:var(--app-font, 'Montserrat'), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;}
+.qsp-frame{position:absolute; inset:0; width:100%; height:100%; border:none; background:#fff;}
+
+.qsp-loading{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; background:#0F1218; color:#E7E9EE; text-align:center; padding:24px;}
+.qsp-loading{background:radial-gradient(900px 500px at 50% 35%, color-mix(in srgb, var(--primary, #2F5DA8) 22%, #0F1218), #0F1218 70%);}
+.qsp-loading-logo{width:60px; height:60px; border-radius:18px; display:flex; align-items:center; justify-content:center; margin-bottom:6px;
+  background:linear-gradient(140deg, color-mix(in srgb, var(--primary, #2F5DA8) 72%, #fff), var(--primary, #2F5DA8));
+  box-shadow:0 14px 40px color-mix(in srgb, var(--primary, #2F5DA8) 45%, transparent); animation:qsp-float 2.2s ease-in-out infinite;}
+@keyframes qsp-float{50%{transform:translateY(-6px);}}
+.qsp-loading-bar{width:180px; height:4px; border-radius:99px; background:rgba(255,255,255,.10); overflow:hidden; margin:4px 0 6px;}
+.qsp-loading-bar span{display:block; width:40%; height:100%; border-radius:99px; background:linear-gradient(90deg, transparent, #fff, transparent); animation:qsp-slide-bar 1.3s ease-in-out infinite;}
+@keyframes qsp-slide-bar{from{transform:translateX(-110%);} to{transform:translateX(270%);}}
+.qsp-loading-title{font-size:17px; font-weight:700; letter-spacing:.01em;}
+.qsp-loading-sub{font-size:12.5px; color:#98A0B3; max-width:360px; line-height:1.5;}
+.qsp-spinner{width:30px; height:30px; border-radius:50%; border:3px solid #2B303C; border-top-color:var(--primary, #2F5DA8); animation:qsp-spin .8s linear infinite;}
+@keyframes qsp-spin{to{transform:rotate(360deg);}}
+
+/* ---------- Nút nổi ---------- */
+.qsp-dock{
+  position:fixed; left:18px; bottom:18px; z-index:10;
+  display:flex; align-items:center; padding:4px; border-radius:999px;
+  background:rgba(18,22,31,.82); border:1px solid rgba(255,255,255,.10);
+  -webkit-backdrop-filter:blur(14px) saturate(1.4); backdrop-filter:blur(14px) saturate(1.4);
+  box-shadow:0 8px 28px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.06);
+  color:#E7E9EE; user-select:none; transition:box-shadow .2s ease, background .2s ease;
+  animation:qsp-pop .35s cubic-bezier(.2,1.3,.4,1);
+}
+@keyframes qsp-pop{from{transform:scale(.6); opacity:0;}}
+.qsp-dock.right{flex-direction:row-reverse;}
+.qsp-dock:hover, .qsp-dock:focus-within{background:rgba(18,22,31,.94); box-shadow:0 12px 36px rgba(0,0,0,.48), inset 0 1px 0 rgba(255,255,255,.08);}
+
+.qsp-logo{
+  position:relative; width:38px; height:38px; border-radius:50%; flex:none; border:none; padding:0; cursor:pointer;
+  background:linear-gradient(140deg, color-mix(in srgb, var(--primary, #2F5DA8) 78%, #fff), var(--primary, #2F5DA8));
+  display:flex; align-items:center; justify-content:center; touch-action:none;
+  box-shadow:0 2px 8px rgba(0,0,0,.3), 0 0 0 0 color-mix(in srgb, var(--primary, #2F5DA8) 55%, transparent);
+  transition:transform .18s cubic-bezier(.2,1.3,.4,1), box-shadow .25s ease;
+}
+/* Quầng sáng quanh logo khi rê chuột vào nút */
+.qsp-dock:hover .qsp-logo, .qsp-dock:focus-within .qsp-logo{box-shadow:0 2px 8px rgba(0,0,0,.3), 0 0 0 4px color-mix(in srgb, var(--primary, #2F5DA8) 30%, transparent), 0 0 22px color-mix(in srgb, var(--primary, #2F5DA8) 60%, transparent);}
+.qsp-logo:active{transform:scale(.94);}
+/* Chấm trạng thái: xanh = QS Pro đã sẵn sàng, vàng nhấp nháy = đang tải */
+.qsp-status{position:absolute; right:-1px; bottom:-1px; width:11px; height:11px; border-radius:50%; background:#3DD68C; border:2px solid #12161F; box-sizing:border-box;}
+.qsp-status.busy{background:#F5B94A; animation:qsp-blink 1s ease-in-out infinite;}
+@keyframes qsp-blink{50%{opacity:.35;}}
+.qsp-logo:hover{transform:scale(1.06);}
+.qsp-dock.dragging .qsp-logo{cursor:grabbing; transform:scale(1.1);}
+.qsp-logo.small{width:30px; height:30px; cursor:default; box-shadow:none;}
+.qsp-logo.small:hover{transform:none;}
+/* Vòng xoay quanh logo khi QS Pro đang tải */
+@property --qsp-angle{syntax:'<angle>'; initial-value:0deg; inherits:false;}
+.qsp-ring{position:absolute; inset:-4px; border-radius:50%; pointer-events:none; opacity:.55; transition:opacity .25s ease;
+  background:conic-gradient(from var(--qsp-angle), transparent 0 35%, #7FD4FF 55%, #B68CFF 75%, #fff 88%, transparent 100%);
+  -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px)); mask:radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
+  animation:qsp-angle 4s linear infinite;}
+@keyframes qsp-angle{to{--qsp-angle:360deg;}}
+.qsp-dock:hover .qsp-ring, .qsp-dock:focus-within .qsp-ring{opacity:1;}
+.qsp-logo.loading .qsp-ring{opacity:1; animation-duration:.9s;}
+.qsp-logo.small .qsp-ring{display:none;}
+
+/* Phần bung ra khi rê chuột */
+.qsp-dock-more{display:flex; align-items:center; gap:2px; max-width:0; opacity:0; white-space:nowrap; clip-path:inset(0 100% 0 0); transition:max-width .32s cubic-bezier(.2,.9,.25,1), opacity .2s ease, padding .32s ease, clip-path .32s cubic-bezier(.2,.9,.25,1);}
+.qsp-dock:hover .qsp-dock-more, .qsp-dock:focus-within .qsp-dock-more{max-width:320px; opacity:1; padding:0 6px 0 10px; clip-path:inset(-60px -20px -60px -20px);}
+.qsp-dock.right:hover .qsp-dock-more, .qsp-dock.right:focus-within .qsp-dock-more{padding:0 10px 0 6px; clip-path:inset(-60px -20px -60px -20px);}
+.qsp-dock.right .qsp-dock-more{clip-path:inset(0 0 0 100%);}
+.qsp-dock.dragging .qsp-dock-more{max-width:0 !important; opacity:0 !important; padding:0 !important; clip-path:inset(0 100% 0 0) !important;}
+
+.qsp-app{display:flex; align-items:center; gap:9px; color:#fff; padding:0 6px 0 2px;}
+.qsp-app svg{color:#98A0B3;}
+.qsp-app-text{display:flex; flex-direction:column; line-height:1.2; min-width:0;}
+.qsp-app-text strong{font-size:13px; font-weight:700; color:#fff;}
+.qsp-app-text small{font-size:10.5px; color:#8E96A8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.qsp-sep{width:1px; height:20px; background:rgba(255,255,255,.14); flex:none; margin:0 4px;}
+.qsp-icon-btn{width:32px; height:32px; border-radius:50%; border:none; background:none; color:#B9C0CF; display:flex; align-items:center; justify-content:center; cursor:pointer; flex:none; text-decoration:none; transition:background .13s ease, color .13s ease;}
+.qsp-icon-btn:hover{background:rgba(255,255,255,.12); color:#fff; transform:translateY(-1px);}
+.qsp-icon-btn:active{transform:scale(.92);}
+.qsp-icon-btn.close:hover{background:rgba(224,104,90,.22); color:#FF8E80;}
+
+/* ---------- Menu Dezon ---------- */
+.qsp-backdrop{position:fixed; inset:0; z-index:20; background:rgba(8,10,16,.5); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); animation:qsp-fade .18s ease;}
+.qsp-menu{
+  position:fixed; top:10px; left:10px; bottom:10px; width:252px; z-index:21; box-sizing:border-box;
+  background:linear-gradient(180deg, color-mix(in srgb, var(--primary, #2F5DA8) 16%, #12161F) 0, #12161F 180px);
+  border:1px solid rgba(255,255,255,.08); border-radius:20px;
+  color:#AEB4C2; display:flex; flex-direction:column; padding:18px 12px 14px;
+  box-shadow:0 24px 70px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+  animation:qsp-slide .28s cubic-bezier(.2,.9,.25,1);
+}
+@keyframes qsp-fade{from{opacity:0;}}
+@keyframes qsp-slide{from{transform:translateX(-24px) scale(.98); opacity:0;}}
+.qsp-menu-head{display:flex; align-items:center; gap:10px; padding:0 4px 14px;}
+.qsp-menu-current{display:flex; align-items:center; gap:10px; padding:10px 12px; margin-bottom:14px; border-radius:13px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.07); flex:none;}
+.qsp-menu-current-icon{width:32px; height:32px; border-radius:10px; flex:none; display:flex; align-items:center; justify-content:center; color:#fff; background:linear-gradient(140deg, color-mix(in srgb, var(--primary, #2F5DA8) 72%, #fff), var(--primary, #2F5DA8));}
+.qsp-menu-label{font-size:10.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:#6C7488; padding:0 8px 8px; flex:none;}
+.qsp-menu-brand{flex:1; font-weight:700; font-size:17px; color:#fff;}
+.qsp-menu-nav{flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:2px;}
+.qsp-menu-divider{height:1px; background:#262B37; margin:10px 0 6px; flex:none;}
+.qsp-nav-item{display:flex; align-items:center; gap:11px; padding:9px 10px 9px 13px; border-radius:9px; color:#AEB4C2; text-decoration:none; font-size:13px; border-left:3px solid transparent; transition:background .13s, color .13s, transform .13s; flex:none; animation:qsp-item .3s cubic-bezier(.2,.9,.25,1) backwards;}
+@keyframes qsp-item{from{opacity:0; transform:translateX(-10px);}}
+.qsp-nav-item:hover{background:rgba(255,255,255,.06); color:#fff; transform:translateX(2px);}
+.qsp-nav-item.active{background:color-mix(in srgb, var(--primary, #2F5DA8) 38%, transparent); color:#fff; font-weight:600; border-left-color:var(--primary, #2F5DA8);}
+.qsp-nav-label{flex:1;}
+.qsp-nav-badge{background:var(--danger, #ff4d4f); color:#fff; font-size:10px; font-weight:700; padding:1px 6px; border-radius:20px;}
+.qsp-menu-user{display:flex; align-items:center; gap:10px; padding:10px 6px 0; margin-top:8px; border-top:1px solid #262B37; flex:none;}
+.qsp-menu-avatar{width:32px; height:32px; border-radius:50%; background:#2A3040; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:12.5px; flex:none;}
+.qsp-menu-name{color:#fff; font-weight:600; font-size:13px;}
+.qsp-menu-role{color:#7C8399; font-size:11.5px;}
+
+/* Người dùng tắt hiệu ứng chuyển động trong hệ điều hành */
+@media (prefers-reduced-motion: reduce){
+  .qsp-dock, .qsp-menu, .qsp-nav-item, .qsp-backdrop, .qsp-loading-logo{animation:none !important;}
+}
+
+/* ---------- Chú thích nổi của nút (thay cho tooltip mặc định) ---------- */
+.qsp-dock [data-tip]{position:relative;}
+.qsp-dock [data-tip]::before{
+  content:attr(data-tip); position:absolute; left:50%; bottom:calc(100% + 12px); transform:translate(-50%, 4px);
+  padding:5px 9px; border-radius:8px; background:#0B0E14; color:#fff; border:1px solid rgba(255,255,255,.12);
+  font-size:11px; font-weight:600; white-space:nowrap; pointer-events:none; opacity:0;
+  box-shadow:0 6px 18px rgba(0,0,0,.4); transition:opacity .15s ease .25s, transform .15s ease .25s; z-index:2;
+}
+.qsp-dock [data-tip]:hover::before, .qsp-dock [data-tip]:focus-visible::before{opacity:1; transform:translate(-50%, 0);}
+.qsp-dock.dragging [data-tip]::before{display:none;}
+/* Logo nằm sát mép trái: canh chú thích theo mép trái để không tràn ra ngoài */
+.qsp-dock:not(.right) .qsp-logo[data-tip]::before{left:0; transform:translate(0, 4px);}
+.qsp-dock:not(.right) .qsp-logo[data-tip]:hover::before{transform:translate(0, 0);}
+.qsp-dock.right .qsp-logo[data-tip]::before{left:auto; right:0; transform:translate(0, 4px);}
+.qsp-dock.right .qsp-logo[data-tip]:hover::before{transform:translate(0, 0);}
+
+/* ---------- Menu: quầng sáng, ô tìm trang, phím tắt ---------- */
+.qsp-menu{overflow:hidden;}
+.qsp-menu::before{content:''; position:absolute; top:-90px; left:-60px; width:300px; height:240px; border-radius:50%; pointer-events:none;
+  background:radial-gradient(closest-side, color-mix(in srgb, var(--primary, #2F5DA8) 55%, transparent), transparent); filter:blur(30px); opacity:.55; animation:qsp-aurora 9s ease-in-out infinite alternate;}
+@keyframes qsp-aurora{to{transform:translate(70px, 30px) scale(1.15);}}
+.qsp-menu > *{position:relative;}
+.qsp-icon-btn.sm{width:28px; height:28px;}
+.qsp-search{display:flex; align-items:center; gap:8px; padding:0 10px; height:38px; margin-bottom:10px; border-radius:11px; background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.09); color:#8E96A8; flex:none; transition:border-color .15s ease, box-shadow .15s ease;}
+.qsp-search:focus-within{border-color:color-mix(in srgb, var(--primary, #2F5DA8) 70%, #fff); box-shadow:0 0 0 3px color-mix(in srgb, var(--primary, #2F5DA8) 28%, transparent);}
+.qsp-search input{flex:1; min-width:0; border:none; outline:none; background:none; color:#fff; font-size:13px; font-family:inherit;}
+.qsp-search input::placeholder{color:#6C7488;}
+.qsp-kbd{font-family:inherit; font-size:10px; font-weight:700; color:#98A0B3; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.10); border-radius:5px; padding:1px 5px; flex:none; line-height:1.5;}
+.qsp-nav-item.hl{background:rgba(255,255,255,.08); color:#fff;}
+.qsp-nav-item.active.hl{background:color-mix(in srgb, var(--primary, #2F5DA8) 48%, transparent);}
+.qsp-empty{padding:22px 10px; text-align:center; font-size:12.5px; color:#6C7488;}
+.qsp-menu-hint{display:flex; align-items:center; gap:6px; padding:8px 6px 0; font-size:10.5px; color:#6C7488; flex:none;}
+.qsp-menu-hint span{flex:1;}
+@media (prefers-reduced-motion: reduce){ .qsp-ring, .qsp-menu::before{animation:none !important;} }

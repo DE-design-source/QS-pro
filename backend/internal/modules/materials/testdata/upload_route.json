@@ -1,0 +1,848 @@
+[
+ {
+  "name": "json chỉ có BOM",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/json"
+  },
+  "login": true,
+  "bodyHex": "efbbbf",
+  "status": 400,
+  "body": "{\"error\":\"File rỗng.\"}",
+  "up": null
+ },
+ {
+  "name": "json BOM + object",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/json"
+  },
+  "login": true,
+  "bodyHex": "efbbbf7b226c656e677468223a327d",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\"a.pdf\"}",
+  "up": {
+   "hex": "5b6f626a656374204f626a6563745d",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/json"
+  }
+ },
+ {
+  "name": "pdf chỉ có BOM",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "efbbbf",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\"a.pdf\"}",
+  "up": {
+   "hex": "efbbbf",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "json mảng",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/json"
+  },
+  "login": true,
+  "bodyHex": "5b312c325d",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\"a.pdf\"}",
+  "up": {
+   "hex": "312c32",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/json"
+  }
+ },
+ {
+  "name": "json mảng rỗng",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/json"
+  },
+  "login": true,
+  "bodyHex": "5b5d",
+  "status": 400,
+  "body": "{\"error\":\"File rỗng.\"}",
+  "up": null
+ },
+ {
+  "name": "json mảng lồng",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/json"
+  },
+  "login": true,
+  "bodyHex": "5b6e756c6c2c7b2261223a317d2c5b322c335d2c2278222c747275655d",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\"a.pdf\"}",
+  "up": {
+   "hex": "2c5b6f626a656374204f626a6563745d2c322c332c782c74727565",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/json"
+  }
+ },
+ {
+  "name": "json object",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/json"
+  },
+  "login": true,
+  "bodyHex": "7b2261223a317d",
+  "status": 400,
+  "body": "{\"error\":\"File rỗng.\"}",
+  "up": null
+ },
+ {
+  "name": "json length số",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/json"
+  },
+  "login": true,
+  "bodyHex": "7b226c656e677468223a337d",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\"a.pdf\"}",
+  "up": {
+   "hex": "5b6f626a656374204f626a6563745d",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/json"
+  }
+ },
+ {
+  "name": "json length 0",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/json"
+  },
+  "login": true,
+  "bodyHex": "7b226c656e677468223a307d",
+  "status": 400,
+  "body": "{\"error\":\"File rỗng.\"}",
+  "up": null
+ },
+ {
+  "name": "json length chuỗi",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/json"
+  },
+  "login": true,
+  "bodyHex": "7b226c656e677468223a22616263227d",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\"a.pdf\"}",
+  "up": {
+   "hex": "5b6f626a656374204f626a6563745d",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/json"
+  }
+ },
+ {
+  "name": "json length null",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/json"
+  },
+  "login": true,
+  "bodyHex": "7b226c656e677468223a6e756c6c7d",
+  "status": 400,
+  "body": "{\"error\":\"File rỗng.\"}",
+  "up": null
+ },
+ {
+  "name": "json length quá lớn",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/json"
+  },
+  "login": true,
+  "bodyHex": "7b226c656e677468223a36303030303030307d",
+  "status": 400,
+  "body": "{\"error\":\"File 57.2MB quá lớn (tối đa 50MB) — hãy dán link thay vì tải lên.\"}",
+  "up": null
+ },
+ {
+  "name": "json length chuỗi số lớn",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/json"
+  },
+  "login": true,
+  "bodyHex": "7b226c656e677468223a223630303030303030227d",
+  "status": 400,
+  "body": "{\"error\":\"File 57.2MB quá lớn (tối đa 50MB) — hãy dán link thay vì tải lên.\"}",
+  "up": null
+ },
+ {
+  "name": "json length true",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/json"
+  },
+  "login": true,
+  "bodyHex": "7b226c656e677468223a747275657d",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\"a.pdf\"}",
+  "up": {
+   "hex": "5b6f626a656374204f626a6563745d",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/json"
+  }
+ },
+ {
+  "name": "json length mảng",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/json"
+  },
+  "login": true,
+  "bodyHex": "7b226c656e677468223a5b315d7d",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\"a.pdf\"}",
+  "up": {
+   "hex": "5b6f626a656374204f626a6563745d",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/json"
+  }
+ },
+ {
+  "name": "json length object",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/json"
+  },
+  "login": true,
+  "bodyHex": "7b226c656e677468223a7b7d7d",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\"a.pdf\"}",
+  "up": {
+   "hex": "5b6f626a656374204f626a6563745d",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/json"
+  }
+ },
+ {
+  "name": "json length âm",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/json"
+  },
+  "login": true,
+  "bodyHex": "7b226c656e677468223a2d317d",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\"a.pdf\"}",
+  "up": {
+   "hex": "5b6f626a656374204f626a6563745d",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/json"
+  }
+ },
+ {
+  "name": "json mảng, đuôi lạ",
+  "query": "?name=a.exe",
+  "headers": {
+   "Content-Type": "application/json"
+  },
+  "login": true,
+  "bodyHex": "5b315d",
+  "status": 400,
+  "body": "{\"error\":\"Định dạng .exe chưa hỗ trợ (PDF, ảnh, DWG/DXF, SKP, ZIP/RAR, Word, Excel).\"}",
+  "up": null
+ },
+ {
+  "name": "json mảng, chưa đăng nhập",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/json"
+  },
+  "login": false,
+  "bodyHex": "5b315d",
+  "status": 401,
+  "body": "{\"error\":\"Chưa đăng nhập\"}",
+  "up": null
+ },
+ {
+  "name": "query ?name=100%.pdf",
+  "query": "?name=100%.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-100.pdf\",\"name\":\"100%.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-100.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ?name=a;b.pdf",
+  "query": "?name=a;b.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a-b.pdf\",\"name\":\"a;b.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a-b.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ?name[]=a.pdf",
+  "query": "?name[]=a.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\"a.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ?name=a.pdf&name=b.pdf",
+  "query": "?name=a.pdf&name=b.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a-pdf-b.pdf\",\"name\":\"a.pdf,b.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a-pdf-b.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ?name[1]=b.pdf&name[0]=a",
+  "query": "?name[1]=b.pdf&name[0]=a",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a-b.pdf\",\"name\":\"a,b.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a-b.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ?name[x]=a.pdf",
+  "query": "?name[x]=a.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 400,
+  "body": "{\"error\":\"Định dạng .[object object] chưa hỗ trợ (PDF, ảnh, DWG/DXF, SKP, ZIP/RAR, Word, Excel).\"}",
+  "up": null
+ },
+ {
+  "name": "query ?name=a+b.pdf",
+  "query": "?name=a+b.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a-b.pdf\",\"name\":\"a b.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a-b.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ?name=%E0%A4%A.pdf",
+  "query": "?name=%E0%A4%A.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-E0-A4-A.pdf\",\"name\":\"%E0%A4%A.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-E0-A4-A.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ?name=a%2Bb.pdf",
+  "query": "?name=a%2Bb.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a-b.pdf\",\"name\":\"a+b.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a-b.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ?name",
+  "query": "?name",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 400,
+  "body": "{\"error\":\"Định dạng .tai-lieu chưa hỗ trợ (PDF, ảnh, DWG/DXF, SKP, ZIP/RAR, Word, Excel).\"}",
+  "up": null
+ },
+ {
+  "name": "query ?name[]=a&name=b.pdf",
+  "query": "?name[]=a&name=b.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a-b.pdf\",\"name\":\"a,b.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a-b.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ?name=a&name[]=b.pdf",
+  "query": "?name=a&name[]=b.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a-b.pdf\",\"name\":\"a,b.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a-b.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ?name%5B%5D=c.pdf",
+  "query": "?name%5B%5D=c.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-c.pdf\",\"name\":\"c.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-c.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ?name[21]=a.pdf",
+  "query": "?name[21]=a.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\"a.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ?name[0]=a&name[0]=b.pdf",
+  "query": "?name[0]=a&name[0]=b.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a-b.pdf\",\"name\":\"a,b.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a-b.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ?name[]=",
+  "query": "?name[]=",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 400,
+  "body": "{\"error\":\"Định dạng .tai-lieu chưa hỗ trợ (PDF, ảnh, DWG/DXF, SKP, ZIP/RAR, Word, Excel).\"}",
+  "up": null
+ },
+ {
+  "name": "query ?x=1&name=a.zip",
+  "query": "?x=1&name=a.zip",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.zip\",\"name\":\"a.zip\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a.zip",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ?name=&name[]=a.pdf",
+  "query": "?name=&name[]=a.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\",a.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ?name[]=a&name=",
+  "query": "?name[]=a&name=",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 400,
+  "body": "{\"error\":\"Định dạng .a chưa hỗ trợ (PDF, ảnh, DWG/DXF, SKP, ZIP/RAR, Word, Excel).\"}",
+  "up": null
+ },
+ {
+  "name": "query ?name[]=a&name=b&name=c.pdf",
+  "query": "?name[]=a&name=b&name=c.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a-b-c.pdf\",\"name\":\"a,b,c.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a-b-c.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ?name[2]=c.pdf&name[]=a&name[1]=b",
+  "query": "?name[2]=c.pdf&name[]=a&name[1]=b",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a-b-c.pdf\",\"name\":\"a,b,c.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a-b-c.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ?name[=a.pdf",
+  "query": "?name[=a.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 400,
+  "body": "{\"error\":\"Định dạng .[object object] chưa hỗ trợ (PDF, ảnh, DWG/DXF, SKP, ZIP/RAR, Word, Excel).\"}",
+  "up": null
+ },
+ {
+  "name": "query ?name[01]=a.pdf",
+  "query": "?name[01]=a.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 400,
+  "body": "{\"error\":\"Định dạng .[object object] chưa hỗ trợ (PDF, ảnh, DWG/DXF, SKP, ZIP/RAR, Word, Excel).\"}",
+  "up": null
+ },
+ {
+  "name": "query ?name=a.pdf;x=1",
+  "query": "?name=a.pdf;x=1",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 400,
+  "body": "{\"error\":\"Định dạng .pdf;x=1 chưa hỗ trợ (PDF, ảnh, DWG/DXF, SKP, ZIP/RAR, Word, Excel).\"}",
+  "up": null
+ },
+ {
+  "name": "query ?name=%zz+a.pdf",
+  "query": "?name=%zz+a.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-zz-a.pdf\",\"name\":\"%zz a.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-zz-a.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ?Name=a.pdf",
+  "query": "?Name=a.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 400,
+  "body": "{\"error\":\"Định dạng .tai-lieu chưa hỗ trợ (PDF, ảnh, DWG/DXF, SKP, ZIP/RAR, Word, Excel).\"}",
+  "up": null
+ },
+ {
+  "name": "query ?name[]x=a.pdf",
+  "query": "?name[]x=a.pdf",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\"a.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ?a=1&&name=a.pdf&",
+  "query": "?a=1&&name=a.pdf&",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\"a.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "query ",
+  "query": "",
+  "headers": {
+   "Content-Type": "application/pdf"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 400,
+  "body": "{\"error\":\"Định dạng .tai-lieu chưa hỗ trợ (PDF, ảnh, DWG/DXF, SKP, ZIP/RAR, Word, Excel).\"}",
+  "up": null
+ },
+ {
+  "name": "gzip",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/pdf",
+   "Content-Encoding": "gzip"
+  },
+  "login": true,
+  "bodyHex": "1f8b080000000000000a530d7071d335d4330100a2ba59e908000000",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\"a.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "GZIP viết hoa",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/pdf",
+   "Content-Encoding": "GZIP"
+  },
+  "login": true,
+  "bodyHex": "1f8b080000000000000a530d7071d335d4330100a2ba59e908000000",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\"a.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "deflate",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/pdf",
+   "Content-Encoding": "deflate"
+  },
+  "login": true,
+  "bodyHex": "789c530d7071d335d4330100082d01c0",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\"a.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "identity",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/pdf",
+   "Content-Encoding": "identity"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\"a.pdf\"}",
+  "up": {
+   "hex": "255044462d312e34",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/pdf"
+  }
+ },
+ {
+  "name": "gzip hỏng",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/pdf",
+   "Content-Encoding": "gzip"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 400,
+  "body": null,
+  "up": null
+ },
+ {
+  "name": "gzip hỏng, chưa đăng nhập",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/pdf",
+   "Content-Encoding": "gzip"
+  },
+  "login": false,
+  "bodyHex": "255044462d312e34",
+  "status": 400,
+  "body": null,
+  "up": null
+ },
+ {
+  "name": "mã hoá lạ",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/pdf",
+   "Content-Encoding": "br"
+  },
+  "login": true,
+  "bodyHex": "255044462d312e34",
+  "status": 415,
+  "body": null,
+  "up": null
+ },
+ {
+  "name": "gzip rỗng",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/pdf",
+   "Content-Encoding": "gzip"
+  },
+  "login": true,
+  "bodyHex": "1f8b080000000000000a03000000000000000000",
+  "status": 400,
+  "body": "{\"error\":\"File rỗng.\"}",
+  "up": null
+ },
+ {
+  "name": "gzip + json",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/json",
+   "Content-Encoding": "gzip"
+  },
+  "login": true,
+  "bodyHex": "1f8b080000000000000a8b36d7b1880500e9e70fd705000000",
+  "status": 200,
+  "body": "{\"url\":\"URL:docs/<ms>-a.pdf\",\"name\":\"a.pdf\"}",
+  "up": {
+   "hex": "372c38",
+   "path": "docs/<ms>-a.pdf",
+   "ct": "application/json"
+  }
+ },
+ {
+  "name": "gzip + json chỉ BOM",
+  "query": "?name=a.pdf",
+  "headers": {
+   "Content-Type": "application/json",
+   "Content-Encoding": "gzip"
+  },
+  "login": true,
+  "bodyHex": "1f8b080000000000000a7bbf7b3f00e197100103000000",
+  "status": 400,
+  "body": "{\"error\":\"File rỗng.\"}",
+  "up": null
+ }
+]

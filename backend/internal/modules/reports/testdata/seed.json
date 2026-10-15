@@ -1,0 +1,198 @@
+{
+ "now": "2031-03-12T01:30:00.000Z",
+ "tuVN": "2031-03-01T08:00:00.000Z",
+ "fetch": [
+  {
+   "json": {
+    "code": 0,
+    "msg": "success"
+   }
+  },
+  {
+   "json": {
+    "code": 9499,
+    "msg": "Bad Request"
+   }
+  }
+ ],
+ "pickCompany": "select id::text as id, name as ten, code as ma from companies where code !~* '^zz' order by code limit 1",
+ "pickUsers": "select username, full_name as ho_ten, department as phong_ban from users where coalesce(department,'') <> '' and username !~* '^zz' order by username limit 2",
+ "sweep": [
+  "delete from products where product_code like 'ZZ_reports_%'",
+  "delete from audit_logs where action = 'bao_cao_nhap_sp' and detail like 'ZZ_reports_%'",
+  "delete from audit_logs where action = 'bao_cao_nhap_sp' and (created_at >= '2031-01-01' or detail like '%kỳ 01/03 → 12/03')"
+ ],
+ "products": [
+  {
+   "ma_sp": "ZZ_reports_01",
+   "ten_sp": "ZZ_reports_ SP 1",
+   "nha_cung_cap": "ZZ_reports_NCC A",
+   "nguoi_tao": "$U0",
+   "ngay_tao": "2031-03-12T01:00:00.000Z",
+   "cong_ty_id": "$CT",
+   "nganh": "vs",
+   "hang_muc": null
+  },
+  {
+   "ma_sp": "ZZ_reports_02",
+   "ten_sp": "ZZ_reports_ SP 2",
+   "nha_cung_cap": "ZZ_reports_NCC B",
+   "nguoi_tao": "$U0",
+   "ngay_tao": "2031-03-11T16:59:59.999Z",
+   "cong_ty_id": "$CT",
+   "nganh": "",
+   "hang_muc": "Sơn nội thất"
+  },
+  {
+   "ma_sp": "ZZ_reports_03",
+   "ten_sp": "ZZ_reports_ SP 3",
+   "nha_cung_cap": " ZZ_reports_NCC A ",
+   "nguoi_tao": "$U0",
+   "ngay_tao": "2031-03-11T17:00:00.000Z",
+   "cong_ty_id": "$CT",
+   "nganh": null,
+   "hang_muc": "Bồn cầu"
+  },
+  {
+   "ma_sp": "ZZ_reports_04",
+   "ten_sp": "ZZ_reports_ SP 4",
+   "nha_cung_cap": "",
+   "nguoi_tao": "$U1",
+   "ngay_tao": "2031-03-09T03:00:00.500Z",
+   "cong_ty_id": "$CT",
+   "nganh": "den",
+   "hang_muc": null
+  },
+  {
+   "ma_sp": "ZZ_reports_05",
+   "ten_sp": "ZZ_reports_ SP 5",
+   "nha_cung_cap": null,
+   "nguoi_tao": "$U1",
+   "ngay_tao": "2031-03-08T01:00:00.000Z",
+   "cong_ty_id": "$CT",
+   "nganh": "ct",
+   "hang_muc": null
+  },
+  {
+   "ma_sp": "ZZ_reports_06",
+   "ten_sp": "ZZ_reports_ SP 6",
+   "nha_cung_cap": "7",
+   "nguoi_tao": "$U1",
+   "ngay_tao": "2031-03-08T00:59:59.999Z",
+   "cong_ty_id": "$CT",
+   "nganh": null,
+   "hang_muc": null
+  },
+  {
+   "ma_sp": "ZZ_reports_07",
+   "ten_sp": "ZZ_reports_ SP 7",
+   "nha_cung_cap": "ZZ_reports_NCC C",
+   "nguoi_tao": "ZZ_reports_ai",
+   "ngay_tao": "2031-03-05T10:00:00.000Z",
+   "cong_ty_id": "$CT",
+   "nganh": "son",
+   "hang_muc": null
+  },
+  {
+   "ma_sp": "ZZ_reports_08",
+   "ten_sp": "ZZ_reports_ SP 8",
+   "nha_cung_cap": "12",
+   "nguoi_tao": "10",
+   "ngay_tao": "2031-03-10T10:00:00.000Z",
+   "cong_ty_id": "$CT",
+   "nganh": null,
+   "hang_muc": null
+  },
+  {
+   "ma_sp": "ZZ_reports_09",
+   "ten_sp": "ZZ_reports_ SP 9",
+   "nha_cung_cap": "3",
+   "nguoi_tao": "2",
+   "ngay_tao": "2031-03-10T10:00:00.000Z",
+   "cong_ty_id": "$CT",
+   "nganh": null,
+   "hang_muc": null
+  },
+  {
+   "ma_sp": "ZZ_reports_10",
+   "ten_sp": "ZZ_reports_ SP 10",
+   "nha_cung_cap": "ZZ_reports_NCC K",
+   "nguoi_tao": "",
+   "ngay_tao": "2031-03-10T10:00:00.000Z",
+   "cong_ty_id": "$CT",
+   "nganh": null,
+   "hang_muc": null
+  },
+  {
+   "ma_sp": "ZZ_reports_11",
+   "ten_sp": "ZZ_reports_ SP 11",
+   "nha_cung_cap": "ZZ_reports_NCC K",
+   "nguoi_tao": null,
+   "ngay_tao": "2031-03-10T10:00:00.000Z",
+   "cong_ty_id": null,
+   "nganh": null,
+   "hang_muc": null
+  },
+  {
+   "ma_sp": "ZZ_reports_12",
+   "ten_sp": "ZZ_reports_ SP 12",
+   "nha_cung_cap": "ZZ_reports_NCC F",
+   "nguoi_tao": "ZZ_reports_tudo",
+   "ngay_tao": "2031-03-10T10:00:00.000Z",
+   "cong_ty_id": null,
+   "nganh": "vs",
+   "hang_muc": null
+  },
+  {
+   "ma_sp": "ZZ_reports_13",
+   "ten_sp": "ZZ_reports_ SP 13",
+   "nha_cung_cap": "ZZ_reports_NCC G",
+   "nguoi_tao": "ZZ_reports_tudo",
+   "ngay_tao": "2031-03-02T10:00:00.000Z",
+   "cong_ty_id": null,
+   "nganh": null,
+   "hang_muc": null
+  },
+  {
+   "ma_sp": "ZZ_reports_14",
+   "ten_sp": "ZZ_reports_ SP 14",
+   "nha_cung_cap": "ZZ_reports_NCC G",
+   "nguoi_tao": "$U0",
+   "ngay_tao": "2031-03-01T00:59:59.999Z",
+   "cong_ty_id": null,
+   "nganh": null,
+   "hang_muc": null
+  },
+  {
+   "ma_sp": "ZZ_reports_15",
+   "ten_sp": "ZZ_reports_ SP 15",
+   "nha_cung_cap": "ZZ_reports_NCC G",
+   "nguoi_tao": "$U0",
+   "ngay_tao": "2031-03-01T01:00:00.000Z",
+   "cong_ty_id": null,
+   "nganh": null,
+   "hang_muc": null
+  }
+ ],
+ "audits": [
+  {
+   "note": "dau ngay VN",
+   "at": "2031-03-11T17:00:00.000Z",
+   "checks": [
+    "2031-03-11T16:59:59.999Z",
+    "2031-03-11T17:00:00.000Z",
+    "2031-03-12T16:59:59.999Z",
+    "2031-03-12T17:00:00.000Z"
+   ]
+  },
+  {
+   "note": "cuoi ngay VN",
+   "at": "2031-03-12T16:59:59.999999Z",
+   "checks": [
+    "2031-03-12T01:00:00.000Z",
+    "2031-03-12T17:00:00.000Z",
+    "2031-03-11T16:59:59.999Z"
+   ]
+  }
+ ]
+}

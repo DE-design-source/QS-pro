@@ -1,0 +1,113 @@
+{
+ "contexts": {
+  "ct": {"uid": "68cb6934-c871-4681-8cfe-def02ba28b0c", "role": "super", "congTyId": "90c41ced-2477-4342-97da-e226344354f1", "viewAs": null},
+  "other": {"uid": "6b3c2504-3761-485d-b9ec-7224eedd186f", "role": "admin", "congTyId": "58e4937e-eb52-4feb-8a51-456d13857306", "viewAs": null},
+  "none": {"uid": "68cb6934-c871-4681-8cfe-def02ba28b0c", "role": "super", "congTyId": null, "viewAs": null}
+ },
+ "actor": {"uid": "68cb6934-c871-4681-8cfe-def02ba28b0c", "u": "ZZ_projects_u", "r": "super", "ct": "90c41ced-2477-4342-97da-e226344354f1"},
+ "steps": [
+  {"op": "remove", "ctx": "none", "table": "du_an", "filter": "ma_da=eq.ZZ_projects_A"},
+
+  {"op": "call", "ctx": "ct", "fn": "createProject", "args": [{"maDA": "ZZ_projects_A", "ten": "ZZ_projects_ Alpha", "khachHang": "Khách", "diaChi": "", "sdt": null, "vat": 8, "tienDo": "25", "ghiChu": "ghi chú", "quyMo": "120m2", "linkDezon": "https://dezon.vn/a", "tenBanNhap": "Bản 1"}]},
+  {"op": "call", "ctx": "ct", "fn": "createProject", "args": [{"maDA": "ZZ_projects_A", "ten": "ZZ_projects_ trùng"}]},
+  {"op": "call", "ctx": "ct", "fn": "createProject", "args": [{"maDA": "ZZ_projects_B", "ten": "ZZ_projects_ Bad", "vat": 500}]},
+  {"op": "call", "ctx": "ct", "fn": "createProject", "args": [{"maDA": "ZZ_projects_C", "ten": "ZZ_projects_ C", "trangThai": "Lạ"}]},
+  {"op": "call", "ctx": "ct", "fn": "createProject", "args": [{"maDA": "ZZ_projects_D", "ten": "ZZ_projects_ D", "vat": "8,5"}]},
+  {"op": "call", "ctx": "ct", "fn": "createProject", "args": [{"ten": "ZZ_projects_ Gen", "sdt": 912345678}], "save": {"name": "gen", "key": "maDA"}},
+  {"op": "rows", "ctx": "ct", "table": "du_an", "filter": "ma_da=eq.{{gen}}"},
+
+  {"op": "call", "ctx": "ct", "fn": "getProject", "args": ["ZZ_projects_A"]},
+  {"op": "call", "ctx": "other", "fn": "getProject", "args": ["ZZ_projects_A"]},
+  {"op": "call", "ctx": "none", "fn": "getProject", "args": ["ZZ_projects_A"]},
+  {"op": "call", "ctx": "ct", "fn": "getProject", "args": []},
+
+  {"op": "call", "ctx": "ct", "fn": "updateProject", "args": ["ZZ_projects_A", {"ten": "ZZ_projects_ Alpha 2", "vat": "10", "tienDo": 50, "la": 1, "ghiChu": null, "trangThai": "Đang thực hiện"}]},
+  {"op": "call", "ctx": "ct", "fn": "updateProject", "args": ["ZZ_projects_A", {}]},
+  {"op": "call", "ctx": "ct", "fn": "updateProject", "args": ["ZZ_projects_A"]},
+  {"op": "call", "ctx": "ct", "fn": "updateProject", "args": ["ZZ_projects_A", {"vat": "abc"}]},
+  {"op": "call", "ctx": "ct", "fn": "updateProject", "args": ["ZZ_projects_A", {"tienDo": 101}]},
+  {"op": "call", "ctx": "other", "fn": "updateProject", "args": ["ZZ_projects_A", {"ten": "ZZ_projects_ hack"}]},
+  {"op": "call", "ctx": "ct", "fn": "updateProject", "args": ["ZZ_projects_none", {"ten": "x"}]},
+  {"op": "call", "ctx": "ct", "fn": "getProjects", "args": [], "only": "ZZ_projects_"},
+  {"op": "call", "ctx": "other", "fn": "getProjects", "args": [], "only": "ZZ_projects_"},
+
+  {"op": "call", "ctx": "ct", "fn": "setProjData", "args": ["ZZ_projects_A", "phanTho", {"rows": [1, 2, {"z": 1, "a": null}], "b": {"z": 1, "a": 2}, "s": "chữ có dấu"}]},
+  {"op": "call", "ctx": "ct", "fn": "setProjData", "args": [" ZZ_projects_A ", " area ", 12.5]},
+  {"op": "call", "ctx": "ct", "fn": "setProjData", "args": ["ZZ_projects_A", "bgHist", [{"v": 1}, "x"]]},
+  {"op": "call", "ctx": "ct", "fn": "setProjData", "args": ["ZZ_projects_A", "ptVat"]},
+  {"op": "call", "ctx": "ct", "fn": "setProjData", "args": ["ZZ_projects_A", "cpCfg", null]},
+  {"op": "call", "ctx": "ct", "fn": "setProjData", "args": ["ZZ_projects_A", "area", "chuỗi"]},
+  {"op": "call", "ctx": "ct", "fn": "setProjData", "args": ["ZZ_projects_A", "mhPay", false]},
+  {"op": "call", "ctx": "ct", "fn": "setProjData", "args": ["ZZ_projects_A", "hack", 1]},
+  {"op": "call", "ctx": "ct", "fn": "setProjData", "args": ["", "area", 1]},
+  {"op": "call", "ctx": "ct", "fn": "setProjData", "args": ["ZZ_projects_none", "area", 1]},
+  {"op": "call", "ctx": "other", "fn": "setProjData", "args": ["ZZ_projects_A", "area", 99]},
+  {"op": "rows", "ctx": "ct", "table": "du_an_data", "filter": "ma_da=eq.ZZ_projects_A", "order": "khoa.asc"},
+  {"op": "rows", "ctx": "none", "table": "du_an_data", "filter": "ma_da=eq.ZZ_projects_none"},
+
+  {"op": "call", "ctx": "ct", "fn": "setProjData", "args": ["__cty", "btFmt", {"x": 1}]},
+  {"op": "rows", "ctx": "ct", "table": "cai_dat_cong_ty", "filter": "khoa=eq.btFmt"},
+  {"op": "call", "ctx": "ct", "fn": "setProjData", "args": [" __cty ", "btFmt", [1, 2]]},
+  {"op": "rows", "ctx": "ct", "table": "cai_dat_cong_ty", "filter": "khoa=eq.btFmt"},
+  {"op": "call", "ctx": "ct", "fn": "getProjData", "args": ["ZZ_projects_A"], "pick": ["phanTho", "area", "bgHist", "ptVat", "cpCfg", "mhPay", "btFmt"]},
+  {"op": "call", "ctx": "other", "fn": "getProjData", "args": ["ZZ_projects_A"], "pick": ["phanTho", "area", "bgHist", "ptVat", "cpCfg", "mhPay", "btFmt"]},
+  {"op": "call", "ctx": "ct", "fn": "getProjData", "args": ["ZZ_projects_none"], "pick": ["phanTho", "area", "bgHist", "ptVat", "cpCfg", "mhPay", "btFmt"]},
+  {"op": "call", "ctx": "ct", "fn": "getProjData", "args": [" "]},
+
+  {"op": "call", "ctx": "none", "fn": "setProjData", "args": ["__cty", "btFmt", "ZZ_projects_null"]},
+  {"op": "call", "ctx": "none", "fn": "setProjData", "args": ["__cty:0", "btFmt", {"v": "ZZ_projects_null 2"}]},
+  {"op": "rows", "ctx": "none", "table": "cai_dat_cong_ty", "filter": "khoa=eq.btFmt&cong_ty_id=is.null", "noScope": true},
+  {"op": "call", "ctx": "none", "fn": "getProjData", "args": ["ZZ_projects_A"], "pick": ["phanTho", "area", "bgHist", "ptVat", "cpCfg", "mhPay", "btFmt"]},
+
+  {"op": "insert", "ctx": "ct", "table": "db_bao_gia", "rows": [
+    {"ma_du_an": "ZZ_projects_A", "sort_no": 1, "stt": "1", "nhom": "3.2.6", "ten_sp": "ZZ_projects_ dòng 1", "dvt": "Cái", "so_luong": 2, "gia_ban_le": 100, "ck_dai_ly_pct": 0, "gia_dai_ly": 100, "gia_ban": 120, "ck_khach_hang_pct": 0, "don_gia": 120, "thanh_tien": 240, "loi_nhuan_pct": 20, "tu_nhap": 1, "extra": {"b": 1, "a": [1, 2]}},
+    {"ma_du_an": "ZZ_projects_A", "sort_no": 2, "stt": "2", "ten_sp": "ZZ_projects_ dòng 2", "so_luong": 1.5, "gia_ban_le": 0, "ck_dai_ly_pct": 0, "gia_dai_ly": 0, "gia_ban": 0, "ck_khach_hang_pct": 0, "don_gia": 0, "thanh_tien": 0}
+  ]},
+  {"op": "insert", "ctx": "ct", "table": "khai_toan", "rows": [
+    {"ma_da": "ZZ_projects_A", "stt": "1", "hang_muc": "ZZ_projects_ mục 1", "mo_ta": "mô tả", "chi_phi": 1000, "sort_no": 0},
+    {"ma_da": "ZZ_projects_A", "stt": "1.1", "hang_muc": "ZZ_projects_ mục 2", "mo_ta": null, "chi_phi": 2500.5, "sort_no": 1}
+  ]},
+
+  {"op": "call", "ctx": "ct", "fn": "duplicateProject", "args": ["ZZ_projects_A"], "save": {"name": "dup1", "key": "maDA"}},
+  {"op": "rows", "ctx": "ct", "table": "du_an", "filter": "ma_da=eq.{{dup1}}"},
+  {"op": "rows", "ctx": "ct", "table": "db_bao_gia", "filter": "ma_du_an=eq.{{dup1}}", "order": "sort_no.asc"},
+  {"op": "rows", "ctx": "ct", "table": "khai_toan", "filter": "ma_da=eq.{{dup1}}", "order": "sort_no.asc"},
+  {"op": "rows", "ctx": "ct", "table": "du_an_data", "filter": "ma_da=eq.{{dup1}}", "order": "khoa.asc"},
+
+  {"op": "call", "ctx": "ct", "fn": "duplicateProject", "args": ["ZZ_projects_A", {"boc": false, "cover": false, "pt": false}], "save": {"name": "dup2", "key": "maDA"}},
+  {"op": "rows", "ctx": "ct", "table": "du_an", "filter": "ma_da=eq.{{dup2}}"},
+  {"op": "rows", "ctx": "ct", "table": "db_bao_gia", "filter": "ma_du_an=eq.{{dup2}}", "order": "sort_no.asc"},
+  {"op": "rows", "ctx": "ct", "table": "khai_toan", "filter": "ma_da=eq.{{dup2}}", "order": "sort_no.asc"},
+  {"op": "rows", "ctx": "ct", "table": "du_an_data", "filter": "ma_da=eq.{{dup2}}", "order": "khoa.asc"},
+
+  {"op": "call", "ctx": "ct", "fn": "duplicateProject", "args": ["ZZ_projects_A", {"boc": 0, "cover": true, "pt": null}], "save": {"name": "dup3", "key": "maDA"}},
+  {"op": "rows", "ctx": "ct", "table": "db_bao_gia", "filter": "ma_du_an=eq.{{dup3}}", "order": "sort_no.asc", "select": "ten_sp,sort_no"},
+  {"op": "rows", "ctx": "ct", "table": "du_an_data", "filter": "ma_da=eq.{{dup3}}", "order": "khoa.asc", "select": "khoa"},
+
+  {"op": "call", "ctx": "ct", "fn": "duplicateProject", "args": ["ZZ_projects_none"]},
+  {"op": "call", "ctx": "other", "fn": "duplicateProject", "args": ["ZZ_projects_A"]},
+  {"op": "call", "ctx": "ct", "fn": "duplicateProject", "args": []},
+
+  {"op": "bootstrap", "ctx": "ct", "args": ["ZZ_projects_A"], "only": "ZZ_projects_"},
+
+  {"op": "call", "ctx": "other", "fn": "deleteProject", "args": ["ZZ_projects_A"]},
+  {"op": "rows", "ctx": "ct", "table": "db_bao_gia", "filter": "ma_du_an=eq.ZZ_projects_A", "order": "sort_no.asc", "select": "ten_sp"},
+  {"op": "call", "ctx": "ct", "fn": "getProject", "args": ["ZZ_projects_A"]},
+
+  {"op": "call", "ctx": "ct", "fn": "deleteProject", "args": ["ZZ_projects_A"]},
+  {"op": "call", "ctx": "ct", "fn": "deleteProject", "args": ["ZZ_projects_A"]},
+  {"op": "call", "ctx": "ct", "fn": "deleteProject", "args": ["{{dup1}}"]},
+  {"op": "call", "ctx": "ct", "fn": "deleteProject", "args": ["{{dup2}}"]},
+  {"op": "call", "ctx": "ct", "fn": "deleteProject", "args": ["{{dup3}}"]},
+  {"op": "call", "ctx": "ct", "fn": "deleteProject", "args": ["{{gen}}"]},
+  {"op": "call", "ctx": "ct", "fn": "deleteProject", "args": ["ZZ_projects_D"]},
+  {"op": "rows", "ctx": "none", "table": "du_an", "filter": "ma_da=in.(ZZ_projects_A,ZZ_projects_B,ZZ_projects_C,ZZ_projects_D,{{dup1}},{{dup2}},{{dup3}},{{gen}})"},
+  {"op": "rows", "ctx": "none", "table": "db_bao_gia", "filter": "ma_du_an=in.(ZZ_projects_A,{{dup1}},{{dup2}},{{dup3}})"},
+  {"op": "rows", "ctx": "none", "table": "khai_toan", "filter": "ma_da=in.(ZZ_projects_A,{{dup1}},{{dup2}},{{dup3}})"},
+  {"op": "rows", "ctx": "none", "table": "du_an_data", "filter": "ma_da=in.(ZZ_projects_A,{{dup1}},{{dup2}},{{dup3}})"},
+
+  {"op": "remove", "ctx": "ct", "table": "cai_dat_cong_ty", "filter": "khoa=eq.btFmt&nguoi_sua=eq.ZZ_projects_u"},
+  {"op": "remove", "ctx": "none", "table": "cai_dat_cong_ty", "filter": "khoa=eq.btFmt&cong_ty_id=is.null&nguoi_sua=eq.ZZ_projects_u", "noScope": true},
+  {"op": "rows", "ctx": "none", "table": "cai_dat_cong_ty", "filter": "nguoi_sua=eq.ZZ_projects_u", "noScope": true}
+ ]
+}

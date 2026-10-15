@@ -1,0 +1,391 @@
+/* ===================== Liquid Glass theme pack ===================== */
+/* Activated site-wide via <html data-ui-theme="glass">, set from Cài đặt ▸ Giao diện.
+   Adapts automatically to data-theme (light/dark) already set on <html>. */
+
+html[data-ui-theme="glass"] {
+  --glass-blur: blur(22px) saturate(180%);
+  --glass-radius-outer: 22px;
+  --glass-radius-inner: 14px;
+}
+
+/* ---- Context-aware glass tint: light mode ---- */
+html[data-theme="light"][data-ui-theme="glass"] {
+  --glass-surface: rgba(255,255,255,.55);
+  --glass-surface-strong: rgba(255,255,255,.72);
+  --glass-sidebar: linear-gradient(165deg, rgba(255,255,255,.80), rgba(244,246,251,.88));
+  --glass-border: rgba(255,255,255,.55);
+  --glass-border-soft: rgba(255,255,255,.32);
+  --glass-specular: rgba(255,255,255,.85);
+  --glass-shadow-bg: 0 1px 2px rgba(20,25,40,.04);
+  --glass-shadow-sidebar: 8px 0 40px rgba(20,25,40,.18);
+  --glass-shadow-card: 0 8px 30px rgba(20,25,40,.10), 0 1px 2px rgba(20,25,40,.06);
+  --glass-shadow-modal: 0 30px 80px rgba(20,25,40,.28), 0 2px 6px rgba(20,25,40,.10);
+}
+
+/* ---- Context-aware glass tint: dark mode ---- */
+html[data-theme="dark"][data-ui-theme="glass"] {
+  --glass-surface: rgba(38,42,54,.55);
+  --glass-surface-strong: rgba(38,42,54,.72);
+  --glass-sidebar: linear-gradient(165deg, rgba(10,12,18,.85), rgba(6,7,11,.92));
+  --glass-border: rgba(255,255,255,.14);
+  --glass-border-soft: rgba(255,255,255,.08);
+  --glass-specular: rgba(255,255,255,.22);
+  --glass-shadow-bg: 0 1px 2px rgba(0,0,0,.3);
+  --glass-shadow-sidebar: 8px 0 40px rgba(0,0,0,.5);
+  --glass-shadow-card: 0 8px 30px rgba(0,0,0,.45), 0 1px 2px rgba(0,0,0,.3);
+  --glass-shadow-modal: 0 30px 80px rgba(0,0,0,.6), 0 2px 6px rgba(0,0,0,.3);
+}
+
+/* ---- Layer 1: page background gets a soft ambient gradient wash ---- */
+html[data-ui-theme="glass"] body{
+  background-image:
+    radial-gradient(1200px 700px at 8% -10%, rgba(80,130,255,.14), transparent 60%),
+    radial-gradient(1000px 800px at 100% 10%, rgba(160,90,255,.12), transparent 55%);
+  background-attachment: fixed;
+}
+
+/* ---- Layer 2: navigation (sidebar / topbar) ---- */
+html[data-ui-theme="glass"] .app-sidebar{
+  background: var(--glass-sidebar) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-right: 1px solid var(--glass-border-soft);
+  box-shadow: var(--glass-shadow-sidebar);
+  position: relative;
+}
+html[data-ui-theme="glass"] .app-sidebar::after{
+  content:''; position:absolute; top:0; right:0; width:1px; height:100%;
+  background:linear-gradient(180deg, var(--glass-specular), transparent 40%);
+  opacity:.5;
+}
+html[data-ui-theme="glass"] .app-sidebar nav a.active,
+html[data-ui-theme="glass"] .app-sidebar .navitem{
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12), inset 0 0 0 1px rgba(255,255,255,.06);
+}
+
+/* Topbar (64px header bar used across pages) */
+html[data-ui-theme="glass"] div[style*="height: 64px"][style*="border-bottom"]{
+  background: var(--glass-surface-strong) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-border-soft) !important;
+  box-shadow: var(--glass-shadow-bg);
+}
+
+/* ---- Layer 3: floating content — cards, modals, panels ---- */
+html[data-ui-theme="glass"] div[style*="var(--surface)"][style*="border-radius"]{
+  background: var(--glass-surface) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-soft) !important;
+  box-shadow: var(--glass-shadow-card);
+  position: relative;
+}
+/* Specular highlight: a soft bright hairline along the top edge, like light catching a glass rim */
+html[data-ui-theme="glass"] div[style*="var(--surface)"][style*="border-radius"]::before{
+  content:''; position:absolute; top:0; left:12%; right:12%; height:1px;
+  background:linear-gradient(90deg, transparent, var(--glass-specular), transparent);
+  opacity:.7; pointer-events:none;
+}
+
+/* Concentric geometry: soften and harmonize radii */
+html[data-ui-theme="glass"] .app-sidebar,
+html[data-ui-theme="glass"] .ai-panel{
+  border-radius: 0;
+}
+html[data-ui-theme="glass"] div[style*="border-radius: 14px"]{ border-radius: var(--glass-radius-outer) !important; }
+html[data-ui-theme="glass"] div[style*="border-radius: 12px"],
+html[data-ui-theme="glass"] div[style*="border-radius:12px"]{ border-radius: var(--glass-radius-inner) !important; }
+
+/* Dezbot panel + popovers + modals: glass too, deepest shadow layer */
+html[data-ui-theme="glass"] .ai-panel,
+html[data-ui-theme="glass"] .pjm-popover,
+html[data-ui-theme="glass"] .task-modal-box,
+html[data-ui-theme="glass"] #createTaskOverlay .task-modal-box{
+  background: var(--glass-surface-strong) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-left: 1px solid var(--glass-border-soft);
+  box-shadow: var(--glass-shadow-modal) !important;
+}
+
+/* ---- Buttons: refraction rim + specular top highlight ---- */
+html[data-ui-theme="glass"] button[style*="background: var(--project)"],
+html[data-ui-theme="glass"] button[style*="background:var(--project)"],
+html[data-ui-theme="glass"] button[style*="background: var(--primary)"],
+html[data-ui-theme="glass"] button[style*="background:var(--primary)"]{
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 6px 16px rgba(20,25,40,.18);
+  border: 1px solid rgba(255,255,255,.25) !important;
+}
+
+/* Chips / pills / tabs: thin glass rim */
+html[data-ui-theme="glass"] .create-subtab,
+html[data-ui-theme="glass"] .ai-chip,
+html[data-ui-theme="glass"] .settings-tab.active{
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+/* Scrollbar stays crisp, unaffected by blur */
+html[data-ui-theme="glass"] ::-webkit-scrollbar-thumb{ backdrop-filter:none; }
+
+/* ===================== Super Liquid Glass theme pack ===================== */
+/* Activated via <html data-ui-theme="super-glass">. Ultra-thin Apple-style glass:
+   animated mesh-gradient backdrop, near-transparent surfaces, deep blur, two-layer specular border. */
+
+html[data-ui-theme="super-glass"]{
+  --sg-blur: blur(64px) saturate(125%);
+  --sg-blur-chip: blur(24px) saturate(115%);
+  --sg-radius-outer: 24px;
+  --sg-radius-inner: 16px;
+}
+
+html[data-theme="light"][data-ui-theme="super-glass"]{
+  --sg-surface: rgba(255,255,255,.12);
+  --sg-surface-strong: rgba(255,255,255,.22);
+  --sg-sidebar: rgba(255,255,255,.10);
+  --sg-border: rgba(255,255,255,.40);
+  --sg-ring: rgba(255,255,255,.14);
+  --sg-specular: rgba(255,255,255,.4);
+  --sg-text-on-glass: #12161f;
+  --sg-shadow-card: 0 8px 32px rgba(31,41,71,.14), 0 1px 2px rgba(31,41,71,.08);
+  --sg-shadow-deep: 0 30px 90px rgba(31,41,71,.30), 0 2px 8px rgba(31,41,71,.12);
+}
+
+html[data-theme="dark"][data-ui-theme="super-glass"]{
+  --sg-surface: rgba(15,23,42,.25);
+  --sg-surface-strong: rgba(15,23,42,.40);
+  --sg-sidebar: rgba(2,4,10,.35);
+  --sg-border: rgba(255,255,255,.10);
+  --sg-ring: rgba(255,255,255,.05);
+  --sg-specular: rgba(255,255,255,.12);
+  --sg-text-on-glass: #f1f4fb;
+  --sg-shadow-card: 0 8px 32px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.35);
+  --sg-shadow-deep: 0 30px 90px rgba(0,0,0,.65), 0 2px 8px rgba(0,0,0,.4);
+}
+
+/* ---- Layer 0: animated mesh-gradient background, always visible behind the glass ---- */
+html[data-ui-theme="super-glass"] body{
+  position: relative;
+  background: var(--bg);
+}
+html[data-ui-theme="super-glass"] body::before{
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(38vw 38vw at 12% 15%, rgba(90,150,255,.55), transparent 60%),
+    radial-gradient(34vw 34vw at 85% 20%, rgba(190,120,255,.50), transparent 60%),
+    radial-gradient(40vw 40vw at 25% 85%, rgba(255,150,190,.45), transparent 60%),
+    radial-gradient(36vw 36vw at 90% 88%, rgba(255,190,120,.40), transparent 60%);
+  filter: blur(60px);
+  animation: sgMeshDrift 22s ease-in-out infinite alternate;
+}
+html[data-theme="dark"][data-ui-theme="super-glass"] body::before{
+  background-image:
+    radial-gradient(38vw 38vw at 12% 15%, rgba(60,100,220,.45), transparent 60%),
+    radial-gradient(34vw 34vw at 85% 20%, rgba(140,80,220,.42), transparent 60%),
+    radial-gradient(40vw 40vw at 25% 85%, rgba(220,90,150,.35), transparent 60%),
+    radial-gradient(36vw 36vw at 90% 88%, rgba(220,140,80,.32), transparent 60%);
+}
+@keyframes sgMeshDrift{
+  0%   { transform: translate3d(0,0,0) scale(1); }
+  50%  { transform: translate3d(-2%,3%,0) scale(1.08); }
+  100% { transform: translate3d(2%,-2%,0) scale(1.04); }
+}
+/* Everything else renders above the mesh layer (ai-fab/ai-panel are already
+   position:fixed with their own z-index — must not be touched here, or they
+   fall into normal document flow and the whole layout jumps around). */
+html[data-ui-theme="super-glass"] .app-shell{
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- Navigation: sidebar / topbar ---- */
+html[data-ui-theme="super-glass"] .app-sidebar{
+  background: var(--sg-sidebar) !important;
+  backdrop-filter: var(--sg-blur);
+  -webkit-backdrop-filter: var(--sg-blur);
+  border-right: 1px solid var(--sg-border);
+  box-shadow: inset 0 0 0 1px var(--sg-ring), var(--sg-shadow-card);
+}
+html[data-ui-theme="super-glass"] .app-sidebar nav a.active,
+html[data-ui-theme="super-glass"] .app-sidebar .navitem{
+  backdrop-filter: var(--sg-blur-chip);
+  -webkit-backdrop-filter: var(--sg-blur-chip);
+  box-shadow: inset 0 0 0 1px var(--sg-ring), inset 0 1px 0 var(--sg-specular);
+}
+html[data-ui-theme="super-glass"] div[style*="height: 64px"][style*="border-bottom"]{
+  background: var(--sg-surface-strong) !important;
+  backdrop-filter: var(--sg-blur);
+  -webkit-backdrop-filter: var(--sg-blur);
+  border-bottom: 1px solid var(--sg-border) !important;
+  box-shadow: inset 0 0 0 1px var(--sg-ring);
+}
+
+/* ---- Floating content: cards, modals, panels — the ultra-thin glass panes ---- */
+html[data-ui-theme="super-glass"] div[style*="var(--surface)"][style*="border-radius"]{
+  background: var(--sg-surface) !important;
+  backdrop-filter: var(--sg-blur);
+  -webkit-backdrop-filter: var(--sg-blur);
+  border: 1px solid var(--sg-border) !important;
+  box-shadow: inset 0 0 0 1px var(--sg-ring), var(--sg-shadow-card);
+  position: relative;
+}
+/* Specular refraction: bright hairline top edge + soft inner glow, two-layer like real glass */
+html[data-ui-theme="super-glass"] div[style*="var(--surface)"][style*="border-radius"]::before{
+  content: '';
+  position: absolute; top: 0; left: 8%; right: 8%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--sg-specular), transparent);
+  opacity: .8; pointer-events: none;
+}
+
+html[data-ui-theme="super-glass"] .app-sidebar,
+html[data-ui-theme="super-glass"] .ai-panel{
+  border-radius: 0;
+}
+html[data-ui-theme="super-glass"] div[style*="border-radius: 14px"]{ border-radius: var(--sg-radius-outer) !important; }
+html[data-ui-theme="super-glass"] div[style*="border-radius: 12px"],
+html[data-ui-theme="super-glass"] div[style*="border-radius:12px"]{ border-radius: var(--sg-radius-inner) !important; }
+
+/* Dezbot panel + popovers + modals: deepest glass layer */
+html[data-ui-theme="super-glass"] .ai-panel,
+html[data-ui-theme="super-glass"] .pjm-popover,
+html[data-ui-theme="super-glass"] .task-modal-box,
+html[data-ui-theme="super-glass"] #createTaskOverlay .task-modal-box{
+  background: var(--sg-surface-strong) !important;
+  backdrop-filter: var(--sg-blur);
+  -webkit-backdrop-filter: var(--sg-blur);
+  border-left: 1px solid var(--sg-border);
+  box-shadow: inset 0 0 0 1px var(--sg-ring), var(--sg-shadow-deep) !important;
+}
+
+/* ---- Buttons: refraction rim ---- */
+html[data-ui-theme="super-glass"] button[style*="background: var(--project)"],
+html[data-ui-theme="super-glass"] button[style*="background:var(--project)"],
+html[data-ui-theme="super-glass"] button[style*="background: var(--primary)"],
+html[data-ui-theme="super-glass"] button[style*="background:var(--primary)"]{
+  backdrop-filter: var(--sg-blur-chip);
+  -webkit-backdrop-filter: var(--sg-blur-chip);
+  box-shadow: inset 0 0 0 1px var(--sg-ring), inset 0 1px 0 rgba(255,255,255,.2), 0 8px 20px rgba(20,25,40,.18);
+  border: 1px solid var(--sg-border) !important;
+}
+
+/* Chips / pills / tabs */
+html[data-ui-theme="super-glass"] .create-subtab,
+html[data-ui-theme="super-glass"] .ai-chip,
+html[data-ui-theme="super-glass"] .settings-tab.active{
+  backdrop-filter: var(--sg-blur-chip);
+  -webkit-backdrop-filter: var(--sg-blur-chip);
+  box-shadow: inset 0 0 0 1px var(--sg-ring), inset 0 1px 0 var(--sg-specular);
+}
+
+html[data-ui-theme="super-glass"] ::-webkit-scrollbar-thumb{ backdrop-filter:none; }
+
+/* =====================================================================
+   Bổ sung cho bản React
+   Bản HTML gốc dùng class chung (.app-sidebar, .ai-panel…) và nền trang trong suốt.
+   Ở bản React mỗi trang có lớp gốc *-page tự tô nền đặc và tự khai báo --surface,
+   nên trước đây chọn bộ giao diện kính gần như không thấy khác biệt.
+   ===================================================================== */
+
+/* Độ trong suốt của bề mặt (Cài đặt ▸ Giao diện ▸ Độ trong suốt) */
+html{ --gl-a: .62; }
+html[data-glass="soft"]{ --gl-a: .84; }
+html[data-glass="strong"]{ --gl-a: .40; }
+/* Super Glass mỏng hơn Liquid Glass ở cùng một mức */
+html[data-ui-theme="glass"]{ --gl-k: 1; }
+html[data-ui-theme="super-glass"]{ --gl-k: .62; }
+
+/* 1) Lộ nền: khung app và lớp gốc của trang không tô nền đặc nữa */
+html:is([data-ui-theme="glass"], [data-ui-theme="super-glass"]) .app-shell{ background: transparent !important; }
+
+/* 2) Bề mặt của trang thành kính: ghi đè biến màu ngay trên lớp gốc *-page
+      (độ ưu tiên cao hơn khai báo riêng của từng trang) */
+html[data-theme="light"]:is([data-ui-theme="glass"], [data-ui-theme="super-glass"]) body [class*="-page"]{
+  --bg: transparent;
+  --surface: rgba(255,255,255, calc(var(--gl-a) * var(--gl-k)));
+  --surface-alt: rgba(226,230,240, calc(var(--gl-a) * var(--gl-k)));
+  --border: rgba(90,100,125,.20);
+}
+html[data-theme="dark"]:is([data-ui-theme="glass"], [data-ui-theme="super-glass"]) body [class*="-page"]{
+  --bg: transparent;
+  --surface: rgba(28,32,44, calc(var(--gl-a) * var(--gl-k)));
+  --surface-alt: rgba(52,58,74, calc(var(--gl-a) * var(--gl-k)));
+  --border: rgba(255,255,255,.11);
+}
+/* Thẻ nổi (rule phía trên) cũng theo mức trong suốt đã chọn */
+html[data-theme="light"][data-ui-theme="glass"]{ --glass-surface: rgba(255,255,255, var(--gl-a)); --glass-surface-strong: rgba(255,255,255, calc(var(--gl-a) + .16)); }
+html[data-theme="dark"][data-ui-theme="glass"]{ --glass-surface: rgba(34,38,50, var(--gl-a)); --glass-surface-strong: rgba(34,38,50, calc(var(--gl-a) + .16)); }
+html[data-theme="light"][data-ui-theme="super-glass"]{ --sg-surface: rgba(255,255,255, calc(var(--gl-a) * .5)); --sg-surface-strong: rgba(255,255,255, calc(var(--gl-a) * .8)); --sg-sidebar: rgba(255,255,255,.72); }
+html[data-theme="dark"][data-ui-theme="super-glass"]{ --sg-surface: rgba(15,23,42, calc(var(--gl-a) * .6)); --sg-surface-strong: rgba(15,23,42, calc(var(--gl-a) * .95)); }
+
+/* 3) Lớp nổi viết bằng class (popover, modal, menu, ngăn kéo, khung Dezbot): thêm làm mờ nền để chữ không lẫn với nội dung phía sau */
+html[data-ui-theme="glass"] body :is([class*="-popover"], [class*="-modal"], [class*="-menu"], [class*="-drawer"], [class*="-ai-panel"]){
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+}
+html[data-ui-theme="super-glass"] body :is([class*="-popover"], [class*="-modal"], [class*="-menu"], [class*="-drawer"], [class*="-ai-panel"]){
+  -webkit-backdrop-filter: blur(40px) saturate(125%); backdrop-filter: blur(40px) saturate(125%);
+}
+
+/* 4) Danh sách thả xuống của <select> do trình duyệt vẽ: cần nền đặc, nếu không chữ sẽ chìm */
+html[data-theme="light"]:is([data-ui-theme="glass"], [data-ui-theme="super-glass"]) select option,
+html[data-theme="light"]:is([data-ui-theme="glass"], [data-ui-theme="super-glass"]) select optgroup{ background-color: #FFFFFF; color: #161A22; }
+html[data-theme="dark"]:is([data-ui-theme="glass"], [data-ui-theme="super-glass"]) select option,
+html[data-theme="dark"]:is([data-ui-theme="glass"], [data-ui-theme="super-glass"]) select optgroup{ background-color: #1A1E27; color: #E7E9EE; }
+
+/* 5) Nền Liquid Glass ở chế độ tối: tăng độ đậm quầng màu để thấy được sau lớp kính */
+html[data-theme="dark"][data-ui-theme="glass"] body{
+  background-image:
+    radial-gradient(1200px 700px at 8% -10%, rgba(80,130,255,.26), transparent 60%),
+    radial-gradient(1000px 800px at 100% 10%, rgba(160,90,255,.22), transparent 55%),
+    radial-gradient(900px 700px at 60% 110%, rgba(40,180,170,.14), transparent 60%);
+}
+
+/* =====================================================================
+   Nền hệ thống (Cài đặt ▸ Giao diện ▸ Nền hệ thống) — <html data-wallpaper="...">
+   Dùng được với mọi bộ giao diện; với bộ kính thì nền này thay cho quầng màu mặc định.
+   --wp-strength (0.3 – 1, mặc định 0.6) là độ đậm: càng thấp càng phủ nhiều lớp sáng/tối lên nền để chữ dễ đọc.
+   ===================================================================== */
+html{ --wp-strength: .6; }
+html[data-theme="light"]{ --wp-veil: rgb(255 255 255 / calc(1.1 - var(--wp-strength))); }
+html[data-theme="dark"]{ --wp-veil: rgb(10 12 20 / calc(1.2 - var(--wp-strength))); }
+
+/* Nền "iOS 26 Liquid": xanh nhạt góc trên trái, xanh đậm bên trái, tím ở giữa, hồng san hô góc dưới phải */
+html[data-wallpaper="ios26"]{
+  --wp-image:
+    radial-gradient(60% 55% at 0% 0%, #A9CDEF 0%, transparent 60%),
+    radial-gradient(55% 70% at 0% 78%, #2458C9 0%, transparent 65%),
+    radial-gradient(60% 60% at 55% 4%, #8E4DEB 0%, transparent 65%),
+    radial-gradient(50% 55% at 100% 18%, #B257E0 0%, transparent 60%),
+    radial-gradient(55% 60% at 100% 100%, #F78F96 0%, transparent 62%),
+    radial-gradient(45% 45% at 55% 100%, #B95C9C 0%, transparent 60%),
+    linear-gradient(120deg, #4C6FDC 0%, #7C4EDB 50%, #D873B4 100%);
+}
+
+html[data-wallpaper]:not([data-wallpaper="none"]) body{
+  background-image: linear-gradient(var(--wp-veil), var(--wp-veil)), var(--wp-image) !important;
+  background-attachment: fixed !important;
+  background-size: cover !important;
+}
+/* Lộ nền: khung app và lớp gốc của từng trang không tô nền đặc nữa.
+   Chỉ bỏ nền của chính lớp gốc, giữ nguyên biến --bg vì nhiều thành phần dùng nó làm nền đặc (hộp thoại, ô thống kê). */
+html[data-wallpaper]:not([data-wallpaper="none"]) .app-shell{ background: transparent !important; }
+html[data-wallpaper]:not([data-wallpaper="none"]) .app-shell > div > [class*="-page"]{ background: transparent !important; }
+/* Super Liquid Glass: tắt lớp quầng màu động để nền đã chọn là lớp sau cùng */
+html[data-wallpaper]:not([data-wallpaper="none"])[data-ui-theme="super-glass"] body::before{ display: none; }
+/* Sidebar mặc định tô nền đặc nên che mất nền hệ thống: khi bật nền thì chuyển thành kính trong mờ
+   để màu nền xuyên qua */
+html[data-wallpaper]:not([data-wallpaper="none"]) :is(.app-sidebar, .sidebar-flyout){
+  background: var(--sb-wall) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(150%); backdrop-filter: blur(26px) saturate(150%);
+  border-right: 1px solid var(--sb-wall-border);
+}
+/* Kính sáng ở chế độ sáng, kính tối ở chế độ tối; chữ đậm hơn một bậc vì nền sidebar lúc này có màu */
+html[data-theme="light"][data-wallpaper]:not([data-wallpaper="none"]){ --sb-wall: rgba(255,255,255,.66); --sb-wall-border: rgba(255,255,255,.6); --sb-text: #2F3644; --sb-muted: #4B5563; }
+html[data-theme="dark"][data-wallpaper]:not([data-wallpaper="none"]){ --sb-wall: rgba(14,17,28,.56); --sb-wall-border: rgba(255,255,255,.14); --sb-text: #DDE2EE; --sb-muted: #A9B1C4; }

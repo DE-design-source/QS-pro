@@ -1,0 +1,6 @@
+# File nhúng vào binary (go:embed) phải giữ nguyên từng byte như bản cuối trong git của public/ (TestEmbeddedAssets so mã blob,
+# TestSourceMatchesGenerated so sha256): không để core.autocrlf đổi LF -> CRLF khi clone trên Windows.
+internal/shared/specs/js/*.js -text
+internal/server/assets/* -text
+internal/modules/categories/assets/* binary
+internal/modules/estimates/assets/* binary

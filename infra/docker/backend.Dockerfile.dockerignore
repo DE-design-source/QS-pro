@@ -1,0 +1,21 @@
+# File ignore riêng của infra/docker/backend.Dockerfile (BuildKit tự đọc <tên Dockerfile>.dockerignore).
+# Đường dẫn tính từ GỐC repo (build context). Cách viết: bỏ hết, rồi mở lại đúng phần image cần.
+*
+
+# mã Go (kèm file nhúng go:embed: spec ngành, logo, file mẫu) và migration
+!backend/go.mod
+!backend/go.sum
+!backend/cmd
+!backend/internal
+!infra/db/migrations
+
+# không bao giờ gửi: file cấu hình có khoá, kết quả test, dữ liệu test (go build không cần)
+**/.env
+**/.env.*
+**/.git
+**/node_modules
+**/.out
+**/tmp-*
+**/testdata
+**/*_test.go
+**/*.log

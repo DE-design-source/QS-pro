@@ -1,9 +1,29 @@
+# Thư viện cài đặt
 node_modules/
+
+# Cấu hình có khoá (database thật, webhook Lark thật)
 .env
-server/tables.local.json
-*.log
-.DS_Store
+.env.*
+!.env.example
 
-
-# Bản xuất dữ liệu production — KHÔNG commit (chứa dữ liệu khách hàng)
+# Bản xuất dữ liệu production - KHÔNG commit (chứa dữ liệu khách hàng)
 export/
+infra/export/
+
+# Log, file tạm
+*.log
+logs/
+tmp/
+coverage/
+
+# Công cụ của Claude Code / Playwright MCP (ảnh chụp, log console)
+.playwright-mcp/
+.claude/settings.local.json
+
+# Editor / hệ điều hành
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+desktop.ini

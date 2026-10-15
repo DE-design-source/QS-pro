@@ -1,0 +1,113 @@
+# Database
+
+PostgreSQL, kết nối bằng `DATABASE_URL`. Tầng truy cập là `internal/platform/database` - bản chuyển 1:1 của `server/supa.js`.
+
+## Tên tiếng Việt trong code, tên tiếng Anh trong database
+
+Code gọi bảng / cột bằng tên tiếng Việt không dấu (`du_an`, `ma_da`, `db_san_pham`...). Database dùng tên tiếng Anh
+(`projects`, `project_code`, `products`...). File `internal/platform/database/db-map.json` (bản sao của `server/db-map.json`,
+nhúng vào binary bằng `go:embed`) là bảng đối chiếu hai chiều: tầng dữ liệu dịch tên khi gửi truy vấn và dịch ngược khi trả kết quả.
+
+Sửa `server/db-map.json` thì phải chép lại sang `internal/platform/database/db-map.json`.
+
+Mỗi mục trong db-map.json:
+
+| Khoá | Ý nghĩa |
+|---|---|
+| `table` | bảng thật |
+| `columns` | cột Việt -> cột Anh (cột không khai báo dùng nguyên tên) |
+| `view` + `parts` | bảng tách: đọc qua view nối sẵn, ghi thì tách cột về bảng lõi và các bảng vệ tinh 1-1 (`db_san_pham` = `products` + `product_*_specs`, đọc qua `product_catalog`) |
+| `tenant` | bảng con không có `company_id`: `cong_ty_id` là cột ảo tra theo dòng cha (`via` -> `parent`.`key`) |
+
+Danh mục bảng / cột thật được nạp từ `information_schema` ở truy vấn đầu tiên và nạp lại khi gặp bảng / cột lạ
+(vừa chạy migration lúc server đang chạy).
+
+## Ngữ cảnh công ty (multi-tenant)
+
+Các bảng trong `database.TenantTables` tự được lọc theo công ty của người đăng nhập (`tenant.TenantID(ctx)`):
+
+`du_an, db_bao_gia, khai_toan, db_san_pham, db_san_pham_history, don_mua_hang, chi_tiet_mua_hang, notifications,
+delete_requests, audit_log, users, sp_combo, sp_yeu_thich, cong_tac, de_xuat, chi_tiet_de_xuat_ck, chi_tiet_de_xuat_tt,
+cong_tac_history, du_an_data, cai_dat_cong_ty`
+
+- Không có ngữ cảnh (đang login, job nền) hoặc super chưa chọn công ty: không lọc.
+- Người không phải super mà không có công ty: lỗi `Tài khoản chưa gắn với công ty nào`.
+- `NoScope: true`: bỏ lọc cho lệnh gọi đó.
+- INSERT tự gắn `cong_ty_id` cho dòng chưa có; bảng con thì kiểm tra dòng cha thuộc công ty (sai -> lỗi 409 / 23503, không chèn dòng nào).
+
+## Chuỗi lọc kiểu PostgREST
+
+`cot=eq.x&cot2=in.(1,2)&or=(a.eq.1,b.is.null)`
+
+Toán tử: `eq neq gt gte lt lte like ilike` (`*` là ký tự đại diện), `is.null|true|false`, `in.(...)`, tiền tố `not.`,
+nhóm `and=(...)` / `or=(...)` / `not.and=(...)` lồng nhau được. Giá trị mã hoá bằng `encodeURIComponent` (`database.Eq`).
+Sắp xếp: `cot.asc|desc[.nullsfirst|nullslast]`, nhiều cột cách nhau dấu phẩy; tầng dữ liệu tự thêm `id.asc` làm khoá phụ.
+UPDATE / DELETE không có điều kiện lọc bị từ chối.
+
+## Lỗi
+
+Lỗi database giữ dạng của PostgREST vì nghiệp vụ nhận biết lỗi theo mã / chuỗi:
+
+```
+DB <GET|POST|PATCH|DELETE> <bảng> -> <status> {"code":"...","details":...,"hint":...,"message":"..."}
+```
+
+`database.CodeOf(err)` trả mã (`23505`, `42703`, `PGRST100`, `PGRST204`, `PGRST205`...), `database.StatusOf(err)` trả status
+(23xxx -> 409, 42501 -> 401, 42P01 -> 404, còn lại 400).
+
+## Kiểu dữ liệu trả về
+
+Kết quả do Postgres dựng thành JSON (`json_agg`) rồi đọc về `[]*omap.Map`: số là `float64`, boolean là `bool`,
+`timestamptz` là chuỗi `2026-10-13T04:45:22.349392+00:00` (phiên làm việc đặt `timezone=UTC`), `date` là `YYYY-MM-DD`,
+`jsonb` là `*omap.Map` / `[]any`, `uuid` là chuỗi. Thứ tự khoá = thứ tự cột trong database (hoặc thứ tự trong `Select`).
+
+Pool chạy ở chế độ simple protocol của pgx: tham số gửi dạng chữ để Postgres tự suy kiểu theo cột, giống thư viện `pg` của Node.
+
+## Migration
+
+- Bản Go KHÔNG giữ bản sao migration: đọc thẳng `infra/db/migrations/NNNN_ten.sql` ở gốc repo, chung với bản Node
+  (cùng file nên checksum và số phiên bản khớp với bảng `schema_migrations` mà `infra/scripts/migrate.js` ghi).
+  Chưa có file `.down.sql`: các migration hiện tại chỉ quay lui được bằng bản sao lưu.
+- `infra/db/schema.sql`: toàn bộ cấu trúc hiện tại, dùng để dựng database mới.
+
+```
+go run ./cmd/migrate --status      # liệt kê
+go run ./cmd/migrate               # chạy các file chưa áp dụng (mỗi file 1 transaction)
+go run ./cmd/migrate --baseline    # database dựng từ schema.sql: đánh dấu mọi file là đã áp dụng
+go run ./cmd/migrate --url=postgresql://...   # không dùng DATABASE_URL trong .env
+go run ./cmd/migrate --dir=duong/dan          # thư mục file SQL (mặc định "../infra/db/migrations", tính từ thư mục đang đứng; biến môi trường MIGRATIONS_DIR đổi mặc định, --dir thắng cả hai; image Docker đặt MIGRATIONS_DIR=/app/migrations)
+```
+
+Chạy từ `backend/`. Trong image Docker: `/app/qspro-migrate [--status|--baseline]` (thư mục làm việc `/app` đã có `migrations/`).
+Không truyền `--url=` (hoặc truyền rỗng) thì công cụ đọc `.env` rồi `../.env` để lấy `DATABASE_URL`.
+
+Thông báo lỗi thiếu cột giữ nguyên câu của bản Node: `Hãy chạy "npm run migrate" rồi khởi động lại server.`
+Khi chỉ triển khai bản Go, lệnh tương ứng là `go run ./cmd/migrate` (hoặc `/app/qspro-migrate`).
+
+Thêm thay đổi cấu trúc: viết file mới `infra/db/migrations/NNNN_ten.sql` (không sửa file đã chạy; dùng chung cho cả hai bản), và nếu thêm cột vào
+`products` / `product_*_specs` thì tạo lại view `product_catalog` trong cùng migration.
+
+## Đồng bộ với bản Node
+
+Migration và `schema.sql` dùng chung ở `infra/db/`, không còn phải chép tay. Chỉ còn một BẢN SAO chép tay
+(`scripts/sync-api-docs.js` chỉ lo api-docs). Sửa bên Node thì chép lại, rồi kiểm bằng
+`sh backend/scripts/check-node-sync.sh` (so bằng `cmp`; không cần database; chưa nối vào `go test`). App Node đã gỡ khỏi repo nên
+script này hiện luôn in `KHÁC`; bản gốc lấy bằng `git show 83d264e:server/db-map.json`:
+
+| Bản gốc (Node) | Bản sao (Go) |
+|---|---|
+| `server/db-map.json` | `backend/internal/platform/database/db-map.json` |
+
+## Database thử
+
+Test tích hợp và bộ so vi sai dùng hai database trong container `qspro-postgres` (cổng 5434 trên máy): `qspro_gotest` cho bản Go,
+`qspro_nodetest` cho bản Node. `tests/e2e/diff/run.ps1` tạo lại cả hai từ file seed `/tmp/qspro_seed.sql` trong container
+(nguồn gốc file seed chưa rõ, chưa có trong repo). Test Go có database phải chạy với `-p 1` vì mọi gói dùng chung `qspro_gotest`.
+Chi tiết: mục Kiểm thử của `backend/README.md`.
+
+## Đối chiếu với bản Node
+
+`tests/fixtures/db-diff-cases.json` có 110 ca (bảng thường, bảng thuộc công ty có / không lọc, bảng tách kể cả cột vệ tinh,
+bảng con với `cong_ty_id` ảo, mọi toán tử lọc, sắp xếp + giới hạn, các ca lỗi). Chạy qua `server/supa.js` và qua bản Go,
+kết quả giống nhau từng byte sau khi che id và thời điểm sinh tự động. Cách chạy: mục 9 của `ARCHITECTURE.md`
+(đường dẫn `DIFF_OUT` / `DIFF_GOLDEN` phải tuyệt đối; `TestDiffGolden` chỉ khớp trên database vừa đặt lại về seed).

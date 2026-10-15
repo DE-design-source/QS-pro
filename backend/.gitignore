@@ -1,0 +1,25 @@
+# cấu hình có khoá
+.env
+.env.*
+!.env.example
+
+# file chạy do go build / go test -c sinh ra
+/bin/
+/api
+/migrate
+/qsapi
+/qspro-api
+/qspro-migrate
+*.exe
+*.test
+
+# kết quả test, log, file tạm
+/tmp/
+*.out
+*.log
+coverage.*
+**/.out/
+tests/tmp-*/
+
+.idea/
+.vscode/

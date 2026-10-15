@@ -1,0 +1,1575 @@
+{
+  "login": {
+    "tag": "Tài khoản & thông báo",
+    "summary": "Đăng nhập bằng tên đăng nhập (hoặc email) và mật khẩu, trả về token phiên.",
+    "args": [
+      {
+        "name": "username",
+        "type": "string",
+        "required": true,
+        "description": "Tên đăng nhập hoặc email của tài khoản (được cắt khoảng trắng hai đầu).",
+        "example": "nhanvien01"
+      },
+      {
+        "name": "password",
+        "type": "string",
+        "required": true,
+        "description": "Mật khẩu của tài khoản.",
+        "example": "matkhau-mau"
+      }
+    ],
+    "returns": "Object { token, user, congTy }: token phiên, thông tin tài khoản (id, username, hoTen, role, perms, active, createdAt, lastLogin, congTyId, email, phongBan, uiPrefs) và công ty của tài khoản (có thể null với super admin); báo lỗi nếu sai mật khẩu, tài khoản bị khóa, công ty bị khóa hoặc hết hạn."
+  },
+  "me": {
+    "tag": "Tài khoản & thông báo",
+    "summary": "Lấy thông tin tài khoản đang đăng nhập kèm cài đặt giao diện và công ty.",
+    "args": [],
+    "returns": "Object tài khoản { id, username, hoTen, role, perms, active, createdAt, lastLogin, congTyId, email, phongBan, uiPrefs, congTy }; báo lỗi 'Phiên không hợp lệ' nếu tài khoản không còn hoặc đã bị khóa."
+  },
+  "setMyPref": {
+    "tag": "Tài khoản & thông báo",
+    "summary": "Lưu (hoặc xóa) một cài đặt giao diện riêng của tài khoản đang đăng nhập.",
+    "args": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true,
+        "description": "Khóa cài đặt, chỉ nhận một trong: tkCols, cpCols, daCols, spCols.",
+        "example": "tkCols"
+      },
+      {
+        "name": "value",
+        "type": "array",
+        "required": false,
+        "description": "Bộ cột cần lưu: mảng tối đa 60 chuỗi, mỗi chuỗi dưới 40 ký tự; truyền null để xóa khóa đó.",
+        "example": [
+          "maSP",
+          "tenSP",
+          "donGia"
+        ]
+      }
+    ],
+    "returns": "Object { ok: true, uiPrefs } với uiPrefs là toàn bộ cài đặt giao diện sau khi lưu."
+  },
+  "logout": {
+    "tag": "Tài khoản & thông báo",
+    "summary": "Ghi nhật ký đăng xuất cho tài khoản đang đăng nhập.",
+    "args": [],
+    "returns": "Object { ok: true }."
+  },
+  "changePassword": {
+    "tag": "Tài khoản & thông báo",
+    "summary": "Tài khoản đang đăng nhập tự đổi mật khẩu của mình.",
+    "args": [
+      {
+        "name": "oldPw",
+        "type": "string",
+        "required": true,
+        "description": "Mật khẩu hiện tại, phải khớp mới được đổi.",
+        "example": "matkhau-cu-mau"
+      },
+      {
+        "name": "newPw",
+        "type": "string",
+        "required": true,
+        "description": "Mật khẩu mới, tối thiểu 4 ký tự.",
+        "example": "matkhau-moi-mau"
+      }
+    ],
+    "returns": "Object { ok: true }; báo lỗi nếu mật khẩu hiện tại không đúng hoặc mật khẩu mới ngắn hơn 4 ký tự."
+  },
+  "adminListUsers": {
+    "tag": "Tài khoản & thông báo",
+    "summary": "Liệt kê tài khoản: admin xem tài khoản công ty mình, super admin xem toàn hệ thống.",
+    "args": [],
+    "returns": "Mảng tài khoản (tối đa 500, xếp theo ngày tạo tăng dần), mỗi phần tử gồm { id, username, hoTen, role, perms, active, createdAt, lastLogin, congTyId, email, phongBan }."
+  },
+  "adminCreateUser": {
+    "tag": "Tài khoản & thông báo",
+    "summary": "Tạo tài khoản mới trong công ty đang quản lý.",
+    "args": [
+      {
+        "name": "data",
+        "type": "object",
+        "required": true,
+        "description": "Thông tin tài khoản mới: username (tối thiểu 3 ký tự gồm chữ thường, số, . _ -; duy nhất toàn hệ thống), password (tối thiểu 4 ký tự), hoTen, email, role ('staff' | 'admin' | 'super' - chỉ super mới tạo được super), perms (mảng mã quyền, bỏ qua nếu là admin/super), phongBan, congTyId (chỉ super admin chỉ định được).",
+        "example": {
+          "username": "nhanvien02",
+          "password": "matkhau-mau",
+          "hoTen": "Nguyễn Văn A",
+          "email": "nhanvien02@example.com",
+          "role": "staff",
+          "perms": [],
+          "phongBan": "Dự toán"
+        }
+      }
+    ],
+    "returns": "Object tài khoản vừa tạo { id, username, hoTen, role, perms, active, createdAt, lastLogin, congTyId, email, phongBan }; báo lỗi nếu trùng tên đăng nhập hoặc vượt giới hạn số tài khoản của gói."
+  },
+  "adminUpdateUser": {
+    "tag": "Tài khoản & thông báo",
+    "summary": "Sửa thông tin, vai trò, quyền hoặc phòng ban của một tài khoản.",
+    "args": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": "Id của tài khoản cần sửa (phải thuộc công ty đang quản lý, trừ khi là super admin).",
+        "example": "00000000-0000-0000-0000-000000000001"
+      },
+      {
+        "name": "fields",
+        "type": "object",
+        "required": true,
+        "description": "Các trường cần đổi, chỉ trường có mặt mới được cập nhật: hoTen, role ('staff' | 'admin' | 'super' - chỉ super admin gán được 'super'; tài khoản đang là super luôn giữ nguyên super), perms (mảng mã quyền; bị xóa rỗng khi role thành 'admin'), phongBan, congTyId (chỉ super admin đổi được; rỗng = bỏ gán công ty). Không đổi được username, email, mật khẩu qua hàm này.",
+        "example": {
+          "hoTen": "Nguyễn Văn B",
+          "role": "staff",
+          "perms": [],
+          "phongBan": "Mua hàng"
+        }
+      }
+    ],
+    "returns": "Object tài khoản sau khi sửa { id, username, hoTen, role, perms, active, createdAt, lastLogin, congTyId, email, phongBan }, hoặc { ok: true } nếu không có trường nào thay đổi."
+  },
+  "adminSetPassword": {
+    "tag": "Tài khoản & thông báo",
+    "summary": "Admin đặt lại mật khẩu cho một tài khoản.",
+    "args": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": "Id của tài khoản cần đặt lại mật khẩu.",
+        "example": "00000000-0000-0000-0000-000000000001"
+      },
+      {
+        "name": "newPassword",
+        "type": "string",
+        "required": true,
+        "description": "Mật khẩu mới, tối thiểu 4 ký tự.",
+        "example": "matkhau-moi-mau"
+      }
+    ],
+    "returns": "Object { ok: true }."
+  },
+  "adminSetActive": {
+    "tag": "Tài khoản & thông báo",
+    "summary": "Khóa hoặc mở khóa một tài khoản.",
+    "args": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": "Id của tài khoản cần khóa / mở khóa.",
+        "example": "00000000-0000-0000-0000-000000000001"
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "required": true,
+        "description": "true = mở khóa, false = khóa (không khóa được admin đang hoạt động cuối cùng của công ty).",
+        "example": false
+      }
+    ],
+    "returns": "Object { ok: true }."
+  },
+  "adminDeleteUser": {
+    "tag": "Tài khoản & thông báo",
+    "summary": "Xóa một tài khoản khỏi hệ thống.",
+    "args": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": "Id của tài khoản cần xóa; không tự xóa được tài khoản đang đăng nhập và không xóa được admin đang hoạt động cuối cùng.",
+        "example": "00000000-0000-0000-0000-000000000001"
+      }
+    ],
+    "returns": "Object { ok: true }."
+  },
+  "getAuditLog": {
+    "tag": "Tài khoản & thông báo",
+    "summary": "Lấy nhật ký thao tác (audit log), mới nhất trước.",
+    "args": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "required": false,
+        "description": "Số dòng tối đa cần lấy; mặc định 200, tối đa 1000.",
+        "example": 200
+      }
+    ],
+    "returns": "Mảng dòng nhật ký, mỗi phần tử gồm { id, username, action, detail, at }."
+  },
+  "notifCount": {
+    "tag": "Tài khoản & thông báo",
+    "summary": "Đếm số thông báo chưa đọc của tài khoản đang đăng nhập.",
+    "args": [],
+    "returns": "Object { unread } với unread là số thông báo chưa đọc (đếm tối đa 500)."
+  },
+  "notifList": {
+    "tag": "Tài khoản & thông báo",
+    "summary": "Lấy danh sách thông báo của tài khoản đang đăng nhập, mới nhất trước.",
+    "args": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "required": false,
+        "description": "Số thông báo tối đa cần lấy; mặc định 30, tối đa 100.",
+        "example": 30
+      }
+    ],
+    "returns": "Mảng thông báo, mỗi phần tử gồm { id, kind, title, body, refId, read, at }."
+  },
+  "notifRead": {
+    "tag": "Tài khoản & thông báo",
+    "summary": "Đánh dấu một thông báo của tài khoản đang đăng nhập là đã đọc.",
+    "args": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": "Id của thông báo cần đánh dấu đã đọc.",
+        "example": "00000000-0000-0000-0000-000000000002"
+      }
+    ],
+    "returns": "Object { ok: true }."
+  },
+  "notifReadAll": {
+    "tag": "Tài khoản & thông báo",
+    "summary": "Đánh dấu tất cả thông báo chưa đọc của tài khoản đang đăng nhập là đã đọc.",
+    "args": [],
+    "returns": "Object { ok: true }."
+  },
+  "logClientError": {
+    "tag": "Tài khoản & thông báo",
+    "summary": "Ghi lại lỗi JavaScript phía trình duyệt vào nhật ký hệ thống.",
+    "args": [
+      {
+        "name": "info",
+        "type": "object",
+        "required": true,
+        "description": "Thông tin lỗi: tab (tên tab đang mở, cắt còn 20 ký tự), msg (nội dung lỗi, cắt còn 300 ký tự), src (đường dẫn file gây lỗi, tùy chọn).",
+        "example": {
+          "tab": "boc",
+          "msg": "TypeError: x is undefined",
+          "src": "https://example.com/boc.js"
+        }
+      }
+    ],
+    "returns": "Object { ok: true }."
+  },
+  "bootstrap": {
+    "tag": "Dự án & bóc tách",
+    "summary": "Tải dữ liệu khởi động của ứng dụng: danh sách dự án, danh mục sản phẩm (bản cache) và dòng bóc tách của dự án đang mở.",
+    "args": [
+      {
+        "name": "maDA",
+        "type": "string",
+        "required": false,
+        "description": "Mã dự án đang mở; bỏ trống thì không tải dòng bóc tách (lines = []).",
+        "example": "DA-20261013-093015AB"
+      }
+    ],
+    "returns": "Object { projects, products, lines, catSheets (danh sách dòng sản phẩm không trùng), sheetCols (luôn là mảng rỗng) }."
+  },
+  "getProjects": {
+    "tag": "Dự án & bóc tách",
+    "summary": "Lấy danh sách dự án (bản nháp) của công ty, mới tạo xếp trước, tối đa 2000 dòng.",
+    "args": [],
+    "returns": "Mảng dự án, mỗi phần tử gồm maDA, ngayTao, capNhat, ten, khachHang, diaChi, sdt, trangThai, vat, tienDo, ghiChu, quyMo, tongDT, dtBaoGia, nhuCau, phanKhuc, maBaoGia, nhomTuTao, tangTuTao, tenBanNhap, linkDezon."
+  },
+  "createProject": {
+    "tag": "Dự án & bóc tách",
+    "summary": "Tạo dự án (bản nháp) mới; tự sinh mã dự án nếu không truyền và mặc định trạng thái 'Bản nháp'.",
+    "args": [
+      {
+        "name": "data",
+        "type": "object",
+        "required": false,
+        "description": "Thông tin dự án. Các trường được đọc: maDA (tuỳ chọn, bỏ trống thì tự sinh), ten, khachHang, diaChi, sdt, trangThai, vat, tienDo, ghiChu, quyMo, tongDT, dtBaoGia, nhuCau, phanKhuc, maBaoGia, nhomTuTao, tangTuTao, tenBanNhap, linkDezon. Trường null hoặc chuỗi rỗng bị bỏ qua.",
+        "example": {
+          "ten": "Nhà phố anh Minh",
+          "khachHang": "Nguyễn Văn Minh",
+          "diaChi": "12 Lê Lợi, Đà Nẵng",
+          "sdt": "0900000000",
+          "vat": 8,
+          "ghiChu": "Dự án mẫu"
+        }
+      }
+    ],
+    "returns": "Object dự án vừa tạo (maDA, ngayTao, capNhat, ten, khachHang, diaChi, sdt, trangThai, vat, tienDo, ...)."
+  },
+  "updateProject": {
+    "tag": "Dự án & bóc tách",
+    "summary": "Cập nhật các trường của một dự án theo mã dự án và ghi lại thời điểm cập nhật.",
+    "args": [
+      {
+        "name": "maDA",
+        "type": "string",
+        "required": true,
+        "description": "Mã dự án cần sửa.",
+        "example": "DA-20261013-093015AB"
+      },
+      {
+        "name": "fields",
+        "type": "object",
+        "required": false,
+        "description": "Các trường cần đổi; chỉ nhận: ten, khachHang, diaChi, sdt, trangThai, vat, tienDo, ghiChu, quyMo, tongDT, dtBaoGia, nhuCau, phanKhuc, maBaoGia, nhomTuTao, tangTuTao, tenBanNhap, linkDezon. Khoá khác bị bỏ qua.",
+        "example": {
+          "ten": "Nhà phố anh Minh (sửa)",
+          "trangThai": "Đang báo giá",
+          "vat": 10,
+          "tienDo": 30
+        }
+      }
+    ],
+    "returns": "Object dự án sau khi cập nhật (cùng cấu trúc với getProjects); null nếu không tìm thấy dự án."
+  },
+  "deleteProject": {
+    "tag": "Dự án & bóc tách",
+    "summary": "Xoá một dự án cùng toàn bộ dòng bóc tách, tờ bìa (khái toán) và dữ liệu rời của dự án đó.",
+    "args": [
+      {
+        "name": "maDA",
+        "type": "string",
+        "required": true,
+        "description": "Mã dự án cần xoá.",
+        "example": "DA-20261013-093015AB"
+      }
+    ],
+    "returns": "Object { ok: true }."
+  },
+  "duplicateProject": {
+    "tag": "Dự án & bóc tách",
+    "summary": "Nhân bản một dự án sang mã mới, kèm dòng bóc tách, tờ bìa và dữ liệu rời (không chép lịch sử phiên bản báo giá).",
+    "args": [
+      {
+        "name": "maDA",
+        "type": "string",
+        "required": true,
+        "description": "Mã dự án nguồn; không tìm thấy thì báo lỗi.",
+        "example": "DA-20261013-093015AB"
+      },
+      {
+        "name": "opts",
+        "type": "object",
+        "required": false,
+        "description": "Tuỳ chọn sao chép: boc (false = không chép dòng bóc tách), cover (false = không chép tờ bìa), pt (false = không chép bảng phần thô và VAT phần thô). Mặc định chép tất cả.",
+        "example": {
+          "boc": true,
+          "cover": true,
+          "pt": false
+        }
+      }
+    ],
+    "returns": "Object dự án mới vừa tạo (maDA mới, ngayTao, capNhat, ten, khachHang, ...)."
+  },
+  "getLines": {
+    "tag": "Dự án & bóc tách",
+    "summary": "Lấy toàn bộ dòng bóc tách của một dự án, xếp theo số thứ tự.",
+    "args": [
+      {
+        "name": "maDA",
+        "type": "string",
+        "required": true,
+        "description": "Mã dự án.",
+        "example": "DA-20261013-093015AB"
+      }
+    ],
+    "returns": "Mảng dòng bóc tách, mỗi dòng gồm lineId, maDA, stt, nhom, loai, tang, maSP, ten, thuongHieu, ncc, moTa, kichThuoc, hinhAnh, dvt, khuVuc, maBanVe, soLuong, donGiaVon, chietKhau, lnPct, donGiaBan, ckKhach, donGia, giamGiaNcc, thanhTienVon, thanhTienBan, trangThai, ghiChu, tuNhap, daLuuDM, extra."
+  },
+  "addLine": {
+    "tag": "Dự án & bóc tách",
+    "summary": "Thêm một dòng bóc tách vào dự án từ thông tin sản phẩm, tự đánh số thứ tự kế tiếp và tính các cột giá dẫn xuất.",
+    "args": [
+      {
+        "name": "maDA",
+        "type": "string",
+        "required": true,
+        "description": "Mã dự án nhận dòng mới; dự án không còn tồn tại thì báo lỗi.",
+        "example": "DA-20261013-093015AB"
+      },
+      {
+        "name": "product",
+        "type": "object",
+        "required": false,
+        "description": "Thông tin sản phẩm / dòng. Các trường được đọc: ma, ten, nhom, hangMuc (hoặc loai), tang, thuongHieu, ncc, moTa, kichThuoc, hinhAnh, dvt, khuVuc, maBanVe, donGiaVon, donGiaBan, lnPct, chietKhau, ckKhach, trangThai, ghiChu, tuNhap, daLuuDM, extra.",
+        "example": {
+          "ma": "SP-001",
+          "ten": "Đèn LED âm trần 9W",
+          "nhom": "3.2.5",
+          "dvt": "Cái",
+          "donGiaVon": 150000,
+          "donGiaBan": 180000,
+          "chietKhau": 20,
+          "khuVuc": "Phòng khách"
+        }
+      },
+      {
+        "name": "soLuong",
+        "type": "number",
+        "required": false,
+        "description": "Số lượng; bỏ trống hoặc 0 thì lấy 1.",
+        "example": 4
+      }
+    ],
+    "returns": "Object dòng bóc tách vừa tạo (cùng cấu trúc với phần tử của getLines)."
+  },
+  "addBlankLine": {
+    "tag": "Dự án & bóc tách",
+    "summary": "Thêm một dòng bóc tách trống tên 'Hạng mục mới' (đơn vị 'Cái', số lượng 1, giá 0) vào dự án.",
+    "args": [
+      {
+        "name": "maDA",
+        "type": "string",
+        "required": true,
+        "description": "Mã dự án nhận dòng mới.",
+        "example": "DA-20261013-093015AB"
+      },
+      {
+        "name": "opts",
+        "type": "object",
+        "required": false,
+        "description": "Vị trí của dòng trống: tang (tầng / khu vực), nhom (mã nhóm hạng mục).",
+        "example": {
+          "tang": "Tầng 1",
+          "nhom": "3.2.5"
+        }
+      }
+    ],
+    "returns": "Object dòng bóc tách vừa tạo (cùng cấu trúc với phần tử của getLines)."
+  },
+  "updateLine": {
+    "tag": "Dự án & bóc tách",
+    "summary": "Cập nhật một dòng bóc tách theo id và tính lại các cột giá, thành tiền, lợi nhuận.",
+    "args": [
+      {
+        "name": "lineId",
+        "type": "string",
+        "required": true,
+        "description": "Id của dòng bóc tách (lineId trả về từ getLines).",
+        "example": "1024"
+      },
+      {
+        "name": "fields",
+        "type": "object",
+        "required": false,
+        "description": "Các trường cần đổi (chỉ trường có mặt mới được ghi): nhom, loai, tang, ten, thuongHieu, ncc, moTa, kichThuoc, hinhAnh, dvt, khuVuc, maBanVe, maSP, trangThai, ghiChu, giamGiaNcc, tuNhap, daLuuDM, stt, extra, soLuong, donGiaVon, chietKhau, ckKhach, lnPct, donGiaBan. Gửi donGiaBan thì %LN được tính lại từ giá bán.",
+        "example": {
+          "soLuong": 6,
+          "donGiaBan": 185000,
+          "ckKhach": 5,
+          "khuVuc": "Phòng ngủ 1",
+          "ghiChu": "Đổi màu trắng"
+        }
+      }
+    ],
+    "returns": "Object dòng bóc tách sau khi cập nhật (cùng cấu trúc với getLines); null nếu không tìm thấy dòng."
+  },
+  "deleteLine": {
+    "tag": "Dự án & bóc tách",
+    "summary": "Xoá một dòng bóc tách theo id.",
+    "args": [
+      {
+        "name": "lineId",
+        "type": "string",
+        "required": true,
+        "description": "Id của dòng bóc tách cần xoá.",
+        "example": "1024"
+      }
+    ],
+    "returns": "Object { ok: true }."
+  },
+  "getProjData": {
+    "tag": "Dự án & bóc tách",
+    "summary": "Lấy dữ liệu rời của dự án (phần thô, diện tích, cài đặt báo giá...) gộp với cài đặt dùng chung của công ty; dữ liệu riêng dự án đè lên.",
+    "args": [
+      {
+        "name": "maDA",
+        "type": "string",
+        "required": true,
+        "description": "Mã dự án; bỏ trống thì trả về object rỗng.",
+        "example": "DA-20261013-093015AB"
+      }
+    ],
+    "returns": "Object ánh xạ khoá -> giá trị đã lưu (ví dụ phanTho, area, ptInfo, ptVat, cpCfg, bgCfg, bgHist, bgOrg, mhPay, btFmt); object rỗng nếu chưa có dữ liệu."
+  },
+  "setProjData": {
+    "tag": "Dự án & bóc tách",
+    "summary": "Lưu một khoá dữ liệu rời của dự án, hoặc cài đặt dùng chung của công ty khi mã dự án là '__cty'.",
+    "args": [
+      {
+        "name": "maDA",
+        "type": "string",
+        "required": true,
+        "description": "Mã dự án; truyền '__cty' để lưu cài đặt dùng chung cho cả công ty.",
+        "example": "DA-20261013-093015AB"
+      },
+      {
+        "name": "khoa",
+        "type": "string",
+        "required": true,
+        "description": "Khoá dữ liệu, chỉ nhận một trong: phanTho, area, ptInfo, ptVat, cpCfg, bgCfg, bgHist, bgOrg, mhPay, btFmt.",
+        "example": "ptVat"
+      },
+      {
+        "name": "giaTri",
+        "type": "number",
+        "required": false,
+        "description": "Giá trị JSON BẤT KỲ cần lưu (object, mảng, số, chuỗi - kiểu tuỳ theo khoá; ví dụ khoá ptVat là số % VAT phần thô); bỏ trống thì lưu null. Cấu trúc bên trong do client quy định - server không đọc.",
+        "example": 8
+      }
+    ],
+    "returns": "Object { ok: true }."
+  },
+  "saveCover": {
+    "tag": "Dự án & bóc tách",
+    "summary": "Ghi đè toàn bộ tờ bìa (khái toán) của dự án bằng danh sách dòng mới.",
+    "args": [
+      {
+        "name": "maDA",
+        "type": "string",
+        "required": true,
+        "description": "Mã dự án; dự án không còn tồn tại thì báo lỗi.",
+        "example": "DA-20261013-093015AB"
+      },
+      {
+        "name": "rows",
+        "type": "array",
+        "required": false,
+        "description": "Mảng dòng tờ bìa theo đúng thứ tự hiển thị, mỗi dòng gồm stt, hangMuc, moTa, chiPhi. Mảng rỗng thì xoá hết tờ bìa.",
+        "example": [
+          {
+            "stt": "3",
+            "hangMuc": "Phần hoàn thiện",
+            "moTa": "",
+            "chiPhi": 0
+          },
+          {
+            "stt": "3.2.5",
+            "hangMuc": "Thiết bị chiếu sáng",
+            "moTa": "Đèn LED các loại",
+            "chiPhi": 12500000
+          }
+        ]
+      }
+    ],
+    "returns": "Mảng dòng tờ bìa sau khi lưu, mỗi dòng gồm stt, hangMuc, moTa, chiPhi."
+  },
+  "buildCoverFromTemplate": {
+    "tag": "Dự án & bóc tách",
+    "summary": "Dựng tờ bìa từ mẫu chuẩn và tự cộng chi phí các mục lá theo thành tiền dòng bóc tách của dự án (không lưu vào database).",
+    "args": [
+      {
+        "name": "maDA",
+        "type": "string",
+        "required": false,
+        "description": "Mã dự án dùng để cộng chi phí; bỏ trống thì mọi chi phí bằng 0.",
+        "example": "DA-20261013-093015AB"
+      }
+    ],
+    "returns": "Mảng dòng tờ bìa theo mẫu, mỗi dòng gồm stt, hangMuc, moTa, chiPhi."
+  },
+  "getCoverOrInit": {
+    "tag": "Dự án & bóc tách",
+    "summary": "Lấy tờ bìa đã lưu của dự án; chưa có thì trả về tờ bìa dựng từ mẫu chuẩn.",
+    "args": [
+      {
+        "name": "maDA",
+        "type": "string",
+        "required": true,
+        "description": "Mã dự án.",
+        "example": "DA-20261013-093015AB"
+      }
+    ],
+    "returns": "Mảng dòng tờ bìa, mỗi dòng gồm stt, hangMuc, moTa, chiPhi."
+  },
+  "exportBaoGia": {
+    "tag": "Dự án & bóc tách",
+    "summary": "Xuất báo giá của dự án ra file Excel gồm tờ bìa, tổng cộng, phần hoàn thiện, phần thô và các sheet chi tiết theo nhóm.",
+    "args": [
+      {
+        "name": "maDA",
+        "type": "string",
+        "required": true,
+        "description": "Mã dự án cần xuất.",
+        "example": "DA-20261013-093015AB"
+      },
+      {
+        "name": "cols",
+        "type": "array",
+        "required": false,
+        "description": "Các cột xuất theo thứ tự, mỗi phần tử gồm key (khoá cột: ten, thuongHieu, ncc, moTa, kichThuoc, hinhAnh, dvt, soLuong, donGiaBan, thanhTienBan, tang, ghiChu...) và label (nhãn hiển thị, tuỳ chọn). Rỗng thì xuất mọi cột.",
+        "example": [
+          {
+            "key": "ten",
+            "label": "Tên sản phẩm"
+          },
+          {
+            "key": "dvt",
+            "label": "ĐVT"
+          },
+          {
+            "key": "soLuong",
+            "label": "Số lượng"
+          },
+          {
+            "key": "donGiaBan",
+            "label": "Đơn giá"
+          },
+          {
+            "key": "thanhTienBan",
+            "label": "Thành tiền"
+          }
+        ]
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "required": false,
+        "description": "Định dạng xuất; hàm không đọc tham số này (luôn trả file .xlsx).",
+        "example": "xlsx"
+      },
+      {
+        "name": "nodes",
+        "type": "array",
+        "required": false,
+        "description": "Mảng mã hạng mục được chọn; chỉ xuất dòng có nhom bằng mã đó hoặc là mục con của nó. Rỗng thì xuất hết.",
+        "example": [
+          "3.2.5",
+          "3.2.6"
+        ]
+      },
+      {
+        "name": "phanTho",
+        "type": "array",
+        "required": false,
+        "description": "Bảng phần thô do client gửi, mỗi mục gồm ten, tt (thành tiền) và items; mỗi item gồm n (nội dung công việc), dvt, kl, dg, tt, gc, và dgnt, ttnt (giá nhà thầu - chỉ in khi có gửi dgnt). Rỗng thì không tạo sheet Phần thô.",
+        "example": [
+          {
+            "ten": "Phần móng",
+            "tt": 50000000,
+            "items": [
+              {
+                "n": "Đào đất móng",
+                "dvt": "m3",
+                "kl": 20,
+                "dg": 250000,
+                "tt": 5000000,
+                "gc": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "anMuc",
+        "type": "array",
+        "required": false,
+        "description": "Mảng số thứ tự mục lớn cần ẩn khỏi tờ bìa (so với phần đầu của stt trước dấu chấm).",
+        "example": [
+          "4"
+        ]
+      },
+      {
+        "name": "tong",
+        "type": "array",
+        "required": false,
+        "description": "Các dòng của sheet Tổng cộng, mỗi dòng là cặp [nhãn, số tiền]; tối đa 20 dòng, dòng cuối được tô đậm. Rỗng thì không tạo sheet.",
+        "example": [
+          [
+            "Phần hoàn thiện",
+            120000000
+          ],
+          [
+            "VAT 8%",
+            9600000
+          ],
+          [
+            "Tổng cộng",
+            129600000
+          ]
+        ]
+      },
+      {
+        "name": "org",
+        "type": "string",
+        "required": false,
+        "description": "Tên công ty in trên báo giá, cắt còn tối đa 120 ký tự.",
+        "example": "Công ty TNHH Mẫu"
+      }
+    ],
+    "returns": "Object { name (tên file dạng BaoGia_<tên dự án>.xlsx), mimeType, base64 (nội dung file Excel mã hoá base64) }."
+  },
+  "getProducts": {
+    "tag": "Sản phẩm",
+    "summary": "Lấy toàn bộ danh mục sản phẩm của công ty (kèm kho chung Dezon nếu được bật), đã đánh dấu yêu thích và số sản phẩm đi kèm.",
+    "args": [],
+    "returns": "Mảng sản phẩm sắp theo tên; mỗi phần tử có recordId (ID dòng), ma, ten, nhom, hangMuc, nganh, thuongHieu, ncc, congSuat, nhietDo, gocChieu, mauSac, dvt, hinhAnh, giaBanLe, donGiaBan, daDuyet, nhomBT, raw..., kèm yeuThich (boolean) và comboN (số sản phẩm đi kèm); sản phẩm kho chung có spChung = true."
+  },
+  "saveLineAsProduct": {
+    "tag": "Sản phẩm",
+    "summary": "Lưu một dòng bóc tách thành sản phẩm trong danh mục (cần quyền sửa sản phẩm).",
+    "args": [
+      {
+        "name": "line",
+        "type": "object",
+        "required": true,
+        "description": "Dòng bóc tách cần lưu. Các trường được đọc: ten (bắt buộc), ma, nhom, hangMuc, thuongHieu, ncc, dvt, gia (nếu không có thì lấy donGiaBan), moTa, hinhAnh.",
+        "example": {
+          "ten": "Đèn downlight âm trần 9W",
+          "ma": "DL-009",
+          "nhom": "Downlight",
+          "hangMuc": "Đèn âm trần",
+          "thuongHieu": "Mẫu",
+          "ncc": "NCC Mẫu",
+          "dvt": "Cái",
+          "gia": 250000
+        }
+      }
+    ],
+    "returns": "Object sản phẩm vừa lưu: ten, ma, thuongHieu, ncc, nhom, hangMuc, dvt, donGiaVon, donGiaBan, hinhAnh, id, kèm created = true hoặc updated = true."
+  },
+  "saveDbProduct": {
+    "tag": "Sản phẩm",
+    "summary": "Thêm sản phẩm mới từ form Nhập dữ liệu, hoặc cập nhật nếu đã có sản phẩm trùng mã và trục biến thể (cần quyền sửa sản phẩm).",
+    "args": [
+      {
+        "name": "data",
+        "type": "object",
+        "required": true,
+        "description": "Dữ liệu sản phẩm dạng {NHÃN CỘT: giá trị}, khoá là nhãn tiếng Việt viết hoa. Bắt buộc 'TÊN SẢN PHẨM'. Các nhãn thường dùng: 'MÃ SẢN PHẨM', 'DÒNG SẢN PHẨM', 'HẠNG MỤC', 'THƯƠNG HIỆU', 'NHÀ CUNG CẤP', 'CÔNG SUẤT (W)', 'NHIỆT ĐỘ MÀU (K)', 'GÓC CHIẾU (°)', 'MÀU SẮC', 'KÍCH THƯỚC', 'ĐƠN VỊ TÍNH', 'GIÁ BÁN LẺ', 'CHIẾT KHẤU ĐẠI LÝ (%)', 'ẢNH SẢN PHẨM', 'NGÀNH HÀNG', 'TRẠNG THÁI', 'GHI CHÚ'. Nhãn không có trong bảng ánh xạ và giá trị rỗng bị bỏ qua.",
+        "example": {
+          "TÊN SẢN PHẨM": "Đèn downlight âm trần 9W",
+          "MÃ SẢN PHẨM": "DL-009",
+          "HẠNG MỤC": "Đèn âm trần",
+          "THƯƠNG HIỆU": "Mẫu",
+          "CÔNG SUẤT (W)": "9",
+          "NHIỆT ĐỘ MÀU (K)": "3000",
+          "ĐƠN VỊ TÍNH": "Cái",
+          "GIÁ BÁN LẺ": 250000
+        }
+      }
+    ],
+    "returns": "Object { created: true, ma, ten, id } khi tạo mới, hoặc { updated: true, ma, ten, id } khi ghi đè sản phẩm đã có."
+  },
+  "uploadImage": {
+    "tag": "Sản phẩm",
+    "summary": "Tải một ảnh sản phẩm (base64) lên kho lưu trữ, thư mục sp/.",
+    "args": [
+      {
+        "name": "base64",
+        "type": "string",
+        "required": true,
+        "description": "Nội dung ảnh dạng base64, nên có tiền tố data URL (data:image/png;base64,...) để nhận đúng loại ảnh; không có tiền tố thì coi là image/jpeg.",
+        "example": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+      },
+      {
+        "name": "fileName",
+        "type": "string",
+        "required": false,
+        "description": "Tên file gốc. Có trong chữ ký nhưng code không dùng (tên lưu được tự sinh).",
+        "example": "den-downlight.png"
+      }
+    ],
+    "returns": "Object { token, url } - cả hai đều là đường dẫn công khai của ảnh vừa tải lên."
+  },
+  "uploadFile": {
+    "tag": "Sản phẩm",
+    "summary": "Tải một file tài liệu (base64) lên kho lưu trữ, thư mục docs/ - bản cũ, giữ để tương thích.",
+    "args": [
+      {
+        "name": "base64",
+        "type": "string",
+        "required": true,
+        "description": "Nội dung file dạng base64, có thể kèm tiền tố data URL (data:application/pdf;base64,...) để lấy content-type. Tối đa 50MB.",
+        "example": "data:application/pdf;base64,JVBERi0xLjQKJeLjz9MK"
+      },
+      {
+        "name": "fileName",
+        "type": "string",
+        "required": true,
+        "description": "Tên file gốc, dùng để lấy đuôi và đặt tên lưu. Đuôi được phép: pdf, png, jpg, jpeg, webp, gif, dwg, dxf, skp, zip, rar, 7z, doc, docx, xls, xlsx, ppt, pptx.",
+        "example": "thong-so-ky-thuat.pdf"
+      }
+    ],
+    "returns": "Object { url, name } - đường dẫn file đã tải lên và tên file gốc."
+  },
+  "deleteDbProduct": {
+    "tag": "Sản phẩm",
+    "summary": "Xoá đúng một dòng sản phẩm (một biến thể) khỏi danh mục, dọn liên kết combo và yêu thích, ghi lịch sử và nhật ký (chỉ admin được gọi).",
+    "args": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true,
+        "description": "ID dòng sản phẩm (chuỗi toàn số) hoặc mã sản phẩm; truyền mã thì xoá biến thể có ID nhỏ nhất. Sản phẩm thuộc kho chung không xoá được.",
+        "example": "123"
+      }
+    ],
+    "returns": "Object { ok: true, ma, ten } của sản phẩm vừa xoá."
+  },
+  "getDbProduct": {
+    "tag": "Sản phẩm",
+    "summary": "Lấy một dòng sản phẩm thô từ bảng db_san_pham theo ID hoặc mã sản phẩm.",
+    "args": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true,
+        "description": "ID dòng sản phẩm (chuỗi toàn số) hoặc mã sản phẩm; truyền mã thì lấy biến thể có ID nhỏ nhất.",
+        "example": "123"
+      }
+    ],
+    "returns": "Dòng sản phẩm với khoá là tên cột snake_case (id, ma_sp, ten_sp, hang_muc, da_duyet, nhom_bt...), hoặc null nếu không tìm thấy hay key rỗng."
+  },
+  "updateDbProductTracked": {
+    "tag": "Sản phẩm",
+    "summary": "Sửa một sản phẩm và ghi lịch sử từng trường thay đổi; sản phẩm đã duyệt sẽ quay về chưa duyệt (cần quyền sửa sản phẩm).",
+    "args": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true,
+        "description": "ID dòng sản phẩm (chuỗi toàn số) hoặc mã sản phẩm. Sản phẩm thuộc kho chung không sửa được.",
+        "example": "123"
+      },
+      {
+        "name": "data",
+        "type": "object",
+        "required": true,
+        "description": "Các trường cần sửa dạng {NHÃN CỘT: giá trị mới}, cùng bộ nhãn tiếng Việt viết hoa như saveDbProduct ('TÊN SẢN PHẨM', 'GIÁ BÁN LẺ', 'THƯƠNG HIỆU', 'GHI CHÚ'...). Chỉ trường khác giá trị hiện tại mới được ghi; trường gửi giá trị rỗng sẽ bị xoá trắng (khác saveDbProduct).",
+        "example": {
+          "TÊN SẢN PHẨM": "Đèn downlight âm trần 12W",
+          "GIÁ BÁN LẺ": 280000,
+          "GHI CHÚ": "Cập nhật giá"
+        }
+      }
+    ],
+    "returns": "Object { updated: true, changes (số trường đã đổi), ten, ma, id, daDuyet }, hoặc { updated: false, changes: 0 } khi không có gì thay đổi."
+  },
+  "setSpDuyet": {
+    "tag": "Sản phẩm",
+    "summary": "Đánh dấu đã duyệt hoặc bỏ duyệt cho một hay nhiều sản phẩm (cần quyền duyệt sản phẩm).",
+    "args": [
+      {
+        "name": "keys",
+        "type": "array",
+        "required": true,
+        "description": "Danh sách ID dòng hoặc mã sản phẩm (cũng nhận một giá trị đơn). Truyền mã thì áp cho mọi biến thể cùng mã.",
+        "example": [
+          "123",
+          "DL-009"
+        ]
+      },
+      {
+        "name": "approve",
+        "type": "boolean",
+        "required": false,
+        "description": "true = duyệt, false = bỏ duyệt. Bỏ trống thì coi là true.",
+        "example": true
+      }
+    ],
+    "returns": "Object { ok, daDung, errors? } - số sản phẩm đã đổi trạng thái, số đã ở đúng trạng thái, và danh sách lỗi dạng { key, error } (chỉ có khi có lỗi)."
+  },
+  "setYeuThich": {
+    "tag": "Sản phẩm",
+    "summary": "Bật hoặc tắt dấu yêu thích của công ty cho một hay nhiều sản phẩm.",
+    "args": [
+      {
+        "name": "keys",
+        "type": "array",
+        "required": true,
+        "description": "Danh sách ID dòng hoặc mã sản phẩm (cũng nhận một giá trị đơn).",
+        "example": [
+          "123",
+          "456"
+        ]
+      },
+      {
+        "name": "on",
+        "type": "boolean",
+        "required": false,
+        "description": "true = thêm vào yêu thích, false = bỏ yêu thích. Bỏ trống thì coi là true.",
+        "example": true
+      }
+    ],
+    "returns": "Object { ok, errors? } - số sản phẩm xử lý được và danh sách lỗi dạng { key, error }."
+  },
+  "getCombo": {
+    "tag": "Sản phẩm",
+    "summary": "Lấy danh sách sản phẩm đi kèm (combo, hai chiều) của một sản phẩm.",
+    "args": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true,
+        "description": "ID dòng sản phẩm (chuỗi toàn số) hoặc mã sản phẩm.",
+        "example": "123"
+      }
+    ],
+    "returns": "Mảng sản phẩm đi kèm, mỗi phần tử là object sản phẩm kèm comboSL, comboGhiChu, comboId, comboNguoc và comboBoSL (khi liên kết ngược); mảng rỗng nếu không có."
+  },
+  "setCombo": {
+    "tag": "Sản phẩm",
+    "summary": "Ghi đè toàn bộ danh sách sản phẩm đi kèm của một sản phẩm (cần quyền sửa sản phẩm).",
+    "args": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true,
+        "description": "ID dòng sản phẩm (chuỗi toàn số) hoặc mã sản phẩm của sản phẩm chính. Sản phẩm thuộc kho chung không sửa được.",
+        "example": "123"
+      },
+      {
+        "name": "items",
+        "type": "array",
+        "required": true,
+        "description": "Danh sách sản phẩm đi kèm, mỗi phần tử là object { id (ID dòng sản phẩm kèm = recordId của getProducts, bắt buộc), soLuong (mặc định 1), ghiChu }. Mảng rỗng = bỏ hết combo.",
+        "example": [
+          {
+            "id": 456,
+            "soLuong": 2,
+            "ghiChu": "Bộ nguồn đi kèm"
+          }
+        ]
+      }
+    ],
+    "returns": "Object { ok: true, count } - số sản phẩm đi kèm sau khi lưu."
+  },
+  "getBienThe": {
+    "tag": "Sản phẩm",
+    "summary": "Lấy các sản phẩm cùng nhóm biến thể (gom tay qua cột nhom_bt) với một sản phẩm.",
+    "args": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true,
+        "description": "ID dòng sản phẩm (chuỗi toàn số) hoặc mã sản phẩm.",
+        "example": "123"
+      }
+    ],
+    "returns": "Mảng object sản phẩm cùng nhóm (không gồm chính nó), mỗi phần tử có thêm nhomBT; mảng rỗng nếu chưa gom nhóm."
+  },
+  "setBienThe": {
+    "tag": "Sản phẩm",
+    "summary": "Ghi đè nhóm biến thể của một sản phẩm; danh sách rỗng thì giải tán nhóm (cần quyền sửa sản phẩm).",
+    "args": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true,
+        "description": "ID dòng sản phẩm (chuỗi toàn số) hoặc mã sản phẩm. Sản phẩm thuộc kho chung không sửa được.",
+        "example": "123"
+      },
+      {
+        "name": "ids",
+        "type": "array",
+        "required": true,
+        "description": "Danh sách ID dòng của các sản phẩm cùng nhóm, không kể chính nó; mỗi phần tử là số/chuỗi số hoặc object có trường id.",
+        "example": [
+          456,
+          789
+        ]
+      }
+    ],
+    "returns": "Object { ok: true, count } - số sản phẩm cùng nhóm sau khi lưu."
+  },
+  "spMyPerms": {
+    "tag": "Sản phẩm",
+    "summary": "Trả về quyền sửa và duyệt sản phẩm của tài khoản đang đăng nhập.",
+    "args": [],
+    "returns": "Object { edit, duyet } kiểu boolean, kèm admin = true với tài khoản admin/super."
+  },
+  "getProductHistory": {
+    "tag": "Sản phẩm",
+    "summary": "Lấy lịch sử thay đổi của một sản phẩm theo mã, mới nhất trước, tối đa 200 dòng.",
+    "args": [
+      {
+        "name": "ma",
+        "type": "string",
+        "required": true,
+        "description": "Mã sản phẩm (khớp cột ma_sp của bảng lịch sử).",
+        "example": "DL-009"
+      }
+    ],
+    "returns": "Mảng object { field, old, new, by, at }; mảng rỗng nếu mã trống."
+  },
+  "importParse": {
+    "tag": "Sản phẩm",
+    "summary": "Đọc file Excel/CSV nhập hàng loạt và trả về danh sách sản phẩm đã phân tích để xem trước, chưa ghi vào cơ sở dữ liệu.",
+    "args": [
+      {
+        "name": "base64",
+        "type": "string",
+        "required": true,
+        "description": "Nội dung file dạng base64 thuần (không có tiền tố data URL).",
+        "example": "UEsDBBQABgAIAAAAIQ=="
+      },
+      {
+        "name": "ext",
+        "type": "string",
+        "required": false,
+        "description": "Đuôi file; chứa 'csv' thì đọc như CSV, còn lại đọc như xlsx.",
+        "example": "xlsx"
+      },
+      {
+        "name": "nganh",
+        "type": "string",
+        "required": false,
+        "description": "Ngành hàng: 'vs' (thiết bị vệ sinh), 'son' (sơn nước), 'ct' (công tắc - ổ cắm) thì đọc mọi sheet trừ 'Hướng dẫn'; giá trị khác hoặc bỏ trống = thiết bị đèn, chỉ đọc sheet đầu.",
+        "example": "vs"
+      }
+    ],
+    "returns": "Object { count, products, mapped, headers }; mỗi sản phẩm có ten, nhom, hangMuc, thuongHieu, ncc, ma, kichThuoc, dvt, gia, moTa, hinhAnh, _raw, _sheet, _nganh (tối đa 2000 dòng)."
+  },
+  "importCommit": {
+    "tag": "Sản phẩm",
+    "summary": "Ghi hàng loạt sản phẩm đã phân tích từ file vào danh mục, tự thêm mới hoặc cập nhật từng dòng (cần quyền sửa sản phẩm).",
+    "args": [
+      {
+        "name": "products",
+        "type": "array",
+        "required": true,
+        "description": "Danh sách sản phẩm, thường là products trả về từ importParse. Mỗi phần tử đọc các trường: ten, ma, nhom, hangMuc, thuongHieu, ncc, gia, moTa, dvt, hinhAnh, _raw (object {nhãn cột: giá trị} từ file), _nganh ('vs' | 'son' | 'ct').",
+        "example": [
+          {
+            "ten": "Bồn cầu một khối",
+            "ma": "BC-001",
+            "hangMuc": "Bồn cầu",
+            "thuongHieu": "Mẫu",
+            "dvt": "Bộ",
+            "gia": 5200000,
+            "hinhAnh": "",
+            "_nganh": "vs"
+          }
+        ]
+      }
+    ],
+    "returns": "Object { inserted, updated, errors? } - số dòng thêm mới, số dòng cập nhật, và danh sách lỗi dạng { i, ten, error }."
+  },
+  "requestDeleteProducts": {
+    "tag": "Sản phẩm",
+    "summary": "Tạo yêu cầu xoá sản phẩm chờ admin duyệt và gửi thông báo cho các admin.",
+    "args": [
+      {
+        "name": "items",
+        "type": "array",
+        "required": true,
+        "description": "Danh sách sản phẩm muốn xoá, mỗi phần tử là object { maSP (hoặc ma, bắt buộc), id (ID dòng, nên có để xoá đúng biến thể), ten }.",
+        "example": [
+          {
+            "maSP": "DL-009",
+            "id": "123",
+            "ten": "Đèn downlight âm trần 9W"
+          }
+        ]
+      }
+    ],
+    "returns": "Object { ok: true, count } - số sản phẩm hợp lệ trong yêu cầu."
+  },
+  "listDeleteRequests": {
+    "tag": "Sản phẩm",
+    "summary": "Liệt kê các yêu cầu xoá sản phẩm, mới nhất trước, tối đa 200 dòng (chỉ admin được gọi).",
+    "args": [],
+    "returns": "Mảng object { id, requester, items, status, at, resolvedAt, resolver }; status là 'pending', 'approved' hoặc 'rejected'."
+  },
+  "resolveDeleteRequest": {
+    "tag": "Sản phẩm",
+    "summary": "Duyệt (xoá các sản phẩm trong yêu cầu) hoặc từ chối một yêu cầu xoá đang chờ, rồi thông báo cho người gửi (chỉ admin được gọi).",
+    "args": [
+      {
+        "name": "id",
+        "type": "integer",
+        "required": true,
+        "description": "ID của yêu cầu xoá (lấy từ listDeleteRequests); yêu cầu phải đang ở trạng thái pending.",
+        "example": 12
+      },
+      {
+        "name": "approve",
+        "type": "boolean",
+        "required": false,
+        "description": "true = duyệt và xoá sản phẩm, false hoặc bỏ trống = từ chối.",
+        "example": true
+      }
+    ],
+    "returns": "Khi duyệt: { ok: true, deleted, loi } (số sản phẩm đã xoá và thông báo lỗi đầu tiên nếu có); khi từ chối: { ok: true }."
+  },
+  "ctList": {
+    "tag": "Công tác",
+    "summary": "Lấy toàn bộ thư viện công tác xây dựng (Phần thô) của công ty, sắp theo loại, thứ tự và ngày tạo.",
+    "args": [],
+    "returns": "Mảng công tác, mỗi phần tử gồm id, loai, mode, maNhom, hangMuc, deMuc, ten, dvt, ncc, kl, dt, hs, dgnt, dg, gc, hinhAnh, thongSo, phamVi, linkTaiLieu, daDuyet, nguoiDuyet, ngayDuyet, yeuThich, nguoiTao, ngayTao, nguoiSua, ngayCapNhat, thuTu (kl, dt, hs là số hoặc chuỗi rỗng khi chưa nhập); trả mảng rỗng nếu chưa có bảng cong_tac."
+  },
+  "ctSave": {
+    "tag": "Công tác",
+    "summary": "Thêm mới một hoặc nhiều công tác vào thư viện (cần quyền sửa sản phẩm); công tác mới ở trạng thái chưa duyệt.",
+    "args": [
+      {
+        "name": "data",
+        "type": "object",
+        "required": true,
+        "description": "Một object công tác hoặc MẢNG các object công tác (dòng thiếu ten bị bỏ qua). Các trường được đọc: ten (bắt buộc), loai (mặc định 'kt_chitiet'), mode (mặc định 'item'), maNhom, hangMuc, deMuc, dvt, ncc, kl (khối lượng), dt (diện tích), hs (hệ số), dgnt (đơn giá nhà thầu), dg (đơn giá), gc (ghi chú), hinhAnh, thongSo, phamVi, linkTaiLieu, thuTu.",
+        "example": {
+          "loai": "kt_chitiet",
+          "mode": "item",
+          "hangMuc": "Phần móng",
+          "ten": "Đào đất hố móng",
+          "dvt": "m3",
+          "ncc": "Nhà thầu A",
+          "kl": 12.5,
+          "dg": 150000
+        }
+      }
+    ],
+    "returns": "Object { ok: số công tác đã thêm, rows: mảng công tác vừa tạo (cùng cấu trúc như ctList) }."
+  },
+  "ctUpdate": {
+    "tag": "Công tác",
+    "summary": "Sửa một công tác theo id (cần quyền sửa sản phẩm); chỉ ghi các trường có trong patch và đưa công tác về trạng thái chưa duyệt.",
+    "args": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": "Id (UUID) của công tác cần sửa - lấy từ ctList.",
+        "example": "00000000-0000-0000-0000-000000000001"
+      },
+      {
+        "name": "patch",
+        "type": "object",
+        "required": true,
+        "description": "Các trường cần đổi; chỉ trường CÓ MẶT trong object mới được ghi: loai, mode, maNhom, hangMuc, deMuc, ten, dvt, ncc, kl, dt, hs, dgnt, dg, gc, hinhAnh, thongSo, phamVi, linkTaiLieu, thuTu.",
+        "example": {
+          "ten": "Đào đất hố móng bằng máy",
+          "dvt": "m3",
+          "dg": 165000,
+          "gc": "Đã cập nhật đơn giá"
+        }
+      }
+    ],
+    "returns": "Object công tác sau khi sửa (cùng cấu trúc một phần tử của ctList); báo lỗi nếu thiếu id hoặc không tìm thấy công tác."
+  },
+  "ctDelete": {
+    "tag": "Công tác",
+    "summary": "Xoá một hoặc nhiều công tác theo id (cần quyền sửa sản phẩm) và ghi lịch sử xoá.",
+    "args": [
+      {
+        "name": "ids",
+        "type": "array",
+        "required": true,
+        "description": "Mảng id công tác cần xoá; truyền một id đơn lẻ cũng được (server tự bọc thành mảng).",
+        "example": [
+          "00000000-0000-0000-0000-000000000001",
+          "00000000-0000-0000-0000-000000000002"
+        ]
+      }
+    ],
+    "returns": "Object { ok: số công tác đã xoá, errors?: tối đa 5 phần tử { id, error } cho các dòng lỗi }."
+  },
+  "ctDuyet": {
+    "tag": "Công tác",
+    "summary": "Duyệt hoặc bỏ duyệt một hoặc nhiều công tác (cần quyền duyệt sản phẩm).",
+    "args": [
+      {
+        "name": "ids",
+        "type": "array",
+        "required": true,
+        "description": "Mảng id công tác cần duyệt / bỏ duyệt; truyền một id đơn lẻ cũng được.",
+        "example": [
+          "00000000-0000-0000-0000-000000000001"
+        ]
+      },
+      {
+        "name": "approve",
+        "type": "boolean",
+        "required": false,
+        "description": "true = duyệt, false = bỏ duyệt; bỏ trống hoặc khác false thì coi là duyệt.",
+        "example": true
+      }
+    ],
+    "returns": "Object { ok: số công tác đã cập nhật, errors?: tối đa 5 phần tử { id, error } }."
+  },
+  "ctFav": {
+    "tag": "Công tác",
+    "summary": "Bật hoặc tắt đánh dấu yêu thích cho một hoặc nhiều công tác (mọi tài khoản đăng nhập đều dùng được).",
+    "args": [
+      {
+        "name": "ids",
+        "type": "array",
+        "required": true,
+        "description": "Mảng id công tác cần đánh dấu; truyền một id đơn lẻ cũng được.",
+        "example": [
+          "00000000-0000-0000-0000-000000000001"
+        ]
+      },
+      {
+        "name": "on",
+        "type": "boolean",
+        "required": false,
+        "description": "true = đánh dấu yêu thích, false = bỏ đánh dấu; bỏ trống hoặc khác false thì coi là bật.",
+        "example": true
+      }
+    ],
+    "returns": "Object { ok: số công tác đã cập nhật, errors?: tối đa 5 phần tử { id, error } }."
+  },
+  "ctHistory": {
+    "tag": "Công tác",
+    "summary": "Lấy lịch sử thay đổi của một công tác (tối đa 200 dòng, mới nhất trước).",
+    "args": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": "Id của công tác cần xem lịch sử; bỏ trống thì trả mảng rỗng.",
+        "example": "00000000-0000-0000-0000-000000000001"
+      }
+    ],
+    "returns": "Mảng thay đổi, mỗi phần tử gồm field (nhãn trường), old (giá trị cũ), new (giá trị mới), by (tên người sửa), at (thời điểm sửa)."
+  },
+  "listCongTy": {
+    "tag": "Công ty & hệ thống",
+    "summary": "Lấy danh sách tất cả công ty kèm số tài khoản của từng công ty (chỉ quản trị hệ thống - super).",
+    "args": [],
+    "returns": "Mảng công ty, mỗi phần tử gồm id, ten, ma, logoUrl, mauChinh, tinhNang (mảng), gioiHanUser, active, hanDung, ghiChu, ngayTao, email, sdt, dungSpDezon, soUser."
+  },
+  "createCongTy": {
+    "tag": "Công ty & hệ thống",
+    "summary": "Tạo công ty mới và tuỳ chọn tạo luôn tài khoản chủ công ty (chỉ quản trị hệ thống - super).",
+    "args": [
+      {
+        "name": "data",
+        "type": "object",
+        "required": true,
+        "description": "Thông tin công ty. Các trường được đọc: ten (bắt buộc), ma (bỏ trống thì sinh từ tên, phải duy nhất), logoUrl, email, sdt, tinhNang (mảng hoặc chuỗi ngăn bằng dấu phẩy), gioiHanUser (mặc định 10), active (mặc định true), hanDung, ghiChu, dungSpDezon (true = dùng kho SP chung), và tài khoản chủ công ty: adminUser + adminPass (có cả hai mới tạo; adminUser >= 3 ký tự chữ thường / số / . _ -, duy nhất toàn hệ thống; adminPass >= 4 ký tự), adminHoTen (mặc định 'Quản trị ' + tên công ty), adminEmail (mặc định lấy email công ty).",
+        "example": {
+          "ten": "Công ty Mẫu",
+          "ma": "cong-ty-mau",
+          "email": "lienhe@example.com",
+          "sdt": "0900000000",
+          "gioiHanUser": 10,
+          "adminUser": "admin.mau",
+          "adminPass": "mat-khau-mau",
+          "adminHoTen": "Quản trị Mẫu"
+        }
+      }
+    ],
+    "returns": "Object công ty vừa tạo gồm id, ten, ma, logoUrl, mauChinh, tinhNang, gioiHanUser, active, hanDung, ghiChu, ngayTao, email, sdt, dungSpDezon."
+  },
+  "updateCongTy": {
+    "tag": "Công ty & hệ thống",
+    "summary": "Cập nhật thông tin công ty: super sửa được mọi công ty và mọi trường, admin chỉ sửa được công ty của mình với vài trường cơ bản.",
+    "args": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": "Id (UUID) công ty cần sửa - lấy từ listCongTy; admin chỉ được truyền id công ty của chính mình.",
+        "example": "00000000-0000-0000-0000-0000000000c1"
+      },
+      {
+        "name": "data",
+        "type": "object",
+        "required": true,
+        "description": "Các trường cần đổi (trường vắng mặt / null thì giữ nguyên). Admin và super: ten, logoUrl, mauChinh, email, sdt. Chỉ super: tinhNang (mảng hoặc chuỗi), gioiHanUser, active, dungSpDezon, hanDung, ghiChu.",
+        "example": {
+          "ten": "Công ty Mẫu",
+          "mauChinh": "#1a73e8",
+          "email": "lienhe@example.com",
+          "sdt": "0900000000",
+          "gioiHanUser": 20,
+          "active": true
+        }
+      }
+    ],
+    "returns": "Object công ty sau khi cập nhật (id, ten, ma, logoUrl, mauChinh, tinhNang, gioiHanUser, active, hanDung, ghiChu, ngayTao, email, sdt, dungSpDezon); null nếu không tìm thấy công ty."
+  },
+  "deleteCongTy": {
+    "tag": "Công ty & hệ thống",
+    "summary": "Xoá vĩnh viễn một công ty cùng toàn bộ dữ liệu và tài khoản thuộc công ty đó (chỉ quản trị hệ thống - super).",
+    "args": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": "Id công ty cần xoá.",
+        "example": "00000000-0000-0000-0000-0000000000c1"
+      }
+    ],
+    "returns": "Object { ok: true, ten: tên công ty đã xoá }; báo lỗi nếu không tìm thấy công ty."
+  },
+  "listCongTyUsers": {
+    "tag": "Công ty & hệ thống",
+    "summary": "Lấy danh sách tài khoản của một công ty bất kỳ (chỉ quản trị hệ thống - super).",
+    "args": [
+      {
+        "name": "congTyId",
+        "type": "string",
+        "required": true,
+        "description": "Id công ty cần xem tài khoản.",
+        "example": "00000000-0000-0000-0000-0000000000c1"
+      }
+    ],
+    "returns": "Mảng tài khoản (tối đa 500), mỗi phần tử gồm id, username, hoTen, role, perms (mảng), active, createdAt, lastLogin, congTyId, email, phongBan."
+  },
+  "createCongTyUser": {
+    "tag": "Công ty & hệ thống",
+    "summary": "Tạo tài khoản mới cho một công ty được chỉ định (chỉ quản trị hệ thống - super).",
+    "args": [
+      {
+        "name": "congTyId",
+        "type": "string",
+        "required": true,
+        "description": "Id công ty mà tài khoản mới sẽ thuộc về (ghi đè data.congTyId).",
+        "example": "00000000-0000-0000-0000-0000000000c1"
+      },
+      {
+        "name": "data",
+        "type": "object",
+        "required": true,
+        "description": "Thông tin tài khoản. Các trường được đọc: username (bắt buộc, >= 3 ký tự chữ thường / số / . _ -, duy nhất toàn hệ thống), password (bắt buộc, >= 4 ký tự), role ('staff' mặc định, 'admin' hoặc 'super'), perms (mảng quyền, chỉ áp dụng cho staff), hoTen, email, phongBan.",
+        "example": {
+          "username": "nhanvien.mau",
+          "password": "mat-khau-mau",
+          "role": "staff",
+          "perms": [],
+          "hoTen": "Nguyễn Văn Mẫu",
+          "email": "nhanvien@example.com",
+          "phongBan": "Kỹ thuật"
+        }
+      }
+    ],
+    "returns": "Object tài khoản vừa tạo gồm id, username, hoTen, role, perms, active, createdAt, lastLogin, congTyId, email, phongBan."
+  },
+  "baoCaoNhapSP": {
+    "tag": "Công ty & hệ thống",
+    "summary": "Gom sản phẩm nhập mới trong kỳ, tách theo công ty và gửi mỗi công ty một thẻ báo cáo lên Lark (hoặc chỉ xem thử khi dryRun).",
+    "args": [
+      {
+        "name": "opts",
+        "type": "object",
+        "required": false,
+        "description": "Tuỳ chọn chạy tay. Các trường được đọc: tuVN (chuỗi ngày giờ ISO - mốc bắt đầu kỳ báo cáo; giờ Việt Nam được viết ở dạng UTC, tức 8h00 sáng VN ghi là '...T08:00:00Z' vì server tự trừ 7 giờ; bỏ trống thì lấy 8h00 của ngày gửi báo cáo trước đó - thứ 4 hoặc thứ 7), dryRun (true = chỉ trả số liệu, KHÔNG gửi Lark).",
+        "example": {
+          "tuVN": "2026-10-07T08:00:00Z",
+          "dryRun": true
+        }
+      }
+    ],
+    "returns": "Object { sent, count, khuyet, the }: khi dryRun thì sent=false kèm soThe, tu và the là mảng { congTy, ctKey, bang, tk, khuyet, nganh }; khi gửi thật thì sent = true nếu có ít nhất một thẻ gửi thành công và the là mảng { congTy, soSP, sent }; không có dữ liệu / mốc thời gian sai / không đọc được sản phẩm thì trả { sent: false, count: 0, message } (kèm khuyet khi chỉ có sản phẩm thiếu người nhập)."
+  },
+  "sendPurchaseRequest": {
+    "tag": "Mua hàng & đề xuất",
+    "summary": "Gửi yêu cầu mua hàng: lưu mỗi nhà cung cấp thành 1 đơn ở trạng thái \"Chờ duyệt\", thông báo cho Admin và gửi thẻ vào nhóm Lark.",
+    "args": [
+      {
+        "name": "order",
+        "type": "object",
+        "required": true,
+        "description": "Yêu cầu mua hàng. Trường chung: maDA, project (tên dự án), hangMuc (hoặc node), nguoiGui, phongBan, ghiChu, khachHang, sdt (2 trường cuối chỉ hiện trên thẻ Lark), kenh (mặc định 'Lark'), ketQua. orders: mảng đơn theo nhà cung cấp, mỗi phần tử gồm supplier, total (tổng đã gồm VAT), vat, vatPct, items[]. Mỗi item: ma, ten, thuongHieu, khuVuc, dvt (mặc định 'Cái'), sl, donGia, hinhAnh, donGiaGoc và giamGiaPct (2 trường cuối chỉ dùng cho thẻ Lark). requesterId do server tự gán từ người đăng nhập.",
+        "example": {
+          "maDA": "DA-0001",
+          "project": "Nhà phố Anh Minh",
+          "hangMuc": "Thiết bị điện",
+          "nguoiGui": "Nguyễn Văn A",
+          "phongBan": "Mua hàng",
+          "ghiChu": "Cần giao trước ngày 20",
+          "orders": [
+            {
+              "supplier": "Công ty Mẫu",
+              "total": 1100000,
+              "vat": 100000,
+              "vatPct": 10,
+              "items": [
+                {
+                  "ma": "SP001",
+                  "ten": "Đèn âm trần 9W",
+                  "thuongHieu": "Mẫu",
+                  "khuVuc": "Phòng khách",
+                  "dvt": "Cái",
+                  "sl": 10,
+                  "donGia": 100000
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "returns": "Object { ok: true, saved: mảng mã đơn vừa tạo (dạng MH-...), lark: true/false cho biết gửi thẻ Lark có thành công không }."
+  },
+  "getPurchaseOrders": {
+    "tag": "Mua hàng & đề xuất",
+    "summary": "Lấy danh sách đơn mua hàng đã gửi của một dự án, kèm chi tiết sản phẩm, mới nhất trước.",
+    "args": [
+      {
+        "name": "maDA",
+        "type": "string",
+        "required": true,
+        "description": "Mã dự án (lọc theo cột ma_du_an của đơn mua hàng).",
+        "example": "DA-0001"
+      }
+    ],
+    "returns": "Mảng đơn, mỗi đơn gồm maDon, ncc, hangMuc, soSP, tongTruocVat, vatPct, vat, tongCong, trangThai, nguoiGui, phongBan, ghiChu, ngayGui và items[] (ma, ten, thuongHieu, khuVuc, dvt, sl, donGia, thanhTien, hinhAnh); không có đơn thì trả mảng rỗng."
+  },
+  "setPurchaseStatus": {
+    "tag": "Mua hàng & đề xuất",
+    "summary": "Chuyển trạng thái theo dõi đơn mua hàng đúng một bước: \"Đã duyệt\" -> \"Đã đặt hàng\" -> \"Đã nhận hàng\".",
+    "args": [
+      {
+        "name": "maDon",
+        "type": "string",
+        "required": true,
+        "description": "Mã đơn mua hàng.",
+        "example": "MH-LX3K9A2B-1234"
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "required": true,
+        "description": "Trạng thái mới, chỉ nhận \"Đã đặt hàng\" (đơn phải đang \"Đã duyệt\") hoặc \"Đã nhận hàng\" (đơn phải đang \"Đã đặt hàng\"); giá trị khác báo lỗi \"Trạng thái không hợp lệ\".",
+        "example": "Đã đặt hàng"
+      }
+    ],
+    "returns": "Object { ok: true, status: trạng thái mới }; báo lỗi nếu đơn không ở trạng thái liền trước."
+  },
+  "listPurchaseRequests": {
+    "tag": "Mua hàng & đề xuất",
+    "summary": "Liệt kê tối đa 200 đơn mua hàng mới nhất (mọi trạng thái) để Admin xem và duyệt.",
+    "args": [],
+    "returns": "Mảng đơn, mỗi phần tử gồm maDon, project, supplier, soSp, total, status, requester, phongBan, at (thời điểm gửi)."
+  },
+  "getPurchaseOrder": {
+    "tag": "Mua hàng & đề xuất",
+    "summary": "Lấy chi tiết một đơn mua hàng (thông tin đơn và danh sách sản phẩm) để Admin xem trước khi duyệt.",
+    "args": [
+      {
+        "name": "maDon",
+        "type": "string",
+        "required": true,
+        "description": "Mã đơn mua hàng.",
+        "example": "MH-LX3K9A2B-1234"
+      }
+    ],
+    "returns": "Object gồm maDon, project, maDA, supplier, hangMuc, soSp, tongTruocVat, vatPct, vat, total, status, requester, phongBan, ghiChu, at, nguoiDuyet, ngayDuyet và items[] (ma, ten, thuongHieu, phong, dvt, sl, donGia, thanhTien, hinhAnh); báo lỗi nếu không tìm thấy đơn."
+  },
+  "resolvePurchaseRequest": {
+    "tag": "Mua hàng & đề xuất",
+    "summary": "Duyệt hoặc từ chối một đơn mua hàng đang \"Chờ duyệt\" và thông báo cho người gửi.",
+    "args": [
+      {
+        "name": "maDon",
+        "type": "string",
+        "required": true,
+        "description": "Mã đơn mua hàng.",
+        "example": "MH-LX3K9A2B-1234"
+      },
+      {
+        "name": "approve",
+        "type": "boolean",
+        "required": true,
+        "description": "true = chuyển sang \"Đã duyệt\"; false (hoặc bỏ trống) = \"Từ chối\".",
+        "example": true
+      }
+    ],
+    "returns": "Object { ok: true }; báo lỗi nếu không tìm thấy đơn hoặc đơn đã được xử lý."
+  },
+  "getDeXuatList": {
+    "tag": "Mua hàng & đề xuất",
+    "summary": "Lấy danh sách đề xuất (chiết khấu / thanh toán) của một dự án, kèm các dòng chi tiết, mới nhất trước.",
+    "args": [
+      {
+        "name": "maDA",
+        "type": "string",
+        "required": true,
+        "description": "Mã dự án (lọc theo cột ma_du_an của đề xuất).",
+        "example": "DA-0001"
+      }
+    ],
+    "returns": "Mảng đề xuất (tối đa 300), mỗi phần tử gồm ma, loai ('ck' hoặc 'tt'), maDA, project, hangMuc, supplier, soDong, tongGoc, tongDeXuat, tienGiam, vatPct, vat, total, status, requester, phongBan, ghiChu, nguoiDuyet, ngayDuyet, at và items[] (ma, ten, thuongHieu, phong, dvt, sl, donGiaGoc, pct, donGia, thanhTien, ngay, ghiChu, hinhAnh); trả mảng rỗng nếu không có hoặc chưa có bảng de_xuat."
+  },
+  "sendDeXuat": {
+    "tag": "Mua hàng & đề xuất",
+    "summary": "Gửi một đề xuất chiết khấu hoặc thanh toán: lưu phiếu ở trạng thái \"Chờ duyệt\" (không tạo đơn mua hàng), thông báo cho Admin và gửi thẻ vào nhóm Lark.",
+    "args": [
+      {
+        "name": "dx",
+        "type": "object",
+        "required": true,
+        "description": "Phiếu đề xuất. Trường chung: loai ('tt' = thanh toán, giá trị khác = 'ck' chiết khấu), maDA, project, hangMuc, supplier, vatPct (chỉ áp dụng cho loai 'ck'), nguoiGui, phongBan, ghiChu. Với loai 'ck': items[] gồm ma, ten, thuongHieu, khuVuc, dvt (mặc định 'Cái'), sl, donGiaGoc, giamGiaPct, donGia, hinhAnh. Với loai 'tt': tongDon (giá trị đơn hàng) và dots[] gồm dot (số đợt), pct, tien, ngay (ngày dự kiến), gc (ghi chú). requesterId do server tự gán từ người đăng nhập.",
+        "example": {
+          "loai": "ck",
+          "maDA": "DA-0001",
+          "project": "Nhà phố Anh Minh",
+          "hangMuc": "Thiết bị điện",
+          "supplier": "Công ty Mẫu",
+          "vatPct": 10,
+          "nguoiGui": "Nguyễn Văn A",
+          "items": [
+            {
+              "ma": "SP001",
+              "ten": "Đèn âm trần 9W",
+              "dvt": "Cái",
+              "sl": 10,
+              "donGiaGoc": 100000,
+              "giamGiaPct": 10,
+              "donGia": 90000
+            }
+          ]
+        }
+      }
+    ],
+    "returns": "Object { ok: true, ma: mã phiếu (CK-... hoặc TT-...), loai ('ck' hoặc 'tt'), total: tổng đề xuất (loại 'ck' đã cộng VAT theo vatPct; loại 'tt' là tổng tiền các đợt, không tính VAT), lark: true/false cho biết gửi thẻ Lark có thành công không }."
+  },
+  "listDeXuat": {
+    "tag": "Mua hàng & đề xuất",
+    "summary": "Liệt kê tối đa 200 đề xuất mới nhất (mọi trạng thái) để Admin duyệt, có thể lọc theo loại.",
+    "args": [
+      {
+        "name": "loai",
+        "type": "string",
+        "required": false,
+        "description": "Loại đề xuất cần lọc: 'ck' (chiết khấu) hoặc 'tt' (thanh toán); bỏ trống = lấy tất cả.",
+        "example": "ck"
+      }
+    ],
+    "returns": "Mảng đề xuất, mỗi phần tử gồm ma, loai, maDA, project, hangMuc, supplier, soDong, tongGoc, tongDeXuat, tienGiam, vatPct, vat, total, status, requester, phongBan, ghiChu, nguoiDuyet, ngayDuyet, at (không kèm items); trả mảng rỗng nếu chưa có bảng de_xuat."
+  },
+  "getDeXuat": {
+    "tag": "Mua hàng & đề xuất",
+    "summary": "Lấy chi tiết một đề xuất (thông tin phiếu và các dòng sản phẩm hoặc đợt thanh toán).",
+    "args": [
+      {
+        "name": "ma",
+        "type": "string",
+        "required": true,
+        "description": "Mã đề xuất (dạng CK-... hoặc TT-...).",
+        "example": "CK-LX3K9A2B-1234"
+      }
+    ],
+    "returns": "Object gồm ma, loai, maDA, project, hangMuc, supplier, soDong, tongGoc, tongDeXuat, tienGiam, vatPct, vat, total, status, requester, phongBan, ghiChu, nguoiDuyet, ngayDuyet, at và items[] (ma, ten, thuongHieu, phong, dvt, sl, donGiaGoc, pct, donGia, thanhTien, ngay, ghiChu, hinhAnh); báo lỗi nếu không tìm thấy."
+  },
+  "resolveDeXuat": {
+    "tag": "Mua hàng & đề xuất",
+    "summary": "Duyệt hoặc từ chối một đề xuất đang \"Chờ duyệt\", ghi người duyệt và ngày duyệt, rồi thông báo cho người gửi.",
+    "args": [
+      {
+        "name": "ma",
+        "type": "string",
+        "required": true,
+        "description": "Mã đề xuất (dạng CK-... hoặc TT-...).",
+        "example": "CK-LX3K9A2B-1234"
+      },
+      {
+        "name": "approve",
+        "type": "boolean",
+        "required": true,
+        "description": "true = chuyển sang \"Đã duyệt\"; false (hoặc bỏ trống) = \"Từ chối\".",
+        "example": true
+      }
+    ],
+    "returns": "Object { ok: true }; báo lỗi nếu không tìm thấy đề xuất hoặc đề xuất đã được xử lý."
+  }
+}

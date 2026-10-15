@@ -1,0 +1,208 @@
+/* =====================================================================
+   QS - tab Admin (components/admin). Port các lớp .sechd/.astat/.dbcard/.rq-item/.admtbl/.amodal/.pur-* của bản gốc
+   (PUB/index.html:599, 1005-1037, 1326-1361, 1560-1589, 2812-2860, 3014-3053, 3194, 3869-3876, 5098-5125).
+   Mọi class có tiền tố "qsa-", không chứa -page / -modal / -menu / -popover / -drawer / -ai-panel / -mono.
+   Màu lấy từ biến của .qs-page nên đổi theo giao diện sáng / tối. Tab Công ty dùng lại nút + khung hộp ở đây.
+   ===================================================================== */
+
+/* ---------- Khung tab + tiêu đề (.sechd) ---------- */
+.qsa-root{display:flex; flex-direction:column; min-width:0; padding:0 4px 20px;}
+.qsa-hd{display:flex; align-items:center; gap:10px; padding:2px 0 14px; margin-top:6px;}
+.qsa-hd h2{position:relative; padding-left:13px; margin:0; font-size:17px; font-weight:650; letter-spacing:-.02em; color:var(--text);}
+.qsa-hd h2::before{content:''; position:absolute; left:0; top:52%; transform:translateY(-50%); width:4px; height:18px; border-radius:3px; background:linear-gradient(180deg, var(--dash-accent), var(--dash-navy));}
+.qsa-hd .qsa-count{display:inline-flex; align-items:center; justify-content:center; min-width:24px; height:22px; padding:0 8px; border-radius:11px; background:var(--surface-alt); color:var(--text-muted); font-size:12px; font-weight:600;}
+.qsa-hd .qsa-sp{flex:1;}
+.qsa-empty{padding:26px 14px; text-align:center; color:var(--text-muted); font-size:13px;}
+.qsa-muted{color:var(--text-muted);}
+
+/* ---------- Nút (.btn blue / ghost / xs / sm / danger) ---------- */
+.qsa-btn{height:34px; padding:0 14px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font:inherit; font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; white-space:nowrap;}
+.qsa-btn:hover{background:var(--surface-alt);}
+.qsa-btn.blue{background:var(--dash-accent); border-color:var(--dash-accent); color:#fff;}
+.qsa-btn.blue:hover{filter:brightness(1.08);}
+.qsa-btn.sm{height:30px; padding:0 12px; font-size:12.5px;}
+.qsa-btn.xs{height:26px; padding:0 9px; font-size:11.5px; font-weight:550; border-radius:6px;}
+.qsa-btn.danger{color:var(--danger);}
+.qsa-btn.blue.danger{color:#fff;}
+.qsa-btn.ghost.danger:hover{background:var(--danger-tint); border-color:var(--danger);}
+.qsa-btn:disabled{opacity:.55; cursor:not-allowed; filter:none;}
+
+/* ---------- Ô thống kê (.astats / .astat) ---------- */
+.qsa-stats{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:14px; margin:0 0 4px;}
+.qsa-stat{display:flex; align-items:center; gap:13px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:15px 18px;}
+.qsa-stat.warn{border-color:#f6d99a; background:#fffdf6;}
+.qsa-stat-ic{width:42px; height:42px; border-radius:11px; background:var(--surface-alt); color:var(--text-muted); display:flex; align-items:center; justify-content:center; flex:none;}
+.qsa-stat.warn .qsa-stat-ic{background:var(--finance-tint); color:var(--finance);}
+.qsa-stat-v{font-size:22px; font-weight:800; color:var(--text); line-height:1;}
+.qsa-stat-l{font-size:12px; color:var(--text-muted); margin-top:4px;}
+html[data-theme="dark"] .qsa-stat.warn{border-color:#5c4718; background:var(--finance-tint);}
+
+/* ---------- Thẻ (.dbcard) ---------- */
+.qsa-card{background:var(--surface); border:1px solid var(--border); border-radius:14px; margin-top:14px; overflow:hidden;}
+.qsa-card-h{display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid var(--border); background:var(--dash-soft);}
+.qsa-card-h h3{margin:0; font-size:14.5px; font-weight:650; letter-spacing:-.012em; color:var(--text);}
+.qsa-card-ic{width:32px; height:32px; border-radius:9px; background:var(--surface-alt); color:var(--text-muted); display:flex; align-items:center; justify-content:center; flex:none;}
+.qsa-card-b{padding:16px 20px;}
+.qsa-note{color:var(--text-muted); font-size:12.5px; margin:0 0 12px;}
+.qsa-hint{font-size:12px; color:var(--text-muted); margin-left:2px;}
+.qsa-pend{background:var(--finance-tint); color:var(--finance); font-size:11px; font-weight:600; padding:3px 10px; border-radius:6px; margin-left:8px;}
+.qsa-warn{display:flex; align-items:flex-start; gap:9px; margin:0 0 12px; padding:10px 13px; border-radius:8px; background:var(--finance-tint); border:1px solid #f5d78e; color:var(--text); font-size:12.5px; line-height:1.5;}
+.qsa-warn-ic{flex:none; width:18px; height:18px; border-radius:50%; background:#b45309; color:#fff; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center;}
+html[data-theme="dark"] .qsa-warn{border-color:#5c4718;}
+
+/* ---------- Bảng (.admtbl, tiêu đề nền navy) ---------- */
+.qsa-tblwrap{overflow:auto; border:1px solid var(--border); border-radius:10px;}
+.qsa-tbl{width:100%; border-collapse:collapse; font-size:12px;}
+.qsa-tbl th, .qsa-pur-tbl th{position:relative; background:var(--dash-navy); color:#fff; font-size:11px; font-weight:600; letter-spacing:.01em; padding:11px 12px; text-align:left; white-space:nowrap;}
+.qsa-tbl th:not(:last-child)::before, .qsa-pur-tbl th:not(:last-child)::before{content:''; position:absolute; right:0; top:8px; bottom:8px; width:1px; background:rgba(255,255,255,.16); pointer-events:none;}
+.qsa-tbl td{padding:9px 12px; border-bottom:1px solid var(--border); vertical-align:middle; font-size:11.5px; color:var(--text);}
+.qsa-tbl tr:last-child td{border-bottom:none;}
+.qsa-tbl tr:hover td{background:var(--dash-accent-tint);}
+.qsa-tbl tr.locked td{opacity:.6;}
+.qsa-uav{display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:var(--dash-accent-tint); color:var(--dash-accent); font-weight:800; font-size:12px; margin-right:9px; vertical-align:middle;}
+.qsa-uav.adm{background:var(--qs-tint); color:var(--qs);}
+.qsa-mail{display:block; font-size:10.5px; color:var(--text-muted); letter-spacing:.03em; margin-left:37px;}
+.qsa-role{font-size:11px; font-weight:600; padding:2px 9px; border-radius:20px; white-space:nowrap;}
+.qsa-role.adm{background:var(--dash-accent-tint); color:#4f46e5;}
+.qsa-role.stf{background:var(--success-tint); color:var(--success);}
+.qsa-role.sup{background:var(--qs-tint); color:#7c3aed;}
+html[data-theme="dark"] .qsa-role.adm{color:#a5b4fc;}
+html[data-theme="dark"] .qsa-role.sup{color:var(--qs);}
+.qsa-permcol{white-space:normal; max-width:280px;}
+.qsa-permchip{display:inline-block; font-size:10.5px; background:var(--dash-accent-tint); color:#4f46e5; border-radius:6px; padding:2px 7px; margin:1px 0;}
+html[data-theme="dark"] .qsa-permchip{color:#a5b4fc;}
+.qsa-st-ok{color:var(--success); font-size:12px; font-weight:600; white-space:nowrap;}
+.qsa-st-lk{color:var(--danger); font-size:12px; font-weight:600; white-space:nowrap;}
+.qsa-st-lk[title]{cursor:help;}
+.qsa-act{white-space:nowrap; display:flex; gap:5px;}
+
+/* ---------- Dòng yêu cầu (.rq-item) ---------- */
+.qsa-card-b.qsa-rq-body{padding:6px 8px;}
+.qsa-rq{display:flex; align-items:center; gap:12px; padding:12px 10px; border-radius:10px;}
+.qsa-rq + .qsa-rq{border-top:1px solid var(--border);}
+.qsa-rq:hover{background:var(--dash-soft);}
+.qsa-rq.clickable{cursor:pointer;}
+.qsa-rq-ic{width:34px; height:34px; border-radius:8px; flex:none; display:flex; align-items:center; justify-content:center;}
+.qsa-rq-ic.pending{background:var(--finance-tint); color:var(--finance);}
+.qsa-rq-ic.approved{background:var(--success-tint); color:var(--success);}
+.qsa-rq-ic.rejected{background:var(--danger-tint); color:var(--danger);}
+.qsa-rq-main{flex:1; min-width:0;}
+.qsa-rq-title{font-size:13.5px; color:var(--text);}
+.qsa-rq-title b, .qsa-rq-amt{font-weight:700; color:var(--text);}
+.qsa-rq-view{margin-left:9px; font-size:10.5px; font-weight:500; color:var(--dash-accent); opacity:0; transition:opacity .14s; white-space:nowrap;}
+.qsa-rq.clickable:hover .qsa-rq-view{opacity:1;}
+.qsa-rq-meta{font-size:12px; color:var(--text-muted); margin-top:4px; display:flex; flex-wrap:wrap; gap:5px; align-items:center;}
+.qsa-rq-meta b{color:var(--text); font-weight:600;}
+.qsa-rq-meta .it{background:var(--surface-alt); border-radius:6px; padding:2px 8px; font-size:11px;}
+.qsa-rq-by{color:var(--text-muted); opacity:.8;}
+.qsa-rq-side{display:flex; align-items:center; gap:12px; flex:none;}
+.qsa-rq-act{display:flex; gap:6px;}
+.qsa-rq-time{font-size:11px; color:var(--text-muted); white-space:nowrap; min-width:92px; text-align:right;}
+.qsa-badge{font-size:10.5px; font-weight:600; padding:2px 9px; border-radius:6px; white-space:nowrap;}
+.qsa-badge.approved{background:var(--success-tint); color:var(--success);}
+.qsa-badge.rejected{background:var(--danger-tint); color:var(--danger);}
+.qsa-badge.pending{background:var(--finance-tint); color:var(--finance);}
+@keyframes qsaFlash{0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,0)} 18%{box-shadow:0 0 0 3px rgba(37,99,235,.35)}}
+.qsa-flash{animation:qsaFlash 1.8s ease-in-out 2; border-radius:10px;}
+
+/* ---------- Khung hộp chi tiết (.sp-modal-ov / .sp-modal.pd / .pd-head); nền mờ theo PUB/index.html:3999 ---------- */
+.qsa-ov{position:fixed; inset:0; z-index:90; background:rgba(12,24,38,.42); -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px); display:flex; align-items:flex-start; justify-content:center; padding:44px 16px; overflow:auto;}
+.qsa-dlg{width:640px; max-width:100%; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:16px; box-shadow:0 24px 60px rgba(0,0,0,.28); padding:16px 20px 20px; font-size:13px; line-height:1.5;}
+.qsa-dlg.wide{width:900px;}
+.qsa-dlg-h{display:flex; align-items:center; justify-content:space-between; gap:10px; padding-bottom:10px; margin-bottom:12px; border-bottom:1px solid var(--border);}
+.qsa-dlg-h h3{display:flex; align-items:center; gap:7px; margin:0; font-size:14.5px; font-weight:650; letter-spacing:-.015em; min-width:0;}
+.qsa-x{flex:none; width:27px; height:27px; border:none; border-radius:50%; background:var(--surface-alt); color:var(--text-muted); font-size:13px; line-height:1; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;}
+.qsa-x:hover{color:var(--text);}
+
+/* ---------- Chi tiết đơn mua hàng / đề xuất (.pur-*) ---------- */
+.qsa-pur-body{max-height:76vh; overflow:auto;}
+.qsa-pur-head{border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:14px; background:var(--dash-soft);}
+.qsa-pur-ma{display:flex; align-items:center; gap:10px; font-size:15px; font-weight:600; color:var(--text); margin-bottom:12px;}
+.qsa-pur-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:10px 20px;}
+.qsa-pur-i{display:flex; flex-direction:column; gap:2px; min-width:0;}
+.qsa-pur-i span{font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted); font-weight:600;}
+.qsa-pur-i b{font-size:12.5px; font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.qsa-pur-note{display:flex; align-items:center; gap:5px; margin-top:11px; padding-top:10px; border-top:1px solid var(--border); font-size:12px; color:var(--text-muted);}
+.qsa-pur-tblwrap{border-radius:10px;}
+.qsa-pur-tbl{width:100%; border-collapse:collapse;}
+.qsa-pur-tbl th.n{text-align:right;} .qsa-pur-tbl th.c{text-align:center;}
+.qsa-pur-tbl td{padding:10px 12px; border-bottom:1px solid var(--border); font-size:11.5px; color:var(--text); vertical-align:middle;}
+.qsa-pur-tbl tbody tr:last-child td{border-bottom:none;}
+.qsa-pur-tbl tbody tr:hover td{background:var(--dash-accent-tint);}
+.qsa-pur-tbl td.c{text-align:center;} .qsa-pur-tbl td.n{text-align:right; font-variant-numeric:tabular-nums;} .qsa-pur-tbl td.b{font-weight:700;}
+.qsa-pur-th{width:52px;}
+.qsa-pur-th img{width:40px; height:40px; object-fit:contain; border:1px solid var(--border); border-radius:6px; background:#fafbfc; display:block;}
+.qsa-pur-noimg{display:block; width:40px; height:40px; border:1px solid var(--border); border-radius:6px; background:var(--surface-alt);}
+.qsa-pur-code{display:block; font-size:10.5px; color:var(--text-muted); letter-spacing:.02em;}
+.qsa-pur-room{display:inline-flex; align-items:center; gap:3px; font-size:10px; color:var(--text-muted); background:var(--surface-alt); border-radius:4px; padding:1px 6px; margin-top:2px; text-transform:uppercase;}
+.qsa-pur-tot{margin-top:14px; margin-left:auto; width:min(340px, 100%); display:flex; flex-direction:column; gap:7px;}
+.qsa-pur-tot > div{display:flex; justify-content:space-between; align-items:center; font-size:12.5px; color:var(--text-muted);}
+.qsa-pur-tot > div b{font-variant-numeric:tabular-nums; color:var(--text); font-weight:600;}
+.qsa-pur-tot .grand{border-top:1px solid var(--border); padding-top:9px; margin-top:2px;}
+.qsa-pur-tot .grand span{font-size:11px; letter-spacing:.05em; font-weight:600; color:var(--text);}
+.qsa-pur-tot .grand b{font-size:16px; font-weight:650; letter-spacing:-.02em;}
+.qsa-pur-act{display:flex; justify-content:flex-end; gap:9px; margin-top:16px; padding-top:14px; border-top:1px solid var(--border);}
+.qsa-dx-kind{margin-left:8px; padding:2px 8px; border-radius:99px; background:var(--finance-tint); color:var(--finance); font-size:11px; font-weight:600;}
+.qsa-dx-pct{color:var(--finance);}
+
+/* ---------- Hộp Thêm / Sửa tài khoản (.amodal-user) ---------- */
+.qsa-aov{position:fixed; inset:0; z-index:90; background:rgba(12,24,38,.42); -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px); display:flex; align-items:center; justify-content:center; padding:20px;}
+.qsa-um{width:min(620px, 94vw); max-height:92vh; display:flex; flex-direction:column; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:16px; box-shadow:0 26px 70px rgba(10,25,50,.4); overflow:hidden; font-size:13px; line-height:1.5;}
+.qsa-um-hd{display:flex; align-items:flex-start; gap:12px; padding:18px 22px 14px; border-bottom:1px solid var(--border); background:var(--dash-soft);}
+.qsa-um-hd h3{margin:0; font-size:16px; font-weight:700; letter-spacing:-.01em; color:var(--text);}
+.qsa-um-hd p{margin:3px 0 0; font-size:12px; color:var(--text-muted);}
+.qsa-um-x{margin-left:auto; cursor:pointer; color:var(--text-muted); font-size:15px; line-height:1; padding:4px;}
+.qsa-um-x:hover{color:var(--text);}
+.qsa-um-bd{padding:16px 22px; overflow:auto; display:flex; flex-direction:column; gap:18px;}
+.qsa-um-ft{display:flex; justify-content:flex-end; gap:10px; padding:13px 22px; border-top:1px solid var(--border); background:var(--dash-soft);}
+.qsa-sec-h{display:flex; align-items:center; gap:8px; font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted); margin-bottom:9px;}
+.qsa-sec-n{background:var(--surface-alt); color:var(--text); border-radius:4px; padding:1px 7px; font-size:10.5px; letter-spacing:0;}
+.qsa-sec-quick{margin-left:auto; display:flex; gap:10px; text-transform:none; letter-spacing:0; font-weight:600; font-size:11.5px;}
+.qsa-sec-quick a{color:var(--dash-accent); cursor:pointer;}
+.qsa-sec-quick a:hover{text-decoration:underline;}
+.qsa-grid2{display:grid; grid-template-columns:1fr 1fr; gap:11px;}
+.qsa-grid2 + .qsa-grid2{margin-top:11px;}
+.qsa-f label{display:block; font-size:11.5px; font-weight:600; color:var(--text); margin-bottom:5px;}
+.qsa-f label em{color:#e11d48; font-style:normal;}
+.qsa-f input, .qsa-f select{width:100%; border:1px solid var(--border); border-radius:8px; padding:9px 11px; font:inherit; font-size:13px; background:var(--surface); color:var(--text);}
+.qsa-f input:focus, .qsa-f select:focus{border-color:var(--dash-accent); outline:none; box-shadow:0 0 0 3px var(--dash-accent-tint);}
+.qsa-f input:disabled{background:var(--surface-alt); color:var(--text-muted);}
+.qsa-f-warn{display:block; margin-top:5px; font-style:normal; font-size:11px; line-height:1.45; color:#b45309;}
+.qsa-f-hint{display:block; margin-top:5px; font-style:normal; font-size:11px; line-height:1.45; color:var(--text-muted);}
+.qsa-seg{display:grid; grid-template-columns:1fr 1fr; gap:9px;}
+.qsa-seg-i{display:flex; align-items:flex-start; gap:9px; border:1px solid var(--border); border-radius:10px; padding:11px 13px; cursor:pointer;}
+.qsa-seg-i:hover{border-color:var(--dash-accent);}
+.qsa-seg-i.on{border-color:var(--dash-accent); background:var(--dash-accent-tint); box-shadow:0 0 0 2.5px rgba(37,99,235,.09);}
+.qsa-seg-i input{margin-top:3px; flex:none; accent-color:var(--dash-accent);}
+.qsa-seg-i b{display:block; font-size:13px; font-weight:650; color:var(--text);}
+.qsa-seg-i i{display:block; font-style:normal; font-size:11.5px; color:var(--text-muted); margin-top:2px; line-height:1.35;}
+.qsa-perms{display:grid; grid-template-columns:1fr 1fr; gap:7px;}
+.qsa-ck{display:flex; align-items:center; gap:8px; border:1px solid var(--border); border-radius:8px; padding:9px 12px; font-size:13px; color:var(--text); cursor:pointer;}
+.qsa-ck:hover{background:var(--dash-soft);}
+.qsa-ck.on{border-color:var(--dash-accent); background:var(--dash-accent-tint);}
+.qsa-ck input{flex:none; width:15px; height:15px; accent-color:var(--dash-accent);}
+.qsa-sub{margin-top:11px; border:1px solid var(--border); border-left:3px solid var(--dash-accent); border-radius:8px; padding:10px 12px; background:var(--dash-soft);}
+.qsa-sub-h{font-size:10.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px;}
+.qsa-rd{display:flex; align-items:flex-start; gap:9px; padding:7px 9px; border:1px solid transparent; border-radius:8px; cursor:pointer;}
+.qsa-rd:hover{background:var(--surface-alt);}
+.qsa-rd.on{border-color:var(--dash-accent); background:var(--surface);}
+.qsa-rd input{margin-top:2px; flex:none; accent-color:var(--dash-accent);}
+.qsa-rd b{display:block; font-size:12.5px; font-weight:650; color:var(--text);}
+.qsa-rd i{display:block; font-style:normal; font-size:11.5px; color:var(--text-muted); margin-top:1px; line-height:1.35;}
+
+/* ---------- Thẻ Thông tin công ty (CompanyCard, M17.1) + ô Màu chính (M17.2) ---------- */
+.qsa-co{display:grid; grid-template-columns:260px minmax(0, 1fr); gap:18px; align-items:start;}
+.qsa-co-logo .qsco-logo-box{height:132px;}
+.qsa-co-ft{display:flex; justify-content:flex-end; gap:9px; margin-top:14px; padding-top:12px; border-top:1px solid var(--border);}
+.qsa-mau-row{display:flex; align-items:center; gap:8px;}
+.qsa-mau input.qsa-mau-pick, .qsco-f input.qsa-mau-pick{flex:none; width:40px; height:34px; padding:2px; border:1px solid var(--border); border-radius:8px; background:var(--surface); cursor:pointer;}
+.qsa-mau input.qsa-mau-hex, .qsco-f input.qsa-mau-hex{flex:none; width:120px; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-transform:none;}
+.qsa-mau input.qsa-mau-hex.bad{border-color:var(--danger); box-shadow:0 0 0 2.5px var(--danger-tint);}
+.qsa-mau .qsa-f-warn, .qsa-mau .qsa-f-hint{margin-top:5px;}
+
+@media (max-width: 900px){
+  .qsa-stats{grid-template-columns:minmax(0, 1fr);}
+  .qsa-co{grid-template-columns:1fr;}
+  .qsa-grid2, .qsa-seg, .qsa-perms{grid-template-columns:1fr;}
+  .qsa-rq{flex-wrap:wrap;}
+}

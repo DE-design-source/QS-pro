@@ -1,0 +1,61 @@
+{
+ "contexts": {
+  "ct": {"uid": "68cb6934-c871-4681-8cfe-def02ba28b0c", "role": "super", "congTyId": "90c41ced-2477-4342-97da-e226344354f1", "viewAs": null},
+  "other": {"uid": "6b3c2504-3761-485d-b9ec-7224eedd186f", "role": "admin", "congTyId": "58e4937e-eb52-4feb-8a51-456d13857306", "viewAs": null},
+  "none": {"uid": "68cb6934-c871-4681-8cfe-def02ba28b0c", "role": "super", "congTyId": null, "viewAs": null}
+ },
+ "actor": {"uid": "68cb6934-c871-4681-8cfe-def02ba28b0c", "u": "ZZ_takeoff_u", "r": "super", "ct": "90c41ced-2477-4342-97da-e226344354f1"},
+ "steps": [
+  {"op": "remove", "ctx": "none", "table": "du_an", "filter": "ma_da=eq.ZZ_takeoff_A"},
+  {"op": "insert", "ctx": "ct", "table": "du_an", "rows": [{"ma_da": "ZZ_takeoff_A", "ten_du_an": "ZZ_takeoff_ dự án", "trang_thai": "Bản nháp"}]},
+  {"op": "call", "ctx": "ct", "fn": "getLines", "args": ["ZZ_takeoff_A"]},
+
+  {"op": "call", "ctx": "ct", "fn": "addLine", "args": ["ZZ_takeoff_A", {"nhom": "3.2.6", "hangMuc": "Đèn âm trần", "loai": "bị đè", "tang": "Tầng 1", "ma": "ZZ-D01", "ten": "ZZ_takeoff_ Đèn A", "thuongHieu": "Ades", "ncc": "NCC", "moTa": "mô tả\ndòng 2", "kichThuoc": "Ø90", "hinhAnh": "http://x/a.png", "dvt": "Bộ", "khuVuc": "Khách", "maBanVe": "L1", "donGiaVon": 1250000, "donGiaBan": 1500000, "chietKhau": 12.5, "ckKhach": 5, "lnPct": 99, "trangThai": "Chờ", "ghiChu": "gc", "tuNhap": 1, "daLuuDM": "1", "extra": {"z": 1, "a": [1, {"k": null}]}}, 3], "save": {"name": "l1", "key": "lineId"}},
+  {"op": "call", "ctx": "ct", "fn": "addLine", "args": ["ZZ_takeoff_A", {"ten": "ZZ_takeoff_ VN", "donGiaVon": "1.250.000", "donGiaBan": "1.500.000", "chietKhau": "10", "ckKhach": "2.5"}, "2"], "save": {"name": "l2", "key": "lineId"}},
+  {"op": "call", "ctx": "ct", "fn": "addBlankLine", "args": ["ZZ_takeoff_A", {"tang": "Tầng 2", "nhom": "3.2.5"}], "save": {"name": "l3", "key": "lineId"}},
+  {"op": "call", "ctx": "ct", "fn": "addBlankLine", "args": ["ZZ_takeoff_A"], "save": {"name": "l4", "key": "lineId"}},
+  {"op": "call", "ctx": "ct", "fn": "addLine", "args": ["ZZ_takeoff_A", {"ten": "ZZ_takeoff_ nửa âm", "donGiaVon": 200, "donGiaBan": 195}, 1], "save": {"name": "l5", "key": "lineId"}},
+  {"op": "call", "ctx": "ct", "fn": "addLine", "args": ["ZZ_takeoff_A", {"ten": "ZZ_takeoff_ lỗi ck", "donGiaVon": 100, "chietKhau": 150}, 1]},
+  {"op": "call", "ctx": "ct", "fn": "addLine", "args": ["ZZ_takeoff_A", {"ten": "ZZ_takeoff_ lỗi cờ", "tuNhap": 2}, 1]},
+  {"op": "call", "ctx": "ct", "fn": "addLine", "args": ["ZZ_takeoff_A", {"ten": "ZZ_takeoff_ extra", "extra": [1, {"b": 2, "a": 1}], "daLuuDM": 1, "tuNhap": "1", "donGiaVon": "12,5", "lnPct": "30"}, 2.5]},
+  {"op": "call", "ctx": "ct", "fn": "addLine", "args": ["ZZ_takeoff_A", {"ten": 5, "ma": 12, "nhom": {"a": 1}, "ghiChu": ["x", "y"]}, "abc"]},
+  {"op": "call", "ctx": "ct", "fn": "addLine", "args": ["ZZ_takeoff_none", {"ten": "ZZ_takeoff_ x"}, 1]},
+  {"op": "call", "ctx": "other", "fn": "addLine", "args": ["ZZ_takeoff_A", {"ten": "ZZ_takeoff_ hack"}, 1]},
+  {"op": "call", "ctx": "ct", "fn": "addLine", "args": ["ZZ_takeoff_A"]},
+  {"op": "call", "ctx": "ct", "fn": "addLine", "args": []},
+
+  {"op": "call", "ctx": "ct", "fn": "getLines", "args": ["ZZ_takeoff_A"]},
+  {"op": "call", "ctx": "other", "fn": "getLines", "args": ["ZZ_takeoff_A"]},
+  {"op": "call", "ctx": "none", "fn": "getLines", "args": ["ZZ_takeoff_A"]},
+  {"op": "call", "ctx": "ct", "fn": "getLines", "args": []},
+
+  {"op": "call", "ctx": "ct", "fn": "updateLine", "args": ["{{l1}}", {"khuVuc": "Bếp", "ghiChu": null, "ten": "ZZ_takeoff_ sửa", "la": 1}]},
+  {"op": "call", "ctx": "ct", "fn": "updateLine", "args": ["{{l1}}", {"donGiaBan": "2.000.000", "lnPct": 99}]},
+  {"op": "call", "ctx": "ct", "fn": "updateLine", "args": ["{{l1}}", {"lnPct": 12.5}]},
+  {"op": "call", "ctx": "ct", "fn": "updateLine", "args": ["{{l1}}", {"donGiaVon": "1.000.000,5", "soLuong": "4", "chietKhau": 10, "ckKhach": 7.5}]},
+  {"op": "call", "ctx": "ct", "fn": "updateLine", "args": ["{{l2}}", {"stt": 9, "extra": {"k": [1]}, "giamGiaNcc": "3.5", "tuNhap": 1, "daLuuDM": true}]},
+  {"op": "call", "ctx": "ct", "fn": "updateLine", "args": ["{{l2}}", {"stt": null, "extra": 0}]},
+  {"op": "call", "ctx": "ct", "fn": "updateLine", "args": ["{{l3}}", {"soLuong": -1}]},
+  {"op": "call", "ctx": "ct", "fn": "updateLine", "args": ["{{l3}}", {"giamGiaNcc": 101}]},
+  {"op": "call", "ctx": "ct", "fn": "updateLine", "args": ["{{l3}}", {}]},
+  {"op": "call", "ctx": "ct", "fn": "updateLine", "args": ["{{l3}}"]},
+  {"op": "call", "ctx": "ct", "fn": "updateLine", "args": ["{{l4}}", {"ten": 5, "nhom": {"a": 1}, "dvt": null, "maSP": ["a"], "soLuong": "2,5", "donGiaBan": 1000}]},
+  {"op": "call", "ctx": "ct", "fn": "updateLine", "args": ["{{l5}}", {"donGiaBan": 205, "ckKhach": 0.5, "chietKhau": 0.25, "soLuong": 3}]},
+  {"op": "call", "ctx": "ct", "fn": "updateLine", "args": [999999999999, {"ten": "x"}]},
+  {"op": "call", "ctx": "ct", "fn": "updateLine", "args": ["abc", {}]},
+  {"op": "call", "ctx": "ct", "fn": "updateLine", "args": []},
+  {"op": "call", "ctx": "other", "fn": "updateLine", "args": ["{{l1}}", {"ten": "ZZ_takeoff_ hack"}]},
+  {"op": "rows", "ctx": "ct", "table": "db_bao_gia", "filter": "ma_du_an=eq.ZZ_takeoff_A", "order": "sort_no.asc"},
+
+  {"op": "call", "ctx": "ct", "fn": "deleteLine", "args": ["{{l5}}"]},
+  {"op": "call", "ctx": "ct", "fn": "deleteLine", "args": ["{{l5}}"]},
+  {"op": "call", "ctx": "ct", "fn": "deleteLine", "args": ["abc"]},
+  {"op": "call", "ctx": "ct", "fn": "deleteLine", "args": []},
+  {"op": "call", "ctx": "other", "fn": "deleteLine", "args": ["{{l1}}"]},
+  {"op": "call", "ctx": "ct", "fn": "getLines", "args": ["ZZ_takeoff_A"]},
+
+  {"op": "remove", "ctx": "none", "table": "du_an", "filter": "ma_da=eq.ZZ_takeoff_A"},
+  {"op": "rows", "ctx": "none", "table": "db_bao_gia", "filter": "ma_du_an=eq.ZZ_takeoff_A"},
+  {"op": "rows", "ctx": "none", "table": "du_an", "filter": "ma_da=eq.ZZ_takeoff_A"}
+ ]
+}

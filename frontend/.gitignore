@@ -1,0 +1,42 @@
+# Dependencies (Thư viện cài đặt)
+node_modules
+/.pnp
+.pnp.js
+
+# Production / Build (Thư mục build ra sản phẩm)
+dist
+dist-ssr
+*.local
+
+# Environment variables (File cấu hình bí mật)
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Logs (File log khi cài đặt hoặc chạy lỗi)
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor / IDE (Cài đặt cá nhân của VS Code / WebStorm)
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files (File rác tự sinh của Windows / MacOS)
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

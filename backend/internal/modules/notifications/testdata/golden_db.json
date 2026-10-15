@@ -1,0 +1,771 @@
+{
+ "n01a_count_empty": {
+  "ok": {
+   "unread": 0
+  }
+ },
+ "n01b_list_empty": {
+  "ok": []
+ },
+ "n02_purchase": {},
+ "n03a_dexuat_ck": {},
+ "n03b_dexuat_tt": {},
+ "n03c_dexuat_la": {},
+ "n04a_ghost_null": {},
+ "n04b_ghost_one": {},
+ "n05_null_order": {
+  "err": "Cannot read properties of null (reading 'maDon')"
+ },
+ "n06a_count_a1": {
+  "ok": {
+   "unread": 7
+  }
+ },
+ "n06b_count_a2": {
+  "ok": {
+   "unread": 7
+  }
+ },
+ "n06c_count_staff": {
+  "ok": {
+   "unread": 0
+  }
+ },
+ "n06d_list": {
+  "ok": [
+   {
+    "id": "<N13>",
+    "kind": "purchase_request",
+    "title": "Yêu cầu mua hàng",
+    "body": "zz_notifications_ghost gửi đơn ZZ_notifications_PO3 (G)",
+    "refId": "ZZ_notifications_PO3",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N11>",
+    "kind": "de_xuat",
+    "title": "Đề xuất mua hàng",
+    "body": "ZZ Admin Một gửi đề xuất 5",
+    "refId": "5",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N9>",
+    "kind": "de_xuat",
+    "title": "Đề xuất mua hàng",
+    "body": "zz_notifications_stf gửi đề xuất thanh toán ZZ_notifications_DX2",
+    "refId": "ZZ_notifications_DX2",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N7>",
+    "kind": "de_xuat",
+    "title": "Đề xuất mua hàng",
+    "body": "ZZ Admin Một gửi đề xuất chiết khấu ZZ_notifications_DX1 (S)",
+    "refId": "ZZ_notifications_DX1",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N5>",
+    "kind": "purchase_request",
+    "title": "Yêu cầu mua hàng",
+    "body": "zz_notifications_stf gửi đơn 77",
+    "refId": "77",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N3>",
+    "kind": "purchase_request",
+    "title": "Yêu cầu mua hàng",
+    "body": "zz_notifications_stf gửi đơn ZZ_notifications_PO2",
+    "refId": "ZZ_notifications_PO2",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N1>",
+    "kind": "purchase_request",
+    "title": "Yêu cầu mua hàng",
+    "body": "zz_notifications_stf gửi đơn ZZ_notifications_PO1 (NCC A)",
+    "refId": "ZZ_notifications_PO1",
+    "read": false,
+    "at": "<ts>"
+   }
+  ]
+ },
+ "n06e_list_2": {
+  "ok": [
+   {
+    "id": "<N13>",
+    "kind": "purchase_request",
+    "title": "Yêu cầu mua hàng",
+    "body": "zz_notifications_ghost gửi đơn ZZ_notifications_PO3 (G)",
+    "refId": "ZZ_notifications_PO3",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N11>",
+    "kind": "de_xuat",
+    "title": "Đề xuất mua hàng",
+    "body": "ZZ Admin Một gửi đề xuất 5",
+    "refId": "5",
+    "read": false,
+    "at": "<ts>"
+   }
+  ]
+ },
+ "n06f_list_str3": {
+  "ok": [
+   {
+    "id": "<N13>",
+    "kind": "purchase_request",
+    "title": "Yêu cầu mua hàng",
+    "body": "zz_notifications_ghost gửi đơn ZZ_notifications_PO3 (G)",
+    "refId": "ZZ_notifications_PO3",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N11>",
+    "kind": "de_xuat",
+    "title": "Đề xuất mua hàng",
+    "body": "ZZ Admin Một gửi đề xuất 5",
+    "refId": "5",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N9>",
+    "kind": "de_xuat",
+    "title": "Đề xuất mua hàng",
+    "body": "zz_notifications_stf gửi đề xuất thanh toán ZZ_notifications_DX2",
+    "refId": "ZZ_notifications_DX2",
+    "read": false,
+    "at": "<ts>"
+   }
+  ]
+ },
+ "n06g_list_half": {
+  "ok": []
+ },
+ "n06h_list_neg": {
+  "err": "DB GET notifications -> 400 {\"code\":\"2201W\",\"details\":null,\"hint\":null,\"message\":\"LIMIT must not be negative\"}"
+ },
+ "n06i_list_big": {
+  "ok": [
+   {
+    "id": "<N13>",
+    "kind": "purchase_request",
+    "title": "Yêu cầu mua hàng",
+    "body": "zz_notifications_ghost gửi đơn ZZ_notifications_PO3 (G)",
+    "refId": "ZZ_notifications_PO3",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N11>",
+    "kind": "de_xuat",
+    "title": "Đề xuất mua hàng",
+    "body": "ZZ Admin Một gửi đề xuất 5",
+    "refId": "5",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N9>",
+    "kind": "de_xuat",
+    "title": "Đề xuất mua hàng",
+    "body": "zz_notifications_stf gửi đề xuất thanh toán ZZ_notifications_DX2",
+    "refId": "ZZ_notifications_DX2",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N7>",
+    "kind": "de_xuat",
+    "title": "Đề xuất mua hàng",
+    "body": "ZZ Admin Một gửi đề xuất chiết khấu ZZ_notifications_DX1 (S)",
+    "refId": "ZZ_notifications_DX1",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N5>",
+    "kind": "purchase_request",
+    "title": "Yêu cầu mua hàng",
+    "body": "zz_notifications_stf gửi đơn 77",
+    "refId": "77",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N3>",
+    "kind": "purchase_request",
+    "title": "Yêu cầu mua hàng",
+    "body": "zz_notifications_stf gửi đơn ZZ_notifications_PO2",
+    "refId": "ZZ_notifications_PO2",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N1>",
+    "kind": "purchase_request",
+    "title": "Yêu cầu mua hàng",
+    "body": "zz_notifications_stf gửi đơn ZZ_notifications_PO1 (NCC A)",
+    "refId": "ZZ_notifications_PO1",
+    "read": false,
+    "at": "<ts>"
+   }
+  ]
+ },
+ "n06j_list_null": {
+  "ok": [
+   {
+    "id": "<N14>",
+    "kind": "purchase_request",
+    "title": "Yêu cầu mua hàng",
+    "body": "zz_notifications_ghost gửi đơn ZZ_notifications_PO3 (G)",
+    "refId": "ZZ_notifications_PO3",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N12>",
+    "kind": "de_xuat",
+    "title": "Đề xuất mua hàng",
+    "body": "ZZ Admin Một gửi đề xuất 5",
+    "refId": "5",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N10>",
+    "kind": "de_xuat",
+    "title": "Đề xuất mua hàng",
+    "body": "zz_notifications_stf gửi đề xuất thanh toán ZZ_notifications_DX2",
+    "refId": "ZZ_notifications_DX2",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N8>",
+    "kind": "de_xuat",
+    "title": "Đề xuất mua hàng",
+    "body": "ZZ Admin Một gửi đề xuất chiết khấu ZZ_notifications_DX1 (S)",
+    "refId": "ZZ_notifications_DX1",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N6>",
+    "kind": "purchase_request",
+    "title": "Yêu cầu mua hàng",
+    "body": "zz_notifications_stf gửi đơn 77",
+    "refId": "77",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N4>",
+    "kind": "purchase_request",
+    "title": "Yêu cầu mua hàng",
+    "body": "zz_notifications_stf gửi đơn ZZ_notifications_PO2",
+    "refId": "ZZ_notifications_PO2",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N2>",
+    "kind": "purchase_request",
+    "title": "Yêu cầu mua hàng",
+    "body": "zz_notifications_stf gửi đơn ZZ_notifications_PO1 (NCC A)",
+    "refId": "ZZ_notifications_PO1",
+    "read": false,
+    "at": "<ts>"
+   }
+  ]
+ },
+ "n06k_list_1_5": {
+  "ok": [
+   {
+    "id": "<N13>",
+    "kind": "purchase_request",
+    "title": "Yêu cầu mua hàng",
+    "body": "zz_notifications_ghost gửi đơn ZZ_notifications_PO3 (G)",
+    "refId": "ZZ_notifications_PO3",
+    "read": false,
+    "at": "<ts>"
+   }
+  ]
+ },
+ "n06l_list_neg_3e9": {
+  "err": "DB GET notifications -> 400 {\"code\":\"2201W\",\"details\":null,\"hint\":null,\"message\":\"LIMIT must not be negative\"}"
+ },
+ "n06m_list_neg_5e18": {
+  "err": "DB GET notifications -> 400 {\"code\":\"2201W\",\"details\":null,\"hint\":null,\"message\":\"LIMIT must not be negative\"}"
+ },
+ "n06n_list_neg_2p63": {
+  "err": "DB GET notifications -> 400 {\"code\":\"22003\",\"details\":null,\"hint\":null,\"message\":\"bigint out of range\"}"
+ },
+ "n06o_list_neg_1e19": {
+  "err": "DB GET notifications -> 400 {\"code\":\"22003\",\"details\":null,\"hint\":null,\"message\":\"bigint out of range\"}"
+ },
+ "n06p_list_neg_1e21": {
+  "err": "DB GET notifications -> 400 {\"code\":\"22003\",\"details\":null,\"hint\":null,\"message\":\"bigint out of range\"}"
+ },
+ "n06q_list_neg_inf_str": {
+  "err": "DB GET notifications -> 400 {\"code\":\"42703\",\"details\":null,\"hint\":null,\"message\":\"column \\\"infinity\\\" does not exist\"}"
+ },
+ "n06r_list_neg_inf": {
+  "err": "DB GET notifications -> 400 {\"code\":\"42703\",\"details\":null,\"hint\":null,\"message\":\"column \\\"infinity\\\" does not exist\"}"
+ },
+ "n06s_list_neg_below": {
+  "err": "DB GET notifications -> 400 {\"code\":\"2201W\",\"details\":null,\"hint\":null,\"message\":\"LIMIT must not be negative\"}"
+ },
+ "n07a_read": {
+  "ok": {
+   "ok": true
+  }
+ },
+ "n07b_read_str": {
+  "ok": {
+   "ok": true
+  }
+ },
+ "n07c_read_other": {
+  "ok": {
+   "ok": true
+  }
+ },
+ "n07d_read_bad": {
+  "err": "DB PATCH notifications -> 400 {\"code\":\"22P02\",\"details\":null,\"hint\":null,\"message\":\"invalid input syntax for type bigint: \\\"abc\\\"\"}"
+ },
+ "n07e_read_undefined": {
+  "err": "DB PATCH notifications -> 400 {\"code\":\"22P02\",\"details\":null,\"hint\":null,\"message\":\"invalid input syntax for type bigint: \\\"undefined\\\"\"}"
+ },
+ "n07f_count_a1": {
+  "ok": {
+   "unread": 5
+  }
+ },
+ "n07g_list_a1": {
+  "ok": [
+   {
+    "id": "<N13>",
+    "kind": "purchase_request",
+    "title": "Yêu cầu mua hàng",
+    "body": "zz_notifications_ghost gửi đơn ZZ_notifications_PO3 (G)",
+    "refId": "ZZ_notifications_PO3",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N11>",
+    "kind": "de_xuat",
+    "title": "Đề xuất mua hàng",
+    "body": "ZZ Admin Một gửi đề xuất 5",
+    "refId": "5",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N9>",
+    "kind": "de_xuat",
+    "title": "Đề xuất mua hàng",
+    "body": "zz_notifications_stf gửi đề xuất thanh toán ZZ_notifications_DX2",
+    "refId": "ZZ_notifications_DX2",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N7>",
+    "kind": "de_xuat",
+    "title": "Đề xuất mua hàng",
+    "body": "ZZ Admin Một gửi đề xuất chiết khấu ZZ_notifications_DX1 (S)",
+    "refId": "ZZ_notifications_DX1",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N5>",
+    "kind": "purchase_request",
+    "title": "Yêu cầu mua hàng",
+    "body": "zz_notifications_stf gửi đơn 77",
+    "refId": "77",
+    "read": false,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N3>",
+    "kind": "purchase_request",
+    "title": "Yêu cầu mua hàng",
+    "body": "zz_notifications_stf gửi đơn ZZ_notifications_PO2",
+    "refId": "ZZ_notifications_PO2",
+    "read": true,
+    "at": "<ts>"
+   },
+   {
+    "id": "<N1>",
+    "kind": "purchase_request",
+    "title": "Yêu cầu mua hàng",
+    "body": "zz_notifications_stf gửi đơn ZZ_notifications_PO1 (NCC A)",
+    "refId": "ZZ_notifications_PO1",
+    "read": true,
+    "at": "<ts>"
+   }
+  ]
+ },
+ "n07h_count_a2": {
+  "ok": {
+   "unread": 7
+  }
+ },
+ "n07z_rows": [
+  {
+   "id": "<N1>",
+   "user": "<U:adm1>",
+   "kind": "purchase_request",
+   "title": "Yêu cầu mua hàng",
+   "body": "zz_notifications_stf gửi đơn ZZ_notifications_PO1 (NCC A)",
+   "refId": "ZZ_notifications_PO1",
+   "read": true,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N2>",
+   "user": "<U:adm2>",
+   "kind": "purchase_request",
+   "title": "Yêu cầu mua hàng",
+   "body": "zz_notifications_stf gửi đơn ZZ_notifications_PO1 (NCC A)",
+   "refId": "ZZ_notifications_PO1",
+   "read": false,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N3>",
+   "user": "<U:adm1>",
+   "kind": "purchase_request",
+   "title": "Yêu cầu mua hàng",
+   "body": "zz_notifications_stf gửi đơn ZZ_notifications_PO2",
+   "refId": "ZZ_notifications_PO2",
+   "read": true,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N4>",
+   "user": "<U:adm2>",
+   "kind": "purchase_request",
+   "title": "Yêu cầu mua hàng",
+   "body": "zz_notifications_stf gửi đơn ZZ_notifications_PO2",
+   "refId": "ZZ_notifications_PO2",
+   "read": false,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N5>",
+   "user": "<U:adm1>",
+   "kind": "purchase_request",
+   "title": "Yêu cầu mua hàng",
+   "body": "zz_notifications_stf gửi đơn 77",
+   "refId": "77",
+   "read": false,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N6>",
+   "user": "<U:adm2>",
+   "kind": "purchase_request",
+   "title": "Yêu cầu mua hàng",
+   "body": "zz_notifications_stf gửi đơn 77",
+   "refId": "77",
+   "read": false,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N7>",
+   "user": "<U:adm1>",
+   "kind": "de_xuat",
+   "title": "Đề xuất mua hàng",
+   "body": "ZZ Admin Một gửi đề xuất chiết khấu ZZ_notifications_DX1 (S)",
+   "refId": "ZZ_notifications_DX1",
+   "read": false,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N8>",
+   "user": "<U:adm2>",
+   "kind": "de_xuat",
+   "title": "Đề xuất mua hàng",
+   "body": "ZZ Admin Một gửi đề xuất chiết khấu ZZ_notifications_DX1 (S)",
+   "refId": "ZZ_notifications_DX1",
+   "read": false,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N9>",
+   "user": "<U:adm1>",
+   "kind": "de_xuat",
+   "title": "Đề xuất mua hàng",
+   "body": "zz_notifications_stf gửi đề xuất thanh toán ZZ_notifications_DX2",
+   "refId": "ZZ_notifications_DX2",
+   "read": false,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N10>",
+   "user": "<U:adm2>",
+   "kind": "de_xuat",
+   "title": "Đề xuất mua hàng",
+   "body": "zz_notifications_stf gửi đề xuất thanh toán ZZ_notifications_DX2",
+   "refId": "ZZ_notifications_DX2",
+   "read": false,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N11>",
+   "user": "<U:adm1>",
+   "kind": "de_xuat",
+   "title": "Đề xuất mua hàng",
+   "body": "ZZ Admin Một gửi đề xuất 5",
+   "refId": "5",
+   "read": false,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N12>",
+   "user": "<U:adm2>",
+   "kind": "de_xuat",
+   "title": "Đề xuất mua hàng",
+   "body": "ZZ Admin Một gửi đề xuất 5",
+   "refId": "5",
+   "read": false,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N13>",
+   "user": "<U:adm1>",
+   "kind": "purchase_request",
+   "title": "Yêu cầu mua hàng",
+   "body": "zz_notifications_ghost gửi đơn ZZ_notifications_PO3 (G)",
+   "refId": "ZZ_notifications_PO3",
+   "read": false,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N14>",
+   "user": "<U:adm2>",
+   "kind": "purchase_request",
+   "title": "Yêu cầu mua hàng",
+   "body": "zz_notifications_ghost gửi đơn ZZ_notifications_PO3 (G)",
+   "refId": "ZZ_notifications_PO3",
+   "read": false,
+   "ct": "<CT>"
+  }
+ ],
+ "n08a_read_all": {
+  "ok": {
+   "ok": true
+  }
+ },
+ "n08b_count_a1": {
+  "ok": {
+   "unread": 0
+  }
+ },
+ "n08c_count_a2": {
+  "ok": {
+   "unread": 7
+  }
+ },
+ "n08d_read_all_again": {
+  "ok": {
+   "ok": true
+  }
+ },
+ "n08z_rows": [
+  {
+   "id": "<N1>",
+   "user": "<U:adm1>",
+   "kind": "purchase_request",
+   "title": "Yêu cầu mua hàng",
+   "body": "zz_notifications_stf gửi đơn ZZ_notifications_PO1 (NCC A)",
+   "refId": "ZZ_notifications_PO1",
+   "read": true,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N2>",
+   "user": "<U:adm2>",
+   "kind": "purchase_request",
+   "title": "Yêu cầu mua hàng",
+   "body": "zz_notifications_stf gửi đơn ZZ_notifications_PO1 (NCC A)",
+   "refId": "ZZ_notifications_PO1",
+   "read": false,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N3>",
+   "user": "<U:adm1>",
+   "kind": "purchase_request",
+   "title": "Yêu cầu mua hàng",
+   "body": "zz_notifications_stf gửi đơn ZZ_notifications_PO2",
+   "refId": "ZZ_notifications_PO2",
+   "read": true,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N4>",
+   "user": "<U:adm2>",
+   "kind": "purchase_request",
+   "title": "Yêu cầu mua hàng",
+   "body": "zz_notifications_stf gửi đơn ZZ_notifications_PO2",
+   "refId": "ZZ_notifications_PO2",
+   "read": false,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N5>",
+   "user": "<U:adm1>",
+   "kind": "purchase_request",
+   "title": "Yêu cầu mua hàng",
+   "body": "zz_notifications_stf gửi đơn 77",
+   "refId": "77",
+   "read": true,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N6>",
+   "user": "<U:adm2>",
+   "kind": "purchase_request",
+   "title": "Yêu cầu mua hàng",
+   "body": "zz_notifications_stf gửi đơn 77",
+   "refId": "77",
+   "read": false,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N7>",
+   "user": "<U:adm1>",
+   "kind": "de_xuat",
+   "title": "Đề xuất mua hàng",
+   "body": "ZZ Admin Một gửi đề xuất chiết khấu ZZ_notifications_DX1 (S)",
+   "refId": "ZZ_notifications_DX1",
+   "read": true,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N8>",
+   "user": "<U:adm2>",
+   "kind": "de_xuat",
+   "title": "Đề xuất mua hàng",
+   "body": "ZZ Admin Một gửi đề xuất chiết khấu ZZ_notifications_DX1 (S)",
+   "refId": "ZZ_notifications_DX1",
+   "read": false,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N9>",
+   "user": "<U:adm1>",
+   "kind": "de_xuat",
+   "title": "Đề xuất mua hàng",
+   "body": "zz_notifications_stf gửi đề xuất thanh toán ZZ_notifications_DX2",
+   "refId": "ZZ_notifications_DX2",
+   "read": true,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N10>",
+   "user": "<U:adm2>",
+   "kind": "de_xuat",
+   "title": "Đề xuất mua hàng",
+   "body": "zz_notifications_stf gửi đề xuất thanh toán ZZ_notifications_DX2",
+   "refId": "ZZ_notifications_DX2",
+   "read": false,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N11>",
+   "user": "<U:adm1>",
+   "kind": "de_xuat",
+   "title": "Đề xuất mua hàng",
+   "body": "ZZ Admin Một gửi đề xuất 5",
+   "refId": "5",
+   "read": true,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N12>",
+   "user": "<U:adm2>",
+   "kind": "de_xuat",
+   "title": "Đề xuất mua hàng",
+   "body": "ZZ Admin Một gửi đề xuất 5",
+   "refId": "5",
+   "read": false,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N13>",
+   "user": "<U:adm1>",
+   "kind": "purchase_request",
+   "title": "Yêu cầu mua hàng",
+   "body": "zz_notifications_ghost gửi đơn ZZ_notifications_PO3 (G)",
+   "refId": "ZZ_notifications_PO3",
+   "read": true,
+   "ct": "<CT>"
+  },
+  {
+   "id": "<N14>",
+   "user": "<U:adm2>",
+   "kind": "purchase_request",
+   "title": "Yêu cầu mua hàng",
+   "body": "zz_notifications_ghost gửi đơn ZZ_notifications_PO3 (G)",
+   "refId": "ZZ_notifications_PO3",
+   "read": false,
+   "ct": "<CT>"
+  }
+ ],
+ "audit": [
+  {
+   "username": "zz_notifications_stf",
+   "action": "request_purchase",
+   "detail": "zz_notifications_stf gửi 3 đơn mua hàng",
+   "uid": "<U:stf>"
+  },
+  {
+   "username": "zz_notifications_adm1",
+   "action": "request_de_xuat",
+   "detail": "ZZ Admin Một gửi đề xuất chiết khấu ZZ_notifications_DX1",
+   "uid": "<U:adm1>"
+  },
+  {
+   "username": "zz_notifications_stf",
+   "action": "request_de_xuat",
+   "detail": "zz_notifications_stf gửi đề xuất thanh toán ZZ_notifications_DX2",
+   "uid": "<U:stf>"
+  },
+  {
+   "username": "zz_notifications_adm1",
+   "action": "request_de_xuat",
+   "detail": "ZZ Admin Một gửi đề xuất 5",
+   "uid": "<U:adm1>"
+  },
+  {
+   "username": "zz_notifications_ghost",
+   "action": "request_purchase",
+   "detail": "zz_notifications_ghost gửi 0 đơn mua hàng",
+   "uid": "<ghost>"
+  },
+  {
+   "username": "zz_notifications_ghost",
+   "action": "request_purchase",
+   "detail": "zz_notifications_ghost gửi 1 đơn mua hàng",
+   "uid": "<ghost>"
+  }
+ ]
+}

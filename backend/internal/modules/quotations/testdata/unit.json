@@ -1,0 +1,2002 @@
+{
+ "nz": [
+  [
+   0,
+   0
+  ],
+  [
+   1,
+   1
+  ],
+  [
+   -2.5,
+   -2.5
+  ],
+  [
+   "3",
+   3
+  ],
+  [
+   "1.5e3",
+   1500
+  ],
+  [
+   " 7 ",
+   7
+  ],
+  [
+   "",
+   0
+  ],
+  [
+   "x",
+   0
+  ],
+  [
+   null,
+   0
+  ],
+  [
+   true,
+   1
+  ],
+  [
+   false,
+   0
+  ],
+  [
+   [],
+   0
+  ],
+  [
+   [
+    5
+   ],
+   5
+  ],
+  [
+   {},
+   0
+  ],
+  [
+   "0x10",
+   16
+  ],
+  [
+   "12,5",
+   0
+  ]
+ ],
+ "px": [
+  [
+   34,
+   6
+  ],
+  [
+   120,
+   17
+  ],
+  [
+   66,
+   9
+  ],
+  [
+   60,
+   9
+  ],
+  [
+   63,
+   9
+  ],
+  [
+   59.5,
+   9
+  ],
+  [
+   66.5,
+   10
+  ],
+  [
+   73.5,
+   11
+  ],
+  [
+   10,
+   6
+  ],
+  [
+   0,
+   13
+  ],
+  [
+   1,
+   6
+  ],
+  [
+   41.9,
+   6
+  ],
+  [
+   42,
+   6
+  ],
+  [
+   44,
+   6
+  ],
+  [
+   175,
+   25
+  ],
+  [
+   90,
+   13
+  ],
+  [
+   null,
+   13
+  ],
+  [
+   -70,
+   6
+  ],
+  [
+   "x",
+   null
+  ],
+  [
+   "70",
+   10
+  ]
+ ],
+ "roman": [
+  [
+   -1,
+   "-1"
+  ],
+  [
+   0,
+   "0"
+  ],
+  [
+   1,
+   "I"
+  ],
+  [
+   2,
+   "II"
+  ],
+  [
+   4,
+   "IV"
+  ],
+  [
+   9,
+   "IX"
+  ],
+  [
+   14,
+   "XIV"
+  ],
+  [
+   19,
+   "XIX"
+  ],
+  [
+   20,
+   "XX"
+  ],
+  [
+   21,
+   "21"
+  ],
+  [
+   100,
+   "100"
+  ]
+ ],
+ "sheetName": [
+  [
+   null,
+   "Sheet"
+  ],
+  [
+   "",
+   "Sheet"
+  ],
+  [
+   0,
+   "Sheet"
+  ],
+  [
+   "Sheet",
+   "Sheet"
+  ],
+  [
+   "  a  ",
+   "a"
+  ],
+  [
+   "a:bc/d?e*f[g]h",
+   "a bc d e f g h"
+  ],
+  [
+   "3.2.6.1",
+   "3.2.6.1"
+  ],
+  [
+   ":::",
+   "Sheet"
+  ],
+  [
+   " : x",
+   "x"
+  ],
+  [
+   "Nhóm rất dài hơn ba mươi ký tự để cắt bớt đi nhé",
+   "Nhóm rất dài hơn ba mươi ký tự"
+  ],
+  [
+   "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+   "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+  ],
+  [
+   12345,
+   "12345"
+  ],
+  [
+   "'q'",
+   "'q'"
+  ],
+  [
+   "đúng ba mươi ký tự không hơn x",
+   "đúng ba mươi ký tự không hơn x"
+  ]
+ ],
+ "cellOfLine": [
+  [
+   {
+    "donGiaVon": 200000,
+    "chietKhau": 30,
+    "soLuong": 10,
+    "donGia": 159600,
+    "donGiaBan": 168000,
+    "ckKhach": 5,
+    "thanhTienBan": 1596000,
+    "extra": {
+     "nganh": "den"
+    }
+   },
+   "nganh",
+   "den"
+  ],
+  [
+   {
+    "donGiaVon": 200000,
+    "chietKhau": 30,
+    "soLuong": 10,
+    "donGia": 159600,
+    "donGiaBan": 168000,
+    "ckKhach": 5,
+    "thanhTienBan": 1596000,
+    "extra": {
+     "nganh": "den"
+    }
+   },
+   "giaNCC",
+   200000
+  ],
+  [
+   {
+    "donGiaVon": 200000,
+    "chietKhau": 30,
+    "soLuong": 10,
+    "donGia": 159600,
+    "donGiaBan": 168000,
+    "ckKhach": 5,
+    "thanhTienBan": 1596000,
+    "extra": {
+     "nganh": "den"
+    }
+   },
+   "giaDaiLy",
+   140000
+  ],
+  [
+   {
+    "donGiaVon": 200000,
+    "chietKhau": 30,
+    "soLuong": 10,
+    "donGia": 159600,
+    "donGiaBan": 168000,
+    "ckKhach": 5,
+    "thanhTienBan": 1596000,
+    "extra": {
+     "nganh": "den"
+    }
+   },
+   "donGia",
+   168000
+  ],
+  [
+   {
+    "donGiaVon": 200000,
+    "chietKhau": 30,
+    "soLuong": 10,
+    "donGia": 159600,
+    "donGiaBan": 168000,
+    "ckKhach": 5,
+    "thanhTienBan": 1596000,
+    "extra": {
+     "nganh": "den"
+    }
+   },
+   "donGiaCK",
+   159600
+  ],
+  [
+   {
+    "donGiaVon": 200000,
+    "chietKhau": 30,
+    "soLuong": 10,
+    "donGia": 159600,
+    "donGiaBan": 168000,
+    "ckKhach": 5,
+    "thanhTienBan": 1596000,
+    "extra": {
+     "nganh": "den"
+    }
+   },
+   "markup",
+   14
+  ],
+  [
+   {
+    "donGiaVon": 200000,
+    "chietKhau": 30,
+    "soLuong": 10,
+    "donGia": 159600,
+    "donGiaBan": 168000,
+    "ckKhach": 5,
+    "thanhTienBan": 1596000,
+    "extra": {
+     "nganh": "den"
+    }
+   },
+   "margin",
+   12
+  ],
+  [
+   {
+    "donGiaVon": 200000,
+    "chietKhau": 30,
+    "soLuong": 10,
+    "donGia": 159600,
+    "donGiaBan": 168000,
+    "ckKhach": 5,
+    "thanhTienBan": 1596000,
+    "extra": {
+     "nganh": "den"
+    }
+   },
+   "lnVnd",
+   196000
+  ],
+  [
+   {
+    "donGiaVon": 200000,
+    "chietKhau": 30,
+    "soLuong": 10,
+    "donGia": 159600,
+    "donGiaBan": 168000,
+    "ckKhach": 5,
+    "thanhTienBan": 1596000,
+    "extra": {
+     "nganh": "den"
+    }
+   },
+   "thanhTien",
+   1596000
+  ],
+  [
+   {
+    "donGiaVon": 200000,
+    "chietKhau": 30,
+    "soLuong": 10,
+    "donGia": 159600,
+    "donGiaBan": 168000,
+    "ckKhach": 5,
+    "thanhTienBan": 1596000,
+    "extra": {
+     "nganh": "den"
+    }
+   },
+   "ten",
+   null
+  ],
+  [
+   {
+    "donGiaVon": 200000,
+    "chietKhau": 30,
+    "soLuong": 10,
+    "donGia": 159600,
+    "donGiaBan": 168000,
+    "ckKhach": 5,
+    "thanhTienBan": 1596000,
+    "extra": {
+     "nganh": "den"
+    }
+   },
+   "stt",
+   null
+  ],
+  [
+   {
+    "donGiaVon": 200000,
+    "chietKhau": 30,
+    "soLuong": 10,
+    "donGia": 159600,
+    "donGiaBan": 168000,
+    "ckKhach": 5,
+    "thanhTienBan": 1596000,
+    "extra": {
+     "nganh": "den"
+    }
+   },
+   1,
+   null
+  ],
+  [
+   {
+    "donGiaVon": 200000,
+    "chietKhau": 30,
+    "soLuong": 10,
+    "donGia": 159600,
+    "donGiaBan": 168000,
+    "ckKhach": 5,
+    "thanhTienBan": 1596000,
+    "extra": {
+     "nganh": "den"
+    }
+   },
+   null,
+   null
+  ],
+  [
+   {
+    "donGiaVon": 333333,
+    "chietKhau": 12.5,
+    "soLuong": 2.5,
+    "donGia": 0,
+    "donGiaBan": 291666,
+    "ckKhach": 7.5,
+    "thanhTienBan": 729165.5,
+    "extra": {}
+   },
+   "nganh",
+   ""
+  ],
+  [
+   {
+    "donGiaVon": 333333,
+    "chietKhau": 12.5,
+    "soLuong": 2.5,
+    "donGia": 0,
+    "donGiaBan": 291666,
+    "ckKhach": 7.5,
+    "thanhTienBan": 729165.5,
+    "extra": {}
+   },
+   "giaNCC",
+   333333
+  ],
+  [
+   {
+    "donGiaVon": 333333,
+    "chietKhau": 12.5,
+    "soLuong": 2.5,
+    "donGia": 0,
+    "donGiaBan": 291666,
+    "ckKhach": 7.5,
+    "thanhTienBan": 729165.5,
+    "extra": {}
+   },
+   "giaDaiLy",
+   291666
+  ],
+  [
+   {
+    "donGiaVon": 333333,
+    "chietKhau": 12.5,
+    "soLuong": 2.5,
+    "donGia": 0,
+    "donGiaBan": 291666,
+    "ckKhach": 7.5,
+    "thanhTienBan": 729165.5,
+    "extra": {}
+   },
+   "donGia",
+   291666
+  ],
+  [
+   {
+    "donGiaVon": 333333,
+    "chietKhau": 12.5,
+    "soLuong": 2.5,
+    "donGia": 0,
+    "donGiaBan": 291666,
+    "ckKhach": 7.5,
+    "thanhTienBan": 729165.5,
+    "extra": {}
+   },
+   "donGiaCK",
+   269791
+  ],
+  [
+   {
+    "donGiaVon": 333333,
+    "chietKhau": 12.5,
+    "soLuong": 2.5,
+    "donGia": 0,
+    "donGiaBan": 291666,
+    "ckKhach": 7.5,
+    "thanhTienBan": 729165.5,
+    "extra": {}
+   },
+   "markup",
+   -8
+  ],
+  [
+   {
+    "donGiaVon": 333333,
+    "chietKhau": 12.5,
+    "soLuong": 2.5,
+    "donGia": 0,
+    "donGiaBan": 291666,
+    "ckKhach": 7.5,
+    "thanhTienBan": 729165.5,
+    "extra": {}
+   },
+   "margin",
+   -8
+  ],
+  [
+   {
+    "donGiaVon": 333333,
+    "chietKhau": 12.5,
+    "soLuong": 2.5,
+    "donGia": 0,
+    "donGiaBan": 291666,
+    "ckKhach": 7.5,
+    "thanhTienBan": 729165.5,
+    "extra": {}
+   },
+   "lnVnd",
+   -54687
+  ],
+  [
+   {
+    "donGiaVon": 333333,
+    "chietKhau": 12.5,
+    "soLuong": 2.5,
+    "donGia": 0,
+    "donGiaBan": 291666,
+    "ckKhach": 7.5,
+    "thanhTienBan": 729165.5,
+    "extra": {}
+   },
+   "thanhTien",
+   729165.5
+  ],
+  [
+   {
+    "donGiaVon": 333333,
+    "chietKhau": 12.5,
+    "soLuong": 2.5,
+    "donGia": 0,
+    "donGiaBan": 291666,
+    "ckKhach": 7.5,
+    "thanhTienBan": 729165.5,
+    "extra": {}
+   },
+   "ten",
+   null
+  ],
+  [
+   {
+    "donGiaVon": 333333,
+    "chietKhau": 12.5,
+    "soLuong": 2.5,
+    "donGia": 0,
+    "donGiaBan": 291666,
+    "ckKhach": 7.5,
+    "thanhTienBan": 729165.5,
+    "extra": {}
+   },
+   "stt",
+   null
+  ],
+  [
+   {
+    "donGiaVon": 333333,
+    "chietKhau": 12.5,
+    "soLuong": 2.5,
+    "donGia": 0,
+    "donGiaBan": 291666,
+    "ckKhach": 7.5,
+    "thanhTienBan": 729165.5,
+    "extra": {}
+   },
+   1,
+   null
+  ],
+  [
+   {
+    "donGiaVon": 333333,
+    "chietKhau": 12.5,
+    "soLuong": 2.5,
+    "donGia": 0,
+    "donGiaBan": 291666,
+    "ckKhach": 7.5,
+    "thanhTienBan": 729165.5,
+    "extra": {}
+   },
+   null,
+   null
+  ],
+  [
+   {
+    "donGiaVon": "1000",
+    "chietKhau": "10",
+    "soLuong": "3",
+    "donGia": null,
+    "donGiaBan": "1500",
+    "ckKhach": "50",
+    "thanhTienBan": "4500"
+   },
+   "nganh",
+   ""
+  ],
+  [
+   {
+    "donGiaVon": "1000",
+    "chietKhau": "10",
+    "soLuong": "3",
+    "donGia": null,
+    "donGiaBan": "1500",
+    "ckKhach": "50",
+    "thanhTienBan": "4500"
+   },
+   "giaNCC",
+   1000
+  ],
+  [
+   {
+    "donGiaVon": "1000",
+    "chietKhau": "10",
+    "soLuong": "3",
+    "donGia": null,
+    "donGiaBan": "1500",
+    "ckKhach": "50",
+    "thanhTienBan": "4500"
+   },
+   "giaDaiLy",
+   900
+  ],
+  [
+   {
+    "donGiaVon": "1000",
+    "chietKhau": "10",
+    "soLuong": "3",
+    "donGia": null,
+    "donGiaBan": "1500",
+    "ckKhach": "50",
+    "thanhTienBan": "4500"
+   },
+   "donGia",
+   1500
+  ],
+  [
+   {
+    "donGiaVon": "1000",
+    "chietKhau": "10",
+    "soLuong": "3",
+    "donGia": null,
+    "donGiaBan": "1500",
+    "ckKhach": "50",
+    "thanhTienBan": "4500"
+   },
+   "donGiaCK",
+   750
+  ],
+  [
+   {
+    "donGiaVon": "1000",
+    "chietKhau": "10",
+    "soLuong": "3",
+    "donGia": null,
+    "donGiaBan": "1500",
+    "ckKhach": "50",
+    "thanhTienBan": "4500"
+   },
+   "markup",
+   -17
+  ],
+  [
+   {
+    "donGiaVon": "1000",
+    "chietKhau": "10",
+    "soLuong": "3",
+    "donGia": null,
+    "donGiaBan": "1500",
+    "ckKhach": "50",
+    "thanhTienBan": "4500"
+   },
+   "margin",
+   -20
+  ],
+  [
+   {
+    "donGiaVon": "1000",
+    "chietKhau": "10",
+    "soLuong": "3",
+    "donGia": null,
+    "donGiaBan": "1500",
+    "ckKhach": "50",
+    "thanhTienBan": "4500"
+   },
+   "lnVnd",
+   -450
+  ],
+  [
+   {
+    "donGiaVon": "1000",
+    "chietKhau": "10",
+    "soLuong": "3",
+    "donGia": null,
+    "donGiaBan": "1500",
+    "ckKhach": "50",
+    "thanhTienBan": "4500"
+   },
+   "thanhTien",
+   4500
+  ],
+  [
+   {
+    "donGiaVon": "1000",
+    "chietKhau": "10",
+    "soLuong": "3",
+    "donGia": null,
+    "donGiaBan": "1500",
+    "ckKhach": "50",
+    "thanhTienBan": "4500"
+   },
+   "ten",
+   null
+  ],
+  [
+   {
+    "donGiaVon": "1000",
+    "chietKhau": "10",
+    "soLuong": "3",
+    "donGia": null,
+    "donGiaBan": "1500",
+    "ckKhach": "50",
+    "thanhTienBan": "4500"
+   },
+   "stt",
+   null
+  ],
+  [
+   {
+    "donGiaVon": "1000",
+    "chietKhau": "10",
+    "soLuong": "3",
+    "donGia": null,
+    "donGiaBan": "1500",
+    "ckKhach": "50",
+    "thanhTienBan": "4500"
+   },
+   1,
+   null
+  ],
+  [
+   {
+    "donGiaVon": "1000",
+    "chietKhau": "10",
+    "soLuong": "3",
+    "donGia": null,
+    "donGiaBan": "1500",
+    "ckKhach": "50",
+    "thanhTienBan": "4500"
+   },
+   null,
+   null
+  ],
+  [
+   {
+    "donGiaVon": 5,
+    "chietKhau": 50,
+    "soLuong": 1,
+    "donGia": 1,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": 0,
+    "extra": {
+     "nganh": 0
+    }
+   },
+   "nganh",
+   ""
+  ],
+  [
+   {
+    "donGiaVon": 5,
+    "chietKhau": 50,
+    "soLuong": 1,
+    "donGia": 1,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": 0,
+    "extra": {
+     "nganh": 0
+    }
+   },
+   "giaNCC",
+   5
+  ],
+  [
+   {
+    "donGiaVon": 5,
+    "chietKhau": 50,
+    "soLuong": 1,
+    "donGia": 1,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": 0,
+    "extra": {
+     "nganh": 0
+    }
+   },
+   "giaDaiLy",
+   3
+  ],
+  [
+   {
+    "donGiaVon": 5,
+    "chietKhau": 50,
+    "soLuong": 1,
+    "donGia": 1,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": 0,
+    "extra": {
+     "nganh": 0
+    }
+   },
+   "donGia",
+   0
+  ],
+  [
+   {
+    "donGiaVon": 5,
+    "chietKhau": 50,
+    "soLuong": 1,
+    "donGia": 1,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": 0,
+    "extra": {
+     "nganh": 0
+    }
+   },
+   "donGiaCK",
+   1
+  ],
+  [
+   {
+    "donGiaVon": 5,
+    "chietKhau": 50,
+    "soLuong": 1,
+    "donGia": 1,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": 0,
+    "extra": {
+     "nganh": 0
+    }
+   },
+   "markup",
+   -67
+  ],
+  [
+   {
+    "donGiaVon": 5,
+    "chietKhau": 50,
+    "soLuong": 1,
+    "donGia": 1,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": 0,
+    "extra": {
+     "nganh": 0
+    }
+   },
+   "margin",
+   -200
+  ],
+  [
+   {
+    "donGiaVon": 5,
+    "chietKhau": 50,
+    "soLuong": 1,
+    "donGia": 1,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": 0,
+    "extra": {
+     "nganh": 0
+    }
+   },
+   "lnVnd",
+   -2
+  ],
+  [
+   {
+    "donGiaVon": 5,
+    "chietKhau": 50,
+    "soLuong": 1,
+    "donGia": 1,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": 0,
+    "extra": {
+     "nganh": 0
+    }
+   },
+   "thanhTien",
+   0
+  ],
+  [
+   {
+    "donGiaVon": 5,
+    "chietKhau": 50,
+    "soLuong": 1,
+    "donGia": 1,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": 0,
+    "extra": {
+     "nganh": 0
+    }
+   },
+   "ten",
+   null
+  ],
+  [
+   {
+    "donGiaVon": 5,
+    "chietKhau": 50,
+    "soLuong": 1,
+    "donGia": 1,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": 0,
+    "extra": {
+     "nganh": 0
+    }
+   },
+   "stt",
+   null
+  ],
+  [
+   {
+    "donGiaVon": 5,
+    "chietKhau": 50,
+    "soLuong": 1,
+    "donGia": 1,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": 0,
+    "extra": {
+     "nganh": 0
+    }
+   },
+   1,
+   null
+  ],
+  [
+   {
+    "donGiaVon": 5,
+    "chietKhau": 50,
+    "soLuong": 1,
+    "donGia": 1,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": 0,
+    "extra": {
+     "nganh": 0
+    }
+   },
+   null,
+   null
+  ],
+  [
+   {
+    "donGiaVon": 1,
+    "chietKhau": 150,
+    "soLuong": -3,
+    "donGia": -2,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": -6,
+    "extra": null
+   },
+   "nganh",
+   ""
+  ],
+  [
+   {
+    "donGiaVon": 1,
+    "chietKhau": 150,
+    "soLuong": -3,
+    "donGia": -2,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": -6,
+    "extra": null
+   },
+   "giaNCC",
+   1
+  ],
+  [
+   {
+    "donGiaVon": 1,
+    "chietKhau": 150,
+    "soLuong": -3,
+    "donGia": -2,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": -6,
+    "extra": null
+   },
+   "giaDaiLy",
+   0
+  ],
+  [
+   {
+    "donGiaVon": 1,
+    "chietKhau": 150,
+    "soLuong": -3,
+    "donGia": -2,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": -6,
+    "extra": null
+   },
+   "donGia",
+   0
+  ],
+  [
+   {
+    "donGiaVon": 1,
+    "chietKhau": 150,
+    "soLuong": -3,
+    "donGia": -2,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": -6,
+    "extra": null
+   },
+   "donGiaCK",
+   -2
+  ],
+  [
+   {
+    "donGiaVon": 1,
+    "chietKhau": 150,
+    "soLuong": -3,
+    "donGia": -2,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": -6,
+    "extra": null
+   },
+   "markup",
+   0
+  ],
+  [
+   {
+    "donGiaVon": 1,
+    "chietKhau": 150,
+    "soLuong": -3,
+    "donGia": -2,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": -6,
+    "extra": null
+   },
+   "margin",
+   0
+  ],
+  [
+   {
+    "donGiaVon": 1,
+    "chietKhau": 150,
+    "soLuong": -3,
+    "donGia": -2,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": -6,
+    "extra": null
+   },
+   "lnVnd",
+   6
+  ],
+  [
+   {
+    "donGiaVon": 1,
+    "chietKhau": 150,
+    "soLuong": -3,
+    "donGia": -2,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": -6,
+    "extra": null
+   },
+   "thanhTien",
+   -6
+  ],
+  [
+   {
+    "donGiaVon": 1,
+    "chietKhau": 150,
+    "soLuong": -3,
+    "donGia": -2,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": -6,
+    "extra": null
+   },
+   "ten",
+   null
+  ],
+  [
+   {
+    "donGiaVon": 1,
+    "chietKhau": 150,
+    "soLuong": -3,
+    "donGia": -2,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": -6,
+    "extra": null
+   },
+   "stt",
+   null
+  ],
+  [
+   {
+    "donGiaVon": 1,
+    "chietKhau": 150,
+    "soLuong": -3,
+    "donGia": -2,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": -6,
+    "extra": null
+   },
+   1,
+   null
+  ],
+  [
+   {
+    "donGiaVon": 1,
+    "chietKhau": 150,
+    "soLuong": -3,
+    "donGia": -2,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "thanhTienBan": -6,
+    "extra": null
+   },
+   null,
+   null
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 50,
+    "soLuong": 0.5,
+    "donGia": 2.5,
+    "donGiaBan": 9,
+    "ckKhach": 0,
+    "thanhTienBan": 1.25,
+    "extra": {
+     "nganh": [
+      "a"
+     ]
+    }
+   },
+   "nganh",
+   [
+    "a"
+   ]
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 50,
+    "soLuong": 0.5,
+    "donGia": 2.5,
+    "donGiaBan": 9,
+    "ckKhach": 0,
+    "thanhTienBan": 1.25,
+    "extra": {
+     "nganh": [
+      "a"
+     ]
+    }
+   },
+   "giaNCC",
+   3
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 50,
+    "soLuong": 0.5,
+    "donGia": 2.5,
+    "donGiaBan": 9,
+    "ckKhach": 0,
+    "thanhTienBan": 1.25,
+    "extra": {
+     "nganh": [
+      "a"
+     ]
+    }
+   },
+   "giaDaiLy",
+   2
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 50,
+    "soLuong": 0.5,
+    "donGia": 2.5,
+    "donGiaBan": 9,
+    "ckKhach": 0,
+    "thanhTienBan": 1.25,
+    "extra": {
+     "nganh": [
+      "a"
+     ]
+    }
+   },
+   "donGia",
+   9
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 50,
+    "soLuong": 0.5,
+    "donGia": 2.5,
+    "donGiaBan": 9,
+    "ckKhach": 0,
+    "thanhTienBan": 1.25,
+    "extra": {
+     "nganh": [
+      "a"
+     ]
+    }
+   },
+   "donGiaCK",
+   2.5
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 50,
+    "soLuong": 0.5,
+    "donGia": 2.5,
+    "donGiaBan": 9,
+    "ckKhach": 0,
+    "thanhTienBan": 1.25,
+    "extra": {
+     "nganh": [
+      "a"
+     ]
+    }
+   },
+   "markup",
+   25
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 50,
+    "soLuong": 0.5,
+    "donGia": 2.5,
+    "donGiaBan": 9,
+    "ckKhach": 0,
+    "thanhTienBan": 1.25,
+    "extra": {
+     "nganh": [
+      "a"
+     ]
+    }
+   },
+   "margin",
+   20
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 50,
+    "soLuong": 0.5,
+    "donGia": 2.5,
+    "donGiaBan": 9,
+    "ckKhach": 0,
+    "thanhTienBan": 1.25,
+    "extra": {
+     "nganh": [
+      "a"
+     ]
+    }
+   },
+   "lnVnd",
+   0
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 50,
+    "soLuong": 0.5,
+    "donGia": 2.5,
+    "donGiaBan": 9,
+    "ckKhach": 0,
+    "thanhTienBan": 1.25,
+    "extra": {
+     "nganh": [
+      "a"
+     ]
+    }
+   },
+   "thanhTien",
+   1.25
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 50,
+    "soLuong": 0.5,
+    "donGia": 2.5,
+    "donGiaBan": 9,
+    "ckKhach": 0,
+    "thanhTienBan": 1.25,
+    "extra": {
+     "nganh": [
+      "a"
+     ]
+    }
+   },
+   "ten",
+   null
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 50,
+    "soLuong": 0.5,
+    "donGia": 2.5,
+    "donGiaBan": 9,
+    "ckKhach": 0,
+    "thanhTienBan": 1.25,
+    "extra": {
+     "nganh": [
+      "a"
+     ]
+    }
+   },
+   "stt",
+   null
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 50,
+    "soLuong": 0.5,
+    "donGia": 2.5,
+    "donGiaBan": 9,
+    "ckKhach": 0,
+    "thanhTienBan": 1.25,
+    "extra": {
+     "nganh": [
+      "a"
+     ]
+    }
+   },
+   1,
+   null
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 50,
+    "soLuong": 0.5,
+    "donGia": 2.5,
+    "donGiaBan": 9,
+    "ckKhach": 0,
+    "thanhTienBan": 1.25,
+    "extra": {
+     "nganh": [
+      "a"
+     ]
+    }
+   },
+   null,
+   null
+  ],
+  [
+   {
+    "donGiaVon": "abc",
+    "chietKhau": true,
+    "soLuong": [],
+    "donGia": "",
+    "donGiaBan": "12,5",
+    "ckKhach": {},
+    "thanhTienBan": null,
+    "extra": "x"
+   },
+   "nganh",
+   ""
+  ],
+  [
+   {
+    "donGiaVon": "abc",
+    "chietKhau": true,
+    "soLuong": [],
+    "donGia": "",
+    "donGiaBan": "12,5",
+    "ckKhach": {},
+    "thanhTienBan": null,
+    "extra": "x"
+   },
+   "giaNCC",
+   0
+  ],
+  [
+   {
+    "donGiaVon": "abc",
+    "chietKhau": true,
+    "soLuong": [],
+    "donGia": "",
+    "donGiaBan": "12,5",
+    "ckKhach": {},
+    "thanhTienBan": null,
+    "extra": "x"
+   },
+   "giaDaiLy",
+   0
+  ],
+  [
+   {
+    "donGiaVon": "abc",
+    "chietKhau": true,
+    "soLuong": [],
+    "donGia": "",
+    "donGiaBan": "12,5",
+    "ckKhach": {},
+    "thanhTienBan": null,
+    "extra": "x"
+   },
+   "donGia",
+   0
+  ],
+  [
+   {
+    "donGiaVon": "abc",
+    "chietKhau": true,
+    "soLuong": [],
+    "donGia": "",
+    "donGiaBan": "12,5",
+    "ckKhach": {},
+    "thanhTienBan": null,
+    "extra": "x"
+   },
+   "donGiaCK",
+   0
+  ],
+  [
+   {
+    "donGiaVon": "abc",
+    "chietKhau": true,
+    "soLuong": [],
+    "donGia": "",
+    "donGiaBan": "12,5",
+    "ckKhach": {},
+    "thanhTienBan": null,
+    "extra": "x"
+   },
+   "markup",
+   0
+  ],
+  [
+   {
+    "donGiaVon": "abc",
+    "chietKhau": true,
+    "soLuong": [],
+    "donGia": "",
+    "donGiaBan": "12,5",
+    "ckKhach": {},
+    "thanhTienBan": null,
+    "extra": "x"
+   },
+   "margin",
+   0
+  ],
+  [
+   {
+    "donGiaVon": "abc",
+    "chietKhau": true,
+    "soLuong": [],
+    "donGia": "",
+    "donGiaBan": "12,5",
+    "ckKhach": {},
+    "thanhTienBan": null,
+    "extra": "x"
+   },
+   "lnVnd",
+   0
+  ],
+  [
+   {
+    "donGiaVon": "abc",
+    "chietKhau": true,
+    "soLuong": [],
+    "donGia": "",
+    "donGiaBan": "12,5",
+    "ckKhach": {},
+    "thanhTienBan": null,
+    "extra": "x"
+   },
+   "thanhTien",
+   0
+  ],
+  [
+   {
+    "donGiaVon": "abc",
+    "chietKhau": true,
+    "soLuong": [],
+    "donGia": "",
+    "donGiaBan": "12,5",
+    "ckKhach": {},
+    "thanhTienBan": null,
+    "extra": "x"
+   },
+   "ten",
+   null
+  ],
+  [
+   {
+    "donGiaVon": "abc",
+    "chietKhau": true,
+    "soLuong": [],
+    "donGia": "",
+    "donGiaBan": "12,5",
+    "ckKhach": {},
+    "thanhTienBan": null,
+    "extra": "x"
+   },
+   "stt",
+   null
+  ],
+  [
+   {
+    "donGiaVon": "abc",
+    "chietKhau": true,
+    "soLuong": [],
+    "donGia": "",
+    "donGiaBan": "12,5",
+    "ckKhach": {},
+    "thanhTienBan": null,
+    "extra": "x"
+   },
+   1,
+   null
+  ],
+  [
+   {
+    "donGiaVon": "abc",
+    "chietKhau": true,
+    "soLuong": [],
+    "donGia": "",
+    "donGiaBan": "12,5",
+    "ckKhach": {},
+    "thanhTienBan": null,
+    "extra": "x"
+   },
+   null,
+   null
+  ],
+  [
+   {
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "soLuong": 7,
+    "donGia": 995,
+    "donGiaBan": 1000,
+    "ckKhach": 0.5,
+    "thanhTienBan": 6965
+   },
+   "nganh",
+   ""
+  ],
+  [
+   {
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "soLuong": 7,
+    "donGia": 995,
+    "donGiaBan": 1000,
+    "ckKhach": 0.5,
+    "thanhTienBan": 6965
+   },
+   "giaNCC",
+   1000
+  ],
+  [
+   {
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "soLuong": 7,
+    "donGia": 995,
+    "donGiaBan": 1000,
+    "ckKhach": 0.5,
+    "thanhTienBan": 6965
+   },
+   "giaDaiLy",
+   1000
+  ],
+  [
+   {
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "soLuong": 7,
+    "donGia": 995,
+    "donGiaBan": 1000,
+    "ckKhach": 0.5,
+    "thanhTienBan": 6965
+   },
+   "donGia",
+   1000
+  ],
+  [
+   {
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "soLuong": 7,
+    "donGia": 995,
+    "donGiaBan": 1000,
+    "ckKhach": 0.5,
+    "thanhTienBan": 6965
+   },
+   "donGiaCK",
+   995
+  ],
+  [
+   {
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "soLuong": 7,
+    "donGia": 995,
+    "donGiaBan": 1000,
+    "ckKhach": 0.5,
+    "thanhTienBan": 6965
+   },
+   "markup",
+   0
+  ],
+  [
+   {
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "soLuong": 7,
+    "donGia": 995,
+    "donGiaBan": 1000,
+    "ckKhach": 0.5,
+    "thanhTienBan": 6965
+   },
+   "margin",
+   -1
+  ],
+  [
+   {
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "soLuong": 7,
+    "donGia": 995,
+    "donGiaBan": 1000,
+    "ckKhach": 0.5,
+    "thanhTienBan": 6965
+   },
+   "lnVnd",
+   -35
+  ],
+  [
+   {
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "soLuong": 7,
+    "donGia": 995,
+    "donGiaBan": 1000,
+    "ckKhach": 0.5,
+    "thanhTienBan": 6965
+   },
+   "thanhTien",
+   6965
+  ],
+  [
+   {
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "soLuong": 7,
+    "donGia": 995,
+    "donGiaBan": 1000,
+    "ckKhach": 0.5,
+    "thanhTienBan": 6965
+   },
+   "ten",
+   null
+  ],
+  [
+   {
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "soLuong": 7,
+    "donGia": 995,
+    "donGiaBan": 1000,
+    "ckKhach": 0.5,
+    "thanhTienBan": 6965
+   },
+   "stt",
+   null
+  ],
+  [
+   {
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "soLuong": 7,
+    "donGia": 995,
+    "donGiaBan": 1000,
+    "ckKhach": 0.5,
+    "thanhTienBan": 6965
+   },
+   1,
+   null
+  ],
+  [
+   {
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "soLuong": 7,
+    "donGia": 995,
+    "donGiaBan": 1000,
+    "ckKhach": 0.5,
+    "thanhTienBan": 6965
+   },
+   null,
+   null
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 16.5,
+    "soLuong": 1,
+    "donGiaBan": 5,
+    "ckKhach": 50
+   },
+   "nganh",
+   ""
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 16.5,
+    "soLuong": 1,
+    "donGiaBan": 5,
+    "ckKhach": 50
+   },
+   "giaNCC",
+   3
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 16.5,
+    "soLuong": 1,
+    "donGiaBan": 5,
+    "ckKhach": 50
+   },
+   "giaDaiLy",
+   3
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 16.5,
+    "soLuong": 1,
+    "donGiaBan": 5,
+    "ckKhach": 50
+   },
+   "donGia",
+   5
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 16.5,
+    "soLuong": 1,
+    "donGiaBan": 5,
+    "ckKhach": 50
+   },
+   "donGiaCK",
+   3
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 16.5,
+    "soLuong": 1,
+    "donGiaBan": 5,
+    "ckKhach": 50
+   },
+   "markup",
+   0
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 16.5,
+    "soLuong": 1,
+    "donGiaBan": 5,
+    "ckKhach": 50
+   },
+   "margin",
+   0
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 16.5,
+    "soLuong": 1,
+    "donGiaBan": 5,
+    "ckKhach": 50
+   },
+   "lnVnd",
+   0
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 16.5,
+    "soLuong": 1,
+    "donGiaBan": 5,
+    "ckKhach": 50
+   },
+   "thanhTien",
+   0
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 16.5,
+    "soLuong": 1,
+    "donGiaBan": 5,
+    "ckKhach": 50
+   },
+   "ten",
+   null
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 16.5,
+    "soLuong": 1,
+    "donGiaBan": 5,
+    "ckKhach": 50
+   },
+   "stt",
+   null
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 16.5,
+    "soLuong": 1,
+    "donGiaBan": 5,
+    "ckKhach": 50
+   },
+   1,
+   null
+  ],
+  [
+   {
+    "donGiaVon": 3,
+    "chietKhau": 16.5,
+    "soLuong": 1,
+    "donGiaBan": 5,
+    "ckKhach": 50
+   },
+   null,
+   null
+  ],
+  [
+   {},
+   "nganh",
+   ""
+  ],
+  [
+   {},
+   "giaNCC",
+   0
+  ],
+  [
+   {},
+   "giaDaiLy",
+   0
+  ],
+  [
+   {},
+   "donGia",
+   0
+  ],
+  [
+   {},
+   "donGiaCK",
+   0
+  ],
+  [
+   {},
+   "markup",
+   0
+  ],
+  [
+   {},
+   "margin",
+   0
+  ],
+  [
+   {},
+   "lnVnd",
+   0
+  ],
+  [
+   {},
+   "thanhTien",
+   0
+  ],
+  [
+   {},
+   "ten",
+   null
+  ],
+  [
+   {},
+   "stt",
+   null
+  ],
+  [
+   {},
+   1,
+   null
+  ],
+  [
+   {},
+   null,
+   null
+  ]
+ ]
+}

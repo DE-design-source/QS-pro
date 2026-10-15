@@ -1,0 +1,67 @@
+{
+ "fmtVN": [0, -0.3, 0.4, 0.5, 1.5, 2.5, -2.5, -0.5, 999, 1000, 1234.5, 1234567, -1234567.8, "12.500.000", "12,5", "1e6", null, true, false, "abc", "", "  42 ", 1e21, 999999999999999, 123456789012345680000, [5], [1, 2], {}, "Infinity", "-Infinity", "0x10"],
+ "purchaseCards": [
+  { "project": "ZZ Nhà phố Q7", "maDA": "DA-01", "khachHang": "Anh Bình", "sdt": "0900 000 000", "nguoiGui": "Mai", "phongBan": "Mua hàng", "ghiChu": "Giao trước 15/11\nGọi trước khi giao",
+    "orders": [
+     { "supplier": "NCC A", "total": 5400000, "vat": 400000, "vatPct": 8, "items": [
+       { "ma": "A1", "ten": "Đèn âm trần 12W", "thuongHieu": "Ades", "khuVuc": "Phòng khách", "dvt": "Cái", "sl": 10, "donGia": 450000, "donGiaGoc": 500000, "giamGiaPct": 10, "hinhAnh": "h" },
+       { "ma": "A2", "ten": "Đèn ray", "khuVuc": "Bếp", "dvt": "Bộ", "sl": 2.5, "donGia": 200000 },
+       { "ten": "Phụ kiện", "thuongHieu": "X", "sl": "3", "donGia": "100000.4", "giamGiaPct": "0" } ] },
+     { "supplier": "NCC B", "total": "1250000", "vat": 0, "items": [ { "ten": "Sơn lót", "dvt": "Thùng", "sl": 1, "donGia": 1250000, "donGiaGoc": 1500000, "giamGiaPct": 16.67 } ] } ] },
+  {},
+  null,
+  "chuỗi",
+  { "project": "Một NCC", "orders": [ { "total": "abc", "vat": "x" } ] },
+  { "project": "Không khách", "sdt": "0911", "orders": [ { "supplier": "S", "items": 0, "total": 100, "vat": 10 } ] },
+  { "orders": [ null ] },
+  { "orders": [ { "items": "abc" } ] },
+  { "orders": [ { "items": { "a": 1 } } ] },
+  { "orders": [ { "items": [ null ] } ] },
+  { "project": 123, "maDA": 0, "nguoiGui": ["a", "b"], "phongBan": true, "ghiChu": { "x": 1 }, "khachHang": 5,
+    "orders": [ { "supplier": 0, "total": true, "vat": "5", "vatPct": "8", "items": [ { "ten": 7, "dvt": 5, "sl": true, "donGia": "12.500", "khuVuc": 3, "thuongHieu": ["x", null, "y"], "giamGiaPct": "abc" } ] } ] },
+  { "orders": [ 5, "str", [], { "supplier": "Thật", "total": 1000, "vat": 2000, "items": [ { "sl": 1, "donGia": 0, "donGiaGoc": 0 } ] } ] },
+  { "orders": [ { "supplier": "Số lớn", "total": 1234567890.5, "vat": 0.5, "vatPct": 0, "items": [
+      { "ten": "a", "sl": 1e21, "donGia": 1 }, { "ten": "b", "sl": 1, "donGia": 0.5 }, { "ten": "c", "sl": 1, "donGia": 2.5 },
+      { "ten": "d", "sl": -1, "donGia": 2.5 }, { "ten": "e", "sl": -1, "donGia": 0.3 }, { "ten": "f", "sl": 0.1, "donGia": 0.2, "giamGiaPct": 0.30000000000000004 },
+      { "ten": "g", "sl": 3, "donGia": 100, "donGiaGoc": "200", "giamGiaPct": 50 } ] } ] },
+  { "nguoiGui": "Chỉ người gửi", "orders": [ { "supplier": "Giảm", "total": 800, "vat": 0, "items": [ { "ten": "x", "sl": 1, "donGia": 800, "donGiaGoc": 1000, "giamGiaPct": 20 } ] }, { "supplier": "", "total": 1, "vat": -1, "items": [] } ] }
+ ],
+ "deXuatCards": [
+  [ { "loai": "ck", "maDA": "DA-01", "project": "ZZ Nhà phố", "hangMuc": "3.2.6", "supplier": "NCC A", "vatPct": 8, "nguoiGui": "Mai", "phongBan": "Mua hàng", "ghiChu": "Xin thêm 2%",
+      "items": [ { "ma": "A1", "ten": "SP A1", "thuongHieu": "X", "khuVuc": "P1", "dvt": "Cái", "sl": 2, "donGiaGoc": 1000, "giamGiaPct": 10, "donGia": 900, "hinhAnh": "h" },
+                 { "ten": "SP A2", "sl": "3", "donGiaGoc": "2000.6", "donGia": 2000.6 }, { "sl": 1, "donGia": 500, "giamGiaPct": "5" } ] }, "CK-ABC-12" ],
+  [ { "loai": "tt", "project": "ZZ", "supplier": "NCC A", "tongDon": 2160, "nguoiGui": "E2E", "dots": [ { "dot": 1, "pct": 30, "tien": 648, "ngay": "2026-12-01", "gc": "cọc" }, { "dot": 2, "pct": 70, "tien": 1512, "ngay": null, "gc": "" } ] }, "TT-XYZ-7" ],
+  [ { "loai": "tt", "dots": [ { "tien": "1.000" }, { "dot": 0, "pct": "abc", "tien": 2.5 }, { "dot": "C", "pct": "12.5", "tien": -0.3, "ngay": 20261201, "gc": 5 } ] }, "TT-1" ],
+  [ {}, "CK-0" ],
+  [ null, null ],
+  [ "x", 15 ],
+  [ { "loai": "x", "items": "abc", "dots": [ { "tien": 1 } ] }, "CK-1" ],
+  [ { "loai": "tt", "items": [ { "sl": 1 } ], "dots": {}, "tongDon": "5000" }, "TT-2" ],
+  [ { "items": [ null ] }, "CK-2" ],
+  [ { "loai": "tt", "dots": [ null ] }, "TT-3" ],
+  [ { "project": 0, "supplier": ["a"], "hangMuc": 3.2, "nguoiGui": 9, "phongBan": 1, "ghiChu": true, "items": [ { "ten": 1, "dvt": 2, "sl": 0.5, "donGia": 3, "donGiaGoc": 5, "giamGiaPct": 40.5 } ] }, ["CK", 3] ]
+ ],
+ "thieuBang": [
+  "DB POST de_xuat -> 404 {\"code\":\"PGRST205\",\"details\":null,\"hint\":null,\"message\":\"Could not find the table 'public.de_xuat' in the schema cache\"}",
+  "DB GET de_xuat -> 400 {\"code\":\"42P01\",\"message\":\"relation \\\"x\\\" DOES NOT EXIST\"}",
+  "DB POST de_xuat -> 400 {\"code\":\"23514\",\"message\":\"check constraint\"}",
+  "DB POST don_mua_hang -> 404 {\"code\":\"PGRST205\"}",
+  "relation de_xuat does not exist",
+  "DE_XUAT does not exist",
+  "DB POST chi_tiet_de_xuat_ck -> 400 {\"message\":\"value 1404 out of range\"}",
+  ""
+ ],
+ "dxBang": ["tt", "ck", "", null, "TT", 5],
+ "dxHead": [
+  { "id": 5, "ma_de_xuat": "CK-1", "loai": "ck", "ma_du_an": "DA", "ten_du_an": "P", "hang_muc": "3.2", "nha_cung_cap": "N", "so_dong": 2, "tong_goc": 1000, "tong_de_xuat": 900, "tien_giam": 100, "vat_pct": 8, "vat": 72, "tong_cong": 972, "trang_thai": "Chờ duyệt", "nguoi_gui": "Mai", "phong_ban": "MH", "ghi_chu": "g", "nguoi_duyet": null, "ngay_duyet": null, "requester_id": "u", "cong_ty_id": "c", "ngay_gui": "2026-10-13T07:00:00.123456+00:00" },
+  { "ma_de_xuat": 12, "loai": "", "tong_goc": "1.234", "tong_de_xuat": "12,5", "vat_pct": "8%", "so_dong": null, "nguoi_duyet": "Sếp", "ngay_duyet": "2026-10-13T08:00:00+00:00" },
+  { "loai": null },
+  {}
+ ],
+ "dxItem": [
+  { "id": 1, "ma_de_xuat": "CK-1", "sort_no": 0, "ma_sp": "A1", "ten_sp": "SP", "thuong_hieu": "X", "phong": "P1", "dvt": "Cái", "so_luong": 2, "don_gia_goc": 1000, "ty_le_pct": 10, "don_gia": 900, "thanh_tien": 1800, "hinh_anh": "h" },
+  { "id": 2, "ma_de_xuat": "TT-1", "sort_no": 0, "ten_sp": "Đợt 1", "ty_le_pct": 30, "thanh_tien": 648, "ngay_du_kien": "2026-12-01", "ghi_chu": "cọc" },
+  { "so_luong": "2,5", "don_gia": "1.000", "ngay_du_kien": null, "thanh_tien": true },
+  {}
+ ]
+}

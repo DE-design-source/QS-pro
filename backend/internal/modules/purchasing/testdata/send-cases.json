@@ -1,0 +1,20 @@
+[
+ {"fn": "sendPurchaseRequest", "reply": "\ufeff{\"code\":0}", "arg": {"orders": [{"supplier": "ZZ bom", "total": 5, "vat": 0}]}},
+ {"fn": "sendDeXuat", "reply": "\ufeff{\"StatusCode\":0}", "arg": {"supplier": "ZZ bom"}},
+ {"fn": "sendPurchaseRequest", "reply": "\ufeff\ufeff{\"code\":0}", "arg": {}},
+ {"fn": "sendPurchaseRequest", "reply": "\ufeff\ufeff\ufeff{\"code\":0}", "arg": {}},
+ {"fn": "sendDeXuat", "reply": "\ufeff{\"code\":7,\"msg\":\"bad\"}", "arg": {}},
+ {"fn": "sendDeXuat", "reply": "\ufeffoops", "arg": {}},
+ {"fn": "sendPurchaseRequest", "reply": " \ufeff{\"code\":0}", "arg": {}},
+ {"fn": "sendPurchaseRequest", "reply": "{\"code\":0}", "arg": {"__proto__": {"maDA": "ZZ_purchasing_X", "project": "ZZ du an", "node": "3.1", "kenh": "Zalo", "ketQua": "khac", "requesterId": "u-proto", "nguoiGui": "An", "orders": [{"supplier": "ZZ proto", "total": 5, "vat": 0, "items": [{"ten": "p", "sl": 1, "donGia": 5}]}]}}},
+ {"fn": "sendPurchaseRequest", "reply": "{\"code\":0}", "arg": {"maDA": "ZZ_own", "orders": [{"supplier": "ZZ own", "total": 1}], "__proto__": {"maDA": "ZZ_proto", "project": "ZZ tu proto", "orders": [{"supplier": "ZZ proto"}, {"supplier": "ZZ proto 2"}], "__proto__": {"ghiChu": "khong thay"}}}},
+ {"fn": "sendPurchaseRequest", "reply": "{\"code\":0}", "arg": {"project": null, "__proto__": {"project": "ZZ bi che", "phongBan": "KT"}, "orders": [{"supplier": "ZZ null che"}]}},
+ {"fn": "sendPurchaseRequest", "reply": "{\"code\":0}", "arg": {"__proto__": [{"supplier": "ZZ mang"}], "orders": [{"supplier": "ZZ proto mang"}]}},
+ {"fn": "sendPurchaseRequest", "reply": "{\"code\":0}", "arg": {"__proto__": null, "orders": [{"supplier": "ZZ proto null"}]}},
+ {"fn": "sendPurchaseRequest", "reply": "{\"code\":0}", "arg": {"__proto__": "chuoi", "orders": [{"supplier": "ZZ proto chuoi"}]}},
+ {"fn": "sendDeXuat", "reply": "{\"code\":0}", "arg": {"__proto__": {"loai": "tt", "maDA": "ZZ_purchasing_X", "supplier": "ZZ proto", "requesterId": "u-proto", "tongDon": 9, "dots": [{"tien": 5}]}}},
+ {"fn": "sendDeXuat", "reply": "{\"code\":0}", "arg": {"loai": "ck", "__proto__": {"loai": "tt", "vatPct": 10, "dots": [{"tien": 5}], "items": [{"ten": "p", "sl": 2, "donGia": 5, "donGiaGoc": 6}]}}},
+ {"fn": "sendDeXuat", "reply": "{\"code\":0}", "arg": {"__proto__": 5, "loai": "tt", "dots": [{"tien": 7}]}},
+ {"fn": "sendPurchaseRequest", "dead": true, "arg": {"orders": [{"supplier": "ZZ chet"}]}},
+ {"fn": "sendDeXuat", "dead": true, "arg": {}}
+]

@@ -1,0 +1,456 @@
+{
+ "slug": [
+  {
+   "ma": null,
+   "ten": "aᲉꟋꟌꟚꟜ𐵐𐵑𐵒𐵓𐵔𐵕𐵖𐵗𐵘𐵙𐵚𐵛𐵜𐵝𐵞𐵟𐵠𐵡𐵢𐵣𐵤𐵥b",
+   "out": "a-b"
+  },
+  {
+   "ma": null,
+   "ten": "Công Ty Đỗ Ánh #1",
+   "out": "cong-ty-do-anh-1"
+  },
+  {
+   "ma": "  --Hello__World--  ",
+   "ten": "x",
+   "out": "hello-world"
+  },
+  {
+   "ma": null,
+   "ten": "ĐẠI ĐỒNG đỏ",
+   "out": "dai-dong-do"
+  },
+  {
+   "ma": null,
+   "ten": "İstanbul ΣΑΣ Straße",
+   "out": "istanbul-stra-e"
+  },
+  {
+   "ma": null,
+   "ten": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "out": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  {
+   "ma": null,
+   "ten": "abc xxxxxxxxxxxxxxxxxxxxxxxxxxx yz",
+   "out": "abc-xxxxxxxxxxxxxxxxxxxxxxxxxxx-"
+  },
+  {
+   "ma": null,
+   "ten": "!!!",
+   "out": ""
+  },
+  {
+   "ma": 123,
+   "ten": "x",
+   "out": "123"
+  },
+  {
+   "ma": null,
+   "ten": "Å K ﬁ",
+   "out": "a-k"
+  },
+  {
+   "ma": null,
+   "ten": "Tiếng Việt có dấu & ký tự",
+   "out": "tieng-viet-co-dau-ky-tu"
+  },
+  {
+   "ma": null,
+   "ten": "Cty 😀 vui",
+   "out": "cty-vui"
+  },
+  {
+   "ma": "ZZ_companies_Mã 2",
+   "ten": "x",
+   "out": "zz-companies-ma-2"
+  },
+  {
+   "ma": 0,
+   "ten": "Số Không",
+   "out": "so-khong"
+  },
+  {
+   "ma": "",
+   "ten": "Rỗng",
+   "out": "rong"
+  },
+  {
+   "ma": true,
+   "ten": "x",
+   "out": "true"
+  },
+  {
+   "ma": null,
+   "ten": "é è ơ",
+   "out": "e-e-o"
+  },
+  {
+   "ma": null,
+   "ten": "ǅ ẞ Ω",
+   "out": ""
+  }
+ ],
+ "adminUser": [
+  {
+   "in": "__undefined__",
+   "out": ""
+  },
+  {
+   "in": null,
+   "out": ""
+  },
+  {
+   "in": 0,
+   "out": ""
+  },
+  {
+   "in": "",
+   "out": ""
+  },
+  {
+   "in": "  Admin  ",
+   "out": "admin"
+  },
+  {
+   "in": "ZZ_Companies_ĐỖ",
+   "out": "zz_companies_đỗ"
+  },
+  {
+   "in": "İstanbul ΣΑΣ",
+   "out": "i̇stanbul σας"
+  },
+  {
+   "in": "ΟΔΟΣꟋ",
+   "out": "οδοσɤ"
+  },
+  {
+   "in": 123,
+   "out": "123"
+  },
+  {
+   "in": true,
+   "out": "true"
+  },
+  {
+   "in": [
+    "A",
+    "B"
+   ],
+   "out": "a,b"
+  },
+  {
+   "in": "ᲉꟋꟌꟚꟜ𐵐𐵑𐵒𐵓𐵔𐵕𐵖𐵗𐵘𐵙𐵚𐵛𐵜𐵝𐵞𐵟𐵠𐵡𐵢𐵣𐵤𐵥",
+   "out": "ᲊɤꟍꟛƛ𐵰𐵱𐵲𐵳𐵴𐵵𐵶𐵷𐵸𐵹𐵺𐵻𐵼𐵽𐵾𐵿𐶀𐶁𐶂𐶃𐶄𐶅"
+  },
+  {
+   "in": " xᲉꟋꟌꟚꟜ𐵐𐵑𐵒𐵓𐵔𐵕𐵖𐵗𐵘𐵙𐵚𐵛𐵜𐵝𐵞𐵟𐵠𐵡𐵢𐵣𐵤𐵥Y ",
+   "out": "xᲊɤꟍꟛƛ𐵰𐵱𐵲𐵳𐵴𐵵𐵶𐵷𐵸𐵹𐵺𐵻𐵼𐵽𐵾𐵿𐶀𐶁𐶂𐶃𐶄𐶅y"
+  }
+ ],
+ "ctOut": [
+  {
+   "row": {
+    "id": "u-1",
+    "ten": "A",
+    "ma": "a",
+    "logo_url": "http://l",
+    "mau_chinh": "#fff",
+    "tinh_nang": " a, b ,,c ",
+    "gioi_han_user": 12,
+    "active": true,
+    "han_dung": "2030-01-02",
+    "ghi_chu": "g",
+    "ngay_tao": "2026-01-01T00:00:00+00:00",
+    "email": "e",
+    "sdt": "s",
+    "dung_sp_dezon": true
+   },
+   "out": {
+    "id": "u-1",
+    "ten": "A",
+    "ma": "a",
+    "logoUrl": "http://l",
+    "mauChinh": "#fff",
+    "tinhNang": [
+     "a",
+     "b",
+     "c"
+    ],
+    "gioiHanUser": 12,
+    "active": true,
+    "hanDung": "2030-01-02",
+    "ghiChu": "g",
+    "ngayTao": "2026-01-01T00:00:00+00:00",
+    "email": "e",
+    "sdt": "s",
+    "dungSpDezon": true
+   }
+  },
+  {
+   "row": {
+    "id": "u-2",
+    "ten": null,
+    "ma": null,
+    "logo_url": null,
+    "mau_chinh": null,
+    "tinh_nang": null,
+    "gioi_han_user": null,
+    "active": null,
+    "han_dung": null,
+    "ghi_chu": null,
+    "ngay_tao": null,
+    "email": null,
+    "sdt": null,
+    "dung_sp_dezon": null
+   },
+   "out": {
+    "id": "u-2",
+    "ten": "",
+    "ma": "",
+    "logoUrl": "",
+    "mauChinh": "",
+    "tinhNang": [],
+    "gioiHanUser": 0,
+    "active": true,
+    "hanDung": "",
+    "ghiChu": "",
+    "ngayTao": "",
+    "email": "",
+    "sdt": "",
+    "dungSpDezon": false
+   }
+  },
+  {
+   "row": {
+    "ten": "thiếu khoá"
+   },
+   "out": {
+    "ten": "thiếu khoá",
+    "ma": "",
+    "logoUrl": "",
+    "mauChinh": "",
+    "tinhNang": [],
+    "gioiHanUser": 0,
+    "active": true,
+    "hanDung": "",
+    "ghiChu": "",
+    "ngayTao": "",
+    "email": "",
+    "sdt": "",
+    "dungSpDezon": false
+   }
+  },
+  {
+   "row": {
+    "id": 3,
+    "ten": "",
+    "tinh_nang": ",, ,",
+    "gioi_han_user": "15",
+    "active": false,
+    "dung_sp_dezon": false
+   },
+   "out": {
+    "id": 3,
+    "ten": "",
+    "ma": "",
+    "logoUrl": "",
+    "mauChinh": "",
+    "tinhNang": [],
+    "gioiHanUser": 15,
+    "active": false,
+    "hanDung": "",
+    "ghiChu": "",
+    "ngayTao": "",
+    "email": "",
+    "sdt": "",
+    "dungSpDezon": false
+   }
+  },
+  {
+   "row": {
+    "id": 4,
+    "gioi_han_user": "x",
+    "active": 0,
+    "dung_sp_dezon": "true",
+    "tinh_nang": "một"
+   },
+   "out": {
+    "id": 4,
+    "ten": "",
+    "ma": "",
+    "logoUrl": "",
+    "mauChinh": "",
+    "tinhNang": [
+     "một"
+    ],
+    "gioiHanUser": 0,
+    "active": true,
+    "hanDung": "",
+    "ghiChu": "",
+    "ngayTao": "",
+    "email": "",
+    "sdt": "",
+    "dungSpDezon": false
+   }
+  },
+  {
+   "row": {
+    "id": 5,
+    "gioi_han_user": -2.5,
+    "active": "false",
+    "dung_sp_dezon": 1,
+    "tinh_nang": 0,
+    "han_dung": 0
+   },
+   "out": {
+    "id": 5,
+    "ten": "",
+    "ma": "",
+    "logoUrl": "",
+    "mauChinh": "",
+    "tinhNang": [],
+    "gioiHanUser": -2.5,
+    "active": true,
+    "hanDung": "",
+    "ghiChu": "",
+    "ngayTao": "",
+    "email": "",
+    "sdt": "",
+    "dungSpDezon": false
+   }
+  }
+ ],
+ "todayVN": [
+  {
+   "now": 1790787599999,
+   "out": "2026-09-30"
+  },
+  {
+   "now": 1790787600000,
+   "out": "2026-10-01"
+  },
+  {
+   "now": 1798736400000,
+   "out": "2027-01-01"
+  },
+  {
+   "now": 1709163000000,
+   "out": "2024-02-29"
+  },
+  {
+   "now": 1791860400000,
+   "out": "2026-10-13"
+  }
+ ],
+ "hetHan": [
+  {
+   "now": 1790787599999,
+   "ct": null,
+   "out": false
+  },
+  {
+   "now": 1790787599999,
+   "ct": {},
+   "out": false
+  },
+  {
+   "now": 1790787599999,
+   "ct": {
+    "hanDung": ""
+   },
+   "out": false
+  },
+  {
+   "now": 1790787599999,
+   "ct": {
+    "hanDung": "2026-09-30"
+   },
+   "out": false
+  },
+  {
+   "now": 1790787600000,
+   "ct": {
+    "hanDung": "2026-09-30"
+   },
+   "out": true
+  },
+  {
+   "now": 1790787600000,
+   "ct": {
+    "hanDung": "2026-10-01"
+   },
+   "out": false
+  },
+  {
+   "now": 1790787600000,
+   "ct": {
+    "hanDung": "2026-09-30T23:59:59+00:00"
+   },
+   "out": true
+  },
+  {
+   "now": 1790787600000,
+   "ct": {
+    "hanDung": "2026-10-01T00:00:00+00:00"
+   },
+   "out": false
+  },
+  {
+   "now": 1790787600000,
+   "ct": {
+    "hanDung": 20200101
+   },
+   "out": true
+  },
+  {
+   "now": 1790787600000,
+   "ct": {
+    "hanDung": 0
+   },
+   "out": false
+  },
+  {
+   "now": 1790787600000,
+   "ct": {
+    "hanDung": "9"
+   },
+   "out": false
+  },
+  {
+   "now": 1790787600000,
+   "ct": {
+    "hanDung": "2026"
+   },
+   "out": true
+  },
+  {
+   "now": 1790787600000,
+   "ct": {
+    "hanDung": "2026-10-01x"
+   },
+   "out": false
+  },
+  {
+   "now": 1790787600000,
+   "ct": {
+    "hanDung": true
+   },
+   "out": false
+  },
+  {
+   "now": 1790787600000,
+   "ct": {
+    "hanDung": "abc"
+   },
+   "out": false
+  },
+  {
+   "now": 1790787600000,
+   "ct": {
+    "hanDung": "2026-1-1"
+   },
+   "out": true
+  }
+ ]
+}

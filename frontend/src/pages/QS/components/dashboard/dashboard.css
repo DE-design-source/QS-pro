@@ -1,0 +1,45 @@
+/* =====================================================================
+   QS - Bảng điều khiển: phần thêm vào giao diện clone (QS.css giữ nguyên).
+   Tiền tố qs-dash-; không dùng -page / -modal / -menu / -popover / -drawer / -ai-panel / -mono.
+   ===================================================================== */
+
+/* 4 nút của dải "Đang làm việc" (port .dh-hero-r / .dh-act, PUB/index.html:1103-1107) */
+.qs-dash-banner-acts{flex:none; margin-left:auto; display:flex; align-items:center; gap:6px;}
+.qs-dash-act{height:24px; padding:0 10px; border-radius:6px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.08); color:#fff; font-size:11.5px; font-weight:600; white-space:nowrap; display:flex; align-items:center; gap:5px; cursor:pointer;}
+.qs-dash-act:hover{background:rgba(255,255,255,.16); border-color:rgba(255,255,255,.34);}
+.qs-dash-act.primary{background:#fff; border-color:#fff; color:var(--dash-navy);}
+.qs-dash-act.primary:hover{background:#eaf1fb;}
+
+/* KPI lợi nhuận âm */
+.qs-dash-kpi-icon.red{background:var(--danger-tint); color:var(--danger);}
+.qs-dash-kpi-value.negative{color:var(--danger);}
+
+/* Thẻ dự án / bản nháp */
+.qs-dash-click{cursor:pointer;}
+button.qs-dash-link{padding:0; background:none; cursor:pointer;}
+a.qs-dash-link{text-decoration:none;}
+.qs-dash-link:hover{border-color:var(--dash-accent-border); color:var(--dash-accent);}
+.qs-dash-trash{z-index:1;}
+.qs-dash-draft-n{cursor:text; border-radius:5px; padding:1px 4px; margin-left:-4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:background .12s;}
+.qs-dash-draft-n:hover{background:var(--dash-accent-tint); box-shadow:inset 0 0 0 1px var(--dash-accent-border);}
+.qs-dash-draft-in{height:24px; border:1px solid var(--dash-accent); border-radius:6px; padding:0 6px; max-width:100%; background:var(--surface); color:var(--text); font:inherit; font-size:14px; font-weight:500; outline:none;}
+.qs-dash-draft-meta.qs-dash-click:hover{opacity:.85;}
+.qs-dash-draft-acts{flex:none; display:flex; align-items:center; gap:4px;}
+.qs-dash-draft-ic{width:0; min-width:0; height:26px; padding:0; margin:0; border:0 solid var(--border); border-radius:7px; background:var(--surface); color:var(--text-muted); opacity:0; overflow:hidden; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:opacity .12s;}
+.qs-dash-draft:hover .qs-dash-draft-ic, .qs-dash-draft:focus-within .qs-dash-draft-ic{width:26px; border-width:1px; opacity:1;}
+.qs-dash-draft-ic:hover{border-color:var(--dash-accent); color:var(--dash-accent); background:var(--dash-accent-tint);}
+.qs-dash-draft-ic.del:hover{border-color:var(--danger); color:var(--danger); background:var(--danger-tint);}
+
+/* Số tiền thật dài hơn số mẫu (vd 226.534.472 đ): bớt khoảng đệm để không bị cắt "…" ở 1440 px */
+.qs-dash-kpi-grid .qs-dash-kpi{gap:8px; padding:4px 11px;}
+.qs-dash-kpi-grid .qs-dash-kpi-value{letter-spacing:-.02em;}
+
+/* Dữ liệu dự án đang tải / lỗi tải / Phần thô lỗi: 1 dòng báo giữa băng và KPI */
+.qs-dash-pd{flex:none; display:flex; align-items:center; gap:10px;}
+.qs-dash-pd .qsc-btn{flex:none; margin-left:auto; height:26px; padding:0 10px; font-size:12px;}
+
+/* Nút "Tạo dự án" có biểu tượng + như bản gốc (.dh-newbtn, PUB/dash.js:202) */
+.qs-dash-list-head .qs-dash-create{display:inline-flex; align-items:center; gap:5px;}
+
+/* Chữ phụ KPI (vd "Tổng thanh toán · gồm VAT 10%") vừa ô ở 1440 px: cỡ chữ như .dh-kpi-l của bản gốc (11px) */
+.qs-dash-kpi-grid .qs-dash-kpi-sub{font-size:11px;}

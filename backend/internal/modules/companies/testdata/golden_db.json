@@ -1,0 +1,520 @@
+{
+ "s01_list_admin": {
+  "err": "Chỉ quản trị hệ thống mới xem được"
+ },
+ "s02_list_super": {
+  "ok": [
+   {
+    "id": "19be0716-5fa6-4462-9cc5-358e1ff43ae4",
+    "ten": "Decox Basic",
+    "ma": "decox-basic",
+    "logoUrl": "https://xcjnpjpkmwhekkabpjzw.supabase.co/storage/v1/object/public/products/sp%2F1789532652470-652693.jpg",
+    "mauChinh": "",
+    "tinhNang": [
+     "dash",
+     "boc",
+     "chiphi",
+     "export",
+     "muahang",
+     "duan",
+     "sanpham",
+     "import"
+    ],
+    "gioiHanUser": 10,
+    "active": true,
+    "hanDung": "2027-01-16",
+    "ghiChu": "",
+    "ngayTao": "<ts>",
+    "email": "phuongnd@decoxdesign.com",
+    "sdt": "",
+    "dungSpDezon": true,
+    "soUser": "number"
+   },
+   {
+    "id": "58e4937e-eb52-4feb-8a51-456d13857306",
+    "ten": "Bird",
+    "ma": "b-123",
+    "logoUrl": "https://img.magnific.com/vector-mien-phi/vector-thiet-ke-gradient-chim-day-mau-sac_343694-2506.jpg?semt=ais_hybrid&w=740&q=80",
+    "mauChinh": "",
+    "tinhNang": [
+     "dash",
+     "boc",
+     "chiphi",
+     "export",
+     "muahang",
+     "duan",
+     "sanpham",
+     "import"
+    ],
+    "gioiHanUser": 5,
+    "active": true,
+    "hanDung": "2026-09-10",
+    "ghiChu": "trải nghiệm",
+    "ngayTao": "<ts>",
+    "email": "",
+    "sdt": "123045656",
+    "dungSpDezon": true,
+    "soUser": "number"
+   },
+   {
+    "id": "90c41ced-2477-4342-97da-e226344354f1",
+    "ten": "Dezon",
+    "ma": "dezon",
+    "logoUrl": "",
+    "mauChinh": "",
+    "tinhNang": [
+     "dash",
+     "boc",
+     "chiphi",
+     "export",
+     "muahang",
+     "duan",
+     "sanpham",
+     "import"
+    ],
+    "gioiHanUser": 50,
+    "active": true,
+    "hanDung": "",
+    "ghiChu": "",
+    "ngayTao": "<ts>",
+    "email": "",
+    "sdt": "",
+    "dungSpDezon": false,
+    "soUser": "number"
+   }
+  ]
+ },
+ "s03a_create_null": {
+  "err": "Chưa nhập tên công ty"
+ },
+ "s03b_create_blank": {
+  "err": "Chưa nhập tên công ty"
+ },
+ "s03c_create_admin": {
+  "err": "Chỉ quản trị hệ thống mới tạo được công ty"
+ },
+ "s03d_create_string": {
+  "err": "Chưa nhập tên công ty"
+ },
+ "s04_create_full": {
+  "ok": {
+   "id": "<CT1>",
+   "ten": "ZZ_companies Công Ty Đỗ Ánh #1",
+   "ma": "zz-companies-cong-ty-do-anh-1",
+   "logoUrl": "http://x/l.png",
+   "mauChinh": "",
+   "tinhNang": [
+    "boc",
+    "duan"
+   ],
+   "gioiHanUser": 7,
+   "active": false,
+   "hanDung": "2030-01-02",
+   "ghiChu": "ghi chú",
+   "ngayTao": "<ts>",
+   "email": "a@zz.vn",
+   "sdt": "0909",
+   "dungSpDezon": true
+  }
+ },
+ "s05_create_dup": {
+  "err": "Mã công ty \"zz-companies-cong-ty-do-anh-1\" đã tồn tại"
+ },
+ "s06_create_ma": {
+  "ok": {
+   "id": "<CT2>",
+   "ten": "ZZ_companies Hai",
+   "ma": "zz-companies-ma-2",
+   "logoUrl": "",
+   "mauChinh": "",
+   "tinhNang": [
+    "x",
+    "y"
+   ],
+   "gioiHanUser": 10,
+   "active": true,
+   "hanDung": "",
+   "ghiChu": "",
+   "ngayTao": "<ts>",
+   "email": "5",
+   "sdt": "",
+   "dungSpDezon": false
+  }
+ },
+ "s07_create_dup_user": {
+  "err": "Tên đăng nhập \"admin\" đã có người dùng — chọn tên khác"
+ },
+ "s07b_orphan_check": {
+  "ok": 0
+ },
+ "s08_create_with_owner": {
+  "ok": {
+   "id": "<CT3>",
+   "ten": "ZZ_companies Bốn",
+   "ma": "zz-companies-bon",
+   "logoUrl": "",
+   "mauChinh": "",
+   "tinhNang": [],
+   "gioiHanUser": 10,
+   "active": true,
+   "hanDung": "",
+   "ghiChu": "",
+   "ngayTao": "<ts>",
+   "email": "e@zz.vn",
+   "sdt": "",
+   "dungSpDezon": false
+  }
+ },
+ "s08b_owner_no_pass": {
+  "ok": {
+   "id": "<CT5>",
+   "ten": "ZZ_companies Năm",
+   "ma": "zz-companies-nam",
+   "logoUrl": "",
+   "mauChinh": "",
+   "tinhNang": [],
+   "gioiHanUser": 10,
+   "active": true,
+   "hanDung": "",
+   "ghiChu": "",
+   "ngayTao": "<ts>",
+   "email": "",
+   "sdt": "",
+   "dungSpDezon": false
+  }
+ },
+ "s09_users_ct3": {
+  "ok": [
+   {
+    "username": "zz_companies_adm",
+    "hoTen": "Quản trị ZZ_companies Bốn",
+    "role": "admin",
+    "perms": [],
+    "active": true,
+    "congTyId": "<CT3>",
+    "email": "e@zz.vn",
+    "phongBan": ""
+   }
+  ]
+ },
+ "s09b_users_ct1": {
+  "ok": []
+ },
+ "s09c_users_admin": {
+  "err": "Chỉ quản trị hệ thống"
+ },
+ "s09d_users_undefined": {
+  "err": "DB GET users -> 400 {\"code\":\"22P02\",\"details\":null,\"hint\":null,\"message\":\"invalid input syntax for type uuid: \\\"undefined\\\"\"}"
+ },
+ "s09e_users_bad_id": {
+  "err": "DB GET users -> 400 {\"code\":\"22P02\",\"details\":null,\"hint\":null,\"message\":\"invalid input syntax for type uuid: \\\"not-a-uuid\\\"\"}"
+ },
+ "s10a_get": {
+  "ok": {
+   "id": "<CT1>",
+   "ten": "ZZ_companies Công Ty Đỗ Ánh #1",
+   "ma": "zz-companies-cong-ty-do-anh-1",
+   "logoUrl": "http://x/l.png",
+   "mauChinh": "",
+   "tinhNang": [
+    "boc",
+    "duan"
+   ],
+   "gioiHanUser": 7,
+   "active": false,
+   "hanDung": "2030-01-02",
+   "ghiChu": "ghi chú",
+   "ngayTao": "<ts>",
+   "email": "a@zz.vn",
+   "sdt": "0909",
+   "dungSpDezon": true
+  }
+ },
+ "s10b_get_null": {
+  "ok": null
+ },
+ "s10c_get_missing": {
+  "ok": null
+ },
+ "s10d_get_zero": {
+  "ok": null
+ },
+ "s11a_upd_staff": {
+  "err": "Không có quyền"
+ },
+ "s11b_upd_other": {
+  "err": "Chỉ sửa được công ty của bạn"
+ },
+ "s11b2_upd_admin_noct": {
+  "err": "Chỉ sửa được công ty của bạn"
+ },
+ "s11c_upd_owner": {
+  "ok": {
+   "id": "<CT1>",
+   "ten": "ZZ_companies Một đổi",
+   "ma": "zz-companies-cong-ty-do-anh-1",
+   "logoUrl": "",
+   "mauChinh": "#123",
+   "tinhNang": [
+    "boc",
+    "duan"
+   ],
+   "gioiHanUser": 7,
+   "active": false,
+   "hanDung": "2030-01-02",
+   "ghiChu": "ghi chú",
+   "ngayTao": "<ts>",
+   "email": "a@zz.vn",
+   "sdt": "123",
+   "dungSpDezon": true
+  }
+ },
+ "s11d_upd_super": {
+  "ok": {
+   "id": "<CT1>",
+   "ten": "ZZ_companies Một đổi",
+   "ma": "zz-companies-cong-ty-do-anh-1",
+   "logoUrl": "",
+   "mauChinh": "#123",
+   "tinhNang": [
+    "a",
+    "b",
+    "3"
+   ],
+   "gioiHanUser": 0,
+   "active": false,
+   "hanDung": "",
+   "ghiChu": "5",
+   "ngayTao": "<ts>",
+   "email": "a@zz.vn",
+   "sdt": "123",
+   "dungSpDezon": false
+  }
+ },
+ "s11e_upd_super2": {
+  "ok": {
+   "id": "<CT1>",
+   "ten": "ZZ_companies Một đổi",
+   "ma": "zz-companies-cong-ty-do-anh-1",
+   "logoUrl": "",
+   "mauChinh": "#123",
+   "tinhNang": [
+    "k1",
+    "k2"
+   ],
+   "gioiHanUser": 12,
+   "active": true,
+   "hanDung": "2031-12-31",
+   "ghiChu": "5",
+   "ngayTao": "<ts>",
+   "email": "m@zz.vn",
+   "sdt": "123",
+   "dungSpDezon": true
+  }
+ },
+ "s11f_upd_empty": {
+  "ok": {
+   "id": "<CT1>",
+   "ten": "ZZ_companies Một đổi",
+   "ma": "zz-companies-cong-ty-do-anh-1",
+   "logoUrl": "",
+   "mauChinh": "#123",
+   "tinhNang": [
+    "k1",
+    "k2"
+   ],
+   "gioiHanUser": 12,
+   "active": true,
+   "hanDung": "2031-12-31",
+   "ghiChu": "5",
+   "ngayTao": "<ts>",
+   "email": "m@zz.vn",
+   "sdt": "123",
+   "dungSpDezon": true
+  }
+ },
+ "s11g_upd_null": {
+  "ok": {
+   "id": "<CT1>",
+   "ten": "ZZ_companies Một đổi",
+   "ma": "zz-companies-cong-ty-do-anh-1",
+   "logoUrl": "",
+   "mauChinh": "#123",
+   "tinhNang": [
+    "k1",
+    "k2"
+   ],
+   "gioiHanUser": 12,
+   "active": true,
+   "hanDung": "2031-12-31",
+   "ghiChu": "5",
+   "ngayTao": "<ts>",
+   "email": "m@zz.vn",
+   "sdt": "123",
+   "dungSpDezon": true
+  }
+ },
+ "s11h_upd_missing": {
+  "ok": null
+ },
+ "s11i_upd_owner_empty": {
+  "ok": {
+   "id": "<CT1>",
+   "ten": "ZZ_companies Một đổi",
+   "ma": "zz-companies-cong-ty-do-anh-1",
+   "logoUrl": "",
+   "mauChinh": "#123",
+   "tinhNang": [
+    "k1",
+    "k2"
+   ],
+   "gioiHanUser": 12,
+   "active": true,
+   "hanDung": "2031-12-31",
+   "ghiChu": "5",
+   "ngayTao": "<ts>",
+   "email": "m@zz.vn",
+   "sdt": "123",
+   "dungSpDezon": true
+  }
+ },
+ "s11j_upd_bad_id": {
+  "err": "DB PATCH cong_ty -> 400 {\"code\":\"22P02\",\"details\":null,\"hint\":null,\"message\":\"invalid input syntax for type uuid: \\\"not-a-uuid\\\"\"}"
+ },
+ "s11k_upd_bad_date": {
+  "err": "DB PATCH cong_ty -> 400 {\"code\":\"22007\",\"details\":null,\"hint\":null,\"message\":\"invalid input syntax for type date: \\\"không phải ngày\\\"\"}"
+ },
+ "s11l_upd_neg_limit": {
+  "err": "DB PATCH cong_ty -> 409 {\"code\":\"23514\",\"details\":\"Failing row contains (<CT1>, ZZ_companies Một đổi, zz-companies-cong-ty-do-anh-1, , #123, k1,k2, -3, t, 2031-12-31, 5, <ts>, m@zz.vn, 123, null, null, t).\",\"hint\":null,\"message\":\"new row for relation \\\"companies\\\" violates check constraint \\\"ck_companies_user_limit\\\"\"}"
+ },
+ "s11m_upd_undefined_id": {
+  "err": "DB PATCH cong_ty -> 400 {\"code\":\"22P02\",\"details\":null,\"hint\":null,\"message\":\"invalid input syntax for type uuid: \\\"undefined\\\"\"}"
+ },
+ "s11z_final": {
+  "ok": {
+   "id": "<CT1>",
+   "ten": "ZZ_companies Một đổi",
+   "ma": "zz-companies-cong-ty-do-anh-1",
+   "logoUrl": "",
+   "mauChinh": "#123",
+   "tinhNang": [
+    "k1",
+    "k2"
+   ],
+   "gioiHanUser": 12,
+   "active": true,
+   "hanDung": "2031-12-31",
+   "ghiChu": "5",
+   "ngayTao": "<ts>",
+   "email": "m@zz.vn",
+   "sdt": "123",
+   "dungSpDezon": true
+  }
+ },
+ "s12a_del_admin": {
+  "err": "Chỉ quản trị hệ thống mới xoá được công ty"
+ },
+ "s12b_del_missing": {
+  "err": "Không tìm thấy công ty"
+ },
+ "s12c_del_undefined": {
+  "err": "Không tìm thấy công ty"
+ },
+ "s12d_del_bad_id": {
+  "err": "DB GET cong_ty -> 400 {\"code\":\"22P02\",\"details\":null,\"hint\":null,\"message\":\"invalid input syntax for type uuid: \\\"not-a-uuid\\\"\"}"
+ },
+ "s12e_children": {
+  "ok": {
+   "users": 1,
+   "notifications": 1,
+   "audit_log": 1,
+   "cong_ty": 1
+  }
+ },
+ "s12f_del_ct3": {
+  "ok": {
+   "ok": true,
+   "ten": "ZZ_companies Bốn"
+  }
+ },
+ "s12g_after": {
+  "ok": {
+   "users": 0,
+   "notifications": 0,
+   "audit_log": 0,
+   "cong_ty": 0
+  }
+ },
+ "s12h_del_ct2": {
+  "ok": {
+   "ok": true,
+   "ten": "ZZ_companies Hai"
+  }
+ },
+ "s12i_del_ct1": {
+  "ok": {
+   "ok": true,
+   "ten": "ZZ_companies Một đổi"
+  }
+ },
+ "s12j_del_again": {
+  "err": "Không tìm thấy công ty"
+ },
+ "audit": [
+  {
+   "action": "create_company",
+   "detail": "Tạo công ty ZZ_companies Công Ty Đỗ Ánh #1",
+   "uid": "<admin>"
+  },
+  {
+   "action": "create_company",
+   "detail": "Tạo công ty ZZ_companies Hai",
+   "uid": "<admin>"
+  },
+  {
+   "action": "create_company",
+   "detail": "Tạo công ty ZZ_companies Bốn",
+   "uid": "<admin>"
+  },
+  {
+   "action": "create_company",
+   "detail": "Tạo công ty ZZ_companies Năm",
+   "uid": "<admin>"
+  },
+  {
+   "action": "update_company",
+   "detail": "Cập nhật công ty ZZ_companies Một đổi",
+   "uid": "<admin>"
+  },
+  {
+   "action": "update_company",
+   "detail": "Cập nhật công ty <CT1>",
+   "uid": "<admin>"
+  },
+  {
+   "action": "update_company",
+   "detail": "Cập nhật công ty <CT1>",
+   "uid": "<admin>"
+  },
+  {
+   "action": "update_company",
+   "detail": "Cập nhật công ty ZZ_companies y",
+   "uid": "<admin>"
+  },
+  {
+   "action": "delete_company",
+   "detail": "Xoá công ty ZZ_companies Bốn và toàn bộ dữ liệu",
+   "uid": "<admin>"
+  },
+  {
+   "action": "delete_company",
+   "detail": "Xoá công ty ZZ_companies Hai và toàn bộ dữ liệu",
+   "uid": "<admin>"
+  },
+  {
+   "action": "delete_company",
+   "detail": "Xoá công ty ZZ_companies Một đổi và toàn bộ dữ liệu",
+   "uid": "<admin>"
+  }
+ ]
+}

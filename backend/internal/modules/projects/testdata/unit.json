@@ -1,0 +1,3274 @@
+[
+ {
+  "name": "getProjects",
+  "fn": "getProjects",
+  "args": [],
+  "fake": {
+   "ret": {
+    "ListProjects": [
+     {
+      "id": 3,
+      "ma_da": "DA-1",
+      "ten_du_an": "Nhà A",
+      "khach_hang": null,
+      "dia_chi": "Q1",
+      "sdt": 912345678,
+      "trang_thai": "Bản nháp",
+      "vat_pct": 8,
+      "tien_do_pct": null,
+      "ghi_chu": "",
+      "quy_mo": null,
+      "tong_dt": "120,5",
+      "dt_bao_gia": null,
+      "nhu_cau": null,
+      "phan_khuc": null,
+      "ma_bao_gia": null,
+      "nhom_tu_tao": null,
+      "tang_tu_tao": null,
+      "ngay_tao": "2026-10-01T02:03:04.123456+00:00",
+      "cap_nhat": "2026-10-02T02:03:04+00:00",
+      "ten_ban_nhap": "Bản 1",
+      "cong_ty_id": "c1",
+      "link_dezon": null
+     },
+     {
+      "id": 4,
+      "ma_da": "DA-2",
+      "vat_pct": "12,5",
+      "tien_do_pct": "1.250",
+      "ten_du_an": 0,
+      "ghi_chu": false
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "ListProjects",
+     "a": []
+    }
+   ],
+   "result": [
+    {
+     "maDA": "DA-1",
+     "ngayTao": "2026-10-01T02:03:04.123456+00:00",
+     "capNhat": "2026-10-02T02:03:04+00:00",
+     "ten": "Nhà A",
+     "khachHang": "",
+     "diaChi": "Q1",
+     "sdt": "912345678",
+     "trangThai": "Bản nháp",
+     "vat": 8,
+     "tienDo": 0,
+     "ghiChu": "",
+     "quyMo": "",
+     "tongDT": "120,5",
+     "dtBaoGia": "",
+     "nhuCau": "",
+     "phanKhuc": "",
+     "maBaoGia": "",
+     "nhomTuTao": "",
+     "tangTuTao": "",
+     "tenBanNhap": "Bản 1",
+     "linkDezon": ""
+    },
+    {
+     "maDA": "DA-2",
+     "ngayTao": "",
+     "capNhat": "",
+     "ten": "0",
+     "khachHang": "",
+     "diaChi": "",
+     "sdt": "",
+     "trangThai": "",
+     "vat": 12.5,
+     "tienDo": 1250,
+     "ghiChu": "false",
+     "quyMo": "",
+     "tongDT": "",
+     "dtBaoGia": "",
+     "nhuCau": "",
+     "phanKhuc": "",
+     "maBaoGia": "",
+     "nhomTuTao": "",
+     "tangTuTao": "",
+     "tenBanNhap": "",
+     "linkDezon": ""
+    }
+   ]
+  }
+ },
+ {
+  "name": "getProjects rỗng",
+  "fn": "getProjects",
+  "args": [],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "ListProjects",
+     "a": []
+    }
+   ],
+   "result": []
+  }
+ },
+ {
+  "name": "getProjects lỗi",
+  "fn": "getProjects",
+  "args": [],
+  "fake": {
+   "err": {
+    "ListProjects": "DB GET du_an -> 500 {\"message\":\"boom\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "ListProjects",
+     "a": []
+    }
+   ],
+   "error": "DB GET du_an -> 500 {\"message\":\"boom\"}"
+  }
+ },
+ {
+  "name": "getProject có",
+  "fn": "getProject",
+  "args": [
+   "DA-1"
+  ],
+  "fake": {
+   "ret": {
+    "FindProject": [
+     {
+      "id": 3,
+      "ma_da": "DA-1",
+      "ten_du_an": "Nhà A",
+      "vat_pct": 10,
+      "tien_do_pct": 35.5
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindProject",
+     "a": [
+      "DA-1"
+     ]
+    }
+   ],
+   "result": {
+    "maDA": "DA-1",
+    "ngayTao": "",
+    "capNhat": "",
+    "ten": "Nhà A",
+    "khachHang": "",
+    "diaChi": "",
+    "sdt": "",
+    "trangThai": "",
+    "vat": 10,
+    "tienDo": 35.5,
+    "ghiChu": "",
+    "quyMo": "",
+    "tongDT": "",
+    "dtBaoGia": "",
+    "nhuCau": "",
+    "phanKhuc": "",
+    "maBaoGia": "",
+    "nhomTuTao": "",
+    "tangTuTao": "",
+    "tenBanNhap": "",
+    "linkDezon": ""
+   }
+  }
+ },
+ {
+  "name": "getProject không có",
+  "fn": "getProject",
+  "args": [
+   "DA-x"
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "FindProject",
+     "a": [
+      "DA-x"
+     ]
+    }
+   ],
+   "result": null
+  }
+ },
+ {
+  "name": "getProject thiếu tham số",
+  "fn": "getProject",
+  "args": [],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "FindProject",
+     "a": [
+      "undefined"
+     ]
+    }
+   ],
+   "result": null
+  }
+ },
+ {
+  "name": "getProject null",
+  "fn": "getProject",
+  "args": [
+   null
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "FindProject",
+     "a": [
+      "null"
+     ]
+    }
+   ],
+   "result": null
+  }
+ },
+ {
+  "name": "getProject số",
+  "fn": "getProject",
+  "args": [
+   12
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "FindProject",
+     "a": [
+      "12"
+     ]
+    }
+   ],
+   "result": null
+  }
+ },
+ {
+  "name": "createProject rỗng",
+  "fn": "createProject",
+  "args": [
+   {}
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "InsertProject",
+     "a": [
+      {
+       "ma_da": "<ma>",
+       "ngay_tao": "<ts>",
+       "cap_nhat": "<ts>",
+       "trang_thai": "Bản nháp"
+      }
+     ]
+    }
+   ],
+   "result": {
+    "maDA": "<ma>",
+    "ngayTao": "<ts>",
+    "capNhat": "<ts>",
+    "ten": "",
+    "khachHang": "",
+    "diaChi": "",
+    "sdt": "",
+    "trangThai": "Bản nháp",
+    "vat": 0,
+    "tienDo": 0,
+    "ghiChu": "",
+    "quyMo": "",
+    "tongDT": "",
+    "dtBaoGia": "",
+    "nhuCau": "",
+    "phanKhuc": "",
+    "maBaoGia": "",
+    "nhomTuTao": "",
+    "tangTuTao": "",
+    "tenBanNhap": "",
+    "linkDezon": ""
+   }
+  }
+ },
+ {
+  "name": "createProject thiếu tham số",
+  "fn": "createProject",
+  "args": [],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "InsertProject",
+     "a": [
+      {
+       "ma_da": "<ma>",
+       "ngay_tao": "<ts>",
+       "cap_nhat": "<ts>",
+       "trang_thai": "Bản nháp"
+      }
+     ]
+    }
+   ],
+   "result": {
+    "maDA": "<ma>",
+    "ngayTao": "<ts>",
+    "capNhat": "<ts>",
+    "ten": "",
+    "khachHang": "",
+    "diaChi": "",
+    "sdt": "",
+    "trangThai": "Bản nháp",
+    "vat": 0,
+    "tienDo": 0,
+    "ghiChu": "",
+    "quyMo": "",
+    "tongDT": "",
+    "dtBaoGia": "",
+    "nhuCau": "",
+    "phanKhuc": "",
+    "maBaoGia": "",
+    "nhomTuTao": "",
+    "tangTuTao": "",
+    "tenBanNhap": "",
+    "linkDezon": ""
+   }
+  }
+ },
+ {
+  "name": "createProject null",
+  "fn": "createProject",
+  "args": [
+   null
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "InsertProject",
+     "a": [
+      {
+       "ma_da": "<ma>",
+       "ngay_tao": "<ts>",
+       "cap_nhat": "<ts>",
+       "trang_thai": "Bản nháp"
+      }
+     ]
+    }
+   ],
+   "result": {
+    "maDA": "<ma>",
+    "ngayTao": "<ts>",
+    "capNhat": "<ts>",
+    "ten": "",
+    "khachHang": "",
+    "diaChi": "",
+    "sdt": "",
+    "trangThai": "Bản nháp",
+    "vat": 0,
+    "tienDo": 0,
+    "ghiChu": "",
+    "quyMo": "",
+    "tongDT": "",
+    "dtBaoGia": "",
+    "nhuCau": "",
+    "phanKhuc": "",
+    "maBaoGia": "",
+    "nhomTuTao": "",
+    "tangTuTao": "",
+    "tenBanNhap": "",
+    "linkDezon": ""
+   }
+  }
+ },
+ {
+  "name": "createProject chuỗi",
+  "fn": "createProject",
+  "args": [
+   "abc"
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "InsertProject",
+     "a": [
+      {
+       "ma_da": "<ma>",
+       "ngay_tao": "<ts>",
+       "cap_nhat": "<ts>",
+       "trang_thai": "Bản nháp"
+      }
+     ]
+    }
+   ],
+   "result": {
+    "maDA": "<ma>",
+    "ngayTao": "<ts>",
+    "capNhat": "<ts>",
+    "ten": "",
+    "khachHang": "",
+    "diaChi": "",
+    "sdt": "",
+    "trangThai": "Bản nháp",
+    "vat": 0,
+    "tienDo": 0,
+    "ghiChu": "",
+    "quyMo": "",
+    "tongDT": "",
+    "dtBaoGia": "",
+    "nhuCau": "",
+    "phanKhuc": "",
+    "maBaoGia": "",
+    "nhomTuTao": "",
+    "tangTuTao": "",
+    "tenBanNhap": "",
+    "linkDezon": ""
+   }
+  }
+ },
+ {
+  "name": "createProject mảng",
+  "fn": "createProject",
+  "args": [
+   [
+    "x"
+   ]
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "InsertProject",
+     "a": [
+      {
+       "ma_da": "<ma>",
+       "ngay_tao": "<ts>",
+       "cap_nhat": "<ts>",
+       "trang_thai": "Bản nháp"
+      }
+     ]
+    }
+   ],
+   "result": {
+    "maDA": "<ma>",
+    "ngayTao": "<ts>",
+    "capNhat": "<ts>",
+    "ten": "",
+    "khachHang": "",
+    "diaChi": "",
+    "sdt": "",
+    "trangThai": "Bản nháp",
+    "vat": 0,
+    "tienDo": 0,
+    "ghiChu": "",
+    "quyMo": "",
+    "tongDT": "",
+    "dtBaoGia": "",
+    "nhuCau": "",
+    "phanKhuc": "",
+    "maBaoGia": "",
+    "nhomTuTao": "",
+    "tangTuTao": "",
+    "tenBanNhap": "",
+    "linkDezon": ""
+   }
+  }
+ },
+ {
+  "name": "createProject đủ",
+  "fn": "createProject",
+  "args": [
+   {
+    "linkDezon": "https://dezon.vn/x",
+    "maDA": "DA-ZZ",
+    "ten": "Nhà B",
+    "khachHang": "",
+    "diaChi": null,
+    "sdt": 0,
+    "trangThai": "Đang thực hiện",
+    "vat": "8",
+    "tienDo": 0,
+    "ghiChu": false,
+    "quyMo": {
+     "a": 1
+    },
+    "la": "bỏ",
+    "tenBanNhap": "Nháp 2"
+   }
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "InsertProject",
+     "a": [
+      {
+       "ma_da": "DA-ZZ",
+       "ngay_tao": "<ts>",
+       "cap_nhat": "<ts>",
+       "ten_du_an": "Nhà B",
+       "sdt": 0,
+       "trang_thai": "Đang thực hiện",
+       "vat_pct": "8",
+       "tien_do_pct": 0,
+       "ghi_chu": false,
+       "quy_mo": {
+        "a": 1
+       },
+       "ten_ban_nhap": "Nháp 2",
+       "link_dezon": "https://dezon.vn/x"
+      }
+     ]
+    }
+   ],
+   "result": {
+    "maDA": "DA-ZZ",
+    "ngayTao": "<ts>",
+    "capNhat": "<ts>",
+    "ten": "Nhà B",
+    "khachHang": "",
+    "diaChi": "",
+    "sdt": "0",
+    "trangThai": "Đang thực hiện",
+    "vat": 8,
+    "tienDo": 0,
+    "ghiChu": "false",
+    "quyMo": "[object Object]",
+    "tongDT": "",
+    "dtBaoGia": "",
+    "nhuCau": "",
+    "phanKhuc": "",
+    "maBaoGia": "",
+    "nhomTuTao": "",
+    "tangTuTao": "",
+    "tenBanNhap": "Nháp 2",
+    "linkDezon": "https://dezon.vn/x"
+   }
+  }
+ },
+ {
+  "name": "createProject trangThai rỗng",
+  "fn": "createProject",
+  "args": [
+   {
+    "trangThai": "",
+    "ten": "X",
+    "maDA": ""
+   }
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "InsertProject",
+     "a": [
+      {
+       "ma_da": "<ma>",
+       "ngay_tao": "<ts>",
+       "cap_nhat": "<ts>",
+       "ten_du_an": "X",
+       "trang_thai": "Bản nháp"
+      }
+     ]
+    }
+   ],
+   "result": {
+    "maDA": "<ma>",
+    "ngayTao": "<ts>",
+    "capNhat": "<ts>",
+    "ten": "X",
+    "khachHang": "",
+    "diaChi": "",
+    "sdt": "",
+    "trangThai": "Bản nháp",
+    "vat": 0,
+    "tienDo": 0,
+    "ghiChu": "",
+    "quyMo": "",
+    "tongDT": "",
+    "dtBaoGia": "",
+    "nhuCau": "",
+    "phanKhuc": "",
+    "maBaoGia": "",
+    "nhomTuTao": "",
+    "tangTuTao": "",
+    "tenBanNhap": "",
+    "linkDezon": ""
+   }
+  }
+ },
+ {
+  "name": "createProject trangThai 0",
+  "fn": "createProject",
+  "args": [
+   {
+    "ten": "X",
+    "trangThai": 0,
+    "vat": 5,
+    "maDA": 77
+   }
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "InsertProject",
+     "a": [
+      {
+       "ma_da": 77,
+       "ngay_tao": "<ts>",
+       "cap_nhat": "<ts>",
+       "ten_du_an": "X",
+       "trang_thai": "Bản nháp",
+       "vat_pct": 5
+      }
+     ]
+    }
+   ],
+   "result": {
+    "maDA": "77",
+    "ngayTao": "<ts>",
+    "capNhat": "<ts>",
+    "ten": "X",
+    "khachHang": "",
+    "diaChi": "",
+    "sdt": "",
+    "trangThai": "Bản nháp",
+    "vat": 5,
+    "tienDo": 0,
+    "ghiChu": "",
+    "quyMo": "",
+    "tongDT": "",
+    "dtBaoGia": "",
+    "nhuCau": "",
+    "phanKhuc": "",
+    "maBaoGia": "",
+    "nhomTuTao": "",
+    "tangTuTao": "",
+    "tenBanNhap": "",
+    "linkDezon": ""
+   }
+  }
+ },
+ {
+  "name": "createProject thiếu cột",
+  "fn": "createProject",
+  "args": [
+   {
+    "ten": "X"
+   }
+  ],
+  "fake": {
+   "err": {
+    "InsertProject": "DB POST du_an -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'link_dezon' column of 'du_an' in the schema cache\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "InsertProject",
+     "a": [
+      {
+       "ma_da": "<ma>",
+       "ngay_tao": "<ts>",
+       "cap_nhat": "<ts>",
+       "ten_du_an": "X",
+       "trang_thai": "Bản nháp"
+      }
+     ]
+    }
+   ],
+   "error": "Cơ sở dữ liệu chưa có cột \"link_dezon\". Hãy chạy \"npm run migrate\" rồi khởi động lại server."
+  }
+ },
+ {
+  "name": "createProject lỗi khác",
+  "fn": "createProject",
+  "args": [
+   {
+    "ten": "X"
+   }
+  ],
+  "fake": {
+   "err": {
+    "InsertProject": "DB POST du_an -> 409 {\"code\":\"23505\",\"message\":\"duplicate key value violates unique constraint\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "InsertProject",
+     "a": [
+      {
+       "ma_da": "<ma>",
+       "ngay_tao": "<ts>",
+       "cap_nhat": "<ts>",
+       "ten_du_an": "X",
+       "trang_thai": "Bản nháp"
+      }
+     ]
+    }
+   ],
+   "error": "DB POST du_an -> 409 {\"code\":\"23505\",\"message\":\"duplicate key value violates unique constraint\"}"
+  }
+ },
+ {
+  "name": "createProject không trả dòng",
+  "fn": "createProject",
+  "args": [
+   {
+    "ten": "X"
+   }
+  ],
+  "fake": {
+   "ret": {
+    "InsertProject": []
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "InsertProject",
+     "a": [
+      {
+       "ma_da": "<ma>",
+       "ngay_tao": "<ts>",
+       "cap_nhat": "<ts>",
+       "ten_du_an": "X",
+       "trang_thai": "Bản nháp"
+      }
+     ]
+    }
+   ],
+   "error": "Cannot read properties of undefined (reading 'ma_da')"
+  }
+ },
+ {
+  "name": "updateProject",
+  "fn": "updateProject",
+  "args": [
+   "DA-1",
+   {
+    "vat": 10,
+    "la": 1,
+    "ten": null,
+    "maDA": "DA-9",
+    "tienDo": "50",
+    "ghiChu": "",
+    "linkDezon": {
+     "u": 1
+    }
+   }
+  ],
+  "fake": {
+   "ret": {
+    "UpdateProject": [
+     {
+      "id": 3,
+      "ma_da": "DA-1",
+      "ten_du_an": null,
+      "vat_pct": 10,
+      "tien_do_pct": 50,
+      "ngay_tao": "2026-10-01T02:03:04+00:00",
+      "cap_nhat": "2026-10-03T02:03:04+00:00"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "UpdateProject",
+     "a": [
+      "DA-1",
+      {
+       "cap_nhat": "<ts>",
+       "vat_pct": 10,
+       "ten_du_an": null,
+       "tien_do_pct": "50",
+       "ghi_chu": "",
+       "link_dezon": {
+        "u": 1
+       }
+      }
+     ]
+    }
+   ],
+   "result": {
+    "maDA": "DA-1",
+    "ngayTao": "2026-10-01T02:03:04+00:00",
+    "capNhat": "2026-10-03T02:03:04+00:00",
+    "ten": "",
+    "khachHang": "",
+    "diaChi": "",
+    "sdt": "",
+    "trangThai": "",
+    "vat": 10,
+    "tienDo": 50,
+    "ghiChu": "",
+    "quyMo": "",
+    "tongDT": "",
+    "dtBaoGia": "",
+    "nhuCau": "",
+    "phanKhuc": "",
+    "maBaoGia": "",
+    "nhomTuTao": "",
+    "tangTuTao": "",
+    "tenBanNhap": "",
+    "linkDezon": ""
+   }
+  }
+ },
+ {
+  "name": "updateProject không đổi dòng nào, còn dự án",
+  "fn": "updateProject",
+  "args": [
+   "DA-1",
+   {
+    "ten": "Y"
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindProject": [
+     {
+      "id": 3,
+      "ma_da": "DA-1",
+      "ten_du_an": "cũ"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "UpdateProject",
+     "a": [
+      "DA-1",
+      {
+       "cap_nhat": "<ts>",
+       "ten_du_an": "Y"
+      }
+     ]
+    },
+    {
+     "m": "FindProject",
+     "a": [
+      "DA-1"
+     ]
+    }
+   ],
+   "result": {
+    "maDA": "DA-1",
+    "ngayTao": "",
+    "capNhat": "",
+    "ten": "cũ",
+    "khachHang": "",
+    "diaChi": "",
+    "sdt": "",
+    "trangThai": "",
+    "vat": 0,
+    "tienDo": 0,
+    "ghiChu": "",
+    "quyMo": "",
+    "tongDT": "",
+    "dtBaoGia": "",
+    "nhuCau": "",
+    "phanKhuc": "",
+    "maBaoGia": "",
+    "nhomTuTao": "",
+    "tangTuTao": "",
+    "tenBanNhap": "",
+    "linkDezon": ""
+   }
+  }
+ },
+ {
+  "name": "updateProject không có dự án",
+  "fn": "updateProject",
+  "args": [
+   "DA-x",
+   {
+    "ten": "Y"
+   }
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "UpdateProject",
+     "a": [
+      "DA-x",
+      {
+       "cap_nhat": "<ts>",
+       "ten_du_an": "Y"
+      }
+     ]
+    },
+    {
+     "m": "FindProject",
+     "a": [
+      "DA-x"
+     ]
+    }
+   ],
+   "result": null
+  }
+ },
+ {
+  "name": "updateProject thiếu fields",
+  "fn": "updateProject",
+  "args": [
+   "DA-x"
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "UpdateProject",
+     "a": [
+      "DA-x",
+      {
+       "cap_nhat": "<ts>"
+      }
+     ]
+    },
+    {
+     "m": "FindProject",
+     "a": [
+      "DA-x"
+     ]
+    }
+   ],
+   "result": null
+  }
+ },
+ {
+  "name": "updateProject fields mảng",
+  "fn": "updateProject",
+  "args": [
+   "DA-x",
+   [
+    "ten"
+   ]
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "UpdateProject",
+     "a": [
+      "DA-x",
+      {
+       "cap_nhat": "<ts>"
+      }
+     ]
+    },
+    {
+     "m": "FindProject",
+     "a": [
+      "DA-x"
+     ]
+    }
+   ],
+   "result": null
+  }
+ },
+ {
+  "name": "updateProject thiếu cột",
+  "fn": "updateProject",
+  "args": [
+   "DA-1",
+   {
+    "linkDezon": "x"
+   }
+  ],
+  "fake": {
+   "err": {
+    "UpdateProject": "DB PATCH du_an -> 400 {\"code\":\"42703\",\"message\":\"column \\\"link_dezon\\\" of relation \\\"du_an\\\" does not exist\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "UpdateProject",
+     "a": [
+      "DA-1",
+      {
+       "cap_nhat": "<ts>",
+       "link_dezon": "x"
+      }
+     ]
+    }
+   ],
+   "error": "Cơ sở dữ liệu chưa có cột \"link_dezon\". Hãy chạy \"npm run migrate\" rồi khởi động lại server."
+  }
+ },
+ {
+  "name": "updateProject lỗi khác",
+  "fn": "updateProject",
+  "args": [
+   "DA-1",
+   {
+    "vat": 500
+   }
+  ],
+  "fake": {
+   "err": {
+    "UpdateProject": "DB PATCH du_an -> 400 {\"code\":\"23514\",\"message\":\"new row violates check constraint\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "UpdateProject",
+     "a": [
+      "DA-1",
+      {
+       "cap_nhat": "<ts>",
+       "vat_pct": 500
+      }
+     ]
+    }
+   ],
+   "error": "DB PATCH du_an -> 400 {\"code\":\"23514\",\"message\":\"new row violates check constraint\"}"
+  }
+ },
+ {
+  "name": "deleteProject",
+  "fn": "deleteProject",
+  "args": [
+   "DA-1"
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "DeleteLines",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "DeleteCover",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "DeleteProjData",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "DeleteProject",
+     "a": [
+      "DA-1"
+     ]
+    }
+   ],
+   "result": {
+    "ok": true
+   }
+  }
+ },
+ {
+  "name": "deleteProject thiếu tham số",
+  "fn": "deleteProject",
+  "args": [],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "DeleteLines",
+     "a": [
+      "undefined"
+     ]
+    },
+    {
+     "m": "DeleteCover",
+     "a": [
+      "undefined"
+     ]
+    },
+    {
+     "m": "DeleteProjData",
+     "a": [
+      "undefined"
+     ]
+    },
+    {
+     "m": "DeleteProject",
+     "a": [
+      "undefined"
+     ]
+    }
+   ],
+   "result": {
+    "ok": true
+   }
+  }
+ },
+ {
+  "name": "deleteProject nuốt lỗi du_an_data",
+  "fn": "deleteProject",
+  "args": [
+   "DA-1"
+  ],
+  "fake": {
+   "err": {
+    "DeleteProjData": "DB DELETE du_an_data -> 500 {\"message\":\"gì đó\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "DeleteLines",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "DeleteCover",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "DeleteProjData",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "DeleteProject",
+     "a": [
+      "DA-1"
+     ]
+    }
+   ],
+   "result": {
+    "ok": true
+   }
+  }
+ },
+ {
+  "name": "deleteProject lỗi dòng",
+  "fn": "deleteProject",
+  "args": [
+   "DA-1"
+  ],
+  "fake": {
+   "err": {
+    "DeleteLines": "DB DELETE db_bao_gia -> 500 {\"message\":\"x\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "DeleteLines",
+     "a": [
+      "DA-1"
+     ]
+    }
+   ],
+   "error": "DB DELETE db_bao_gia -> 500 {\"message\":\"x\"}"
+  }
+ },
+ {
+  "name": "deleteProject lỗi tờ bìa",
+  "fn": "deleteProject",
+  "args": [
+   "DA-1"
+  ],
+  "fake": {
+   "err": {
+    "DeleteCover": "DB DELETE khai_toan -> 500 {\"message\":\"x\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "DeleteLines",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "DeleteCover",
+     "a": [
+      "DA-1"
+     ]
+    }
+   ],
+   "error": "DB DELETE khai_toan -> 500 {\"message\":\"x\"}"
+  }
+ },
+ {
+  "name": "deleteProject lỗi dự án",
+  "fn": "deleteProject",
+  "args": [
+   "DA-1"
+  ],
+  "fake": {
+   "err": {
+    "DeleteProject": "DB DELETE du_an -> 500 {\"message\":\"x\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "DeleteLines",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "DeleteCover",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "DeleteProjData",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "DeleteProject",
+     "a": [
+      "DA-1"
+     ]
+    }
+   ],
+   "error": "DB DELETE du_an -> 500 {\"message\":\"x\"}"
+  }
+ },
+ {
+  "name": "duplicateProject không có nguồn",
+  "fn": "duplicateProject",
+  "args": [
+   "DA-x"
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "FindProject",
+     "a": [
+      "DA-x"
+     ]
+    }
+   ],
+   "error": "Không tìm thấy bản nháp nguồn"
+  }
+ },
+ {
+  "name": "duplicateProject đủ",
+  "fn": "duplicateProject",
+  "args": [
+   "DA-1"
+  ],
+  "fake": {
+   "ret": {
+    "FindProject": [
+     {
+      "id": 3,
+      "ma_da": "DA-1",
+      "ten_du_an": "Nhà A",
+      "vat_pct": 8,
+      "tien_do_pct": 0,
+      "ngay_tao": "2026-10-01T02:03:04+00:00",
+      "cap_nhat": "2026-10-02T02:03:04+00:00",
+      "cong_ty_id": "c1"
+     }
+    ],
+    "ListLinesRaw": [
+     {
+      "id": 11,
+      "ma_du_an": "DA-1",
+      "sort_no": 1,
+      "ten_sp": "Đèn",
+      "created_at": "2026-10-01T02:03:04+00:00",
+      "extra": {
+       "k": [
+        1,
+        2
+       ]
+      }
+     },
+     {
+      "id": 12,
+      "created_at": null,
+      "ma_du_an": "DA-1",
+      "sort_no": 2
+     }
+    ],
+    "ListCoverRaw": [
+     {
+      "id": 21,
+      "ma_da": "DA-1",
+      "stt": "1",
+      "hang_muc": "TƯ VẤN",
+      "chi_phi": 100,
+      "sort_no": 0
+     }
+    ],
+    "ListProjDataRaw": [
+     {
+      "ma_da": "DA-1",
+      "khoa": "phanTho",
+      "gia_tri": {
+       "r": [
+        1
+       ]
+      },
+      "cap_nhat": "2026-10-01T02:03:04+00:00",
+      "nguoi_sua": "a"
+     },
+     {
+      "ma_da": "DA-1",
+      "khoa": "bgHist",
+      "gia_tri": [
+       1
+      ]
+     },
+     {
+      "ma_da": "DA-1",
+      "khoa": "ptVat",
+      "gia_tri": 8
+     },
+     {
+      "ma_da": "DA-1",
+      "khoa": "area",
+      "gia_tri": null
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindProject",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertProject",
+     "a": [
+      {
+       "ma_da": "<ma>",
+       "ten_du_an": "Nhà A",
+       "vat_pct": 8,
+       "tien_do_pct": 0,
+       "ngay_tao": "<ts>",
+       "cap_nhat": "<ts>",
+       "cong_ty_id": "c1"
+      }
+     ]
+    },
+    {
+     "m": "ListLinesRaw",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLines",
+     "a": [
+      [
+       {
+        "ma_du_an": "<ma>",
+        "sort_no": 1,
+        "ten_sp": "Đèn",
+        "extra": {
+         "k": [
+          1,
+          2
+         ]
+        }
+       },
+       {
+        "ma_du_an": "<ma>",
+        "sort_no": 2
+       }
+      ]
+     ]
+    },
+    {
+     "m": "ListCoverRaw",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertCover",
+     "a": [
+      [
+       {
+        "ma_da": "<ma>",
+        "stt": "1",
+        "hang_muc": "TƯ VẤN",
+        "chi_phi": 100,
+        "sort_no": 0
+       }
+      ]
+     ]
+    },
+    {
+     "m": "ListProjDataRaw",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertProjDataRows",
+     "a": [
+      [
+       {
+        "ma_da": "<ma>",
+        "khoa": "phanTho",
+        "gia_tri": {
+         "r": [
+          1
+         ]
+        },
+        "cap_nhat": "<ts>",
+        "nguoi_sua": "a"
+       },
+       {
+        "ma_da": "<ma>",
+        "khoa": "ptVat",
+        "gia_tri": 8,
+        "cap_nhat": "<ts>"
+       },
+       {
+        "ma_da": "<ma>",
+        "khoa": "area",
+        "gia_tri": null,
+        "cap_nhat": "<ts>"
+       }
+      ]
+     ]
+    }
+   ],
+   "result": {
+    "maDA": "<ma>",
+    "ngayTao": "<ts>",
+    "capNhat": "<ts>",
+    "ten": "Nhà A",
+    "khachHang": "",
+    "diaChi": "",
+    "sdt": "",
+    "trangThai": "",
+    "vat": 8,
+    "tienDo": 0,
+    "ghiChu": "",
+    "quyMo": "",
+    "tongDT": "",
+    "dtBaoGia": "",
+    "nhuCau": "",
+    "phanKhuc": "",
+    "maBaoGia": "",
+    "nhomTuTao": "",
+    "tangTuTao": "",
+    "tenBanNhap": "",
+    "linkDezon": ""
+   }
+  }
+ },
+ {
+  "name": "duplicateProject bỏ hết",
+  "fn": "duplicateProject",
+  "args": [
+   "DA-1",
+   {
+    "boc": false,
+    "cover": false,
+    "pt": false
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindProject": [
+     {
+      "id": 3,
+      "ma_da": "DA-1",
+      "ten_du_an": "Nhà A"
+     }
+    ],
+    "ListLinesRaw": [
+     {
+      "id": 11,
+      "ma_du_an": "DA-1"
+     }
+    ],
+    "ListCoverRaw": [
+     {
+      "id": 21,
+      "ma_da": "DA-1"
+     }
+    ],
+    "ListProjDataRaw": [
+     {
+      "ma_da": "DA-1",
+      "khoa": "phanTho",
+      "gia_tri": 1
+     },
+     {
+      "ma_da": "DA-1",
+      "khoa": "bgHist",
+      "gia_tri": [
+       1
+      ]
+     },
+     {
+      "ma_da": "DA-1",
+      "khoa": "ptVat",
+      "gia_tri": 8
+     },
+     {
+      "ma_da": "DA-1",
+      "khoa": "area",
+      "gia_tri": 5
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindProject",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertProject",
+     "a": [
+      {
+       "ma_da": "<ma>",
+       "ten_du_an": "Nhà A",
+       "ngay_tao": "<ts>",
+       "cap_nhat": "<ts>"
+      }
+     ]
+    },
+    {
+     "m": "ListProjDataRaw",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertProjDataRows",
+     "a": [
+      [
+       {
+        "ma_da": "<ma>",
+        "khoa": "area",
+        "gia_tri": 5,
+        "cap_nhat": "<ts>"
+       }
+      ]
+     ]
+    }
+   ],
+   "result": {
+    "maDA": "<ma>",
+    "ngayTao": "<ts>",
+    "capNhat": "<ts>",
+    "ten": "Nhà A",
+    "khachHang": "",
+    "diaChi": "",
+    "sdt": "",
+    "trangThai": "",
+    "vat": 0,
+    "tienDo": 0,
+    "ghiChu": "",
+    "quyMo": "",
+    "tongDT": "",
+    "dtBaoGia": "",
+    "nhuCau": "",
+    "phanKhuc": "",
+    "maBaoGia": "",
+    "nhomTuTao": "",
+    "tangTuTao": "",
+    "tenBanNhap": "",
+    "linkDezon": ""
+   }
+  }
+ },
+ {
+  "name": "duplicateProject opts falsy khác false",
+  "fn": "duplicateProject",
+  "args": [
+   "DA-1",
+   {
+    "boc": 0,
+    "cover": null,
+    "pt": ""
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindProject": [
+     {
+      "id": 3,
+      "ma_da": "DA-1"
+     }
+    ],
+    "ListProjDataRaw": [
+     {
+      "ma_da": "DA-1",
+      "khoa": "bgHist"
+     },
+     {
+      "ma_da": "DA-1",
+      "khoa": "ptVat",
+      "gia_tri": 8
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindProject",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertProject",
+     "a": [
+      {
+       "ma_da": "<ma>",
+       "ngay_tao": "<ts>",
+       "cap_nhat": "<ts>"
+      }
+     ]
+    },
+    {
+     "m": "ListLinesRaw",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "ListCoverRaw",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "ListProjDataRaw",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertProjDataRows",
+     "a": [
+      [
+       {
+        "ma_da": "<ma>",
+        "khoa": "ptVat",
+        "gia_tri": 8,
+        "cap_nhat": "<ts>"
+       }
+      ]
+     ]
+    }
+   ],
+   "result": {
+    "maDA": "<ma>",
+    "ngayTao": "<ts>",
+    "capNhat": "<ts>",
+    "ten": "",
+    "khachHang": "",
+    "diaChi": "",
+    "sdt": "",
+    "trangThai": "",
+    "vat": 0,
+    "tienDo": 0,
+    "ghiChu": "",
+    "quyMo": "",
+    "tongDT": "",
+    "dtBaoGia": "",
+    "nhuCau": "",
+    "phanKhuc": "",
+    "maBaoGia": "",
+    "nhomTuTao": "",
+    "tangTuTao": "",
+    "tenBanNhap": "",
+    "linkDezon": ""
+   }
+  }
+ },
+ {
+  "name": "duplicateProject opts true",
+  "fn": "duplicateProject",
+  "args": [
+   "DA-1",
+   true
+  ],
+  "fake": {
+   "ret": {
+    "FindProject": [
+     {
+      "id": 3,
+      "ma_da": "DA-1"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindProject",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertProject",
+     "a": [
+      {
+       "ma_da": "<ma>",
+       "ngay_tao": "<ts>",
+       "cap_nhat": "<ts>"
+      }
+     ]
+    },
+    {
+     "m": "ListLinesRaw",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "ListCoverRaw",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "ListProjDataRaw",
+     "a": [
+      "DA-1"
+     ]
+    }
+   ],
+   "result": {
+    "maDA": "<ma>",
+    "ngayTao": "<ts>",
+    "capNhat": "<ts>",
+    "ten": "",
+    "khachHang": "",
+    "diaChi": "",
+    "sdt": "",
+    "trangThai": "",
+    "vat": 0,
+    "tienDo": 0,
+    "ghiChu": "",
+    "quyMo": "",
+    "tongDT": "",
+    "dtBaoGia": "",
+    "nhuCau": "",
+    "phanKhuc": "",
+    "maBaoGia": "",
+    "nhomTuTao": "",
+    "tangTuTao": "",
+    "tenBanNhap": "",
+    "linkDezon": ""
+   }
+  }
+ },
+ {
+  "name": "duplicateProject hỏng tờ bìa",
+  "fn": "duplicateProject",
+  "args": [
+   "DA-1"
+  ],
+  "fake": {
+   "ret": {
+    "FindProject": [
+     {
+      "id": 3,
+      "ma_da": "DA-1"
+     }
+    ],
+    "ListCoverRaw": [
+     {
+      "id": 21,
+      "ma_da": "DA-1"
+     }
+    ]
+   },
+   "err": {
+    "InsertCover": "DB POST khai_toan -> 500 {\"message\":\"hỏng\"}",
+    "DeleteLines": "DB DELETE db_bao_gia -> 500 {\"message\":\"dọn hỏng\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindProject",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertProject",
+     "a": [
+      {
+       "ma_da": "<ma>",
+       "ngay_tao": "<ts>",
+       "cap_nhat": "<ts>"
+      }
+     ]
+    },
+    {
+     "m": "ListLinesRaw",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "ListCoverRaw",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertCover",
+     "a": [
+      [
+       {
+        "ma_da": "<ma>"
+       }
+      ]
+     ]
+    },
+    {
+     "m": "DeleteLines",
+     "a": [
+      "<ma>"
+     ]
+    }
+   ],
+   "error": "DB POST khai_toan -> 500 {\"message\":\"hỏng\"}"
+  }
+ },
+ {
+  "name": "duplicateProject chưa có bảng du_an_data",
+  "fn": "duplicateProject",
+  "args": [
+   "DA-1"
+  ],
+  "fake": {
+   "ret": {
+    "FindProject": [
+     {
+      "id": 3,
+      "ma_da": "DA-1"
+     }
+    ]
+   },
+   "err": {
+    "ListProjDataRaw": "DB GET du_an_data -> 404 {\"code\":\"42P01\",\"message\":\"relation \\\"public.du_an_data\\\" does not exist\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindProject",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertProject",
+     "a": [
+      {
+       "ma_da": "<ma>",
+       "ngay_tao": "<ts>",
+       "cap_nhat": "<ts>"
+      }
+     ]
+    },
+    {
+     "m": "ListLinesRaw",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "ListCoverRaw",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "ListProjDataRaw",
+     "a": [
+      "DA-1"
+     ]
+    }
+   ],
+   "result": {
+    "maDA": "<ma>",
+    "ngayTao": "<ts>",
+    "capNhat": "<ts>",
+    "ten": "",
+    "khachHang": "",
+    "diaChi": "",
+    "sdt": "",
+    "trangThai": "",
+    "vat": 0,
+    "tienDo": 0,
+    "ghiChu": "",
+    "quyMo": "",
+    "tongDT": "",
+    "dtBaoGia": "",
+    "nhuCau": "",
+    "phanKhuc": "",
+    "maBaoGia": "",
+    "nhomTuTao": "",
+    "tangTuTao": "",
+    "tenBanNhap": "",
+    "linkDezon": ""
+   }
+  }
+ },
+ {
+  "name": "duplicateProject du_an_data lỗi khác",
+  "fn": "duplicateProject",
+  "args": [
+   "DA-1"
+  ],
+  "fake": {
+   "ret": {
+    "FindProject": [
+     {
+      "id": 3,
+      "ma_da": "DA-1"
+     }
+    ]
+   },
+   "err": {
+    "ListProjDataRaw": "DB GET du_an_data -> 500 {\"message\":\"timeout\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindProject",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertProject",
+     "a": [
+      {
+       "ma_da": "<ma>",
+       "ngay_tao": "<ts>",
+       "cap_nhat": "<ts>"
+      }
+     ]
+    },
+    {
+     "m": "ListLinesRaw",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "ListCoverRaw",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "ListProjDataRaw",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "DeleteLines",
+     "a": [
+      "<ma>"
+     ]
+    },
+    {
+     "m": "DeleteCover",
+     "a": [
+      "<ma>"
+     ]
+    },
+    {
+     "m": "DeleteProjData",
+     "a": [
+      "<ma>"
+     ]
+    },
+    {
+     "m": "DeleteProject",
+     "a": [
+      "<ma>"
+     ]
+    }
+   ],
+   "error": "DB GET du_an_data -> 500 {\"message\":\"timeout\"}"
+  }
+ },
+ {
+  "name": "duplicateProject lỗi chèn dự án",
+  "fn": "duplicateProject",
+  "args": [
+   "DA-1"
+  ],
+  "fake": {
+   "ret": {
+    "FindProject": [
+     {
+      "id": 3,
+      "ma_da": "DA-1"
+     }
+    ]
+   },
+   "err": {
+    "InsertProject": "DB POST du_an -> 400 {\"code\":\"42703\",\"message\":\"column \\\"link_dezon\\\" does not exist\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindProject",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertProject",
+     "a": [
+      {
+       "ma_da": "<ma>",
+       "ngay_tao": "<ts>",
+       "cap_nhat": "<ts>"
+      }
+     ]
+    }
+   ],
+   "error": "DB POST du_an -> 400 {\"code\":\"42703\",\"message\":\"column \\\"link_dezon\\\" does not exist\"}"
+  }
+ },
+ {
+  "name": "getProjData rỗng",
+  "fn": "getProjData",
+  "args": [
+   "  "
+  ],
+  "fake": {},
+  "expect": {
+   "log": [],
+   "result": {}
+  }
+ },
+ {
+  "name": "getProjData thiếu tham số",
+  "fn": "getProjData",
+  "args": [],
+  "fake": {},
+  "expect": {
+   "log": [],
+   "result": {}
+  }
+ },
+ {
+  "name": "getProjData có công ty",
+  "fn": "getProjData",
+  "args": [
+   " DA-1 "
+  ],
+  "ctx": {
+   "uid": "u1",
+   "role": "admin",
+   "congTyId": "c1"
+  },
+  "fake": {
+   "ret": {
+    "ListCompanySettings": [
+     {
+      "khoa": "ptInfo",
+      "gia_tri": {
+       "a": 1
+      }
+     },
+     {
+      "khoa": "bgOrg",
+      "gia_tri": "cty"
+     },
+     {
+      "khoa": null,
+      "gia_tri": 1
+     }
+    ],
+    "ListProjDataKV": [
+     {
+      "khoa": "area",
+      "gia_tri": 12.5
+     },
+     {
+      "khoa": "bgOrg",
+      "gia_tri": null
+     },
+     {
+      "khoa": "10",
+      "gia_tri": "số"
+     },
+     {
+      "khoa": "2",
+      "gia_tri": []
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "ListCompanySettings",
+     "a": [
+      false
+     ]
+    },
+    {
+     "m": "ListProjDataKV",
+     "a": [
+      "DA-1"
+     ]
+    }
+   ],
+   "result": {
+    "2": [],
+    "10": "số",
+    "ptInfo": {
+     "a": 1
+    },
+    "bgOrg": null,
+    "": 1,
+    "area": 12.5
+   }
+  }
+ },
+ {
+  "name": "getProjData không công ty",
+  "fn": "getProjData",
+  "args": [
+   123
+  ],
+  "ctx": {
+   "uid": "u1",
+   "role": "super"
+  },
+  "fake": {
+   "ret": {
+    "ListCompanySettings": [
+     {
+      "khoa": "ptInfo",
+      "gia_tri": false
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "ListCompanySettings",
+     "a": [
+      true
+     ]
+    },
+    {
+     "m": "ListProjDataKV",
+     "a": [
+      "123"
+     ]
+    }
+   ],
+   "result": {
+    "ptInfo": false
+   }
+  }
+ },
+ {
+  "name": "getProjData viewAs",
+  "fn": "getProjData",
+  "args": [
+   "DA-1"
+  ],
+  "ctx": {
+   "uid": "u1",
+   "role": "super",
+   "viewAs": "c9"
+  },
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "ListCompanySettings",
+     "a": [
+      false
+     ]
+    },
+    {
+     "m": "ListProjDataKV",
+     "a": [
+      "DA-1"
+     ]
+    }
+   ],
+   "result": {}
+  }
+ },
+ {
+  "name": "getProjData chưa có bảng",
+  "fn": "getProjData",
+  "args": [
+   "DA-1"
+  ],
+  "ctx": {
+   "uid": "u1",
+   "role": "admin",
+   "congTyId": "c1"
+  },
+  "fake": {
+   "ret": {
+    "ListCompanySettings": [
+     {
+      "khoa": "ptInfo",
+      "gia_tri": 1
+     }
+    ]
+   },
+   "err": {
+    "ListProjDataKV": "DB GET du_an_data -> 404 {\"code\":\"PGRST205\",\"message\":\"Could not find the table 'public.du_an_data' in the schema cache\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "ListCompanySettings",
+     "a": [
+      false
+     ]
+    },
+    {
+     "m": "ListProjDataKV",
+     "a": [
+      "DA-1"
+     ]
+    }
+   ],
+   "result": {
+    "ptInfo": 1
+   }
+  }
+ },
+ {
+  "name": "getProjData cấm quyền",
+  "fn": "getProjData",
+  "args": [
+   "DA-1"
+  ],
+  "fake": {
+   "err": {
+    "ListProjDataKV": "DB GET du_an_data -> 401 {\"code\":\"42501\",\"message\":\"permission denied for table du_an_data\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "ListCompanySettings",
+     "a": [
+      true
+     ]
+    },
+    {
+     "m": "ListProjDataKV",
+     "a": [
+      "DA-1"
+     ]
+    }
+   ],
+   "result": {}
+  }
+ },
+ {
+  "name": "getProjData lỗi khác",
+  "fn": "getProjData",
+  "args": [
+   "DA-1"
+  ],
+  "fake": {
+   "err": {
+    "ListProjDataKV": "DB GET du_an_data -> 500 {\"message\":\"timeout\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "ListCompanySettings",
+     "a": [
+      true
+     ]
+    },
+    {
+     "m": "ListProjDataKV",
+     "a": [
+      "DA-1"
+     ]
+    }
+   ],
+   "error": "DB GET du_an_data -> 500 {\"message\":\"timeout\"}"
+  }
+ },
+ {
+  "name": "getProjData lỗi cài đặt công ty",
+  "fn": "getProjData",
+  "args": [
+   "DA-1"
+  ],
+  "fake": {
+   "err": {
+    "ListCompanySettings": "DB GET cai_dat_cong_ty -> 404 {\"code\":\"42P01\",\"message\":\"relation \\\"du_an_data\\\" does not exist\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "ListCompanySettings",
+     "a": [
+      true
+     ]
+    }
+   ],
+   "error": "DB GET cai_dat_cong_ty -> 404 {\"code\":\"42P01\",\"message\":\"relation \\\"du_an_data\\\" does not exist\"}"
+  }
+ },
+ {
+  "name": "setProjData thiếu mã",
+  "fn": "setProjData",
+  "args": [
+   "  ",
+   "area",
+   1
+  ],
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin"
+  },
+  "fake": {},
+  "expect": {
+   "log": [],
+   "error": "Thiếu mã dự án hoặc khoá dữ liệu"
+  }
+ },
+ {
+  "name": "setProjData thiếu khoá",
+  "fn": "setProjData",
+  "args": [
+   "DA-1"
+  ],
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin"
+  },
+  "fake": {},
+  "expect": {
+   "log": [],
+   "error": "Thiếu mã dự án hoặc khoá dữ liệu"
+  }
+ },
+ {
+  "name": "setProjData khoá lạ",
+  "fn": "setProjData",
+  "args": [
+   "DA-1",
+   " hack ",
+   1
+  ],
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin"
+  },
+  "fake": {},
+  "expect": {
+   "log": [],
+   "error": "Khoá dữ liệu không hợp lệ: hack"
+  }
+ },
+ {
+  "name": "setProjData thêm",
+  "fn": "setProjData",
+  "args": [
+   " DA-1 ",
+   " area ",
+   {
+    "b": 1,
+    "a": [
+     1,
+     "x",
+     null
+    ]
+   }
+  ],
+  "ctx": {
+   "uid": "u1",
+   "role": "admin",
+   "congTyId": "c1"
+  },
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin"
+  },
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "FindProjData",
+     "a": [
+      "ma_da=eq.DA-1&khoa=eq.area"
+     ]
+    },
+    {
+     "m": "InsertProjData",
+     "a": [
+      {
+       "ma_da": "DA-1",
+       "khoa": "area",
+       "gia_tri": {
+        "b": 1,
+        "a": [
+         1,
+         "x",
+         null
+        ]
+       },
+       "cap_nhat": "<ts>",
+       "nguoi_sua": "tester",
+       "cong_ty_id": "c1"
+      }
+     ]
+    }
+   ],
+   "result": {
+    "ok": true
+   }
+  }
+ },
+ {
+  "name": "setProjData sửa",
+  "fn": "setProjData",
+  "args": [
+   "DA-1",
+   "ptVat",
+   8
+  ],
+  "ctx": {
+   "uid": "u1",
+   "role": "admin",
+   "congTyId": "c1"
+  },
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin"
+  },
+  "fake": {
+   "ret": {
+    "FindProjData": [
+     {
+      "ma_da": "DA-1"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindProjData",
+     "a": [
+      "ma_da=eq.DA-1&khoa=eq.ptVat"
+     ]
+    },
+    {
+     "m": "UpdateProjData",
+     "a": [
+      "ma_da=eq.DA-1&khoa=eq.ptVat",
+      {
+       "ma_da": "DA-1",
+       "khoa": "ptVat",
+       "gia_tri": 8,
+       "cap_nhat": "<ts>",
+       "nguoi_sua": "tester",
+       "cong_ty_id": "c1"
+      }
+     ]
+    }
+   ],
+   "result": {
+    "ok": true
+   }
+  }
+ },
+ {
+  "name": "setProjData thiếu giaTri",
+  "fn": "setProjData",
+  "args": [
+   "DA-1",
+   "bgCfg"
+  ],
+  "actor": {
+   "uid": "u1",
+   "u": "",
+   "r": "admin"
+  },
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "FindProjData",
+     "a": [
+      "ma_da=eq.DA-1&khoa=eq.bgCfg"
+     ]
+    },
+    {
+     "m": "InsertProjData",
+     "a": [
+      {
+       "ma_da": "DA-1",
+       "khoa": "bgCfg",
+       "gia_tri": null,
+       "cap_nhat": "<ts>",
+       "nguoi_sua": "",
+       "cong_ty_id": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "ok": true
+   }
+  }
+ },
+ {
+  "name": "setProjData giaTri null, không actor",
+  "fn": "setProjData",
+  "args": [
+   "DA-1",
+   "mhPay",
+   null
+  ],
+  "ctx": {
+   "uid": "u1",
+   "role": "super",
+   "viewAs": "c9",
+   "congTyId": "c1"
+  },
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "FindProjData",
+     "a": [
+      "ma_da=eq.DA-1&khoa=eq.mhPay"
+     ]
+    },
+    {
+     "m": "InsertProjData",
+     "a": [
+      {
+       "ma_da": "DA-1",
+       "khoa": "mhPay",
+       "gia_tri": null,
+       "cap_nhat": "<ts>",
+       "nguoi_sua": "",
+       "cong_ty_id": "c9"
+      }
+     ]
+    }
+   ],
+   "result": {
+    "ok": true
+   }
+  }
+ },
+ {
+  "name": "setProjData mã số",
+  "fn": "setProjData",
+  "args": [
+   15,
+   "cpCfg",
+   false
+  ],
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin"
+  },
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "FindProjData",
+     "a": [
+      "ma_da=eq.15&khoa=eq.cpCfg"
+     ]
+    },
+    {
+     "m": "InsertProjData",
+     "a": [
+      {
+       "ma_da": "15",
+       "khoa": "cpCfg",
+       "gia_tri": false,
+       "cap_nhat": "<ts>",
+       "nguoi_sua": "tester",
+       "cong_ty_id": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "ok": true
+   }
+  }
+ },
+ {
+  "name": "setProjData dự án không còn",
+  "fn": "setProjData",
+  "args": [
+   "DA-1",
+   "area",
+   1
+  ],
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin"
+  },
+  "fake": {
+   "err": {
+    "InsertProjData": "DB POST du_an_data -> 409 {\"code\":\"23503\",\"message\":\"insert or update on table violates foreign key constraint\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindProjData",
+     "a": [
+      "ma_da=eq.DA-1&khoa=eq.area"
+     ]
+    },
+    {
+     "m": "InsertProjData",
+     "a": [
+      {
+       "ma_da": "DA-1",
+       "khoa": "area",
+       "gia_tri": 1,
+       "cap_nhat": "<ts>",
+       "nguoi_sua": "tester",
+       "cong_ty_id": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "ok": true
+   }
+  }
+ },
+ {
+  "name": "setProjData chưa có bảng",
+  "fn": "setProjData",
+  "args": [
+   "DA-1",
+   "area",
+   1
+  ],
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin"
+  },
+  "fake": {
+   "err": {
+    "FindProjData": "DB GET du_an_data -> 404 {\"code\":\"42P01\",\"message\":\"relation \\\"public.du_an_data\\\" does not exist\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindProjData",
+     "a": [
+      "ma_da=eq.DA-1&khoa=eq.area"
+     ]
+    }
+   ],
+   "error": "Chưa có bảng du_an_data. Hãy chạy \"npm run migrate\" rồi khởi động lại server."
+  }
+ },
+ {
+  "name": "setProjData cấm quyền",
+  "fn": "setProjData",
+  "args": [
+   "DA-1",
+   "area",
+   1
+  ],
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin"
+  },
+  "fake": {
+   "ret": {
+    "FindProjData": [
+     {
+      "ma_da": "DA-1"
+     }
+    ]
+   },
+   "err": {
+    "UpdateProjData": "DB PATCH du_an_data -> 401 {\"code\":\"42501\",\"message\":\"new row violates row-level security policy\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindProjData",
+     "a": [
+      "ma_da=eq.DA-1&khoa=eq.area"
+     ]
+    },
+    {
+     "m": "UpdateProjData",
+     "a": [
+      "ma_da=eq.DA-1&khoa=eq.area",
+      {
+       "ma_da": "DA-1",
+       "khoa": "area",
+       "gia_tri": 1,
+       "cap_nhat": "<ts>",
+       "nguoi_sua": "tester",
+       "cong_ty_id": null
+      }
+     ]
+    }
+   ],
+   "error": "Bảng du_an_data chưa được cấp quyền ghi — kiểm tra quyền của tài khoản database trong DATABASE_URL rồi thử lại."
+  }
+ },
+ {
+  "name": "setProjData lỗi khác",
+  "fn": "setProjData",
+  "args": [
+   "DA-1",
+   "area",
+   1
+  ],
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin"
+  },
+  "fake": {
+   "err": {
+    "InsertProjData": "DB POST du_an_data -> 500 {\"message\":\"timeout\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindProjData",
+     "a": [
+      "ma_da=eq.DA-1&khoa=eq.area"
+     ]
+    },
+    {
+     "m": "InsertProjData",
+     "a": [
+      {
+       "ma_da": "DA-1",
+       "khoa": "area",
+       "gia_tri": 1,
+       "cap_nhat": "<ts>",
+       "nguoi_sua": "tester",
+       "cong_ty_id": null
+      }
+     ]
+    }
+   ],
+   "error": "DB POST du_an_data -> 500 {\"message\":\"timeout\"}"
+  }
+ },
+ {
+  "name": "setProjData __cty thêm",
+  "fn": "setProjData",
+  "args": [
+   "__cty",
+   "bgOrg",
+   {
+    "ten": "Cty"
+   }
+  ],
+  "ctx": {
+   "uid": "u1",
+   "role": "admin",
+   "congTyId": "c1"
+  },
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin"
+  },
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "FindCompanySetting",
+     "a": [
+      "khoa=eq.bgOrg",
+      false
+     ]
+    },
+    {
+     "m": "InsertCompanySetting",
+     "a": [
+      {
+       "khoa": "bgOrg",
+       "gia_tri": {
+        "ten": "Cty"
+       },
+       "cap_nhat": "<ts>",
+       "nguoi_sua": "tester"
+      },
+      false
+     ]
+    }
+   ],
+   "result": {
+    "ok": true
+   }
+  }
+ },
+ {
+  "name": "setProjData __cty sửa",
+  "fn": "setProjData",
+  "args": [
+   " __cty ",
+   "ptInfo"
+  ],
+  "ctx": {
+   "uid": "u1",
+   "role": "admin",
+   "congTyId": "c1"
+  },
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin"
+  },
+  "fake": {
+   "ret": {
+    "FindCompanySetting": [
+     {
+      "khoa": "ptInfo"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindCompanySetting",
+     "a": [
+      "khoa=eq.ptInfo",
+      false
+     ]
+    },
+    {
+     "m": "UpdateCompanySetting",
+     "a": [
+      "khoa=eq.ptInfo",
+      {
+       "khoa": "ptInfo",
+       "gia_tri": null,
+       "cap_nhat": "<ts>",
+       "nguoi_sua": "tester"
+      },
+      false
+     ]
+    }
+   ],
+   "result": {
+    "ok": true
+   }
+  }
+ },
+ {
+  "name": "setProjData __cty không công ty thêm",
+  "fn": "setProjData",
+  "args": [
+   "__cty",
+   "bgOrg",
+   1
+  ],
+  "ctx": {
+   "uid": "u1",
+   "role": "super"
+  },
+  "actor": {
+   "uid": "u1",
+   "u": "sa",
+   "r": "super"
+  },
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "FindCompanySetting",
+     "a": [
+      "khoa=eq.bgOrg&cong_ty_id=is.null",
+      true
+     ]
+    },
+    {
+     "m": "InsertCompanySetting",
+     "a": [
+      {
+       "khoa": "bgOrg",
+       "gia_tri": 1,
+       "cap_nhat": "<ts>",
+       "nguoi_sua": "sa"
+      },
+      true
+     ]
+    }
+   ],
+   "result": {
+    "ok": true
+   }
+  }
+ },
+ {
+  "name": "setProjData __cty không công ty sửa",
+  "fn": "setProjData",
+  "args": [
+   "__cty",
+   "bgOrg",
+   1
+  ],
+  "ctx": {
+   "uid": "u1",
+   "role": "super"
+  },
+  "actor": {
+   "uid": "u1",
+   "u": "sa",
+   "r": "super"
+  },
+  "fake": {
+   "ret": {
+    "FindCompanySetting": [
+     {
+      "khoa": "bgOrg"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindCompanySetting",
+     "a": [
+      "khoa=eq.bgOrg&cong_ty_id=is.null",
+      true
+     ]
+    },
+    {
+     "m": "UpdateCompanySetting",
+     "a": [
+      "khoa=eq.bgOrg&cong_ty_id=is.null",
+      {
+       "khoa": "bgOrg",
+       "gia_tri": 1,
+       "cap_nhat": "<ts>",
+       "nguoi_sua": "sa"
+      },
+      true
+     ]
+    }
+   ],
+   "result": {
+    "ok": true
+   }
+  }
+ },
+ {
+  "name": "setProjData gõ thẳng __cty:0 không công ty",
+  "fn": "setProjData",
+  "args": [
+   "__cty:0",
+   "bgOrg",
+   1
+  ],
+  "actor": {
+   "uid": "u1",
+   "u": "sa",
+   "r": "super"
+  },
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "FindCompanySetting",
+     "a": [
+      "khoa=eq.bgOrg&cong_ty_id=is.null",
+      true
+     ]
+    },
+    {
+     "m": "InsertCompanySetting",
+     "a": [
+      {
+       "khoa": "bgOrg",
+       "gia_tri": 1,
+       "cap_nhat": "<ts>",
+       "nguoi_sua": "sa"
+      },
+      true
+     ]
+    }
+   ],
+   "result": {
+    "ok": true
+   }
+  }
+ },
+ {
+  "name": "setProjData gõ thẳng __cty:c1",
+  "fn": "setProjData",
+  "args": [
+   "__cty:c1",
+   "bgOrg",
+   1
+  ],
+  "ctx": {
+   "uid": "u1",
+   "role": "admin",
+   "congTyId": "c1"
+  },
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin"
+  },
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "FindCompanySetting",
+     "a": [
+      "khoa=eq.bgOrg",
+      false
+     ]
+    },
+    {
+     "m": "InsertCompanySetting",
+     "a": [
+      {
+       "khoa": "bgOrg",
+       "gia_tri": 1,
+       "cap_nhat": "<ts>",
+       "nguoi_sua": "tester"
+      },
+      false
+     ]
+    }
+   ],
+   "result": {
+    "ok": true
+   }
+  }
+ },
+ {
+  "name": "setProjData __cty của công ty khác",
+  "fn": "setProjData",
+  "args": [
+   "__cty:c2",
+   "bgOrg",
+   1
+  ],
+  "ctx": {
+   "uid": "u1",
+   "role": "admin",
+   "congTyId": "c1"
+  },
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin"
+  },
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "FindProjData",
+     "a": [
+      "ma_da=eq.__cty%3Ac2&khoa=eq.bgOrg"
+     ]
+    },
+    {
+     "m": "InsertProjData",
+     "a": [
+      {
+       "ma_da": "__cty:c2",
+       "khoa": "bgOrg",
+       "gia_tri": 1,
+       "cap_nhat": "<ts>",
+       "nguoi_sua": "tester",
+       "cong_ty_id": "c1"
+      }
+     ]
+    }
+   ],
+   "result": {
+    "ok": true
+   }
+  }
+ },
+ {
+  "name": "setProjData __cty viewAs",
+  "fn": "setProjData",
+  "args": [
+   "__cty",
+   "bgOrg",
+   1
+  ],
+  "ctx": {
+   "uid": "u1",
+   "role": "super",
+   "viewAs": "c9",
+   "congTyId": "c1"
+  },
+  "actor": {
+   "uid": "u1",
+   "u": "sa",
+   "r": "super"
+  },
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "FindCompanySetting",
+     "a": [
+      "khoa=eq.bgOrg",
+      false
+     ]
+    },
+    {
+     "m": "InsertCompanySetting",
+     "a": [
+      {
+       "khoa": "bgOrg",
+       "gia_tri": 1,
+       "cap_nhat": "<ts>",
+       "nguoi_sua": "sa"
+      },
+      false
+     ]
+    }
+   ],
+   "result": {
+    "ok": true
+   }
+  }
+ },
+ {
+  "name": "setProjData __cty lỗi",
+  "fn": "setProjData",
+  "args": [
+   "__cty",
+   "bgOrg",
+   1
+  ],
+  "ctx": {
+   "uid": "u1",
+   "role": "admin",
+   "congTyId": "c1"
+  },
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin"
+  },
+  "fake": {
+   "err": {
+    "InsertCompanySetting": "DB POST cai_dat_cong_ty -> 409 {\"code\":\"23503\",\"message\":\"x\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindCompanySetting",
+     "a": [
+      "khoa=eq.bgOrg",
+      false
+     ]
+    },
+    {
+     "m": "InsertCompanySetting",
+     "a": [
+      {
+       "khoa": "bgOrg",
+       "gia_tri": 1,
+       "cap_nhat": "<ts>",
+       "nguoi_sua": "tester"
+      },
+      false
+     ]
+    }
+   ],
+   "error": "DB POST cai_dat_cong_ty -> 409 {\"code\":\"23503\",\"message\":\"x\"}"
+  }
+ }
+]

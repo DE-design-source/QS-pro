@@ -1,0 +1,2171 @@
+{
+ "lark": [
+  {
+   "name": "tải được, token giữ lại cho lần sau",
+   "domain": null,
+   "appId": "cli_x",
+   "secret": "s3cr\"et\\é",
+   "steps": [
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "boxcnABC",
+     "result": {
+      "contentType": "image/png",
+      "b64": "iVBORw0KGgoBAgMA/w=="
+     },
+     "requests": [
+      {
+       "method": "POST",
+       "url": "/open-apis/auth/v3/tenant_access_token/internal",
+       "contentType": "application/json; charset=utf-8",
+       "body": "{\"app_id\":\"cli_x\",\"app_secret\":\"s3cr\\\"et\\\\é\"}",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/boxcnABC/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    },
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/jpeg; q=1",
+       "b64": "AAEC"
+      }
+     },
+     "fileToken": "a/b c?d&é=#+%",
+     "result": {
+      "contentType": "image/jpeg; q=1",
+      "b64": "AAEC"
+     },
+     "requests": [
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/a%2Fb%20c%3Fd%26%C3%A9%3D%23%2B%25/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    },
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": null,
+       "b64": ""
+      }
+     },
+     "fileToken": "khong-ctype",
+     "result": {
+      "contentType": "application/octet-stream",
+      "b64": ""
+     },
+     "requests": [
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/khong-ctype/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    },
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 404,
+       "ctype": "application/json",
+       "b64": ""
+      }
+     },
+     "fileToken": "mat",
+     "result": {
+      "error": "Tải media lỗi HTTP 404"
+     },
+     "requests": [
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/mat/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    },
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 500,
+       "ctype": null,
+       "b64": ""
+      }
+     },
+     "fileToken": "",
+     "result": {
+      "error": "Tải media lỗi HTTP 500"
+     },
+     "requests": [
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias//download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    },
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 204,
+       "ctype": "image/gif",
+       "b64": ""
+      }
+     },
+     "fileToken": "rong",
+     "result": {
+      "contentType": "image/gif",
+      "b64": ""
+     },
+     "requests": [
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/rong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "token sắp hết hạn (expire 30) -> xin lại mỗi lần",
+   "domain": null,
+   "appId": "cli_x",
+   "secret": "sec",
+   "steps": [
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"tenant_access_token\":\"t-ngan\",\"expire\":30}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "f1",
+     "result": {
+      "contentType": "image/png",
+      "b64": "iVBORw0KGgoBAgMA/w=="
+     },
+     "requests": [
+      {
+       "method": "POST",
+       "url": "/open-apis/auth/v3/tenant_access_token/internal",
+       "contentType": "application/json; charset=utf-8",
+       "body": "{\"app_id\":\"cli_x\",\"app_secret\":\"sec\"}",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/f1/download",
+       "authorization": "Bearer t-ngan",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    },
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"tenant_access_token\":\"t-ngan2\",\"expire\":61}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "f2",
+     "result": {
+      "contentType": "image/png",
+      "b64": "iVBORw0KGgoBAgMA/w=="
+     },
+     "requests": [
+      {
+       "method": "POST",
+       "url": "/open-apis/auth/v3/tenant_access_token/internal",
+       "contentType": "application/json; charset=utf-8",
+       "body": "{\"app_id\":\"cli_x\",\"app_secret\":\"sec\"}",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/f2/download",
+       "authorization": "Bearer t-ngan2",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    },
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "f3",
+     "result": {
+      "contentType": "image/png",
+      "b64": "iVBORw0KGgoBAgMA/w=="
+     },
+     "requests": [
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/f3/download",
+       "authorization": "Bearer t-ngan2",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "expire thiếu / không phải số -> 7200",
+   "domain": null,
+   "appId": "cli_x",
+   "secret": "sec",
+   "steps": [
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"tenant_access_token\":\"t-macdinh\",\"expire\":\"abc\"}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "f1",
+     "result": {
+      "contentType": "image/png",
+      "b64": "iVBORw0KGgoBAgMA/w=="
+     },
+     "requests": [
+      {
+       "method": "POST",
+       "url": "/open-apis/auth/v3/tenant_access_token/internal",
+       "contentType": "application/json; charset=utf-8",
+       "body": "{\"app_id\":\"cli_x\",\"app_secret\":\"sec\"}",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/f1/download",
+       "authorization": "Bearer t-macdinh",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    },
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "f2",
+     "result": {
+      "contentType": "image/png",
+      "b64": "iVBORw0KGgoBAgMA/w=="
+     },
+     "requests": [
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/f2/download",
+       "authorization": "Bearer t-macdinh",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "token lỗi rồi thử lại được",
+   "domain": null,
+   "appId": "cli_x",
+   "secret": "sec",
+   "steps": [
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":99991663,\"msg\":\"app not found\"}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "f1",
+     "result": {
+      "error": "Lấy tenant_access_token lỗi: 99991663 app not found"
+     },
+     "requests": [
+      {
+       "method": "POST",
+       "url": "/open-apis/auth/v3/tenant_access_token/internal",
+       "contentType": "application/json; charset=utf-8",
+       "body": "{\"app_id\":\"cli_x\",\"app_secret\":\"sec\"}",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    },
+    {
+     "fake": {
+      "token": {
+       "status": 400,
+       "body": "{\"msg\":\"thiếu code\"}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "f1",
+     "result": {
+      "error": "Lấy tenant_access_token lỗi: undefined thiếu code"
+     },
+     "requests": [
+      {
+       "method": "POST",
+       "url": "/open-apis/auth/v3/tenant_access_token/internal",
+       "contentType": "application/json; charset=utf-8",
+       "body": "{\"app_id\":\"cli_x\",\"app_secret\":\"sec\"}",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    },
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":\"0\",\"msg\":\"code là chuỗi\"}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "f1",
+     "result": {
+      "error": "Lấy tenant_access_token lỗi: 0 code là chuỗi"
+     },
+     "requests": [
+      {
+       "method": "POST",
+       "url": "/open-apis/auth/v3/tenant_access_token/internal",
+       "contentType": "application/json; charset=utf-8",
+       "body": "{\"app_id\":\"cli_x\",\"app_secret\":\"sec\"}",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    },
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "[1,2]"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "f1",
+     "result": {
+      "error": "Lấy tenant_access_token lỗi: undefined undefined"
+     },
+     "requests": [
+      {
+       "method": "POST",
+       "url": "/open-apis/auth/v3/tenant_access_token/internal",
+       "contentType": "application/json; charset=utf-8",
+       "body": "{\"app_id\":\"cli_x\",\"app_secret\":\"sec\"}",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    },
+    {
+     "fake": {
+      "token": {
+       "status": 500,
+       "body": "{\"code\":0,\"expire\":100}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "f1",
+     "result": {
+      "contentType": "image/png",
+      "b64": "iVBORw0KGgoBAgMA/w=="
+     },
+     "requests": [
+      {
+       "method": "POST",
+       "url": "/open-apis/auth/v3/tenant_access_token/internal",
+       "contentType": "application/json; charset=utf-8",
+       "body": "{\"app_id\":\"cli_x\",\"app_secret\":\"sec\"}",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/f1/download",
+       "authorization": "Bearer undefined",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    },
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "f1",
+     "result": {
+      "contentType": "image/png",
+      "b64": "iVBORw0KGgoBAgMA/w=="
+     },
+     "requests": [
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/f1/download",
+       "authorization": "Bearer undefined",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "fetch chuẩn hoá đoạn . và .. trong URL",
+   "domain": null,
+   "appId": "cli_x",
+   "secret": "sec",
+   "steps": [
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "..",
+     "result": {
+      "contentType": "image/png",
+      "b64": "iVBORw0KGgoBAgMA/w=="
+     },
+     "requests": [
+      {
+       "method": "POST",
+       "url": "/open-apis/auth/v3/tenant_access_token/internal",
+       "contentType": "application/json; charset=utf-8",
+       "body": "{\"app_id\":\"cli_x\",\"app_secret\":\"sec\"}",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    },
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": ".",
+     "result": {
+      "contentType": "image/png",
+      "b64": "iVBORw0KGgoBAgMA/w=="
+     },
+     "requests": [
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    },
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "%2e%2e",
+     "result": {
+      "contentType": "image/png",
+      "b64": "iVBORw0KGgoBAgMA/w=="
+     },
+     "requests": [
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/%252e%252e/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    },
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "...",
+     "result": {
+      "contentType": "image/png",
+      "b64": "iVBORw0KGgoBAgMA/w=="
+     },
+     "requests": [
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/.../download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    },
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "../x",
+     "result": {
+      "contentType": "image/png",
+      "b64": "iVBORw0KGgoBAgMA/w=="
+     },
+     "requests": [
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/..%2Fx/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "thân token có BOM",
+   "domain": null,
+   "appId": "cli_x",
+   "secret": "sec",
+   "steps": [
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "﻿{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "f1",
+     "result": {
+      "contentType": "image/png",
+      "b64": "iVBORw0KGgoBAgMA/w=="
+     },
+     "requests": [
+      {
+       "method": "POST",
+       "url": "/open-apis/auth/v3/tenant_access_token/internal",
+       "contentType": "application/json; charset=utf-8",
+       "body": "{\"app_id\":\"cli_x\",\"app_secret\":\"sec\"}",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/f1/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "token ngoài Latin-1 -> không gửi request media",
+   "domain": null,
+   "appId": "cli_x",
+   "secret": "sec",
+   "steps": [
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"tenant_access_token\":\"tộ\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "f1",
+     "result": {
+      "error": "Cannot convert argument to a ByteString because the character at index 8 has a value of 7897 which is greater than 255."
+     },
+     "requests": [
+      {
+       "method": "POST",
+       "url": "/open-apis/auth/v3/tenant_access_token/internal",
+       "contentType": "application/json; charset=utf-8",
+       "body": "{\"app_id\":\"cli_x\",\"app_secret\":\"sec\"}",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "token Latin-1 gửi 1 byte mỗi ký tự, bỏ khoảng trắng cuối",
+   "domain": null,
+   "appId": "cli_x",
+   "secret": "sec",
+   "steps": [
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"tenant_access_token\":\"té \\t\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "f1",
+     "result": {
+      "contentType": "image/png",
+      "b64": "iVBORw0KGgoBAgMA/w=="
+     },
+     "requests": [
+      {
+       "method": "POST",
+       "url": "/open-apis/auth/v3/tenant_access_token/internal",
+       "contentType": "application/json; charset=utf-8",
+       "body": "{\"app_id\":\"cli_x\",\"app_secret\":\"sec\"}",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/f1/download",
+       "authorization": "Bearer té",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "token có xuống dòng",
+   "domain": null,
+   "appId": "cli_x",
+   "secret": "sec",
+   "steps": [
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"tenant_access_token\":\"a\\r\\nb\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "f1",
+     "result": {
+      "error": "Headers.append: \"Bearer a\r\nb\" is an invalid header value."
+     },
+     "requests": [
+      {
+       "method": "POST",
+       "url": "/open-apis/auth/v3/tenant_access_token/internal",
+       "contentType": "application/json; charset=utf-8",
+       "body": "{\"app_id\":\"cli_x\",\"app_secret\":\"sec\"}",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "token không có tenant_access_token",
+   "domain": null,
+   "appId": "cli_x",
+   "secret": "sec",
+   "steps": [
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "f1",
+     "result": {
+      "contentType": "image/png",
+      "b64": "iVBORw0KGgoBAgMA/w=="
+     },
+     "requests": [
+      {
+       "method": "POST",
+       "url": "/open-apis/auth/v3/tenant_access_token/internal",
+       "contentType": "application/json; charset=utf-8",
+       "body": "{\"app_id\":\"cli_x\",\"app_secret\":\"sec\"}",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/f1/download",
+       "authorization": "Bearer undefined",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "content-type lặp, chuyển hướng",
+   "domain": null,
+   "appId": "cli_x",
+   "secret": "sec",
+   "steps": [
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": [
+        "image/png",
+        "text/plain"
+       ],
+       "b64": "AAEC"
+      }
+     },
+     "fileToken": "f1",
+     "result": {
+      "contentType": "image/png, text/plain",
+      "b64": "AAEC"
+     },
+     "requests": [
+      {
+       "method": "POST",
+       "url": "/open-apis/auth/v3/tenant_access_token/internal",
+       "contentType": "application/json; charset=utf-8",
+       "body": "{\"app_id\":\"cli_x\",\"app_secret\":\"sec\"}",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/f1/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    },
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 302,
+       "ctype": null,
+       "b64": "",
+       "location": "/open-apis/drive/v1/medias/vong/download"
+      }
+     },
+     "fileToken": "vong",
+     "result": {
+      "error": "fetch failed"
+     },
+     "requests": [
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      },
+      {
+       "method": "GET",
+       "url": "/open-apis/drive/v1/medias/vong/download",
+       "authorization": "Bearer t-abc123",
+       "userAgent": "node",
+       "accept": "*/*",
+       "acceptLanguage": "*",
+       "secFetchMode": "cors"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Lark không kết nối được",
+   "domain": "http://127.0.0.1:9",
+   "appId": "cli_x",
+   "secret": "sec",
+   "steps": [
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "f1",
+     "result": {
+      "error": "fetch failed"
+     },
+     "requests": []
+    }
+   ]
+  },
+  {
+   "name": "thiếu LARK_APP_ID",
+   "domain": null,
+   "appId": "",
+   "secret": "sec",
+   "steps": [
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "f1",
+     "result": {
+      "error": "Thiếu LARK_APP_ID / LARK_APP_SECRET"
+     },
+     "requests": []
+    }
+   ]
+  },
+  {
+   "name": "thiếu LARK_APP_SECRET",
+   "domain": null,
+   "appId": "cli_x",
+   "secret": "",
+   "steps": [
+    {
+     "fake": {
+      "token": {
+       "status": 200,
+       "body": "{\"code\":0,\"msg\":\"ok\",\"tenant_access_token\":\"t-abc123\",\"expire\":7200}"
+      },
+      "media": {
+       "status": 200,
+       "ctype": "image/png",
+       "b64": "iVBORw0KGgoBAgMA/w=="
+      }
+     },
+     "fileToken": "f1",
+     "result": {
+      "error": "Thiếu LARK_APP_ID / LARK_APP_SECRET"
+     },
+     "requests": []
+    }
+   ]
+  }
+ ],
+ "http": [
+  {
+   "url": "/media",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 400,
+    "contentType": "text/html; charset=utf-8",
+    "cacheControl": null,
+    "etag": "W/\"d-MxYoiVBBYiiOQfahIRHvj9bJnKU\"",
+    "contentLength": "13",
+    "b64": "dGhp4bq/dSB0b2tlbg=="
+   },
+   "larkUrls": []
+  },
+  {
+   "url": "/media?token=",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 400,
+    "contentType": "text/html; charset=utf-8",
+    "cacheControl": null,
+    "etag": "W/\"d-MxYoiVBBYiiOQfahIRHvj9bJnKU\"",
+    "contentLength": "13",
+    "b64": "dGhp4bq/dSB0b2tlbg=="
+   },
+   "larkUrls": []
+  },
+  {
+   "url": "/media?x=1&token",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 400,
+    "contentType": "text/html; charset=utf-8",
+    "cacheControl": null,
+    "etag": "W/\"d-MxYoiVBBYiiOQfahIRHvj9bJnKU\"",
+    "contentLength": "13",
+    "b64": "dGhp4bq/dSB0b2tlbg=="
+   },
+   "larkUrls": []
+  },
+  {
+   "url": "/media?token=boxcnABC",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/boxcnABC/download"
+   ]
+  },
+  {
+   "url": "/media?token=boxcnABC",
+   "method": "GET",
+   "headers": {
+    "If-None-Match": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\""
+   },
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 304,
+    "contentType": null,
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": null,
+    "b64": ""
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/boxcnABC/download"
+   ]
+  },
+  {
+   "url": "/media?token=boxcnABC",
+   "method": "GET",
+   "headers": {
+    "If-None-Match": "\"khac\", W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\""
+   },
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 304,
+    "contentType": null,
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": null,
+    "b64": ""
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/boxcnABC/download"
+   ]
+  },
+  {
+   "url": "/media?token=boxcnABC",
+   "method": "GET",
+   "headers": {
+    "If-None-Match": "\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\""
+   },
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 304,
+    "contentType": null,
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": null,
+    "b64": ""
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/boxcnABC/download"
+   ]
+  },
+  {
+   "url": "/media?token=boxcnABC",
+   "method": "GET",
+   "headers": {
+    "If-None-Match": "*"
+   },
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 304,
+    "contentType": null,
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": null,
+    "b64": ""
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/boxcnABC/download"
+   ]
+  },
+  {
+   "url": "/media?token=boxcnABC",
+   "method": "GET",
+   "headers": {
+    "If-None-Match": "\"khac\""
+   },
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/boxcnABC/download"
+   ]
+  },
+  {
+   "url": "/media?token=boxcnABC",
+   "method": "GET",
+   "headers": {
+    "If-None-Match": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "Cache-Control": "max-age=0, no-cache"
+   },
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/boxcnABC/download"
+   ]
+  },
+  {
+   "url": "/media?token=boxcnABC",
+   "method": "GET",
+   "headers": {
+    "If-None-Match": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "If-Modified-Since": "Wed, 21 Oct 2015 07:28:00 GMT"
+   },
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/boxcnABC/download"
+   ]
+  },
+  {
+   "url": "/media?token=boxcnABC",
+   "method": "GET",
+   "headers": {
+    "If-Modified-Since": "Wed, 21 Oct 2015 07:28:00 GMT"
+   },
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/boxcnABC/download"
+   ]
+  },
+  {
+   "url": "/media?token=a%2Fb+c%20d&khac=1",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/a%2Fb%20c%20d/download"
+   ]
+  },
+  {
+   "url": "/media?token=%E0%A4%A",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/%25E0%25A4%25A/download"
+   ]
+  },
+  {
+   "url": "/media?token=abc&token=def",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/abc%2Cdef/download"
+   ]
+  },
+  {
+   "url": "/media?token[]=x1",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/x1/download"
+   ]
+  },
+  {
+   "url": "/media?token%5B%5D=x1&token[]=x2",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/x1%2Cx2/download"
+   ]
+  },
+  {
+   "url": "/media?token[]=",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias//download"
+   ]
+  },
+  {
+   "url": "/media?token[0]=i0&token[1]=i1",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/i0%2Ci1/download"
+   ]
+  },
+  {
+   "url": "/media?token[k]=v",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/%5Bobject%20Object%5D/download"
+   ]
+  },
+  {
+   "url": "/media?token[1001]=v",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/%5Bobject%20Object%5D/download"
+   ]
+  },
+  {
+   "url": "/media?token=abc",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "text/plain",
+    "b64": "eGluIGNow6Bv"
+   },
+   "res": {
+    "status": 200,
+    "contentType": "text/plain; charset=utf-8",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"9-p33N2Fo/Sp7pB3Xcq22MoGQOLEg\"",
+    "contentLength": "9",
+    "b64": "eGluIGNow6Bv"
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/abc/download"
+   ]
+  },
+  {
+   "url": "/media?token=abc",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "application/json",
+    "b64": "e30="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "application/json; charset=utf-8",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"2-vyGp6PvFo4RvsFtPoIWeCReyIC8\"",
+    "contentLength": "2",
+    "b64": "e30="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/abc/download"
+   ]
+  },
+  {
+   "url": "/media?token=abc",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "application/javascript; x=1",
+    "b64": "MQ=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "application/javascript; x=1; charset=utf-8",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"1-NWoZK3kTsExUV00Ywo1G5jlUKKs\"",
+    "contentLength": "1",
+    "b64": "MQ=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/abc/download"
+   ]
+  },
+  {
+   "url": "/media?token=abc",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "text/html; charset=gbk",
+    "b64": "PGI+"
+   },
+   "res": {
+    "status": 200,
+    "contentType": "text/html; charset=gbk",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"3-1RMR0LLj5q/aovz1Xl6Wb3VqURQ\"",
+    "contentLength": "3",
+    "b64": "PGI+"
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/abc/download"
+   ]
+  },
+  {
+   "url": "/media?token=abc",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "application/pdf",
+    "b64": "JVBERg=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "application/pdf",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"4-ObbXPv82STugZ05IJVqdgXJLRSE\"",
+    "contentLength": "4",
+    "b64": "JVBERg=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/abc/download"
+   ]
+  },
+  {
+   "url": "/media?token=abc",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": null,
+    "b64": "AAEC"
+   },
+   "res": {
+    "status": 200,
+    "contentType": "application/octet-stream",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"3-DHpiP9K7wFsGQjvjWeQCHTbnIa0\"",
+    "contentLength": "3",
+    "b64": "AAEC"
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/abc/download"
+   ]
+  },
+  {
+   "url": "/media?token=abc",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": ""
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"0-2jmj7l5rSw0yVb/vlWAYkK/YBwk\"",
+    "contentLength": "0",
+    "b64": ""
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/abc/download"
+   ]
+  },
+  {
+   "url": "/media?token=abc",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 404,
+    "ctype": "application/json",
+    "b64": "e30="
+   },
+   "res": {
+    "status": 502,
+    "contentType": "text/html; charset=utf-8",
+    "cacheControl": null,
+    "etag": "W/\"1b-VhR8KLiVmTznqKgjxf6S5lV5big\"",
+    "contentLength": "27",
+    "b64": "S2jDtG5nIHThuqNpIMSRxrDhu6NjIOG6o25o"
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/abc/download"
+   ]
+  },
+  {
+   "url": "/media?token=abc",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 500,
+    "ctype": null,
+    "b64": ""
+   },
+   "res": {
+    "status": 502,
+    "contentType": "text/html; charset=utf-8",
+    "cacheControl": null,
+    "etag": "W/\"1b-VhR8KLiVmTznqKgjxf6S5lV5big\"",
+    "contentLength": "27",
+    "b64": "S2jDtG5nIHThuqNpIMSRxrDhu6NjIOG6o25o"
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/abc/download"
+   ]
+  },
+  {
+   "url": "/media?token=abc",
+   "method": "HEAD",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": ""
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/abc/download"
+   ]
+  },
+  {
+   "url": "/media?token=..",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/download"
+   ]
+  },
+  {
+   "url": "/media?token=%2e%2E",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/download"
+   ]
+  },
+  {
+   "url": "/media?token=.",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/download"
+   ]
+  },
+  {
+   "url": "/media?token=a#b",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/a/download"
+   ]
+  },
+  {
+   "url": "/media?token=a%23b",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"d-ApPIzOx6p+unmLB6bA8UWzXHkQE\"",
+    "contentLength": "13",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/a%23b/download"
+   ]
+  },
+  {
+   "url": "/media?x=1#&token=a",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 400,
+    "contentType": "text/html; charset=utf-8",
+    "cacheControl": null,
+    "etag": "W/\"d-MxYoiVBBYiiOQfahIRHvj9bJnKU\"",
+    "contentLength": "13",
+    "b64": "dGhp4bq/dSB0b2tlbg=="
+   },
+   "larkUrls": []
+  },
+  {
+   "url": "/media?token[toString]=x",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": "image/png",
+    "b64": "iVBORw0KGgoBAgMA/w=="
+   },
+   "res": {
+    "status": 502,
+    "contentType": "text/html; charset=utf-8",
+    "cacheControl": null,
+    "etag": "W/\"1b-VhR8KLiVmTznqKgjxf6S5lV5big\"",
+    "contentLength": "27",
+    "b64": "S2jDtG5nIHThuqNpIMSRxrDhu6NjIOG6o25o"
+   },
+   "larkUrls": []
+  },
+  {
+   "url": "/media?token=abc",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": [
+     "image/png",
+     "text/plain"
+    ],
+    "b64": "AAEC"
+   },
+   "res": {
+    "status": 200,
+    "contentType": "image/png, text/plain",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"3-DHpiP9K7wFsGQjvjWeQCHTbnIa0\"",
+    "contentLength": "3",
+    "b64": "AAEC"
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/abc/download"
+   ]
+  },
+  {
+   "url": "/media?token=abc",
+   "method": "GET",
+   "headers": {},
+   "media": {
+    "status": 200,
+    "ctype": [
+     "text/plain",
+     "image/png"
+    ],
+    "b64": "AAEC"
+   },
+   "res": {
+    "status": 200,
+    "contentType": "text/plain, image/png; charset=utf-8",
+    "cacheControl": "public, max-age=86400",
+    "etag": "W/\"3-DHpiP9K7wFsGQjvjWeQCHTbnIa0\"",
+    "contentLength": "3",
+    "b64": "AAEC"
+   },
+   "larkUrls": [
+    "/open-apis/drive/v1/medias/abc/download"
+   ]
+  }
+ ],
+ "fresh": {
+  "url": "/media?token[toString]=x",
+  "res": {
+   "status": 502,
+   "contentType": "text/html; charset=utf-8",
+   "cacheControl": null,
+   "etag": "W/\"1b-VhR8KLiVmTznqKgjxf6S5lV5big\"",
+   "contentLength": "27",
+   "b64": "S2jDtG5nIHThuqNpIMSRxrDhu6NjIOG6o25o"
+  },
+  "requests": [
+   {
+    "method": "POST",
+    "url": "/open-apis/auth/v3/tenant_access_token/internal",
+    "contentType": "application/json; charset=utf-8",
+    "body": "{\"app_id\":\"cli_x\",\"app_secret\":\"sec\"}",
+    "userAgent": "node",
+    "accept": "*/*",
+    "acceptLanguage": "*",
+    "secFetchMode": "cors"
+   }
+  ]
+ }
+}

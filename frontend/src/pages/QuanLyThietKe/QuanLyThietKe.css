@@ -1,0 +1,595 @@
+/* =====================================================================
+   Quản lý thiết kế (quan-ly-thiet-ke.html) — style riêng của trang.
+   Mọi class đều có tiền tố "tk-" và mọi biến màu khai báo trên .tk-page
+   để không ảnh hưởng (và không bị ảnh hưởng bởi) các trang khác.
+   ===================================================================== */
+
+/* ---------- Design tokens (giống :root của bản HTML) ---------- */
+.tk-page {
+  --bg:#f4f5f7;
+  --panel:#ffffff;
+  --panel-alt:#eef0f4;
+  --border:#dde1e8;
+  --border-soft:#e8ebef;
+  --text:#1b1f27;
+  --text-dim:#5b6472;
+  --text-faint:#8891a0;
+  --accent:#2F5DA8;
+  --accent-soft:rgba(47,93,168,.10);
+  --done:#2f9160;
+  --done-soft:rgba(47,145,96,.10);
+  --progress:#b87a1f;
+  --progress-soft:rgba(184,122,31,.12);
+  --overdue:#c1443c;
+  --overdue-soft:rgba(193,68,60,.10);
+  --notstarted:#8a93a3;
+  --notstarted-soft:rgba(138,147,163,.12);
+  --milestone:#7658c2;
+  --income:#2f8f57;
+  --income-soft:rgba(47,143,87,.10);
+  --expense:#c66a2e;
+  --expense-soft:rgba(198,106,46,.10);
+  --row-h:38px;
+  --tasklist-w:540px;
+  --scrollbar-thumb:#cbd1da;
+  --shadow-soft:rgba(20,25,35,.12);
+  --surface:#ffffff; --surface-alt:#eef0f4; --text-muted:#5b6472;
+  --primary:#2F5DA8; --primary-tint:#E8EEFB;
+  --success:#1E8E5A; --success-tint:#E7F6EE;
+  --danger:#C0392B; --danger-tint:#FBEBE9;
+  --finance:#B7791F; --finance-tint:#FBF1DC;
+  --attendance:#0E8A82; --attendance-tint:#E1F5F2;
+  --qs:#6D4FC2; --qs-tint:#EEE9FB;
+  --sales:#C2621A; --sales-tint:#FBEADC;
+  --project:#3D4FC4; --project-tint:#E9EAFB;
+  --game:#C2185B; --game-tint:#FBE7EF;
+  --gold:#B7791F; --gold-tint:#FBF1DC;
+  --silver:#6B7280; --silver-tint:#EDEFF4;
+  --bronze:#A15C2A; --bronze-tint:#F5E7DA;
+  --tk-font:var(--app-font, 'Montserrat'), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+html[data-theme="dark"] .tk-page {
+  --bg:#14171c;
+  --panel:#191d24;
+  --panel-alt:#1e232b;
+  --border:#2a303a;
+  --border-soft:#22272f;
+  --text:#e7e9ed;
+  --text-dim:#9aa1ad;
+  --text-faint:#636975;
+  --accent:#6C9BEA;
+  --accent-soft:rgba(108,155,234,.16);
+  --done:#45a876;
+  --done-soft:rgba(69,168,118,.16);
+  --progress:#d99a3d;
+  --progress-soft:rgba(217,154,61,.16);
+  --overdue:#d65b54;
+  --overdue-soft:rgba(214,91,84,.16);
+  --notstarted:#525a68;
+  --notstarted-soft:rgba(82,90,104,.14);
+  --milestone:#a98be0;
+  --income:#3fae6a;
+  --income-soft:rgba(63,174,106,.16);
+  --expense:#e0834a;
+  --expense-soft:rgba(224,131,74,.16);
+  --scrollbar-thumb:#333a45;
+  --shadow-soft:rgba(0,0,0,.4);
+  --surface:#191d24; --surface-alt:#1e232b; --text-muted:#9aa1ad;
+  --primary:#6C9BEA; --primary-tint:#1E2A42;
+  --success:#4FC585; --success-tint:#15301F;
+  --danger:#E0685A; --danger-tint:#3A211E;
+  --finance:#E0AC4F; --finance-tint:#3A2E14;
+  --attendance:#3FC2B6; --attendance-tint:#123330;
+  --qs:#A796E8; --qs-tint:#2A2247;
+  --sales:#E8A268; --sales-tint:#3A2814;
+  --project:#8B96E8; --project-tint:#242A4A;
+  --game:#F17FA8; --game-tint:#3A1D28;
+  --gold:#E0AC4F; --gold-tint:#3A2E14;
+  --silver:#98A0B3; --silver-tint:#20242F;
+  --bronze:#D69A6A; --bronze-tint:#3A2A1C;
+}
+html[data-theme="light"][data-accent="purple"] .tk-page{--primary:#6D4FC2; --primary-tint:#EEE9FB;}
+html[data-theme="dark"][data-accent="purple"] .tk-page{--primary:#A796E8; --primary-tint:#2A2247;}
+html[data-theme="light"][data-accent="green"] .tk-page{--primary:#1E8E5A; --primary-tint:#E7F6EE;}
+html[data-theme="dark"][data-accent="green"] .tk-page{--primary:#4FC585; --primary-tint:#15301F;}
+html[data-theme="light"][data-accent="orange"] .tk-page{--primary:#B7791F; --primary-tint:#FBF1DC;}
+html[data-theme="dark"][data-accent="orange"] .tk-page{--primary:#E0AC4F; --primary-tint:#3A2E14;}
+html[data-theme="light"][data-accent="red"] .tk-page{--primary:#C0392B; --primary-tint:#FBEBE9;}
+html[data-theme="dark"][data-accent="red"] .tk-page{--primary:#E0685A; --primary-tint:#3A211E;}
+html[data-theme="light"][data-accent="teal"] .tk-page{--primary:#0E8A82; --primary-tint:#E1F5F2;}
+html[data-theme="dark"][data-accent="teal"] .tk-page{--primary:#3FC2B6; --primary-tint:#123330;}
+
+/* ---------- Khung trang (tương đương body + .app-main) ---------- */
+.tk-page {
+  flex:1; min-width:0; min-height:0; height:100%;
+  display:flex; flex-direction:column;
+  background:var(--bg); color:var(--text);
+  font-family:var(--tk-font);
+  font-size:14px; line-height:1.5;
+  transition:margin-right .25s ease, background .15s ease, color .15s ease;
+}
+.tk-page.tk-ai-open{margin-right:var(--ai-panel-width, 440px);}
+.tk-page.tk-ai-resizing{transition:none;}
+.tk-page *, .tk-page *::before, .tk-page *::after{box-sizing:border-box;}
+
+/* Khôi phục margin mặc định của trình duyệt cho tiêu đề (global.css đặt về 0) */
+.tk-page h2{margin:.83em 0;}
+.tk-page h3{margin:1em 0;}
+.tk-page h4{margin:1.33em 0;}
+
+.tk-page .mono{font-family:ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace; font-variant-numeric:tabular-nums;}
+.tk-page .tk-display{font-family:var(--tk-font);}
+
+.tk-page ::-webkit-scrollbar{height:9px; width:9px;}
+.tk-page ::-webkit-scrollbar-thumb{background:var(--scrollbar-thumb); border-radius:5px;}
+.tk-page ::-webkit-scrollbar-track{background:transparent;}
+
+/* ---------- Header trang + thanh tab chính ---------- */
+.tk-header{height:64px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 28px; background:var(--panel); gap:12px;}
+.tk-header-icon{width:30px; height:30px; border-radius:8px; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center; flex:none;}
+.tk-header-title{font-size:14.5px; font-weight:700;}
+.tk-header-sub{font-size:12px; color:var(--text-faint);}
+.tk-theme-toggle{width:34px; height:34px; border-radius:9px; border:1px solid var(--border); background:var(--panel-alt); color:var(--text-dim); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;}
+.tk-theme-toggle:hover{color:var(--text); border-color:var(--accent);}
+
+.tk-tabs-row{height:52px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 28px; background:var(--panel); gap:4px;}
+.tk-proj-tab{border:none; cursor:pointer; white-space:nowrap; padding:7px 14px; border-radius:8px; background:none; color:var(--text-dim); font-size:13px; font-family:inherit;}
+.tk-proj-tab.active{background:var(--accent-soft); color:var(--accent); font-weight:600;}
+
+.tk-content{flex:1; display:flex; flex-direction:column; min-height:0;}
+.tk-panel{flex-direction:column; flex:1; min-height:0;}
+.tk-panel-scroll{flex-direction:column; gap:16px; padding:22px 28px; overflow-y:auto; overflow-x:hidden; flex:1; min-height:0;}
+
+/* ---------- Thành phần dùng chung ---------- */
+.tk-card{background:var(--surface); border:1px solid var(--border); border-radius:14px;}
+.tk-kpi-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:16px;}
+.tk-kpi-label{font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted);}
+.tk-kpi-value{font-family:var(--tk-font); font-weight:800; font-size:20px;}
+.tk-pill{padding:3px 9px; border-radius:999px; font-size:11px; font-weight:600;}
+.tk-mini-track{flex:1; height:6px; border-radius:4px; background:var(--surface-alt);}
+.tk-mini-track > div{height:100%; border-radius:4px;}
+.tk-divider{height:1px; background:var(--border);}
+.tk-section-title{font-size:12.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em;}
+.tk-btn-ghost{border:1px solid var(--border); background:var(--surface); color:var(--text); padding:10px 18px; border-radius:9px; font-size:13px; font-weight:600; cursor:pointer;}
+.tk-btn-project{border:none; background:var(--project); color:#fff; border-radius:9px; font-size:13px; cursor:pointer;}
+.tk-dashed-btn{border:1px dashed var(--border); background:none; color:var(--text-muted); padding:5px 12px; border-radius:20px; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit;}
+
+/* =====================================================================
+   TAB: TIẾN ĐỘ (Gantt)
+   ===================================================================== */
+.tk-topbar{display:flex; align-items:center; gap:20px; padding:14px 22px; border-bottom:1px solid var(--border); flex-shrink:0; background:var(--panel);}
+.tk-project-id{display:flex; flex-direction:column; gap:2px; min-width:0; position:relative;}
+.tk-project-id .tk-kicker{font-size:11px; color:var(--text-faint); letter-spacing:.02em; cursor:pointer; display:inline-flex; align-items:center; gap:5px;}
+.tk-project-id h1{font-family:var(--tk-font); font-size:16px; font-weight:700; margin:0; letter-spacing:-.01em; white-space:nowrap;}
+.tk-demo-badge{font-size:9.5px; font-weight:600; color:var(--overdue); background:var(--overdue-soft); padding:2px 7px; border-radius:20px; margin-left:8px; vertical-align:middle;}
+.tk-project-menu{position:absolute; top:100%; left:0; margin-top:8px; width:300px; background:var(--panel); border:1px solid var(--border); border-radius:10px; box-shadow:0 12px 30px var(--shadow-soft); z-index:20; padding:8px;}
+.tk-project-menu-search{position:relative; margin-bottom:6px;}
+.tk-project-menu-search svg{position:absolute; left:9px; top:50%; transform:translateY(-50%);}
+.tk-project-menu-search input{width:100%; padding:7px 9px 7px 28px; border-radius:7px; border:1px solid var(--border); background:var(--panel-alt); color:var(--text); font-size:12.5px; font-family:inherit;}
+.tk-project-menu-list{display:flex; flex-direction:column; gap:2px; max-height:220px; overflow-y:auto;}
+.tk-pm-item{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 9px; border-radius:7px; cursor:pointer; font-size:12.5px;}
+.tk-pm-item:hover{background:var(--panel-alt);}
+.tk-pm-item.active{background:var(--accent-soft); color:var(--accent); font-weight:600;}
+.tk-pm-item .tk-pm-sub{font-size:10.5px; color:var(--text-faint); font-weight:400;}
+.tk-pm-empty{padding:10px; font-size:12px; color:var(--text-faint);}
+
+.tk-divider-v{width:1px; height:30px; background:var(--border); flex-shrink:0;}
+.tk-overall-progress{display:flex; align-items:center; gap:10px; flex-shrink:0;}
+.tk-ring{width:38px; height:38px; flex-shrink:0;}
+.tk-overall-progress .tk-label{display:flex; flex-direction:column; line-height:1.25;}
+.tk-overall-progress .tk-num{font-size:15px; font-weight:600;}
+.tk-overall-progress .tk-txt{font-size:11px; color:var(--text-dim);}
+
+.tk-search-wrap{flex:1; display:flex; justify-content:center;}
+.tk-search{width:100%; max-width:320px; position:relative;}
+.tk-search input{width:100%; background:var(--panel-alt); border:1px solid var(--border); color:var(--text); padding:7px 12px 7px 30px; border-radius:6px; font-size:12.5px; font-family:inherit;}
+.tk-search input:focus{outline:none; border-color:var(--accent);}
+.tk-search svg{position:absolute; left:9px; top:50%; transform:translateY(-50%); opacity:.5;}
+
+.tk-view-switch{display:flex; background:var(--panel-alt); border:1px solid var(--border); border-radius:6px; overflow:hidden; flex-shrink:0;}
+.tk-view-switch button{background:none; border:none; color:var(--text-dim); font-family:inherit; font-size:12px; padding:7px 13px; cursor:pointer;}
+.tk-view-switch button.active{background:var(--accent-soft); color:var(--accent); font-weight:500;}
+
+.tk-btn-primary{background:var(--accent); color:#fff; border:none; border-radius:6px; padding:8px 14px; font-family:inherit; font-size:12.5px; font-weight:600; cursor:pointer; flex-shrink:0; white-space:nowrap;}
+.tk-btn-primary:hover{filter:brightness(1.08);}
+
+/* Thống kê */
+.tk-stats-wrap{flex:none; overflow:hidden; transition:max-height .2s ease;}
+.tk-stats{display:grid; grid-template-columns:repeat(6,1fr); gap:1px; background:var(--border); border-bottom:1px solid var(--border); flex-shrink:0;}
+.tk-stat{background:var(--bg); padding:8px 16px; display:flex; flex-direction:column; gap:2px; position:relative;}
+.tk-stat .tk-n{font-size:16px; font-weight:600; letter-spacing:-.01em; font-family:var(--tk-font);}
+.tk-stat .tk-l{font-size:10.5px; color:var(--text-dim);}
+.tk-stat.accent-done .tk-n{color:var(--done);}
+.tk-stat.accent-progress .tk-n{color:var(--progress);}
+.tk-stat.accent-overdue .tk-n{color:var(--overdue);}
+.tk-stat.accent-cashflow{cursor:pointer;}
+.tk-stat.accent-cashflow .tk-n{color:var(--success);}
+.tk-cashflow-popover{position:absolute; top:100%; left:0; margin-top:4px; width:200px; background:var(--surface); border:1px solid var(--border); border-radius:8px; box-shadow:0 10px 26px rgba(20,25,35,.18); padding:12px; z-index:60; display:flex; flex-direction:column; gap:8px;}
+.tk-cashflow-popover .tk-cf-row{display:flex; align-items:center; justify-content:space-between; font-size:12px;}
+.tk-cashflow-popover .tk-cf-label{color:var(--text-dim);}
+.tk-cashflow-popover .tk-cf-value{font-family:var(--tk-font); font-weight:700;}
+
+.tk-stats-handle{flex:none; height:11px; cursor:ns-resize; display:flex; align-items:center; justify-content:center; background:var(--bg); border-bottom:1px solid var(--border-soft);}
+.tk-stats-grip{width:36px; height:4px; border-radius:3px; background:var(--border); transition:background .15s ease;}
+.tk-stats-handle:hover .tk-stats-grip{background:var(--primary);}
+
+/* Bộ lọc giai đoạn */
+.tk-filters{display:flex; align-items:center; gap:8px; padding:9px 22px; border-bottom:1px solid var(--border); flex-shrink:0; background:var(--panel); flex-wrap:wrap; row-gap:6px;}
+.tk-filters .tk-flabel{font-size:11.5px; color:var(--text-faint); margin-right:2px;}
+.tk-chip{border:1px solid var(--border); background:var(--panel-alt); color:var(--text-dim); font-family:inherit; font-size:11.5px; padding:5px 11px; border-radius:20px; cursor:pointer;}
+.tk-chip.active{border-color:var(--accent); color:var(--accent); background:var(--accent-soft);}
+.tk-filters .tk-spacer{flex:1;}
+.tk-legend{display:flex; gap:14px; font-size:11px; color:var(--text-dim); flex-wrap:wrap; row-gap:4px;}
+.tk-legend .tk-li{display:flex; align-items:center; gap:5px;}
+.tk-legend .tk-sw{width:9px; height:9px; border-radius:2px;}
+
+/* Lưới: cột công việc + timeline */
+.tk-grid-area{flex:1; display:flex; min-height:0;}
+.tk-sidebar-col{width:var(--tasklist-w); flex-shrink:0; display:flex; flex-direction:column; border-right:1px solid var(--border); background:var(--panel); position:relative;}
+.tk-tasklist-resize{position:absolute; top:0; right:-3px; width:6px; height:100%; cursor:col-resize; z-index:20; background:transparent; display:flex; align-items:center; justify-content:center;}
+.tk-tasklist-resize::before{content:''; position:absolute; top:0; left:2.5px; width:1px; height:100%; background:transparent; transition:background .12s ease;}
+.tk-tasklist-resize::after{content:''; width:4px; height:36px; border-radius:3px; background:transparent; transition:background .12s ease, height .12s ease; position:relative; z-index:1;}
+.tk-tasklist-resize:hover::before, .tk-tasklist-resize.dragging::before{background:var(--accent);}
+.tk-tasklist-resize:hover::after, .tk-tasklist-resize.dragging::after{background:var(--accent); height:48px;}
+.tk-sidebar-head{display:grid; grid-template-columns:1fr 64px 140px 128px; align-items:center; height:34px; border-bottom:1px solid var(--border); font-size:10.5px; color:var(--text-faint); padding:0 10px 0 0; flex-shrink:0;}
+.tk-sidebar-head > div{padding:0 6px;}
+.tk-sidebar-head .tk-h-name{padding-left:12px;}
+.tk-sidebar-body{flex:1; overflow-y:auto; overflow-x:hidden;}
+.tk-sidebar-body::-webkit-scrollbar{width:0; height:0;}
+
+.tk-row-phase{display:flex; align-items:center; gap:7px; height:var(--row-h); padding:0 10px; background:var(--panel-alt); border-bottom:1px solid var(--border-soft); cursor:pointer; font-weight:600; font-size:12.5px; position:relative;}
+.tk-row-phase .tk-phase-name{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:2px;}
+.tk-row-phase .tk-chev{width:14px; height:14px; display:flex; align-items:center; justify-content:center; color:var(--text-dim); transition:transform .15s ease; flex-shrink:0;}
+.tk-row-phase.collapsed .tk-chev{transform:rotate(-90deg);}
+.tk-row-phase .tk-phase-meta{margin-left:auto; font-size:11px; color:var(--text-dim); font-weight:400;}
+
+.tk-row-task{display:grid; grid-template-columns:1fr 64px 140px 128px; align-items:center; height:var(--row-h); border-bottom:1px solid var(--border-soft); font-size:12px; cursor:pointer;}
+.tk-row-task:hover{background:var(--panel-alt);}
+.tk-row-task.selected{background:var(--accent-soft);}
+.tk-row-task .tk-t-name{padding-left:30px; padding-right:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:6px;}
+.tk-row-task .tk-crit-dot{width:5px; height:5px; border-radius:50%; background:var(--overdue); flex-shrink:0;}
+.tk-row-task .tk-t-dates{padding:0 6px; color:var(--text-dim); font-size:11px;}
+.tk-row-task .tk-t-assignee{padding:0 6px; color:var(--text-dim); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center;}
+.tk-row-task .tk-t-status{padding:0 10px 0 6px;}
+
+.tk-status-badge{display:inline-flex; align-items:center; gap:5px; font-size:10.5px; padding:3px 8px; border-radius:20px; white-space:nowrap;}
+.tk-status-badge .tk-dot{width:6px; height:6px; border-radius:50%; background:currentColor;}
+.tk-status-done{background:var(--done-soft); color:var(--done);}
+.tk-status-progress{background:var(--progress-soft); color:var(--progress);}
+.tk-status-overdue{background:var(--overdue-soft); color:var(--overdue);}
+.tk-status-notstarted{background:var(--notstarted-soft); color:var(--text-dim);}
+.tk-status-income{background:var(--income-soft); color:var(--income);}
+.tk-status-expense{background:var(--expense-soft); color:var(--expense);}
+.tk-status-pending{background:var(--panel-alt); color:var(--text-dim);}
+
+/* Timeline */
+.tk-timeline-col{flex:1; overflow-x:auto; overflow-y:hidden; position:relative;}
+.tk-timeline-inner{position:relative; display:flex; flex-direction:column; height:100%;}
+.tk-timeline-head{flex-shrink:0; position:relative; border-bottom:1px solid var(--border); background:var(--panel);}
+.tk-th-months{height:20px; position:relative; border-bottom:1px solid var(--border-soft);}
+.tk-th-months .tk-m{position:absolute; top:0; height:100%; display:flex; align-items:center; padding-left:8px; font-size:10.5px; color:var(--text-faint); border-left:1px solid var(--border-soft);}
+.tk-th-weeks{height:14px; position:relative;}
+.tk-th-weeks .tk-w{position:absolute; top:0; height:100%; border-left:1px solid var(--border-soft); font-size:9.5px; color:var(--text-faint); padding-left:4px; display:flex; align-items:center; white-space:nowrap;}
+.tk-timeline-body{flex:1; overflow-y:auto; overflow-x:hidden; position:relative;}
+.tk-timeline-body::-webkit-scrollbar{width:0; height:0;}
+
+.tk-tl-row-phase{height:var(--row-h); border-bottom:1px solid var(--border-soft); background:var(--panel-alt); position:relative;}
+.tk-tl-row-task{height:var(--row-h); border-bottom:1px solid var(--border-soft); position:relative;}
+
+.tk-grid-lines{position:absolute; top:0; left:0; height:100%; pointer-events:none;}
+.tk-grid-lines .tk-gl{position:absolute; top:0; bottom:0; border-left:1px solid var(--border-soft);}
+.tk-grid-lines .tk-gl.weekend{background:rgba(127,127,127,.06);}
+
+.tk-today-line{position:absolute; top:0; width:0; min-height:100%; border-left:1.5px dashed var(--accent); z-index:5; pointer-events:none;}
+.tk-today-flag{position:absolute; top:2px; background:var(--accent); color:#fff; font-size:9.5px; font-weight:600; padding:1px 5px; border-radius:3px; transform:translateX(-50%); white-space:nowrap; z-index:6;}
+
+.tk-bar{position:absolute; top:8px; height:22px; border-radius:4px; background:var(--notstarted-soft); border:1px solid var(--notstarted); overflow:hidden; cursor:pointer; display:flex; align-items:center;}
+.tk-bar.critical{box-shadow:0 0 0 1px var(--overdue) inset;}
+.tk-bar .tk-fill{position:absolute; top:0; left:0; bottom:0; opacity:.85;}
+.tk-bar-status-done{border-color:var(--done); background:var(--done-soft);}
+.tk-bar-status-done .tk-fill{background:var(--done);}
+.tk-bar-status-progress{border-color:var(--progress); background:var(--progress-soft);}
+.tk-bar-status-progress .tk-fill{background:var(--progress);}
+.tk-bar-status-overdue{border-color:var(--overdue); background:var(--overdue-soft);}
+.tk-bar-status-overdue .tk-fill{background:var(--overdue);}
+.tk-bar-status-notstarted .tk-fill{background:var(--notstarted);}
+.tk-bar .tk-bar-label{position:relative; z-index:2; font-size:10.5px; font-weight:500; padding:0 8px; white-space:nowrap; color:var(--text);}
+.tk-bar.selected{outline:1.5px solid var(--text); outline-offset:1px;}
+.tk-bar-label-outside{position:absolute; top:8px; height:22px; display:flex; align-items:center; font-size:10.5px; font-weight:500; color:var(--text-dim); white-space:nowrap; pointer-events:none; z-index:2;}
+.tk-bar-resize{position:absolute; right:0; top:0; bottom:0; width:7px; cursor:ew-resize; opacity:0; z-index:3;}
+.tk-bar-resize::after{content:''; position:absolute; top:50%; right:2px; width:2px; height:12px; background:var(--text); transform:translateY(-50%); border-radius:1px;}
+.tk-bar:hover .tk-bar-resize{opacity:.55;}
+.tk-bar-resize:hover{opacity:1 !important;}
+
+.tk-milestone{position:absolute; top:9px; width:20px; height:20px; background:var(--milestone); transform:rotate(45deg) translateX(-50%); border-radius:3px; cursor:pointer; box-shadow:0 0 0 1px rgba(0,0,0,.15);}
+.tk-milestone.selected{outline:1.5px solid var(--text); outline-offset:2px;}
+
+.tk-fin-marker{position:absolute; top:8px; height:22px; padding:0 9px; border-radius:20px; display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:600; white-space:nowrap; cursor:pointer; transform:translateX(-50%); border:1px solid; z-index:3;}
+.tk-fin-marker.selected{outline:1.5px solid var(--text); outline-offset:1px;}
+.tk-fin-thu{background:var(--income-soft); border-color:var(--income); color:var(--income);}
+.tk-fin-chi{background:var(--expense-soft); border-color:var(--expense); color:var(--expense);}
+.tk-fin-marker.tk-fin-pending{background:transparent; border-style:dashed; opacity:.85;}
+.tk-fin-plan-line{position:absolute; top:3px; bottom:3px; width:0; border-left:2px dashed var(--text-dim); transform:translateX(-50%); z-index:1; opacity:.6; pointer-events:none;}
+.tk-fin-delay-chip{display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:700; padding:1px 7px 1px 6px; border-radius:20px; margin-left:4px; white-space:nowrap;}
+.tk-fin-delay-chip .tk-dot{width:6px; height:6px; border-radius:50%; flex:none; background:currentColor;}
+.tk-fin-delay-chip.late{background:rgba(0,0,0,.14); color:var(--expense);}
+.tk-fin-delay-chip.early{background:rgba(0,0,0,.14); color:var(--income);}
+html[data-theme="light"] .tk-page .tk-fin-delay-chip.late,
+html[data-theme="light"] .tk-page .tk-fin-delay-chip.early{background:rgba(255,255,255,.6);}
+.tk-fin-pending-chip{display:inline-flex; align-items:center; font-size:9.5px; font-weight:600; font-style:italic; margin-left:4px; color:var(--text-dim); white-space:nowrap;}
+
+/* Cờ báo có bình luận */
+.tk-comment-flag{position:absolute; top:10px; width:20px; height:20px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 2px var(--panel); z-index:6; cursor:pointer;}
+.tk-comment-flag:hover{filter:brightness(1.1);}
+.tk-comment-flag-inline{display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%; background:var(--accent); flex:none; margin-left:4px; vertical-align:middle;}
+
+/* Avatars nhân sự (Gantt) */
+.tk-avatar{width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:600; color:#fff; border:1.5px solid var(--panel-alt); flex-shrink:0;}
+.tk-avatar-stack{display:flex; align-items:center; flex-shrink:0;}
+.tk-avatar-stack .tk-avatar{margin-left:-6px;}
+.tk-avatar-stack .tk-avatar:first-child{margin-left:0;}
+.tk-avatar-more{width:20px; height:20px; border-radius:50%; background:var(--panel); border:1.5px solid var(--border); color:var(--text-dim); font-size:8.5px; font-weight:600; display:flex; align-items:center; justify-content:center; margin-left:-6px; flex-shrink:0;}
+.tk-avatar-mini{width:15px; height:15px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:7.5px; font-weight:700; color:#fff; flex-shrink:0; margin-right:5px;}
+.tk-add-member-btn{width:20px; height:20px; border-radius:50%; border:1.5px dashed var(--text-faint); background:none; color:var(--text-faint); display:flex; align-items:center; justify-content:center; cursor:pointer; margin-left:6px; flex-shrink:0;}
+.tk-add-member-btn:hover{border-color:var(--accent); color:var(--accent);}
+
+.tk-member-popover{position:absolute; top:100%; left:12px; margin-top:4px; width:236px; background:var(--panel); border:1px solid var(--border); border-radius:8px; box-shadow:0 10px 26px var(--shadow-soft); padding:12px; z-index:60; display:flex; flex-direction:column; gap:8px;}
+.tk-member-popover .tk-mp-title{font-size:11.5px; font-weight:600; color:var(--text); margin-bottom:2px;}
+.tk-member-popover input{width:100%; background:var(--panel-alt); border:1px solid var(--border); color:var(--text); padding:6px 9px; border-radius:5px; font-size:12px; font-family:inherit;}
+.tk-member-popover input:focus{outline:none; border-color:var(--accent);}
+.tk-member-popover .tk-mp-actions{display:flex; gap:8px; margin-top:2px;}
+.tk-mp-btn{flex:1; padding:6px 0; border-radius:5px; font-size:11.5px; font-family:inherit; font-weight:600; cursor:pointer; border:1px solid var(--border); background:var(--panel-alt); color:var(--text-dim);}
+.tk-mp-btn.primary{background:var(--accent); color:#fff; border-color:var(--accent);}
+.tk-member-popover .tk-mp-list{display:flex; flex-wrap:wrap; gap:6px; margin-top:2px;}
+.tk-member-popover .tk-mp-chip{display:flex; align-items:center; gap:5px; background:var(--panel-alt); border:1px solid var(--border-soft); border-radius:20px; padding:3px 8px 3px 3px; font-size:10.5px; color:var(--text-dim);}
+
+/* Drawer chi tiết công việc */
+.tk-scrim{position:fixed; inset:0; background:rgba(0,0,0,.3); opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:40;}
+.tk-scrim.open{opacity:1; pointer-events:auto;}
+.tk-drawer{position:fixed; top:0; right:-380px; width:360px; height:100%; background:var(--panel); border-left:1px solid var(--border); box-shadow:-12px 0 28px rgba(0,0,0,.25); transition:right .2s ease; z-index:50; display:flex; flex-direction:column;}
+.tk-drawer.open{right:0;}
+.tk-drawer-head{padding:18px 20px 14px; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; gap:10px;}
+.tk-drawer-head h2{font-size:15.5px; margin:0; font-weight:600; line-height:1.35;}
+.tk-drawer-close{margin-left:auto; background:none; border:none; color:var(--text-dim); cursor:pointer; padding:2px; flex-shrink:0;}
+.tk-drawer-body{padding:18px 20px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:18px;}
+.tk-d-field{display:flex; flex-direction:column; gap:5px;}
+.tk-d-field .tk-fl{font-size:10.5px; color:var(--text-faint);}
+.tk-d-field .tk-fv{font-size:13px;}
+.tk-d-row{display:flex; gap:14px;}
+.tk-d-row .tk-d-field{flex:1;}
+.tk-progress-track{height:6px; background:var(--panel-alt); border-radius:20px; overflow:hidden; margin-top:6px;}
+.tk-progress-track .tk-fill{height:100%; border-radius:20px;}
+.tk-drawer-note{background:var(--panel-alt); border:1px solid var(--border); border-radius:6px; padding:10px 12px; font-size:12px; color:var(--text-dim); line-height:1.5;}
+
+/* Trang chi tiết mua hàng (kanban) — mở từ công việc thuộc giai đoạn "Mua hàng & cung ứng" */
+.tk-pb{position:fixed; inset:28px; max-width:1280px; margin:0 auto; background:var(--bg); border:1px solid var(--border); border-radius:14px; box-shadow:0 24px 60px rgba(0,0,0,.3); z-index:50; display:flex; flex-direction:column; overflow:hidden; opacity:0; transform:translateY(12px) scale(.985); pointer-events:none; transition:opacity .2s ease, transform .2s ease;}
+.tk-pb.open{opacity:1; transform:none; pointer-events:auto;}
+.tk-pb-head{display:flex; align-items:center; gap:12px; padding:16px 20px; background:var(--panel); border-bottom:1px solid var(--border);}
+.tk-pb-head-icon{width:32px; height:32px; border-radius:9px; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center; flex:none;}
+.tk-pb-title{display:flex; flex-direction:column; gap:2px; min-width:0;}
+.tk-pb-kicker{font-size:10.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em;}
+.tk-pb-title h2{margin:0; font-size:16px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.tk-pb-meta{display:flex; flex-wrap:wrap; gap:10px 28px; padding:12px 20px; background:var(--panel); border-bottom:1px solid var(--border);}
+.tk-pb-meta-item{display:flex; flex-direction:column; gap:4px; font-size:12.5px;}
+.tk-pb-meta-item .tk-fl{font-size:10.5px; color:var(--text-faint);}
+.tk-pb-strong{font-weight:700;}
+.tk-pb-person{display:inline-flex; align-items:center;}
+.tk-pb-board{flex:1; min-height:0; display:grid; grid-template-columns:repeat(4, minmax(220px, 1fr)); gap:14px; padding:16px 20px 20px; overflow:auto;}
+.tk-pb-col{display:flex; flex-direction:column; min-height:0; background:var(--panel-alt); border:1px solid var(--border-soft); border-radius:12px; transition:border-color .15s ease, background .15s ease;}
+.tk-pb-col.over{border-color:var(--accent); background:var(--accent-soft);}
+.tk-pb-col-head{display:flex; align-items:center; gap:7px; padding:11px 12px 9px;}
+.tk-pb-col-dot{width:8px; height:8px; border-radius:50%; flex:none;}
+.tk-pb-col-name{font-size:12.5px; font-weight:600;}
+.tk-pb-col-count{font-size:10.5px; font-weight:600; color:var(--text-dim); background:var(--panel); border:1px solid var(--border); border-radius:20px; padding:0 7px; line-height:17px;}
+.tk-pb-col-sum{margin-left:auto; font-size:11px; color:var(--text-faint);}
+.tk-pb-cards{flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding:2px 10px 12px;}
+.tk-pb-empty{border:1.5px dashed var(--border); border-radius:9px; padding:18px 10px; text-align:center; font-size:11.5px; color:var(--text-faint);}
+.tk-pb-card{background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--border); border-radius:9px; padding:10px 11px; display:flex; flex-direction:column; gap:5px; cursor:grab; box-shadow:0 1px 2px var(--shadow-soft); transition:box-shadow .15s ease, transform .15s ease;}
+.tk-pb-card:hover{box-shadow:0 6px 16px var(--shadow-soft); transform:translateY(-1px);}
+.tk-pb-card:active{cursor:grabbing;}
+.tk-pb-card.dragging{opacity:.45;}
+.tk-pb-card-top{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+.tk-pb-code{font-size:10.5px; font-weight:600; color:var(--text-dim);}
+.tk-pb-value{font-size:11.5px; font-weight:600;}
+.tk-pb-item{font-size:12.5px; font-weight:600; line-height:1.35;}
+.tk-pb-sub{font-size:11px; color:var(--text-dim);}
+.tk-pb-card-foot{display:flex; align-items:center; justify-content:space-between; margin-top:3px;}
+.tk-pb-due{display:inline-flex; align-items:center; gap:4px; font-size:10.5px; color:var(--text-faint); padding:2px 7px; border-radius:20px; background:var(--panel-alt);}
+.tk-pb-due.soon{color:var(--progress); background:var(--progress-soft);}
+.tk-pb-due.late{color:var(--overdue); background:var(--overdue-soft);}
+@media (max-width:900px){
+  .tk-pb{inset:0; border-radius:0;}
+  .tk-pb-board{grid-template-columns:repeat(4, 240px);}
+}
+
+.tk-comment-list{display:flex; flex-direction:column; gap:14px; margin-top:4px;}
+.tk-comment-item{display:flex; gap:9px;}
+.tk-comment-avatar{width:26px; height:26px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; color:#fff; font-size:9.5px; font-weight:700;}
+.tk-comment-col{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;}
+.tk-comment-head{display:flex; align-items:baseline; gap:7px;}
+.tk-comment-name{font-size:12.5px; font-weight:600;}
+.tk-comment-time{font-size:10.5px; color:var(--text-faint);}
+.tk-comment-text{font-size:12.5px; line-height:1.55; color:var(--text);}
+.tk-comment-mention{color:var(--accent); font-weight:600; background:var(--accent-soft); padding:0 3px; border-radius:4px;}
+.tk-comment-empty{font-size:12px; color:var(--text-faint); font-style:italic;}
+.tk-comment-composer{flex:none; border-top:1px solid var(--border); padding:12px 16px; background:var(--panel); position:relative;}
+.tk-comment-composer textarea{width:100%; resize:none; border:1px solid var(--border); background:var(--panel-alt); color:var(--text); border-radius:9px; padding:9px 11px; font-family:inherit; font-size:12.5px; line-height:1.5; max-height:90px;}
+.tk-comment-composer textarea:focus{outline:none; border-color:var(--accent);}
+.tk-comment-composer-row{display:flex; gap:8px; align-items:flex-end; margin-top:6px;}
+.tk-comment-send-btn{width:32px; height:32px; border-radius:9px; border:none; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; flex:none;}
+.tk-confirm-btn{width:auto; height:auto; border-radius:8px; padding:8px 14px; font-size:12.5px; font-weight:600; gap:6px;}
+.tk-comment-hint{font-size:10.5px; color:var(--text-faint); margin-top:5px; flex:1;}
+.tk-mention-menu{position:absolute; left:16px; right:16px; bottom:100%; margin-bottom:6px; background:var(--panel); border:1px solid var(--border); border-radius:9px; box-shadow:0 -8px 22px var(--shadow-soft); max-height:190px; overflow-y:auto; z-index:5;}
+.tk-mention-item{display:flex; align-items:center; gap:8px; padding:8px 10px; cursor:pointer; font-size:12.5px;}
+.tk-mention-item:hover, .tk-mention-item.active{background:var(--panel-alt);}
+.tk-mention-item .tk-m-avatar{width:22px; height:22px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; color:#fff; font-size:9px; font-weight:700;}
+
+/* =====================================================================
+   TAB: DANH SÁCH DỰ ÁN
+   ===================================================================== */
+.tk-list-toolbar{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+.tk-list-toolbar-left{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.tk-list-search{position:relative; width:240px;}
+.tk-list-search svg{position:absolute; left:10px; top:50%; transform:translateY(-50%);}
+.tk-list-search input{width:100%; padding:8px 10px 8px 30px; border-radius:8px; border:1px solid var(--border); background:var(--surface-alt); color:var(--text); font-size:12.5px; font-family:inherit;}
+.tk-list-select{padding:8px 10px; border-radius:8px; border:1px solid var(--border); background:var(--surface-alt); color:var(--text); font-size:12.5px; font-family:inherit;}
+.tk-clear-btn{border:1px solid var(--border); background:var(--surface); color:var(--text-muted); padding:8px 12px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit;}
+.tk-list-empty{text-align:center; padding:24px; color:var(--text-muted); font-size:12.5px; background:var(--surface); border:1px solid var(--border); border-radius:14px;}
+.tk-list-kpi{padding:16px 18px;}
+.tk-list-kpi .tk-kpi-value{margin-top:6px;}
+.tk-list-card{padding:6px 20px 8px;}
+.tk-proj-grid{display:grid; grid-template-columns:1.8fr 1.4fr 1fr 1fr 1.2fr 1.3fr 1fr; gap:10px; align-items:center;}
+.tk-proj-head{padding:12px 4px; font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--text-muted); border-bottom:1px solid var(--border);}
+.tk-proj-row{padding:13px 4px; cursor:pointer;}
+.tk-proj-name{font-size:13px; font-weight:700;}
+.tk-proj-cell{font-size:12.5px;}
+.tk-sync-badge{padding:2px 7px; border-radius:20px; background:var(--sales-tint); color:var(--sales); font-size:9.5px; font-weight:700; white-space:nowrap;}
+
+/* Nhân sự tham gia dự án (pjm) */
+.tk-member-cell{position:relative; display:flex; align-items:center;}
+.tk-pjm-avatar{width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:#fff; border:1.5px solid var(--surface); flex-shrink:0;}
+.tk-pjm-stack{display:flex; align-items:center; flex-shrink:0;}
+.tk-pjm-stack .tk-pjm-avatar{margin-left:-6px;}
+.tk-pjm-stack .tk-pjm-avatar:first-child{margin-left:0;}
+.tk-pjm-more{width:22px; height:22px; border-radius:50%; background:var(--surface); border:1.5px solid var(--border); color:var(--text-muted); font-size:8.5px; font-weight:700; display:flex; align-items:center; justify-content:center; margin-left:-6px; flex-shrink:0;}
+.tk-pjm-add-btn{width:22px; height:22px; border-radius:50%; border:1.5px dashed var(--text-muted); background:none; color:var(--text-muted); display:flex; align-items:center; justify-content:center; cursor:pointer; margin-left:6px; flex-shrink:0;}
+.tk-pjm-add-btn:hover{border-color:var(--project); color:var(--project);}
+.tk-pjm-popover{position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:4px; width:236px; background:var(--surface); border:1px solid var(--border); border-radius:8px; box-shadow:0 10px 26px rgba(20,25,35,.18); padding:12px; z-index:60; display:flex; flex-direction:column; gap:8px;}
+.tk-pjm-popover .tk-pjm-title{font-size:11.5px; font-weight:600; color:var(--text); margin-bottom:2px;}
+.tk-pjm-popover input, .tk-pjm-popover select{width:100%; background:var(--surface-alt); border:1px solid var(--border); color:var(--text); padding:6px 9px; border-radius:5px; font-size:12px; font-family:inherit;}
+.tk-pjm-popover input:focus, .tk-pjm-popover select:focus{outline:none; border-color:var(--project);}
+.tk-pjm-popover .tk-pjm-actions{display:flex; gap:8px; margin-top:2px;}
+.tk-pjm-btn{flex:1; padding:6px 0; border-radius:5px; font-size:11.5px; font-family:inherit; font-weight:600; cursor:pointer; border:1px solid var(--border); background:var(--surface-alt); color:var(--text-muted);}
+.tk-pjm-btn.primary{background:var(--project); color:#fff; border-color:var(--project);}
+.tk-pjm-popover .tk-pjm-list{display:flex; flex-wrap:wrap; gap:6px; margin-top:2px;}
+.tk-pjm-popover .tk-pjm-chip{display:flex; align-items:center; gap:5px; background:var(--surface-alt); border:1px solid var(--border); border-radius:20px; padding:3px 8px 3px 3px; font-size:10.5px; color:var(--text-muted);}
+.tk-flow-node-members{display:flex; align-items:center; justify-content:center; min-height:18px;}
+.tk-flow-node-members .tk-pjm-avatar{width:18px; height:18px; font-size:7.5px;}
+.tk-flow-node-members .tk-pjm-more{width:18px; height:18px; font-size:7px;}
+.tk-flow-node-members .tk-pjm-add-btn{width:16px; height:16px; margin-left:5px;}
+
+/* =====================================================================
+   TAB: THIẾT LẬP THI CÔNG
+   ===================================================================== */
+.tk-create-subtabs{display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+.tk-create-subtab{border:none; cursor:pointer; white-space:nowrap; padding:9px 16px; border-radius:14px; background:var(--surface-alt); color:var(--text-dim); font-size:12px; font-weight:600; font-family:inherit;}
+.tk-create-subtab.active{background:var(--project-tint); color:var(--project);}
+.tk-create-subpanel{display:none; flex-direction:column; gap:16px;}
+.tk-create-subpanel.active{display:flex;}
+
+.tk-setup-card{padding:22px 26px;}
+.tk-field{display:flex; flex-direction:column; gap:6px;}
+.tk-field label{font-size:12px; font-weight:600; color:var(--text-muted);}
+.tk-field input, .tk-field select, .tk-field textarea{padding:9px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface-alt); color:var(--text); font-size:13px; font-family:inherit;}
+.tk-field input:focus, .tk-field select:focus, .tk-field textarea:focus{outline:none; border-color:var(--project);}
+.tk-field input[readonly]{background:var(--panel-alt); cursor:default;}
+.tk-field-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;}
+.tk-init-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;}
+.tk-init-card{display:flex; align-items:center; gap:12px; background:var(--surface-alt); border:1px solid var(--border); border-radius:12px; padding:12px 14px;}
+.tk-init-icon{width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex:none;}
+.tk-init-title{font-weight:600; font-size:12.5px;}
+.tk-init-desc{font-size:11px; color:var(--text-muted);}
+
+/* Thầu phụ */
+.tk-th{text-align:left; font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--text-faint); padding:10px 8px; border-bottom:1px solid var(--border); font-weight:600;}
+.tk-td{padding:11px 8px; border-bottom:1px solid var(--border); font-size:12.5px;}
+
+/* Sơ đồ phòng ban / tổ chức */
+.tk-flow-node{display:flex; flex-direction:column; align-items:center; gap:8px; flex:1; position:relative;}
+.tk-flow-circle{width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center;}
+.tk-flow-vline{width:2px; background:var(--border);}
+.tk-flow-name{font-size:12px; font-weight:700;}
+.tk-flow-desc{font-size:11px; color:var(--text-muted); text-align:center; min-height:28px; display:flex; align-items:center; justify-content:center;}
+.tk-flow-link{font-size:11px; font-weight:600; text-decoration:none; cursor:pointer;}
+.tk-org-node{cursor:grab; border-radius:10px; padding:4px; transition:outline .1s ease;}
+.tk-org-trash{width:38px; height:38px; border-radius:10px; background:var(--danger-tint); color:var(--danger); display:flex; align-items:center; justify-content:center; transition:all .15s ease; flex:none;}
+.tk-org-trash.over{color:#fff; background:var(--danger);}
+
+/* =====================================================================
+   TAB: NHIỆM VỤ (game hoá)
+   ===================================================================== */
+.tk-game-tabs{display:flex; align-items:center; gap:4px;}
+.tk-game-tab{border:none; cursor:pointer; white-space:nowrap; padding:7px 14px; border-radius:8px; background:none; color:var(--text-muted); font-size:13px; font-family:inherit;}
+.tk-game-tab.active{background:var(--game-tint); color:var(--game); font-weight:600;}
+.tk-game-panel{flex-direction:column; gap:16px;}
+.tk-game-kpi{padding:17px 20px; display:flex; flex-direction:column; gap:8px;}
+.tk-game-kpi-sub{font-size:12px; color:var(--text-muted);}
+.tk-game-icon{display:flex; align-items:center; justify-content:center;}
+.tk-step-row{display:flex; gap:14px; position:relative;}
+.tk-step-row .tk-line{position:absolute; left:17px; top:38px; bottom:-14px; width:2px; background:var(--border);}
+.tk-step-row:last-child .tk-line{display:none;}
+.tk-step-dot{width:36px; height:36px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; z-index:1;}
+.tk-step-dot.done{background:var(--success); color:#fff;}
+.tk-step-dot.current{background:var(--game); color:#fff; box-shadow:0 0 0 4px var(--game-tint);}
+.tk-step-dot.locked{background:var(--surface-alt); color:var(--text-muted); border:1.5px dashed var(--border);}
+.tk-step-card{flex:1; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:14px;}
+.tk-step-card.locked{opacity:.55;}
+.tk-step-card.current{border-color:var(--game);}
+.tk-subtask-row{display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px solid var(--border);}
+.tk-subtask-chk{width:19px; height:19px; border-radius:6px; border:1.5px solid var(--border); flex:none; cursor:pointer; display:flex; align-items:center; justify-content:center; background:var(--surface);}
+.tk-subtask-chk.checked{background:var(--success); border-color:var(--success); color:#fff;}
+.tk-subtask-chk.disabled{cursor:default;}
+.tk-reward-card{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:10px;}
+.tk-reward-card.locked{opacity:.55;}
+.tk-redeem-btn{border:none; background:var(--game); color:#fff; padding:8px; border-radius:8px; font-size:12.5px; font-weight:600; cursor:pointer;}
+.tk-redeem-btn:disabled{background:var(--surface-alt); color:var(--text-muted); cursor:not-allowed;}
+.tk-create-task-btn{border:none; background:var(--game); color:#fff; padding:9px 16px; border-radius:9px; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; flex:none; font-family:inherit;}
+.tk-create-task-btn:hover{filter:brightness(1.07);}
+.tk-rank{border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; flex:none;}
+.tk-lb-avatar{width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex:none;}
+.tk-lb-grid{display:grid; grid-template-columns:0.6fr 2fr 1.4fr 1fr 1fr; gap:10px; align-items:center;}
+
+/* Modal (tạo nhiệm vụ / thêm thầu phụ) */
+.tk-modal-overlay{position:fixed; inset:0; background:rgba(15,20,30,.45); display:flex; align-items:center; justify-content:center; z-index:100;}
+.tk-modal-box{width:420px; max-width:calc(100vw - 40px); background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:22px 24px; box-shadow:0 24px 60px rgba(0,0,0,.28);}
+.tk-modal-box h3{font-size:15.5px; font-weight:700; margin-bottom:4px;}
+.tk-modal-sub{font-size:12px; color:var(--text-muted); margin-bottom:16px;}
+.tk-modal-field{display:flex; flex-direction:column; gap:6px; margin-bottom:14px;}
+.tk-modal-field label{font-size:12px; font-weight:600; color:var(--text-muted);}
+.tk-modal-field input, .tk-modal-field select{padding:9px 11px; border-radius:8px; border:1px solid var(--border); background:var(--surface-alt); color:var(--text); font-size:13px; font-family:inherit;}
+.tk-modal-field input:focus, .tk-modal-field select:focus{outline:none; border-color:var(--game);}
+.tk-modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:18px;}
+.tk-modal-btn{padding:9px 18px; border-radius:9px; font-size:13px; font-weight:600; cursor:pointer; border:1px solid var(--border); background:var(--surface-alt); color:var(--text); font-family:inherit;}
+.tk-modal-btn.primary{background:var(--game); color:#fff; border-color:var(--game);}
+.tk-modal-btn.project{background:var(--project); border-color:var(--project);}
+
+/* =====================================================================
+   Dezbot — trợ lý ảo
+   ===================================================================== */
+.tk-ai-fab{position:fixed; bottom:28px; right:32px; width:54px; height:54px; border-radius:50%; background:linear-gradient(160deg,#2FA3E6,#8B5CF6); border:none; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 10px 24px rgba(0,0,0,.28); z-index:79;}
+.tk-ai-fab:hover{filter:brightness(1.08);}
+.tk-ai-panel{position:fixed; top:0; right:0; height:100vh; width:var(--ai-panel-width, 440px); max-width:92vw; background:var(--surface); border-left:1px solid var(--border); box-shadow:-14px 0 40px rgba(0,0,0,.18); display:flex; flex-direction:column; overflow:hidden; z-index:80; transform:translateX(100%); transition:transform .25s ease;}
+.tk-ai-panel.open{transform:translateX(0);}
+.tk-ai-panel.resizing{transition:none;}
+.tk-ai-resize{position:absolute; top:0; left:-3px; width:6px; height:100%; cursor:col-resize; z-index:81; background:transparent; display:flex; align-items:center; justify-content:center;}
+.tk-ai-resize::before{content:''; position:absolute; top:0; left:2.5px; width:1px; height:100%; background:transparent; transition:background .12s ease;}
+.tk-ai-resize::after{content:''; width:4px; height:36px; border-radius:3px; background:transparent; transition:background .12s ease, height .12s ease; position:relative; z-index:1;}
+.tk-ai-resize:hover::before, .tk-ai-panel.resizing .tk-ai-resize::before{background:var(--primary);}
+.tk-ai-resize:hover::after, .tk-ai-panel.resizing .tk-ai-resize::after{background:var(--primary); height:48px;}
+.tk-ai-head{flex:none; display:flex; align-items:center; gap:10px; padding:18px 18px 14px;}
+.tk-ai-head h4{font-size:15px; font-weight:800;}
+.tk-ai-newchat{margin-left:auto; background:#12161F; color:#fff; border:none; padding:8px 14px; border-radius:20px; font-size:11.5px; font-weight:600; cursor:pointer; font-family:inherit;}
+.tk-ai-close{width:26px; height:26px; border-radius:50%; border:none; background:var(--surface-alt); color:var(--text-muted); display:flex; align-items:center; justify-content:center; cursor:pointer; flex:none;}
+.tk-ai-body{flex:1; overflow-y:auto; padding:0 20px; display:flex; flex-direction:column;}
+.tk-ai-welcome{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; text-align:center; padding:28px 6px 18px; gap:14px;}
+.tk-ai-welcome h2{font-size:22px; font-weight:800; line-height:1.25;}
+.tk-ai-welcome h2 .tk-muted{color:var(--text-muted); font-weight:700;}
+.tk-ai-welcome p{font-size:12px; color:var(--text-muted); line-height:1.6; max-width:300px;}
+.tk-ai-topic-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; max-width:300px;}
+.tk-ai-topic-chip{grid-column:span 1;}
+.tk-ai-topic-chip.wide{grid-column:1 / -1; justify-self:center; width:auto;}
+.tk-ai-chip{display:flex; align-items:center; justify-content:center; gap:7px; border:1px solid var(--border); background:var(--surface); color:var(--text); padding:9px 14px; border-radius:20px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit;}
+.tk-ai-chip:hover{background:var(--surface-alt);}
+.tk-ai-log{flex:1; display:flex; flex-direction:column; gap:12px; padding-top:12px;}
+.tk-ai-msg{max-width:82%; padding:9px 13px; border-radius:14px; font-size:12.5px; line-height:1.55;}
+.tk-ai-msg.user{align-self:flex-end; background:var(--primary); color:#fff; border-bottom-right-radius:4px;}
+.tk-ai-msg.bot{align-self:flex-start; background:var(--surface-alt); color:var(--text); border-bottom-left-radius:4px;}
+.tk-ai-suggest-row{flex:none; display:flex; gap:7px; padding:10px 18px; overflow-x:auto;}
+.tk-ai-suggest-row::-webkit-scrollbar{display:none;}
+.tk-ai-suggest-chip{flex:none; white-space:nowrap; border:1px solid var(--border); background:var(--surface); color:var(--text-muted); padding:8px 12px; border-radius:18px; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit;}
+.tk-ai-suggest-chip:hover{background:var(--surface-alt); color:var(--text);}
+.tk-ai-input-area{flex:none; margin:0 14px 14px; padding:10px 12px; border:1px solid var(--border); border-radius:20px; background:var(--surface-alt);}
+.tk-ai-input-area textarea{width:100%; border:none; background:transparent; resize:none; font-family:inherit; font-size:12.5px; color:var(--text); outline:none; height:36px;}
+.tk-ai-input-row{display:flex; align-items:center; gap:8px; margin-top:6px;}
+.tk-ai-tool-btn{width:26px; height:26px; border-radius:50%; border:1px solid var(--border); background:var(--surface); color:var(--text-muted); display:flex; align-items:center; justify-content:center; flex:none;}
+.tk-ai-send{margin-left:auto; background:#12161F; color:#fff; border:none; padding:8px 18px; border-radius:16px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit;}

@@ -1,0 +1,1377 @@
+{
+ "instants": [
+  {
+   "now": 1790812800000,
+   "wait": 176400000,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 49h0p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 176400000
+  },
+  {
+   "now": 1790838784321,
+   "wait": 150415679,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 41h47p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 150415679
+  },
+  {
+   "now": 1790864768642,
+   "wait": 124431358,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 34h34p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 124431358
+  },
+  {
+   "now": 1790890752963,
+   "wait": 98447037,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 27h21p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 98447037
+  },
+  {
+   "now": 1790916737284,
+   "wait": 72462716,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 20h8p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 72462716
+  },
+  {
+   "now": 1790942721605,
+   "wait": 46478395,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 12h55p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 46478395
+  },
+  {
+   "now": 1790968705926,
+   "wait": 20494074,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 5h42p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 20494074
+  },
+  {
+   "now": 1790994690247,
+   "wait": 340109753,
+   "due": true,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 94h28p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 340109753
+  },
+  {
+   "now": 1791020674568,
+   "wait": 314125432,
+   "due": true,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 87h15p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 314125432
+  },
+  {
+   "now": 1791046658889,
+   "wait": 288141111,
+   "due": true,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 80h2p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 288141111
+  },
+  {
+   "now": 1791072643210,
+   "wait": 262156790,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 72h49p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 262156790
+  },
+  {
+   "now": 1791098627531,
+   "wait": 236172469,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 65h36p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 236172469
+  },
+  {
+   "now": 1791124611852,
+   "wait": 210188148,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 58h23p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 210188148
+  },
+  {
+   "now": 1791150596173,
+   "wait": 184203827,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 51h10p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 184203827
+  },
+  {
+   "now": 1791176580494,
+   "wait": 158219506,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 43h57p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 158219506
+  },
+  {
+   "now": 1791202564815,
+   "wait": 132235185,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 36h44p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 132235185
+  },
+  {
+   "now": 1791228549136,
+   "wait": 106250864,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 29h31p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 106250864
+  },
+  {
+   "now": 1791254533457,
+   "wait": 80266543,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 22h18p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 80266543
+  },
+  {
+   "now": 1791280517778,
+   "wait": 54282222,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 15h5p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 54282222
+  },
+  {
+   "now": 1791306502099,
+   "wait": 28297901,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 7h52p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 28297901
+  },
+  {
+   "now": 1791332486420,
+   "wait": 2313580,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 0h39p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 2313580
+  },
+  {
+   "now": 1791358470741,
+   "wait": 235529259,
+   "due": true,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 65h25p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 235529259
+  },
+  {
+   "now": 1791384455062,
+   "wait": 209544938,
+   "due": true,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 58h12p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 209544938
+  },
+  {
+   "now": 1791410439383,
+   "wait": 183560617,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 50h59p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 183560617
+  },
+  {
+   "now": 1791436423704,
+   "wait": 157576296,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 43h46p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 157576296
+  },
+  {
+   "now": 1791462408025,
+   "wait": 131591975,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 36h33p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 131591975
+  },
+  {
+   "now": 1791488392346,
+   "wait": 105607654,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 29h20p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 105607654
+  },
+  {
+   "now": 1791514376667,
+   "wait": 79623333,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 22h7p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 79623333
+  },
+  {
+   "now": 1791540360988,
+   "wait": 53639012,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 14h54p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 53639012
+  },
+  {
+   "now": 1791566345309,
+   "wait": 27654691,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 7h41p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 27654691
+  },
+  {
+   "now": 1791592329630,
+   "wait": 1670370,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 0h28p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 1670370
+  },
+  {
+   "now": 1791618313951,
+   "wait": 321286049,
+   "due": true,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 89h15p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 321286049
+  },
+  {
+   "now": 1791644298272,
+   "wait": 295301728,
+   "due": true,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 82h2p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 295301728
+  },
+  {
+   "now": 1791670282593,
+   "wait": 269317407,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 74h49p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 269317407
+  },
+  {
+   "now": 1791696266914,
+   "wait": 243333086,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 67h36p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 243333086
+  },
+  {
+   "now": 1791722251235,
+   "wait": 217348765,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 60h22p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 217348765
+  },
+  {
+   "now": 1791748235556,
+   "wait": 191364444,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 53h9p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 191364444
+  },
+  {
+   "now": 1791774219877,
+   "wait": 165380123,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 45h56p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 165380123
+  },
+  {
+   "now": 1791800204198,
+   "wait": 139395802,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 38h43p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 139395802
+  },
+  {
+   "now": 1791826188519,
+   "wait": 113411481,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 31h30p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 113411481
+  },
+  {
+   "now": 1791852172840,
+   "wait": 87427160,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 24h17p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 87427160
+  },
+  {
+   "now": 1791878157161,
+   "wait": 61442839,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 17h4p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 61442839
+  },
+  {
+   "now": 1791904141482,
+   "wait": 35458518,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 9h51p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 35458518
+  },
+  {
+   "now": 1791930125803,
+   "wait": 9474197,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 2h38p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 9474197
+  },
+  {
+   "now": 1791956110124,
+   "wait": 242689876,
+   "due": true,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 67h25p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 242689876
+  },
+  {
+   "now": 1791982094445,
+   "wait": 216705555,
+   "due": true,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 60h12p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 216705555
+  },
+  {
+   "now": 1792008078766,
+   "wait": 190721234,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 52h59p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 190721234
+  },
+  {
+   "now": 1792034063087,
+   "wait": 164736913,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 45h46p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 164736913
+  },
+  {
+   "now": 1792060047408,
+   "wait": 138752592,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 38h33p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 138752592
+  },
+  {
+   "now": 1792086031729,
+   "wait": 112768271,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 31h19p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 112768271
+  },
+  {
+   "now": 1792112016050,
+   "wait": 86783950,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 24h6p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 86783950
+  },
+  {
+   "now": 1792138000371,
+   "wait": 60799629,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 16h53p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 60799629
+  },
+  {
+   "now": 1792163984692,
+   "wait": 34815308,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 9h40p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 34815308
+  },
+  {
+   "now": 1792189969013,
+   "wait": 8830987,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 2h27p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 8830987
+  },
+  {
+   "now": 1792215953334,
+   "wait": 328446666,
+   "due": true,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 91h14p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 328446666
+  },
+  {
+   "now": 1792241937655,
+   "wait": 302462345,
+   "due": true,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 84h1p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 302462345
+  },
+  {
+   "now": 1792267921976,
+   "wait": 276478024,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 76h48p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 276478024
+  },
+  {
+   "now": 1792293906297,
+   "wait": 250493703,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 69h35p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 250493703
+  },
+  {
+   "now": 1792319890618,
+   "wait": 224509382,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 62h22p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 224509382
+  },
+  {
+   "now": 1792345874939,
+   "wait": 198525061,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 55h9p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 198525061
+  },
+  {
+   "now": 1791939599999,
+   "wait": 1,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 0h0p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 1
+  },
+  {
+   "now": 1791939600000,
+   "wait": 259200000,
+   "due": true,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 72h0p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 259200000
+  },
+  {
+   "now": 1791939600001,
+   "wait": 259199999,
+   "due": true,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 71h60p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 259199999
+  },
+  {
+   "now": 1791939570000,
+   "wait": 30000,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 0h1p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 30000
+  },
+  {
+   "now": 1791939569999,
+   "wait": 30001,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 0h1p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 30001
+  },
+  {
+   "now": 1792198799999,
+   "wait": 1,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 0h0p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 1
+  },
+  {
+   "now": 1792198800000,
+   "wait": 345600000,
+   "due": true,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 96h0p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 345600000
+  },
+  {
+   "now": 1792170000000,
+   "wait": 28800000,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 8h0p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 28800000
+  },
+  {
+   "now": 1792169999999,
+   "wait": 28800001,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 8h0p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 28800001
+  },
+  {
+   "now": 1791910800000,
+   "wait": 28800000,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 8h0p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 28800000
+  },
+  {
+   "now": 1791997199999,
+   "wait": 201600001,
+   "due": true,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 56h0p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 201600001
+  },
+  {
+   "now": 1791997200000,
+   "wait": 201600000,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 56h0p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 201600000
+  },
+  {
+   "now": 1792285200000,
+   "wait": 259200000,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 72h0p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 259200000
+  },
+  {
+   "now": 1798592400000,
+   "wait": 259200000,
+   "due": true,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 72h0p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 259200000
+  },
+  {
+   "now": 1798736400000,
+   "wait": 115200000,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 32h0p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 115200000
+  },
+  {
+   "now": 1798851600000,
+   "wait": 345600000,
+   "due": true,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 96h0p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 345600000
+  },
+  {
+   "now": 1835431200000,
+   "wait": 54000000,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 15h0p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 54000000
+  },
+  {
+   "now": 1835483400000,
+   "wait": 1800000,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 0h30p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 1800000
+  },
+  {
+   "now": 0,
+   "wait": 176400000,
+   "due": false,
+   "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 49h0p (thứ 4 & thứ 7, 8h00 giờ VN)",
+   "delay": 176400000
+  }
+ ],
+ "sims": [
+  {
+   "in": {
+    "name": "khoi dong thu 4 sau 8h -> gui bu, roi thu 7, thu 4...",
+    "start": "2026-10-14T02:00:00.000Z",
+    "end": "2026-10-29T00:00:00.000Z",
+    "mode": "ok"
+   },
+   "out": {
+    "timers": [
+     {
+      "t": 1791943200000,
+      "delay": 70000
+     },
+     {
+      "t": 1791943270000,
+      "delay": 255530000
+     },
+     {
+      "t": 1792198800000,
+      "delay": 345600000
+     },
+     {
+      "t": 1792544400000,
+      "delay": 259200000
+     },
+     {
+      "t": 1792803600000,
+      "delay": 345600000
+     },
+     {
+      "t": 1793149200000,
+      "delay": 259200000
+     }
+    ],
+    "sched": [
+     {
+      "t": 1791943270000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 70h59p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1792198800000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 96h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1792544400000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 72h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1792803600000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 96h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1793149200000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 72h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     }
+    ],
+    "report": [
+     {
+      "t": 1791943270000,
+      "ev": "check"
+     },
+     {
+      "t": 1791943270000,
+      "ev": "send"
+     },
+     {
+      "t": 1791943270000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][gửi bù sau khi server thức] đã gửi Lark: 2 sản phẩm"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "check"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "send"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] đã gửi Lark: 2 sản phẩm"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "check"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "send"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] đã gửi Lark: 2 sản phẩm"
+     },
+     {
+      "t": 1792803600000,
+      "ev": "check"
+     },
+     {
+      "t": 1792803600000,
+      "ev": "send"
+     },
+     {
+      "t": 1792803600000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] đã gửi Lark: 2 sản phẩm"
+     },
+     {
+      "t": 1793149200000,
+      "ev": "check"
+     },
+     {
+      "t": 1793149200000,
+      "ev": "send"
+     },
+     {
+      "t": 1793149200000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] đã gửi Lark: 2 sản phẩm"
+     }
+    ]
+   }
+  },
+  {
+   "in": {
+    "name": "khoi dong thu 4 luc 07:59:30 -> 70 giay sau da qua 8h",
+    "start": "2026-10-14T00:59:30.000Z",
+    "end": "2026-10-22T00:00:00.000Z",
+    "mode": "ok"
+   },
+   "out": {
+    "timers": [
+     {
+      "t": 1791939570000,
+      "delay": 70000
+     },
+     {
+      "t": 1791939640000,
+      "delay": 259160000
+     },
+     {
+      "t": 1792198800000,
+      "delay": 345600000
+     },
+     {
+      "t": 1792544400000,
+      "delay": 259200000
+     }
+    ],
+    "sched": [
+     {
+      "t": 1791939640000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 71h59p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1792198800000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 96h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1792544400000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 72h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     }
+    ],
+    "report": [
+     {
+      "t": 1791939640000,
+      "ev": "check"
+     },
+     {
+      "t": 1791939640000,
+      "ev": "send"
+     },
+     {
+      "t": 1791939640000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][gửi bù sau khi server thức] đã gửi Lark: 2 sản phẩm"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "check"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "send"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] đã gửi Lark: 2 sản phẩm"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "check"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "send"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] đã gửi Lark: 2 sản phẩm"
+     }
+    ]
+   }
+  },
+  {
+   "in": {
+    "name": "khoi dong thu 4 luc 07:58:49.999 -> gui bu roi vao 07:59:59.999, chua toi gio",
+    "start": "2026-10-14T00:58:49.999Z",
+    "end": "2026-10-18T00:00:00.000Z",
+    "mode": "ok"
+   },
+   "out": {
+    "timers": [
+     {
+      "t": 1791939529999,
+      "delay": 70000
+     },
+     {
+      "t": 1791939599999,
+      "delay": 1
+     },
+     {
+      "t": 1791939600000,
+      "delay": 259200000
+     },
+     {
+      "t": 1792198800000,
+      "delay": 345600000
+     }
+    ],
+    "sched": [
+     {
+      "t": 1791939599999,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 0h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1791939600000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 72h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1792198800000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 96h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     }
+    ],
+    "report": [
+     {
+      "t": 1791939600000,
+      "ev": "check"
+     },
+     {
+      "t": 1791939600000,
+      "ev": "send"
+     },
+     {
+      "t": 1791939600000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] đã gửi Lark: 2 sản phẩm"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "check"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "send"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] đã gửi Lark: 2 sản phẩm"
+     }
+    ]
+   }
+  },
+  {
+   "in": {
+    "name": "khoi dong thu 4, hom nay da gui",
+    "start": "2026-10-14T05:00:00.000Z",
+    "end": "2026-10-22T00:00:00.000Z",
+    "mode": "ok",
+    "audits": [
+     "2026-10-10T01:00:40.000Z",
+     "2026-10-14T01:00:41.123456+00:00"
+    ]
+   },
+   "out": {
+    "timers": [
+     {
+      "t": 1791954000000,
+      "delay": 70000
+     },
+     {
+      "t": 1791954070000,
+      "delay": 244730000
+     },
+     {
+      "t": 1792198800000,
+      "delay": 345600000
+     },
+     {
+      "t": 1792544400000,
+      "delay": 259200000
+     }
+    ],
+    "sched": [
+     {
+      "t": 1791954070000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 67h59p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1792198800000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 96h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1792544400000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 72h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     }
+    ],
+    "report": [
+     {
+      "t": 1791954070000,
+      "ev": "check"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "check"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "send"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] đã gửi Lark: 2 sản phẩm"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "check"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "send"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] đã gửi Lark: 2 sản phẩm"
+     }
+    ]
+   }
+  },
+  {
+   "in": {
+    "name": "khoi dong thu 5 -> khong gui bu",
+    "start": "2026-10-15T03:00:00.000Z",
+    "end": "2026-10-22T00:00:00.000Z",
+    "mode": "ok",
+    "audits": [
+     "2026-10-14T01:00:41.123456+00:00"
+    ]
+   },
+   "out": {
+    "timers": [
+     {
+      "t": 1792033200000,
+      "delay": 70000
+     },
+     {
+      "t": 1792033270000,
+      "delay": 165530000
+     },
+     {
+      "t": 1792198800000,
+      "delay": 345600000
+     },
+     {
+      "t": 1792544400000,
+      "delay": 259200000
+     }
+    ],
+    "sched": [
+     {
+      "t": 1792033270000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 45h59p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1792198800000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 96h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1792544400000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 72h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     }
+    ],
+    "report": [
+     {
+      "t": 1792198800000,
+      "ev": "check"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "send"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] đã gửi Lark: 2 sản phẩm"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "check"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "send"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] đã gửi Lark: 2 sản phẩm"
+     }
+    ]
+   }
+  },
+  {
+   "in": {
+    "name": "khoi dong thu 7 23:59 gio VN",
+    "start": "2026-10-17T16:58:00.000Z",
+    "end": "2026-10-22T00:00:00.000Z",
+    "mode": "ok"
+   },
+   "out": {
+    "timers": [
+     {
+      "t": 1792256280000,
+      "delay": 70000
+     },
+     {
+      "t": 1792256350000,
+      "delay": 288050000
+     },
+     {
+      "t": 1792544400000,
+      "delay": 259200000
+     }
+    ],
+    "sched": [
+     {
+      "t": 1792256350000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 80h1p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1792544400000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 72h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     }
+    ],
+    "report": [
+     {
+      "t": 1792256350000,
+      "ev": "check"
+     },
+     {
+      "t": 1792256350000,
+      "ev": "send"
+     },
+     {
+      "t": 1792256350000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][gửi bù sau khi server thức] đã gửi Lark: 2 sản phẩm"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "check"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "send"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] đã gửi Lark: 2 sản phẩm"
+     }
+    ]
+   }
+  },
+  {
+   "in": {
+    "name": "ky khong co san pham",
+    "start": "2026-10-13T20:00:00.000Z",
+    "end": "2026-10-22T00:00:00.000Z",
+    "mode": "empty"
+   },
+   "out": {
+    "timers": [
+     {
+      "t": 1791921600000,
+      "delay": 70000
+     },
+     {
+      "t": 1791921670000,
+      "delay": 17930000
+     },
+     {
+      "t": 1791939600000,
+      "delay": 259200000
+     },
+     {
+      "t": 1792198800000,
+      "delay": 345600000
+     },
+     {
+      "t": 1792544400000,
+      "delay": 259200000
+     }
+    ],
+    "sched": [
+     {
+      "t": 1791921670000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 4h59p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1791939600000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 72h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1792198800000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 96h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1792544400000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 72h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     }
+    ],
+    "report": [
+     {
+      "t": 1791939600000,
+      "ev": "check"
+     },
+     {
+      "t": 1791939600000,
+      "ev": "send"
+     },
+     {
+      "t": 1791939600000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] Kỳ này chưa có sản phẩm mới"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "check"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "send"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] Kỳ này chưa có sản phẩm mới"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "check"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "send"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] Kỳ này chưa có sản phẩm mới"
+     }
+    ]
+   }
+  },
+  {
+   "in": {
+    "name": "webhook loi -> khong audit",
+    "start": "2026-10-14T02:00:00.000Z",
+    "end": "2026-10-22T00:00:00.000Z",
+    "mode": "fail"
+   },
+   "out": {
+    "timers": [
+     {
+      "t": 1791943200000,
+      "delay": 70000
+     },
+     {
+      "t": 1791943270000,
+      "delay": 255530000
+     },
+     {
+      "t": 1792198800000,
+      "delay": 345600000
+     },
+     {
+      "t": 1792544400000,
+      "delay": 259200000
+     }
+    ],
+    "sched": [
+     {
+      "t": 1791943270000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 70h59p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1792198800000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 96h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1792544400000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 72h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     }
+    ],
+    "report": [
+     {
+      "t": 1791943270000,
+      "ev": "check"
+     },
+     {
+      "t": 1791943270000,
+      "ev": "send"
+     },
+     {
+      "t": 1791943270000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][gửi bù sau khi server thức] không gửi"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "check"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "send"
+     },
+     {
+      "t": 1792198800000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] không gửi"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "check"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "send"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] không gửi"
+     }
+    ]
+   }
+  },
+  {
+   "in": {
+    "name": "doc audit loi + webhook loi",
+    "start": "2026-10-17T02:00:00.000Z",
+    "end": "2026-10-22T00:00:00.000Z",
+    "mode": "throw"
+   },
+   "out": {
+    "timers": [
+     {
+      "t": 1792202400000,
+      "delay": 70000
+     },
+     {
+      "t": 1792202470000,
+      "delay": 341930000
+     },
+     {
+      "t": 1792544400000,
+      "delay": 259200000
+     }
+    ],
+    "sched": [
+     {
+      "t": 1792202470000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 94h59p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1792544400000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 72h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     }
+    ],
+    "report": [
+     {
+      "t": 1792202470000,
+      "ev": "check"
+     },
+     {
+      "t": 1792202470000,
+      "ev": "send"
+     },
+     {
+      "t": 1792202470000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][gửi bù sau khi server thức] không gửi"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "check"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "send"
+     },
+     {
+      "t": 1792544400000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] không gửi"
+     }
+    ]
+   }
+  },
+  {
+   "in": {
+    "name": "giao nam",
+    "start": "2026-12-29T10:00:00.000Z",
+    "end": "2027-01-08T00:00:00.000Z",
+    "mode": "ok"
+   },
+   "out": {
+    "timers": [
+     {
+      "t": 1798538400000,
+      "delay": 70000
+     },
+     {
+      "t": 1798538470000,
+      "delay": 53930000
+     },
+     {
+      "t": 1798592400000,
+      "delay": 259200000
+     },
+     {
+      "t": 1798851600000,
+      "delay": 345600000
+     },
+     {
+      "t": 1799197200000,
+      "delay": 259200000
+     }
+    ],
+    "sched": [
+     {
+      "t": 1798538470000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 14h59p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1798592400000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 72h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1798851600000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 96h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     },
+     {
+      "t": 1799197200000,
+      "log": "[báo cáo nhập SP] lần gửi kế tiếp sau 72h0p (thứ 4 & thứ 7, 8h00 giờ VN)"
+     }
+    ],
+    "report": [
+     {
+      "t": 1798592400000,
+      "ev": "check"
+     },
+     {
+      "t": 1798592400000,
+      "ev": "send"
+     },
+     {
+      "t": 1798592400000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] đã gửi Lark: 2 sản phẩm"
+     },
+     {
+      "t": 1798851600000,
+      "ev": "check"
+     },
+     {
+      "t": 1798851600000,
+      "ev": "send"
+     },
+     {
+      "t": 1798851600000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] đã gửi Lark: 2 sản phẩm"
+     },
+     {
+      "t": 1799197200000,
+      "ev": "check"
+     },
+     {
+      "t": 1799197200000,
+      "ev": "send"
+     },
+     {
+      "t": 1799197200000,
+      "ev": "log",
+      "log": "[báo cáo nhập SP][đúng giờ] đã gửi Lark: 2 sản phẩm"
+     }
+    ]
+   }
+  }
+ ]
+}

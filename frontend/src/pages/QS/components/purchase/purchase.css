@@ -1,0 +1,228 @@
+/* =====================================================================
+   QS - tab Mua hàng: phần bổ sung cho các class .qs-po-* sẵn có trong QS.css (giữ nguyên giao diện clone).
+   Port từ CSS bản gốc (PUB/index.html: .pgh/.tkt-i 6017-6026, 6129-6134; .hm-note 5540-5545; .mh-dadat 4818;
+   .mhdon* 4819-4827; .mhdx* 4578-4592; .pur-* 3018-3054; .mhpm-* 4978-4986; .pd/.pdm 133-140, 819-830, 1768-1798;
+   .pcb* 6426-6452; .bgt-* 4495-4516). Màu lấy từ biến của .qs-page để có cả giao diện tối.
+   Tên class bắt đầu "qs-po-" và không chứa -page / -modal / -menu / -popover / -drawer / -ai-panel / -mono.
+   ===================================================================== */
+
+/* ---------- Hàng đầu tab: dải số liệu (pgHeadRow_ / pgStat_ / pgVat_) ---------- */
+.qs-ct-bar.qs-po-head{height:auto; min-height:42px; padding-top:6px; padding-bottom:6px; flex-wrap:wrap; row-gap:6px;}
+.qs-po-head .qs-bd-category{flex:none;}
+.qs-po-head .qs-bd-category.on{border-color:var(--dash-accent-border);}
+.qs-po-stats{display:flex; align-items:center; flex-wrap:nowrap; margin-left:auto;}
+.qs-po-stat{display:flex; align-items:baseline; gap:7px; padding:0 14px; border-left:1px solid var(--border); white-space:nowrap;}
+.qs-po-stat:first-child{border-left:none;}
+.qs-po-stat i{font-style:normal; font-size:11.5px; font-weight:500; color:var(--text-muted); display:inline-flex; align-items:center; gap:4px;}
+.qs-po-stat b{font-size:13.5px; font-weight:600; color:var(--text);}
+.qs-po-stat.grand{padding-right:2px;}
+.qs-po-stat.grand i{color:var(--text); font-weight:600;}
+.qs-po-stat.grand b{font-size:16px; font-weight:700; color:var(--dash-accent);}
+.qs-po-vat{width:38px; height:24px; padding:0 5px; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text); font:inherit; font-size:12px; text-align:right; outline:none;}
+.qs-po-vat:focus{border-color:var(--dash-accent);}
+.qs-po-head .qs-bd-round-btn.on{transform:rotate(180deg);}
+@media (max-width:1280px){ .qs-po-stat{padding:0 9px;} .qs-po-stat.grand b{font-size:14.5px;} }
+
+/* ---------- Ghi chú hạng mục (hmPTNote_ / hmLacNote_) ---------- */
+.qs-po-note{display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:10px; border:1px solid #F5C77E; background:#FFFBEB; color:#92400E; font-size:12.5px; line-height:1.5;}
+.qs-po-note > svg{flex:none;}
+.qs-po-note > span{flex:1; min-width:0;}
+.qs-po-note b{font-weight:650;}
+.qs-po-note .qs-qt-btn{height:26px; font-size:12px; font-weight:500;}
+html[data-theme="dark"] .qs-po-note{border-color:#7A5A16; background:#2E2710; color:#F0B45A;}
+
+/* ---------- Thẻ NCC ---------- */
+.qs-po-name b{display:inline;}
+.qs-po-thumb-img{margin:0 auto;}
+/* Bản gốc: dòng không có ảnh -> ô xám, không có icon (.mhp-img.ph, muahang.js:40) */
+.qs-po-thumb-img.none svg{display:none;}
+.qs-po-dadat{display:inline-flex; align-items:center; gap:4px; margin-top:4px; padding:1px 8px; border-radius:99px; background:#FFF4DC; color:#8A5A00; font-size:11px; font-weight:600;}
+html[data-theme="dark"] .qs-po-dadat{background:#3A2E14; color:#F0B45A;}
+.qs-po-card-foot{gap:8px; align-items:center;}
+.qs-po-amber{height:28px; padding:0 13px; border-radius:7px; border:1px solid #E8C48A; background:#FFF8EC; color:#A4650A; font-size:12px; font-weight:700; white-space:nowrap; display:flex; align-items:center; gap:7px; cursor:pointer;}
+.qs-po-amber:hover{border-color:#D9A24A; background:#FDEEDA;}
+.qs-po-amber:disabled{opacity:.55; cursor:default;}
+html[data-theme="dark"] .qs-po-amber{border-color:#7A5A16; background:#2E2710; color:#F0B45A;}
+.qs-po-pay > .qs-po-send{margin-top:2px;}
+.qs-po-empty b{color:var(--text);}
+
+/* ---------- Cột phải: tổng hợp đơn / đơn đã gửi / phiếu đề xuất ---------- */
+.qs-po-sum-row{cursor:pointer; border-radius:7px;}
+.qs-po-sum-row:hover{background:var(--dash-soft);}
+.qs-po-sum-row.off{opacity:.55;}
+.qs-po-loadmsg{margin:10px 12px 12px; font-size:12px; color:var(--text-muted); text-align:center;}
+.qs-po-loadmsg.err{color:var(--danger);}
+.qs-po-loadmsg button{margin:6px auto 0;}
+.qs-po-order-act{display:flex; gap:6px; flex-wrap:wrap;}
+.qs-po-order .qs-po-order-act .qs-qt-btn{margin-top:3px;}
+.qs-po-tt{margin-left:auto; padding:1px 8px; border-radius:99px; font-size:11px; font-weight:600; white-space:nowrap; background:var(--surface-alt); color:var(--text-muted);}
+.qs-po-tt.cho{background:#FFF4DC; color:#8A5A00;}
+.qs-po-tt.duyet{background:#E8F0FE; color:#1A56C4;}
+.qs-po-tt.dat{background:#EDE7F6; color:#5E35B1;}
+.qs-po-tt.nhan{background:#E6F4EA; color:#137333;}
+.qs-po-tt.tu{background:#FDECEA; color:#C5221F;}
+html[data-theme="dark"] .qs-po-tt.cho{background:#3A2E14; color:#F0B45A;}
+html[data-theme="dark"] .qs-po-tt.duyet{background:#1B2740; color:#7FA8F5;}
+html[data-theme="dark"] .qs-po-tt.dat{background:#2A2247; color:#A796E8;}
+html[data-theme="dark"] .qs-po-tt.nhan{background:#14301F; color:#4ADE80;}
+html[data-theme="dark"] .qs-po-tt.tu{background:#3A211E; color:#E0685A;}
+.qs-po-dxlist{max-height:300px; overflow:auto; padding:6px;}
+.qs-po-dxrow{display:flex; align-items:center; gap:9px; padding:8px 9px; border-radius:7px; cursor:pointer;}
+.qs-po-dxrow:hover{background:var(--dash-soft);}
+.qs-po-dxrow-ic{width:26px; height:26px; flex:none; border-radius:7px; display:inline-flex; align-items:center; justify-content:center; background:#FFF8EC; color:#A4650A;}
+.qs-po-dxrow.approved .qs-po-dxrow-ic{background:#EFFAF3; color:#1F7A45;}
+.qs-po-dxrow.rejected .qs-po-dxrow-ic{background:#FDECEA; color:#C0392B;}
+html[data-theme="dark"] .qs-po-dxrow-ic{background:#2E2710; color:#F0B45A;}
+html[data-theme="dark"] .qs-po-dxrow.approved .qs-po-dxrow-ic{background:#14301F; color:#4ADE80;}
+html[data-theme="dark"] .qs-po-dxrow.rejected .qs-po-dxrow-ic{background:#3A211E; color:#E0685A;}
+.qs-po-dxrow-m{flex:1; min-width:0;}
+.qs-po-dxrow-t{font-size:12.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.qs-po-dxrow-s{font-size:11px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.qs-po-dxrow-r{display:flex; flex-direction:column; align-items:flex-end; gap:3px; flex:none;}
+.qs-po-dxrow-r b{font-size:12.5px;}
+.qs-po-badge{padding:2px 9px; border-radius:6px; font-size:10.5px; font-weight:600; white-space:nowrap;}
+.qs-po-badge.approved{background:#E6F6EC; color:#2F855A;}
+.qs-po-badge.rejected{background:#FDECEC; color:#C0392B;}
+.qs-po-badge.pending{background:#FFF2D9; color:#B7791F;}
+html[data-theme="dark"] .qs-po-badge.approved{background:#14301F; color:#4ADE80;}
+html[data-theme="dark"] .qs-po-badge.rejected{background:#3A211E; color:#E0685A;}
+html[data-theme="dark"] .qs-po-badge.pending{background:#3A2E14; color:#F0B45A;}
+
+/* ---------- Popup chọn hạng mục (hmPop_) ---------- */
+.qsc-pop.qs-po-hm{width:360px; max-width:calc(100vw - 24px); padding:0; overflow:hidden; max-height:none;}
+.qs-po-hm-h{display:flex; align-items:center; gap:8px; padding:12px 14px 10px; border-bottom:1px solid var(--border);}
+.qs-po-hm-h b{font-size:14px;}
+.qs-po-hm-h .qsc-x{margin-left:auto;}
+.qs-po-hm-b{max-height:340px; overflow:auto; padding:4px 0;}
+.qs-po-hm-i{display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px;}
+.qs-po-hm-i:hover{background:var(--surface-alt);}
+.qs-po-hm-i.lvl2{padding-left:28px;} .qs-po-hm-i.lvl3{padding-left:42px;} .qs-po-hm-i.lvl4{padding-left:56px;}
+.qs-po-hm-i .nm{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.qs-po-hm-i .cn{font-size:11.5px; color:var(--text-muted); font-variant-numeric:tabular-nums;}
+.qs-po-hm-i .rd{width:15px; height:15px; flex:none; border-radius:50%; border:1.5px solid var(--border); position:relative;}
+.qs-po-hm-i:hover .rd{border-color:var(--dash-accent);}
+.qs-po-hm-i .rd.on{border-color:var(--dash-accent); background:var(--dash-accent);}
+.qs-po-hm-i .rd.on::after{content:''; position:absolute; inset:3px; border-radius:50%; background:#fff;}
+.qs-po-hm-i.on{background:var(--dash-accent-tint);}
+.qs-po-hm-i.on .nm{font-weight:600; color:var(--dash-accent);}
+
+/* ---------- Hộp thoại: chi tiết đề xuất (#dxOv) và thông tin sản phẩm (#spModalOv) ---------- */
+.qs-po-dlg-h{display:flex; align-items:center; gap:8px; padding-bottom:11px; margin-bottom:12px; border-bottom:1px solid var(--border);}
+.qs-po-dlg-h h3{margin:0; font-size:15px; font-weight:600; display:inline-flex; align-items:center; gap:6px;}
+.qs-po-dlg-h .qsc-x{margin-left:auto;}
+.qsc-dlg.qs-po-dx{width:1000px; max-width:96vw; padding:20px 22px;}
+.qs-po-dx-body{max-height:76vh; overflow:auto;}
+.qs-po-dx-empty{padding:26px; text-align:center; color:var(--text-muted); font-size:12.5px;}
+.qs-po-dx-head{border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:14px; background:var(--dash-soft);}
+.qs-po-dx-ma{display:flex; align-items:center; gap:10px; margin-bottom:12px; font-size:15px; font-weight:600;}
+.qs-po-dx-kind{padding:2px 8px; border-radius:99px; background:#FFF8EC; color:#A4650A; font-size:11px; font-weight:600;}
+html[data-theme="dark"] .qs-po-dx-kind{background:#2E2710; color:#F0B45A;}
+.qs-po-dx-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:10px 20px;}
+.qs-po-dx-i{display:flex; flex-direction:column; gap:2px; min-width:0;}
+.qs-po-dx-i span{font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted); font-weight:600;}
+.qs-po-dx-i b{font-size:12.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.qs-po-dx-note{margin-top:11px; padding-top:10px; border-top:1px solid var(--border); font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:5px;}
+.qs-po-dx-tblwrap{border:1px solid var(--border); border-radius:12px; overflow:auto;}
+.qs-po-dx-tbl{width:100%; border-collapse:collapse; font-size:12.5px;}
+/* Khung bảng chuẩn ghi đè sau (PUB/index.html:5091-5117): tiêu đề chữ thường 11px, vạch chia cột ngắn, thân 11.5px */
+.qs-po-dx-tbl th{position:relative; background:var(--dash-navy); color:#fff; font-size:11px; font-weight:600; letter-spacing:.01em; text-transform:none; padding:11px 12px; text-align:left; white-space:nowrap;}
+.qs-po-dx-tbl th:not(:last-child)::before{content:''; position:absolute; right:0; top:8px; bottom:8px; width:1px; background:rgba(255,255,255,.16); pointer-events:none;}
+.qs-po-dx-tbl th.n, .qs-po-dx-tbl td.n{text-align:right;} .qs-po-dx-tbl th.c, .qs-po-dx-tbl td.c{text-align:center;}
+.qs-po-dx-tbl td{padding:9px 10px; border-bottom:1px solid var(--border); vertical-align:middle; font-size:11.5px;}
+.qs-po-dx-tbl tbody tr:hover td{background:var(--dash-soft);}
+.qs-po-dx-tbl tr:last-child td{border-bottom:none;}
+.qs-po-dx-tbl td.n{font-variant-numeric:tabular-nums; white-space:nowrap;}
+.qs-po-dx-tbl td.b{font-weight:600;}
+.qs-po-dx-tbl td.qs-po-dx-none{padding:18px; text-align:center; color:var(--text-muted);}
+.qs-po-dx-code{display:block; font-size:10.5px; color:var(--text-muted); letter-spacing:.02em;}
+.qs-po-dx-pct{color:#A4650A;}
+html[data-theme="dark"] .qs-po-dx-pct{color:#F0B45A;}
+.qs-po-dx-tot{margin-top:14px; margin-left:auto; width:min(340px, 100%); display:flex; flex-direction:column; gap:7px;}
+.qs-po-dx-tot > div{display:flex; justify-content:space-between; align-items:center; font-size:12.5px; color:var(--text-muted);}
+.qs-po-dx-tot > div b{font-variant-numeric:tabular-nums; color:var(--text); font-weight:600;}
+.qs-po-dx-tot .grand{border-top:1px solid var(--border); padding-top:9px; margin-top:2px;}
+.qs-po-dx-tot .grand span{font-size:11px; letter-spacing:.05em; font-weight:600; color:var(--text);}
+.qs-po-dx-tot .grand b{font-size:16px; font-weight:650;}
+.qs-po-dx-act{display:flex; justify-content:flex-end; gap:9px; margin-top:16px; padding-top:14px; border-top:1px solid var(--border);}
+.qsc-btn.qs-po-danger{color:#C0392B;}
+html[data-theme="dark"] .qsc-btn.qs-po-danger{color:#E0685A;}
+
+.qsc-dlg.qs-po-pm{width:940px; max-width:96vw; padding:20px 22px; overflow-x:hidden;}
+.qs-po-pm-ncc{display:inline-flex; align-items:center; gap:5px; margin-left:8px; padding:3px 9px; border-radius:99px; background:var(--dash-accent-tint); color:var(--dash-accent); font-size:12px; font-weight:600;}
+.qs-po-pm-grid{display:grid; grid-template-columns:320px minmax(0,1fr); gap:28px; align-items:start; margin-top:6px;}
+.qs-po-pm-left{position:sticky; top:0;}
+.qs-po-pm-right{columns:2; column-gap:30px; min-width:0; overflow-wrap:anywhere;}
+.qs-po-pm-right .qs-po-pd-block, .qs-po-pm-box{break-inside:avoid; -webkit-column-break-inside:avoid; margin-bottom:4px;}
+.qs-po-pm-right .qs-po-pd-block:first-child .qs-po-pd-sec{margin-top:0;}
+.qs-po-pm-box{margin-top:14px; border:1px solid var(--border); border-radius:10px; padding:10px 12px; background:var(--dash-soft);}
+.qs-po-pm-box .qs-po-pd-sec{margin-top:0;}
+.qs-po-pm-i{display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:5px 0; font-size:13px;}
+.qs-po-pm-i + .qs-po-pm-i{border-top:1px dashed var(--border);}
+.qs-po-pm-i span{color:var(--text-muted);}
+.qs-po-pm-i b{font-variant-numeric:tabular-nums;}
+.qs-po-pm-i.dx b{color:#A4650A;}
+.qs-po-pm-i.tot b{color:#0D7A5F; font-size:14.5px;}
+html[data-theme="dark"] .qs-po-pm-i.dx b{color:#F0B45A;}
+html[data-theme="dark"] .qs-po-pm-i.tot b{color:#4ADE80;}
+.qs-po-pm-actions{display:flex; justify-content:flex-end; gap:9px; margin-top:14px; padding-top:13px; border-top:1px solid var(--border);}
+@media (max-width:820px){ .qsc-dlg.qs-po-pm{width:520px;} .qs-po-pm-grid{grid-template-columns:1fr;} .qs-po-pm-right{columns:1;} }
+
+/* Khối thông tin sản phẩm (pdMedia_ / pdSpecs_) */
+.qs-po-pd-gal{margin-bottom:10px;}
+.qs-po-pd-imgbox{position:relative; height:300px; border-radius:10px; border:1px solid var(--border); background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden;}
+.qs-po-pd-imgbox img{max-width:100%; max-height:100%; object-fit:contain; cursor:zoom-in;}
+.qs-po-pd-noimg{display:flex; flex-direction:column; align-items:center; gap:6px; color:var(--text-muted); font-size:12px;}
+.qs-po-pd-noimg i{font-style:normal;}
+.qs-po-pd-imgdl{position:absolute; top:9px; right:9px; width:26px; height:26px; border-radius:6px; background:#fff; border:1px solid #E2E5EC; color:#3A4653; display:flex; align-items:center; justify-content:center;}
+.qs-po-pd-imgdl:hover{border-color:var(--dash-accent); color:var(--dash-accent);}
+.qs-po-pd-nav{position:absolute; top:50%; transform:translateY(-50%); width:32px; height:32px; border-radius:50%; border:1px solid #E2E5EC; background:rgba(255,255,255,.92); color:#3A4653; display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:0; transition:opacity .15s;}
+.qs-po-pd-nav.prev{left:9px;} .qs-po-pd-nav.next{right:9px;}
+.qs-po-pd-imgbox:hover .qs-po-pd-nav{opacity:1;}
+.qs-po-pd-nav:hover{background:var(--dash-accent); border-color:var(--dash-accent); color:#fff;}
+.qs-po-pd-count{position:absolute; left:9px; bottom:9px; background:rgba(18,50,76,.72); color:#fff; font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:99px;}
+.qs-po-pd-thumbs{display:flex; gap:7px; margin-top:9px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none;}
+.qs-po-pd-thumbs::-webkit-scrollbar{width:0; height:0;}
+.qs-po-pd-thumb{flex:none; width:48px; height:48px; padding:3px; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center;}
+.qs-po-pd-thumb img{max-width:100%; max-height:100%; object-fit:contain;}
+.qs-po-pd-thumb.on{border-color:var(--dash-accent); box-shadow:0 0 0 2px var(--dash-accent-tint);}
+.qs-po-pd-code{font-size:12px; color:var(--text-muted); letter-spacing:.02em; margin-top:6px;}
+.qs-po-pd-name{font-size:13.5px; font-weight:600; margin:2px 0 10px; line-height:1.35;}
+.qs-po-pd-sec{font-size:12.5px; font-weight:650; margin:16px 0 6px; padding-bottom:6px; border-bottom:1px solid var(--border);}
+.qs-po-pd-sec i{font-style:normal; font-weight:500; color:var(--text-muted); font-size:12px;}
+.qs-po-spec{display:flex; justify-content:space-between; gap:12px; padding:6px 0; border-bottom:1px solid var(--border); font-size:12.5px;}
+.qs-po-spec:last-child{border-bottom:none;}
+.qs-po-spec .k{flex:1 0 min(40%, 9.5em); color:var(--text-muted); line-height:1.35;}
+.qs-po-spec .v{flex:0 1 auto; font-weight:600; text-align:right;}
+.qs-po-spec .v.free{text-align:left; font-weight:500;}
+.qs-po-pd-keys{display:grid; grid-template-columns:1fr 1fr; gap:9px 14px; margin:10px 0 4px;}
+.qs-po-pd-key{display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:550;}
+.qs-po-pd-key .ic{width:21px; height:21px; flex:none; border-radius:6px; background:var(--dash-accent-tint); color:var(--dash-accent); display:inline-flex; align-items:center; justify-content:center;}
+.qs-po-pd-bullets{display:flex; flex-direction:column; gap:5px; padding:2px 0 4px;}
+.qs-po-pd-bl{position:relative; padding-left:15px; font-size:12px; line-height:1.5; color:var(--text-muted);}
+.qs-po-pd-bl::before{content:''; position:absolute; left:4px; top:8px; width:4px; height:4px; border-radius:50%; background:var(--dash-accent);}
+
+/* Sản phẩm đi kèm (pdComboVe_) */
+.qs-po-pcb{margin-top:14px; border:1px solid var(--border); border-radius:10px; background:var(--surface); overflow:hidden;}
+.qs-po-pcb-h{display:flex; align-items:center; gap:8px; padding:9px 12px; background:var(--dash-soft); border-bottom:1px solid var(--border);}
+.qs-po-pcb-t{display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:650;}
+.qs-po-pcb-t svg{color:var(--dash-accent);}
+.qs-po-pcb-n{min-width:20px; height:18px; padding:0 6px; border-radius:99px; background:var(--dash-accent-tint); color:var(--dash-accent); font-size:10.5px; font-weight:700; display:inline-flex; align-items:center; justify-content:center;}
+.qs-po-pcb-list{display:flex; flex-direction:column;}
+.qs-po-pcb-r{display:flex; align-items:center; gap:10px; padding:10px 12px;}
+.qs-po-pcb-r + .qs-po-pcb-r{border-top:1px solid var(--border);}
+.qs-po-pcb-r:hover{background:var(--dash-soft);}
+.qs-po-pcb-th{flex:none; width:40px; height:40px; border-radius:8px; border:1px solid var(--border); background:#fff; object-fit:contain; display:block;}
+.qs-po-pcb-m{flex:1; min-width:0; display:flex; flex-direction:column; gap:3px;}
+.qs-po-pcb-m b{font-size:12.5px; font-weight:600; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+.qs-po-pcb-m span{font-size:10.5px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.qs-po-pcb-rev{color:var(--dash-accent); font-weight:600;}
+.qs-po-pcb-p{flex:none; display:flex; flex-direction:column; align-items:flex-end; gap:5px;}
+.qs-po-pcb-p > b{font-size:12.5px; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap;}
+.qs-po-pcb-q{display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:600; color:var(--text-muted); white-space:nowrap;}
+.qs-po-pcb-q input{width:38px; height:22px; padding:0 4px; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text); text-align:center; font:inherit; font-size:11.5px; -moz-appearance:textfield;}
+.qs-po-pcb-q input::-webkit-outer-spin-button, .qs-po-pcb-q input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
+.qs-po-pcb-q input:focus{outline:none; border-color:var(--dash-accent);}
+.qs-po-pcb-tot{display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:10px 12px; border-top:1px solid var(--border); background:var(--dash-soft);}
+.qs-po-pcb-tot span{font-size:11.5px; font-weight:600; color:var(--text-muted);}
+.qs-po-pcb-tot b{font-size:15px; font-weight:700; color:var(--dash-accent); font-variant-numeric:tabular-nums;}
+.qs-po-pcb-err{margin-top:14px; font-size:12px; color:var(--danger);}

@@ -1,0 +1,148 @@
+{
+  "actors": {
+    "none": {},
+    "admin": {
+      "actor": {"uid": "00000000-0000-4000-8000-{{H}}00000000002", "u": "zz_authusers_{{P}}_admin", "r": "admin", "ct": "00000000-0000-4000-8000-{{H}}0000000c001", "exp": 1},
+      "ctx": {"uid": "00000000-0000-4000-8000-{{H}}00000000002", "role": "admin", "congTyId": "00000000-0000-4000-8000-{{H}}0000000c001", "viewAs": null}
+    },
+    "admNoCt": {
+      "actor": {"uid": "00000000-0000-4000-8000-{{H}}00000000002", "u": "zz_authusers_{{P}}_admin", "r": "admin", "ct": null, "exp": 1},
+      "ctx": {"uid": "00000000-0000-4000-8000-{{H}}00000000002", "role": "admin", "congTyId": null, "viewAs": null}
+    },
+    "adm4": {
+      "actor": {"uid": "00000000-0000-4000-8000-{{H}}0000000000c", "u": "zz_authusers_{{P}}_adm4", "r": "admin", "ct": "00000000-0000-4000-8000-{{H}}0000000c004", "exp": 1},
+      "ctx": {"uid": "00000000-0000-4000-8000-{{H}}0000000000c", "role": "admin", "congTyId": "00000000-0000-4000-8000-{{H}}0000000c004", "viewAs": null}
+    },
+    "adm5": {
+      "actor": {"uid": "00000000-0000-4000-8000-{{H}}00000000011", "u": "zz_authusers_{{P}}_adm5", "r": "admin", "ct": "00000000-0000-4000-8000-{{H}}0000000c005", "exp": 1},
+      "ctx": {"uid": "00000000-0000-4000-8000-{{H}}00000000011", "role": "admin", "congTyId": "00000000-0000-4000-8000-{{H}}0000000c005", "viewAs": null}
+    },
+    "super": {
+      "actor": {"uid": "00000000-0000-4000-8000-{{H}}00000000001", "u": "zz_authusers_{{P}}_super", "r": "super", "ct": null, "exp": 1},
+      "ctx": {"uid": "00000000-0000-4000-8000-{{H}}00000000001", "role": "super", "congTyId": null, "viewAs": null}
+    },
+    "superView": {
+      "actor": {"uid": "00000000-0000-4000-8000-{{H}}00000000001", "u": "zz_authusers_{{P}}_super", "r": "super", "ct": null, "exp": 1},
+      "ctx": {"uid": "00000000-0000-4000-8000-{{H}}00000000001", "role": "super", "congTyId": null, "viewAs": "00000000-0000-4000-8000-{{H}}0000000c001"}
+    }
+  },
+  "cases": [
+    {"n": "list_admin", "as": "admin", "fn": "adminListUsers", "args": []},
+    {"n": "list_adm4_extra_args", "as": "adm4", "fn": "adminListUsers", "args": [1, 2]},
+    {"n": "list_super", "as": "super", "fn": "adminListUsers", "args": [], "only": true},
+    {"n": "list_superView", "as": "superView", "fn": "adminListUsers", "args": [], "only": true},
+
+    {"n": "get_staff", "fn": "$getUserById", "args": ["00000000-0000-4000-8000-{{H}}00000000003"]},
+    {"n": "get_scoped_other_company", "as": "adm4", "fn": "$getUserById", "args": ["00000000-0000-4000-8000-{{H}}00000000004"]},
+    {"n": "get_missing", "fn": "$getUserById", "args": ["00000000-0000-4000-8000-{{H}}0000000ffff"]},
+    {"n": "get_bad_id", "fn": "$getUserById", "args": ["abc"]},
+    {"n": "get_null_id", "fn": "$getUserById", "args": [null]},
+
+    {"n": "create_no_args", "as": "admin", "fn": "adminCreateUser", "args": []},
+    {"n": "create_null", "as": "admin", "fn": "adminCreateUser", "args": [null]},
+    {"n": "create_string_data", "as": "admin", "fn": "adminCreateUser", "args": ["zz_authusers_{{P}}_str"]},
+    {"n": "create_short_name", "as": "admin", "fn": "adminCreateUser", "args": [{"username": "Ab", "password": "abcd"}]},
+    {"n": "create_bad_chars", "as": "admin", "fn": "adminCreateUser", "args": [{"username": "zz authusers", "password": "abcd"}]},
+    {"n": "create_unicode_name", "as": "admin", "fn": "adminCreateUser", "args": [{"username": "İİİİ", "password": "abcd"}]},
+    {"n": "create_newline_name", "as": "admin", "fn": "adminCreateUser", "args": [{"username": "zz_authusers_{{P}}_nl\nx", "password": "abcd"}]},
+    {"n": "create_short_pw", "as": "admin", "fn": "adminCreateUser", "args": [{"username": "zz_authusers_{{P}}_new1", "password": "abc"}]},
+    {"n": "create_no_pw", "as": "admin", "fn": "adminCreateUser", "args": [{"username": "zz_authusers_{{P}}_new1"}]},
+    {"n": "create_emoji_pw_len", "as": "admin", "fn": "adminCreateUser", "args": [{"username": "zz_authusers_{{P}}_emoji", "password": "😀😀"}]},
+    {"n": "create_no_company", "as": "admNoCt", "fn": "adminCreateUser", "args": [{"username": "zz_authusers_{{P}}_new1", "password": "abcd"}]},
+    {"n": "create_dup", "as": "admin", "fn": "adminCreateUser", "args": [{"username": " ZZ_Authusers_{{P}}_Staff ", "password": "abcd"}]},
+    {"n": "create1", "as": "admin", "fn": "adminCreateUser", "args": [{"username": " ZZ_Authusers_{{P}}_New1 ", "password": "abcd", "role": "super", "perms": ["sp_edit", null, 5, ["a", "b"], true], "hoTen": "Mới 1", "email": "n1@example.test", "phongBan": "  KD  ", "congTyId": "00000000-0000-4000-8000-{{H}}0000000c004"}]},
+    {"n": "create2_admin_numeric_pw", "as": "admin", "fn": "adminCreateUser", "args": [{"username": "zz_authusers_{{P}}_new2", "password": 12345, "role": "admin", "perms": ["x"], "hoTen": 0, "email": null, "phongBan": "   "}]},
+    {"n": "create3_perms_string", "as": "admin", "fn": "adminCreateUser", "args": [{"username": "zz_authusers_{{P}}_new3", "password": "abcd", "role": "boss", "perms": "sp_edit,sp_duyet", "phongBan": 7}]},
+    {"n": "create_super_no_company", "as": "super", "fn": "adminCreateUser", "args": [{"username": "zz_authusers_{{P}}_s0", "password": "abcd"}]},
+    {"n": "create_super_bad_company", "as": "super", "fn": "adminCreateUser", "args": [{"username": "zz_authusers_{{P}}_s0", "password": "abcd", "congTyId": "abc"}]},
+    {"n": "create_super_missing_company", "as": "super", "fn": "adminCreateUser", "args": [{"username": "zz_authusers_{{P}}_s9", "password": "abcd", "role": "admin", "congTyId": "00000000-0000-4000-8000-{{H}}0000000ffff"}]},
+    {"n": "create_super_c4", "as": "super", "fn": "adminCreateUser", "args": [{"username": "zz_authusers_{{P}}_s1", "password": "abcd", "role": "super", "congTyId": "00000000-0000-4000-8000-{{H}}0000000c004"}]},
+    {"n": "create_super_c4_limit", "as": "super", "fn": "adminCreateUser", "args": [{"username": "zz_authusers_{{P}}_s2", "password": "abcd", "congTyId": "00000000-0000-4000-8000-{{H}}0000000c004"}]},
+    {"n": "create_adm4_limit", "as": "adm4", "fn": "adminCreateUser", "args": [{"username": "zz_authusers_{{P}}_s2", "password": "abcd"}]},
+    {"n": "create_superView", "as": "superView", "fn": "adminCreateUser", "args": [{"username": "zz_authusers_{{P}}_s3", "password": "abcd", "role": "admin"}]},
+    {"n": "create_adm5_unlimited", "as": "adm5", "fn": "adminCreateUser", "args": [{"username": "zz_authusers_{{P}}_f1", "password": "abcd", "perms": []}]},
+
+    {"n": "upd_no_args", "as": "admin", "fn": "adminUpdateUser", "args": []},
+    {"n": "upd_empty", "as": "admin", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}00000000003", {}]},
+    {"n": "upd_null_fields", "as": "admin", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}00000000003", null]},
+    {"n": "upd_array_fields", "as": "admin", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}00000000003", ["hoTen"]]},
+    {"n": "upd_hasown_key", "as": "admin", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}00000000003", {"hasOwnProperty": 1, "hoTen": "zz khong duoc ghi"}]},
+    {"n": "upd_hasown_key_only", "as": "admin", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}00000000003", {"hasOwnProperty": null}]},
+    {"n": "upd_hasown_key_missing_target", "as": "admin", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}0000000ffff", {"hasOwnProperty": 1}]},
+    {"n": "upd_missing", "as": "admin", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}0000000ffff", {"hoTen": "x"}]},
+    {"n": "upd_bad_id", "as": "admin", "fn": "adminUpdateUser", "args": [123, {"hoTen": "x"}]},
+    {"n": "upd_other_company", "as": "admin", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}0000000000c", {"hoTen": "x"}]},
+    {"n": "upd_no_company_target", "as": "admin", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}00000000008", {"hoTen": "x"}]},
+    {"n": "upd_super_by_admin", "as": "admin", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}0000000000e", {"hoTen": "x"}]},
+    {"n": "upd_fields", "as": "admin", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}00000000003", {"hoTen": null, "perms": ["a", "b", null, 3], "phongBan": "  Phòng X  "}]},
+    {"n": "upd_perms_not_array", "as": "admin", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}00000000003", {"perms": "a,b", "phongBan": null, "hoTen": "Tên <b>&\"mới\""}]},
+    {"n": "upd_congty_by_admin", "as": "admin", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}00000000003", {"congTyId": "00000000-0000-4000-8000-{{H}}0000000c004"}]},
+    {"n": "upd_role_admin", "as": "admin", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}00000000003", {"role": "admin", "perms": ["x"]}]},
+    {"n": "upd_role_super_by_admin", "as": "admin", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}00000000003", {"role": "super"}]},
+    {"n": "upd_demote_ok", "as": "admin", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}00000000003", {"role": "staff", "perms": ["sp_edit"]}]},
+    {"n": "upd_role_null", "as": "admin", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}00000000004", {"role": null}]},
+    {"n": "upd_demote_last_admin", "as": "adm4", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}0000000000c", {"role": "staff", "hoTen": "x"}]},
+    {"n": "upd_last_admin_keep_role", "as": "adm4", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}0000000000c", {"role": "admin", "hoTen": "Admin 4"}]},
+    {"n": "upd_super_keeps_super", "as": "super", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}0000000000e", {"role": "staff", "hoTen": "S2", "perms": ["p"]}]},
+    {"n": "upd_super_move_company", "as": "super", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}00000000008", {"congTyId": "00000000-0000-4000-8000-{{H}}0000000c001"}]},
+    {"n": "upd_super_clear_company", "as": "super", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}00000000008", {"congTyId": ""}]},
+    {"n": "upd_super_grant_super", "as": "super", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}0000000000a", {"role": "super"}]},
+    {"n": "upd_super_bad_company", "as": "super", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}0000000000a", {"congTyId": "00000000-0000-4000-8000-{{H}}0000000ffff"}]},
+    {"n": "upd_superView_other_company", "as": "superView", "fn": "adminUpdateUser", "args": ["00000000-0000-4000-8000-{{H}}0000000000d", {"phongBan": "Kho"}]},
+
+    {"n": "pw_short", "as": "admin", "fn": "adminSetPassword", "args": ["00000000-0000-4000-8000-{{H}}00000000003", "abc"]},
+    {"n": "pw_missing", "as": "admin", "fn": "adminSetPassword", "args": ["00000000-0000-4000-8000-{{H}}00000000003"]},
+    {"n": "pw_short_before_target", "as": "admin", "fn": "adminSetPassword", "args": ["00000000-0000-4000-8000-{{H}}0000000ffff", ""]},
+    {"n": "pw_missing_target", "as": "admin", "fn": "adminSetPassword", "args": ["00000000-0000-4000-8000-{{H}}0000000ffff", "abcd"]},
+    {"n": "pw_other_company", "as": "admin", "fn": "adminSetPassword", "args": ["00000000-0000-4000-8000-{{H}}0000000000c", "abcd"]},
+    {"n": "pw_ok", "as": "admin", "fn": "adminSetPassword", "args": ["00000000-0000-4000-8000-{{H}}00000000004", "newpass1"]},
+    {"n": "pw_numeric", "as": "admin", "fn": "adminSetPassword", "args": ["00000000-0000-4000-8000-{{H}}00000000004", 98765]},
+    {"n": "pw_by_super", "as": "super", "fn": "adminSetPassword", "args": ["00000000-0000-4000-8000-{{H}}0000000000d", "abcd"]},
+
+    {"n": "act_lock", "as": "admin", "fn": "adminSetActive", "args": ["00000000-0000-4000-8000-{{H}}00000000003", false]},
+    {"n": "act_unlock_truthy", "as": "admin", "fn": "adminSetActive", "args": ["00000000-0000-4000-8000-{{H}}00000000003", "yes"]},
+    {"n": "act_missing_arg_locks", "as": "admin", "fn": "adminSetActive", "args": ["00000000-0000-4000-8000-{{H}}00000000003"]},
+    {"n": "act_unlock_one", "as": "admin", "fn": "adminSetActive", "args": ["00000000-0000-4000-8000-{{H}}00000000003", 1]},
+    {"n": "act_lock_last_admin", "as": "adm4", "fn": "adminSetActive", "args": ["00000000-0000-4000-8000-{{H}}0000000000c", 0]},
+    {"n": "act_unlock_last_admin_ok", "as": "adm4", "fn": "adminSetActive", "args": ["00000000-0000-4000-8000-{{H}}0000000000c", true]},
+    {"n": "act_missing", "as": "admin", "fn": "adminSetActive", "args": ["00000000-0000-4000-8000-{{H}}0000000ffff", true]},
+    {"n": "act_lock_admin_two_admins", "as": "admin", "fn": "adminSetActive", "args": ["{{create2_admin_numeric_pw.id}}", false]},
+    {"n": "act_lock_self_last_active_admin", "as": "admin", "fn": "adminSetActive", "args": ["00000000-0000-4000-8000-{{H}}00000000002", false]},
+
+    {"n": "del_self", "as": "admin", "fn": "adminDeleteUser", "args": ["00000000-0000-4000-8000-{{H}}00000000002"]},
+    {"n": "del_no_args", "as": "admin", "fn": "adminDeleteUser", "args": []},
+    {"n": "del_missing", "as": "admin", "fn": "adminDeleteUser", "args": ["00000000-0000-4000-8000-{{H}}0000000ffff"]},
+    {"n": "del_last_admin_by_super", "as": "super", "fn": "adminDeleteUser", "args": ["00000000-0000-4000-8000-{{H}}0000000000c"]},
+    {"n": "del_locked_admin", "as": "admin", "fn": "adminDeleteUser", "args": ["{{create2_admin_numeric_pw.id}}"]},
+    {"n": "del_created", "as": "admin", "fn": "adminDeleteUser", "args": ["{{create1.id}}"]},
+    {"n": "del_again", "as": "admin", "fn": "adminDeleteUser", "args": ["{{create1.id}}"]},
+    {"n": "del_other_company", "as": "adm4", "fn": "adminDeleteUser", "args": ["00000000-0000-4000-8000-{{H}}00000000004"]},
+
+    {"n": "audit_null_actor", "fn": "$audit", "args": [null, "zz_test", "zz_authusers_{{P}}_ không actor", "00000000-0000-4000-8000-{{H}}0000000c001"]},
+    {"n": "audit_name_only", "fn": "$audit", "args": [{"u": "zz_authusers_{{P}}_ghost"}, "zz_test", "chỉ có tên"]},
+    {"n": "audit_scoped", "as": "admin", "fn": "$audit", "args": [{"uid": "00000000-0000-4000-8000-{{H}}00000000002", "u": "zz_authusers_{{P}}_admin"}, "zz_test", "trong công ty"]},
+    {"n": "audit_scoped_other_company_arg", "as": "admin", "fn": "$audit", "args": [{"uid": "00000000-0000-4000-8000-{{H}}00000000002", "u": "zz_authusers_{{P}}_admin"}, "zz_test", "truyền công ty khác", "00000000-0000-4000-8000-{{H}}0000000c004"]},
+    {"n": "audit_bad_uid_swallowed", "as": "admin", "fn": "$audit", "args": [{"uid": "khong-phai-uuid", "u": "zz_authusers_{{P}}_admin"}, "zz_test", "lỗi bị nuốt"]},
+    {"n": "audit_empty_strings", "as": "adm4", "fn": "$audit", "args": [{"uid": "", "u": "zz_authusers_{{P}}_adm4"}, "", ""]},
+
+    {"n": "log_default", "as": "admin", "fn": "getAuditLog", "args": []},
+    {"n": "log_3", "as": "admin", "fn": "getAuditLog", "args": [3]},
+    {"n": "log_str_2", "as": "admin", "fn": "getAuditLog", "args": ["2"]},
+    {"n": "log_null", "as": "adm4", "fn": "getAuditLog", "args": [null]},
+    {"n": "log_frac", "as": "admin", "fn": "getAuditLog", "args": [2.9]},
+    {"n": "log_half", "as": "admin", "fn": "getAuditLog", "args": [0.5]},
+    {"n": "log_negative", "as": "admin", "fn": "getAuditLog", "args": [-1]},
+    {"n": "log_neg_int32_min", "as": "admin", "fn": "getAuditLog", "args": [-2147483648]},
+    {"n": "log_neg_below_int32", "as": "admin", "fn": "getAuditLog", "args": [-3000000000]},
+    {"n": "log_neg_int64_min", "as": "admin", "fn": "getAuditLog", "args": [-9223372036854775808]},
+    {"n": "log_neg_1e19", "as": "admin", "fn": "getAuditLog", "args": [-1e19]},
+    {"n": "log_neg_1e30", "as": "admin", "fn": "getAuditLog", "args": [-1e30]},
+    {"n": "log_neg_frac_huge", "as": "admin", "fn": "getAuditLog", "args": ["-1.5e25"]},
+    {"n": "log_neg_infinity", "as": "admin", "fn": "getAuditLog", "args": ["-Infinity"]},
+    {"n": "log_pos_infinity", "as": "admin", "fn": "getAuditLog", "args": ["Infinity"]},
+    {"n": "log_big", "as": "adm5", "fn": "getAuditLog", "args": [99999]},
+    {"n": "log_nan", "as": "adm5", "fn": "getAuditLog", "args": ["abc"]},
+
+    {"n": "final", "fn": "$snapshot", "args": []}
+  ]
+}

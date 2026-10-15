@@ -1,0 +1,264 @@
+{
+ "dxTen": [
+  {
+   "loai": "ck",
+   "out": "đề xuất chiết khấu"
+  },
+  {
+   "loai": "tt",
+   "out": "đề xuất thanh toán"
+  },
+  {
+   "loai": "zz",
+   "out": "đề xuất"
+  },
+  {
+   "loai": "",
+   "out": "đề xuất"
+  },
+  {
+   "loai": "CK",
+   "out": "đề xuất"
+  },
+  {
+   "loai": "undefined",
+   "out": "đề xuất"
+  },
+  {
+   "loai": "null",
+   "out": "đề xuất"
+  }
+ ],
+ "limit": [
+  {
+   "limit": "__undefined__",
+   "out": " limit 30"
+  },
+  {
+   "limit": null,
+   "out": " limit 30"
+  },
+  {
+   "limit": 0,
+   "out": " limit 30"
+  },
+  {
+   "limit": 1,
+   "out": " limit 1"
+  },
+  {
+   "limit": 2,
+   "out": " limit 2"
+  },
+  {
+   "limit": 30,
+   "out": " limit 30"
+  },
+  {
+   "limit": 99,
+   "out": " limit 99"
+  },
+  {
+   "limit": 100,
+   "out": " limit 100"
+  },
+  {
+   "limit": 101,
+   "out": " limit 100"
+  },
+  {
+   "limit": 1000000000,
+   "out": " limit 100"
+  },
+  {
+   "limit": "5",
+   "out": " limit 5"
+  },
+  {
+   "limit": " 7 ",
+   "out": " limit 7"
+  },
+  {
+   "limit": "abc",
+   "out": " limit 30"
+  },
+  {
+   "limit": "",
+   "out": " limit 30"
+  },
+  {
+   "limit": true,
+   "out": " limit 1"
+  },
+  {
+   "limit": false,
+   "out": " limit 30"
+  },
+  {
+   "limit": 0.5,
+   "out": " limit 0"
+  },
+  {
+   "limit": 0.999,
+   "out": " limit 0"
+  },
+  {
+   "limit": 1.5,
+   "out": " limit 1"
+  },
+  {
+   "limit": 99.9,
+   "out": " limit 99"
+  },
+  {
+   "limit": -1,
+   "out": " limit -1"
+  },
+  {
+   "limit": -0.5,
+   "out": " limit -1"
+  },
+  {
+   "limit": -3.7,
+   "out": " limit -4"
+  },
+  {
+   "limit": [],
+   "out": " limit 30"
+  },
+  {
+   "limit": [
+    4
+   ],
+   "out": " limit 4"
+  },
+  {
+   "limit": {},
+   "out": " limit 30"
+  },
+  {
+   "limit": "0x10",
+   "out": " limit 16"
+  },
+  {
+   "limit": "1e2",
+   "out": " limit 100"
+  },
+  {
+   "limit": "__nan__",
+   "out": " limit 30"
+  },
+  {
+   "limit": -3000000000,
+   "out": " limit -3000000000"
+  },
+  {
+   "limit": -5000000000000000000,
+   "out": " limit -5000000000000000000"
+  },
+  {
+   "limit": -9223372036854775000,
+   "out": " limit -9223372036854775000"
+  },
+  {
+   "limit": -9223372036854776000,
+   "out": " limit -9223372036854776000"
+  },
+  {
+   "limit": -10000000000000000000,
+   "out": " limit -10000000000000000000"
+  },
+  {
+   "limit": -1e+21,
+   "out": " limit -1e+21"
+  },
+  {
+   "limit": "-Infinity",
+   "out": " limit -Infinity"
+  },
+  {
+   "limit": "__neginf__",
+   "out": " limit -Infinity"
+  },
+  {
+   "limit": "__inf__",
+   "out": " limit 100"
+  }
+ ],
+ "row": [
+  {
+   "row": {
+    "id": 1,
+    "kind": "k",
+    "title": "t",
+    "body": "b",
+    "ref_id": "R",
+    "is_read": true,
+    "created_at": "2026-01-01T00:00:00+00:00",
+    "cong_ty_id": "x",
+    "user_id": "u"
+   },
+   "out": {
+    "id": 1,
+    "kind": "k",
+    "title": "t",
+    "body": "b",
+    "refId": "R",
+    "read": true,
+    "at": "2026-01-01T00:00:00+00:00"
+   }
+  },
+  {
+   "row": {
+    "id": 2,
+    "kind": null,
+    "title": null,
+    "body": null,
+    "ref_id": null,
+    "is_read": false,
+    "created_at": null
+   },
+   "out": {
+    "id": 2,
+    "kind": null,
+    "title": null,
+    "body": null,
+    "refId": null,
+    "read": false,
+    "at": null
+   }
+  },
+  {
+   "row": {
+    "id": 3,
+    "is_read": null
+   },
+   "out": {
+    "id": 3,
+    "read": false
+   }
+  },
+  {
+   "row": {
+    "id": 4,
+    "is_read": 1,
+    "ref_id": 5
+   },
+   "out": {
+    "id": 4,
+    "refId": 5,
+    "read": false
+   }
+  },
+  {
+   "row": {
+    "id": 5,
+    "is_read": "true"
+   },
+   "out": {
+    "id": 5,
+    "read": false
+   }
+  }
+ ]
+}

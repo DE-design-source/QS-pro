@@ -1,0 +1,462 @@
+{
+ "href": [
+  [
+   "https://h.example.com/img.php?name=my file.png",
+   "https://h.example.com/img.php?name=my%20file.png"
+  ],
+  [
+   "https://h.example.com/a?y=é+ư",
+   "https://h.example.com/a?y=%C3%A9+%C6%B0"
+  ],
+  [
+   "https://fb.example.com/v0/b/x/o/folder%2Fmy file.png?alt=media",
+   "https://fb.example.com/v0/b/x/o/folder%2Fmy%20file.png?alt=media"
+  ],
+  [
+   "https://cdn.example.com/100%.png",
+   "https://cdn.example.com/100%.png"
+  ],
+  [
+   "https://h.example.com/a%2",
+   "https://h.example.com/a%2"
+  ],
+  [
+   "http://@cdn.example.com/v.png",
+   "http://cdn.example.com/v.png"
+  ],
+  [
+   "http://:@cdn.example.com/v.png",
+   "http://cdn.example.com/v.png"
+  ],
+  [
+   "http://::@cdn.example.com/v.png",
+   null
+  ],
+  [
+   "http://u@cdn.example.com/v.png",
+   null
+  ],
+  [
+   "http://:p@cdn.example.com/v.png",
+   null
+  ],
+  [
+   "http://a@b@cdn.example.com/v.png",
+   null
+  ],
+  [
+   "https://cdn.example.com/a/../b/./c.png",
+   "https://cdn.example.com/b/c.png"
+  ],
+  [
+   "https://cdn.example.com:443/a.png",
+   "https://cdn.example.com/a.png"
+  ],
+  [
+   "http://cdn.example.com:080/a.png",
+   "http://cdn.example.com/a.png"
+  ],
+  [
+   "http://cdn.example.com:80/a.png",
+   "http://cdn.example.com/a.png"
+  ],
+  [
+   "https://cdn.example.com:80/a.png",
+   "https://cdn.example.com:80/a.png"
+  ],
+  [
+   "http://cdn.example.com:443/a.png",
+   "http://cdn.example.com:443/a.png"
+  ],
+  [
+   "http://cdn.example.com:/a.png",
+   "http://cdn.example.com/a.png"
+  ],
+  [
+   "http://cdn.example.com:0/a.png",
+   "http://cdn.example.com:0/a.png"
+  ],
+  [
+   "http://cdn.example.com:00008080/a.png",
+   "http://cdn.example.com:8080/a.png"
+  ],
+  [
+   "http://cdn.example.com",
+   "http://cdn.example.com/"
+  ],
+  [
+   "http://cdn.example.com?x=1",
+   "http://cdn.example.com/?x=1"
+  ],
+  [
+   "http://cdn.example.com#f",
+   "http://cdn.example.com/#f"
+  ],
+  [
+   "http://cdn.example.com/?",
+   "http://cdn.example.com/?"
+  ],
+  [
+   "http://cdn.example.com/a\\b/..\\c/%2e%2E/d/.",
+   "http://cdn.example.com/a/d/"
+  ],
+  [
+   "http://cdn.example.com/a/%2e",
+   "http://cdn.example.com/a/"
+  ],
+  [
+   "http://cdn.example.com/a/..",
+   "http://cdn.example.com/"
+  ],
+  [
+   "http://cdn.example.com/x/../../..",
+   "http://cdn.example.com/"
+  ],
+  [
+   "http://cdn.example.com/.%2E/x",
+   "http://cdn.example.com/x"
+  ],
+  [
+   "http://cdn.example.com//b//",
+   "http://cdn.example.com//b//"
+  ],
+  [
+   "http://cdn.example.com/b/./",
+   "http://cdn.example.com/b/"
+  ],
+  [
+   "http://cdn.example.com/b/../",
+   "http://cdn.example.com/"
+  ],
+  [
+   "http://cdn.example.com/..a/.b/a../...",
+   "http://cdn.example.com/..a/.b/a../..."
+  ],
+  [
+   "http://cdn.example.com/^`{}|\"<>~[]'!$&()*+,;=:@ é%zz%2f%2F/x y",
+   "http://cdn.example.com/^%60%7B%7D|%22%3C%3E~[]'!$&()*+,;=:@%20%C3%A9%zz%2f%2F/x%20y"
+  ],
+  [
+   "http://cdn.example.com/p?^`{}|\"<>~[]'!$&()*+,;=:@ é%zz/\\x#f",
+   "http://cdn.example.com/p?^`{}|%22%3C%3E~[]%27!$&()*+,;=:@%20%C3%A9%zz/\\x#f"
+  ],
+  [
+   "http://cdn.example.com/\u0001?\u0001",
+   "http://cdn.example.com/%01%7F%C2%80?%01%7F%C2%80"
+  ],
+  [
+   "http://cdn.example.com/ảnh sản phẩm/Gạch 60x60.PNG?t=1&tên=ư",
+   "http://cdn.example.com/%E1%BA%A3nh%20s%E1%BA%A3n%20ph%E1%BA%A9m/G%E1%BA%A1ch%2060x60.PNG?t=1&t%C3%AAn=%C6%B0"
+  ],
+  [
+   "http://cdn.example.com/a?b?c#d#e",
+   "http://cdn.example.com/a?b?c#d#e"
+  ],
+  [
+   "http://cdn.example.com/a#b?c",
+   "http://cdn.example.com/a#b?c"
+  ],
+  [
+   "HTTP://CDN.Example.COM:8080/A.PNG?Q=1",
+   "http://cdn.example.com:8080/A.PNG?Q=1"
+  ],
+  [
+   "http://cdn.example.com/😀.png?😀",
+   "http://cdn.example.com/%F0%9F%98%80.png?%F0%9F%98%80"
+  ],
+  [
+   "  http://cdn.example.com/a\tb\nc.png  ",
+   "http://cdn.example.com/abc.png"
+  ],
+  [
+   "http://cdn.example.com/%7Ba%7D/%e1%ba%a3.png",
+   "http://cdn.example.com/%7Ba%7D/%e1%ba%a3.png"
+  ],
+  [
+   "http://cdn.example.com/a%20b+c",
+   "http://cdn.example.com/a%20b+c"
+  ],
+  [
+   "http://cdn.example.com/a;b=c/d,e",
+   "http://cdn.example.com/a;b=c/d,e"
+  ]
+ ],
+ "sent": [
+  [
+   "/a.png",
+   "/a.png",
+   "img.zz-quotations.example:{P}",
+   true
+  ],
+  [
+   "",
+   "/",
+   "img.zz-quotations.example:{P}",
+   true
+  ],
+  [
+   "?x=1",
+   "/?x=1",
+   "img.zz-quotations.example:{P}",
+   true
+  ],
+  [
+   "/img.php?name=my file.png",
+   "/img.php?name=my%20file.png",
+   "img.zz-quotations.example:{P}",
+   true
+  ],
+  [
+   "/a?y=é+ư",
+   "/a?y=%C3%A9+%C6%B0",
+   "img.zz-quotations.example:{P}",
+   true
+  ],
+  [
+   "/v0/b/x/o/folder%2Fmy file.png?alt=media",
+   "/v0/b/x/o/folder%2Fmy%20file.png?alt=media",
+   "img.zz-quotations.example:{P}",
+   true
+  ],
+  [
+   "/100%.png",
+   "/100%.png",
+   "img.zz-quotations.example:{P}",
+   true
+  ],
+  [
+   "/a%2",
+   "/a%2",
+   "img.zz-quotations.example:{P}",
+   true
+  ],
+  [
+   "/a/../b/./c.png",
+   "/b/c.png",
+   "img.zz-quotations.example:{P}",
+   true
+  ],
+  [
+   "//b//x.png",
+   "//b//x.png",
+   "img.zz-quotations.example:{P}",
+   true
+  ],
+  [
+   "/|a^b.png",
+   "/|a^b.png",
+   "img.zz-quotations.example:{P}",
+   true
+  ],
+  [
+   "/a\\b.png?c\\d",
+   "/a/b.png?c\\d",
+   "img.zz-quotations.example:{P}",
+   true
+  ],
+  [
+   "/^`{}|\"<>~[]'!$&()*+,;=:@ é%zz%2f%2F/x y",
+   "/^%60%7B%7D|%22%3C%3E~[]'!$&()*+,;=:@%20%C3%A9%zz%2f%2F/x%20y",
+   "img.zz-quotations.example:{P}",
+   true
+  ],
+  [
+   "/p?^`{}|\"<>~[]'!$&()*+,;=:@ é%zz/x#f",
+   "/p?^`{}|%22%3C%3E~[]%27!$&()*+,;=:@%20%C3%A9%zz/x",
+   "img.zz-quotations.example:{P}",
+   true
+  ],
+  [
+   "/ảnh sản phẩm/Gạch 60x60.PNG?t=1&tên=ư",
+   "/%E1%BA%A3nh%20s%E1%BA%A3n%20ph%E1%BA%A9m/G%E1%BA%A1ch%2060x60.PNG?t=1&t%C3%AAn=%C6%B0",
+   "img.zz-quotations.example:{P}",
+   true
+  ],
+  [
+   "/a%20b+c",
+   "/a%20b+c",
+   "img.zz-quotations.example:{P}",
+   true
+  ],
+  [
+   "/redirect-abs",
+   "/moved/a.png?x=1",
+   "img.zz-quotations.example:{P}",
+   true
+  ],
+  [
+   "/dir/redirect-rel",
+   "/dir/b.png",
+   "img.zz-quotations.example:{P}",
+   true
+  ]
+ ],
+ "enc": [
+  {
+   "n": "gzip",
+   "enc": "gzip",
+   "noLen": false,
+   "make": null,
+   "body": "H4sIAAAAAAAACusM8HPn5ZLiYmBg4PX0cAliYGBgBGEONgYGBnnRI51gCRfHkIpbyX/OHwjgZ2BpZWxoWdmjyMDAwODp6ueyzimhCQAmpJUHRgAAAA==",
+   "ok": true,
+   "ext": "png"
+  },
+  {
+   "n": "x-gzip",
+   "enc": "X-GZip",
+   "noLen": false,
+   "make": null,
+   "body": "H4sIAAAAAAAACusM8HPn5ZLiYmBg4PX0cAliYGBgBGEONgYGBnnRI51gCRfHkIpbyX/OHwjgZ2BpZWxoWdmjyMDAwODp6ueyzimhCQAmpJUHRgAAAA==",
+   "ok": true,
+   "ext": "png"
+  },
+  {
+   "n": "deflate",
+   "enc": "deflate",
+   "noLen": false,
+   "make": null,
+   "body": "eJzrDPBz5+WS4mJgYOD19HAJYmBgYARhDjYGBgZ50SOdYAkXx5CKW8l/zh8I4GdgaWVsaFnZo8jAwMDg6ernss4poQkAyrYQEw==",
+   "ok": true,
+   "ext": "png"
+  },
+  {
+   "n": "deflate-raw",
+   "enc": "deflate",
+   "noLen": false,
+   "make": null,
+   "body": "6wzwc+flkuJiYGDg9fRwCWJgYGAEYQ42BgYGedEjnWAJF8eQilvJf84fCOBnYGllbGhZ2aPIwMDA4Onq57LOKaEJAA==",
+   "ok": true,
+   "ext": "png"
+  },
+  {
+   "n": "gzip-gzip",
+   "enc": "gzip, gzip",
+   "noLen": false,
+   "make": null,
+   "body": "H4sIAAAAAAAACpPv5mAAA67XPB+Knz+d9CgpIeHB1y8FnEA6gSWRz4yNja3yovLcBE7x4xO6ok/Wn5PneJCekJmakxF5c/GJAwcOPHj56vmmc5oLORnUlkxldwMaBgBabxjfVQAAAA==",
+   "ok": true,
+   "ext": "png"
+  },
+  {
+   "n": "deflate-gzip",
+   "enc": "deflate,gzip",
+   "noLen": false,
+   "make": null,
+   "body": "H4sIAAAAAAAACgFJALb/eJzrDPBz5+WS4mJgYOD19HAJYmBgYARhDjYGBgZ50SOdYAkXx5CKW8l/zh8I4GdgaWVsaFnZo8jAwMDg6ernss4poQkAyrYQEzSYIU9JAAAA",
+   "ok": true,
+   "ext": "png"
+  },
+  {
+   "n": "unknown",
+   "enc": "gzip, foo",
+   "noLen": false,
+   "make": null,
+   "body": "H4sIAAAAAAAACusM8HPn5ZLiYmBg4PX0cAliYGBgBGEONgYGBnnRI51gCRfHkIpbyX/OHwjgZ2BpZWxoWdmjyMDAwODp6ueyzimhCQAmpJUHRgAAAA==",
+   "ok": false,
+   "ext": null
+  },
+  {
+   "n": "identity-gzip",
+   "enc": "identity, gzip",
+   "noLen": false,
+   "make": null,
+   "body": "H4sIAAAAAAAACusM8HPn5ZLiYmBg4PX0cAliYGBgBGEONgYGBnnRI51gCRfHkIpbyX/OHwjgZ2BpZWxoWdmjyMDAwODp6ueyzimhCQAmpJUHRgAAAA==",
+   "ok": false,
+   "ext": null
+  },
+  {
+   "n": "identity",
+   "enc": "identity",
+   "noLen": false,
+   "make": null,
+   "body": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+   "ok": true,
+   "ext": "png"
+  },
+  {
+   "n": "br",
+   "enc": "br",
+   "noLen": false,
+   "make": null,
+   "body": "iyKAiVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJgggM=",
+   "ok": true,
+   "ext": "png"
+  },
+  {
+   "n": "gzip-truncated",
+   "enc": "gzip",
+   "noLen": true,
+   "make": null,
+   "body": "H4sIAAAAAAAACusM8HPn5ZLiYmBg4PX0cAliYGBgBGEONgYGBnnRI51gCRfHkIpbyX/OHwjgZ2BpZWxoWdmjyMDAwODp6ueyzimhCQAmpA==",
+   "ok": true,
+   "ext": "png"
+  },
+  {
+   "n": "gzip-bad",
+   "enc": "gzip",
+   "noLen": true,
+   "make": null,
+   "body": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+   "ok": false,
+   "ext": null
+  },
+  {
+   "n": "gzip-big",
+   "enc": "gzip",
+   "noLen": false,
+   "make": "big",
+   "body": null,
+   "ok": false,
+   "ext": null
+  },
+  {
+   "n": "gzip-len-over",
+   "enc": "gzip",
+   "noLen": false,
+   "make": "rand",
+   "body": null,
+   "ok": false,
+   "ext": null
+  },
+  {
+   "n": "plain",
+   "enc": "",
+   "noLen": false,
+   "make": null,
+   "body": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+   "ok": true,
+   "ext": "png"
+  },
+  {
+   "n": "plain-big",
+   "enc": "",
+   "noLen": true,
+   "make": "big",
+   "body": null,
+   "ok": false,
+   "ext": null
+  }
+ ],
+ "headers": [
+  [
+   "accept",
+   "*/*"
+  ],
+  [
+   "accept-language",
+   "*"
+  ],
+  [
+   "sec-fetch-mode",
+   "cors"
+  ],
+  [
+   "user-agent",
+   "node"
+  ],
+  [
+   "accept-encoding",
+   "gzip, deflate"
+  ]
+ ]
+}

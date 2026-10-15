@@ -1,0 +1,748 @@
+{
+ "hdMig": "Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+ "daMat": "Bản nháp không còn tồn tại hoặc không thuộc công ty đang xem — hãy tải lại trang.",
+ "cols": [
+  "ten_chip_led",
+  "gia_ban_bo_nguon",
+  "da_duyet",
+  "nguoi_duyet",
+  "ngay_duyet",
+  "nganh",
+  "kich_thuoc",
+  "he_thong_xa",
+  "luong_nuoc_xa",
+  "thiet_ke",
+  "tam_xa",
+  "ap_luc_nuoc",
+  "luu_y",
+  "tinh_nang",
+  "nhom_bt",
+  "link_dezon",
+  "thong_so_file",
+  "huong_dan_lap_dat",
+  "file_ban_ve",
+  "mau_sac",
+  "kieu_lap_dat",
+  "chat_lieu",
+  "loai_nap",
+  "loai_voi",
+  "loai_sen",
+  "kieu_dieu_khien",
+  "massage",
+  "so_ho",
+  "luu_luong",
+  "loi_van",
+  "bat_sen",
+  "che_do_phun",
+  "so_lo_voi",
+  "xa_tran",
+  "dung_tich",
+  "nguon_dien",
+  "bon_cau_tuong_thich",
+  "do_day",
+  "be_mat",
+  "do_phu",
+  "thoi_gian_kho",
+  "so_lop",
+  "trang_thai_vat_ly",
+  "mui",
+  "nguong_mui",
+  "do_ph",
+  "diem_dong",
+  "diem_soi",
+  "diem_bung_chay",
+  "kha_nang_chay",
+  "gioi_han_no",
+  "ap_suat_hoa_hoi",
+  "mat_do_hoi",
+  "mat_do_tuong_doi",
+  "do_hoa_tan",
+  "tinh_deo",
+  "dac_tinh_hat",
+  "thanh_phan",
+  "so_o_cam",
+  "kieu_chau",
+  "so_nut",
+  "kieu_mach",
+  "kieu_thao_tac",
+  "den_bao",
+  "chi_so_ip",
+  "man_che",
+  "quy_cach",
+  "dong_dm_a",
+  "dien_ap_v",
+  "cong_suat_max_w",
+  "cong_suat_tai_max_w",
+  "cong_suat_tai_min_w",
+  "loai_tai",
+  "tuoi_tho_lan",
+  "tan_so_hz",
+  "vat_lieu_tiep_diem",
+  "chong_chay",
+  "tieu_chuan",
+  "chung_nhan",
+  "so_usb_a",
+  "so_usb_c",
+  "cong_suat_sac_w",
+  "usb_ra",
+  "loai_tin_hieu",
+  "thong_minh",
+  "giao_thuc",
+  "he_sinh_thai",
+  "day_trung_tinh",
+  "loai_cam_bien",
+  "tinh_nang_tm",
+  "so_module",
+  "rong_mm",
+  "cao_mm",
+  "sau_mm",
+  "loai_de",
+  "sau_hop_am_mm",
+  "tiet_dien_day"
+ ],
+ "colErr": [
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'ten_chip_led' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"ten_chip_led\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'gia_ban_bo_nguon' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"gia_ban_bo_nguon\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'da_duyet' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"da_duyet\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'nguoi_duyet' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"nguoi_duyet\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'ngay_duyet' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"ngay_duyet\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'nganh' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"nganh\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'kich_thuoc' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"kich_thuoc\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'he_thong_xa' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"he_thong_xa\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'luong_nuoc_xa' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"luong_nuoc_xa\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'thiet_ke' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"thiet_ke\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'tam_xa' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"tam_xa\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'ap_luc_nuoc' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"ap_luc_nuoc\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'luu_y' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"luu_y\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'tinh_nang' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"tinh_nang\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'nhom_bt' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"nhom_bt\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'link_dezon' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"link_dezon\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'thong_so_file' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"thong_so_file\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'huong_dan_lap_dat' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"huong_dan_lap_dat\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'file_ban_ve' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"file_ban_ve\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'mau_sac' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"mau_sac\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'kieu_lap_dat' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"kieu_lap_dat\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'chat_lieu' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"chat_lieu\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'loai_nap' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"loai_nap\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'loai_voi' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"loai_voi\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'loai_sen' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"loai_sen\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'kieu_dieu_khien' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"kieu_dieu_khien\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'massage' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"massage\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'so_ho' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"so_ho\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'luu_luong' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"luu_luong\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'loi_van' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"loi_van\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'bat_sen' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"bat_sen\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'che_do_phun' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"che_do_phun\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'so_lo_voi' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"so_lo_voi\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'xa_tran' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"xa_tran\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'dung_tich' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"dung_tich\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'nguon_dien' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"nguon_dien\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'bon_cau_tuong_thich' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"bon_cau_tuong_thich\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'do_day' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"do_day\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'be_mat' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"be_mat\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'do_phu' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"do_phu\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'thoi_gian_kho' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"thoi_gian_kho\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'so_lop' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"so_lop\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'trang_thai_vat_ly' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"trang_thai_vat_ly\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'mui' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"mui\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'nguong_mui' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"mui\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'do_ph' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"do_ph\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'diem_dong' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"diem_dong\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'diem_soi' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"diem_soi\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'diem_bung_chay' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"diem_bung_chay\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'kha_nang_chay' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"kha_nang_chay\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'gioi_han_no' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"gioi_han_no\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'ap_suat_hoa_hoi' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"ap_suat_hoa_hoi\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'mat_do_hoi' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"mat_do_hoi\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'mat_do_tuong_doi' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"mat_do_tuong_doi\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'do_hoa_tan' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"do_hoa_tan\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'tinh_deo' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"tinh_deo\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'dac_tinh_hat' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"dac_tinh_hat\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'thanh_phan' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"thanh_phan\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'so_o_cam' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"so_o_cam\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'kieu_chau' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"kieu_chau\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'so_nut' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"so_nut\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'kieu_mach' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"kieu_mach\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'kieu_thao_tac' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"kieu_thao_tac\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'den_bao' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"den_bao\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'chi_so_ip' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"chi_so_ip\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'man_che' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"man_che\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'quy_cach' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"quy_cach\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'dong_dm_a' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"dong_dm_a\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'dien_ap_v' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"dien_ap_v\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'cong_suat_max_w' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"cong_suat_max_w\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'cong_suat_tai_max_w' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"cong_suat_tai_max_w\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'cong_suat_tai_min_w' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"cong_suat_tai_min_w\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'loai_tai' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"loai_tai\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'tuoi_tho_lan' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"tuoi_tho_lan\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'tan_so_hz' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"tan_so_hz\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'vat_lieu_tiep_diem' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"vat_lieu_tiep_diem\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'chong_chay' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"chong_chay\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'tieu_chuan' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"tieu_chuan\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'chung_nhan' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"chung_nhan\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'so_usb_a' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"so_usb_a\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'so_usb_c' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"so_usb_c\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'cong_suat_sac_w' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"cong_suat_sac_w\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'usb_ra' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"usb_ra\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'loai_tin_hieu' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"loai_tin_hieu\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'thong_minh' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"thong_minh\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'giao_thuc' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"giao_thuc\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'he_sinh_thai' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"he_sinh_thai\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'day_trung_tinh' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"day_trung_tinh\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'loai_cam_bien' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"loai_cam_bien\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'tinh_nang_tm' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"tinh_nang\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'so_module' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"so_module\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'rong_mm' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"rong_mm\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'cao_mm' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"cao_mm\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'sau_mm' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"sau_mm\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'loai_de' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"loai_de\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'sau_hop_am_mm' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"sau_hop_am_mm\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST db_san_pham -> 400 {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'tiet_dien_day' column of 'db_san_pham' in the schema cache\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"tiet_dien_day\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "",
+   "out": "",
+   "same": true
+  },
+  {
+   "in": "DB PATCH db_san_pham -> 400 {\"code\":\"42703\",\"details\":null,\"hint\":null,\"message\":\"column \\\"nganh\\\" of relation \\\"db_san_pham\\\" does not exist\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"nganh\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB PATCH du_an -> 400 {\"code\":\"42703\",\"message\":\"COLUMN \\\"link_dezon\\\" does not exist\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"link_dezon\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB PATCH du_an -> 400 {\"code\":\"PGRST204\",\"message\":\"Could not find the 'link_dezon' in the SCHEMA CACHE\"}",
+   "out": "Cơ sở dữ liệu chưa có cột \"link_dezon\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB PATCH du_an -> 400 {\"code\":\"PGRST204\",\"message\":\"Could not find link_dezon in the schema  cache\"}",
+   "out": "DB PATCH du_an -> 400 {\"code\":\"PGRST204\",\"message\":\"Could not find link_dezon in the schema  cache\"}",
+   "same": true
+  },
+  {
+   "in": "thiếu nganh nhưng không có từ khoá",
+   "out": "thiếu nganh nhưng không có từ khoá",
+   "same": true
+  },
+  {
+   "in": "column tinh_nang và kich_thuoc và nganh",
+   "out": "Cơ sở dữ liệu chưa có cột \"nganh\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "column file_ban_ve, ten_chip_led",
+   "out": "Cơ sở dữ liệu chưa có cột \"ten_chip_led\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "column tiet_dien_day ten_chip_led",
+   "out": "Cơ sở dữ liệu chưa có cột \"ten_chip_led\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "column tiet_dien_day kieu_dieu_khien",
+   "out": "Cơ sở dữ liệu chưa có cột \"kieu_dieu_khien\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "column khong_co_trong_danh_sach does not exist",
+   "out": "column khong_co_trong_danh_sach does not exist",
+   "same": true
+  },
+  {
+   "in": "DB POST db_bao_gia -> 409 {\"code\":\"23503\",\"message\":\"insert or update on table \\\"db_bao_gia\\\" violates foreign key constraint\"}",
+   "out": "DB POST db_bao_gia -> 409 {\"code\":\"23503\",\"message\":\"insert or update on table \\\"db_bao_gia\\\" violates foreign key constraint\"}",
+   "same": true
+  },
+  {
+   "in": "columns: xnganhx",
+   "out": "Cơ sở dữ liệu chưa có cột \"nganh\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "Column luu_y",
+   "out": "Cơ sở dữ liệu chưa có cột \"luu_y\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "schema cache thiet_ke_abc",
+   "out": "Cơ sở dữ liệu chưa có cột \"thiet_ke\". Hãy chạy \"npm run migrate\" rồi khởi động lại server.",
+   "same": false
+  },
+  {
+   "in": "DB POST cong_tac -> 400 {\"code\":\"PGRST204\",\"message\":\"Could not find the 'yeu_thich' column of 'cong_tac' in the schema cache\"}",
+   "out": "DB POST cong_tac -> 400 {\"code\":\"PGRST204\",\"message\":\"Could not find the 'yeu_thich' column of 'cong_tac' in the schema cache\"}",
+   "same": true
+  }
+ ],
+ "khongCoCha": [
+  {
+   "in": "",
+   "out": false
+  },
+  {
+   "in": "23503",
+   "out": true
+  },
+  {
+   "in": "x 23503 y",
+   "out": true
+  },
+  {
+   "in": "\"code\":\"23503\"",
+   "out": true
+  },
+  {
+   "in": "a23503",
+   "out": false
+  },
+  {
+   "in": "23503b",
+   "out": false
+  },
+  {
+   "in": "_23503",
+   "out": false
+  },
+  {
+   "in": "123503",
+   "out": false
+  },
+  {
+   "in": "235030",
+   "out": false
+  },
+  {
+   "in": "23503.",
+   "out": true
+  },
+  {
+   "in": "-23503-",
+   "out": true
+  },
+  {
+   "in": "é23503é",
+   "out": true
+  },
+  {
+   "in": "DB POST db_bao_gia -> 409 {\"code\":\"23503\",\"details\":\"Key (ma_du_an)=(X) is not present in table \\\"du_an\\\".\",\"message\":\"insert or update on table \\\"db_bao_gia\\\" violates foreign key constraint \\\"db_bao_gia_ma_du_an_fkey\\\"\"}",
+   "out": true
+  },
+  {
+   "in": "DB POST db_bao_gia -> 409 {\"code\":\"23505\"}",
+   "out": false
+  }
+ ],
+ "s": [
+  "",
+  "",
+  "",
+  "0",
+  "0",
+  "false",
+  "true",
+  "12.5",
+  "1e+21",
+  "1e-7",
+  "0.30000000000000004",
+  "NaN",
+  "Infinity",
+  "abc",
+  "1,,a",
+  "[object Object]",
+  "",
+  "123456789012345680000"
+ ]
+}

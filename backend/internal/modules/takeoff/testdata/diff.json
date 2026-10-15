@@ -1,0 +1,616 @@
+{
+ "contexts": {
+  "ct": {
+   "uid": "68cb6934-c871-4681-8cfe-def02ba28b0c",
+   "role": "super",
+   "congTyId": "90c41ced-2477-4342-97da-e226344354f1",
+   "viewAs": null
+  },
+  "other": {
+   "uid": "6b3c2504-3761-485d-b9ec-7224eedd186f",
+   "role": "admin",
+   "congTyId": "58e4937e-eb52-4feb-8a51-456d13857306",
+   "viewAs": null
+  },
+  "none": {
+   "uid": "68cb6934-c871-4681-8cfe-def02ba28b0c",
+   "role": "super",
+   "congTyId": null,
+   "viewAs": null
+  }
+ },
+ "actor": {
+  "uid": "68cb6934-c871-4681-8cfe-def02ba28b0c",
+  "u": "ZZ_takeoff_u",
+  "r": "super",
+  "ct": "90c41ced-2477-4342-97da-e226344354f1"
+ },
+ "steps": [
+  {
+   "op": "remove",
+   "ctx": "none",
+   "table": "du_an",
+   "filter": "ma_da=eq.ZZ_takeoff_A",
+   "out": "{\"ok\":true}"
+  },
+  {
+   "op": "insert",
+   "ctx": "ct",
+   "table": "du_an",
+   "rows": [
+    {
+     "ma_da": "ZZ_takeoff_A",
+     "ten_du_an": "ZZ_takeoff_ dự án",
+     "trang_thai": "Bản nháp"
+    }
+   ],
+   "out": "{\"ok\":true}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "getLines",
+   "args": [
+    "ZZ_takeoff_A"
+   ],
+   "out": "{\"result\":[]}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "addLine",
+   "args": [
+    "ZZ_takeoff_A",
+    {
+     "nhom": "3.2.6",
+     "hangMuc": "Đèn âm trần",
+     "loai": "bị đè",
+     "tang": "Tầng 1",
+     "ma": "ZZ-D01",
+     "ten": "ZZ_takeoff_ Đèn A",
+     "thuongHieu": "Ades",
+     "ncc": "NCC",
+     "moTa": "mô tả\ndòng 2",
+     "kichThuoc": "Ø90",
+     "hinhAnh": "http://x/a.png",
+     "dvt": "Bộ",
+     "khuVuc": "Khách",
+     "maBanVe": "L1",
+     "donGiaVon": 1250000,
+     "donGiaBan": 1500000,
+     "chietKhau": 12.5,
+     "ckKhach": 5,
+     "lnPct": 99,
+     "trangThai": "Chờ",
+     "ghiChu": "gc",
+     "tuNhap": 1,
+     "daLuuDM": "1",
+     "extra": {
+      "z": 1,
+      "a": [
+       1,
+       {
+        "k": null
+       }
+      ]
+     }
+    },
+    3
+   ],
+   "save": {
+    "name": "l1",
+    "key": "lineId"
+   },
+   "out": "{\"result\":{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":1,\"nhom\":\"3.2.6\",\"loai\":\"Đèn âm trần\",\"tang\":\"Tầng 1\",\"maSP\":\"ZZ-D01\",\"ten\":\"ZZ_takeoff_ Đèn A\",\"thuongHieu\":\"Ades\",\"ncc\":\"NCC\",\"moTa\":\"mô tả\\ndòng 2\",\"kichThuoc\":\"Ø90\",\"hinhAnh\":\"http://x/a.png\",\"dvt\":\"Bộ\",\"khuVuc\":\"Khách\",\"maBanVe\":\"L1\",\"soLuong\":3,\"donGiaVon\":1250000,\"chietKhau\":12.5,\"lnPct\":20,\"donGiaBan\":1500000,\"ckKhach\":5,\"donGia\":1425000,\"giamGiaNcc\":0,\"thanhTienVon\":3281250,\"thanhTienBan\":4275000,\"trangThai\":\"Chờ\",\"ghiChu\":\"gc\",\"tuNhap\":1,\"daLuuDM\":1,\"extra\":{\"a\":[1,{\"k\":null}],\"z\":1}}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "addLine",
+   "args": [
+    "ZZ_takeoff_A",
+    {
+     "ten": "ZZ_takeoff_ VN",
+     "donGiaVon": "1.250.000",
+     "donGiaBan": "1.500.000",
+     "chietKhau": "10",
+     "ckKhach": "2.5"
+    },
+    "2"
+   ],
+   "save": {
+    "name": "l2",
+    "key": "lineId"
+   },
+   "out": "{\"result\":{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":2,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"ZZ_takeoff_ VN\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":2,\"donGiaVon\":1250000,\"chietKhau\":10,\"lnPct\":20,\"donGiaBan\":1500000,\"ckKhach\":2.5,\"donGia\":1462500,\"giamGiaNcc\":0,\"thanhTienVon\":2250000,\"thanhTienBan\":2925000,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "addBlankLine",
+   "args": [
+    "ZZ_takeoff_A",
+    {
+     "tang": "Tầng 2",
+     "nhom": "3.2.5"
+    }
+   ],
+   "save": {
+    "name": "l3",
+    "key": "lineId"
+   },
+   "out": "{\"result\":{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":3,\"nhom\":\"3.2.5\",\"loai\":\"\",\"tang\":\"Tầng 2\",\"maSP\":\"\",\"ten\":\"Hạng mục mới\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":0,\"chietKhau\":0,\"lnPct\":0,\"donGiaBan\":0,\"ckKhach\":0,\"donGia\":0,\"giamGiaNcc\":0,\"thanhTienVon\":0,\"thanhTienBan\":0,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "addBlankLine",
+   "args": [
+    "ZZ_takeoff_A"
+   ],
+   "save": {
+    "name": "l4",
+    "key": "lineId"
+   },
+   "out": "{\"result\":{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":4,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"Hạng mục mới\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":0,\"chietKhau\":0,\"lnPct\":0,\"donGiaBan\":0,\"ckKhach\":0,\"donGia\":0,\"giamGiaNcc\":0,\"thanhTienVon\":0,\"thanhTienBan\":0,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "addLine",
+   "args": [
+    "ZZ_takeoff_A",
+    {
+     "ten": "ZZ_takeoff_ nửa âm",
+     "donGiaVon": 200,
+     "donGiaBan": 195
+    },
+    1
+   ],
+   "save": {
+    "name": "l5",
+    "key": "lineId"
+   },
+   "out": "{\"result\":{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":5,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"ZZ_takeoff_ nửa âm\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":200,\"chietKhau\":0,\"lnPct\":-2,\"donGiaBan\":195,\"ckKhach\":0,\"donGia\":195,\"giamGiaNcc\":0,\"thanhTienVon\":200,\"thanhTienBan\":195,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "addLine",
+   "args": [
+    "ZZ_takeoff_A",
+    {
+     "ten": "ZZ_takeoff_ lỗi ck",
+     "donGiaVon": 100,
+     "chietKhau": 150
+    },
+    1
+   ],
+   "out": "{\"error\":\"DB POST db_bao_gia -> 409 {\\\"code\\\":\\\"23514\\\",\\\"details\\\":\\\"Failing row contains (<id>, ZZ_takeoff_A, 6, null, , , , ZZ_takeoff_ lỗi ck, , Cái, 1, -50, 0, 100, 0, 100, 100, 0, 150, 150, , , 6, <ts>, , , , , , , , 100, 150, 0, 0, null, null).\\\",\\\"hint\\\":null,\\\"message\\\":\\\"new row for relation \\\\\\\"quotation_lines\\\\\\\" violates check constraint \\\\\\\"ck_quotation_lines_dealer_discount_pct\\\\\\\"\\\"}\"}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "addLine",
+   "args": [
+    "ZZ_takeoff_A",
+    {
+     "ten": "ZZ_takeoff_ lỗi cờ",
+     "tuNhap": 2
+    },
+    1
+   ],
+   "out": "{\"error\":\"DB POST db_bao_gia -> 409 {\\\"code\\\":\\\"23514\\\",\\\"details\\\":\\\"Failing row contains (<id>, ZZ_takeoff_A, 6, null, , , , ZZ_takeoff_ lỗi cờ, , Cái, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, , , 6, <ts>, , , , , , , , 0, 0, 2, 0, null, null).\\\",\\\"hint\\\":null,\\\"message\\\":\\\"new row for relation \\\\\\\"quotation_lines\\\\\\\" violates check constraint \\\\\\\"ck_quotation_lines_is_manual_entry\\\\\\\"\\\"}\"}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "addLine",
+   "args": [
+    "ZZ_takeoff_A",
+    {
+     "ten": "ZZ_takeoff_ extra",
+     "extra": [
+      1,
+      {
+       "b": 2,
+       "a": 1
+      }
+     ],
+     "daLuuDM": 1,
+     "tuNhap": "1",
+     "donGiaVon": "12,5",
+     "lnPct": "30"
+    },
+    2.5
+   ],
+   "out": "{\"result\":{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":6,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"ZZ_takeoff_ extra\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":2.5,\"donGiaVon\":12.5,\"chietKhau\":0,\"lnPct\":30,\"donGiaBan\":16,\"ckKhach\":0,\"donGia\":16,\"giamGiaNcc\":0,\"thanhTienVon\":33,\"thanhTienBan\":40,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":1,\"daLuuDM\":1,\"extra\":[1,{\"a\":1,\"b\":2}]}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "addLine",
+   "args": [
+    "ZZ_takeoff_A",
+    {
+     "ten": 5,
+     "ma": 12,
+     "nhom": {
+      "a": 1
+     },
+     "ghiChu": [
+      "x",
+      "y"
+     ]
+    },
+    "abc"
+   ],
+   "out": "{\"result\":{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":7,\"nhom\":\"{\\\"a\\\":1}\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"12\",\"ten\":\"5\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":0,\"chietKhau\":0,\"lnPct\":0,\"donGiaBan\":0,\"ckKhach\":0,\"donGia\":0,\"giamGiaNcc\":0,\"thanhTienVon\":0,\"thanhTienBan\":0,\"trangThai\":\"\",\"ghiChu\":\"[\\\"x\\\",\\\"y\\\"]\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "addLine",
+   "args": [
+    "ZZ_takeoff_none",
+    {
+     "ten": "ZZ_takeoff_ x"
+    },
+    1
+   ],
+   "out": "{\"error\":\"Bản nháp không còn tồn tại hoặc không thuộc công ty đang xem — hãy tải lại trang.\"}"
+  },
+  {
+   "op": "call",
+   "ctx": "other",
+   "fn": "addLine",
+   "args": [
+    "ZZ_takeoff_A",
+    {
+     "ten": "ZZ_takeoff_ hack"
+    },
+    1
+   ],
+   "out": "{\"error\":\"Bản nháp không còn tồn tại hoặc không thuộc công ty đang xem — hãy tải lại trang.\"}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "addLine",
+   "args": [
+    "ZZ_takeoff_A"
+   ],
+   "out": "{\"result\":{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":8,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":0,\"chietKhau\":0,\"lnPct\":0,\"donGiaBan\":0,\"ckKhach\":0,\"donGia\":0,\"giamGiaNcc\":0,\"thanhTienVon\":0,\"thanhTienBan\":0,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "addLine",
+   "args": [],
+   "out": "{\"error\":\"Bản nháp không còn tồn tại hoặc không thuộc công ty đang xem — hãy tải lại trang.\"}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "getLines",
+   "args": [
+    "ZZ_takeoff_A"
+   ],
+   "out": "{\"result\":[{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":1,\"nhom\":\"3.2.6\",\"loai\":\"Đèn âm trần\",\"tang\":\"Tầng 1\",\"maSP\":\"ZZ-D01\",\"ten\":\"ZZ_takeoff_ Đèn A\",\"thuongHieu\":\"Ades\",\"ncc\":\"NCC\",\"moTa\":\"mô tả\\ndòng 2\",\"kichThuoc\":\"Ø90\",\"hinhAnh\":\"http://x/a.png\",\"dvt\":\"Bộ\",\"khuVuc\":\"Khách\",\"maBanVe\":\"L1\",\"soLuong\":3,\"donGiaVon\":1250000,\"chietKhau\":12.5,\"lnPct\":20,\"donGiaBan\":1500000,\"ckKhach\":5,\"donGia\":1425000,\"giamGiaNcc\":0,\"thanhTienVon\":3281250,\"thanhTienBan\":4275000,\"trangThai\":\"Chờ\",\"ghiChu\":\"gc\",\"tuNhap\":1,\"daLuuDM\":1,\"extra\":{\"a\":[1,{\"k\":null}],\"z\":1}},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":2,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"ZZ_takeoff_ VN\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":2,\"donGiaVon\":1250000,\"chietKhau\":10,\"lnPct\":20,\"donGiaBan\":1500000,\"ckKhach\":2.5,\"donGia\":1462500,\"giamGiaNcc\":0,\"thanhTienVon\":2250000,\"thanhTienBan\":2925000,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":3,\"nhom\":\"3.2.5\",\"loai\":\"\",\"tang\":\"Tầng 2\",\"maSP\":\"\",\"ten\":\"Hạng mục mới\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":0,\"chietKhau\":0,\"lnPct\":0,\"donGiaBan\":0,\"ckKhach\":0,\"donGia\":0,\"giamGiaNcc\":0,\"thanhTienVon\":0,\"thanhTienBan\":0,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":4,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"Hạng mục mới\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":0,\"chietKhau\":0,\"lnPct\":0,\"donGiaBan\":0,\"ckKhach\":0,\"donGia\":0,\"giamGiaNcc\":0,\"thanhTienVon\":0,\"thanhTienBan\":0,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":5,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"ZZ_takeoff_ nửa âm\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":200,\"chietKhau\":0,\"lnPct\":-2,\"donGiaBan\":195,\"ckKhach\":0,\"donGia\":195,\"giamGiaNcc\":0,\"thanhTienVon\":200,\"thanhTienBan\":195,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":6,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"ZZ_takeoff_ extra\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":2.5,\"donGiaVon\":12.5,\"chietKhau\":0,\"lnPct\":30,\"donGiaBan\":16,\"ckKhach\":0,\"donGia\":16,\"giamGiaNcc\":0,\"thanhTienVon\":33,\"thanhTienBan\":40,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":1,\"daLuuDM\":1,\"extra\":[1,{\"a\":1,\"b\":2}]},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":7,\"nhom\":\"{\\\"a\\\":1}\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"12\",\"ten\":\"5\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":0,\"chietKhau\":0,\"lnPct\":0,\"donGiaBan\":0,\"ckKhach\":0,\"donGia\":0,\"giamGiaNcc\":0,\"thanhTienVon\":0,\"thanhTienBan\":0,\"trangThai\":\"\",\"ghiChu\":\"[\\\"x\\\",\\\"y\\\"]\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":8,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":0,\"chietKhau\":0,\"lnPct\":0,\"donGiaBan\":0,\"ckKhach\":0,\"donGia\":0,\"giamGiaNcc\":0,\"thanhTienVon\":0,\"thanhTienBan\":0,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}}]}"
+  },
+  {
+   "op": "call",
+   "ctx": "other",
+   "fn": "getLines",
+   "args": [
+    "ZZ_takeoff_A"
+   ],
+   "out": "{\"result\":[]}"
+  },
+  {
+   "op": "call",
+   "ctx": "none",
+   "fn": "getLines",
+   "args": [
+    "ZZ_takeoff_A"
+   ],
+   "out": "{\"result\":[{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":1,\"nhom\":\"3.2.6\",\"loai\":\"Đèn âm trần\",\"tang\":\"Tầng 1\",\"maSP\":\"ZZ-D01\",\"ten\":\"ZZ_takeoff_ Đèn A\",\"thuongHieu\":\"Ades\",\"ncc\":\"NCC\",\"moTa\":\"mô tả\\ndòng 2\",\"kichThuoc\":\"Ø90\",\"hinhAnh\":\"http://x/a.png\",\"dvt\":\"Bộ\",\"khuVuc\":\"Khách\",\"maBanVe\":\"L1\",\"soLuong\":3,\"donGiaVon\":1250000,\"chietKhau\":12.5,\"lnPct\":20,\"donGiaBan\":1500000,\"ckKhach\":5,\"donGia\":1425000,\"giamGiaNcc\":0,\"thanhTienVon\":3281250,\"thanhTienBan\":4275000,\"trangThai\":\"Chờ\",\"ghiChu\":\"gc\",\"tuNhap\":1,\"daLuuDM\":1,\"extra\":{\"a\":[1,{\"k\":null}],\"z\":1}},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":2,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"ZZ_takeoff_ VN\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":2,\"donGiaVon\":1250000,\"chietKhau\":10,\"lnPct\":20,\"donGiaBan\":1500000,\"ckKhach\":2.5,\"donGia\":1462500,\"giamGiaNcc\":0,\"thanhTienVon\":2250000,\"thanhTienBan\":2925000,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":3,\"nhom\":\"3.2.5\",\"loai\":\"\",\"tang\":\"Tầng 2\",\"maSP\":\"\",\"ten\":\"Hạng mục mới\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":0,\"chietKhau\":0,\"lnPct\":0,\"donGiaBan\":0,\"ckKhach\":0,\"donGia\":0,\"giamGiaNcc\":0,\"thanhTienVon\":0,\"thanhTienBan\":0,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":4,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"Hạng mục mới\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":0,\"chietKhau\":0,\"lnPct\":0,\"donGiaBan\":0,\"ckKhach\":0,\"donGia\":0,\"giamGiaNcc\":0,\"thanhTienVon\":0,\"thanhTienBan\":0,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":5,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"ZZ_takeoff_ nửa âm\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":200,\"chietKhau\":0,\"lnPct\":-2,\"donGiaBan\":195,\"ckKhach\":0,\"donGia\":195,\"giamGiaNcc\":0,\"thanhTienVon\":200,\"thanhTienBan\":195,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":6,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"ZZ_takeoff_ extra\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":2.5,\"donGiaVon\":12.5,\"chietKhau\":0,\"lnPct\":30,\"donGiaBan\":16,\"ckKhach\":0,\"donGia\":16,\"giamGiaNcc\":0,\"thanhTienVon\":33,\"thanhTienBan\":40,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":1,\"daLuuDM\":1,\"extra\":[1,{\"a\":1,\"b\":2}]},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":7,\"nhom\":\"{\\\"a\\\":1}\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"12\",\"ten\":\"5\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":0,\"chietKhau\":0,\"lnPct\":0,\"donGiaBan\":0,\"ckKhach\":0,\"donGia\":0,\"giamGiaNcc\":0,\"thanhTienVon\":0,\"thanhTienBan\":0,\"trangThai\":\"\",\"ghiChu\":\"[\\\"x\\\",\\\"y\\\"]\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":8,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":0,\"chietKhau\":0,\"lnPct\":0,\"donGiaBan\":0,\"ckKhach\":0,\"donGia\":0,\"giamGiaNcc\":0,\"thanhTienVon\":0,\"thanhTienBan\":0,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}}]}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "getLines",
+   "args": [],
+   "out": "{\"result\":[]}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "updateLine",
+   "args": [
+    "{{l1}}",
+    {
+     "khuVuc": "Bếp",
+     "ghiChu": null,
+     "ten": "ZZ_takeoff_ sửa",
+     "la": 1
+    }
+   ],
+   "out": "{\"result\":{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":1,\"nhom\":\"3.2.6\",\"loai\":\"Đèn âm trần\",\"tang\":\"Tầng 1\",\"maSP\":\"ZZ-D01\",\"ten\":\"ZZ_takeoff_ sửa\",\"thuongHieu\":\"Ades\",\"ncc\":\"NCC\",\"moTa\":\"mô tả\\ndòng 2\",\"kichThuoc\":\"Ø90\",\"hinhAnh\":\"http://x/a.png\",\"dvt\":\"Bộ\",\"khuVuc\":\"Bếp\",\"maBanVe\":\"L1\",\"soLuong\":3,\"donGiaVon\":1250000,\"chietKhau\":12.5,\"lnPct\":20,\"donGiaBan\":1500000,\"ckKhach\":5,\"donGia\":1425000,\"giamGiaNcc\":0,\"thanhTienVon\":3281250,\"thanhTienBan\":4275000,\"trangThai\":\"Chờ\",\"ghiChu\":\"\",\"tuNhap\":1,\"daLuuDM\":1,\"extra\":{\"a\":[1,{\"k\":null}],\"z\":1}}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "updateLine",
+   "args": [
+    "{{l1}}",
+    {
+     "donGiaBan": "2.000.000",
+     "lnPct": 99
+    }
+   ],
+   "out": "{\"result\":{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":1,\"nhom\":\"3.2.6\",\"loai\":\"Đèn âm trần\",\"tang\":\"Tầng 1\",\"maSP\":\"ZZ-D01\",\"ten\":\"ZZ_takeoff_ sửa\",\"thuongHieu\":\"Ades\",\"ncc\":\"NCC\",\"moTa\":\"mô tả\\ndòng 2\",\"kichThuoc\":\"Ø90\",\"hinhAnh\":\"http://x/a.png\",\"dvt\":\"Bộ\",\"khuVuc\":\"Bếp\",\"maBanVe\":\"L1\",\"soLuong\":3,\"donGiaVon\":1250000,\"chietKhau\":12.5,\"lnPct\":60,\"donGiaBan\":2000000,\"ckKhach\":5,\"donGia\":1900000,\"giamGiaNcc\":0,\"thanhTienVon\":3281250,\"thanhTienBan\":5700000,\"trangThai\":\"Chờ\",\"ghiChu\":\"\",\"tuNhap\":1,\"daLuuDM\":1,\"extra\":{\"a\":[1,{\"k\":null}],\"z\":1}}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "updateLine",
+   "args": [
+    "{{l1}}",
+    {
+     "lnPct": 12.5
+    }
+   ],
+   "out": "{\"result\":{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":1,\"nhom\":\"3.2.6\",\"loai\":\"Đèn âm trần\",\"tang\":\"Tầng 1\",\"maSP\":\"ZZ-D01\",\"ten\":\"ZZ_takeoff_ sửa\",\"thuongHieu\":\"Ades\",\"ncc\":\"NCC\",\"moTa\":\"mô tả\\ndòng 2\",\"kichThuoc\":\"Ø90\",\"hinhAnh\":\"http://x/a.png\",\"dvt\":\"Bộ\",\"khuVuc\":\"Bếp\",\"maBanVe\":\"L1\",\"soLuong\":3,\"donGiaVon\":1250000,\"chietKhau\":12.5,\"lnPct\":12.5,\"donGiaBan\":1406250,\"ckKhach\":5,\"donGia\":1335938,\"giamGiaNcc\":0,\"thanhTienVon\":3281250,\"thanhTienBan\":4007814,\"trangThai\":\"Chờ\",\"ghiChu\":\"\",\"tuNhap\":1,\"daLuuDM\":1,\"extra\":{\"a\":[1,{\"k\":null}],\"z\":1}}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "updateLine",
+   "args": [
+    "{{l1}}",
+    {
+     "donGiaVon": "1.000.000,5",
+     "soLuong": "4",
+     "chietKhau": 10,
+     "ckKhach": 7.5
+    }
+   ],
+   "out": "{\"result\":{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":1,\"nhom\":\"3.2.6\",\"loai\":\"Đèn âm trần\",\"tang\":\"Tầng 1\",\"maSP\":\"ZZ-D01\",\"ten\":\"ZZ_takeoff_ sửa\",\"thuongHieu\":\"Ades\",\"ncc\":\"NCC\",\"moTa\":\"mô tả\\ndòng 2\",\"kichThuoc\":\"Ø90\",\"hinhAnh\":\"http://x/a.png\",\"dvt\":\"Bộ\",\"khuVuc\":\"Bếp\",\"maBanVe\":\"L1\",\"soLuong\":4,\"donGiaVon\":1000000.5,\"chietKhau\":10,\"lnPct\":12.5,\"donGiaBan\":1125001,\"ckKhach\":7.5,\"donGia\":1040626,\"giamGiaNcc\":0,\"thanhTienVon\":3600000,\"thanhTienBan\":4162504,\"trangThai\":\"Chờ\",\"ghiChu\":\"\",\"tuNhap\":1,\"daLuuDM\":1,\"extra\":{\"a\":[1,{\"k\":null}],\"z\":1}}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "updateLine",
+   "args": [
+    "{{l2}}",
+    {
+     "stt": 9,
+     "extra": {
+      "k": [
+       1
+      ]
+     },
+     "giamGiaNcc": "3.5",
+     "tuNhap": 1,
+     "daLuuDM": true
+    }
+   ],
+   "out": "{\"result\":{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":9,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"ZZ_takeoff_ VN\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":2,\"donGiaVon\":1250000,\"chietKhau\":10,\"lnPct\":20,\"donGiaBan\":1500000,\"ckKhach\":2.5,\"donGia\":1462500,\"giamGiaNcc\":3.5,\"thanhTienVon\":2250000,\"thanhTienBan\":2925000,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":1,\"daLuuDM\":1,\"extra\":{\"k\":[1]}}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "updateLine",
+   "args": [
+    "{{l2}}",
+    {
+     "stt": null,
+     "extra": 0
+    }
+   ],
+   "out": "{\"result\":{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":0,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"ZZ_takeoff_ VN\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":2,\"donGiaVon\":1250000,\"chietKhau\":10,\"lnPct\":20,\"donGiaBan\":1500000,\"ckKhach\":2.5,\"donGia\":1462500,\"giamGiaNcc\":3.5,\"thanhTienVon\":2250000,\"thanhTienBan\":2925000,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":1,\"daLuuDM\":1,\"extra\":{}}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "updateLine",
+   "args": [
+    "{{l3}}",
+    {
+     "soLuong": -1
+    }
+   ],
+   "out": "{\"error\":\"DB PATCH db_bao_gia -> 409 {\\\"code\\\":\\\"23514\\\",\\\"details\\\":\\\"Failing row contains (<id>, ZZ_takeoff_A, 3, null, , , , Hạng mục mới, , Cái, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, , , 3, <ts>, 3.2.5, , Tầng 2, , , , , 0, 0, 0, 0, null, null).\\\",\\\"hint\\\":null,\\\"message\\\":\\\"new row for relation \\\\\\\"quotation_lines\\\\\\\" violates check constraint \\\\\\\"ck_quotation_lines_quantity\\\\\\\"\\\"}\"}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "updateLine",
+   "args": [
+    "{{l3}}",
+    {
+     "giamGiaNcc": 101
+    }
+   ],
+   "out": "{\"error\":\"DB PATCH db_bao_gia -> 409 {\\\"code\\\":\\\"23514\\\",\\\"details\\\":\\\"Failing row contains (<id>, ZZ_takeoff_A, 3, null, , , , Hạng mục mới, , Cái, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, , , 3, <ts>, 3.2.5, , Tầng 2, , , , , 0, 0, 0, 0, null, 101).\\\",\\\"hint\\\":null,\\\"message\\\":\\\"new row for relation \\\\\\\"quotation_lines\\\\\\\" violates check constraint \\\\\\\"ck_quotation_lines_supplier_discount_pct\\\\\\\"\\\"}\"}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "updateLine",
+   "args": [
+    "{{l3}}",
+    {}
+   ],
+   "out": "{\"result\":{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":3,\"nhom\":\"3.2.5\",\"loai\":\"\",\"tang\":\"Tầng 2\",\"maSP\":\"\",\"ten\":\"Hạng mục mới\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":0,\"chietKhau\":0,\"lnPct\":0,\"donGiaBan\":0,\"ckKhach\":0,\"donGia\":0,\"giamGiaNcc\":0,\"thanhTienVon\":0,\"thanhTienBan\":0,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "updateLine",
+   "args": [
+    "{{l3}}"
+   ],
+   "out": "{\"result\":{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":3,\"nhom\":\"3.2.5\",\"loai\":\"\",\"tang\":\"Tầng 2\",\"maSP\":\"\",\"ten\":\"Hạng mục mới\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":0,\"chietKhau\":0,\"lnPct\":0,\"donGiaBan\":0,\"ckKhach\":0,\"donGia\":0,\"giamGiaNcc\":0,\"thanhTienVon\":0,\"thanhTienBan\":0,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "updateLine",
+   "args": [
+    "{{l4}}",
+    {
+     "ten": 5,
+     "nhom": {
+      "a": 1
+     },
+     "dvt": null,
+     "maSP": [
+      "a"
+     ],
+     "soLuong": "2,5",
+     "donGiaBan": 1000
+    }
+   ],
+   "out": "{\"result\":{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":4,\"nhom\":\"{\\\"a\\\":1}\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"[\\\"a\\\"]\",\"ten\":\"5\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":0,\"donGiaVon\":0,\"chietKhau\":0,\"lnPct\":0,\"donGiaBan\":1000,\"ckKhach\":0,\"donGia\":1000,\"giamGiaNcc\":0,\"thanhTienVon\":0,\"thanhTienBan\":0,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "updateLine",
+   "args": [
+    "{{l5}}",
+    {
+     "donGiaBan": 205,
+     "ckKhach": 0.5,
+     "chietKhau": 0.25,
+     "soLuong": 3
+    }
+   ],
+   "out": "{\"result\":{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":5,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"ZZ_takeoff_ nửa âm\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":3,\"donGiaVon\":200,\"chietKhau\":0.25,\"lnPct\":3,\"donGiaBan\":205,\"ckKhach\":0.5,\"donGia\":204,\"giamGiaNcc\":0,\"thanhTienVon\":600,\"thanhTienBan\":612,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "updateLine",
+   "args": [
+    999999999999,
+    {
+     "ten": "x"
+    }
+   ],
+   "out": "{\"result\":null}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "updateLine",
+   "args": [
+    "abc",
+    {}
+   ],
+   "out": "{\"error\":\"DB GET db_bao_gia -> 400 {\\\"code\\\":\\\"22P02\\\",\\\"details\\\":null,\\\"hint\\\":null,\\\"message\\\":\\\"invalid input syntax for type bigint: \\\\\\\"abc\\\\\\\"\\\"}\"}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "updateLine",
+   "args": [],
+   "out": "{\"error\":\"DB GET db_bao_gia -> 400 {\\\"code\\\":\\\"22P02\\\",\\\"details\\\":null,\\\"hint\\\":null,\\\"message\\\":\\\"invalid input syntax for type bigint: \\\\\\\"undefined\\\\\\\"\\\"}\"}"
+  },
+  {
+   "op": "call",
+   "ctx": "other",
+   "fn": "updateLine",
+   "args": [
+    "{{l1}}",
+    {
+     "ten": "ZZ_takeoff_ hack"
+    }
+   ],
+   "out": "{\"result\":null}"
+  },
+  {
+   "op": "rows",
+   "ctx": "ct",
+   "table": "db_bao_gia",
+   "filter": "ma_du_an=eq.ZZ_takeoff_A",
+   "order": "sort_no.asc",
+   "out": "{\"rows\":[{\"id\":\"<id>\",\"ma_du_an\":\"ZZ_takeoff_A\",\"stt\":\"null\",\"khu_vuc\":null,\"phong\":\"\",\"ma_so_ban_ve\":\"\",\"ma_sp\":\"\",\"ten_sp\":\"ZZ_takeoff_ VN\",\"thuong_hieu\":\"\",\"dvt\":\"Cái\",\"so_luong\":2,\"gia_dai_ly\":1125000,\"loi_nhuan_pct\":20,\"gia_ban\":1500000,\"ck_khach_hang_pct\":2.5,\"don_gia\":1462500,\"thanh_tien\":2925000,\"markup_pct\":30,\"margin_pct\":23,\"loi_nhuan_vnd\":675000,\"trang_thai\":\"\",\"ghi_chu\":\"\",\"sort_no\":0,\"created_at\":\"<ts>\",\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"nha_cung_cap\":\"\",\"mo_ta\":\"\",\"kich_thuoc\":\"\",\"hinh_anh\":\"\",\"gia_ban_le\":1250000,\"ck_dai_ly_pct\":10,\"tu_nhap\":1,\"da_luu_dm\":1,\"extra\":null,\"giam_gia_ncc_pct\":3.5,\"cong_ty_id\":\"90c41ced-2477-4342-97da-e226344354f1\"},{\"id\":\"<id>\",\"ma_du_an\":\"ZZ_takeoff_A\",\"stt\":\"1\",\"khu_vuc\":null,\"phong\":\"Bếp\",\"ma_so_ban_ve\":\"L1\",\"ma_sp\":\"ZZ-D01\",\"ten_sp\":\"ZZ_takeoff_ sửa\",\"thuong_hieu\":\"Ades\",\"dvt\":\"Bộ\",\"so_luong\":4,\"gia_dai_ly\":900000,\"loi_nhuan_pct\":12.5,\"gia_ban\":1125001,\"ck_khach_hang_pct\":7.5,\"don_gia\":1040626,\"thanh_tien\":4162504,\"markup_pct\":16,\"margin_pct\":14,\"loi_nhuan_vnd\":562504,\"trang_thai\":\"Chờ\",\"ghi_chu\":\"\",\"sort_no\":1,\"created_at\":\"<ts>\",\"nhom\":\"3.2.6\",\"loai\":\"Đèn âm trần\",\"tang\":\"Tầng 1\",\"nha_cung_cap\":\"NCC\",\"mo_ta\":\"mô tả\\ndòng 2\",\"kich_thuoc\":\"Ø90\",\"hinh_anh\":\"http://x/a.png\",\"gia_ban_le\":1000000.5,\"ck_dai_ly_pct\":10,\"tu_nhap\":1,\"da_luu_dm\":1,\"extra\":{\"a\":[1,{\"k\":null}],\"z\":1},\"giam_gia_ncc_pct\":null,\"cong_ty_id\":\"90c41ced-2477-4342-97da-e226344354f1\"},{\"id\":\"<id>\",\"ma_du_an\":\"ZZ_takeoff_A\",\"stt\":\"3\",\"khu_vuc\":null,\"phong\":\"\",\"ma_so_ban_ve\":\"\",\"ma_sp\":\"\",\"ten_sp\":\"Hạng mục mới\",\"thuong_hieu\":\"\",\"dvt\":\"Cái\",\"so_luong\":1,\"gia_dai_ly\":0,\"loi_nhuan_pct\":0,\"gia_ban\":0,\"ck_khach_hang_pct\":0,\"don_gia\":0,\"thanh_tien\":0,\"markup_pct\":0,\"margin_pct\":0,\"loi_nhuan_vnd\":0,\"trang_thai\":\"\",\"ghi_chu\":\"\",\"sort_no\":3,\"created_at\":\"<ts>\",\"nhom\":\"3.2.5\",\"loai\":\"\",\"tang\":\"Tầng 2\",\"nha_cung_cap\":\"\",\"mo_ta\":\"\",\"kich_thuoc\":\"\",\"hinh_anh\":\"\",\"gia_ban_le\":0,\"ck_dai_ly_pct\":0,\"tu_nhap\":0,\"da_luu_dm\":0,\"extra\":null,\"giam_gia_ncc_pct\":null,\"cong_ty_id\":\"90c41ced-2477-4342-97da-e226344354f1\"},{\"id\":\"<id>\",\"ma_du_an\":\"ZZ_takeoff_A\",\"stt\":\"4\",\"khu_vuc\":null,\"phong\":\"\",\"ma_so_ban_ve\":\"\",\"ma_sp\":\"[\\\"a\\\"]\",\"ten_sp\":\"5\",\"thuong_hieu\":\"\",\"dvt\":\"\",\"so_luong\":0,\"gia_dai_ly\":0,\"loi_nhuan_pct\":0,\"gia_ban\":1000,\"ck_khach_hang_pct\":0,\"don_gia\":1000,\"thanh_tien\":0,\"markup_pct\":0,\"margin_pct\":100,\"loi_nhuan_vnd\":0,\"trang_thai\":\"\",\"ghi_chu\":\"\",\"sort_no\":4,\"created_at\":\"<ts>\",\"nhom\":\"{\\\"a\\\":1}\",\"loai\":\"\",\"tang\":\"\",\"nha_cung_cap\":\"\",\"mo_ta\":\"\",\"kich_thuoc\":\"\",\"hinh_anh\":\"\",\"gia_ban_le\":0,\"ck_dai_ly_pct\":0,\"tu_nhap\":0,\"da_luu_dm\":0,\"extra\":null,\"giam_gia_ncc_pct\":null,\"cong_ty_id\":\"90c41ced-2477-4342-97da-e226344354f1\"},{\"id\":\"<id>\",\"ma_du_an\":\"ZZ_takeoff_A\",\"stt\":\"5\",\"khu_vuc\":null,\"phong\":\"\",\"ma_so_ban_ve\":\"\",\"ma_sp\":\"\",\"ten_sp\":\"ZZ_takeoff_ nửa âm\",\"thuong_hieu\":\"\",\"dvt\":\"Cái\",\"so_luong\":3,\"gia_dai_ly\":200,\"loi_nhuan_pct\":3,\"gia_ban\":205,\"ck_khach_hang_pct\":0.5,\"don_gia\":204,\"thanh_tien\":612,\"markup_pct\":2,\"margin_pct\":2,\"loi_nhuan_vnd\":12,\"trang_thai\":\"\",\"ghi_chu\":\"\",\"sort_no\":5,\"created_at\":\"<ts>\",\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"nha_cung_cap\":\"\",\"mo_ta\":\"\",\"kich_thuoc\":\"\",\"hinh_anh\":\"\",\"gia_ban_le\":200,\"ck_dai_ly_pct\":0.25,\"tu_nhap\":0,\"da_luu_dm\":0,\"extra\":null,\"giam_gia_ncc_pct\":null,\"cong_ty_id\":\"90c41ced-2477-4342-97da-e226344354f1\"},{\"id\":\"<id>\",\"ma_du_an\":\"ZZ_takeoff_A\",\"stt\":\"6\",\"khu_vuc\":null,\"phong\":\"\",\"ma_so_ban_ve\":\"\",\"ma_sp\":\"\",\"ten_sp\":\"ZZ_takeoff_ extra\",\"thuong_hieu\":\"\",\"dvt\":\"Cái\",\"so_luong\":2.5,\"gia_dai_ly\":13,\"loi_nhuan_pct\":30,\"gia_ban\":16,\"ck_khach_hang_pct\":0,\"don_gia\":16,\"thanh_tien\":40,\"markup_pct\":23,\"margin_pct\":19,\"loi_nhuan_vnd\":8,\"trang_thai\":\"\",\"ghi_chu\":\"\",\"sort_no\":6,\"created_at\":\"<ts>\",\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"nha_cung_cap\":\"\",\"mo_ta\":\"\",\"kich_thuoc\":\"\",\"hinh_anh\":\"\",\"gia_ban_le\":12.5,\"ck_dai_ly_pct\":0,\"tu_nhap\":1,\"da_luu_dm\":1,\"extra\":[1,{\"a\":1,\"b\":2}],\"giam_gia_ncc_pct\":null,\"cong_ty_id\":\"90c41ced-2477-4342-97da-e226344354f1\"},{\"id\":\"<id>\",\"ma_du_an\":\"ZZ_takeoff_A\",\"stt\":\"7\",\"khu_vuc\":null,\"phong\":\"\",\"ma_so_ban_ve\":\"\",\"ma_sp\":\"12\",\"ten_sp\":\"5\",\"thuong_hieu\":\"\",\"dvt\":\"Cái\",\"so_luong\":1,\"gia_dai_ly\":0,\"loi_nhuan_pct\":0,\"gia_ban\":0,\"ck_khach_hang_pct\":0,\"don_gia\":0,\"thanh_tien\":0,\"markup_pct\":0,\"margin_pct\":0,\"loi_nhuan_vnd\":0,\"trang_thai\":\"\",\"ghi_chu\":\"[\\\"x\\\",\\\"y\\\"]\",\"sort_no\":7,\"created_at\":\"<ts>\",\"nhom\":\"{\\\"a\\\":1}\",\"loai\":\"\",\"tang\":\"\",\"nha_cung_cap\":\"\",\"mo_ta\":\"\",\"kich_thuoc\":\"\",\"hinh_anh\":\"\",\"gia_ban_le\":0,\"ck_dai_ly_pct\":0,\"tu_nhap\":0,\"da_luu_dm\":0,\"extra\":null,\"giam_gia_ncc_pct\":null,\"cong_ty_id\":\"90c41ced-2477-4342-97da-e226344354f1\"},{\"id\":\"<id>\",\"ma_du_an\":\"ZZ_takeoff_A\",\"stt\":\"8\",\"khu_vuc\":null,\"phong\":\"\",\"ma_so_ban_ve\":\"\",\"ma_sp\":\"\",\"ten_sp\":\"\",\"thuong_hieu\":\"\",\"dvt\":\"Cái\",\"so_luong\":1,\"gia_dai_ly\":0,\"loi_nhuan_pct\":0,\"gia_ban\":0,\"ck_khach_hang_pct\":0,\"don_gia\":0,\"thanh_tien\":0,\"markup_pct\":0,\"margin_pct\":0,\"loi_nhuan_vnd\":0,\"trang_thai\":\"\",\"ghi_chu\":\"\",\"sort_no\":8,\"created_at\":\"<ts>\",\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"nha_cung_cap\":\"\",\"mo_ta\":\"\",\"kich_thuoc\":\"\",\"hinh_anh\":\"\",\"gia_ban_le\":0,\"ck_dai_ly_pct\":0,\"tu_nhap\":0,\"da_luu_dm\":0,\"extra\":null,\"giam_gia_ncc_pct\":null,\"cong_ty_id\":\"90c41ced-2477-4342-97da-e226344354f1\"}]}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "deleteLine",
+   "args": [
+    "{{l5}}"
+   ],
+   "out": "{\"result\":{\"ok\":true}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "deleteLine",
+   "args": [
+    "{{l5}}"
+   ],
+   "out": "{\"result\":{\"ok\":true}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "deleteLine",
+   "args": [
+    "abc"
+   ],
+   "out": "{\"error\":\"DB DELETE db_bao_gia -> 400 {\\\"code\\\":\\\"22P02\\\",\\\"details\\\":null,\\\"hint\\\":null,\\\"message\\\":\\\"invalid input syntax for type bigint: \\\\\\\"abc\\\\\\\"\\\"}\"}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "deleteLine",
+   "args": [],
+   "out": "{\"error\":\"DB DELETE db_bao_gia -> 400 {\\\"code\\\":\\\"22P02\\\",\\\"details\\\":null,\\\"hint\\\":null,\\\"message\\\":\\\"invalid input syntax for type bigint: \\\\\\\"undefined\\\\\\\"\\\"}\"}"
+  },
+  {
+   "op": "call",
+   "ctx": "other",
+   "fn": "deleteLine",
+   "args": [
+    "{{l1}}"
+   ],
+   "out": "{\"result\":{\"ok\":true}}"
+  },
+  {
+   "op": "call",
+   "ctx": "ct",
+   "fn": "getLines",
+   "args": [
+    "ZZ_takeoff_A"
+   ],
+   "out": "{\"result\":[{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":0,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"ZZ_takeoff_ VN\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":2,\"donGiaVon\":1250000,\"chietKhau\":10,\"lnPct\":20,\"donGiaBan\":1500000,\"ckKhach\":2.5,\"donGia\":1462500,\"giamGiaNcc\":3.5,\"thanhTienVon\":2250000,\"thanhTienBan\":2925000,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":1,\"daLuuDM\":1,\"extra\":{}},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":1,\"nhom\":\"3.2.6\",\"loai\":\"Đèn âm trần\",\"tang\":\"Tầng 1\",\"maSP\":\"ZZ-D01\",\"ten\":\"ZZ_takeoff_ sửa\",\"thuongHieu\":\"Ades\",\"ncc\":\"NCC\",\"moTa\":\"mô tả\\ndòng 2\",\"kichThuoc\":\"Ø90\",\"hinhAnh\":\"http://x/a.png\",\"dvt\":\"Bộ\",\"khuVuc\":\"Bếp\",\"maBanVe\":\"L1\",\"soLuong\":4,\"donGiaVon\":1000000.5,\"chietKhau\":10,\"lnPct\":12.5,\"donGiaBan\":1125001,\"ckKhach\":7.5,\"donGia\":1040626,\"giamGiaNcc\":0,\"thanhTienVon\":3600000,\"thanhTienBan\":4162504,\"trangThai\":\"Chờ\",\"ghiChu\":\"\",\"tuNhap\":1,\"daLuuDM\":1,\"extra\":{\"a\":[1,{\"k\":null}],\"z\":1}},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":3,\"nhom\":\"3.2.5\",\"loai\":\"\",\"tang\":\"Tầng 2\",\"maSP\":\"\",\"ten\":\"Hạng mục mới\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":0,\"chietKhau\":0,\"lnPct\":0,\"donGiaBan\":0,\"ckKhach\":0,\"donGia\":0,\"giamGiaNcc\":0,\"thanhTienVon\":0,\"thanhTienBan\":0,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":4,\"nhom\":\"{\\\"a\\\":1}\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"[\\\"a\\\"]\",\"ten\":\"5\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":0,\"donGiaVon\":0,\"chietKhau\":0,\"lnPct\":0,\"donGiaBan\":1000,\"ckKhach\":0,\"donGia\":1000,\"giamGiaNcc\":0,\"thanhTienVon\":0,\"thanhTienBan\":0,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":6,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"ZZ_takeoff_ extra\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":2.5,\"donGiaVon\":12.5,\"chietKhau\":0,\"lnPct\":30,\"donGiaBan\":16,\"ckKhach\":0,\"donGia\":16,\"giamGiaNcc\":0,\"thanhTienVon\":33,\"thanhTienBan\":40,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":1,\"daLuuDM\":1,\"extra\":[1,{\"a\":1,\"b\":2}]},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":7,\"nhom\":\"{\\\"a\\\":1}\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"12\",\"ten\":\"5\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":0,\"chietKhau\":0,\"lnPct\":0,\"donGiaBan\":0,\"ckKhach\":0,\"donGia\":0,\"giamGiaNcc\":0,\"thanhTienVon\":0,\"thanhTienBan\":0,\"trangThai\":\"\",\"ghiChu\":\"[\\\"x\\\",\\\"y\\\"]\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}},{\"lineId\":\"<id>\",\"maDA\":\"ZZ_takeoff_A\",\"stt\":8,\"nhom\":\"\",\"loai\":\"\",\"tang\":\"\",\"maSP\":\"\",\"ten\":\"\",\"thuongHieu\":\"\",\"ncc\":\"\",\"moTa\":\"\",\"kichThuoc\":\"\",\"hinhAnh\":\"\",\"dvt\":\"Cái\",\"khuVuc\":\"\",\"maBanVe\":\"\",\"soLuong\":1,\"donGiaVon\":0,\"chietKhau\":0,\"lnPct\":0,\"donGiaBan\":0,\"ckKhach\":0,\"donGia\":0,\"giamGiaNcc\":0,\"thanhTienVon\":0,\"thanhTienBan\":0,\"trangThai\":\"\",\"ghiChu\":\"\",\"tuNhap\":0,\"daLuuDM\":0,\"extra\":{}}]}"
+  },
+  {
+   "op": "remove",
+   "ctx": "none",
+   "table": "du_an",
+   "filter": "ma_da=eq.ZZ_takeoff_A",
+   "out": "{\"ok\":true}"
+  },
+  {
+   "op": "rows",
+   "ctx": "none",
+   "table": "db_bao_gia",
+   "filter": "ma_du_an=eq.ZZ_takeoff_A",
+   "out": "{\"rows\":[]}"
+  },
+  {
+   "op": "rows",
+   "ctx": "none",
+   "table": "du_an",
+   "filter": "ma_da=eq.ZZ_takeoff_A",
+   "out": "{\"rows\":[]}"
+  }
+ ]
+}

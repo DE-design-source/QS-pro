@@ -1,0 +1,1157 @@
+{
+ "now": 1790000000000,
+ "makeToken": [
+  [
+   "",
+   {
+    "id": "68cb6934-c871-4681-8cfe-def02ba28b0c",
+    "username": "admin",
+    "role": "super",
+    "cong_ty_id": "90c41ced-2477-4342-97da-e226344354f1"
+   },
+   "eyJ1aWQiOiI2OGNiNjkzNC1jODcxLTQ2ODEtOGNmZS1kZWYwMmJhMjhiMGMiLCJ1IjoiYWRtaW4iLCJyIjoic3VwZXIiLCJjdCI6IjkwYzQxY2VkLTI0NzctNDM0Mi05N2RhLWUyMjYzNDQzNTRmMSIsImV4cCI6MTc5MDYwNDgwMDAwMH0.uV5wq1PBkiAo73a61mjwMeDHNzaP28HFes-DVN7Qd2A"
+  ],
+  [
+   "",
+   {
+    "id": 5,
+    "username": "ü名 \"x\"",
+    "role": "staff",
+    "cong_ty_id": null
+   },
+   "eyJ1aWQiOjUsInUiOiLDvOWQjSBcInhcIiIsInIiOiJzdGFmZiIsImN0IjpudWxsLCJleHAiOjE3OTA2MDQ4MDAwMDB9.WrkDyMhPbVrfIgjIKLGMJnQ16J4yPGKXFu4NI4soYQk"
+  ],
+  [
+   "",
+   {
+    "id": "x",
+    "username": "n",
+    "role": null
+   },
+   "eyJ1aWQiOiJ4IiwidSI6Im4iLCJyIjpudWxsLCJjdCI6bnVsbCwiZXhwIjoxNzkwNjA0ODAwMDAwfQ.778tKeRMZH9Vx2s9HzEVINAI7Z4o7IRPhBryDRbuqwQ"
+  ],
+  [
+   "",
+   {
+    "id": "k<>&/",
+    "username": " é\\",
+    "role": "admin",
+    "cong_ty_id": 0
+   },
+   "eyJ1aWQiOiJrPD4mLyIsInUiOiLigKjDqVxcIiwiciI6ImFkbWluIiwiY3QiOm51bGwsImV4cCI6MTc5MDYwNDgwMDAwMH0.7jPaRDq6ks5OWco2k3c8_sM7gi_GDQnFPDgA-gtFzRM"
+  ],
+  [
+   "",
+   {
+    "id": 1.5,
+    "username": "",
+    "role": "staff",
+    "cong_ty_id": ""
+   },
+   "eyJ1aWQiOjEuNSwidSI6IiIsInIiOiJzdGFmZiIsImN0IjpudWxsLCJleHAiOjE3OTA2MDQ4MDAwMDB9.tds7lbjzwnO2q85xkXGz47_eYPpwQvxSrYMrt6Sp_Zk"
+  ],
+  [
+   "zz-authusers-test-secret",
+   {
+    "id": "68cb6934-c871-4681-8cfe-def02ba28b0c",
+    "username": "admin",
+    "role": "super",
+    "cong_ty_id": "90c41ced-2477-4342-97da-e226344354f1"
+   },
+   "eyJ1aWQiOiI2OGNiNjkzNC1jODcxLTQ2ODEtOGNmZS1kZWYwMmJhMjhiMGMiLCJ1IjoiYWRtaW4iLCJyIjoic3VwZXIiLCJjdCI6IjkwYzQxY2VkLTI0NzctNDM0Mi05N2RhLWUyMjYzNDQzNTRmMSIsImV4cCI6MTc5MDYwNDgwMDAwMH0.6Xw1P1ZpVgjWUd0jGOnasHpjidP2cgfgWgnHvp7A46k"
+  ],
+  [
+   "zz-authusers-test-secret",
+   {
+    "id": 5,
+    "username": "ü名 \"x\"",
+    "role": "staff",
+    "cong_ty_id": null
+   },
+   "eyJ1aWQiOjUsInUiOiLDvOWQjSBcInhcIiIsInIiOiJzdGFmZiIsImN0IjpudWxsLCJleHAiOjE3OTA2MDQ4MDAwMDB9.yGhJFC8vgs2Bni1m_dL_Gaglxt1L4eb8T4tcrz7MbtY"
+  ],
+  [
+   "zz-authusers-test-secret",
+   {
+    "id": "x",
+    "username": "n",
+    "role": null
+   },
+   "eyJ1aWQiOiJ4IiwidSI6Im4iLCJyIjpudWxsLCJjdCI6bnVsbCwiZXhwIjoxNzkwNjA0ODAwMDAwfQ.GF7qt1TBo88e8lHN6RPGjfqX4dFqGkDyzl7o1IJk4VA"
+  ],
+  [
+   "zz-authusers-test-secret",
+   {
+    "id": "k<>&/",
+    "username": " é\\",
+    "role": "admin",
+    "cong_ty_id": 0
+   },
+   "eyJ1aWQiOiJrPD4mLyIsInUiOiLigKjDqVxcIiwiciI6ImFkbWluIiwiY3QiOm51bGwsImV4cCI6MTc5MDYwNDgwMDAwMH0.Y7L5PaPU7pTnD9f8Q93vEI8RtPTqKJTMdWAQKJKB0b0"
+  ],
+  [
+   "zz-authusers-test-secret",
+   {
+    "id": 1.5,
+    "username": "",
+    "role": "staff",
+    "cong_ty_id": ""
+   },
+   "eyJ1aWQiOjEuNSwidSI6IiIsInIiOiJzdGFmZiIsImN0IjpudWxsLCJleHAiOjE3OTA2MDQ4MDAwMDB9.uu8LtoJb-moEJ6M-n5SuoJ3WhYfKkuMO69bNTcuFTvk"
+  ]
+ ],
+ "verifyToken": [
+  [
+   "eyJ1aWQiOiI2OGNiNjkzNC1jODcxLTQ2ODEtOGNmZS1kZWYwMmJhMjhiMGMiLCJ1IjoiYWRtaW4iLCJyIjoic3VwZXIiLCJjdCI6IjkwYzQxY2VkLTI0NzctNDM0Mi05N2RhLWUyMjYzNDQzNTRmMSIsImV4cCI6MTc5MDYwNDgwMDAwMH0.6Xw1P1ZpVgjWUd0jGOnasHpjidP2cgfgWgnHvp7A46k",
+   {
+    "uid": "68cb6934-c871-4681-8cfe-def02ba28b0c",
+    "u": "admin",
+    "r": "super",
+    "ct": "90c41ced-2477-4342-97da-e226344354f1",
+    "exp": 1790604800000
+   }
+  ],
+  [
+   "eyJ1aWQiOiI2OGNiNjkzNC1jODcxLTQ2ODEtOGNmZS1kZWYwMmJhMjhiMGMiLCJ1IjoiYWRtaW4iLCJyIjoic3VwZXIiLCJjdCI6IjkwYzQxY2VkLTI0NzctNDM0Mi05N2RhLWUyMjYzNDQzNTRmMSIsImV4cCI6MTc5MDYwNDgwMDAwMH0.6Xw1P1ZpVgjWUd0jGOnasHpjidP2cgfgWgnHvp7A46k.thua.nua",
+   {
+    "uid": "68cb6934-c871-4681-8cfe-def02ba28b0c",
+    "u": "admin",
+    "r": "super",
+    "ct": "90c41ced-2477-4342-97da-e226344354f1",
+    "exp": 1790604800000
+   }
+  ],
+  [
+   "eyJ1aWQiOiI2OGNiNjkzNC1jODcxLTQ2ODEtOGNmZS1kZWYwMmJhMjhiMGMiLCJ1IjoiYWRtaW4iLCJyIjoic3VwZXIiLCJjdCI6IjkwYzQxY2VkLTI0NzctNDM0Mi05N2RhLWUyMjYzNDQzNTRmMSIsImV4cCI6MTc5MDYwNDgwMDAwMH0.6Xw1P1ZpVgjWUd0jGOnasHpjidP2cgfgWgnHvp7A46A",
+   null
+  ],
+  [
+   "eyJ1aWQiOiI2OGNiNjkzNC1jODcxLTQ2ODEtOGNmZS1kZWYwMmJhMjhiMGMiLCJ1IjoiYWRtaW4iLCJyIjoic3VwZXIiLCJjdCI6IjkwYzQxY2VkLTI0NzctNDM0Mi05N2RhLWUyMjYzNDQzNTRmMSIsImV4cCI6MTc5MDYwNDgwMDAwMH0",
+   null
+  ],
+  [
+   "eyJ1aWQiOiI2OGNiNjkzNC1jODcxLTQ2ODEtOGNmZS1kZWYwMmJhMjhiMGMiLCJ1IjoiYWRtaW4iLCJyIjoic3VwZXIiLCJjdCI6IjkwYzQxY2VkLTI0NzctNDM0Mi05N2RhLWUyMjYzNDQzNTRmMSIsImV4cCI6MTc5MDYwNDgwMDAwMH0.",
+   null
+  ],
+  [
+   ".6Xw1P1ZpVgjWUd0jGOnasHpjidP2cgfgWgnHvp7A46k",
+   null
+  ],
+  [
+   ".",
+   null
+  ],
+  [
+   "",
+   null
+  ],
+  [
+   "abc",
+   null
+  ],
+  [
+   "NQ.HX7AXqOQJikcg08-WAASmGxiiOCymF1o82r_uB5lDDI",
+   null
+  ],
+  [
+   "bnVsbA.pzJI15z4z8pSw4S-lzfCrYGlv0bluQPoeDvs0yAtnU8",
+   null
+  ],
+  [
+   "WzFd.4VypJTCDTPtEVmFHCprbVms0-LJU00n-du_QSYEKvBE",
+   null
+  ],
+  [
+   "InMi.mpfgXNo0eP3wgSLRE2PtjlZ1UwPfCO3lr0K9RA7JAvk",
+   null
+  ],
+  [
+   "dHJ1ZQ.EzePYLaHAmVV5waUmQwRbc1d5WLIGqETKbep2wtl0uM",
+   null
+  ],
+  [
+   "e2JhZA.RM8AlcYRfdodNKzo6MaMHN6Sqhth5uVAvXZm-VK2lVw",
+   null
+  ],
+  [
+   ".wckB8FzMdOI7blv_3XZrLSVAXvaHxlxD3q75W37IBDg",
+   null
+  ],
+  [
+   "eyJ1aWQiOjF9.KdyUdq4TetCf5Pu5OMYLNCDLOHECjeiJNHXl6mUx9lY",
+   null
+  ],
+  [
+   "eyJ1aWQiOjEsImV4cCI6MH0.zoDwPo-4yBOVRMGf8PVOk0FlcABsCwqgcezZ86GRCZQ",
+   null
+  ],
+  [
+   "eyJ1aWQiOjEsImV4cCI6bnVsbH0.p1_gTmZzRF2UeNXO7ezZNN_P_b9Aq3PXKSlInxMRstk",
+   null
+  ],
+  [
+   "eyJ1aWQiOjEsImV4cCI6MTc4OTk5OTk5OTk5OX0.2Zr9zR5FjvzNeRZezghk_CnoVCUw5AoT5RWQrrXAfwo",
+   null
+  ],
+  [
+   "eyJ1aWQiOjEsImV4cCI6MTc5MDAwMDAwMDAwMH0.jtzIiuPoMBHehNs_ZOvKmVSV56r-l6UFlwb4NQCwYUI",
+   {
+    "uid": 1,
+    "exp": 1790000000000
+   }
+  ],
+  [
+   "eyJ1aWQiOjEsImV4cCI6IjE3OTAwMDAwMDAwMDEifQ.JZUj210tE4fUdBhhbZewJEh0EKD-jhQJ-O5_I3R55v4",
+   {
+    "uid": 1,
+    "exp": "1790000000001"
+   }
+  ],
+  [
+   "eyJ1aWQiOjEsImV4cCI6ImFiYyJ9.xTQOio2ighN879ighRF75423vyJUgjEkvXt1fWxs6v0",
+   {
+    "uid": 1,
+    "exp": "abc"
+   }
+  ],
+  [
+   "eyJ1aWQiOjEsImV4cCI6dHJ1ZX0.EzTEimfo6c2rwaUf1QEWWe8HdIB4A-ffova48D-h8tg",
+   null
+  ],
+  [
+   "eyJ1aWQiOjEsImV4cCI6W119.fSAo04R4_Drr-YzCmkATvHsNFNY9YlU5VtjNxd5LpTc",
+   null
+  ],
+  [
+   "eyJ1aWQiOjEsImV4cCI6WzE3OTAwMDAwMDAwMDldfQ.VPK4X6_3Q9-QSnW8GBCp_6hcCNz-jGCOoivNogBPLo8",
+   {
+    "uid": 1,
+    "exp": [
+     1790000000009
+    ]
+   }
+  ],
+  [
+   "eyJ1aWQiOjEsImV4cCI6e319.9dUfivYq-XLUY23NrIvMUrDqAgC8KX2tHrCVThXktis",
+   {
+    "uid": 1,
+    "exp": {}
+   }
+  ],
+  [
+   "eyJleHAiOjE3OTAwMDAwMDAwMDEsInVpZCI6NywieCI6eyJ5IjpbMSwyXX0sInUiOiJrIn0._5sau4u_Gfj6Jyi7Qr5pZ7LHMNLY34ch3-o7Kc1tqHU",
+   {
+    "exp": 1790000000001,
+    "uid": 7,
+    "x": {
+     "y": [
+      1,
+      2
+     ]
+    },
+    "u": "k"
+   }
+  ],
+  [
+   "eyJ1aWQiOjEsImV4cCI6MWU5OX0.DuIfHZwYX0M3ert2qbhsyiz58MVTzd3XmpR7Cqel8Io",
+   {
+    "uid": 1,
+    "exp": 1e+99
+   }
+  ],
+  [
+   "IHsidWlkIjoyLCJleHAiOjE3OTAwMDAwMDAwMDF9IA.yor7VeI_v2-3tmaD9zlsj7ktpyUKcXR64itiTIrkuJM",
+   {
+    "uid": 2,
+    "exp": 1790000000001
+   }
+  ],
+  [
+   "eyJ1aWQiOiLDvD8+IiwidSI6IsO/w7/DvyIsImV4cCI6MTc5MDAwMDAwMDAwNX0=.n8-8LUAuxsfDy_KZCsTcxNp1TGQUoqCP9ZLrIAYu2vI",
+   {
+    "uid": "ü?>",
+    "u": "ÿÿÿ",
+    "exp": 1790000000005
+   }
+  ]
+ ],
+ "verifyExpired": [
+  "eyJ1aWQiOiI2OGNiNjkzNC1jODcxLTQ2ODEtOGNmZS1kZWYwMmJhMjhiMGMiLCJ1IjoiYWRtaW4iLCJyIjoic3VwZXIiLCJjdCI6IjkwYzQxY2VkLTI0NzctNDM0Mi05N2RhLWUyMjYzNDQzNTRmMSIsImV4cCI6MTc5MDYwNDgwMDAwMH0.6Xw1P1ZpVgjWUd0jGOnasHpjidP2cgfgWgnHvp7A46k",
+  null,
+  true
+ ],
+ "compareSync": [
+  [
+   "adminpw1",
+   "$2a$04$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   true
+  ],
+  [
+   "adminpw2",
+   "$2a$04$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   false
+  ],
+  [
+   "",
+   "$2a$04$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   false
+  ],
+  [
+   "adminpw1\u0000",
+   "$2a$04$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   false
+  ],
+  [
+   "ADMINPW1",
+   "$2a$04$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   false
+  ],
+  [
+   "ậxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxẩtail",
+   "$2a$04$ySekLni1wm.h0zuk5avJyOG4g6f16XJOb6f9gC9r/rdASpz/ygQOi",
+   true
+  ],
+  [
+   "ậxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxẩ",
+   "$2a$04$ySekLni1wm.h0zuk5avJyOG4g6f16XJOb6f9gC9r/rdASpz/ygQOi",
+   true
+  ],
+  [
+   "ậxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxắ khác hẳn",
+   "$2a$04$ySekLni1wm.h0zuk5avJyOG4g6f16XJOb6f9gC9r/rdASpz/ygQOi",
+   true
+  ],
+  [
+   "ậxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxé",
+   "$2a$04$ySekLni1wm.h0zuk5avJyOG4g6f16XJOb6f9gC9r/rdASpz/ygQOi",
+   false
+  ],
+  [
+   "ậxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "$2a$04$ySekLni1wm.h0zuk5avJyOG4g6f16XJOb6f9gC9r/rdASpz/ygQOi",
+   false
+  ],
+  [
+   "twob-pw-1",
+   "$2b$04$JaNwsnQmQXzbLRkogYsaa.M9tG5D0/DgP7qcT16HNoUMqNEkqZJXK",
+   true
+  ],
+  [
+   "twob-pw-1",
+   "$2y$04$JaNwsnQmQXzbLRkogYsaa.M9tG5D0/DgP7qcT16HNoUMqNEkqZJXK",
+   true
+  ],
+  [
+   "twob-pw-1",
+   "$2a$04$JaNwsnQmQXzbLRkogYsaa.M9tG5D0/DgP7qcT16HNoUMqNEkqZJXK",
+   true
+  ],
+  [
+   "twob-pw-1",
+   "$2x$04$JaNwsnQmQXzbLRkogYsaa.M9tG5D0/DgP7qcT16HNoUMqNEkqZJXK",
+   {
+    "err": "Invalid salt revision: x$"
+   }
+  ],
+  [
+   "",
+   "$2a$04$MgpIXcufDLQxg08G9DnDi.vLcgZB14rw1SJ96UMhDKZaJz/e6uaNm",
+   true
+  ],
+  [
+   "x",
+   "$2a$04$MgpIXcufDLQxg08G9DnDi.vLcgZB14rw1SJ96UMhDKZaJz/e6uaNm",
+   false
+  ],
+  [
+   "a\u0000b",
+   "$2a$04$bA4GE/d8BKyDQZLr5/UPwOhK9dHiLF2ihIovuZ.jWIAUbBj9uHhvC",
+   true
+  ],
+  [
+   "a",
+   "$2a$04$bA4GE/d8BKyDQZLr5/UPwOhK9dHiLF2ihIovuZ.jWIAUbBj9uHhvC",
+   false
+  ],
+  [
+   "a\u0000c",
+   "$2a$04$bA4GE/d8BKyDQZLr5/UPwOhK9dHiLF2ihIovuZ.jWIAUbBj9uHhvC",
+   false
+  ],
+  [
+   "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+   "$2a$04$LPzgey9/o7hBeyooS.1ok.66KzePkp4npxPvhmP73Z8LCLc3dU9GW",
+   true
+  ],
+  [
+   "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+   "$2a$04$LPzgey9/o7hBeyooS.1ok.66KzePkp4npxPvhmP73Z8LCLc3dU9GW",
+   false
+  ],
+  [
+   "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+   "$2a$04$LPzgey9/o7hBeyooS.1ok.66KzePkp4npxPvhmP73Z8LCLc3dU9GW",
+   false
+  ],
+  [
+   "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+   "$2a$04$PuhVJ7a2sIMy1OEnmpAa9e10Wqtv6C9yDUcRQvWVtq0EFlnTOF9m6",
+   true
+  ],
+  [
+   "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+   "$2a$04$PuhVJ7a2sIMy1OEnmpAa9e10Wqtv6C9yDUcRQvWVtq0EFlnTOF9m6",
+   true
+  ],
+  [
+   "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+   "$2a$04$PuhVJ7a2sIMy1OEnmpAa9e10Wqtv6C9yDUcRQvWVtq0EFlnTOF9m6",
+   false
+  ],
+  [
+   "adminpw1",
+   "$2a$04$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BT",
+   false
+  ],
+  [
+   "adminpw1",
+   "$2a$04$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTOx",
+   false
+  ],
+  [
+   "adminpw1",
+   "",
+   false
+  ],
+  [
+   "adminpw1",
+   "plainpw",
+   false
+  ],
+  [
+   "adminpw1",
+   "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   {
+    "err": "Invalid salt version: xx"
+   }
+  ],
+  [
+   "adminpw1",
+   "$3a$04$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   {
+    "err": "Invalid salt version: $3"
+   }
+  ],
+  [
+   "adminpw1",
+   "$2$04$nnPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   false
+  ],
+  [
+   "adminpw1",
+   "$2aa04$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   {
+    "err": "Invalid salt revision: aa"
+   }
+  ],
+  [
+   "adminpw1",
+   "$2a$03$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   {
+    "err": "Illegal number of rounds (4-31): 3"
+   }
+  ],
+  [
+   "adminpw1",
+   "$2a$32$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   {
+    "err": "Illegal number of rounds (4-31): 32"
+   }
+  ],
+  [
+   "adminpw1",
+   "$2a$99$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   {
+    "err": "Illegal number of rounds (4-31): 99"
+   }
+  ],
+  [
+   "adminpw1",
+   "$2a$4x$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   false
+  ],
+  [
+   "adminpw1",
+   "$2a$x4$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   false
+  ],
+  [
+   "adminpw1",
+   "$2a$ 4$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   false
+  ],
+  [
+   "adminpw1",
+   "$2a$04#nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   false
+  ],
+  [
+   "adminpw1",
+   "$2a$04%nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   {
+    "err": "Missing salt rounds"
+   }
+  ],
+  [
+   "adminpw1",
+   "$2a$0404Pfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   {
+    "err": "Missing salt rounds"
+   }
+  ],
+  [
+   "adminpw1",
+   "$2a$04énPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   {
+    "err": "Missing salt rounds"
+   }
+  ],
+  [
+   "adminpw1",
+   "$2a$04$!Pfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   {
+    "err": "Illegal salt length: 0 != 16"
+   }
+  ],
+  [
+   "adminpw1",
+   "$2a$04$nP!h0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   {
+    "err": "Illegal salt length: 1 != 16"
+   }
+  ],
+  [
+   "adminpw1",
+   "$2a$04$nPf!0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   false
+  ],
+  [
+   "adminpw1",
+   "$2a$04$nPfh0=pvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   {
+    "err": "Illegal salt length: 3 != 16"
+   }
+  ],
+  [
+   "adminpw1",
+   "$2a$04$nPfh0KpvYngT0wJESEIj!u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   {
+    "err": "Illegal salt length: 15 != 16"
+   }
+  ],
+  [
+   "adminpw1",
+   "$2a$04$nPfh0KpvYngT0wJESEIj1!41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   {
+    "err": "Illegal salt length: 15 != 16"
+   }
+  ],
+  [
+   "adminpw1",
+   "$2a$04$nPfh0KpvYngT0wJESEIj1v41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   false
+  ],
+  [
+   "adminpw1",
+   "$2a$04$nPfh0KpvYngT0wJESEIj1é41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   {
+    "err": "Illegal salt length: 15 != 16"
+   }
+  ],
+  [
+   "adminpw1",
+   "$2a$04$nPfh0KpvYngT0éJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   {
+    "err": "Illegal salt length: 9 != 16"
+   }
+  ],
+  [
+   "adminpw1",
+   "$2a$04$nPfh0KpvYngT0wJESEIj1u41665aoi.9véTNavCfkoiaFCJMi4BTO",
+   false
+  ],
+  [
+   "adminpw1",
+   "$2a$04$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTP",
+   false
+  ],
+  [
+   "adminpw1",
+   "$2a$04$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BT!",
+   false
+  ],
+  [
+   "adminpw1",
+   "$2a$04$nPfh0KpvYngT0wJESEIj1u!1665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   false
+  ],
+  [
+   "adminpw1",
+   "$2a$04$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4B😀",
+   false
+  ],
+  [
+   "adminpw1",
+   "😀a$04$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO",
+   {
+    "err": "Invalid salt version: 😀"
+   }
+  ]
+ ],
+ "pwOk": [
+  [
+   {
+    "password_hash": "$2a$04$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO"
+   },
+   "adminpw1",
+   {
+    "ok": true,
+    "isBcrypt": true
+   }
+  ],
+  [
+   {
+    "password_hash": "$2a$04$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO"
+   },
+   "sai",
+   {
+    "ok": false,
+    "isBcrypt": true
+   }
+  ],
+  [
+   {
+    "password_hash": "plainpw"
+   },
+   "plainpw",
+   {
+    "ok": true,
+    "isBcrypt": false
+   }
+  ],
+  [
+   {
+    "password_hash": "plainpw"
+   },
+   "Plainpw",
+   {
+    "ok": false,
+    "isBcrypt": false
+   }
+  ],
+  [
+   {
+    "password_hash": ""
+   },
+   "",
+   {
+    "ok": false,
+    "isBcrypt": false
+   }
+  ],
+  [
+   {
+    "password_hash": null
+   },
+   "",
+   {
+    "ok": false,
+    "isBcrypt": false
+   }
+  ],
+  [
+   {},
+   "x",
+   {
+    "ok": false,
+    "isBcrypt": false
+   }
+  ],
+  [
+   null,
+   "",
+   {
+    "ok": false,
+    "isBcrypt": false
+   }
+  ],
+  [
+   {
+    "password_hash": "$2a$"
+   },
+   "$2a$",
+   {
+    "ok": false,
+    "isBcrypt": true
+   }
+  ],
+  [
+   {
+    "password_hash": "$2x$abc"
+   },
+   "$2x$abc",
+   {
+    "ok": true,
+    "isBcrypt": false
+   }
+  ],
+  [
+   {
+    "password_hash": " $2a$04$"
+   },
+   " $2a$04$",
+   {
+    "ok": true,
+    "isBcrypt": false
+   }
+  ],
+  [
+   {
+    "password_hash": "$2a$03$nPfh0KpvYngT0wJESEIj1u41665aoi.9vVTNavCfkoiaFCJMi4BTO"
+   },
+   "adminpw1",
+   {
+    "err": "Illegal number of rounds (4-31): 3"
+   }
+  ]
+ ],
+ "sort": [
+  [
+   [
+    {
+     "id": 1,
+     "active": true,
+     "cong_ty_id": null
+    },
+    {
+     "id": 2,
+     "active": true,
+     "cong_ty_id": "c"
+    },
+    {
+     "id": 3,
+     "active": false,
+     "cong_ty_id": "c"
+    },
+    {
+     "id": 4,
+     "active": false,
+     "cong_ty_id": null
+    },
+    {
+     "id": 5,
+     "active": null,
+     "cong_ty_id": "c"
+    },
+    {
+     "id": 6,
+     "cong_ty_id": ""
+    },
+    {
+     "id": 7,
+     "active": true,
+     "cong_ty_id": "d"
+    }
+   ],
+   [
+    2,
+    5,
+    7,
+    1,
+    6,
+    3,
+    4
+   ]
+  ],
+  [
+   [
+    {
+     "id": 1,
+     "active": false
+    },
+    {
+     "id": 2,
+     "active": false,
+     "cong_ty_id": 0
+    },
+    {
+     "id": 3,
+     "active": 0,
+     "cong_ty_id": 1
+    },
+    {
+     "id": 4
+    }
+   ],
+   [
+    3,
+    4,
+    1,
+    2
+   ]
+  ],
+  [
+   [],
+   []
+  ]
+ ],
+ "prefsOf": [
+  [
+   {
+    "ui_prefs": {
+     "b": 1,
+     "a": [
+      2
+     ]
+    }
+   },
+   {
+    "b": 1,
+    "a": [
+     2
+    ]
+   }
+  ],
+  [
+   {
+    "ui_prefs": [
+     1
+    ]
+   },
+   {}
+  ],
+  [
+   {
+    "ui_prefs": null
+   },
+   {}
+  ],
+  [
+   {
+    "ui_prefs": "x"
+   },
+   {}
+  ],
+  [
+   {
+    "ui_prefs": 5
+   },
+   {}
+  ],
+  [
+   {},
+   {}
+  ],
+  [
+   {
+    "ui_prefs": {}
+   },
+   {}
+  ]
+ ],
+ "logClientError": [
+  [
+   null,
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[]"
+   },
+   {
+    "ok": true
+   }
+  ],
+  [
+   {},
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[]"
+   },
+   {
+    "ok": true
+   }
+  ],
+  [
+   "chuoi",
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[]"
+   },
+   {
+    "ok": true
+   }
+  ],
+  [
+   5,
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[]"
+   },
+   {
+    "ok": true
+   }
+  ],
+  [
+   [
+    1
+   ],
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[]"
+   },
+   {
+    "ok": true
+   }
+  ],
+  [
+   {
+    "tab": "boc",
+    "msg": "x is not defined",
+    "src": "https://app.example.com/boc.js?v=1"
+   },
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[boc] x is not defined @ boc.js?v=1"
+   },
+   {
+    "ok": true
+   }
+  ],
+  [
+   {
+    "tab": "mộtcáitabrấtdàivượtquá20kýtự",
+    "msg": "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "src": "http://localhost:3000/ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+   },
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[mộtcáitabrấtdàivượtq] mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm @ ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+   },
+   {
+    "ok": true
+   }
+  ],
+  [
+   {
+    "tab": null,
+    "msg": null,
+    "src": null
+   },
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[]"
+   },
+   {
+    "ok": true
+   }
+  ],
+  [
+   {
+    "tab": 0,
+    "msg": 0,
+    "src": 0
+   },
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[]"
+   },
+   {
+    "ok": true
+   }
+  ],
+  [
+   {
+    "tab": 7,
+    "msg": true,
+    "src": 12
+   },
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[7] true @ 12"
+   },
+   {
+    "ok": true
+   }
+  ],
+  [
+   {
+    "msg": "chỉ msg"
+   },
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[] chỉ msg"
+   },
+   {
+    "ok": true
+   }
+  ],
+  [
+   {
+    "src": "/tuong-doi.js"
+   },
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[] @ /tuong-doi.js"
+   },
+   {
+    "ok": true
+   }
+  ],
+  [
+   {
+    "src": "ftp://x/y.js"
+   },
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[] @ ftp://x/y.js"
+   },
+   {
+    "ok": true
+   }
+  ],
+  [
+   {
+    "src": "HTTPS://X/y.js"
+   },
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[] @ HTTPS://X/y.js"
+   },
+   {
+    "ok": true
+   }
+  ],
+  [
+   {
+    "src": "https://x"
+   },
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[] @ https://x"
+   },
+   {
+    "ok": true
+   }
+  ],
+  [
+   {
+    "src": "https:///y.js"
+   },
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[] @ https:///y.js"
+   },
+   {
+    "ok": true
+   }
+  ],
+  [
+   {
+    "src": "x https://a/b.js"
+   },
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[] @ x https://a/b.js"
+   },
+   {
+    "ok": true
+   }
+  ],
+  [
+   {
+    "tab": [
+     "a",
+     "b"
+    ],
+    "msg": {
+     "a": 1
+    },
+    "src": [
+     "https://h/p.js"
+    ]
+   },
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[a,b] [object Object] @ p.js"
+   },
+   {
+    "ok": true
+   }
+  ],
+  [
+   {
+    "tab": "😀😀😀😀😀😀😀😀😀😀😀",
+    "msg": "é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀",
+    "src": "https://h/😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+   },
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[😀😀😀😀😀😀😀😀😀😀] é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀é😀 @ 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+   },
+   {
+    "ok": true
+   }
+  ],
+  [
+   {
+    "src": "https://h\n/p/q.js"
+   },
+   {
+    "user_id": "u1",
+    "username": "ten",
+    "action": "loi_giao_dien",
+    "detail": "[] @ p/q.js"
+   },
+   {
+    "ok": true
+   }
+  ]
+ ]
+}

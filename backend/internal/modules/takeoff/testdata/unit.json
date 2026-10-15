@@ -1,0 +1,5693 @@
+[
+ {
+  "name": "getLines",
+  "fn": "getLines",
+  "args": [
+   "DA-1"
+  ],
+  "fake": {
+   "ret": {
+    "ListLines": [
+     {
+      "id": 11,
+      "ma_du_an": "DA-1",
+      "stt": "1",
+      "sort_no": 1,
+      "nhom": "3.2.6",
+      "loai": "Đèn âm trần",
+      "tang": "Tầng 1",
+      "ma_sp": "D-01",
+      "ten_sp": "Đèn A",
+      "thuong_hieu": "Ades",
+      "nha_cung_cap": "NCC",
+      "mo_ta": "mô tả",
+      "kich_thuoc": "Ø90",
+      "hinh_anh": "http://x/a.png",
+      "dvt": "Bộ",
+      "phong": "Khách",
+      "ma_so_ban_ve": "L1",
+      "so_luong": 3,
+      "gia_ban_le": 1250000,
+      "ck_dai_ly_pct": 12.5,
+      "loi_nhuan_pct": 20,
+      "gia_dai_ly": 1093750,
+      "gia_ban": 1500000,
+      "ck_khach_hang_pct": 5,
+      "don_gia": 1425000,
+      "giam_gia_ncc_pct": 3,
+      "thanh_tien": 4275000,
+      "trang_thai": "Chờ",
+      "ghi_chu": "gc",
+      "tu_nhap": 1,
+      "da_luu_dm": 0,
+      "extra": {
+       "z": 1,
+       "a": [
+        1,
+        {
+         "k": null
+        }
+       ]
+      },
+      "created_at": "2026-10-01T02:03:04+00:00"
+     },
+     {
+      "id": "12",
+      "ma_du_an": null,
+      "sort_no": null,
+      "dvt": "",
+      "so_luong": "2,5",
+      "gia_ban_le": "1.250.000",
+      "ck_dai_ly_pct": "10%",
+      "gia_dai_ly": "1.125.000,5",
+      "gia_ban": null,
+      "thanh_tien": "",
+      "tu_nhap": true,
+      "da_luu_dm": "0",
+      "extra": null
+     },
+     {
+      "id": 13,
+      "sort_no": "2",
+      "dvt": null,
+      "so_luong": 0.5,
+      "gia_dai_ly": 5,
+      "tu_nhap": 0,
+      "da_luu_dm": 2,
+      "extra": [],
+      "ten_sp": 0,
+      "nhom": false
+     },
+     {
+      "id": 14,
+      "so_luong": -1,
+      "gia_dai_ly": 2.5,
+      "extra": "",
+      "tu_nhap": "",
+      "da_luu_dm": null
+     },
+     {
+      "id": 15,
+      "so_luong": 1,
+      "gia_dai_ly": -2.5,
+      "extra": 0
+     },
+     {
+      "so_luong": 3,
+      "gia_dai_ly": 0.5
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "ListLines",
+     "a": [
+      "DA-1"
+     ]
+    }
+   ],
+   "result": [
+    {
+     "lineId": "11",
+     "maDA": "DA-1",
+     "stt": 1,
+     "nhom": "3.2.6",
+     "loai": "Đèn âm trần",
+     "tang": "Tầng 1",
+     "maSP": "D-01",
+     "ten": "Đèn A",
+     "thuongHieu": "Ades",
+     "ncc": "NCC",
+     "moTa": "mô tả",
+     "kichThuoc": "Ø90",
+     "hinhAnh": "http://x/a.png",
+     "dvt": "Bộ",
+     "khuVuc": "Khách",
+     "maBanVe": "L1",
+     "soLuong": 3,
+     "donGiaVon": 1250000,
+     "chietKhau": 12.5,
+     "lnPct": 20,
+     "donGiaBan": 1500000,
+     "ckKhach": 5,
+     "donGia": 1425000,
+     "giamGiaNcc": 3,
+     "thanhTienVon": 3281250,
+     "thanhTienBan": 4275000,
+     "trangThai": "Chờ",
+     "ghiChu": "gc",
+     "tuNhap": 1,
+     "daLuuDM": 0,
+     "extra": {
+      "z": 1,
+      "a": [
+       1,
+       {
+        "k": null
+       }
+      ]
+     }
+    },
+    {
+     "lineId": "12",
+     "maDA": "",
+     "stt": 0,
+     "nhom": "",
+     "loai": "",
+     "tang": "",
+     "maSP": "",
+     "ten": "",
+     "thuongHieu": "",
+     "ncc": "",
+     "moTa": "",
+     "kichThuoc": "",
+     "hinhAnh": "",
+     "dvt": "Cái",
+     "khuVuc": "",
+     "maBanVe": "",
+     "soLuong": 2.5,
+     "donGiaVon": 1250000,
+     "chietKhau": 10,
+     "lnPct": 0,
+     "donGiaBan": 0,
+     "ckKhach": 0,
+     "donGia": 0,
+     "giamGiaNcc": 0,
+     "thanhTienVon": 2812501,
+     "thanhTienBan": 0,
+     "trangThai": "",
+     "ghiChu": "",
+     "tuNhap": 1,
+     "daLuuDM": 1,
+     "extra": {}
+    },
+    {
+     "lineId": "13",
+     "maDA": "",
+     "stt": 2,
+     "nhom": "false",
+     "loai": "",
+     "tang": "",
+     "maSP": "",
+     "ten": "0",
+     "thuongHieu": "",
+     "ncc": "",
+     "moTa": "",
+     "kichThuoc": "",
+     "hinhAnh": "",
+     "dvt": "Cái",
+     "khuVuc": "",
+     "maBanVe": "",
+     "soLuong": 0.5,
+     "donGiaVon": 0,
+     "chietKhau": 0,
+     "lnPct": 0,
+     "donGiaBan": 0,
+     "ckKhach": 0,
+     "donGia": 0,
+     "giamGiaNcc": 0,
+     "thanhTienVon": 3,
+     "thanhTienBan": 0,
+     "trangThai": "",
+     "ghiChu": "",
+     "tuNhap": 0,
+     "daLuuDM": 1,
+     "extra": []
+    },
+    {
+     "lineId": "14",
+     "maDA": "",
+     "stt": 0,
+     "nhom": "",
+     "loai": "",
+     "tang": "",
+     "maSP": "",
+     "ten": "",
+     "thuongHieu": "",
+     "ncc": "",
+     "moTa": "",
+     "kichThuoc": "",
+     "hinhAnh": "",
+     "dvt": "Cái",
+     "khuVuc": "",
+     "maBanVe": "",
+     "soLuong": -1,
+     "donGiaVon": 0,
+     "chietKhau": 0,
+     "lnPct": 0,
+     "donGiaBan": 0,
+     "ckKhach": 0,
+     "donGia": 0,
+     "giamGiaNcc": 0,
+     "thanhTienVon": -2,
+     "thanhTienBan": 0,
+     "trangThai": "",
+     "ghiChu": "",
+     "tuNhap": 0,
+     "daLuuDM": 0,
+     "extra": {}
+    },
+    {
+     "lineId": "15",
+     "maDA": "",
+     "stt": 0,
+     "nhom": "",
+     "loai": "",
+     "tang": "",
+     "maSP": "",
+     "ten": "",
+     "thuongHieu": "",
+     "ncc": "",
+     "moTa": "",
+     "kichThuoc": "",
+     "hinhAnh": "",
+     "dvt": "Cái",
+     "khuVuc": "",
+     "maBanVe": "",
+     "soLuong": 1,
+     "donGiaVon": 0,
+     "chietKhau": 0,
+     "lnPct": 0,
+     "donGiaBan": 0,
+     "ckKhach": 0,
+     "donGia": 0,
+     "giamGiaNcc": 0,
+     "thanhTienVon": -2,
+     "thanhTienBan": 0,
+     "trangThai": "",
+     "ghiChu": "",
+     "tuNhap": 0,
+     "daLuuDM": 0,
+     "extra": {}
+    },
+    {
+     "lineId": "undefined",
+     "maDA": "",
+     "stt": 0,
+     "nhom": "",
+     "loai": "",
+     "tang": "",
+     "maSP": "",
+     "ten": "",
+     "thuongHieu": "",
+     "ncc": "",
+     "moTa": "",
+     "kichThuoc": "",
+     "hinhAnh": "",
+     "dvt": "Cái",
+     "khuVuc": "",
+     "maBanVe": "",
+     "soLuong": 3,
+     "donGiaVon": 0,
+     "chietKhau": 0,
+     "lnPct": 0,
+     "donGiaBan": 0,
+     "ckKhach": 0,
+     "donGia": 0,
+     "giamGiaNcc": 0,
+     "thanhTienVon": 2,
+     "thanhTienBan": 0,
+     "trangThai": "",
+     "ghiChu": "",
+     "tuNhap": 0,
+     "daLuuDM": 0,
+     "extra": {}
+    }
+   ]
+  }
+ },
+ {
+  "name": "getLines rỗng, thiếu tham số",
+  "fn": "getLines",
+  "args": [],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "ListLines",
+     "a": [
+      "undefined"
+     ]
+    }
+   ],
+   "result": []
+  }
+ },
+ {
+  "name": "getLines null",
+  "fn": "getLines",
+  "args": [
+   null
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "ListLines",
+     "a": [
+      "null"
+     ]
+    }
+   ],
+   "result": []
+  }
+ },
+ {
+  "name": "getLines lỗi",
+  "fn": "getLines",
+  "args": [
+   "DA-1"
+  ],
+  "fake": {
+   "err": {
+    "ListLines": "DB GET db_bao_gia -> 500 {\"message\":\"boom\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "ListLines",
+     "a": [
+      "DA-1"
+     ]
+    }
+   ],
+   "error": "DB GET db_bao_gia -> 500 {\"message\":\"boom\"}"
+  }
+ },
+ {
+  "name": "addLine đủ",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "nhom": "3.2.6",
+    "hangMuc": "Đèn âm trần",
+    "loai": "bị đè",
+    "tang": "T1",
+    "ma": "D-01",
+    "ten": "Đèn A",
+    "thuongHieu": "Ades",
+    "ncc": "NCC",
+    "moTa": "mt",
+    "kichThuoc": "Ø90",
+    "hinhAnh": "http://x/a.png",
+    "dvt": "Bộ",
+    "khuVuc": "Khách",
+    "maBanVe": "L1",
+    "donGiaVon": 1250000,
+    "donGiaBan": 1500000,
+    "chietKhau": 12.5,
+    "ckKhach": 5,
+    "lnPct": 99,
+    "trangThai": "Chờ",
+    "ghiChu": "gc",
+    "tuNhap": 1,
+    "daLuuDM": "1",
+    "extra": {
+     "z": 1,
+     "a": [
+      1
+     ]
+    }
+   },
+   3
+  ],
+  "fake": {
+   "ret": {
+    "MaxSortNo": [
+     {
+      "sort_no": 7
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 8,
+       "stt": "8",
+       "nhom": "3.2.6",
+       "loai": "Đèn âm trần",
+       "tang": "T1",
+       "ma_sp": "D-01",
+       "ten_sp": "Đèn A",
+       "thuong_hieu": "Ades",
+       "nha_cung_cap": "NCC",
+       "mo_ta": "mt",
+       "kich_thuoc": "Ø90",
+       "hinh_anh": "http://x/a.png",
+       "dvt": "Bộ",
+       "phong": "Khách",
+       "ma_so_ban_ve": "L1",
+       "so_luong": 3,
+       "gia_ban_le": 1250000,
+       "ck_dai_ly_pct": 12.5,
+       "loi_nhuan_pct": 20,
+       "gia_dai_ly": 1093750,
+       "gia_ban": 1500000,
+       "ck_khach_hang_pct": 5,
+       "don_gia": 1425000,
+       "thanh_tien": 4275000,
+       "markup_pct": 30,
+       "margin_pct": 23,
+       "loi_nhuan_vnd": 993750,
+       "trang_thai": "Chờ",
+       "ghi_chu": "gc",
+       "tu_nhap": 1,
+       "da_luu_dm": 1,
+       "extra": {
+        "z": 1,
+        "a": [
+         1
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 8,
+    "nhom": "3.2.6",
+    "loai": "Đèn âm trần",
+    "tang": "T1",
+    "maSP": "D-01",
+    "ten": "Đèn A",
+    "thuongHieu": "Ades",
+    "ncc": "NCC",
+    "moTa": "mt",
+    "kichThuoc": "Ø90",
+    "hinhAnh": "http://x/a.png",
+    "dvt": "Bộ",
+    "khuVuc": "Khách",
+    "maBanVe": "L1",
+    "soLuong": 3,
+    "donGiaVon": 1250000,
+    "chietKhau": 12.5,
+    "lnPct": 20,
+    "donGiaBan": 1500000,
+    "ckKhach": 5,
+    "donGia": 1425000,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 3281250,
+    "thanhTienBan": 4275000,
+    "trangThai": "Chờ",
+    "ghiChu": "gc",
+    "tuNhap": 1,
+    "daLuuDM": 1,
+    "extra": {
+     "z": 1,
+     "a": [
+      1
+     ]
+    }
+   }
+  }
+ },
+ {
+  "name": "addLine tối thiểu",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {}
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 1,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 0,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 0,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "donGia": 0,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 0,
+    "thanhTienBan": 0,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine thiếu product",
+  "fn": "addLine",
+  "args": [
+   "DA-1"
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 1,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 0,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 0,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "donGia": 0,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 0,
+    "thanhTienBan": 0,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine thiếu hết",
+  "fn": "addLine",
+  "args": [],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "undefined"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 1,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 0,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 0,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "donGia": 0,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 0,
+    "thanhTienBan": 0,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine product null, sl chuỗi",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   null,
+   "2"
+  ],
+  "fake": {
+   "ret": {
+    "MaxSortNo": [
+     {
+      "sort_no": "4"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 5,
+       "stt": "5",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 2,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 0,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 5,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 2,
+    "donGiaVon": 0,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "donGia": 0,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 0,
+    "thanhTienBan": 0,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine product chuỗi",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   "abc",
+   2
+  ],
+  "fake": {
+   "ret": {
+    "MaxSortNo": [
+     {
+      "sort_no": null
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 2,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 0,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 2,
+    "donGiaVon": 0,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "donGia": 0,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 0,
+    "thanhTienBan": 0,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine sl 0",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "ten": "X",
+    "donGiaVon": 100
+   },
+   0
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 1,
+       "gia_ban_le": 100,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 100,
+       "gia_ban": 100,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 100,
+       "thanh_tien": 100,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "X",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 100,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 100,
+    "ckKhach": 0,
+    "donGia": 100,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 100,
+    "thanhTienBan": 100,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine sl kiểu VN (Number -> NaN -> 1)",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "ten": "X",
+    "donGiaVon": 100
+   },
+   "1,5"
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 1,
+       "gia_ban_le": 100,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 100,
+       "gia_ban": 100,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 100,
+       "thanh_tien": 100,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "X",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 100,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 100,
+    "ckKhach": 0,
+    "donGia": 100,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 100,
+    "thanhTienBan": 100,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine sl âm lẻ",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "ten": "X",
+    "donGiaVon": 333,
+    "donGiaBan": 444
+   },
+   -2.5
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": -2.5,
+       "gia_ban_le": 333,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 33,
+       "gia_dai_ly": 333,
+       "gia_ban": 444,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 444,
+       "thanh_tien": -1110,
+       "markup_pct": 33,
+       "margin_pct": 25,
+       "loi_nhuan_vnd": -277,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "X",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": -2.5,
+    "donGiaVon": 333,
+    "chietKhau": 0,
+    "lnPct": 33,
+    "donGiaBan": 444,
+    "ckKhach": 0,
+    "donGia": 444,
+    "giamGiaNcc": 0,
+    "thanhTienVon": -832,
+    "thanhTienBan": -1110,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine sl true",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "ten": "X",
+    "donGiaVon": 10
+   },
+   true
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 1,
+       "gia_ban_le": 10,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 10,
+       "gia_ban": 10,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 10,
+       "thanh_tien": 10,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "X",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 10,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 10,
+    "ckKhach": 0,
+    "donGia": 10,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 10,
+    "thanhTienBan": 10,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine sl Infinity",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "ten": "X",
+    "donGiaVon": 10,
+    "donGiaBan": 20
+   },
+   "Infinity"
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": null,
+       "gia_ban_le": 10,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 100,
+       "gia_dai_ly": 10,
+       "gia_ban": 20,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 20,
+       "thanh_tien": 0,
+       "markup_pct": 100,
+       "margin_pct": 50,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "X",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 0,
+    "donGiaVon": 10,
+    "chietKhau": 0,
+    "lnPct": 100,
+    "donGiaBan": 20,
+    "ckKhach": 0,
+    "donGia": 20,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 0,
+    "thanhTienBan": 0,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine giá kiểu VN",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "ten": "X",
+    "donGiaVon": "1.250.000",
+    "donGiaBan": "1.500.000",
+    "chietKhau": "10",
+    "ckKhach": "2.5"
+   },
+   2
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 2,
+       "gia_ban_le": 1250000,
+       "ck_dai_ly_pct": 10,
+       "loi_nhuan_pct": 20,
+       "gia_dai_ly": 1125000,
+       "gia_ban": 1500000,
+       "ck_khach_hang_pct": 2.5,
+       "don_gia": 1462500,
+       "thanh_tien": 2925000,
+       "markup_pct": 30,
+       "margin_pct": 23,
+       "loi_nhuan_vnd": 675000,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "X",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 2,
+    "donGiaVon": 1250000,
+    "chietKhau": 10,
+    "lnPct": 20,
+    "donGiaBan": 1500000,
+    "ckKhach": 2.5,
+    "donGia": 1462500,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 2250000,
+    "thanhTienBan": 2925000,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine chiết khấu kiểu VN (Number -> NaN -> 0)",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "ten": "X",
+    "donGiaVon": "12,5",
+    "chietKhau": "10%",
+    "ckKhach": "2,5",
+    "lnPct": "30"
+   },
+   4
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 4,
+       "gia_ban_le": 12.5,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 30,
+       "gia_dai_ly": 13,
+       "gia_ban": 16,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 16,
+       "thanh_tien": 64,
+       "markup_pct": 23,
+       "margin_pct": 19,
+       "loi_nhuan_vnd": 12,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "X",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 4,
+    "donGiaVon": 12.5,
+    "chietKhau": 0,
+    "lnPct": 30,
+    "donGiaBan": 16,
+    "ckKhach": 0,
+    "donGia": 16,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 52,
+    "thanhTienBan": 64,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine ln từ lnPct",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "ten": "X",
+    "donGiaVon": 1000,
+    "lnPct": 33.3
+   },
+   3
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 3,
+       "gia_ban_le": 1000,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 33.3,
+       "gia_dai_ly": 1000,
+       "gia_ban": 1333,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 1333,
+       "thanh_tien": 3999,
+       "markup_pct": 33,
+       "margin_pct": 25,
+       "loi_nhuan_vnd": 999,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "X",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 3,
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "lnPct": 33.3,
+    "donGiaBan": 1333,
+    "ckKhach": 0,
+    "donGia": 1333,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 3000,
+    "thanhTienBan": 3999,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine donGiaBan 0",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "ten": "X",
+    "donGiaVon": 1000,
+    "donGiaBan": 0,
+    "lnPct": 25
+   },
+   3
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 3,
+       "gia_ban_le": 1000,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 25,
+       "gia_dai_ly": 1000,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": -100,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": -3000,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "X",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 3,
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "lnPct": 25,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "donGia": 0,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 3000,
+    "thanhTienBan": 0,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine donGiaBan rỗng",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "ten": "X",
+    "donGiaVon": 1000,
+    "donGiaBan": "",
+    "lnPct": 25
+   },
+   3
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 3,
+       "gia_ban_le": 1000,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 25,
+       "gia_dai_ly": 1000,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": -100,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": -3000,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "X",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 3,
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "lnPct": 25,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "donGia": 0,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 3000,
+    "thanhTienBan": 0,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine donGiaBan null",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "ten": "X",
+    "donGiaVon": 1000,
+    "donGiaBan": null,
+    "lnPct": "25"
+   },
+   3
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 3,
+       "gia_ban_le": 1000,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 25,
+       "gia_dai_ly": 1000,
+       "gia_ban": 1250,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 1250,
+       "thanh_tien": 3750,
+       "markup_pct": 25,
+       "margin_pct": 20,
+       "loi_nhuan_vnd": 750,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "X",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 3,
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "lnPct": 25,
+    "donGiaBan": 1250,
+    "ckKhach": 0,
+    "donGia": 1250,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 3000,
+    "thanhTienBan": 3750,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine von 0 có giá bán",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "ten": "X",
+    "donGiaVon": 0,
+    "donGiaBan": 500,
+    "lnPct": 40
+   },
+   2
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 2,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 40,
+       "gia_dai_ly": 0,
+       "gia_ban": 500,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 500,
+       "thanh_tien": 1000,
+       "markup_pct": 0,
+       "margin_pct": 100,
+       "loi_nhuan_vnd": 1000,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "X",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 2,
+    "donGiaVon": 0,
+    "chietKhau": 0,
+    "lnPct": 40,
+    "donGiaBan": 500,
+    "ckKhach": 0,
+    "donGia": 500,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 0,
+    "thanhTienBan": 1000,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine làm tròn nửa âm",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "ten": "X",
+    "donGiaVon": 200,
+    "donGiaBan": 195
+   },
+   1
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 1,
+       "gia_ban_le": 200,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": -2,
+       "gia_dai_ly": 200,
+       "gia_ban": 195,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 195,
+       "thanh_tien": 195,
+       "markup_pct": -2,
+       "margin_pct": -3,
+       "loi_nhuan_vnd": -5,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "X",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 200,
+    "chietKhau": 0,
+    "lnPct": -2,
+    "donGiaBan": 195,
+    "ckKhach": 0,
+    "donGia": 195,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 200,
+    "thanhTienBan": 195,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine làm tròn nửa dương",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "ten": "X",
+    "donGiaVon": 200,
+    "donGiaBan": 205,
+    "chietKhau": 0.25,
+    "ckKhach": 0.5
+   },
+   3
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 3,
+       "gia_ban_le": 200,
+       "ck_dai_ly_pct": 0.25,
+       "loi_nhuan_pct": 3,
+       "gia_dai_ly": 200,
+       "gia_ban": 205,
+       "ck_khach_hang_pct": 0.5,
+       "don_gia": 204,
+       "thanh_tien": 612,
+       "markup_pct": 2,
+       "margin_pct": 2,
+       "loi_nhuan_vnd": 12,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "X",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 3,
+    "donGiaVon": 200,
+    "chietKhau": 0.25,
+    "lnPct": 3,
+    "donGiaBan": 205,
+    "ckKhach": 0.5,
+    "donGia": 204,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 600,
+    "thanhTienBan": 612,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine lẻ .5",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "ten": "X",
+    "donGiaVon": 5,
+    "chietKhau": 50,
+    "lnPct": 10,
+    "ckKhach": 50
+   },
+   1.5
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 1.5,
+       "gia_ban_le": 5,
+       "ck_dai_ly_pct": 50,
+       "loi_nhuan_pct": 10,
+       "gia_dai_ly": 3,
+       "gia_ban": 6,
+       "ck_khach_hang_pct": 50,
+       "don_gia": 3,
+       "thanh_tien": 5,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "X",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1.5,
+    "donGiaVon": 5,
+    "chietKhau": 50,
+    "lnPct": 10,
+    "donGiaBan": 6,
+    "ckKhach": 50,
+    "donGia": 3,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 5,
+    "thanhTienBan": 5,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine âm",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "ten": "X",
+    "donGiaVon": -100,
+    "donGiaBan": -50,
+    "chietKhau": 150,
+    "ckKhach": 200
+   },
+   2
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 2,
+       "gia_ban_le": -100,
+       "ck_dai_ly_pct": 150,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 50,
+       "gia_ban": -50,
+       "ck_khach_hang_pct": 200,
+       "don_gia": 50,
+       "thanh_tien": 100,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "X",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 2,
+    "donGiaVon": -100,
+    "chietKhau": 150,
+    "lnPct": 0,
+    "donGiaBan": -50,
+    "ckKhach": 200,
+    "donGia": 50,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 100,
+    "thanhTienBan": 100,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine chiết khấu vô cực",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "ten": "X",
+    "donGiaVon": 0,
+    "chietKhau": "Infinity",
+    "ckKhach": "-Infinity",
+    "lnPct": "Infinity"
+   },
+   2
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 2,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": null,
+       "loi_nhuan_pct": null,
+       "gia_dai_ly": 0,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": null,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "X",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 2,
+    "donGiaVon": 0,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "donGia": 0,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 0,
+    "thanhTienBan": 0,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine giá trị thô lạ",
+  "fn": "addLine",
+  "args": [
+   12,
+   {
+    "nhom": 0,
+    "hangMuc": "",
+    "loai": "L",
+    "tang": false,
+    "ma": 5,
+    "ten": [
+     "a",
+     "b"
+    ],
+    "dvt": "",
+    "tuNhap": true,
+    "daLuuDM": "x",
+    "extra": 0,
+    "trangThai": null,
+    "ghiChu": {
+     "a": 1
+    }
+   },
+   1
+  ],
+  "fake": {
+   "ret": {
+    "MaxSortNo": [
+     {
+      "sort_no": "abc"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "12"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": 12,
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "L",
+       "tang": "",
+       "ma_sp": 5,
+       "ten_sp": [
+        "a",
+        "b"
+       ],
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 1,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 0,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": {
+        "a": 1
+       },
+       "tu_nhap": 1,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "12",
+    "stt": 1,
+    "nhom": "",
+    "loai": "L",
+    "tang": "",
+    "maSP": "5",
+    "ten": "a,b",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 0,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "donGia": 0,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 0,
+    "thanhTienBan": 0,
+    "trangThai": "",
+    "ghiChu": "[object Object]",
+    "tuNhap": 1,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addLine extra mảng",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "ten": "X",
+    "extra": [
+     1,
+     2
+    ]
+   },
+   1
+  ],
+  "fake": {
+   "ret": {
+    "MaxSortNo": [
+     {
+      "sort_no": 1.5
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 2.5,
+       "stt": "2.5",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 1,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 0,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": [
+        1,
+        2
+       ]
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 2.5,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "X",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 0,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "donGia": 0,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 0,
+    "thanhTienBan": 0,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": [
+     1,
+     2
+    ]
+   }
+  }
+ },
+ {
+  "name": "addLine dự án không còn",
+  "fn": "addLine",
+  "args": [
+   "DA-x",
+   {
+    "ten": "X"
+   },
+   1
+  ],
+  "fake": {
+   "err": {
+    "InsertLine": "DB POST db_bao_gia -> 409 {\"code\":\"23503\",\"details\":\"Key (project_code)=(DA-x) is not present in table \\\"projects\\\".\",\"hint\":null,\"message\":\"insert or update on table \\\"quotation_lines\\\" violates foreign key constraint\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-x"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-x",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 1,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 0,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "error": "Bản nháp không còn tồn tại hoặc không thuộc công ty đang xem — hãy tải lại trang."
+  }
+ },
+ {
+  "name": "addLine lỗi có số 123503",
+  "fn": "addLine",
+  "args": [
+   "DA-x",
+   {
+    "ten": "X"
+   },
+   1
+  ],
+  "fake": {
+   "err": {
+    "InsertLine": "DB POST db_bao_gia -> 400 {\"code\":\"22P02\",\"message\":\"x 123503 y\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-x"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-x",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 1,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 0,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "error": "DB POST db_bao_gia -> 400 {\"code\":\"22P02\",\"message\":\"x 123503 y\"}"
+  }
+ },
+ {
+  "name": "addLine lỗi đọc sort_no",
+  "fn": "addLine",
+  "args": [
+   "DA-x",
+   {
+    "ten": "X"
+   },
+   1
+  ],
+  "fake": {
+   "err": {
+    "MaxSortNo": "DB GET db_bao_gia -> 500 {\"message\":\"23503\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-x"
+     ]
+    }
+   ],
+   "error": "DB GET db_bao_gia -> 500 {\"message\":\"23503\"}"
+  }
+ },
+ {
+  "name": "addLine không trả dòng",
+  "fn": "addLine",
+  "args": [
+   "DA-1",
+   {
+    "ten": "X"
+   },
+   1
+  ],
+  "fake": {
+   "ret": {
+    "InsertLine": []
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "X",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 1,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 0,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "error": "Cannot read properties of undefined (reading 'gia_ban_le')"
+  }
+ },
+ {
+  "name": "addBlankLine",
+  "fn": "addBlankLine",
+  "args": [
+   "DA-1",
+   {
+    "tang": "Tầng 2",
+    "nhom": "3.2.5",
+    "ten": "bỏ"
+   }
+  ],
+  "fake": {
+   "ret": {
+    "MaxSortNo": [
+     {
+      "sort_no": 3
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 4,
+       "stt": "4",
+       "nhom": "3.2.5",
+       "loai": "",
+       "tang": "Tầng 2",
+       "ma_sp": "",
+       "ten_sp": "Hạng mục mới",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 1,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 0,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 4,
+    "nhom": "3.2.5",
+    "loai": "",
+    "tang": "Tầng 2",
+    "maSP": "",
+    "ten": "Hạng mục mới",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 0,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "donGia": 0,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 0,
+    "thanhTienBan": 0,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addBlankLine thiếu opts",
+  "fn": "addBlankLine",
+  "args": [
+   "DA-1"
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "Hạng mục mới",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 1,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 0,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "Hạng mục mới",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 0,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "donGia": 0,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 0,
+    "thanhTienBan": 0,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addBlankLine opts null",
+  "fn": "addBlankLine",
+  "args": [
+   "DA-1",
+   null
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "Hạng mục mới",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 1,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 0,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "Hạng mục mới",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 0,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "donGia": 0,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 0,
+    "thanhTienBan": 0,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addBlankLine opts falsy",
+  "fn": "addBlankLine",
+  "args": [
+   "DA-1",
+   {
+    "tang": 0,
+    "nhom": null
+   }
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-1"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-1",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "Hạng mục mới",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 1,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 0,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "900",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "Hạng mục mới",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 0,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 0,
+    "ckKhach": 0,
+    "donGia": 0,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 0,
+    "thanhTienBan": 0,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "addBlankLine dự án không còn",
+  "fn": "addBlankLine",
+  "args": [
+   "DA-x",
+   {}
+  ],
+  "fake": {
+   "err": {
+    "InsertLine": "DB POST db_bao_gia -> 409 {\"code\":\"23503\",\"message\":\"fk\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "MaxSortNo",
+     "a": [
+      "DA-x"
+     ]
+    },
+    {
+     "m": "InsertLine",
+     "a": [
+      {
+       "ma_du_an": "DA-x",
+       "sort_no": 1,
+       "stt": "1",
+       "nhom": "",
+       "loai": "",
+       "tang": "",
+       "ma_sp": "",
+       "ten_sp": "Hạng mục mới",
+       "thuong_hieu": "",
+       "nha_cung_cap": "",
+       "mo_ta": "",
+       "kich_thuoc": "",
+       "hinh_anh": "",
+       "dvt": "Cái",
+       "phong": "",
+       "ma_so_ban_ve": "",
+       "so_luong": 1,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 0,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0,
+       "trang_thai": "",
+       "ghi_chu": "",
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "extra": null
+      }
+     ]
+    }
+   ],
+   "error": "Bản nháp không còn tồn tại hoặc không thuộc công ty đang xem — hãy tải lại trang."
+  }
+ },
+ {
+  "name": "updateLine không có dòng",
+  "fn": "updateLine",
+  "args": [
+   99,
+   {
+    "ten": "X"
+   }
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "99"
+     ]
+    }
+   ],
+   "result": null
+  }
+ },
+ {
+  "name": "updateLine thiếu tham số",
+  "fn": "updateLine",
+  "args": [],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "undefined"
+     ]
+    }
+   ],
+   "result": null
+  }
+ },
+ {
+  "name": "updateLine chỉ chữ: giữ giá",
+  "fn": "updateLine",
+  "args": [
+   "11",
+   {
+    "khuVuc": "Bếp",
+    "ghiChu": null,
+    "ten": "Đèn B",
+    "nhom": "",
+    "la": 1,
+    "maSP": 5
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "ma_du_an": "DA-1",
+      "sort_no": 1,
+      "ten_sp": "Đèn A",
+      "so_luong": 3,
+      "gia_ban_le": 1000,
+      "ck_dai_ly_pct": 10,
+      "loi_nhuan_pct": 33,
+      "gia_dai_ly": 900,
+      "gia_ban": 1333,
+      "ck_khach_hang_pct": 5,
+      "don_gia": 1266,
+      "thanh_tien": 3798,
+      "extra": {
+       "a": 1
+      }
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "nhom": "",
+       "ten_sp": "Đèn B",
+       "phong": "Bếp",
+       "ma_sp": 5,
+       "ghi_chu": "",
+       "so_luong": 3,
+       "gia_ban_le": 1000,
+       "ck_dai_ly_pct": 10,
+       "loi_nhuan_pct": 33,
+       "gia_dai_ly": 900,
+       "gia_ban": 1333,
+       "ck_khach_hang_pct": 5,
+       "don_gia": 1266,
+       "thanh_tien": 3798,
+       "markup_pct": 41,
+       "margin_pct": 29,
+       "loi_nhuan_vnd": 1098
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "11",
+    "maDA": "DA-1",
+    "stt": 1,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "5",
+    "ten": "Đèn B",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "Bếp",
+    "maBanVe": "",
+    "soLuong": 3,
+    "donGiaVon": 1000,
+    "chietKhau": 10,
+    "lnPct": 33,
+    "donGiaBan": 1333,
+    "ckKhach": 5,
+    "donGia": 1266,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 2700,
+    "thanhTienBan": 3798,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {
+     "a": 1
+    }
+   }
+  }
+ },
+ {
+  "name": "updateLine rỗng: tính lại dẫn xuất",
+  "fn": "updateLine",
+  "args": [
+   11,
+   {}
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "so_luong": "2,5",
+      "gia_ban_le": "1.000",
+      "ck_dai_ly_pct": null,
+      "loi_nhuan_pct": 33,
+      "gia_ban": 1333,
+      "ck_khach_hang_pct": "5"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "so_luong": 2.5,
+       "gia_ban_le": 1000,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 33,
+       "gia_dai_ly": 1000,
+       "gia_ban": 1333,
+       "ck_khach_hang_pct": 5,
+       "don_gia": 1266,
+       "thanh_tien": 3165,
+       "markup_pct": 27,
+       "margin_pct": 21,
+       "loi_nhuan_vnd": 665
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "11",
+    "maDA": "",
+    "stt": 0,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 2.5,
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "lnPct": 33,
+    "donGiaBan": 1333,
+    "ckKhach": 5,
+    "donGia": 1266,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 2500,
+    "thanhTienBan": 3165,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "updateLine fields null",
+  "fn": "updateLine",
+  "args": [
+   11,
+   null
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "so_luong": 1,
+      "gia_ban_le": 100,
+      "gia_ban": 150
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "so_luong": 1,
+       "gia_ban_le": 100,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 100,
+       "gia_ban": 150,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 150,
+       "thanh_tien": 150,
+       "markup_pct": 50,
+       "margin_pct": 33,
+       "loi_nhuan_vnd": 50
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "11",
+    "maDA": "",
+    "stt": 0,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 100,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 150,
+    "ckKhach": 0,
+    "donGia": 150,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 100,
+    "thanhTienBan": 150,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "updateLine fields mảng",
+  "fn": "updateLine",
+  "args": [
+   11,
+   [
+    "ten"
+   ]
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "so_luong": 1,
+      "gia_ban_le": 100,
+      "gia_ban": 150
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "so_luong": 1,
+       "gia_ban_le": 100,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 100,
+       "gia_ban": 150,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 150,
+       "thanh_tien": 150,
+       "markup_pct": 50,
+       "margin_pct": 33,
+       "loi_nhuan_vnd": 50
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "11",
+    "maDA": "",
+    "stt": 0,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 100,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 150,
+    "ckKhach": 0,
+    "donGia": 150,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 100,
+    "thanhTienBan": 150,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "updateLine donGiaBan",
+  "fn": "updateLine",
+  "args": [
+   11,
+   {
+    "donGiaBan": "1.500",
+    "lnPct": 99
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "so_luong": 3,
+      "gia_ban_le": 1000,
+      "ck_dai_ly_pct": 10,
+      "loi_nhuan_pct": 33,
+      "gia_ban": 1333,
+      "ck_khach_hang_pct": 5
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "so_luong": 3,
+       "gia_ban_le": 1000,
+       "ck_dai_ly_pct": 10,
+       "loi_nhuan_pct": 50,
+       "gia_dai_ly": 900,
+       "gia_ban": 1500,
+       "ck_khach_hang_pct": 5,
+       "don_gia": 1425,
+       "thanh_tien": 4275,
+       "markup_pct": 58,
+       "margin_pct": 37,
+       "loi_nhuan_vnd": 1575
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "11",
+    "maDA": "",
+    "stt": 0,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 3,
+    "donGiaVon": 1000,
+    "chietKhau": 10,
+    "lnPct": 50,
+    "donGiaBan": 1500,
+    "ckKhach": 5,
+    "donGia": 1425,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 2700,
+    "thanhTienBan": 4275,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "updateLine donGiaBan null",
+  "fn": "updateLine",
+  "args": [
+   11,
+   {
+    "donGiaBan": null
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "so_luong": 3,
+      "gia_ban_le": 1000,
+      "ck_dai_ly_pct": 10,
+      "loi_nhuan_pct": 33,
+      "gia_ban": 1333,
+      "ck_khach_hang_pct": 5
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "so_luong": 3,
+       "gia_ban_le": 1000,
+       "ck_dai_ly_pct": 10,
+       "loi_nhuan_pct": -100,
+       "gia_dai_ly": 900,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 5,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": -100,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": -2700
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "11",
+    "maDA": "",
+    "stt": 0,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 3,
+    "donGiaVon": 1000,
+    "chietKhau": 10,
+    "lnPct": -100,
+    "donGiaBan": 0,
+    "ckKhach": 5,
+    "donGia": 0,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 2700,
+    "thanhTienBan": 0,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "updateLine donGiaBan, von 0",
+  "fn": "updateLine",
+  "args": [
+   11,
+   {
+    "donGiaBan": 500,
+    "donGiaVon": 0
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "so_luong": 3,
+      "gia_ban_le": 1000,
+      "loi_nhuan_pct": 33,
+      "gia_ban": 1333
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "so_luong": 3,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 0,
+       "gia_ban": 500,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 500,
+       "thanh_tien": 1500,
+       "markup_pct": 0,
+       "margin_pct": 100,
+       "loi_nhuan_vnd": 1500
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "11",
+    "maDA": "",
+    "stt": 0,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 3,
+    "donGiaVon": 0,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 500,
+    "ckKhach": 0,
+    "donGia": 500,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 0,
+    "thanhTienBan": 1500,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "updateLine donGiaBan nửa âm",
+  "fn": "updateLine",
+  "args": [
+   11,
+   {
+    "donGiaBan": 195
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "so_luong": 1,
+      "gia_ban_le": 200,
+      "loi_nhuan_pct": 0,
+      "gia_ban": 200
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "so_luong": 1,
+       "gia_ban_le": 200,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": -2,
+       "gia_dai_ly": 200,
+       "gia_ban": 195,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 195,
+       "thanh_tien": 195,
+       "markup_pct": -2,
+       "margin_pct": -3,
+       "loi_nhuan_vnd": -5
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "11",
+    "maDA": "",
+    "stt": 0,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 200,
+    "chietKhau": 0,
+    "lnPct": -2,
+    "donGiaBan": 195,
+    "ckKhach": 0,
+    "donGia": 195,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 200,
+    "thanhTienBan": 195,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "updateLine lnPct",
+  "fn": "updateLine",
+  "args": [
+   11,
+   {
+    "lnPct": "12.5"
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "so_luong": 3,
+      "gia_ban_le": 1000,
+      "ck_dai_ly_pct": 10,
+      "loi_nhuan_pct": 33,
+      "gia_ban": 1333,
+      "ck_khach_hang_pct": 5
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "so_luong": 3,
+       "gia_ban_le": 1000,
+       "ck_dai_ly_pct": 10,
+       "loi_nhuan_pct": 12.5,
+       "gia_dai_ly": 900,
+       "gia_ban": 1125,
+       "ck_khach_hang_pct": 5,
+       "don_gia": 1069,
+       "thanh_tien": 3207,
+       "markup_pct": 19,
+       "margin_pct": 16,
+       "loi_nhuan_vnd": 507
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "11",
+    "maDA": "",
+    "stt": 0,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 3,
+    "donGiaVon": 1000,
+    "chietKhau": 10,
+    "lnPct": 12.5,
+    "donGiaBan": 1125,
+    "ckKhach": 5,
+    "donGia": 1069,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 2700,
+    "thanhTienBan": 3207,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "updateLine lnPct kiểu VN -> 0",
+  "fn": "updateLine",
+  "args": [
+   11,
+   {
+    "lnPct": "12,5"
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "so_luong": 3,
+      "gia_ban_le": 1000,
+      "loi_nhuan_pct": 33,
+      "gia_ban": 1333
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "so_luong": 3,
+       "gia_ban_le": 1000,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 1000,
+       "gia_ban": 1000,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 1000,
+       "thanh_tien": 3000,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "11",
+    "maDA": "",
+    "stt": 0,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 3,
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 1000,
+    "ckKhach": 0,
+    "donGia": 1000,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 3000,
+    "thanhTienBan": 3000,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "updateLine donGiaVon kiểu VN",
+  "fn": "updateLine",
+  "args": [
+   11,
+   {
+    "donGiaVon": "2.000,5"
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "so_luong": 3,
+      "gia_ban_le": 1000,
+      "ck_dai_ly_pct": 10,
+      "loi_nhuan_pct": 33,
+      "gia_ban": 1333,
+      "ck_khach_hang_pct": 5
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "so_luong": 3,
+       "gia_ban_le": 2000.5,
+       "ck_dai_ly_pct": 10,
+       "loi_nhuan_pct": 33,
+       "gia_dai_ly": 1800,
+       "gia_ban": 2661,
+       "ck_khach_hang_pct": 5,
+       "don_gia": 2528,
+       "thanh_tien": 7584,
+       "markup_pct": 40,
+       "margin_pct": 29,
+       "loi_nhuan_vnd": 2184
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "11",
+    "maDA": "",
+    "stt": 0,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 3,
+    "donGiaVon": 2000.5,
+    "chietKhau": 10,
+    "lnPct": 33,
+    "donGiaBan": 2661,
+    "ckKhach": 5,
+    "donGia": 2528,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 5400,
+    "thanhTienBan": 7584,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "updateLine số lượng + chiết khấu",
+  "fn": "updateLine",
+  "args": [
+   11,
+   {
+    "soLuong": "4",
+    "chietKhau": "12.5",
+    "ckKhach": 7.5
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "so_luong": 3,
+      "gia_ban_le": 1000,
+      "ck_dai_ly_pct": 10,
+      "loi_nhuan_pct": 33,
+      "gia_ban": 1333,
+      "ck_khach_hang_pct": 5
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "so_luong": 4,
+       "gia_ban_le": 1000,
+       "ck_dai_ly_pct": 12.5,
+       "loi_nhuan_pct": 33,
+       "gia_dai_ly": 875,
+       "gia_ban": 1333,
+       "ck_khach_hang_pct": 7.5,
+       "don_gia": 1233,
+       "thanh_tien": 4932,
+       "markup_pct": 41,
+       "margin_pct": 29,
+       "loi_nhuan_vnd": 1432
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "11",
+    "maDA": "",
+    "stt": 0,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 4,
+    "donGiaVon": 1000,
+    "chietKhau": 12.5,
+    "lnPct": 33,
+    "donGiaBan": 1333,
+    "ckKhach": 7.5,
+    "donGia": 1233,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 3500,
+    "thanhTienBan": 4932,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "updateLine số lượng null / kiểu VN",
+  "fn": "updateLine",
+  "args": [
+   11,
+   {
+    "soLuong": null,
+    "chietKhau": "12,5",
+    "ckKhach": "abc"
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "so_luong": 3,
+      "gia_ban_le": 1000,
+      "ck_dai_ly_pct": 10,
+      "loi_nhuan_pct": 33,
+      "gia_ban": 1333,
+      "ck_khach_hang_pct": 5
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "so_luong": 0,
+       "gia_ban_le": 1000,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 33,
+       "gia_dai_ly": 1000,
+       "gia_ban": 1333,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 1333,
+       "thanh_tien": 0,
+       "markup_pct": 33,
+       "margin_pct": 25,
+       "loi_nhuan_vnd": 0
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "11",
+    "maDA": "",
+    "stt": 0,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 0,
+    "donGiaVon": 1000,
+    "chietKhau": 0,
+    "lnPct": 33,
+    "donGiaBan": 1333,
+    "ckKhach": 0,
+    "donGia": 1333,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 0,
+    "thanhTienBan": 0,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "updateLine các cờ + stt + extra",
+  "fn": "updateLine",
+  "args": [
+   11,
+   {
+    "giamGiaNcc": "3.5",
+    "tuNhap": true,
+    "daLuuDM": "x",
+    "stt": "7",
+    "extra": {
+     "k": 1
+    }
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "so_luong": 1,
+      "gia_ban_le": 100,
+      "gia_ban": 150,
+      "extra": {
+       "cũ": 1
+      }
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "giam_gia_ncc_pct": 3.5,
+       "tu_nhap": 1,
+       "da_luu_dm": 0,
+       "sort_no": 7,
+       "stt": "7",
+       "extra": {
+        "k": 1
+       },
+       "so_luong": 1,
+       "gia_ban_le": 100,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 100,
+       "gia_ban": 150,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 150,
+       "thanh_tien": 150,
+       "markup_pct": 50,
+       "margin_pct": 33,
+       "loi_nhuan_vnd": 50
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "11",
+    "maDA": "",
+    "stt": 7,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 100,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 150,
+    "ckKhach": 0,
+    "donGia": 150,
+    "giamGiaNcc": 3.5,
+    "thanhTienVon": 100,
+    "thanhTienBan": 150,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 1,
+    "daLuuDM": 0,
+    "extra": {
+     "k": 1
+    }
+   }
+  }
+ },
+ {
+  "name": "updateLine stt null, extra falsy",
+  "fn": "updateLine",
+  "args": [
+   11,
+   {
+    "stt": null,
+    "extra": 0,
+    "giamGiaNcc": null,
+    "tuNhap": null,
+    "daLuuDM": 0
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "so_luong": 1,
+      "gia_ban_le": 100,
+      "gia_ban": 150,
+      "sort_no": 4
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "giam_gia_ncc_pct": 0,
+       "tu_nhap": 0,
+       "da_luu_dm": 0,
+       "sort_no": 0,
+       "stt": "null",
+       "extra": null,
+       "so_luong": 1,
+       "gia_ban_le": 100,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 100,
+       "gia_ban": 150,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 150,
+       "thanh_tien": 150,
+       "markup_pct": 50,
+       "margin_pct": 33,
+       "loi_nhuan_vnd": 50
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "11",
+    "maDA": "",
+    "stt": 0,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 100,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 150,
+    "ckKhach": 0,
+    "donGia": 150,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 100,
+    "thanhTienBan": 150,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "updateLine stt lạ",
+  "fn": "updateLine",
+  "args": [
+   11,
+   {
+    "stt": {
+     "a": 1
+    }
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "so_luong": 1,
+      "gia_ban_le": 100,
+      "gia_ban": 150
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "sort_no": 0,
+       "stt": "[object Object]",
+       "so_luong": 1,
+       "gia_ban_le": 100,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 100,
+       "gia_ban": 150,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 150,
+       "thanh_tien": 150,
+       "markup_pct": 50,
+       "margin_pct": 33,
+       "loi_nhuan_vnd": 50
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "11",
+    "maDA": "",
+    "stt": 0,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 100,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 150,
+    "ckKhach": 0,
+    "donGia": 150,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 100,
+    "thanhTienBan": 150,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "updateLine stt số lẻ",
+  "fn": "updateLine",
+  "args": [
+   11,
+   {
+    "stt": 2.5,
+    "extra": []
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "so_luong": 1,
+      "gia_ban_le": 100,
+      "gia_ban": 150
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "sort_no": 2.5,
+       "stt": "2.5",
+       "extra": [],
+       "so_luong": 1,
+       "gia_ban_le": 100,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 100,
+       "gia_ban": 150,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 150,
+       "thanh_tien": 150,
+       "markup_pct": 50,
+       "margin_pct": 33,
+       "loi_nhuan_vnd": 50
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "11",
+    "maDA": "",
+    "stt": 2.5,
+    "nhom": "",
+    "loai": "",
+    "tang": "",
+    "maSP": "",
+    "ten": "",
+    "thuongHieu": "",
+    "ncc": "",
+    "moTa": "",
+    "kichThuoc": "",
+    "hinhAnh": "",
+    "dvt": "Cái",
+    "khuVuc": "",
+    "maBanVe": "",
+    "soLuong": 1,
+    "donGiaVon": 100,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 150,
+    "ckKhach": 0,
+    "donGia": 150,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 100,
+    "thanhTienBan": 150,
+    "trangThai": "",
+    "ghiChu": "",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": []
+   }
+  }
+ },
+ {
+  "name": "updateLine mọi cột chữ",
+  "fn": "updateLine",
+  "args": [
+   11,
+   {
+    "ghiChu": "g",
+    "trangThai": "t",
+    "maSP": "m",
+    "maBanVe": "bv",
+    "khuVuc": "kv",
+    "dvt": null,
+    "hinhAnh": "h",
+    "kichThuoc": "k",
+    "moTa": "mt",
+    "ncc": "n",
+    "thuongHieu": "th",
+    "ten": "t",
+    "tang": "tg",
+    "loai": "l",
+    "nhom": "n"
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "so_luong": 1,
+      "gia_ban_le": 100,
+      "gia_ban": 150
+     }
+    ]
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "nhom": "n",
+       "loai": "l",
+       "tang": "tg",
+       "ten_sp": "t",
+       "thuong_hieu": "th",
+       "nha_cung_cap": "n",
+       "mo_ta": "mt",
+       "kich_thuoc": "k",
+       "hinh_anh": "h",
+       "dvt": "",
+       "phong": "kv",
+       "ma_so_ban_ve": "bv",
+       "ma_sp": "m",
+       "trang_thai": "t",
+       "ghi_chu": "g",
+       "so_luong": 1,
+       "gia_ban_le": 100,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 100,
+       "gia_ban": 150,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 150,
+       "thanh_tien": 150,
+       "markup_pct": 50,
+       "margin_pct": 33,
+       "loi_nhuan_vnd": 50
+      }
+     ]
+    }
+   ],
+   "result": {
+    "lineId": "11",
+    "maDA": "",
+    "stt": 0,
+    "nhom": "n",
+    "loai": "l",
+    "tang": "tg",
+    "maSP": "m",
+    "ten": "t",
+    "thuongHieu": "th",
+    "ncc": "n",
+    "moTa": "mt",
+    "kichThuoc": "k",
+    "hinhAnh": "h",
+    "dvt": "Cái",
+    "khuVuc": "kv",
+    "maBanVe": "bv",
+    "soLuong": 1,
+    "donGiaVon": 100,
+    "chietKhau": 0,
+    "lnPct": 0,
+    "donGiaBan": 150,
+    "ckKhach": 0,
+    "donGia": 150,
+    "giamGiaNcc": 0,
+    "thanhTienVon": 100,
+    "thanhTienBan": 150,
+    "trangThai": "t",
+    "ghiChu": "g",
+    "tuNhap": 0,
+    "daLuuDM": 0,
+    "extra": {}
+   }
+  }
+ },
+ {
+  "name": "updateLine update không trả dòng",
+  "fn": "updateLine",
+  "args": [
+   11,
+   {
+    "ten": "X"
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "so_luong": 1
+     }
+    ],
+    "UpdateLine": []
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "ten_sp": "X",
+       "so_luong": 1,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 0,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0
+      }
+     ]
+    }
+   ],
+   "result": null
+  }
+ },
+ {
+  "name": "updateLine lỗi đọc",
+  "fn": "updateLine",
+  "args": [
+   "abc",
+   {
+    "ten": "X"
+   }
+  ],
+  "fake": {
+   "err": {
+    "FindLine": "DB GET db_bao_gia -> 400 {\"code\":\"22P02\",\"message\":\"invalid input syntax for type bigint: \\\"abc\\\"\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "abc"
+     ]
+    }
+   ],
+   "error": "DB GET db_bao_gia -> 400 {\"code\":\"22P02\",\"message\":\"invalid input syntax for type bigint: \\\"abc\\\"\"}"
+  }
+ },
+ {
+  "name": "updateLine lỗi ghi",
+  "fn": "updateLine",
+  "args": [
+   11,
+   {
+    "soLuong": -1
+   }
+  ],
+  "fake": {
+   "ret": {
+    "FindLine": [
+     {
+      "id": 11,
+      "so_luong": 1
+     }
+    ]
+   },
+   "err": {
+    "UpdateLine": "DB PATCH db_bao_gia -> 409 {\"code\":\"23503\",\"message\":\"check\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "FindLine",
+     "a": [
+      "11"
+     ]
+    },
+    {
+     "m": "UpdateLine",
+     "a": [
+      "11",
+      {
+       "so_luong": -1,
+       "gia_ban_le": 0,
+       "ck_dai_ly_pct": 0,
+       "loi_nhuan_pct": 0,
+       "gia_dai_ly": 0,
+       "gia_ban": 0,
+       "ck_khach_hang_pct": 0,
+       "don_gia": 0,
+       "thanh_tien": 0,
+       "markup_pct": 0,
+       "margin_pct": 0,
+       "loi_nhuan_vnd": 0
+      }
+     ]
+    }
+   ],
+   "error": "DB PATCH db_bao_gia -> 409 {\"code\":\"23503\",\"message\":\"check\"}"
+  }
+ },
+ {
+  "name": "deleteLine",
+  "fn": "deleteLine",
+  "args": [
+   11
+  ],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "DeleteLine",
+     "a": [
+      "11"
+     ]
+    }
+   ],
+   "result": {
+    "ok": true
+   }
+  }
+ },
+ {
+  "name": "deleteLine thiếu tham số",
+  "fn": "deleteLine",
+  "args": [],
+  "fake": {},
+  "expect": {
+   "log": [
+    {
+     "m": "DeleteLine",
+     "a": [
+      "undefined"
+     ]
+    }
+   ],
+   "result": {
+    "ok": true
+   }
+  }
+ },
+ {
+  "name": "deleteLine lỗi",
+  "fn": "deleteLine",
+  "args": [
+   "abc"
+  ],
+  "fake": {
+   "err": {
+    "DeleteLine": "DB DELETE db_bao_gia -> 400 {\"code\":\"22P02\",\"message\":\"invalid input syntax for type bigint: \\\"abc\\\"\"}"
+   }
+  },
+  "expect": {
+   "log": [
+    {
+     "m": "DeleteLine",
+     "a": [
+      "abc"
+     ]
+    }
+   ],
+   "error": "DB DELETE db_bao_gia -> 400 {\"code\":\"22P02\",\"message\":\"invalid input syntax for type bigint: \\\"abc\\\"\"}"
+  }
+ },
+ {
+  "name": "saveLineAsProduct tạo mới",
+  "fn": "saveLineAsProduct",
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin",
+   "ct": "c1",
+   "exp": 1
+  },
+  "args": [
+   {
+    "ten": "ZZ Đèn",
+    "ma": "ZZ-01",
+    "nhom": "Đèn",
+    "hangMuc": "Đèn âm trần",
+    "thuongHieu": "Ades",
+    "ncc": "NCC",
+    "dvt": "Bộ",
+    "gia": "1.250.000",
+    "donGiaBan": 9,
+    "moTa": "ghi chú",
+    "hinhAnh": "http://x/a.png",
+    "la": 1
+   }
+  ],
+  "fake": {},
+  "saver": {
+   "created": true,
+   "ma": "ZZ-01",
+   "ten": "ZZ Đèn",
+   "id": 555
+  },
+  "who": "tester",
+  "expect": {
+   "log": [],
+   "result": {
+    "ten": "ZZ Đèn",
+    "ma": "ZZ-01",
+    "thuongHieu": "Ades",
+    "ncc": "NCC",
+    "nhom": "Đèn",
+    "hangMuc": "Đèn âm trần",
+    "dvt": "Bộ",
+    "donGiaVon": 1250000,
+    "donGiaBan": 1250000,
+    "hinhAnh": "http://x/a.png",
+    "created": true,
+    "id": 555
+   }
+  }
+ },
+ {
+  "name": "saveLineAsProduct đã có mã",
+  "fn": "saveLineAsProduct",
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "super",
+   "ct": null,
+   "exp": 1
+  },
+  "args": [
+   {
+    "ten": " ZZ Đèn ",
+    "ma": " ZZ-01 ",
+    "gia": 0,
+    "donGiaBan": 500
+   }
+  ],
+  "fake": {
+   "other": {
+    "db_san_pham": [
+     {
+      "id": 77,
+      "da_duyet": false
+     }
+    ]
+   }
+  },
+  "saver": {
+   "updated": true,
+   "ma": "ZZ-01",
+   "ten": "ZZ Đèn",
+   "id": 77
+  },
+  "who": "tester",
+  "expect": {
+   "log": [],
+   "result": {
+    "ten": "ZZ Đèn",
+    "ma": "ZZ-01",
+    "thuongHieu": "",
+    "ncc": "",
+    "nhom": "",
+    "hangMuc": "",
+    "dvt": "Cái",
+    "donGiaVon": 0,
+    "donGiaBan": 0,
+    "hinhAnh": "",
+    "updated": true,
+    "id": 77
+   }
+  }
+ },
+ {
+  "name": "saveLineAsProduct tối thiểu, giá từ donGiaBan",
+  "fn": "saveLineAsProduct",
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin",
+   "ct": "c1",
+   "exp": 1
+  },
+  "args": [
+   {
+    "ten": "ZZ X",
+    "donGiaBan": 1500,
+    "dvt": "",
+    "ma": 12,
+    "nhom": null
+   }
+  ],
+  "fake": {},
+  "saver": {
+   "created": true,
+   "ma": "12",
+   "ten": "ZZ X",
+   "id": 555
+  },
+  "who": "tester",
+  "expect": {
+   "log": [],
+   "result": {
+    "ten": "ZZ X",
+    "ma": "12",
+    "thuongHieu": "",
+    "ncc": "",
+    "nhom": "",
+    "hangMuc": "",
+    "dvt": "Cái",
+    "donGiaVon": 0,
+    "donGiaBan": 0,
+    "hinhAnh": "",
+    "created": true,
+    "id": 555
+   }
+  }
+ },
+ {
+  "name": "saveLineAsProduct thiếu tên",
+  "fn": "saveLineAsProduct",
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin",
+   "ct": "c1",
+   "exp": 1
+  },
+  "args": [
+   {
+    "ma": "ZZ-02"
+   }
+  ],
+  "fake": {},
+  "saverErr": "Chưa có Tên sản phẩm.",
+  "expect": {
+   "log": [],
+   "error": "Chưa có Tên sản phẩm."
+  }
+ },
+ {
+  "name": "saveLineAsProduct null",
+  "fn": "saveLineAsProduct",
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin",
+   "ct": "c1",
+   "exp": 1
+  },
+  "args": [
+   null
+  ],
+  "fake": {},
+  "saverErr": "Chưa có Tên sản phẩm.",
+  "expect": {
+   "log": [],
+   "error": "Chưa có Tên sản phẩm."
+  }
+ },
+ {
+  "name": "saveLineAsProduct chuỗi",
+  "fn": "saveLineAsProduct",
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin",
+   "ct": "c1",
+   "exp": 1
+  },
+  "args": [
+   "abc"
+  ],
+  "fake": {},
+  "saverErr": "Chưa có Tên sản phẩm.",
+  "expect": {
+   "log": [],
+   "error": "Chưa có Tên sản phẩm."
+  }
+ },
+ {
+  "name": "saveLineAsProduct thiếu tham số (actor thành dữ liệu)",
+  "fn": "saveLineAsProduct",
+  "actor": {
+   "uid": "u1",
+   "u": "tester",
+   "r": "admin",
+   "ct": "c1",
+   "exp": 1
+  },
+  "args": [],
+  "fake": {},
+  "saverErr": "Chưa có Tên sản phẩm.",
+  "expect": {
+   "log": [],
+   "error": "Chưa có Tên sản phẩm."
+  }
+ },
+ {
+  "name": "saveLineAsProduct không đăng nhập",
+  "fn": "saveLineAsProduct",
+  "args": [
+   {
+    "ten": "ZZ X"
+   }
+  ],
+  "fake": {},
+  "expect": {
+   "log": [],
+   "error": "Tài khoản không có quyền thêm sản phẩm vào danh mục"
+  }
+ }
+]
