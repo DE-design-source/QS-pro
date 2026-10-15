@@ -3,7 +3,7 @@
 # Dùng: sh scripts/supa-to-pg/day-len.sh "postgresql://user:pass@host/db"   (External Database URL của Render)
 # CẢNH BÁO: XOÁ và ghi lại toàn bộ CSDL đích. Supabase chỉ được ĐỌC.
 set -e
-[ -n "$1" ] || { echo 'Thiếu địa chỉ CSDL đích'; exit 1; }
+case "$1" in postgres://*|postgresql://*) ;; *) echo 'Địa chỉ CSDL đích phải bắt đầu bằng postgresql:// (copy External Database URL trên Render)'; exit 1;; esac
 cd "$(dirname "$0")/../.."
 node scripts/supa-to-pg/fetch.js
 node scripts/supa-to-pg/load.js
