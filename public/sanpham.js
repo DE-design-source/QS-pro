@@ -1981,7 +1981,7 @@ function speField_(f, raw){
       +'<datalist id="spe_dl_'+col+'">'+opts.map(function(o){return '<option value="'+esc(o)+'">';}).join('')+'</datalist>';
   else {
     var trg=(lark==='GIÁ BÁN LẺ'||lark==='CHIẾT KHẤU ĐẠI LÝ (%)')?' oninput="speCalcDaiLy_()"':'';
-    inner='<input type="'+(type==='num'?'number':'text')+'" data-col="'+col+'" value="'+esc(val)+'" placeholder="'+esc(ph)+'"'+trg+(lark==='MÃ SẢN PHẨM'?' readonly':'')+'>';
+    inner='<input type="'+(type==='num'?'number':'text')+'" data-col="'+col+'" value="'+esc(val)+'" placeholder="'+esc(ph)+'"'+trg+(lark==='MÃ SẢN PHẨM'?' title="Sửa được — đổi mã chỉ đổi riêng biến thể đang mở (các biến thể cùng mã cũ giữ nguyên)"':'')+'>';
   }
   return '<div class="spe-f'+(type==='area'?' wide':'')+'"'+(f[6]==='vs'?' data-vs="'+esc(lark)+'"':'')+'><label>'+esc(label)+star+'</label>'+inner+'</div>';
 }
@@ -2197,26 +2197,45 @@ function spMauDots_(mau){
       return '<i style="'+(c?('background:'+c):'')+'"'+(c?'':' class="sp-mau-x"')+'></i>'; }).join('')
     +(mau.length>6?'<b>+'+(mau.length-6)+'</b>':'')+'</span>';
 }
-/* Tạo nhanh nhiều biến thể: mỗi dòng 1 biến thể — khác MÃ (VD GJ8 / GJ8B), MÀU, BỀ MẶT (bóng / mờ…), DUNG TÍCH; giá riêng.
-   Giữ nguyên hãng, thông số, ảnh của SP gốc. Máy chủ chặn trùng theo MÃ + MÀU + DUNG TÍCH (không tính bề mặt), nên 2 bề mặt
-   khác nhau phải khác mã hoặc khác màu / dung tích (đúng như bảng giá: Mờ = GJ8, Bóng = GJ8B). Biến thể khác mã tự gom chung nhóm. */
+/* Tạo nhanh nhiều biến thể: mỗi dòng 1 biến thể, giữ nguyên hãng / thông số / ảnh của SP gốc, chỉ đổi phần khác nhau + giá riêng.
+   CỘT THEO NGÀNH (đúng trục phân biệt biến thể của ngành đó):
+     đèn      : Mã · Công suất · Nhiệt độ màu · Giá bán lẻ · Chiết khấu
+     sơn nước : Mã · Màu · Bề mặt · Dung tích · Giá · Chiết khấu   (bề mặt khác nhau thường có MÃ riêng: Mờ GJ8 · Bóng GJ8B)
+     vệ sinh  : Mã · Màu · Kích thước · Giá · Chiết khấu
+     công tắc - ổ cắm : Mã · Màu · Giá · Chiết khấu
+   Máy chủ chặn trùng theo MÃ + nhiệt độ màu + công suất + góc chiếu + màu + kích thước -> trùng thì báo lại, không ghi đè. */
 var NBT_BM=['Bề mặt bóng','Bóng mờ','Mờ','Siêu mờ','Siêu bóng','Bán bóng'];
+function nbtCot_(p){
+  var ng=nganhCuaSP_(p);
+  var ma={k:'ma',lb:'Mã SP',db:'MÃ SẢN PHẨM',raw:'ma_sp',ph:'Mã',w:'1fr',cls:'nbt-ma'},
+      mau={k:'mau',lb:'Màu sắc',db:'MÀU SẮC',raw:'mau_sac',ph:'VD: Trắng',w:'1.2fr',mau:1,trong:1},
+      gia={k:'gia',lb:'Giá bán lẻ (đ) *',db:'GIÁ BÁN LẺ',ph:'0',w:'1fr',cls:'num',so:1,trong:1},
+      ck={k:'ck',lb:'Chiết khấu (%)',db:'CHIẾT KHẤU ĐẠI LÝ (%)',raw:'ck_dai_ly_pct',ph:'0',w:'.7fr',cls:'num',so:1};
+  if(ng==='son') return [ma,mau,{k:'bm',lb:'Bề mặt',db:'BỀ MẶT HOÀN THIỆN',raw:'be_mat',ph:'VD: Bóng',w:'1fr',list:'nbtBmList'},
+    {k:'kt',lb:'Dung tích',db:'KÍCH THƯỚC',raw:'kich_thuoc',ph:'VD: 5L',w:'.8fr'},gia,ck];
+  if(ng==='vs') return [ma,mau,{k:'kt',lb:'Kích thước',db:'KÍCH THƯỚC',raw:'kich_thuoc',ph:'VD: L580 x W380',w:'1.1fr'},gia,ck];
+  if(ng==='ct') return [ma,mau,gia,ck];
+  return [ma,{k:'cs',lb:'Công suất',db:'CÔNG SUẤT (W)',raw:'cong_suat_w',ph:'VD: 7W',w:'.9fr'},
+    {k:'nd',lb:'Nhiệt độ màu',db:'NHIỆT ĐỘ MÀU (K)',raw:'nhiet_do_mau_k',ph:'VD: 3000K',w:'.9fr'},gia,ck];
+}
 function spNhieuBT_(i){                        // i = chỉ số dòng trong bảng, hoặc chính sản phẩm (từ form Cập nhật)
   var p=(i&&typeof i==='object')?i:(S._spList||[])[i]; if(!p||!p.ma) return;
-  var raw=p.raw||{};
-  S._nbt={p:p, rows:[spNbtDong_({})]};
+  var raw=p.raw||{}, cot=nbtCot_(p), ng=nganhCuaSP_(p);
+  S._nbt={p:p, cot:cot, rows:[]}; S._nbt.rows.push(spNbtDong_({}));
+  var luoi='grid-template-columns:'+cot.map(function(c){ return c.w; }).join(' ')+' 30px';
+  var nhan=cot.filter(function(c){ return c.k!=='ma'&&c.k!=='gia'&&c.k!=='ck'; }).map(function(c){ return c.lb; });
   var ov=document.createElement('div'); ov.className='sp-modal-ov'; ov.id='nbtOv';
   ov.onclick=function(e){ if(e.target===ov) spNhieuBTDong_(); };
   ov.innerHTML='<div class="sp-modal pd nbt-modal"><div class="pd-head"><h3>'+icon('layers',16)+' Tạo nhanh biến thể</h3>'
       +'<button class="pd-x" onclick="spNhieuBTDong_()">✕</button></div>'
     +'<div class="nbt-src">'+(p.hinhAnh?'<img src="'+esc(imgSrc1_(p.hinhAnh))+'" onerror="this.style.visibility=\'hidden\'">':'')
-      +'<div><b>'+esc(p.ten||'')+'</b><span>Mã '+esc(p.ma)+(p.thuongHieu?' · '+esc(p.thuongHieu):'')+(p.mauSac?' · '+esc(p.mauSac):'')
-        +(raw.be_mat?' · '+esc(raw.be_mat):'')+(raw.kich_thuoc?' · '+esc(raw.kich_thuoc):'')+'</span></div></div>'
-    +'<p class="ask-note">Mỗi dòng là 1 biến thể — giữ nguyên hãng, thông số, ảnh của sản phẩm gốc; chỉ đổi phần khác nhau và nhập giá riêng. '
-      +'Bề mặt khác nhau (Bóng / Mờ…) thường có <b>mã riêng</b> (VD Mờ GJ8 · Bóng GJ8B) — sửa ô Mã cho đúng bảng giá. '
-      +'Dán từ Excel vào ô đầu: <i>Mã ⇥ Màu ⇥ Bề mặt ⇥ Dung tích ⇥ Giá</i> (hoặc chỉ Màu ⇥ Giá).</p>'
-    +'<datalist id="nbtBmList">'+NBT_BM.map(function(x){ return '<option value="'+esc(x)+'">'; }).join('')+'</datalist>'
-    +'<div class="nbt-tbl"><div class="nbt-h"><span>Mã SP</span><span>Màu sắc</span><span>Bề mặt</span><span>Dung tích</span><span>Giá bán lẻ (đ) *</span><span></span></div><div id="nbtRows"></div></div>'
+      +'<div><b>'+esc(p.ten||'')+'</b><span>Mã '+esc(p.ma)+(p.thuongHieu?' · '+esc(p.thuongHieu):'')
+        +cot.filter(function(c){ return c.raw&&c.k!=='ma'&&c.k!=='ck'; }).map(function(c){ var v=String(raw[c.raw]==null?'':raw[c.raw]).trim(); return v?' · '+esc(v):''; }).join('')+'</span></div></div>'
+    +'<p class="ask-note">Mỗi dòng là 1 biến thể — giữ nguyên hãng, thông số, ảnh của sản phẩm gốc; chỉ đổi '+esc(nhan.join(' / ').toLowerCase()||'mã')+' và nhập giá riêng. '
+      +(ng==='son'?'Bề mặt khác nhau (Bóng / Mờ…) thường có <b>mã riêng</b> (VD Mờ GJ8 · Bóng GJ8B) — sửa ô Mã cho đúng bảng giá. ':'')
+      +'Dán từ Excel vào ô Mã: <i>'+cot.map(function(c){ return c.lb.replace(' *','').replace(' (đ)',''); }).join(' ⇥ ')+'</i>.</p>'
+    +(ng==='son'?'<datalist id="nbtBmList">'+NBT_BM.map(function(x){ return '<option value="'+esc(x)+'">'; }).join('')+'</datalist>':'')
+    +'<div class="nbt-tbl"><div class="nbt-h" style="'+luoi+'">'+cot.map(function(c){ return '<span>'+c.lb+'</span>'; }).join('')+'<span></span></div><div id="nbtRows"></div></div>'
     +'<button class="btn ghost sm" onclick="spNhieuBTThem_()">'+icon('plus',14)+' Thêm biến thể</button>'
     +'<div class="ask-err" id="nbtErr" style="display:none"></div>'
     +'<div class="ask-f-btn"><button class="btn ghost sm" onclick="spNhieuBTDong_()">Huỷ</button>'
@@ -2224,64 +2243,70 @@ function spNhieuBT_(i){                        // i = chỉ số dòng trong b�
   document.body.appendChild(ov); spNhieuBTVe_();
   var f=ov.querySelector('.nbt-ma'); if(f) f.focus();
 }
-// dòng mới: lấy mặc định từ SP gốc (mã, bề mặt, dung tích) hoặc từ dòng trên cùng (a)
-function spNbtDong_(a){ var p=S._nbt?S._nbt.p:{}, raw=(p&&p.raw)||{};
-  return {ma:a.ma||p.ma||'', mau:'', bm:a.bm!=null?a.bm:String(raw.be_mat||''), kt:a.kt!=null?a.kt:String(raw.kich_thuoc||''), gia:''}; }
+// dòng mới: lấy mặc định từ SP gốc (mã + các thông số đang có, CK) hoặc từ dòng trên cùng (a); màu & giá để trống
+function spNbtDong_(a){ var N=S._nbt||{}, p=N.p||{}, raw=(p&&p.raw)||{}, r={};
+  (N.cot||[]).forEach(function(c){ r[c.k]=(a&&a[c.k]!=null&&!c.trong)?a[c.k]:(c.trong?'':String(c.k==='ma'?(p.ma||''):(raw[c.raw]==null?'':raw[c.raw]))); });
+  return r; }
 function spNhieuBTDong_(){ var o=document.getElementById('nbtOv'); if(o) o.remove(); S._nbt=null; }
 function spNhieuBTVe_(){
-  var box=document.getElementById('nbtRows'); if(!box||!S._nbt) return;
-  function o(k,f,v,ph,cls,them){ return '<input'+(cls?' class="'+cls+'"':'')+' value="'+esc(v)+'" placeholder="'+ph+'" oninput="spNhieuBTSua_('+k+',\''+f+'\',this.value)"'+(them||'')+'>'; }
-  box.innerHTML=S._nbt.rows.map(function(r,k){ var c=spMauCss_(r.mau);
-    return '<div class="nbt-r">'
-      +o(k,'ma',r.ma,'Mã','nbt-ma',' onpaste="spNhieuBTDan_(event,'+k+')"')
-      +'<label class="nbt-mauw"><i style="'+(c?'background:'+c:'')+'"'+(c?'':' class="sp-mau-x"')+'></i>'+o(k,'mau',r.mau,'VD: Trắng','nbt-mau')+'</label>'
-      +o(k,'bm',r.bm,'VD: Bóng','',' list="nbtBmList"')
-      +o(k,'kt',r.kt,'VD: 5L')
-      +o(k,'gia',r.gia,'0','num',' inputmode="numeric" onkeydown="if(event.key===\'Enter\'){event.preventDefault();spNhieuBTThem_();}"')
-      +'<button class="cb-del" title="Bỏ dòng" onclick="spNhieuBTBo_('+k+')">'+icon('x',14)+'</button></div>'; }).join('');
+  var box=document.getElementById('nbtRows'); if(!box||!S._nbt) return; var cot=S._nbt.cot;
+  var luoi='grid-template-columns:'+cot.map(function(c){ return c.w; }).join(' ')+' 30px';
+  box.innerHTML=S._nbt.rows.map(function(r,k){
+    return '<div class="nbt-r" style="'+luoi+'">'+cot.map(function(c,ci){
+      var them=(c.k==='ma'?' onpaste="spNhieuBTDan_(event,'+k+')"':'')+(c.list?' list="'+c.list+'"':'')
+        +(c.so?' inputmode="decimal"':'')+(ci===cot.length-1?' onkeydown="if(event.key===\'Enter\'){event.preventDefault();spNhieuBTThem_();}"':'');
+      var o='<input'+(c.cls?' class="'+c.cls+'"':'')+' value="'+esc(r[c.k]==null?'':r[c.k])+'" placeholder="'+esc(c.ph)+'" oninput="spNhieuBTSua_('+k+',\''+c.k+'\',this.value)"'+them+'>';
+      if(!c.mau) return o;
+      var m=spMauCss_(r[c.k]); return '<label class="nbt-mauw"><i style="'+(m?'background:'+m:'')+'"'+(m?'':' class="sp-mau-x"')+'></i>'+o.replace('<input','<input class="nbt-mau"')+'</label>';
+    }).join('')+'<button class="cb-del" title="Bỏ dòng" onclick="spNhieuBTBo_('+k+')">'+icon('x',14)+'</button></div>'; }).join('');
 }
 function spNhieuBTSua_(k,f,v){ var r=S._nbt&&S._nbt.rows[k]; if(!r) return; r[f]=v;
   if(f==='mau'){ var dot=document.querySelectorAll('#nbtRows .nbt-mauw i')[k], c=spMauCss_(v); if(dot){ dot.style.background=c||''; dot.className=c?'':'sp-mau-x'; } } }
 function spNhieuBTThem_(){ if(!S._nbt) return; var a=S._nbt.rows[S._nbt.rows.length-1]||{};
-  S._nbt.rows.push(spNbtDong_({ma:a.ma, bm:a.bm, kt:a.kt})); spNhieuBTVe_();
+  S._nbt.rows.push(spNbtDong_(a)); spNhieuBTVe_();
   var ins=document.querySelectorAll('#nbtRows .nbt-ma'); if(ins.length){ ins[ins.length-1].focus(); ins[ins.length-1].select(); } }
 function spNhieuBTBo_(k){ if(!S._nbt) return; S._nbt.rows.splice(k,1); if(!S._nbt.rows.length) S._nbt.rows.push(spNbtDong_({})); spNhieuBTVe_(); }
-// dán từ Excel vào ô Mã: 5 cột Mã ⇥ Màu ⇥ Bề mặt ⇥ Dung tích ⇥ Giá · 3 cột Màu ⇥ Dung tích ⇥ Giá · 2 cột Màu ⇥ Giá
+// dán từ Excel vào ô Mã: đủ số cột -> theo đúng thứ tự cột của popup; ít cột hơn -> các cột CUỐI (thông số ... giá, CK) theo thứ tự
 function spNhieuBTDan_(e,k){
   var t=(e.clipboardData||window.clipboardData).getData('text')||''; if(t.indexOf('\n')<0 && t.indexOf('\t')<0) return;
   e.preventDefault();
-  var d0=S._nbt.rows[k]||spNbtDong_({});
+  var cot=S._nbt.cot, d0=S._nbt.rows[k]||spNbtDong_({});
   var moi=t.split(/\r?\n/).map(function(d){ return d.split('\t').map(function(x){ return String(x||'').trim(); }); })
     .filter(function(c){ return c.some(Boolean); }).map(function(c){
-      if(c.length>=5) return {ma:c[0]||d0.ma, mau:c[1], bm:c[2], kt:c[3]||d0.kt, gia:c[4]};
-      if(c.length>=3) return {ma:d0.ma, mau:c[0], bm:d0.bm, kt:c[1]||d0.kt, gia:c[2]};
-      return {ma:d0.ma, mau:c[0], bm:d0.bm, kt:d0.kt, gia:c[1]||''}; });
+      var r=Object.assign({},d0), ds=c.length>=cot.length?cot:cot.filter(function(x){ return x.k!=='ma'; }).slice(0,c.length);
+      ds.forEach(function(x,i){ if(c[i]!=null&&c[i]!=='') r[x.k]=c[i]; }); return r; });
   S._nbt.rows.splice.apply(S._nbt.rows,[k,1].concat(moi)); spNhieuBTVe_();
 }
 async function spNhieuBTLuu_(){
   var N=S._nbt; if(!N) return; var p=N.p, err=document.getElementById('nbtErr');
-  var rows=N.rows.filter(function(r){ return [r.mau,r.gia].some(function(v){ return String(v||'').trim(); }) || (String(r.ma||'').trim() && String(r.ma).trim()!==p.ma); });
+  var cot=N.cot, md=spNbtDong_({});
+  // dòng có nhập gì đó khác mặc định (giá, màu, thông số, mã mới…) mới tính là 1 biến thể
+  var rows=N.rows.filter(function(r){ return cot.some(function(c){ return String(r[c.k]||'').trim()!==String(md[c.k]||'').trim(); }); });
   function bao(m){ err.textContent=m; err.style.display='block'; }
   if(!rows.length) return bao('Nhập ít nhất 1 biến thể.');
   var thieu=rows.filter(function(r){ return !String(r.ma||'').trim() || !(tkNum_(r.gia)>0); });
   if(thieu.length) return bao('Mỗi dòng cần Mã SP và Giá bán lẻ > 0 (còn '+thieu.length+' dòng thiếu).');
-  // Khoá trùng GIỐNG máy chủ: mã + màu + dung tích. Đã có -> bỏ qua (không ghi đè SP cũ), kèm gợi ý đổi mã.
-  function khoa(ma,m,kt){ return spNorm_(ma)+'|'+spNorm_(m)+'|'+spNorm_(kt); }
-  var co={}; (S.products||[]).forEach(function(x){ co[khoa(x.ma, x.mauSac, x.raw&&x.raw.kich_thuoc)]=1; });
+  // Khoá trùng GIỐNG máy chủ: mã + nhiệt độ màu + công suất + góc chiếu + màu + kích thước (trục không có trong popup = lấy của SP gốc).
+  // Đã có -> bỏ qua (không ghi đè SP cũ), kèm gợi ý đổi mã / thông số.
+  var TRUC=['nhiet_do_mau_k','cong_suat_w','goc_chieu_deg','mau_sac','kich_thuoc'], raw0=p.raw||{};
+  function giaTri(r,col){ var c=cot.filter(function(x){ return x.raw===col; })[0]; return c?r[c.k]:raw0[col]; }
+  function khoaDong(r){ return [r.ma].concat(TRUC.map(function(col){ return giaTri(r,col); })).map(spNorm_).join('|'); }
+  function khoaSP(x){ var rr=x.raw||{}; return [x.ma].concat(TRUC.map(function(col){ return col==='mau_sac'?(x.mauSac||rr.mau_sac):rr[col]; })).map(spNorm_).join('|'); }
+  var co={}; (S.products||[]).forEach(function(x){ if(!x.spChung) co[khoaSP(x)]=1; });
   var trongDs={}, tao=[], trung=[];
-  rows.forEach(function(r){ var kk=khoa(r.ma,r.mau,r.kt), nh=[r.ma,r.mau,r.bm,r.kt].filter(function(x){ return String(x||'').trim(); }).join(' · ');
+  rows.forEach(function(r){ var kk=khoaDong(r), nh=cot.filter(function(c){ return c.k!=='gia'&&c.k!=='ck'; }).map(function(c){ return String(r[c.k]||'').trim(); }).filter(Boolean).join(' · ');
     if(co[kk]||trongDs[kk]) trung.push(nh); else { trongDs[kk]=1; tao.push(r); } });
-  if(!tao.length) return bao('Đã có sản phẩm trùng mã + màu + dung tích: '+trung.join('; ')+'. Biến thể khác bề mặt cần mã riêng (VD GJ8B).');
+  if(!tao.length) return bao('Đã có sản phẩm trùng mã + thông số: '+trung.join('; ')+'. Đổi '+cot.filter(function(c){ return c.k!=='gia'&&c.k!=='ck'; }).map(function(c){ return c.lb.toLowerCase(); }).join(' / ')+' cho khác.');
   var goc={}; Object.keys(p.raw||{}).forEach(function(col){ var lb=SP_COL2LABEL_[col]; if(lb && col!=='gia_dai_ly') goc[lb]=p.raw[col]; });
   goc['TÊN SẢN PHẨM']=p.ten; goc['ẢNH SẢN PHẨM']=p.anhTatCa||p.hinhAnh||'';
   var btn=document.getElementById('nbtOk'); btn.disabled=true;
   var ok=0, loi=[], moiIds=[], khacMa=false;
   for(var j=0;j<tao.length;j++){ var r=tao[j]; btn.textContent='Đang tạo '+(j+1)+'/'+tao.length+'…';
-    var d=Object.assign({}, goc, {'MÃ SẢN PHẨM':String(r.ma).trim(), 'MÀU SẮC':String(r.mau||'').trim(), 'KÍCH THƯỚC':String(r.kt||'').trim(), 'GIÁ BÁN LẺ':tkNum_(r.gia)});
-    if(String(r.bm||'').trim()) d['BỀ MẶT HOÀN THIỆN']=String(r.bm).trim();
+    var d=Object.assign({}, goc);
+    cot.forEach(function(c){ var v=String(r[c.k]==null?'':r[c.k]).trim(); if(c.so) d[c.db]=tkNum_(v); else if(v||c.trong) d[c.db]=v; });
     if(d['MÃ SẢN PHẨM']!==p.ma) khacMa=true;
     try{ var rs=await api('saveDbProduct', d); ok++; if(rs&&rs.id!=null) moiIds.push(String(rs.id)); }
-    catch(e){ loi.push((r.ma||r.mau)+': '+String(e.message||e).slice(0,60)); } }
+    catch(e){ loi.push((r.ma||'')+': '+String(e.message||e).slice(0,60)); } }
   // Gom 1 NHÓM biến thể (nhom_bt): SP gốc đã có nhóm gom tay, hoặc có biến thể KHÁC MÃ (không tự gom theo mã được)
   try{ S.products=await api('getProducts')||S.products;
     if(String(p.nhomBT||'').trim() || khacMa){
@@ -2424,6 +2449,7 @@ async function spEditSave(luuVaDuyet){
     // Thiết bị vệ sinh: thông số KHÔNG thuộc hạng mục đang chọn -> xoá, giữ dữ liệu đúng bộ của hạng mục
     data[lbl]=(el.closest('.vs-off'))?'':el.value;
   });
+  if(!String(data['MÃ SẢN PHẨM']||'').trim()){ toast('Mã sản phẩm không được để trống'); var mi0=ov.querySelector('[data-col="ma_sp"]'); if(mi0) mi0.focus(); return; }
   var btn=document.getElementById('speSaveBtn'); if(btn){ btn.disabled=true; btn.textContent='Đang lưu…'; }
   if((S._imgUploading||0)>0){ if(btn) btn.textContent='⏳ Đợi tải ảnh…'; await waitUploads_(15000); }
   // gộp ảnh: đại diện (đầu) + chi tiết; bỏ preview base64 chưa upload xong
