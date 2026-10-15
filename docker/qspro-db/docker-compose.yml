@@ -1,0 +1,27 @@
+# Postgres 17 cho QS Pro (schema mới tiếng Anh — file qspro_en2.sql).
+# Chạy:   docker compose -f docker/qspro-db/docker-compose.yml up -d
+# Kết nối: postgres://qspro:qspro_local@127.0.0.1:55440/qspro
+# Lần đầu khởi động container tự nạp initdb/01_qspro_en2.sql (thư mục initdb KHÔNG commit — có dữ liệu khách hàng).
+# Muốn nạp lại từ đầu: docker compose -f docker/qspro-db/docker-compose.yml down -v  rồi up -d.
+services:
+  qspro-db:
+    image: postgres:17-alpine
+    container_name: qspro-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: qspro
+      POSTGRES_USER: qspro
+      POSTGRES_PASSWORD: qspro_local
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "127.0.0.1:55440:5432"
+    volumes:
+      - qspro_pgdata:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qspro -d qspro"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+volumes:
+  qspro_pgdata:

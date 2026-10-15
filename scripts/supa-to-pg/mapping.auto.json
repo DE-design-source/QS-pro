@@ -1,0 +1,420 @@
+{
+ "users": {
+  "from": "users",
+  "cols": {
+   "id": "id",
+   "username": "username",
+   "full_name": "ho_ten",
+   "password_hash": "password_hash",
+   "role": "role",
+   "is_active": "active",
+   "created_at": "created_at",
+   "permissions": "perms",
+   "company_id": "cong_ty_id",
+   "email": "email",
+   "department": "phong_ban",
+   "ui_preferences": "ui_prefs"
+  }
+ },
+ "companies": {
+  "from": "cong_ty",
+  "cols": {
+   "id": "id",
+   "name": "ten",
+   "code": "ma",
+   "logo_url": "logo_url",
+   "features": "tinh_nang",
+   "user_limit": "gioi_han_user",
+   "is_active": "active",
+   "expiry_date": "han_dung",
+   "note": "ghi_chu",
+   "created_at": "ngay_tao",
+   "email": "email",
+   "phone": "sdt",
+   "last_reminder_date": "nhac_lan_cuoi",
+   "reminder_milestone": "nhac_moc",
+   "has_dezon_catalog_access": "dung_sp_dezon"
+  }
+ },
+ "products": {
+  "from": "db_san_pham",
+  "cols": {
+   "id": "id",
+   "product_code": "ma_sp",
+   "product_name": "ten_sp",
+   "product_line": "dong_sp",
+   "category": "hang_muc",
+   "product_group": "nhom_sp",
+   "brand": "thuong_hieu",
+   "supplier_name": "nha_cung_cap",
+   "power_w": "cong_suat_w",
+   "color_temperature_k": "nhiet_do_mau_k",
+   "beam_angle_deg": "goc_chieu_deg",
+   "color": "mau_sac",
+   "material": "chat_lieu",
+   "ip_rating": "chi_so_ip",
+   "warranty_years": "bao_hanh_nam",
+   "unit": "dvt",
+   "retail_price": "gia_ban_le",
+   "dealer_discount_pct": "ck_dai_ly_pct",
+   "image_urls": "anh_sp",
+   "datasheet_url": "link_datasheet",
+   "status": "trang_thai",
+   "note": "ghi_chu",
+   "updated_at": "ngay_cap_nhat",
+   "company_id": "cong_ty_id",
+   "is_approved": "da_duyet",
+   "approved_by": "nguoi_duyet",
+   "approved_at": "ngay_duyet",
+   "created_by": "nguoi_tao",
+   "created_at": "ngay_tao",
+   "updated_by": "nguoi_sua",
+   "variant_group": "nhom_bt",
+   "sector": "nganh",
+   "size": "kich_thuoc",
+   "caution": "luu_y",
+   "features": "tinh_nang",
+   "installation_type": "kieu_lap_dat",
+   "surface_finish": "be_mat",
+   "spec_sheet_url": "thong_so_file",
+   "installation_guide_url": "huong_dan_lap_dat",
+   "drawing_file_url": "file_ban_ve",
+   "dealer_price": "gia_dai_ly"
+  }
+ },
+ "product_lighting_specs": {
+  "from": "db_san_pham",
+  "cols": {
+   "product_id": "id",
+   "luminous_flux_lm": "quang_thong_lm",
+   "tilt_angle_deg": "goc_nghieng_deg",
+   "height_mm": "chieu_cao_mm",
+   "diameter_mm": "duong_kinh_mm",
+   "cutout_mm": "cutout_mm",
+   "cri": "cri",
+   "luminous_efficacy_lm_w": "hieu_suat_lm_w",
+   "ugr": "ugr",
+   "sdcm": "sdcm",
+   "lifespan": "tuoi_tho",
+   "led_chip_type": "loai_chip_led",
+   "protection_class": "class_rating",
+   "has_separate_driver": "lap_nguon_roi",
+   "driver_name": "ten_bo_nguon",
+   "driver_code": "ma_bo_nguon",
+   "driver_brand": "hang_bo_nguon",
+   "driver_mounting_position": "vi_tri_lap_nguon",
+   "control_compatibility": "dieu_khien",
+   "max_output_current_ma": "dong_ra_max_ma",
+   "led_chip_name": "ten_chip_led",
+   "driver_price": "gia_ban_bo_nguon"
+  }
+ },
+ "product_paint_specs": {
+  "from": "db_san_pham",
+  "cols": {
+   "product_id": "id",
+   "coverage": "do_phu",
+   "drying_time": "thoi_gian_kho",
+   "coat_count": "so_lop",
+   "physical_state": "trang_thai_vat_ly",
+   "odor": "mui",
+   "odor_threshold": "nguong_mui",
+   "ph_value": "do_ph",
+   "melting_freezing_point": "diem_dong",
+   "boiling_point": "diem_soi",
+   "flash_point": "diem_bung_chay",
+   "flammability": "kha_nang_chay",
+   "explosive_limits": "gioi_han_no",
+   "vapor_pressure": "ap_suat_hoa_hoi",
+   "vapor_density": "mat_do_hoi",
+   "water_solubility": "do_hoa_tan",
+   "viscosity": "tinh_deo",
+   "relative_density": "mat_do_tuong_doi"
+  }
+ },
+ "product_sanitary_specs": {
+  "from": "db_san_pham",
+  "cols": {
+   "product_id": "id",
+   "flush_system": "he_thong_xa",
+   "flush_volume": "luong_nuoc_xa",
+   "design": "thiet_ke",
+   "rough_in_distance": "tam_xa",
+   "water_pressure": "ap_luc_nuoc",
+   "lid_type": "loai_nap",
+   "faucet_type": "loai_voi",
+   "shower_type": "loai_sen",
+   "control_type": "kieu_dieu_khien",
+   "massage_function": "massage",
+   "flow_rate": "luu_luong",
+   "valve_cartridge": "loi_van",
+   "shower_head_size": "bat_sen",
+   "spray_modes": "che_do_phun",
+   "overflow_hole": "xa_tran",
+   "capacity": "dung_tich",
+   "power_supply": "nguon_dien",
+   "compatible_toilet": "bon_cau_tuong_thich"
+  }
+ },
+ "product_combos": {
+  "from": "sp_combo",
+  "cols": {
+   "id": "id",
+   "product_id": "sp_id",
+   "companion_product_id": "sp_kem_id",
+   "quantity": "so_luong",
+   "sort_order": "sort_no",
+   "created_at": "created_at"
+  }
+ },
+ "favorite_products": {
+  "from": "sp_yeu_thich",
+  "cols": {
+   "id": "id",
+   "company_id": "cong_ty_id",
+   "product_id": "sp_id",
+   "product_code": "ma_sp",
+   "created_by": "nguoi_tao",
+   "created_at": "created_at"
+  }
+ },
+ "product_histories": {
+  "from": "db_san_pham_history",
+  "cols": {
+   "id": "id",
+   "product_code": "ma_sp",
+   "field": "field",
+   "old_value": "old_value",
+   "new_value": "new_value",
+   "changed_by_id": "changed_by",
+   "changed_by_name": "changed_by_name",
+   "changed_at": "changed_at",
+   "company_id": "cong_ty_id"
+  }
+ },
+ "audit_logs": {
+  "from": "audit_log",
+  "cols": {
+   "id": "id",
+   "user_id": "user_id",
+   "username": "username",
+   "action": "action",
+   "detail": "detail",
+   "created_at": "created_at",
+   "company_id": "cong_ty_id"
+  }
+ },
+ "notifications": {
+  "from": "notifications",
+  "cols": {
+   "id": "id",
+   "user_id": "user_id",
+   "kind": "kind",
+   "title": "title",
+   "body": "body",
+   "ref_id": "ref_id",
+   "is_read": "is_read",
+   "created_at": "created_at",
+   "company_id": "cong_ty_id"
+  }
+ },
+ "delete_requests": {
+  "from": "delete_requests",
+  "cols": {
+   "id": "id",
+   "requester_name": "requester_name",
+   "items": "items",
+   "status": "status",
+   "resolver_name": "resolver_name",
+   "resolved_at": "resolved_at",
+   "created_at": "created_at",
+   "company_id": "cong_ty_id"
+  }
+ },
+ "projects": {
+  "from": "du_an",
+  "cols": {
+   "id": "id",
+   "project_code": "ma_da",
+   "project_name": "ten_du_an",
+   "customer_name": "khach_hang",
+   "address": "dia_chi",
+   "phone": "sdt",
+   "status": "trang_thai",
+   "vat_pct": "vat_pct",
+   "progress_pct": "tien_do_pct",
+   "created_at": "ngay_tao",
+   "updated_at": "cap_nhat",
+   "draft_name": "ten_ban_nhap",
+   "company_id": "cong_ty_id",
+   "dezon_url": "link_dezon"
+  }
+ },
+ "project_data_entries": {
+  "from": "du_an_data",
+  "cols": {
+   "project_code": "ma_da",
+   "data_key": "khoa",
+   "data_value": "gia_tri",
+   "updated_at": "cap_nhat",
+   "updated_by": "nguoi_sua"
+  }
+ },
+ "quotation_lines": {
+  "from": "db_bao_gia",
+  "cols": {
+   "id": "id",
+   "project_code": "ma_du_an",
+   "line_no": "stt",
+   "room": "phong",
+   "product_code": "ma_sp",
+   "product_name": "ten_sp",
+   "brand": "thuong_hieu",
+   "unit": "dvt",
+   "quantity": "so_luong",
+   "dealer_price": "gia_dai_ly",
+   "profit_pct": "loi_nhuan_pct",
+   "selling_price": "gia_ban",
+   "customer_discount_pct": "ck_khach_hang_pct",
+   "unit_price": "don_gia",
+   "amount": "thanh_tien",
+   "markup_pct": "markup_pct",
+   "margin_pct": "margin_pct",
+   "profit_amount": "loi_nhuan_vnd",
+   "sort_order": "stt",
+   "created_at": "created_at",
+   "group_code": "nhom",
+   "category": "loai",
+   "floor": "tang",
+   "supplier_name": "nha_cung_cap",
+   "description": "mo_ta",
+   "size": "kich_thuoc",
+   "image_urls": "hinh_anh",
+   "retail_price": "gia_ban_le",
+   "dealer_discount_pct": "ck_dai_ly_pct",
+   "is_manual_entry": "tu_nhap",
+   "is_saved_to_catalog": "tu_nhap",
+   "extra": "extra",
+   "supplier_discount_pct": "giam_gia_ncc_pct"
+  }
+ },
+ "cost_estimate_lines": {
+  "from": "khai_toan",
+  "cols": {
+   "id": "id",
+   "project_code": "ma_da",
+   "item_no": "stt",
+   "item_name": "hang_muc",
+   "description": "mo_ta",
+   "cost": "chi_phi",
+   "sort_order": "sort_no"
+  }
+ },
+ "purchase_orders": {
+  "from": "don_mua_hang",
+  "cols": {
+   "id": "id",
+   "order_code": "ma_don",
+   "project_code": "ma_du_an",
+   "project_name": "ten_du_an",
+   "category": "hang_muc",
+   "supplier_name": "nha_cung_cap",
+   "product_count": "so_sp",
+   "subtotal_before_vat": "tong_truoc_vat",
+   "vat_pct": "vat_pct",
+   "vat_amount": "vat",
+   "total_amount": "tong_cong",
+   "status": "trang_thai",
+   "send_channel": "kenh_gui",
+   "send_result": "ket_qua_gui",
+   "sender_name": "nguoi_gui",
+   "department": "phong_ban",
+   "note": "ghi_chu",
+   "sent_at": "ngay_gui",
+   "requester_id": "requester_id",
+   "company_id": "cong_ty_id"
+  }
+ },
+ "purchase_order_items": {
+  "from": "chi_tiet_mua_hang",
+  "cols": {
+   "id": "id",
+   "order_code": "ma_don",
+   "product_code": "ma_sp",
+   "product_name": "ten_sp",
+   "brand": "thuong_hieu",
+   "room": "phong",
+   "unit": "dvt",
+   "quantity": "so_luong",
+   "unit_price": "don_gia",
+   "amount": "thanh_tien",
+   "image_urls": "hinh_anh",
+   "sort_order": "sort_no"
+  }
+ },
+ "purchase_proposals": {
+  "from": "de_xuat",
+  "cols": {
+   "id": "id",
+   "proposal_code": "ma_de_xuat",
+   "proposal_type": "loai",
+   "project_code": "ma_du_an",
+   "project_name": "ten_du_an",
+   "category": "hang_muc",
+   "supplier_name": "nha_cung_cap",
+   "line_count": "so_dong",
+   "original_total": "tong_goc",
+   "proposed_total": "tong_de_xuat",
+   "discount_amount": "tien_giam",
+   "vat_pct": "vat_pct",
+   "vat_amount": "vat_pct",
+   "total_amount": "tong_de_xuat",
+   "status": "trang_thai",
+   "sender_name": "nguoi_gui",
+   "department": "phong_ban",
+   "requester_id": "requester_id",
+   "company_id": "cong_ty_id",
+   "sent_at": "ngay_gui"
+  }
+ },
+ "work_items": {
+  "from": "cong_tac",
+  "cols": {
+   "id": "id",
+   "company_id": "cong_ty_id",
+   "quotation_type": "loai",
+   "calculation_mode": "che_do",
+   "group_code": "ma_nhom",
+   "category": "hang_muc",
+   "name": "ten",
+   "unit": "dvt",
+   "quantity": "khoi_luong",
+   "area": "dien_tich",
+   "coefficient": "he_so",
+   "contractor_unit_price": "don_gia_nha_thau",
+   "unit_price": "don_gia",
+   "note": "ghi_chu",
+   "is_approved": "da_duyet",
+   "created_by": "nguoi_tao",
+   "created_at": "ngay_tao",
+   "updated_by": "nguoi_tao",
+   "updated_at": "ngay_cap_nhat",
+   "sort_order": "thu_tu",
+   "is_favorite": "yeu_thich"
+  }
+ },
+ "work_item_histories": {
+  "from": "cong_tac_history",
+  "cols": {
+   "id": "id",
+   "work_item_id": "cong_tac_id",
+   "field": "field",
+   "old_value": "old_value",
+   "new_value": "new_value",
+   "changed_by_id": "changed_by",
+   "changed_by_name": "changed_by_name",
+   "changed_at": "changed_at",
+   "company_id": "cong_ty_id"
+  }
+ }
+}

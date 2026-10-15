@@ -7,3 +7,6 @@ server/tables.local.json
 
 # Bản xuất dữ liệu production — KHÔNG commit (chứa dữ liệu khách hàng)
 export/
+
+# Postgres local (docker) — file dump có dữ liệu khách hàng, KHÔNG commit
+docker/qspro-db/initdb/
