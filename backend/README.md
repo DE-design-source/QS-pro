@@ -140,22 +140,20 @@ docker exec qspro-go go test -count=1 ./...          # không có TEST_DATABASE_
 docker exec -e TEST_DATABASE_URL=postgresql://qspro:<mật khẩu>@host.docker.internal:5434/qspro_gotest qspro-go go test -race -count=1 -p 1 ./...
 ```
 
-> **Công cụ lịch sử (cần app Node đã gỡ khỏi repo).** Từ bước 2 dưới đây, bảng "Test trên server đang chạy", mục "Hạ tầng thử mà
-> `run.ps1` cần" và các script `gen*.js` ở mục "Dữ liệu mong đợi" (trừ `scripts/gen-specs.js`) đều cần mã Node (`server/*.js`,
-> `package.json`, `scripts/test-api.js`) của commit cuối còn app Node (`83d264e`) và `node_modules` (`pg`, `bcryptjs`, `exceljs`).
-> Trên cây hiện tại chúng KHÔNG chạy được: `check-node-sync.sh` luôn in `KHÁC` (thiếu `server/db-map.json`), `sync-api-docs.js` lỗi
-> `ENOENT` (thiếu `server/index.js`). Muốn chạy lại: lấy mã Node ra thư mục riêng (`git show 83d264e:server/<file>` hoặc
-> `git worktree add <thư mục> 83d264e`, rồi `npm install` trong đó) và trỏ script tới đó. Dữ liệu mong đợi đã sinh vẫn nằm trong repo,
-> nên `go test` không cần Node. Chỉ có bước 1 và `node backend/scripts/gen-specs.js` (cần Node.js, không cần gói nào) là dùng được ngay.
+> **Công cụ đối chiếu với bản Node đã gỡ (2026-10-15).** Bộ so vi sai `tests/e2e/diff/`, `smoke.js`, `http-diff.sh`,
+> `check-node-sync.sh`, `sync-api-docs.js`, `sync-test-sequences.sh`, `tests/fixtures/{gen-registry,gen-swagger,db-diff-node,db-diff-compare}.js`
+> và các script `gen*.js` / `noderef.js` trong `internal/**/testdata/` chỉ chạy được cùng app Node (commit cuối còn Node: `83d264e`)
+> nên đã chuyển khỏi repo. Bản sao để khôi phục: `C:/demo/qs-unused-backup-2026-10-15/` (xem `MANIFEST.txt` trong đó), hoặc
+> `git show 83d264e:<đường dẫn>` với file đã commit. Dữ liệu mong đợi các script đó đã sinh vẫn nằm trong repo nên `go test` không cần Node.
 
-Ba bộ kiểm tra dùng ở lượt nghiệm thu, theo đúng thứ tự (mỗi bộ bắt đầu từ hai database vừa đặt lại về seed, xem lệnh đặt lại ở mục
+Hai bộ kiểm tra dùng ở lượt nghiệm thu, theo đúng thứ tự (mỗi bộ bắt đầu từ `qspro_gotest` vừa đặt lại về seed, xem lệnh đặt lại ở mục
 "Hạ tầng thử"):
 
 1. Lệnh `go test -race -count=1 -p 1 ./...` ở trên.
 2. E2E trên server Go chạy nền với bộ biến an toàn (lệnh "Chạy nền" ở mục Docker, thêm `-e AUTH_SECRET=<giá trị thử>`), rồi từ gốc repo:
    `$env:BASE_URL = 'http://localhost:3998'; $env:TEST_DATABASE_URL = 'postgresql://qspro:<mật khẩu>@localhost:5434/qspro_gotest'; node backend/tests/e2e/test-api-go.js`.
-   Đúng: `KẾT QUẢ test-api (http://localhost:3998): 96 đạt, 0 lỗi`, bằng kết quả cùng lệnh trên server Node (`BASE_URL` 3997, `qspro_nodetest`).
-3. `powershell -ExecutionPolicy Bypass -File backend/tests/e2e/diff/run.ps1` (cả bộ, khoảng 20 phút). Đúng: dòng `TỔNG: ... 0 KHÁC ...`, mã thoát 0.
+   Đúng: `KẾT QUẢ test-api (http://localhost:3998): 96 đạt, 0 lỗi`. Script cần gói npm `pg` và `bcryptjs`; repo không còn `package.json`
+   ở gốc nên phải cài riêng (vd `npm install --no-save pg bcryptjs` trong một thư mục tạm rồi đặt `NODE_PATH` trỏ `node_modules` của thư mục đó).
 
 - `-p 1` BẮT BUỘC khi có database: các gói dùng chung `qspro_gotest`, chạy song song thì gói này thấy dòng tạm của gói kia
   (đã gặp ở `estimates`, `notifications`, `purchasing`).
@@ -163,39 +161,23 @@ Ba bộ kiểm tra dùng ở lượt nghiệm thu, theo đúng thứ tự (mỗi
 - `TEST_DATABASE_URL` chỉ được trỏ tới database THỬ: test có ghi và xoá dữ liệu đánh dấu.
 - Mật khẩu database thử: `docker exec qspro-postgres printenv POSTGRES_PASSWORD`.
 
-Test trên server đang chạy (Node.js, chạy từ gốc repo). Cả hai server phải chạy trên database thử với bộ biến an toàn ở mục Cấu hình:
-
-| Bộ | Lệnh |
-|---|---|
-| E2E một server | `node backend/tests/e2e/test-api-go.js` với biến `BASE_URL` (mặc định `http://localhost:3998`) và `TEST_DATABASE_URL` (chỉ nhận `qspro_gotest` / `qspro_nodetest`); để lại dữ liệu thử trong database |
-| Kiểm tra nhanh hai server | `node backend/tests/integration/smoke.js <url go> <url node> <admin> <nhân viên> <mật khẩu>` (hai database phải có cùng tài khoản thử) |
-| So lớp HTTP | `backend/scripts/http-diff.sh <url node> <url go>`; hai server phải cùng `RENDER_GIT_COMMIT` (header `x-app-ver` được so), kết quả đúng là `30 request, 0 khác` |
-| So vi sai đầu-cuối Node <-> Go | `powershell -ExecutionPolicy Bypass -File backend/tests/e2e/diff/run.ps1 [-Filter area1/02,area2/01] [-ShowAll] [-KeepServers] [-NoReset]` |
-| Tự kiểm bộ so sánh | `node backend/tests/e2e/diff/selftest.js` |
-| Bản sao chép tay từ bản Node | `sh backend/scripts/check-node-sync.sh` (db-map.json; không cần database). Lịch sử: thiếu `server/db-map.json` nên luôn in `KHÁC` |
-
+E2E trên server đang chạy: `node backend/tests/e2e/test-api-go.js` (từ gốc repo) với biến `BASE_URL` (mặc định `http://localhost:3998`)
+và `TEST_DATABASE_URL` (chỉ nhận `qspro_gotest` / `qspro_nodetest`); để lại dữ liệu thử trong database.
 PowerShell không nhận dạng `BIEN=giatri lenh`; đặt biến trước: `$env:BASE_URL = 'http://localhost:3998'; $env:TEST_DATABASE_URL = '...'; node backend/tests/e2e/test-api-go.js`.
 
-Bộ so vi sai chạy cả bộ mất nhiều phút; khi đang sửa một module thì chạy riêng kịch bản bằng `-Filter`, chỉ chạy đủ ở lượt cuối.
-Nó tự đặt lại hai database, tự bật và tắt hai server; chỉ chấp nhận khác biệt đã ghi ở mục 10 của `docs/ARCHITECTURE.md`.
-
-### Hạ tầng thử mà `run.ps1` cần
+### Hạ tầng thử
 
 - Container Postgres tên `qspro-postgres`, user `qspro`, mật khẩu lấy từ biến `POSTGRES_PASSWORD` của container, mở cổng `5434` trên máy.
-- Hai database `qspro_nodetest` và `qspro_gotest`: script tự xoá và tạo lại mỗi lần chạy (trừ khi có `-NoReset`). Đặt lại bằng tay (đã tắt
-  server đang nối vào): `docker exec qspro-postgres sh -c "dropdb -U qspro --if-exists --force <db> && createdb -U qspro <db> && psql -q -U qspro -d <db> -f /tmp/qspro_seed.sql >/dev/null"`.
-- Sau khi đặt lại, script chèn vào CẢ HAI database một dòng `audit_logs` hành động `bao_cao_nhap_sp` của hôm nay để job báo cáo tự động của
-  Node (không tắt được bằng env) không chạy giữa lượt so; xem `docs/ARCHITECTURE.md` mục 10.6.
-- File seed `/tmp/qspro_seed.sql` nằm TRONG container `qspro-postgres` (mất khi tạo lại container). CHƯA RÕ file này được tạo bằng cách nào:
-  trong repo không có script hay tài liệu nào sinh ra nó. Cần hỏi người dựng môi trường và đưa file hoặc script sinh vào repo.
-- Container `qspro-go` (lệnh ở mục Docker) để build và chạy server Go ở cổng 3998; server Node chạy trên máy ở cổng 3997.
-- Script đặt env an toàn cho cả hai server (`REPORT_JOB=0` cho Go, cùng `AUTH_SECRET` và `RENDER_GIT_COMMIT`, webhook / kho file / Lark trỏ vào
-  server giả cổng 4101 / 4102), không đọc `DATABASE_URL` trong `.env`.
-- `backend/scripts/sync-test-sequences.sh`: đưa sequence của hai database thử về cùng giá trị (cũng dùng container `qspro-postgres`).
+- Database `qspro_gotest`. Đặt lại bằng tay (đã tắt server đang nối vào):
+  `docker exec qspro-postgres sh -c "dropdb -U qspro --if-exists --force qspro_gotest && createdb -U qspro qspro_gotest && psql -q -U qspro -d qspro_gotest -f /tmp/qspro_seed.sql >/dev/null"`.
+- File seed `/tmp/qspro_seed.sql` nằm TRONG container `qspro-postgres` (mất khi tạo lại container). Bản sao bền trong repo:
+  `infra/export/qspro_seed.sql` (cùng md5); chép lại bằng `docker cp infra/export/qspro_seed.sql qspro-postgres:/tmp/qspro_seed.sql`.
+  `TestDiffGolden` chỉ khớp trên database vừa đặt lại từ file seed này.
+- Container `qspro-go` (lệnh ở mục Docker) để build và chạy server Go ở cổng 3998.
 
 ### File do test sinh ra
 
-Báo cáo của bộ so vi sai nằm ở `tests/e2e/diff/.out/`. Các biến sau bật việc ghi file kết quả; giá trị phải là đường dẫn TUYỆT ĐỐI
+Các biến sau bật việc ghi file kết quả; giá trị phải là đường dẫn TUYỆT ĐỐI
 (`go test` đứng ở thư mục của từng gói), nên trỏ vào một thư mục `.out/` (mọi thư mục `.out/` trong `backend/` đã được git bỏ qua):
 `DIFF_OUT`, `DIFF_GOLDEN` (platform/database), `CATEGORIES_XLSX_OUT`, `MATERIALS_XLSX_OUT`, `QUOT_XLSX_OUT`, `ESTIMATES_XLSX_OUT`,
 `ESTIMATES_DIFF_OUT`, `PURCHASING_DIFF_OUT`, `INTEROP_OUT` (auth), `E2E_OUT`, `E2E_DUMP` (test-api-go.js).
@@ -203,16 +185,12 @@ Báo cáo của bộ so vi sai nằm ở `tests/e2e/diff/.out/`. Các biến sau
 ### Dữ liệu mong đợi (golden)
 
 Dữ liệu mong đợi trong `internal/**/testdata/` (khoảng 6 MB) và `tests/fixtures/` được sinh từ mã Node thật và ĐƯỢC LƯU trong repo
-để `go test` chạy không cần Node. Sửa hành vi bên Node thì sinh lại bằng script `gen*.js` nằm cạnh file dữ liệu (chạy từ gốc repo,
-cách dùng ghi ở đầu mỗi script):
+để `go test` chạy không cần Node. App Node đã gỡ nên các file này ĐÓNG BĂNG: không sinh lại, không sửa tay (xem `docs/ARCHITECTURE.md`
+mục 12.1); các script sinh cũ đã chuyển khỏi repo (ghi chú đầu mục Kiểm thử). Còn dùng được:
 
-- không đọc `DATABASE_URL`: `internal/shared/{errors,qscore}/testdata/gen.js`, `internal/jobs/testdata/gen.js`, `scripts/gen-specs.js`,
-  `scripts/sync-api-docs.js`, `tests/fixtures/gen-registry.js`, `tests/fixtures/gen-swagger.js`;
-- các script trong `internal/modules/*/testdata/` nạp mã Node thật (`server/*.js`) nên hầu hết đọc `DATABASE_URL`: có script chỉ cần một
-  giá trị giả, có script ghi rồi dọn dòng đánh dấu (`ZZ_` / `zz_`) trong database. Đọc phần đầu script trước khi chạy.
-
-Khi chạy các script này LUÔN đặt `DATABASE_URL` tường minh trỏ `qspro_nodetest` cùng bộ biến an toàn ở mục Cấu hình: mã Node cũng
-đọc `.env` ở gốc repo, không đặt thì script chạy trên database thật.
+- `node backend/scripts/gen-specs.js` (cần Node.js, không cần gói nào): sinh lại `internal/shared/specs/data/*.json` và golden của gói
+  `specs` từ `internal/shared/specs/js/*-spec.js`. Sửa một file spec thì chạy lệnh này rồi `go test ./internal/shared/specs ./internal/server`.
+- `internal/modules/quotations/testdata/gen-case.js` (không cần gói nào): sinh `case-node.txt` cho `model_test.go`.
 
 ## Thư mục
 
@@ -225,10 +203,10 @@ internal/platform        database (PostgreSQL), storage (Supabase Storage), redi
 internal/shared          omap, jsval, tenant, actor, response, errors, validator, contracts, qscore, specs, httpx
 internal/modules         nghiệp vụ theo module (14 gói)
 internal/jobs            job nền (báo cáo nhập sản phẩm)
-scripts                  đồng bộ api-docs, sinh specs, so HTTP, đồng bộ sequence database thử, kiểm bản sao từ bản Node
-tests/fixtures           dữ liệu và script đối chiếu tầng dữ liệu, registry, swagger
-tests/integration        test Go trên server đã nối đủ module + smoke.js
-tests/e2e                test-api-go.js và bộ so vi sai (diff/)
+scripts                  gen-specs.js: sinh specs/data từ *-spec.js
+tests/fixtures           dữ liệu đối chiếu tầng dữ liệu, registry, swagger (đóng băng) + jsref.js
+tests/integration        test Go trên server đã nối đủ module
+tests/e2e                test-api-go.js (E2E trên server Go đang chạy)
 docs                     tài liệu
 ```
 

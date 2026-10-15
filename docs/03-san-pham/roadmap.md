@@ -1,6 +1,9 @@
 # Roadmap QS Pro
 
-> **Cập nhật:** 2026-10-14 · **Phiên bản mới nhất:** 1.0.0 (theo `package.json`; chưa có changelog)
+> **Cập nhật:** 2026-10-15 · **Phiên bản mới nhất:** 1.0.0 (số cuối của `package.json` trước khi gỡ app Node; chưa có changelog)
+>
+> **Backlog từ 2026-10-15:** mục 2.1 làm trên server Go (`backend/`) + module QS React (`frontend/src/pages/QS`). Mục "cần chốt nghiệp vụ" được
+> chọn phương án hợp lý nhất từ mã + quy trình QT, giả định ghi ngay trong dòng của mục đó (chủ sản phẩm có thể đổi).
 >
 > **Ký hiệu:** ✅ xong · 🟡 một phần · ⬜ chưa làm · 🔑 cần credential · 🏗 subsystem lớn
 >
@@ -19,14 +22,14 @@
 |---|---|---|---|
 | [M1](#xong-1) | Đăng nhập & phiên | ✅ | - |
 | [M2](#xong-2) | Bảng điều khiển | ✅ | - |
-| [M3](#xong-3) | Dự án | 🟡 | [M3.1](#m3-1) |
+| [M3](#xong-3) | Dự án | ✅ | - |
 | [M4](#xong-4) | Bóc tách | ✅ | - |
 | [M5](#xong-5) | Phần thô & công tác | 🟡 | [M5.1](#m5-1) · [M5.2](#m5-2) · [M5.3](#m5-3) |
 | [M6](#xong-6) | Tờ bìa (khái toán) | 🟡 | [M6.1](#m6-1) |
 | [M7](#xong-7) | Chi phí | ✅ | - |
 | [M8](#xong-8) | Xuất báo giá | 🟡 | [M8.1](#m8-1) · [M8.2](#m8-2) · [M8.3](#m8-3) |
 | [M9](#xong-9) | Mua hàng & đề xuất | 🟡 | [M9.1](#m9-1) |
-| [M10](#xong-10) | Danh sách sản phẩm | 🟡 | [M10.1](#m10-1) · [M10.2](#m10-2) |
+| [M10](#xong-10) | Danh sách sản phẩm | 🟡 | [M10.1](#m10-1) |
 | [M11](#xong-11) | Nhập dữ liệu | ✅ | - |
 | [M12](#xong-12) | Tệp & ảnh | ✅ | - |
 | [M13](#xong-13) | Thông báo | 🟡 | [M13.1](#m13-1) |
@@ -35,11 +38,11 @@
 
 | Module | Tên | Trạng thái | Còn lại |
 |---|---|---|---|
-| [M14](#xong-14) | Tài khoản & phân quyền | 🟡 | [M14.1](#m14-1) |
+| [M14](#xong-14) | Tài khoản & phân quyền | ✅ | - |
 | [M15](#xong-15) | Duyệt yêu cầu (xoá sản phẩm, mua hàng, đề xuất) | 🟡 | [M15.1](#m15-1) · [M15.2](#m15-2) |
 | [M16](#xong-16) | Nhật ký hoạt động | ✅ | - |
-| [M17](#xong-17) | Công ty (quản trị hệ thống) | 🟡 | [M17.1](#m17-1) · [M17.2](#m17-2) · [M17.3](#m17-3) |
-| [M18](#xong-18) | Báo cáo nhập sản phẩm qua Lark | 🟡 | [M18.1](#m18-1) |
+| [M17](#xong-17) | Công ty (quản trị hệ thống) | 🟡 | [M17.3](#m17-3) |
+| [M18](#xong-18) | Báo cáo nhập sản phẩm qua Lark | ✅ | - |
 
 ### Tính năng mới (N)
 
@@ -57,25 +60,19 @@
 
 | Mã | Tính năng | App | Trạng thái |
 |---|---|---|---|
-| <a id="m3-1"></a>M3.1 | Trang "Thông tin dự án" riêng đã dựng nhưng chưa có lối mở (QT-09 Q-12) | User | 🟡 |
-| <a id="m5-1"></a>M5.1 | Nhập công tác hàng loạt từ file Excel mẫu: file mẫu `mau-nhap-cong-tac.xlsx` đã có, chưa có nút tải / chọn file / đọc file (QT-16 Q-01) | User | ⬜ |
+| <a id="m5-1"></a>M5.1 | Nhập công tác hàng loạt từ file Excel mẫu: file mẫu `mau-nhap-cong-tac.xlsx` đã có và server Go đã phục vụ ở `/mau-nhap-cong-tac.xlsx` (file nhúng, 2026-10-15), chưa có nút tải / chọn file / đọc file (QT-16 Q-01) | User | ⬜ |
 | <a id="m5-2"></a>M5.2 | Đơn giá theo nhà thầu: chọn "Tên nhà thầu" ở thư viện Phần thô mới chỉ lưu tên, chưa đổi đơn giá hay lọc công tác (QT-16 Q-07) | User | 🟡 |
 | <a id="m5-3"></a>M5.3 | Sắp xếp danh mục công tác theo cột "Thứ tự": cột đã có, chưa có chỗ nhập (QT-16 mục 10) | User | 🟡 |
 | <a id="m6-1"></a>M6.1 | Tính đơn giá xây thô từ "Diện tích khu đất" trong bảng tính diện tích: ô nhập đã có, chưa có phép tính nào dùng (QT-11 mục 11) | User | ⬜ |
 | <a id="m8-1"></a>M8.1 | File Excel báo giá theo thông tin công ty, tiến độ thanh toán và ghi chú điều khoản như bản xem trước / PDF; hiện Excel ghi cứng tên một công ty (QT-17 Q-02) | User | 🟡 |
 | <a id="m8-2"></a>M8.2 | File Excel theo lựa chọn Mẫu 1 / Mẫu 2 của tờ bìa và thứ tự cột đã kéo ở bản xem trước (QT-17 Q-04) | User | 🟡 |
-| <a id="m8-3"></a>M8.3 | Ô "Hiện trạng" ở phần đầu báo giá: chưa có chỗ nhập và chưa lưu dữ liệu (QT-17 GD-02) | User | ⬜ |
+| <a id="m8-3"></a>M8.3 | Ô "Hiện trạng" ở phần đầu báo giá: đã có cột lưu `projects.current_condition` (migration 0011, code `hien_trang`); chưa có chỗ nhập, máy chủ chưa đọc / ghi nên ô "Hiện trạng" ở bản xem trước luôn trống, Excel chưa in (QT-17 GD-02) | User | 🟡 |
 | <a id="m9-1"></a>M9.1 | Cập nhật và hiển thị kết quả gửi Lark của đơn mua hàng cho người gửi: đã có chỗ lưu, luôn ở trạng thái chờ (QT-13 Q-06) | User | 🟡 |
 | <a id="m10-1"></a>M10.1 | Tạo bản sao riêng từ sản phẩm kho chung Dezon: thông báo chặn đã hướng dẫn nhưng chưa có nút (QT-08 Q-08) | User | ⬜ |
-| <a id="m10-2"></a>M10.2 | Ghi chú cho từng sản phẩm đi kèm trong combo: đã có chỗ lưu, chưa có ô nhập và chưa hiển thị (QT-08 mục 10) | User | 🟡 |
 | <a id="m13-1"></a>M13.1 | Bấm thông báo về phiếu đề xuất thì mở đúng phiếu; hiện chỉ đánh dấu đã đọc (QT-04 Q-01, QT-14 Q-04) | User | 🟡 |
-| <a id="m14-1"></a>M14.1 | Nhập và sửa email tài khoản ở tab Admin; hiện email chỉ nhập được khi tạo từ tab Công ty (QT-03 Q-04) | Admin | 🟡 |
-| <a id="m15-1"></a>M15.1 | Lưu và hiện Người duyệt / Ngày duyệt của đơn mua hàng: chi tiết đơn đã có chỗ hiện, chưa bao giờ có dữ liệu (QT-13 Q-04) | Admin | 🟡 |
-| <a id="m15-2"></a>M15.2 | Lý do xoá và lý do từ chối cho yêu cầu xoá sản phẩm: bảng đã có cột ghi chú, chưa có ô nhập và chưa hiển thị (QT-07 Q-05) | Admin | ⬜ |
-| <a id="m17-1"></a>M17.1 | Màn hình cho admin công ty tự sửa tên, logo, email, điện thoại công ty mình: máy chủ đã cho phép, chưa có màn hình (QT-02 Q-01) | Admin | 🟡 |
-| <a id="m17-2"></a>M17.2 | Ô chọn màu chính của công ty trong biểu mẫu công ty: máy chủ lưu và giao diện áp dụng được, chưa có ô nhập (QT-02 Q-10) | Admin | 🟡 |
+| <a id="m15-1"></a>M15.1 | Lưu và hiện Người duyệt / Ngày duyệt của đơn mua hàng: chi tiết đơn đã có chỗ hiện; đã có cột lưu `purchase_orders.resolver_name` / `resolved_at` (migration 0009, code `nguoi_duyet` / `ngay_duyet`); máy chủ chưa ghi khi duyệt / từ chối nên vẫn chưa có dữ liệu (QT-13 Q-04) | Admin | 🟡 |
+| <a id="m15-2"></a>M15.2 | Lý do xoá và lý do từ chối cho yêu cầu xoá sản phẩm: đã có cột lưu (migration 0010: `delete_requests.note` = lý do người gửi, cột mới `resolution_note` = lý do từ chối); chưa có ô nhập và chưa hiển thị (QT-07 Q-05) | Admin | 🟡 |
 | <a id="m17-3"></a>M17.3 | Nhắc gia hạn trước khi công ty hết hạn (mốc 30/14/7/3/1/0 ngày): mới có 2 cột trong `db/expiry_notice.sql`; chưa rõ gửi qua kênh nào (QT-02 Q-11) | Admin | ⬜ |
-| <a id="m18-1"></a>M18.1 | Nút cho quản trị hệ thống chạy tay / chạy thử báo cáo nhập sản phẩm: máy chủ đã có, chưa có nút (QT-15 Q-01) | Admin | 🟡 |
 
 ### 2.2 Tính năng mới
 
@@ -93,7 +90,7 @@
 
 | Mã | Tính năng | App | Trạng thái |
 |---|---|---|---|
-| <a id="n1"></a>N1 | Refactor database sang PostgreSQL trực tiếp (`pg`, `DATABASE_URL`): đã triển khai trên database local `qspro_en2`; còn thử tay trên trình duyệt các tab chính, chuyển production (cần máy chủ PostgreSQL mà Render truy cập được), transaction cho thao tác nhiều bước (D-13), xoá 12 cột `DEPRECATED` (D-09) - xem `docs/02-ky-thuat/database/ket-qua-trien-khai.md` mục 8 | Toàn hệ thống | 🟡 |
+| <a id="n1"></a>N1 | Refactor database sang PostgreSQL trực tiếp (`pg`, `DATABASE_URL`): đã triển khai trên database local `qspro_en2`; còn thử tay trên trình duyệt các tab chính, chuyển production (cần máy chủ PostgreSQL mà Render truy cập được), transaction cho thao tác nhiều bước (D-13), xoá 10 cột `DEPRECATED` (D-09; `delete_requests.note` và `product_combos.note` đã ra khỏi danh sách ngày 2026-10-15 vì M15.2 / M10.2 dùng lại) - xem `docs/02-ky-thuat/database/ket-qua-trien-khai.md` mục 8 | Toàn hệ thống | 🟡 |
 | <a id="n2"></a>N2 | Chuyển server Node + Express sang Go + Gin (`backend/`, chưa commit): đã chuyển mã; còn chuyển deploy (`render.yaml` vẫn `runtime: node`, `npm start`), so vi sai job báo cáo và các nhánh chỉ chạy khi database thiếu cột - xem `backend/docs/ARCHITECTURE.md` mục "Việc còn mở" | Toàn hệ thống | 🟡 |
 
 ---
@@ -102,8 +99,8 @@
 
 > Thứ tự dưới đây là **gợi ý của Claude, chưa được duyệt** — xếp theo "chỉ còn thiếu nối giao diện" trước, "cần quyết định nghiệp vụ" sau.
 
-1. Nối giao diện cho phần máy chủ đã có sẵn: [M13.1](#m13-1) · [M18.1](#m18-1) · [M17.1](#m17-1) · [M17.2](#m17-2) · [M14.1](#m14-1) · [M3.1](#m3-1)
-2. Bổ sung dữ liệu còn trống trên màn hình đã có: [M15.1](#m15-1) · [M15.2](#m15-2) · [M9.1](#m9-1) · [M10.2](#m10-2) · [M5.3](#m5-3) · [M8.3](#m8-3)
+1. Nối giao diện cho phần máy chủ đã có sẵn: [M13.1](#m13-1)
+2. Bổ sung dữ liệu còn trống trên màn hình đã có: [M15.1](#m15-1) · [M15.2](#m15-2) · [M9.1](#m9-1) · [M5.3](#m5-3) · [M8.3](#m8-3)
 3. Đồng bộ file Excel báo giá với bản xem trước: [M8.1](#m8-1) · [M8.2](#m8-2)
 4. Tính năng cần chốt nghiệp vụ trước khi làm: [M5.1](#m5-1) · [M5.2](#m5-2) · [M6.1](#m6-1) · [M10.1](#m10-1) · [M17.3](#m17-3)
 
@@ -170,7 +167,7 @@
 - Tự đưa bản lưu cũ trên trình duyệt lên máy chủ
 - Mỗi công ty chỉ thấy dự án của mình
 - Ô chọn dự án và thẻ dự án phía trên các màn hình
-- 🟡 phần còn lại ở 2.1
+- Lối mở "Thông tin dự án" (M3.1, QT-09 Q-12): hộp Thông tin dự án (cùng nội dung trang `v-project` cũ, không dựng trang riêng) mở từ thẻ dự án ở Bóc tách, Chi phí, Xuất báo giá, Mua hàng, Dự án và từ banner, thẻ dự án, dòng bản nháp ở Bảng điều khiển; kiểm bằng admin + nhân viên 2026-10-15
 
 <a id="xong-4"></a>
 #### M4 - Bóc tách
@@ -262,7 +259,7 @@
 - Tự chốt phiên bản khi xuất, chốt tay, lịch sử phiên bản, xem lại và so sánh
 - Cảnh báo khi tổng tờ bìa khác tổng trang cuối
 - Nút xuất Excel ở các tab khác, tải danh sách sản phẩm và file mẫu nhập liệu
-- 🟡 phần còn lại ở 2.1
+- Cột lưu "Hiện trạng" của dự án (`projects.current_condition`, migration 0011, M8.3) - 🟡 phần còn lại ở 2.1
 
 <a id="xong-9"></a>
 #### M9 - Mua hàng & đề xuất
@@ -300,6 +297,7 @@
 - Xem kho chung Dezon ở chế độ chỉ xem (khi công ty được bật)
 - Tải danh sách sản phẩm ra Excel (theo dòng đã chọn hoặc theo bộ lọc)
 - Nhân viên gửi yêu cầu xoá; admin xoá trực tiếp một hoặc nhiều sản phẩm
+- Ghi chú cho từng sản phẩm đi kèm (M10.2): ô "Ghi chú" ở form Cập nhật sản phẩm cho liên kết do chính sản phẩm đặt; liên kết ngược (hai chiều) chỉ xem, kèm "Sửa ghi chú ở sản phẩm kia"; hiện "Ghi chú: …" trong hộp xem sản phẩm (chưa hiện ở dòng mở rộng của bảng và thư viện Bóc tách)
 - 🟡 phần còn lại ở 2.1
 
 <a id="xong-11"></a>
@@ -372,7 +370,7 @@
 - Tên đăng nhập duy nhất trong toàn hệ thống
 - Quản trị hệ thống chọn công ty, chuyển công ty và gán công ty cho tài khoản chưa có
 - Ghi nhật ký tạo, sửa, khoá, mở, đặt lại mật khẩu, xoá tài khoản
-- 🟡 phần còn lại ở 2.1
+- Sửa email tài khoản ở hộp Sửa tài khoản tab Admin (M14.1): lưu chữ thường, để trống = xoá, báo "Email không hợp lệ" khi sai dạng; không trùng tài khoản khác trong CÙNG công ty (khác công ty được phép, đăng nhập tự chọn đúng tài khoản); email cũ sai dạng vẫn sửa được các mục khác; đăng nhập được bằng email mới. Giả định: đường tạo tài khoản giữ như cũ (kiểm dạng ở giao diện); email có `*`, `%`, `\` lưu được nhưng không dùng để đăng nhập (có cảnh báo)
 
 <a id="xong-15"></a>
 #### M15 - Duyệt yêu cầu (xoá sản phẩm, mua hàng, đề xuất)
@@ -399,7 +397,7 @@
 - Báo kết quả cho người gửi (đã xoá X/N hoặc bị từ chối)
 - Hiện người xử lý
 - Yêu cầu chỉ hiện trong công ty của người gửi
-- 🟡 phần còn lại ở 2.1
+- Cột lưu người duyệt / ngày duyệt đơn mua hàng (migration 0009, M15.1) và lý do xoá / lý do từ chối yêu cầu xoá (migration 0010, M15.2) - 🟡 phần còn lại ở 2.1
 
 <a id="xong-16"></a>
 #### M16 - Nhật ký hoạt động
@@ -430,6 +428,8 @@
 - "Xem dữ liệu" như một công ty và thoát chế độ xem
 - Xoá công ty cùng toàn bộ dữ liệu, phải gõ đúng mã xác nhận
 - Ghi nhật ký tạo, sửa, xoá công ty
+- Thẻ "Thông tin công ty" ở tab Admin (M17.1): admin sửa tên, logo, email, điện thoại, màu chính của công ty mình, áp ngay (thanh trên đổi màu, không tải lại); quản trị hệ thống sửa khi đang xem một công ty (không đổi công ty đang dùng của chính mình)
+- Ô chọn màu chính (bảng màu + mã hex + Mặc định) ở thẻ trên và tab Thông tin của hộp Tạo / Sửa công ty (M17.2); máy chủ chỉ nhận trống, `#RGB` hoặc `#RRGGBB`, báo "Màu chính phải dạng #RRGGBB"
 - 🟡 phần còn lại ở 2.1
 
 <a id="xong-18"></a>
@@ -447,7 +447,7 @@
 - Gom sản phẩm chưa gắn công ty vào thẻ riêng
 - Ghi nhật ký hoạt động sau khi gửi
 - Dùng đường Lark riêng cho báo cáo, chưa đặt thì dùng chung với mua hàng
-- 🟡 phần còn lại ở 2.1
+- Thẻ "Báo cáo sản phẩm nhập mới (Lark)" ở tab Công ty, chỉ quản trị hệ thống (M18.1): chọn Từ ngày (tính từ 0h giờ Việt Nam) hoặc để trống = kỳ hiện tại; Chạy thử xem số sản phẩm theo từng công ty và theo người nhập; Gửi ngay có hỏi lại; kết quả Đã gửi / Lỗi gửi Lark từng công ty (chi tiết lỗi chỉ ở log máy chủ). Lần gửi tay thành công tính là lần gửi của hôm nay (lịch 8h cùng ngày bỏ qua; có cảnh báo trên thẻ)
 
 ### Tính năng mới (N)
 
@@ -476,5 +476,6 @@
 
 - Module QS của frontend React (`frontend/src/pages/QS`, bản clone giao diện cũ) dùng dữ liệu thật qua REST `/api/v1` của server Go; đăng nhập riêng cho QS, bỏ toàn bộ dữ liệu giả
 - Bổ sung phần bản clone còn thiếu: nhập dữ liệu, sửa sản phẩm (combo, biến thể, lịch sử), phần thô, quản trị tài khoản, công ty, thông báo
-- Server Go tự phục vụ thông số ngành (`*-spec.js`), logo và file mẫu nhập hàng loạt (nhúng trong binary), không còn cần `public/`
+- Server Go tự phục vụ thông số ngành (`*-spec.js`), logo, file mẫu nhập hàng loạt và file mẫu công tác `/mau-nhap-cong-tac.xlsx` (nhúng trong binary, byte = bản cuối trong git), không còn cần `public/`; kiểm lại 2026-10-15 với `STATIC_DIR` trống
+- Chạy React với server Go: đặt `CORS_ORIGINS` của server Go đúng origin của frontend (cấu hình chạy, không phải phần mã còn thiếu; deploy production thuộc [N2](#n2))
 - Kiểm thử 2026-10-15: build OK, 62.658 golden test công thức đạt, so từng tab với bản gốc không thiếu số tiền nào (admin, staff, super), file Excel báo giá trùng bản gốc, 20 trang SiteFlow khác không đổi pixel nào, chạy được không có `public/` (cả bản Docker)
