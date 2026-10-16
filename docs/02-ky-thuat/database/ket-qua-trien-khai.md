@@ -29,7 +29,7 @@ Bảy bảng con bỏ `company_id`: `quotation_lines`, `cost_estimate_lines`, `p
 | Gán lại công ty cho 17 dòng bóc tách + 4 đơn mua lệch công ty | Không gán. 13 dòng bóc tách không thuộc công ty nào được chuyển sang khu cách ly | Thử gán thì 3 dự án của Dezon hiện thêm dòng và tổng tiền đổi (ví dụ 15,6 triệu thành 30,4 triệu). Hôm nay không tài khoản nào thấy 13 dòng này |
 | CHECK công thức so sánh bằng tuyệt đối | Cho phép lệch 1 đơn vị (hoặc 1 phần tỉ với số rất lớn) | JavaScript và PostgreSQL làm tròn khác nhau ở một số số lẻ; so bằng tuyệt đối sẽ chặn lệnh ghi hợp lệ |
 | `company_settings` khoá chính `(company_id, setting_key)` | `id` + unique `(company_id, setting_key)` coi NULL là trùng | Giữ được trường hợp cấu hình không thuộc công ty nào (trước là mã `__cty:0`) |
-| Transaction cho 6 thao tác nhiều bước (D-13) | Chưa làm | Các chỗ đang cố ý nuốt lỗi sẽ đổi hành vi khi nằm trong transaction; khoá ngoại `ON DELETE CASCADE` đã ngăn phần lớn dữ liệu dở dang |
+| Transaction cho 6 thao tác nhiều bước (D-13) | Đã làm trên backend Go (2026-10-15): 10 hàm, gồm cả tạo công ty và ghi combo / biến thể sản phẩm. Lưu nhiều đơn mua hàng: mỗi đơn 1 transaction | Mỗi lệnh chạy dưới savepoint riêng nên chỗ cố ý nuốt lỗi giữ nguyên hành vi; cả lần gửi nhiều đơn chưa nguyên tử vì `DEFAULT now()` cho mọi dòng trong 1 transaction cùng mốc giờ. Chi tiết: `backend/docs/ARCHITECTURE.md` mục 3.5 |
 | Xoá 12 cột không dùng (đợt 3) | Chưa làm, chỉ đánh dấu `DEPRECATED` trong chú thích cột. Từ 2026-10-15 danh sách D-09 còn 8 cột (4 cột dùng lại: M15.2, M10.2, M17.3) | Theo kế hoạch: chờ một chu kỳ chạy ổn định |
 
 ## 3. Dữ liệu được chuyển sang khu cách ly
@@ -132,4 +132,4 @@ File mới đặt ở `infra/db/migrations/NNNN_ten.sql`; không sửa file đã
 2. Quyết định về 13 dòng bóc tách trong khu cách ly (mục 3).
 3. Kế hoạch cắt chuyển production: cần máy chủ PostgreSQL mà Render truy cập được; xem [migration-plan.md](migration-plan.md) mục 9.
 4. Các điểm bảo mật không thuộc phạm vi database, vẫn còn nguyên: `AUTH_SECRET` có giá trị dự phòng trong source, project Supabase cũ còn mở, đọc sản phẩm chéo công ty qua combo, webhook Lark dùng chung. Xem [tenant-security.md](tenant-security.md).
-5. Bọc transaction cho các thao tác nhiều bước (D-13) và xoá 8 cột `DEPRECATED` còn trong danh sách D-09 (ban đầu 12; `delete_requests.note`, `product_combos.note`, `companies.last_reminder_date`, `reminder_milestone` đã ra khỏi danh sách ngày 2026-10-15).
+5. Xoá 8 cột `DEPRECATED` còn trong danh sách D-09 (ban đầu 12; `delete_requests.note`, `product_combos.note`, `companies.last_reminder_date`, `reminder_milestone` đã ra khỏi danh sách ngày 2026-10-15). Transaction (D-13) đã xong ngày 2026-10-15 trên backend Go; còn mở: gộp cả lần gửi nhiều đơn mua hàng vào 1 transaction (cần `clock_timestamp()`).

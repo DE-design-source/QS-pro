@@ -208,8 +208,18 @@ func (s *Service) UpdateProject(ctx context.Context, maDA any, fields any) (*oma
 // DeleteProject (S:266-273): xoá dòng bóc tách, tờ bìa, dữ liệu rời rồi mới tới dự án.
 // D-13: 4 lệnh xoá chung 1 transaction -> lỗi giữa chừng không còn cảnh mất dòng bóc tách / tờ bìa mà dự án vẫn còn
 // (Node để lại dữ liệu dở). Thành công thì kết quả và dữ liệu như cũ.
+// Trong transaction xoá dòng du_an TRƯỚC TIÊN để khoá dự án trước mọi dòng con: nếu xoá con trước rồi mới tới du_an
+// thì va với Tx khác vừa chèn dòng con (giữ KEY SHARE trên du_an) rồi xoá dòng con cũ (vd SaveCover) -> deadlock 40P01.
+// 3 bảng con đều ON DELETE CASCADE (infra/db/schema.sql) nên 3 lệnh xoá sau thành rỗng; kết quả + dữ liệu cuối y như cũ.
+// Không có DB (repo giả, không transaction): giữ đúng thứ tự Node (con trước, du_an sau).
 func (s *Service) DeleteProject(ctx context.Context, maDA any) (*omap.Map, error) {
+	coTx := s.db != nil
 	err := s.tx(ctx, func(ctx context.Context) error {
+		if coTx {
+			if err := s.repo.DeleteProject(ctx, maDA); err != nil {
+				return err
+			}
+		}
 		if err := s.repo.DeleteLines(ctx, maDA); err != nil {
 			return err
 		}
@@ -219,6 +229,9 @@ func (s *Service) DeleteProject(ctx context.Context, maDA any) (*omap.Map, error
 		// Node nuốt mọi lỗi ở bước này (chưa có bảng); trong transaction mỗi lệnh có savepoint riêng
 		// nên lệnh hỏng ở đây không làm hỏng transaction, lệnh sau vẫn chạy
 		_ = s.repo.DeleteProjData(ctx, maDA)
+		if coTx {
+			return nil
+		}
 		return s.repo.DeleteProject(ctx, maDA)
 	})
 	if err != nil {

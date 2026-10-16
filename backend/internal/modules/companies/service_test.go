@@ -222,6 +222,7 @@ func TestShareColProbeOnceAndCreateRefuses(t *testing.T) {
 	}
 }
 
+// db=nil nên chỉ kiểm thứ tự chèn; bản Go chạy thật bọc s.tx, lỗi thì không còn công ty mồ côi (D-13, xem tx_db_test.go).
 func TestCreateCongTyOwnerDataAndOrphan(t *testing.T) {
 	repo := &fakeRepo{}
 	cr := &creatorStub{err: errors.New("Mật khẩu tối thiểu 4 ký tự")}

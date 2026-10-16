@@ -90,9 +90,15 @@ export async function coverEnsure(maDA, force) {
 }
 /* coverLuu_: gom thay đổi trong 0,6 s; mỗi lúc CHỈ 1 lần ghi (máy chủ "chèn mới rồi xoá cũ" - 2 lần ghi chồng nhau làm
    tờ bìa nhân đôi); đang ghi mà có thay đổi mới thì ghi tiếp 1 lần khi xong. Nhớ đúng dự án lúc sửa.
-   Lưu lỗi (vd chi phí âm -> 400) mà không còn sửa mới chờ ghi: báo lỗi rồi ô quay về bản đã lưu trên máy chủ (coverVeBanLuu_).
-   xong(maDA, ok): gọi khi có kết quả cuối (không còn sửa mới chờ ghi) - tab dùng để hoàn tác "sửa tay". */
-let cvT = null; let cvCho = null; let cvDang = false; let cvXong = null
+   Mỗi lần ghi (tự lưu, nút Lưu, xuất Excel) có số thứ tự `lan` (coverBatDauGhi_); sửa nào trước lúc lần ghi bắt đầu thì nằm
+   trong lần ghi đó (gửi trọn bảng đang hiện).
+   xong(maDA, ok, lan, conCho): gọi sau MỖI lần tự lưu; conCho = còn sửa mới chờ ghi (lần ghi sau gửi lại trọn bảng).
+   Lưu lỗi mà không còn sửa mới chờ ghi: báo lỗi rồi ô quay về bản đã lưu trên máy chủ (coverVeBanLuu_). */
+let cvT = null; let cvCho = null; let cvDang = 0; let cvXong = null; let cvLan = 0; let cvVeSau = ''
+export function coverBatDauGhi_() { return ++cvLan }
+export const coverLanGhi_ = () => cvLan
+/* số thứ tự lần tự lưu đang gửi lên máy chủ, 0 = không có */
+export const coverLanDang_ = () => cvDang
 export function coverLuu_(xong) {
   const ma = getState().cur && getState().cur.maDA; if (!ma) return
   cvCho = ma; clearTimeout(cvT)
@@ -102,20 +108,24 @@ export function coverLuu_(xong) {
     const m = cvCho; cvCho = null
     const c = getState().cur
     if (!m || !c || c.maDA !== m || coverOf().maDA !== m) return
-    cvDang = true
+    const lan = coverBatDauGhi_(); cvDang = lan; cvVeSau = ''
     api.saveCover(m, coverOf().rows).then(() => true, e => { toast('Lỗi lưu tờ bìa: ' + e.message); return false }).then(ok => {
-      cvDang = false
-      if (cvCho) return // còn sửa mới chờ ghi: lần ghi sau quyết định
-      const f = cvXong; cvXong = null
-      if (f) f(m, ok)
-      if (!ok) coverVeBanLuu_(m)
+      cvDang = 0
+      const conCho = !!cvCho
+      if (cvXong) cvXong(m, ok, lan, conCho)
+      if (conCho) return // còn sửa mới chờ ghi: lần ghi sau quyết định ô
+      const ve = !ok || cvVeSau === m; cvVeSau = ''
+      if (ve) coverVeBanLuu_(m)
     })
   }, 600)
 }
 /* coverVeBanLuu_: lưu tờ bìa lỗi -> nạp lại bản đã lưu trên máy chủ (chưa lưu lần nào thì là bản dựng từ mẫu, như lúc mở tab)
-   để ô không giữ số vừa bị từ chối. Bỏ khi đã đổi dự án, đang ghi, hoặc có sửa mới chờ ghi (kể cả sửa trong lúc đang nạp). */
+   để ô không giữ số vừa bị từ chối. Đang có lần tự lưu gửi đi (vd nút Lưu lỗi lúc tự lưu đang chạy) thì hẹn nạp lại khi lần đó
+   xong. Bỏ khi đã đổi dự án hoặc có sửa mới chờ ghi (kể cả sửa trong lúc đang nạp) - lần ghi sau gửi lại trọn bảng. */
 export async function coverVeBanLuu_(maDA) {
-  const conDung = () => !cvCho && !cvDang && getState().cur && getState().cur.maDA === maDA && coverOf().maDA === maDA
+  const dungDA = () => getState().cur && getState().cur.maDA === maDA && coverOf().maDA === maDA
+  if (cvDang && !cvCho && dungDA()) { cvVeSau = maDA; return false }
+  const conDung = () => !cvCho && !cvDang && dungDA()
   if (!conDung()) return false
   try {
     const cv = (await api.getCoverOrInit(maDA)) || []
@@ -126,4 +136,4 @@ export async function coverVeBanLuu_(maDA) {
 }
 /* coverSave / doExport: huỷ lần lưu đang chờ trước khi ghi tay */
 export function coverCancelPending() { clearTimeout(cvT); cvCho = null }
-export const coverBusy = () => cvDang
+export const coverBusy = () => !!cvDang

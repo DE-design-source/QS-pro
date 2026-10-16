@@ -126,6 +126,7 @@ type fakeRepo struct {
 	failOrderItems        error
 	failProposal          error
 	failProposalItems     error
+	failDelete            error
 	failList              error
 	failOrder             error
 	orders                []*omap.Map
@@ -162,6 +163,10 @@ func (f *fakeRepo) InsertOrderItems(_ context.Context, rows []*omap.Map) error {
 	f.rec("chi_tiet_mua_hang", rows...)
 	f.orderItems = append(f.orderItems, rows...)
 	return f.failOrderItems
+}
+func (f *fakeRepo) DeleteOrder(_ context.Context, maDon any) error {
+	f.log("deleteOrder " + maMask(jsval.S(maDon)))
+	return f.failDelete
 }
 func (f *fakeRepo) OrdersOfProject(context.Context, any) ([]*omap.Map, error) { return f.orders, nil }
 func (f *fakeRepo) OrderItems(context.Context, any) ([]*omap.Map, error)      { return nil, nil }
@@ -275,11 +280,11 @@ func unitSvc(repo *fakeRepo, url string) (*Service, *fakePN, *fakeNotifier, *fak
 	return New(Deps{Repo: repo, Cfg: cfg, PurchaseNotifier: pn, Notifier: nt, Users: fakeUsers{}, Auditor: au}), pn, nt, au
 }
 
-// Lỗi giữa chừng: dừng ngay, trả đúng lỗi gốc. Gỡ phiếu dở nay do transaction lo (D-13, kiểm trên DB thật ở
-// TestSaveTxRollback), không còn lệnh xoá bù trừ.
+// Lỗi giữa chừng: gỡ mọi phiếu của lần gửi (kể cả phiếu đang dở), lỗi xoá bị nuốt, trả đúng lỗi gốc (S:1184-1189).
+// Bản thật: phiếu đang dở đã rollback (D-13, mỗi đơn 1 transaction - kiểm trên DB thật ở TestSaveTxRollback).
 func TestSavePurchaseOrderRollback(t *testing.T) {
 	boom := errors.New("DB POST chi_tiet_mua_hang -> 400 {}")
-	repo := &fakeRepo{failOrderItems: boom}
+	repo := &fakeRepo{failOrderItems: boom, failDelete: errors.New("xoá hỏng")}
 	s, _, _, _ := unitSvc(repo, "")
 	order := omap.Of("orders", []any{
 		omap.Of("supplier", "A"),
@@ -289,19 +294,19 @@ func TestSavePurchaseOrderRollback(t *testing.T) {
 	if _, err := s.SavePurchaseOrder(context.Background(), order); err != boom {
 		t.Fatalf("err = %v", err)
 	}
-	want := "insertOrder A|insertOrder B|insertItems"
+	want := "insertOrder A|insertOrder B|insertItems|deleteOrder <ma>|deleteOrder <ma>"
 	if got := strings.Join(repo.calls, "|"); got != want {
 		t.Errorf("calls = %s", got)
 	}
 
-	// phần tử null: chưa chèn gì, lỗi là TypeError của V8
+	// phần tử null: mã đã sinh nhưng chưa chèn gì -> vẫn gọi xoá mã đang dở, lỗi là TypeError của V8
 	repo = &fakeRepo{}
 	s, _, _, _ = unitSvc(repo, "")
 	_, err := s.SavePurchaseOrder(context.Background(), omap.Of("orders", []any{nil}))
 	if err == nil || err.Error() != "Cannot read properties of null (reading 'items')" {
 		t.Errorf("err = %v", err)
 	}
-	if got := strings.Join(repo.calls, "|"); got != "" {
+	if got := strings.Join(repo.calls, "|"); got != "deleteOrder <ma>" {
 		t.Errorf("calls = %s", got)
 	}
 }

@@ -442,7 +442,7 @@ func TestNhacGiaHanDB(t *testing.T) {
 	defer sweep()
 
 	no := database.Opt{NoScope: true}
-	vn := time.Now().Add(7 * time.Hour)
+	vn := time.Now().UTC().Add(7 * time.Hour) // giờ VN theo UTC như homNayVN_, không theo múi giờ máy
 	han := vn.AddDate(0, 0, 7).Format("2006-01-02")
 	ct, err := db.InsertOne(bg, "cong_ty", omap.Of("ten", "ZZ_nhacgh Một", "ma", "zz-nhacgh-1", "active", true, "han_dung", han,
 		"nhac_moc", -1.0), no)

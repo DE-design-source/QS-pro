@@ -323,8 +323,9 @@ func TestTxDeleteDbProductRollback(t *testing.T) {
 
 // Bọc Tx làm khoá dòng giữ tới commit: 2 người cùng sửa 1 nhóm biến thể theo thứ tự ngược -> deadlock THẬT (40P01).
 // Nhóm {A,B,C,D}: T1 = SetBienThe(A,[B]) khoá C,D rồi chờ A,B; T2 = SetBienThe(C,[D]) khoá A,B rồi chờ C,D.
-// s.tx chạy lại bên bị Postgres huỷ -> cả 2 trả ok (không lỗi DB thô), dữ liệu cuối = chạy lần lượt.
-func TestTxSetBienTheDeadlockThuLai(t *testing.T) {
+// s.tx KHÔNG chạy lại: bên bị Postgres huỷ nhận loiTranhChap (không lỗi DB thô), bên kia ok; dữ liệu = chỉ bên thắng
+// (bên huỷ rollback sạch, không đè nhóm bên thắng vừa lưu); lịch sử / audit chỉ của bên thắng.
+func TestTxSetBienTheDeadlock(t *testing.T) {
 	f := newTxFix(t)
 	ns := database.Opt{NoScope: true}
 	if _, err := f.db.Update(f.root, "db_san_pham", "id=in.("+f.idList()+")", omap.Of("nhom_bt", "ZZ_D13_BT"), ns); err != nil {
@@ -353,6 +354,7 @@ func TestTxSetBienTheDeadlockThuLai(t *testing.T) {
 		}
 	}
 	type kq struct {
+		ma  string
 		out *omap.Map
 		err error
 	}
@@ -361,24 +363,46 @@ func TestTxSetBienTheDeadlockThuLai(t *testing.T) {
 		sv := f.svc(true, hook())
 		go func(p [2]string) {
 			out, err := sv.SetBienThe(f.ctx, txActor, f.ids[p[0]], []any{f.ids[p[1]]})
-			ch <- kq{out, err}
+			ch <- kq{p[0], out, err}
 		}(p)
 	}
+	thang := ""
 	for i := 0; i < 2; i++ {
 		r := <-ch
-		if r.err != nil || js(r.out) != `{"ok":true,"count":1}` {
-			t.Fatalf("SetBienThe song song: %v %s", r.err, js(r.out))
+		switch {
+		case r.err == nil && js(r.out) == `{"ok":true,"count":1}`:
+			if thang != "" {
+				t.Fatal("cả 2 cùng thành công - không có deadlock, test không nhạy")
+			}
+			thang = r.ma
+		case r.err != nil && r.err.Error() == loiTranhChap && r.out == nil:
+		default:
+			t.Fatalf("SetBienThe song song (%s): %v %s", r.ma, r.err, js(r.out))
 		}
 	}
-	// 2 lệnh ghi mỗi bên + 2 lệnh của lần chạy lại bên bị huỷ = 6 -> deadlock đã xảy ra thật và đã thử lại
-	if n := tong.Load(); n != 6 {
-		t.Fatalf("số lệnh update = %d, cần 6 (deadlock + 1 lần chạy lại)", n)
+	if thang == "" {
+		t.Fatal("không bên nào thành công")
+	}
+	// 2 lệnh ghi mỗi bên, không chạy lại -> 4
+	if n := tong.Load(); n != 4 {
+		t.Fatalf("số lệnh update = %d, cần 4 (deadlock, không chạy lại)", n)
 	}
 	sp, _ := f.db.Select(f.root, "db_san_pham", database.SelectOpt{Select: "ma_sp,nhom_bt", Filter: "ma_sp=in.(" + strings.Join(txMa, ",") + ")", Order: "ma_sp.asc", NoScope: true})
-	g := js(sp)
-	ab := `[{"ma_sp":"ZZ_D13SP_A","nhom_bt":"ZZ_D13_BT"},{"ma_sp":"ZZ_D13SP_B","nhom_bt":"ZZ_D13_BT"},{"ma_sp":"ZZ_D13SP_C","nhom_bt":null},{"ma_sp":"ZZ_D13SP_D","nhom_bt":null}]`
-	cd := `[{"ma_sp":"ZZ_D13SP_A","nhom_bt":null},{"ma_sp":"ZZ_D13SP_B","nhom_bt":null},{"ma_sp":"ZZ_D13SP_C","nhom_bt":"ZZ_D13_BT"},{"ma_sp":"ZZ_D13SP_D","nhom_bt":"ZZ_D13_BT"}]`
-	if g != ab && g != cd {
-		t.Errorf("nhóm sau 2 lần lưu phải như chạy lần lượt, nhận %s", g)
+	nhom := func(ab, cd any) string {
+		return js([]*omap.Map{omap.Of("ma_sp", "ZZ_D13SP_A", "nhom_bt", ab), omap.Of("ma_sp", "ZZ_D13SP_B", "nhom_bt", ab),
+			omap.Of("ma_sp", "ZZ_D13SP_C", "nhom_bt", cd), omap.Of("ma_sp", "ZZ_D13SP_D", "nhom_bt", cd)})
+	}
+	can := nhom("ZZ_D13_BT", nil) // A thắng: C,D ra khỏi nhóm
+	if thang == "C" {
+		can = nhom(nil, "ZZ_D13_BT")
+	}
+	if g := js(sp); g != can {
+		t.Errorf("nhóm phải = chỉ bên thắng (%s): cần %s, nhận %s", thang, can, g)
+	}
+	ct := database.Eq("cong_ty_id", f.ctID)
+	ls, _ := f.db.Select(f.root, "db_san_pham_history", database.SelectOpt{Select: "ma_sp", Filter: "ma_sp=in.(" + strings.Join(txMa, ",") + ")", NoScope: true})
+	au, _ := f.db.Select(f.root, "audit_log", database.SelectOpt{Select: "id", Filter: ct + "&" + database.Eq("action", "sua_bien_the"), NoScope: true})
+	if len(ls) != 1 || jsval.S(ls[0].Val("ma_sp")) != "ZZ_D13SP_"+thang || len(au) != 1 {
+		t.Errorf("lịch sử / audit chỉ của bên thắng: lịch sử %s, audit %d", js(ls), len(au))
 	}
 }

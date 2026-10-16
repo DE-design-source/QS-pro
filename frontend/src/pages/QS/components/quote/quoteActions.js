@@ -17,7 +17,9 @@ import {
   bgSelCodes_, bgPTSecs_, bgNoiBoXuat_, bgAn_, bgSub_, bgOrg_, bgHist_, bgTongKetData_,
 } from '../../lib/quote.js'
 import { exportBaoGiaOpts, logoXuat_ } from './quoteApi'
-import { getQ, setQ, setCoverRows, coverLuu_, coverCancelPending, coverVeBanLuu_, setColOrder } from './quoteState'
+import {
+  getQ, setQ, setCoverRows, coverLuu_, coverCancelPending, coverVeBanLuu_, coverBatDauGhi_, coverLanGhi_, coverLanDang_, setColOrder,
+} from './quoteState'
 import { freshModel } from './quoteModel'
 import { bgDocCols_, bgExportCols_ } from './docModel'
 import { bgDocCss_, printCss_ } from './docCss'
@@ -60,14 +62,22 @@ function coverRowsOfCur() {
   const q = getQ(); const c = curNow()
   return c && q.cover.maDA === c.maDA ? q.cover.rows : null
 }
-/* "Sửa tay" bật do sửa chi phí kể từ lần lưu tờ bìa có kết quả gần nhất: {maDA, cu: {stt: trạng thái trước khi sửa}}.
-   Lưu lỗi -> ô quay về số đã lưu trên máy chủ (coverVeBanLuu_) và nhãn tay / tự cộng cũng trả về như trước khi sửa. */
-let tayCu = { maDA: '', cu: {} }
-function coverLuuXong_(ma, ok) {
-  const t = tayCu; tayCu = { maDA: '', cu: {} }
-  if (ok || t.maDA !== ma || !curNow() || curNow().maDA !== ma) return
+/* "Sửa tay" bật do sửa chi phí, chờ kết quả lưu: {maDA, ds: [{stt, cu: trạng thái trước khi sửa, lan: lần ghi đầu tiên chứa sửa
+   này}]}. Lần ghi `lan` thành công -> chốt các mục lan <= nó (máy chủ đã có số). Lần ghi lỗi mà không còn sửa mới chờ ghi
+   -> ô quay về số đã lưu trên máy chủ (coverVeBanLuu_) và trả nhãn tay / tự cộng về như trước khi sửa, CHỈ cho các mục thuộc
+   đúng lần ghi lỗi (tu < lan của mục <= lan): mục đã nằm trong lần ghi trước còn đang gửi / đã thành công thì để lần đó quyết. */
+let tayCu = { maDA: '', ds: [] }
+function coverLuuXong_(ma, ok, lan, conCho, tu = 0) {
+  if (tayCu.maDA !== ma || (conCho && !ok)) return // lỗi mà còn sửa chờ ghi: lần ghi sau gửi lại trọn bảng, nó quyết
+  const thuoc = x => x.lan <= lan && x.lan > tu
+  const xong = tayCu.ds.filter(thuoc)
+  tayCu.ds = tayCu.ds.filter(x => !thuoc(x))
+  if (ok || !xong.length || !curNow() || curNow().maDA !== ma) return
   let tay = bgOpt_(pdNow().bgCfg).tay; let doi = false
-  Object.keys(t.cu).forEach(stt => { if (!!tay[stt] !== t.cu[stt]) { tay = coverTayMap_({ tay }, stt, t.cu[stt]); doi = true } })
+  for (let i = xong.length - 1; i >= 0; i--) { // đi ngược: cùng stt sửa nhiều lần thì trạng thái trước lần sửa ĐẦU thắng
+    const x = xong[i]
+    if (!!tay[x.stt] !== x.cu) { tay = coverTayMap_({ tay }, x.stt, x.cu); doi = true }
+  }
   if (doi) bgOptSet('tay', tay)
 }
 export function coverEdit(i, field, value) {
@@ -78,8 +88,9 @@ export function coverEdit(i, field, value) {
   nr[i] = c
   setCoverRows(ma, nr)
   if (field === 'chiPhi') {
-    if (tayCu.maDA !== ma) tayCu = { maDA: ma, cu: {} }
-    if (!Object.prototype.hasOwnProperty.call(tayCu.cu, c.stt)) tayCu.cu[c.stt] = !!bgOpt_(pdNow().bgCfg).tay[c.stt]
+    if (tayCu.maDA !== ma) tayCu = { maDA: ma, ds: [] }
+    const lan = coverLanGhi_() + 1 // sửa này đi cùng lần ghi kế tiếp
+    if (!tayCu.ds.some(x => x.stt === c.stt && x.lan === lan)) tayCu.ds.push({ stt: c.stt, cu: !!bgOpt_(pdNow().bgCfg).tay[c.stt], lan })
     coverTaySet(c.stt, true)
   }
   coverLuu_(coverLuuXong_)
@@ -108,13 +119,15 @@ export async function coverReload() {
 export async function coverSave() {
   const ma = curNow() && curNow().maDA; if (!ma) return
   const rows = coverRowsOfCur() || []
+  coverCancelPending()
+  // lần tự lưu đang gửi (nếu có) tự quyết các mục của nó; nút Lưu lỗi chỉ hoàn tác mục sửa sau lần đó
+  const dang = coverLanDang_(); const lan = coverBatDauGhi_()
   try {
-    coverCancelPending()
     const cv = await api.saveCover(ma, rows)
-    coverLuuXong_(ma, true)
+    coverLuuXong_(ma, true, lan, false)
     if (!curNow() || curNow().maDA !== ma) return
     setCoverRows(ma, cv || rows); toast('Đã lưu tờ bìa')
-  } catch (e) { toast('Lỗi: ' + e.message); coverLuuXong_(ma, false); coverVeBanLuu_(ma) }
+  } catch (e) { toast('Lỗi: ' + e.message); coverLuuXong_(ma, false, lan, false, dang); coverVeBanLuu_(ma) }
 }
 /* Ô thông tin dự án trên tờ bìa (maBaoGia, khachHang, quyMo, tongDT, nhuCau, dtBaoGia, phanKhuc) */
 export function coverInfo(field, value) {
@@ -205,7 +218,11 @@ export async function doExport(fmt, lech) {
       const cc = coverCosts(m.ctx)
       const nr = rows.map(r => (coverHasChild(rows, r.stt) ? r : { ...r, chiPhi: cc.cost[r.stt] }))
       coverCancelPending()
-      const cv = await api.saveCover(ma0, nr)
+      // như coverSave: lưu lỗi -> hoàn tác nhãn tay của mục thuộc lần này, ô về bản đã lưu, rồi ném tiếp để báo lỗi
+      const dang = coverLanDang_(); const lan = coverBatDauGhi_()
+      let cv
+      try { cv = await api.saveCover(ma0, nr) } catch (e) { coverLuuXong_(ma0, false, lan, false, dang); coverVeBanLuu_(ma0); throw e }
+      coverLuuXong_(ma0, true, lan, false)
       if (!curNow() || curNow().maDA !== ma0) { toast('Đã đổi dự án trong lúc xuất — huỷ lần xuất này'); return null }
       setCoverRows(ma0, cv || nr)
       m = freshModel()

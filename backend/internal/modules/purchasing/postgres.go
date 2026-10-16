@@ -29,6 +29,14 @@ func (r *pgRepo) InsertOrderItems(ctx context.Context, rows []*omap.Map) error {
 	return err
 }
 
+func (r *pgRepo) DeleteOrder(ctx context.Context, maDon any) error {
+	if _, err := r.db.Remove(ctx, tblDonCT, database.Eq("ma_don", maDon)); err != nil {
+		return err
+	}
+	_, err := r.db.Remove(ctx, tblDon, database.Eq("ma_don", maDon))
+	return err
+}
+
 func (r *pgRepo) OrdersOfProject(ctx context.Context, maDA any) ([]*omap.Map, error) {
 	return r.db.Select(ctx, tblDon, database.SelectOpt{Filter: database.Eq("ma_du_an", maDA), Order: "ngay_gui.desc"})
 }

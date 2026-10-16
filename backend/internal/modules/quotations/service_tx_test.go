@@ -16,7 +16,8 @@ import (
 
 /* D-13: SaveCover chạy đọc id cũ + chèn bản mới + xoá bản cũ trong 1 transaction. Lỗi tiêm SAU khi chèn và xoá đã chạy
    thật -> database phải y như trước lần lưu (không còn cả bản mới lẫn bản cũ). Đối chứng: cùng lỗi tiêm mà không có
-   transaction (db nil) thì tờ bìa bị nhân đôi - chứng minh phép kiểm bắt được. Chạy trên qspro_gotest (TEST_DATABASE_URL). */
+   transaction (db nil) thì bản cũ đã bị xoá, chỉ còn bản mới - database đổi, chứng minh phép kiểm bắt được.
+   Chạy trên qspro_gotest (TEST_DATABASE_URL). */
 
 // repoTiemLoi: repo thật, RemoveCover chạy xoá thật rồi trả lỗi tiêm; ghi lại có đang trong transaction không.
 type repoTiemLoi struct {

@@ -81,7 +81,7 @@
 
 | Mã | Tính năng | App | Trạng thái |
 |---|---|---|---|
-| <a id="n1"></a>N1 | Refactor database sang PostgreSQL trực tiếp (`DATABASE_URL`; bản Node dùng `pg`, bản Go dùng `pgx`): đã triển khai trên database local `qspro_en2`; mọi tab QS đã chạy thử tự động trên trình duyệt (React + Go, database thử `qspro_gotest`, xem [N3](#xong-n3)); còn người dùng thử tay trên dữ liệu thật, chuyển production (cần máy chủ PostgreSQL mà Render truy cập được), transaction cho thao tác nhiều bước (D-13), xoá 8 cột `DEPRECATED` (D-09; `delete_requests.note`, `product_combos.note`, `companies.last_reminder_date` / `reminder_milestone` đã ra khỏi danh sách ngày 2026-10-15 vì M15.2 / M10.2 / M17.3 dùng lại; migration 0010 / 0012 / 0013 đổi chú thích cột) - xem `docs/02-ky-thuat/database/ket-qua-trien-khai.md` mục 8 | Toàn hệ thống | 🟡 |
+| <a id="n1"></a>N1 | Refactor database sang PostgreSQL trực tiếp (`DATABASE_URL`; bản Node dùng `pg`, bản Go dùng `pgx`): đã triển khai trên database local `qspro_en2`; mọi tab QS đã chạy thử tự động trên trình duyệt (React + Go, database thử `qspro_gotest`, xem [N3](#xong-n3)); còn người dùng thử tay trên dữ liệu thật, chuyển production (cần máy chủ PostgreSQL mà Render truy cập được), xoá 8 cột `DEPRECATED` (D-09; `delete_requests.note`, `product_combos.note`, `companies.last_reminder_date` / `reminder_milestone` đã ra khỏi danh sách ngày 2026-10-15 vì M15.2 / M10.2 / M17.3 dùng lại; migration 0010 / 0012 / 0013 đổi chú thích cột) - xem `docs/02-ky-thuat/database/ket-qua-trien-khai.md` mục 8 | Toàn hệ thống | 🟡 |
 | <a id="n2"></a>N2 | Chuyển server Node + Express sang Go + Gin (`backend/`, đã commit ở `5fa5d52` / `033c421`; app Node và `render.yaml` đã gỡ khỏi repo): đã chuyển mã; còn dựng deploy cho bản Go (chưa có cấu hình deploy nào trong repo, chỉ có `infra/docker/backend.Dockerfile`; server Go không phục vụ app React, React build và deploy riêng với `VITE_API_URL` trỏ tới Go + `CORS_ORIGINS` của Go), so vi sai job báo cáo và các nhánh chỉ chạy khi database thiếu cột - xem `backend/docs/ARCHITECTURE.md` mục "Việc còn mở" | Toàn hệ thống | 🟡 |
 
 ---
@@ -90,7 +90,7 @@
 
 > Thứ tự dưới đây là **gợi ý của Claude, chưa được duyệt** — xếp theo "chỉ còn thiếu nối giao diện" trước, "cần quyết định nghiệp vụ" sau.
 
-1. Hai hạng mục lớn ở mục 2.4: [N2](#n2) (dựng deploy cho bản Go) và [N1](#n1) (chuyển production, D-13, xoá cột D-09)
+1. Hai hạng mục lớn ở mục 2.4: [N2](#n2) (dựng deploy cho bản Go) và [N1](#n1) (chuyển production, xoá cột D-09)
 2. Chạy migration 0014 (`user_sessions`, M1.2) trên `qspro_en2` / production TRƯỚC khi chạy server Go bản mới (thiếu bảng thì mọi lời gọi đã đăng nhập trả 500)
 3. Chủ sản phẩm xác nhận các GIẢ ĐỊNH đã ghi trong mục 5 (gần nhất: M1.2, M6.1, M10.1, M17.3)
 
@@ -456,6 +456,7 @@
 - Migration đánh số trong `infra/db/migrations/`, chạy bằng `go run ./cmd/migrate` (trong `backend/`; trước đây `npm run migrate` của app Node đã gỡ)
 - Dữ liệu sai chuyển sang schema `quarantine`, không xoá hẳn
 - Test `npm run test:db` (61 đạt) và `npm run test:api` (96 đạt) trên database local `qspro_en2` (2026-10-12, app Node trước khi gỡ)
+- Transaction cho thao tác nhiều bước (D-13, bản Go, 2026-10-15): lưu đơn mua hàng (mỗi đơn), lưu đề xuất, xoá / nhân bản dự án, lưu tờ bìa, tạo / xoá công ty, ghi combo / biến thể / xoá sản phẩm; lỗi giữa chừng không còn dữ liệu dở dang, thành công giữ nguyên kết quả. Gộp cả lần gửi nhiều đơn vào 1 transaction chưa làm (cần `clock_timestamp()`) - chi tiết `backend/docs/ARCHITECTURE.md` mục 3.5
 - 🟡 phần còn lại ở 2.4
 
 <a id="xong-n2"></a>

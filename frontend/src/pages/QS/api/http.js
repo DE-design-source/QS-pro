@@ -97,7 +97,7 @@ function buildUrl(path, query) {
 
 /* Trang đang tải lại / rời đi (pagehide): trình duyệt cắt các fetch đang dở -> fetch hỏng (thành 'Không kết nối được')
    hoặc đọc thân hỏng (thành 'HTTP 200'). Đó là huỷ, không phải lỗi: tái hiện bằng Playwright tải lại liên tục
-   (scripts/d13-projects/reload-check.cjs), mọi lỗi đều rơi SAU pagehide. pageshow (về từ bfcache) thì bỏ cờ. */
+   giữa lúc đang nạp dự án (script thử nằm ngoài repo), mọi lỗi đều rơi SAU pagehide. pageshow (về từ bfcache) thì bỏ cờ. */
 let roiTrang = false
 if (typeof window !== 'undefined') {
   window.addEventListener('pagehide', () => { roiTrang = true })

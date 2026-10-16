@@ -58,6 +58,23 @@ Cổng này LUÔN trả 500 cho lỗi của hàm, kể cả khi service trả l�
 - Database chưa chạy 0014: đăng nhập và mọi request có token trả 500 kèm thông báo đích danh ở bảng trên (không phải 401 mù mờ).
   Phải chạy `go run ./cmd/migrate` TRƯỚC khi chạy bản server có M1.2.
 
+### Lỗi giữa chừng (D-13)
+
+Áp dụng như nhau cho `/api/<fn>` và route REST tương ứng. Khi thành công: kết quả và dữ liệu ghi giữ nguyên như trước. Khi lỗi:
+lỗi trả về giữ nguyên, nhưng phần đã ghi của thao tác được huỷ (transaction), không còn dữ liệu dở dang.
+
+- `sendPurchaseRequest` (bước lưu): mỗi đơn (phiếu + dòng hàng) ghi trọn hoặc không; đơn đã lưu trước đơn hỏng được xoá bù như cũ (lỗi xoá bị bỏ qua).
+  Cả lần gửi nhiều đơn chưa nguyên tử: lệnh xoá bù hỏng thì các đơn trước vẫn còn, nhưng không còn phiếu thiếu dòng hàng.
+- `sendDeXuat` (bước lưu): phiếu + dòng chiết khấu + đợt thanh toán ghi trọn hoặc không.
+- `deleteProject`: 4 lệnh xoá ghi trọn hoặc không (lỗi xoá dữ liệu phụ của dự án vẫn bị bỏ qua như cũ).
+- `duplicateProject`: lỗi -> không còn dự án bản sao dở.
+- `saveCover`, `PUT /api/v1/projects/:id/cover`: lỗi -> tờ bìa giữ nguyên bản cũ (không còn cảnh bản cũ + bản mới cùng lúc).
+- `createCongTy`: tạo tài khoản chủ lỗi -> công ty cũng không được tạo (bản Node để lại công ty mồ côi).
+- `deleteCongTy`: lỗi -> dữ liệu các bảng của công ty không bị xoá dở (lỗi xoá từng bảng vẫn bị bỏ qua như cũ).
+- `setCombo`, `setBienThe`, `deleteDbProduct`: phần ghi trọn hoặc không; lịch sử, nhật ký, xoá cache chạy sau khi lưu xong.
+  Hai lời gọi `setBienThe` / `setCombo` cùng lúc gặp deadlock: 1 bên lưu, bên kia nhận lỗi "Có người khác đang sửa cùng các sản phẩm này..."
+  (không thay đổi gì, máy chủ không tự chạy lại).
+
 ### Quyền của từng hàm (theo `server/index.js`)
 
 - Không cần đăng nhập: `login`.

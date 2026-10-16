@@ -148,6 +148,8 @@ Cả hai: FK kép `(company_id, proposal_code)` -> `purchase_proposals`, CASCADE
 
 `supa.tx(fn)`; bọc: `savePurchaseOrder`, `saveDeXuat`, `deleteProject`, `duplicateProject`, `saveCover`, `deleteCongTy`, và lệnh ghi sản phẩm nhiều bảng.
 
+**Đã làm 2026-10-15 trên backend Go** (app Node đã gỡ): `database.DB.Tx` thay cho `supa.tx`. Bọc đủ danh sách trên, thêm `createCongTy`, `setCombo`, `setBienThe`, `deleteDbProduct`; lệnh ghi một sản phẩm vào nhiều bảng vốn đã chạy trong 1 transaction (khoá dòng lõi). `savePurchaseOrder` bọc từng đơn, chưa bọc cả lần gửi. Chi tiết: `backend/docs/ARCHITECTURE.md` mục 3.5.
+
 ## 6. Đợt 3 - thu gọn
 
 `DROP COLUMN` 8 cột còn trong danh sách D-09, sau khi: (1) đã chạy ổn định ít nhất một chu kỳ phát hành; (2) `supa.js` đã bỏ qua các cột này khi ghi; (3) có bản sao lưu đã thử khôi phục.

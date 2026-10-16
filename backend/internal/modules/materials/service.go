@@ -75,24 +75,23 @@ func New(d Deps) *Service {
 // tx: chạy fn trong 1 transaction (D-13). Không có DB (repo giả trong test unit) -> chạy thẳng.
 // Việc phụ (lịch sử, audit, cacheClear) đặt SAU tx, không để trong fn.
 // Bọc Tx làm khoá dòng giữ tới commit -> 2 người cùng sửa 1 nhóm biến thể / combo có thể deadlock (40P01; Postgres
-// huỷ 1 bên, đã rollback sạch). Khi đó chạy lại fn (tối đa txThu lần) thay vì trả lỗi DB thô; fn đọc lại dữ liệu
-// từ đầu nên chạy lại an toàn. Đang trong Tx ngoài thì không thử lại (khoá của Tx ngoài vẫn giữ, Tx ngoài quyết).
+// huỷ 1 bên, bên đó đã rollback sạch). KHÔNG tự chạy lại: ở READ COMMITTED lần chạy lại có thể đọc trước khi bên thắng
+// commit, rồi ghi theo dữ liệu cũ, đè mất thay đổi bên kia (database chưa có SELECT ... FOR UPDATE để đọc có khoá).
+// Bên bị huỷ nhận lỗi tiếng Việt (không lỗi DB thô), dữ liệu = chỉ bên thắng. Đang trong Tx ngoài thì trả nguyên lỗi
+// để Tx ngoài quyết.
 func (s *Service) tx(ctx context.Context, fn func(ctx context.Context) error) error {
 	if s.db == nil {
 		return fn(ctx)
 	}
-	var err error
-	for lan := 1; lan <= txThu; lan++ {
-		err = s.db.Tx(ctx, fn)
-		if lan == txThu || !laDeadlock(err) || s.db.InTx(ctx) || ctx.Err() != nil {
-			return err
-		}
+	err := s.db.Tx(ctx, fn)
+	if laDeadlock(err) && !s.db.InTx(ctx) {
+		return apperr.New(loiTranhChap)
 	}
 	return err
 }
 
-// txThu: số lần chạy tối đa của s.tx khi gặp deadlock.
-const txThu = 3
+// loiTranhChap: lỗi trả về khi s.tx gặp deadlock (thao tác đã rollback, không thay đổi gì).
+const loiTranhChap = "Có người khác đang sửa cùng các sản phẩm này nên thao tác chưa được lưu (không thay đổi gì). Tải lại trang rồi thử lại."
 
 // laDeadlock: lỗi deadlock của Postgres (40P01).
 func laDeadlock(err error) bool {

@@ -191,8 +191,10 @@ func (s *Service) SaveDbProduct(ctx context.Context, a *actor.Actor, data *omap.
 }
 
 // DeleteDbProduct = deleteDbProduct (S:561-585): xoá ĐÚNG một dòng + liên kết + lịch sử + audit.
-// D-13: xoá sản phẩm + dọn liên kết chạy trong 1 transaction (hỏng / sập giữa chừng -> không còn SP đã xoá mà
-// liên kết sót lại). Lệnh dọn liên kết vẫn nuốt lỗi như Node (savepoint từng lệnh, không làm hỏng transaction).
+// D-13: xoá sản phẩm + dọn liên kết chạy trong 1 transaction. Schema hiện có ON DELETE CASCADE (products ->
+// product_combos x2, favorite_products) nên lệnh xoá đã tự dọn liên kết; 3 lệnh dọn giữ như Node, phòng DB thiếu FK.
+// Transaction chỉ còn tác dụng khi sập giữa chừng (panic) với DB thiếu FK. Lệnh dọn vẫn nuốt lỗi như Node
+// (savepoint từng lệnh, không làm hỏng transaction).
 // cacheClear dời ra SAU commit (trước đây chạy ngay sau lệnh xoá); lịch sử + audit sau commit như cũ.
 func (s *Service) DeleteDbProduct(ctx context.Context, a *actor.Actor, key any) (*omap.Map, error) {
 	// guardSpChung_ chạy TRƯỚC khi cắt khoảng trắng / kiểm tra rỗng (S:564-565)

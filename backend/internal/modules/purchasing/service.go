@@ -120,34 +120,42 @@ func (s *Service) maSuffix() string {
 func (s *Service) genMaDon() string { return "MH-" + s.maSuffix() }
 
 // SavePurchaseOrder: lưu đơn mua hàng, mỗi nhà cung cấp 1 đơn (S:1158-1191). Trả {saved: [mã đơn]}.
+//
+// D-13: MỖI đơn (phiếu + dòng hàng) ghi trong 1 transaction riêng -> lỗi giữa chừng không để lại phiếu thiếu dòng hàng,
+// kể cả khi lệnh xoá bù trừ hỏng. KHÔNG gộp cả vòng vào 1 transaction: ngay_gui (sent_at DEFAULT now()) lấy giờ BẮT ĐẦU
+// transaction -> các đơn của cùng lần gửi trùng ngay_gui, thứ tự "ngay_gui.desc" (getPurchaseOrders, listPurchaseRequests)
+// đảo so với Node (golden TestDBDiff bắt được: po_get_da1, po_list, po_get_da3). Đơn đã commit trước đơn hỏng vẫn gỡ bằng
+// bù trừ như Node (ngoài transaction, nuốt lỗi); xoá mã đang dở sau rollback chỉ xoá 0 dòng.
 func (s *Service) SavePurchaseOrder(ctx context.Context, orderV any) (*omap.Map, error) {
 	order := objOr(orderV)
 	orders := arrOf(order.Val("orders"))
-	var saved []any
-	// D-13: mọi đơn + dòng hàng của lần gửi trong 1 transaction. Lỗi giữa chừng -> rollback, không còn phiếu dở
-	// (thay cho bước bù trừ "xoá các phiếu đã chèn, nuốt lỗi xoá" của Node: S:1184-1189).
-	err := s.tx(ctx, func(ctx context.Context) error {
-		saved = []any{}
+	saved := []any{}
+	dang := ""
+	err := func() error {
 		for _, od := range orders {
 			maDon := s.genMaDon()
+			dang = maDon
 			if err := typeErr(od, "items"); err != nil {
 				return err
 			}
 			items := arrOf(jsval.Get(od, "items"))
 			total, vat := qscore.N(jsval.Get(od, "total")), qscore.N(jsval.Get(od, "vat"))
-			if err := s.repo.InsertOrder(ctx, omap.Of(
-				"ma_don", maDon, "ma_du_an", jsval.S(order.Val("maDA")), "ten_du_an", jsval.S(order.Val("project")),
-				"hang_muc", jsval.S(jsval.Or(order.Val("hangMuc"), order.Val("node"))),
-				"nha_cung_cap", jsval.S(jsval.Get(od, "supplier")), "so_sp", float64(len(items)),
-				"tong_truoc_vat", total-vat, "vat_pct", qscore.N(jsval.Get(od, "vatPct")),
-				"vat", vat, "tong_cong", total, "trang_thai", ttChoDuyet, "kenh_gui", strOr(order.Val("kenh"), "Lark"),
-				"ket_qua_gui", strOr(order.Val("ketQua"), "ok"), "nguoi_gui", jsval.S(order.Val("nguoiGui")),
-				"phong_ban", jsval.S(order.Val("phongBan")), "ghi_chu", jsval.S(order.Val("ghiChu")),
-				"requester_id", jsval.Or(order.Val("requesterId"), nil),
-			)); err != nil {
-				return err
-			}
-			if len(items) > 0 {
+			if err := s.tx(ctx, func(ctx context.Context) error {
+				if err := s.repo.InsertOrder(ctx, omap.Of(
+					"ma_don", maDon, "ma_du_an", jsval.S(order.Val("maDA")), "ten_du_an", jsval.S(order.Val("project")),
+					"hang_muc", jsval.S(jsval.Or(order.Val("hangMuc"), order.Val("node"))),
+					"nha_cung_cap", jsval.S(jsval.Get(od, "supplier")), "so_sp", float64(len(items)),
+					"tong_truoc_vat", total-vat, "vat_pct", qscore.N(jsval.Get(od, "vatPct")),
+					"vat", vat, "tong_cong", total, "trang_thai", ttChoDuyet, "kenh_gui", strOr(order.Val("kenh"), "Lark"),
+					"ket_qua_gui", strOr(order.Val("ketQua"), "ok"), "nguoi_gui", jsval.S(order.Val("nguoiGui")),
+					"phong_ban", jsval.S(order.Val("phongBan")), "ghi_chu", jsval.S(order.Val("ghiChu")),
+					"requester_id", jsval.Or(order.Val("requesterId"), nil),
+				)); err != nil {
+					return err
+				}
+				if len(items) == 0 {
+					return nil
+				}
 				rows := make([]*omap.Map, len(items))
 				for i, it := range items {
 					if err := typeErr(it, "sl"); err != nil {
@@ -159,15 +167,23 @@ func (s *Service) SavePurchaseOrder(ctx context.Context, orderV any) (*omap.Map,
 						"dvt", strOr(jsval.Get(it, "dvt"), "Cái"), "so_luong", sl, "don_gia", dg, "thanh_tien", sl*dg,
 						"hinh_anh", jsval.S(jsval.Get(it, "hinhAnh")), "sort_no", float64(i))
 				}
-				if err := s.repo.InsertOrderItems(ctx, rows); err != nil {
-					return err
-				}
+				return s.repo.InsertOrderItems(ctx, rows)
+			}); err != nil {
+				return err
 			}
 			saved = append(saved, maDon)
 		}
 		return nil
-	})
+	}()
 	if err != nil {
+		// lỗi giữa chừng -> gỡ các phiếu đã commit của lần gửi này (không để gửi lại bị trùng); phiếu đang dở đã rollback
+		xoa := append([]any{}, saved...)
+		if dang != "" {
+			xoa = append(xoa, dang) // khi có lỗi thì dang chưa nằm trong saved
+		}
+		for _, m := range xoa {
+			_ = s.repo.DeleteOrder(ctx, m) // Node nuốt lỗi xoá
+		}
 		return nil, err
 	}
 	return omap.Of("saved", saved), nil

@@ -629,9 +629,9 @@ R = select, W = insert/update, D = delete. `noScope` marks calls that bypass the
 72. `/mau-nhap-son-nuoc.xlsx` file name: `chuanHM(hm)` NFD-stripped, `đ` (case-insensitive) -> `d`, `[^\w]+` -> `-` (I:824).
 
 ### F10. Companies
-73. `createCongTy` slug: lower-case, NFD strip, `đ` -> `d`, non `[a-z0-9]` runs -> `-`, trim dashes, first 32 chars (A:128-129); `gioi_han_user = Number(...) || 10`; the owner account is created AFTER the company insert, so a failure there leaves the company in place (A:146-152).
+73. `createCongTy` slug: lower-case, NFD strip, `đ` -> `d`, non `[a-z0-9]` runs -> `-`, trim dashes, first 32 chars (A:128-129); `gioi_han_user = Number(...) || 10`; the owner account is created AFTER the company insert, so a failure there leaves the company in place (A:146-152). Go differs since D-13 (2026-10-15): `InsertCongTy` + `adminCreateUser` run in one transaction, so a failure leaves no company.
 74. `updateCongTy`: fields are applied when `!= null`; non-super admins may change only `ten, logoUrl, mauChinh, email, sdt` of their own company; empty patch returns `getCongTy(id)` without audit (A:169-198).
-75. `deleteCongTy` deletes tenant tables in TENANT_TABLES key order with `users` last, swallowing every per-table error (A:203-208).
+75. `deleteCongTy` deletes tenant tables in TENANT_TABLES key order with `users` last, swallowing every per-table error (A:203-208). Go since D-13: the loop + company delete run in one transaction; per-table errors are still swallowed (savepoint per statement), but a failure of the final delete rolls everything back.
 76. `adminCreateUser` company precedence: super with `data.congTyId`, else `tenant.tenantId()` (includes viewAs), else `actor.ct` (A:329-330). Role downgrade and perms rules at A:348-350.
 
 ---

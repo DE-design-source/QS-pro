@@ -257,7 +257,49 @@ if err != nil {
 s.auditor.Audit(ctx, a, "...", "...", nil) // việc phụ: sau commit
 ```
 
-- Kế hoạch bọc từng hàm service theo module: `C:/demo/qs-fe-work/D13-PLAN.md`. Test: `tx_test.go` (cần `TEST_DATABASE_URL`).
+- Kế hoạch bọc từng hàm service theo module: `C:/demo/qs-fe-work/D13-PLAN.md`. Test: `tx_test.go`, `tx_catalog_test.go`
+  (cần `TEST_DATABASE_URL`).
+- Lỗi cột / bảng (42703 / 42P01) trong transaction: `staleCatalog` nạp lại danh mục CHẠY NỀN, không chờ (transaction đang giữ 1 kết
+  nối; chờ kết nối thứ 2 thì nhiều Tx cùng gặp lỗi có thể làm cạn pool và chờ nhau mãi). Ngoài transaction vẫn chờ nạp xong như cũ.
+- `DEFAULT now()` (`created_at`, `sent_at`, `changed_at`...) lấy giờ BẮT ĐẦU transaction: mọi dòng chèn trong 1 Tx trùng mốc giờ.
+  Đừng gộp vào 1 Tx các lệnh chèn mà kết quả đọc lại sắp theo cột giờ (`order=<cột giờ>.desc`) - thứ tự sẽ đảo so với khi chưa bọc.
+  Muốn gộp thì cần migration đổi sang `clock_timestamp()` (chưa làm).
+
+Đã bọc (D-13, xong 2026-10-15). Mỗi service có trường `db *database.DB` + helper `s.tx` (db nil -> chạy thẳng fn cho repo giả).
+Khi thành công: kết quả, dữ liệu ghi, golden giữ nguyên; chỉ khác khi lỗi giữa chừng (không còn dữ liệu dở dang).
+Việc phụ (audit, lịch sử, thông báo, Lark, xoá cache) đặt SAU `s.tx`, không dùng `AfterCommit`.
+
+| Module | Hàm | Trong 1 transaction | Sau commit / ngoài transaction |
+|---|---|---|---|
+| purchasing | `SavePurchaseOrder` | MỖI đơn: phiếu + dòng hàng (1 Tx / đơn) | bù trừ xoá các đơn đã commit trước đơn hỏng (nuốt lỗi, như Node). Cả lần gửi CHƯA nguyên tử giữa các đơn (lý do `DEFAULT now()` ở trên) |
+| purchasing | `SaveDeXuat` | phiếu đề xuất + dòng chiết khấu + đợt thanh toán | bỏ bù trừ `DeleteProposal` (repo bỏ hàm này) |
+| projects | `DeleteProject` | xoá `du_an` TRƯỚC (khoá dòng cha), rồi 3 lệnh xoá con (rỗng nhờ `ON DELETE CASCADE`; `DeleteProjData` vẫn nuốt lỗi, savepoint riêng). Repo giả (`db == nil`) giữ thứ tự Node | - |
+| projects | `DuplicateProject` | chèn dự án + `copyChildren` + kiểm `len(ins)==0` | bù trừ `DeleteProject(newMa)` chỉ còn khi `db == nil` |
+| quotations | `SaveCover` (rpc `saveCover`, `PUT /projects/:id/cover`) | đọc id cũ + chèn + xoá bản cũ (`ghiCover`) | `GetCover` đọc lại |
+| companies | `CreateCongTy` | `InsertCongTy` + `AdminCreateUser` (audit `create_user` bên trong rollback theo) | audit `create_company` |
+| companies | `DeleteCongTy` | vòng `RemoveTenantRows` (lỗi từng bảng bỏ qua như Node) + `RemoveCongTy` | audit |
+| materials | `SetCombo`, `SetBienThe` | phần ghi (`ghiCombo`, `ghiBienThe`) | lịch sử, audit, `cacheClear` |
+| materials | `DeleteDbProduct` | xoá SP + 3 lệnh dọn liên kết (nuốt lỗi như Node) | lịch sử, audit, `cacheClear` (dời ra sau commit: trong Tx thì cache có thể nạp lại dữ liệu cũ) |
+
+- Deadlock `40P01`: KHÔNG tự chạy lại fn. Ở READ COMMITTED lần chạy lại có thể đọc trước khi bên thắng commit rồi ghi đè thay đổi của
+  bên kia; muốn chạy lại đúng thì nền tảng cần đọc có khoá (`SELECT ... FOR UPDATE`, chưa có) và fn phải đọc có khoá mọi dữ liệu nó dựa
+  vào. materials `s.tx` đổi 40P01 ở Tx ngoài cùng thành lỗi tiếng Việt `loiTranhChap` (đã rollback sạch, dữ liệu = chỉ bên thắng;
+  `TestTxSetBienTheDeadlock`); đang trong Tx ngoài thì trả nguyên 40P01 cho Tx ngoài quyết.
+- Thứ tự khoá: trong Tx, khi xoá theo bản ghi cha thì khoá / xoá dòng cha TRƯỚC dòng con. Xoá con trước rồi mới tới cha sẽ va với Tx
+  khác vừa chèn dòng con (giữ `KEY SHARE` trên cha) rồi xoá dòng con cũ -> deadlock (`projects.DeleteProject` với `SaveCover`,
+  `TestTxDeadlockDB`). Viết thêm hàm bọc Tx mới thì tự kiểm thứ tự này.
+- Cố ý KHÔNG bọc (thành công từng phần là hành vi hiện có, bọc sẽ đổi kết quả khi thành công): `ImportCommit`, `ResolveDeleteRequest`,
+  `SetSpDuyet`, `SetYeuThich`, `SaveDbProduct`, `UpdateDbProductTracked`, `CopySharedProduct`, `RequestDeleteProducts`, `UpdateCongTy`,
+  `nhacGiaHan`, `CreateCongTyUser`, `SetProjData`, `CreateProject`, `UpdateProject`, `ExportBaoGia`, `SendPurchaseRequest`, `SendDeXuat`,
+  `ResolvePurchaseRequest`, `ResolveDeXuat`, `SetPurchaseStatus` (thông báo, Lark, `ghiKetQuaGui`, `ghiNguoiDuyet`, audit vẫn sau khi lưu).
+- `users.AdminSetPassword` và `auth.ChangePassword` KHÔNG bọc: đổi mật khẩu rồi thu hồi phiên; thu hồi lỗi thì trả lỗi (mật khẩu đã đổi,
+  làm lại thì thu hồi lại). Bọc phải dời bước bỏ cache phiên thứ 2 (`closeOtherSessions`) ra sau commit, không thì một request đọc
+  "phiên còn dòng" trước commit ghi lại cache dương 30 giây - chưa đáng đổi cho trường hợp hiếm này.
+- Test rollback (lỗi tiêm giữa chừng -> database không đổi, chạy trên `qspro_gotest`): `purchasing/service_tx_test.go`
+  (`TestSaveTxRollback`), `projects/tx_db_test.go` (`TestTxRollbackDB`), `quotations/service_tx_test.go` (`TestSaveCoverTxRollback`),
+  `companies/tx_db_test.go` (`TestTxCongTyDB`), `materials/service_tx_test.go` (`TestTx*`). Khác Node có chủ ý trong golden: mục 10.4.
+- Người viết test thử đột biến: sao lưu file vào `C:/demo/qs-fe-work/scripts/<nhãn>/` hoặc dùng `go test -overlay`, KHÔNG dùng thư mục
+  scratchpad chung (sự cố 2026-10-15: hai agent cùng ghi `service.go.bak`, `purchasing/service.go` bị đè bằng mã quotations).
 
 ### 3.6 `storage`, `logger`, `config`
 
@@ -818,6 +860,14 @@ materials:
     thì chỉ thành `{}` và lệnh được giữ.
   - `StripFailingRow(s, map[bảng DB]số cột mới)`: bỏ tối đa n giá trị `null` ở cuối "Failing row contains (...)" của bảng đó (cột
     `ADD COLUMN` đứng cuối dòng); giá trị khác null được giữ.
+- Khác Node do D-13 (transaction, mục 3.5): chỉ khi lỗi giữa chừng, bản Go rollback còn Node để lại dữ liệu dở. Golden đóng băng không sửa;
+  ngoại lệ khai trong mã test, kiểm đúng bước và đúng phần khác:
+  - `materials/diff_test.go` `d13KhacNode`: bước 86 (dòng `sp_combo`) sau bước 80 `setCombo(p1, [id không tồn tại])` - Node mất liên kết
+    ngược p3->p1, Go còn. Test kiểm đúng bước + bỏ đúng 1 dòng; thiếu dòng thì báo lỗi.
+  - Hành vi khi lỗi (không có trong golden): `createCongTy` lỗi tạo tài khoản chủ -> công ty KHÔNG còn (Node để lại công ty mồ côi);
+    `deleteCongTy` lỗi -> dữ liệu các bảng không bị xoá (Node xoá dở); `saveCover` lỗi -> không còn tờ bìa nhân đôi bản cũ + bản mới;
+    bước lưu của `sendPurchaseRequest` / `sendDeXuat` lỗi -> không còn phiếu thiếu dòng; `duplicateProject` lỗi -> không còn bản nhân dở.
+    Chi tiết ở `API.md` mục 1 "Lỗi giữa chừng (D-13)".
 - Tham số / ghi mới trên hàm rpc cũ của đợt 2 (chỉ bản Go; chi tiết ở `API.md` mục 2.1):
   - `requestDeleteProducts` tham số cuối `lyDo` (rpc args[1]) -> `delete_requests.note` trong cùng lệnh chèn khi khác rỗng;
     `resolveDeleteRequest` tham số cuối `lyDo` (rpc args[2], chỉ khi từ chối) -> `resolution_note` bằng lệnh RIÊNG sau lệnh giành quyền

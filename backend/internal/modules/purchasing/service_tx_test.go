@@ -13,8 +13,9 @@ import (
 	"qspro-backend/internal/shared/tenant"
 )
 
-// D-13 trên DB thật (qspro_gotest): tiêm lỗi ở bước ghi thứ 2 sau khi bước 1 đã ghi -> DB không đổi.
-// Đối chứng: cùng kịch bản chạy không transaction (db nil) thì còn phiếu dở - chứng tỏ test đo đúng thứ cần đo.
+// D-13 trên DB thật (qspro_gotest): tiêm lỗi ở bước ghi thứ 2 sau khi bước 1 đã ghi -> DB không đổi, kể cả khi lệnh
+// xoá bù trừ cũng hỏng. Đối chứng: cùng kịch bản chạy không transaction (db nil) thì còn phiếu dở - chứng tỏ test đo
+// đúng thứ cần đo.
 
 const txPrefix = "ZZ_D13_purchasing_"
 
@@ -24,6 +25,7 @@ type tiemLoi struct {
 	Repository
 	db     *database.DB
 	failAt int
+	xoaLoi bool // DeleteOrder (bù trừ) trả lỗi
 	n      int
 	thay   int // số phiếu thấy được ngay trước khi tiêm lỗi
 }
@@ -41,6 +43,13 @@ func (r *tiemLoi) InsertOrderItems(ctx context.Context, rows []*omap.Map) error 
 		return errTiem
 	}
 	return r.Repository.InsertOrderItems(ctx, rows)
+}
+
+func (r *tiemLoi) DeleteOrder(ctx context.Context, maDon any) error {
+	if r.xoaLoi {
+		return errors.New("xoá bù trừ hỏng (tiêm)")
+	}
+	return r.Repository.DeleteOrder(ctx, maDon)
 }
 
 func (r *tiemLoi) InsertProposalItems(ctx context.Context, table string, rows []*omap.Map) error {
@@ -110,17 +119,44 @@ func TestSaveTxRollback(t *testing.T) {
 	dxTT := omap.Of("loai", "tt", "maDA", txPrefix+"DA", "project", txPrefix+"P",
 		"dots", []any{omap.Of("tien", 5.0, "gc", txPrefix+"d1")})
 
-	// có transaction: lỗi ở dòng hàng của đơn thứ 2 (đơn 1 + dòng của nó đã ghi) -> rollback hết
+	// mỗi đơn 1 transaction: lỗi ở dòng hàng của đơn thứ 2 (đơn 1 đã commit) -> đơn 2 rollback, đơn 1 gỡ bằng bù trừ.
+	// Ca này chủ yếu kiểm bù trừ cũ còn chạy (không có Tx bù trừ cũng dọn hết); ca kế (bù trừ hỏng) mới chứng minh Tx.
 	r := &tiemLoi{Repository: newPgRepo(db), db: db, failAt: 2}
 	s := New(Deps{DB: db, Repo: r})
 	if _, err := s.SavePurchaseOrder(ctx, order); err != errTiem {
 		t.Fatalf("SavePurchaseOrder err = %v, muốn lỗi tiêm nguyên vẹn", err)
 	}
 	if r.thay != 2 {
-		t.Errorf("trong transaction phải thấy 2 đơn đã chèn trước khi tiêm lỗi, thấy %d", r.thay)
+		t.Errorf("trong transaction đơn 2 phải thấy 2 đơn (1 đã commit + 1 đang ghi), thấy %d", r.thay)
 	}
 	if got := demDB(); got != (dem{}) {
-		t.Errorf("SavePurchaseOrder lỗi giữa chừng còn dữ liệu dở: %+v", got)
+		t.Errorf("SavePurchaseOrder lỗi ở đơn 2 còn dữ liệu: %+v", got)
+	}
+	// lỗi ở đơn 2 VÀ bù trừ hỏng -> đơn 1 (đã commit, đủ dòng hàng) còn nguyên, đơn 2 không còn gì (không có Tx thì
+	// còn phiếu đơn 2 thiếu dòng hàng: 2 đơn, 1 dòng). Chưa nguyên tử giữa các đơn - giới hạn đã ghi ở service.go.
+	r = &tiemLoi{Repository: newPgRepo(db), db: db, failAt: 2, xoaLoi: true}
+	s = New(Deps{DB: db, Repo: r})
+	if _, err := s.SavePurchaseOrder(ctx, order); err != errTiem {
+		t.Fatalf("SavePurchaseOrder err = %v", err)
+	}
+	if got := demDB(); got != (dem{don: 1, donCT: 1}) {
+		t.Errorf("lỗi ở đơn 2, bù trừ hỏng: muốn còn đúng đơn 1 (1 phiếu, 1 dòng), có %+v", got)
+	}
+	if rows, err := db.Select(bg, tblDon, database.SelectOpt{Filter: like + "&nha_cung_cap=eq.A", NoScope: true}); err != nil || len(rows) != 1 {
+		t.Errorf("đơn còn lại phải là đơn 1 (NCC A): %d dòng, %v", len(rows), err)
+	}
+	cleanup()
+	// lỗi ở dòng hàng của đơn 1 VÀ lệnh xoá bù trừ cũng hỏng -> chỉ còn transaction lo: không còn phiếu thiếu dòng hàng
+	r = &tiemLoi{Repository: newPgRepo(db), db: db, failAt: 1, xoaLoi: true}
+	s = New(Deps{DB: db, Repo: r})
+	if _, err := s.SavePurchaseOrder(ctx, order); err != errTiem {
+		t.Fatalf("SavePurchaseOrder err = %v", err)
+	}
+	if r.thay != 1 {
+		t.Errorf("trong transaction phải thấy phiếu vừa chèn, thấy %d", r.thay)
+	}
+	if got := demDB(); got != (dem{}) {
+		t.Errorf("SavePurchaseOrder lỗi giữa chừng (bù trừ hỏng) còn phiếu dở: %+v", got)
 	}
 	// lỗi ở dòng của phiếu đề xuất (phiếu đã chèn) -> không còn phiếu rỗng, cả ck lẫn tt
 	for _, dx := range []*omap.Map{dxCK, dxTT} {
@@ -137,11 +173,11 @@ func TestSaveTxRollback(t *testing.T) {
 		}
 	}
 
-	// đối chứng không transaction (db nil, đã bỏ bù trừ): phải còn dữ liệu dở
-	s = New(Deps{Repo: &tiemLoi{Repository: newPgRepo(db), db: db, failAt: 2}})
+	// đối chứng không transaction (db nil), bù trừ hỏng: phải còn phiếu thiếu dòng hàng
+	s = New(Deps{Repo: &tiemLoi{Repository: newPgRepo(db), db: db, failAt: 1, xoaLoi: true}})
 	_, _ = s.SavePurchaseOrder(ctx, order)
-	if got := demDB(); got.don != 2 || got.donCT != 1 {
-		t.Errorf("đối chứng không transaction: muốn còn 2 đơn + 1 dòng, có %+v", got)
+	if got := demDB(); got.don != 1 || got.donCT != 0 {
+		t.Errorf("đối chứng không transaction: muốn còn 1 đơn, 0 dòng, có %+v", got)
 	}
 	cleanup()
 

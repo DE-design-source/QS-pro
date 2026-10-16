@@ -330,9 +330,16 @@ func (d *DB) staleCatalog(ctx context.Context, err error) {
 	d.catMu.Lock()
 	old := time.Since(d.catAt) > 3*time.Second
 	d.catMu.Unlock()
-	if old {
-		_, _ = d.catalog(ctx, true)
+	if !old {
+		return
 	}
+	if d.InTx(ctx) {
+		// đang giữ 1 kết nối của transaction: nạp nền, không chờ kết nối thứ 2 (pool cạn -> mọi Tx cùng chờ nhau).
+		// Lệnh sau trong cùng Tx dùng danh mục đang nhớ như các lệnh không yêu cầu nạp mới.
+		go func() { _, _ = d.catalog(context.WithoutCancel(ctx), true) }()
+		return
+	}
+	_, _ = d.catalog(ctx, true)
 }
 
 func (d *DB) run(ctx context.Context, method string, t *table, sql string, params []any) ([]*omap.Map, error) {

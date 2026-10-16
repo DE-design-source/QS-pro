@@ -11,6 +11,8 @@ type Repository interface {
 	// Đơn mua hàng
 	InsertOrder(ctx context.Context, row *omap.Map) error
 	InsertOrderItems(ctx context.Context, rows []*omap.Map) error
+	// DeleteOrder: xoá chi tiết rồi xoá đơn (S:1186); lỗi ở bước đầu thì bỏ bước sau.
+	DeleteOrder(ctx context.Context, maDon any) error
 	// OrdersOfProject: order ngay_gui.desc, không limit (S:1194).
 	OrdersOfProject(ctx context.Context, maDA any) ([]*omap.Map, error)
 	// OrderItems: order sort_no.asc (S:1198, A:628).

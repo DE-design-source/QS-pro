@@ -2,7 +2,7 @@
 
 > **Cập nhật 2026-10-12:** đề xuất này ĐÃ được triển khai trên database local `qspro_en2`, có điều chỉnh. Cấu trúc đang chạy: [schema-hien-hanh.md](schema-hien-hanh.md). Những gì đã làm và khác gì so với bản dưới đây: [ket-qua-trien-khai.md](ket-qua-trien-khai.md). Nội dung bên dưới là bản đề xuất gốc, giữ lại để tra lý do.
 
-- Trạng thái: **ĐÃ TRIỂN KHAI** trên `qspro_en2` (2026-10-12), trừ D-13 (transaction) và bước xoá cột của D-09. D-04 được làm theo hướng mạnh hơn: bỏ hẳn `company_id` ở 7 bảng con thay vì khoá ngoại kép. Chi tiết: [ket-qua-trien-khai.md](ket-qua-trien-khai.md).
+- Trạng thái: **ĐÃ TRIỂN KHAI** trên `qspro_en2` (2026-10-12), trừ bước xoá cột của D-09. D-13 (transaction) đã làm trên backend Go ngày 2026-10-15 (xem mục D-13). D-04 được làm theo hướng mạnh hơn: bỏ hẳn `company_id` ở 7 bảng con thay vì khoá ngoại kép. Chi tiết: [ket-qua-trien-khai.md](ket-qua-trien-khai.md).
 - Mỗi quyết định ghi: bối cảnh có bằng chứng, các phương án đã cân nhắc, đề xuất, tác động tới code.
 - Bằng chứng chi tiết: [audit.md](audit.md), [database-dependencies.md](database-dependencies.md).
 
@@ -159,6 +159,7 @@
 - **Bối cảnh:** tạo đơn + dòng, đề xuất + dòng, xoá dự án, nhân bản dự án, lưu tờ bìa, xoá công ty đều là nhiều truy vấn rời, tự bù khi lỗi và có chỗ nuốt lỗi.
 - **Đề xuất:** thêm `supa.tx(fn)` (một kết nối, `BEGIN ... COMMIT`), bọc 6 thao tác trên. Kết quả khi thành công không đổi; khi lỗi thì không còn dữ liệu dở dang.
 - Làm ở đợt 2 vì cũng cần cho việc ghi sản phẩm vào nhiều bảng (D-06).
+- **Đã làm (2026-10-15, backend Go; app Node đã gỡ):** `database.DB.Tx(ctx, fn)` + `AfterCommit` + `InTx` (`backend/internal/platform/database/tx.go`). Mỗi lệnh trong transaction chạy dưới savepoint riêng nên các chỗ cố ý nuốt lỗi chạy như cũ. Đã bọc: lưu đơn mua hàng (mỗi đơn 1 transaction), lưu đề xuất, xoá dự án, nhân bản dự án, lưu tờ bìa, tạo công ty (công ty + tài khoản chủ), xoá công ty, `SetCombo` / `SetBienThe` / `DeleteDbProduct`. Khi thành công kết quả, dữ liệu ghi và golden giữ nguyên; nhật ký, thông báo, Lark, xoá cache chạy sau commit. Chi tiết từng hàm và các hàm cố ý không bọc: `backend/docs/ARCHITECTURE.md` mục 3.5 "Transaction". Chưa làm: gộp cả lần gửi nhiều đơn mua hàng vào 1 transaction (cần đổi `DEFAULT now()` sang `clock_timestamp()`, vì mọi dòng trong 1 transaction cùng mốc giờ).
 
 ## D-14. Vị trí tài liệu
 
