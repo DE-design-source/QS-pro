@@ -147,6 +147,51 @@ export const COMPANY_DIRECTORY = [
   ]},
 ];
 
+
+/* ===================== Danh bạ (kiểu Lark) ===================== */
+export const ORG_NAME = 'Dezon Group'
+
+/* Tổ chức đối tác đã kết nối (Bên đáng tin cậy) */
+export const TRUSTED_ORGS = [
+  { id: 't1', name: 'Công ty CP Đầu tư Riverside', kind: 'Chủ đầu tư', members: 18, color: COLORS.blue, since: '12/03/2025' },
+  { id: 't2', name: 'Thép Hòa Phát — CN Miền Nam', kind: 'Nhà cung cấp', members: 6, color: COLORS.gray, since: '02/06/2025' },
+  { id: 't3', name: 'Tư vấn Giám sát An Phú', kind: 'Tư vấn giám sát', members: 9, color: COLORS.teal, since: '20/08/2025' },
+  { id: 't4', name: 'Cơ điện Phúc An', kind: 'Nhà thầu phụ M&E', members: 12, color: COLORS.amber, since: '05/01/2026' },
+]
+
+/* Liên hệ bên ngoài */
+export const EXTERNAL_CONTACTS = [
+  { id: 'x1', name: 'Bùi Thị Thanh Tiền', company: 'Công ty CP Đầu tư Riverside', role: 'Trưởng ban QLDA', phone: '0903 221 450', email: 'tien.bt@riverside.vn', color: COLORS.pink },
+  { id: 'x2', name: 'Nguyễn Văn Đúng', company: 'Tư vấn Giám sát An Phú', role: 'Giám sát trưởng', phone: '0912 334 118', email: 'dung.nv@anphu.vn', color: COLORS.teal },
+  { id: 'x3', name: 'Trần Thị Minh Châu', company: 'Thép Hòa Phát — CN Miền Nam', role: 'Kinh doanh dự án', phone: '0938 702 615', email: 'chau.ttm@hoaphat.com.vn', color: COLORS.gray },
+  { id: 'x4', name: 'Lý Thiên Duy', company: 'Cơ điện Phúc An', role: 'Chỉ huy M&E', phone: '0977 115 204', email: 'duy.lt@phucan.vn', color: COLORS.amber },
+  { id: 'x5', name: 'Đặng Ngọc Bảo Trân', company: 'Kiến trúc Trân Studio', role: 'KTS chủ trì', phone: '0909 640 772', email: 'tran@transtudio.vn', color: COLORS.purple },
+  { id: 'x6', name: 'Phạm Chí Hậu', company: 'Gỗ An Cường', role: 'Đại diện kinh doanh', phone: '0918 003 562', email: 'hau.pc@ancuong.com', color: COLORS.green },
+]
+
+/* Lời mời kết bạn / kết nối (Liên hệ mới) — status: accepted | expired | pending */
+export const CONTACT_REQUESTS = [
+  { id: 'r1', contactId: 'x1', name: 'Bùi Thị Thanh Tiền', org: 'Công ty CP Đầu tư Riverside', note: 'Tôi là Bùi Thị Thanh Tiền', status: 'accepted', color: COLORS.pink },
+  { id: 'r2', contactId: 'x2', name: 'Nguyễn Văn Đúng', org: 'Tư vấn Giám sát An Phú', note: "I'm Nguyễn Văn Đúng", status: 'accepted', color: COLORS.teal },
+  { id: 'r3', contactId: 'x3', name: 'Trần Thị Minh Châu', org: 'Thép Hòa Phát — CN Miền Nam', note: 'Tôi là Trần Thị Minh Châu', status: 'accepted', color: COLORS.gray },
+  { id: 'r4', contactId: 'x4', name: 'Lý Thiên Duy', org: 'Cơ điện Phúc An', note: 'Tôi là Lý Thiên Duy', status: 'accepted', color: COLORS.amber },
+  { id: 'r5', name: 'Võ Nguyễn Huy Toàn', org: 'Nội thất Huy Toàn', note: 'Tôi là Võ Nguyễn Huy Toàn', status: 'expired', color: COLORS.blue },
+  { id: 'r6', name: 'Hồ Thị Kim Trang', org: 'Ngân hàng ACB — CN Thủ Đức', note: 'Tôi là Hồ Thị Kim Trang, phụ trách tín dụng dự án', status: 'pending', color: COLORS.green },
+  { id: 'r7', name: 'Phan Thị Mỹ Duyên', org: 'Bảo hiểm Bảo Việt', note: 'Xin kết nối để trao đổi bảo hiểm công trình', status: 'pending', color: COLORS.purple },
+  { id: 'r8', contactId: 'x5', name: 'Đặng Ngọc Bảo Trân', org: 'Kiến trúc Trân Studio', note: 'Tôi là Đặng Ngọc Bảo Trân', status: 'accepted', color: COLORS.purple },
+  { id: 'r9', contactId: 'x6', name: 'Phạm Chí Hậu', org: 'Gỗ An Cường', note: "I'm Phạm Chí Hậu", status: 'accepted', color: COLORS.green },
+]
+
+/* Bộ phận trợ giúp */
+export const HELP_DESKS = [
+  { id: 'h1', name: 'Hỗ trợ IT', desc: 'Tài khoản, máy tính, phần mềm, mạng', owner: 'Vương Đình Khoa', color: COLORS.gray, icon: 'it' },
+  { id: 'h2', name: 'Hành chính - Nhân sự', desc: 'Chấm công, nghỉ phép, đơn từ, BHXH', owner: 'Trịnh Minh Tâm', color: COLORS.pink, icon: 'hr' },
+  { id: 'h3', name: 'Kế toán - Tài chính', desc: 'Tạm ứng, hoàn ứng, thanh toán', owner: 'Phan Bảo Ngọc', color: COLORS.green, icon: 'fin' },
+  { id: 'h4', name: 'SiteFlow Bot', desc: 'Hướng dẫn sử dụng hệ thống, tra cứu nhanh', owner: null, color: COLORS.purple, icon: 'bot' },
+]
+
+export const MY_CARD = { name: 'Trần Anh', role: 'Quản lý dự án', dept: 'Kinh doanh', phone: '0912 114 226', email: 'anh.t@siteflow.vn', color: COLORS.purple }
+
 /* ===================== Dezbot — câu trả lời mẫu (AI_KB trong chat.html) ===================== */
 export const AI_KB = {
   tiendo: 'Dự án "Chung cư Riverside GĐ2" đang hoàn thành 62% khối lượng — đúng tiến độ tổng thể. Hạng mục "Hoàn thiện" có 2 đầu việc đang trễ hạn, cần ưu tiên xử lý trong tuần này.',

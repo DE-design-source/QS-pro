@@ -55,7 +55,7 @@ html[data-theme="dark"][data-accent="teal"] .wk-page{--primary:#3FC2B6; --primar
 .wk-page ::-webkit-scrollbar-thumb{background:#cbd1da; border-radius:5px;}
 
 /* ---------- Header (inline style trong HTML) ---------- */
-.wk-header{height:64px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 28px; box-sizing:border-box; background:var(--surface); gap:12px;}
+.wk-header{height:64px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 var(--page-gutter); box-sizing:border-box; background:var(--surface); gap:12px;}
 .wk-header-icon{width:30px; height:30px; border-radius:8px; background:var(--wiki-tint); color:var(--wiki); display:flex; align-items:center; justify-content:center; flex:none;}
 .wk-search{position:relative; width:240px;}
 .wk-search svg{position:absolute; left:10px; top:50%; transform:translateY(-50%);}

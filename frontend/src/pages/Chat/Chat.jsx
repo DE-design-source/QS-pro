@@ -5,7 +5,7 @@ import { ME, COLORS, CONVERSATIONS } from '../../data/chatData'
 import ConversationList from './components/ConversationList'
 import Thread from './components/Thread'
 import InfoPanel from './components/InfoPanel'
-import DirectoryModal from './components/DirectoryModal'
+import ContactsView from './components/ContactsView'
 import Dezbot, { loadAiPanelWidth } from './components/Dezbot'
 import { loadKdRequests, saveKdRequests } from '../../services/kdRequestService'
 
@@ -40,7 +40,7 @@ export default function Chat() {
   const [editingIdx, setEditingIdx] = useState(null)
   /* Popover thêm thành viên đang mở: null | 'head' (đầu thread) | 'info' (cột thông tin) */
   const [memberPop, setMemberPop] = useState(null)
-  const [dirOpen, setDirOpen] = useState(false)
+  const [view, setView] = useState(() => ((location.hash || '') === '#contacts' ? 'contacts' : 'chat')) // chat | contacts
   const [scrollTick, setScrollTick] = useState(0)
 
   const [aiOpen, setAiOpen] = useState(false)
@@ -123,6 +123,18 @@ export default function Chat() {
     setMemberPop(null)
   }
 
+  /* Nhắn tin từ Danh bạ: mở hội thoại riêng sẵn có, chưa có thì tạo mới */
+  function messageContact(p) {
+    if (p.bot) { const bot = conversations.find(c => c.type === 'bot'); if (bot) { setView('chat'); openConv(bot.id) } return }
+    let conv = conversations.find(c => c.type === 'dm' && c.name === p.name)
+    if (!conv) {
+      conv = { id: 'dm-' + Date.now(), type: 'dm', name: p.name, sub: p.role || p.company || '', color: p.color || COLORS.blue, online: false, unread: 0, members: [], files: [], images: [], messages: [] }
+      setConversations(prev => [conv, ...prev])
+    }
+    setView('chat')
+    openConv(conv.id)
+  }
+
   const toggleMemberPop = which => setMemberPop(cur => (cur === which ? null : which))
 
   return (
@@ -130,57 +142,54 @@ export default function Chat() {
       className={`ch-page${aiOpen ? ' ch-ai-open' : ''}${aiResizing ? ' ch-ai-resizing' : ''}`}
       style={{ '--ai-panel-width': `${aiWidth}px` }}
     >
-      <div className="ch-chat-shell">
-        <ConversationList
-          conversations={conversations}
-          activeId={activeId}
-          filterTab={filterTab}
-          searchTerm={searchTerm}
-          onTab={setFilterTab}
-          onSearch={setSearchTerm}
-          onSelect={selectConv}
-          onTogglePin={togglePinConv}
-          onOpenDirectory={() => setDirOpen(true)}
-        />
-
-        <Thread
-          conv={activeConv}
-          requests={requests}
-          onUpdateRequest={updateRequest}
-          editingIdx={editingIdx}
-          scrollTick={scrollTick}
-          memberPopOpen={memberPop === 'head'}
-          onToggleMemberPop={() => toggleMemberPop('head')}
-          onCloseMemberPop={() => setMemberPop(null)}
-          onAddMember={addMember}
-          onStartEdit={setEditingIdx}
-          onCancelEdit={() => setEditingIdx(null)}
-          onSaveEdit={saveEdit}
-          onTogglePinMsg={togglePinMsg}
-          onUnpinMsg={unpinMsg}
-          onDeleteMsg={deleteMsg}
-          onSend={sendMessage}
-        />
-
-        <InfoPanel
-          conv={activeConv}
-          conversations={conversations}
-          memberPopOpen={memberPop === 'info'}
-          onToggleMemberPop={() => toggleMemberPop('info')}
-          onCloseMemberPop={() => setMemberPop(null)}
-          onAddMember={addMember}
-          onOpenConv={openConv}
-        />
+      <div className="ch-main">
+        {view === 'contacts'
+          ? <ContactsView conversations={conversations} onMessage={messageContact} onOpenConv={id => { setView('chat'); openConv(id) }} onBack={() => setView('chat')} />
+          : (
+          <div className="ch-chat-shell">
+            <ConversationList
+              conversations={conversations}
+              activeId={activeId}
+              filterTab={filterTab}
+              searchTerm={searchTerm}
+              onTab={setFilterTab}
+              onSearch={setSearchTerm}
+              onSelect={selectConv}
+              onTogglePin={togglePinConv}
+              onOpenDirectory={() => setView('contacts')}
+            />
+    
+            <Thread
+              conv={activeConv}
+              requests={requests}
+              onUpdateRequest={updateRequest}
+              editingIdx={editingIdx}
+              scrollTick={scrollTick}
+              memberPopOpen={memberPop === 'head'}
+              onToggleMemberPop={() => toggleMemberPop('head')}
+              onCloseMemberPop={() => setMemberPop(null)}
+              onAddMember={addMember}
+              onStartEdit={setEditingIdx}
+              onCancelEdit={() => setEditingIdx(null)}
+              onSaveEdit={saveEdit}
+              onTogglePinMsg={togglePinMsg}
+              onUnpinMsg={unpinMsg}
+              onDeleteMsg={deleteMsg}
+              onSend={sendMessage}
+            />
+    
+            <InfoPanel
+              conv={activeConv}
+              conversations={conversations}
+              memberPopOpen={memberPop === 'info'}
+              onToggleMemberPop={() => toggleMemberPop('info')}
+              onCloseMemberPop={() => setMemberPop(null)}
+              onAddMember={addMember}
+              onOpenConv={openConv}
+            />
+          </div>
+          )}
       </div>
-
-      {/* Modal danh bạ công ty */}
-      {dirOpen && (
-        <DirectoryModal
-          conversations={conversations}
-          onClose={() => setDirOpen(false)}
-          onOpenDm={id => { setDirOpen(false); openConv(id) }}
-        />
-      )}
 
       <Dezbot
         open={aiOpen}

@@ -66,7 +66,7 @@ export const TIME_FILTER_OPTIONS = [
 /* ---------- Tab chính ---------- */
 export const SALES_TABS = [
   ['overview', 'Tổng quan'], ['pipeline', 'Pipeline khách hàng'], ['design-board', 'Dự án (Thiết kế)'],
-  ['construction-board', 'Dự án (Thi công)'], ['tasks', 'Nhiệm vụ & điểm thưởng'],
+  ['construction-board', 'Dự án (Thi công)'], ['tasks', 'Nhiệm vụ'], ['nhansu', 'Cơ cấu phòng ban'],
 ]
 
 /* ---------- Tổng quan (Overview dashboard) ---------- */

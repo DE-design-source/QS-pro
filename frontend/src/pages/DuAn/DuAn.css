@@ -125,20 +125,20 @@ html[data-theme="dark"][data-accent="teal"] .da-page{--primary:#3FC2B6; --primar
 .da-page ::-webkit-scrollbar-track{background:transparent;}
 
 /* ---------- Header trang + thanh tab chính ---------- */
-.da-header{height:64px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 28px; background:var(--panel); gap:12px;}
+.da-header{height:64px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 var(--page-gutter); background:var(--panel); gap:12px;}
 .da-header-icon{width:30px; height:30px; border-radius:8px; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center; flex:none;}
 .da-header-title{font-size:14.5px; font-weight:700;}
 .da-header-sub{font-size:12px; color:var(--text-faint);}
 .da-theme-toggle{width:34px; height:34px; border-radius:9px; border:1px solid var(--border); background:var(--panel-alt); color:var(--text-dim); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;}
 .da-theme-toggle:hover{color:var(--text); border-color:var(--accent);}
 
-.da-tabs-row{height:52px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 28px; background:var(--panel); gap:4px;}
+.da-tabs-row{height:52px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 var(--page-gutter); background:var(--panel); gap:4px;}
 .da-proj-tab{border:none; cursor:pointer; white-space:nowrap; padding:7px 14px; border-radius:8px; background:none; color:var(--text-dim); font-size:13px; font-family:inherit;}
 .da-proj-tab.active{background:var(--accent-soft); color:var(--accent); font-weight:600;}
 
 .da-content{flex:1; display:flex; flex-direction:column; min-height:0;}
 .da-panel{flex-direction:column; flex:1; min-height:0;}
-.da-panel-scroll{flex-direction:column; gap:16px; padding:22px 28px; overflow-y:auto; overflow-x:hidden; flex:1; min-height:0;}
+.da-panel-scroll{flex-direction:column; gap:16px; padding:var(--page-gutter); overflow-y:auto; overflow-x:hidden; flex:1; min-height:0;}
 
 /* ---------- Thành phần dùng chung ---------- */
 .da-card{background:var(--surface); border:1px solid var(--border); border-radius:14px;}

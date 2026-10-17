@@ -18,6 +18,44 @@ export default function PipelineTab({ leads, dept, onDeptChange, timeFilter, onT
   const [hoverStage, setHoverStage] = useState(null)
   const [memberOpenFor, setMemberOpenFor] = useState(null)
   const kanbanRef = useRef(null)
+  const trackRef = useRef(null)
+  const [hs, setHs] = useState({ ratio: 1, pos: 0 }) // thanh cuộn ngang: tỉ lệ phần nhìn thấy & vị trí (0–1)
+
+  /* Thanh kéo ngang luôn hiện ở đáy màn hình (sticky) — đồng bộ với vị trí cuộn của kanban */
+  useEffect(() => {
+    const k = kanbanRef.current
+    if (!k) return undefined
+    const upd = () => {
+      const max = k.scrollWidth - k.clientWidth
+      setHs({ ratio: k.scrollWidth ? Math.min(1, k.clientWidth / k.scrollWidth) : 1, pos: max > 0 ? k.scrollLeft / max : 0 })
+    }
+    upd()
+    k.addEventListener('scroll', upd)
+    const ro = new ResizeObserver(upd)
+    ro.observe(k)
+    return () => { k.removeEventListener('scroll', upd); ro.disconnect() }
+  }, [view, leads])
+  const stepScroll = dir => { const k = kanbanRef.current; if (k) k.scrollBy({ left: dir * Math.max(240, k.clientWidth * 0.6), behavior: 'smooth' }) }
+  // Kéo thumb: di chuyển theo tỉ lệ độ rộng nội dung / độ rộng thanh
+  function dragThumb(e) {
+    e.preventDefault(); e.stopPropagation()
+    const k = kanbanRef.current, t = trackRef.current
+    if (!k || !t) return
+    const startX = e.clientX, start = k.scrollLeft, factor = k.scrollWidth / t.clientWidth
+    e.currentTarget.setPointerCapture(e.pointerId)
+    const move = ev => { k.scrollLeft = start + (ev.clientX - startX) * factor }
+    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up) }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+  }
+  // Bấm vào thanh: nhảy tới vị trí đó (thumb canh giữa điểm bấm)
+  function jumpTrack(e) {
+    const k = kanbanRef.current, t = trackRef.current
+    if (!k || !t) return
+    const r = t.getBoundingClientRect()
+    const frac = (e.clientX - r.left) / r.width - hs.ratio / 2
+    k.scrollTo({ left: Math.max(0, frac) * k.scrollWidth, behavior: 'smooth' })
+  }
 
   /* Bấm ra ngoài → đóng popover người phụ trách trên thẻ */
   useEffect(() => {
@@ -89,7 +127,7 @@ export default function PipelineTab({ leads, dept, onDeptChange, timeFilter, onT
       </div>
 
       {/* ---- Kanban ---- */}
-      <div ref={kanbanRef} style={{ display: view === 'kanban' ? 'flex' : 'none', gap: 14, overflowX: 'auto', paddingBottom: 6 }}>
+      <div ref={kanbanRef} className="kd-kanban" style={{ display: view === 'kanban' ? 'flex' : 'none', gap: 14, overflowX: 'auto', paddingBottom: 6 }}>
         {STAGES.map(stageId => {
           const items = leads.filter(l => l.stage === stageId)
           const total = items.reduce((s, l) => s + l.value, 0)
@@ -133,6 +171,20 @@ export default function PipelineTab({ leads, dept, onDeptChange, timeFilter, onT
           )
         })}
       </div>
+
+      {view === 'kanban' && hs.ratio < 0.995 && (
+        <div className="kd-hscroll" role="group" aria-label="Cuộn ngang các giai đoạn">
+          <button type="button" onClick={() => stepScroll(-1)} disabled={hs.pos <= 0.002} title="Sang trái" aria-label="Cuộn sang trái">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+          </button>
+          <div className="kd-hscroll-track" ref={trackRef} onPointerDown={jumpTrack}>
+            <div className="kd-hscroll-thumb" style={{ width: hs.ratio * 100 + '%', left: hs.pos * (1 - hs.ratio) * 100 + '%' }} onPointerDown={dragThumb} title="Kéo để xem các giai đoạn" />
+          </div>
+          <button type="button" onClick={() => stepScroll(1)} disabled={hs.pos >= 0.998} title="Sang phải" aria-label="Cuộn sang phải">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+          </button>
+        </div>
+      )}
 
       {/* ---- Danh sách ---- */}
       <div style={{ display: view === 'list' ? 'block' : 'none', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '6px 20px 8px' }}>

@@ -11,6 +11,7 @@ import CreateOrderModal from './components/CreateOrderModal'
 import StockModal from './components/StockModal'
 import DetailModal from './components/DetailModal'
 import Dezbot, { loadAiPanelWidth } from './components/Dezbot'
+import DeptStaff from '../../components/hr/DeptStaff'
 
 export default function SanXuat() {
   const { theme, toggleTheme } = useTheme()
@@ -61,23 +62,19 @@ export default function SanXuat() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg>
         </div>
         <span style={{ fontSize: 14.5, fontWeight: 700 }}>Sản xuất</span>
-        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Quản lý sản xuất xưởng mộc</span>
-        <span style={{ flex: 1 }} />
+        <div className="hdr-tabs" role="tablist">
+          {SX_TABS.map(t => (
+            <button key={t.key} className={`sx-tab${tab === t.key ? ' active' : ''}`} onClick={() => setTab(t.key)}>{t.label}</button>
+          ))}
+        </div>
+        <button className="sx-add-btn" onClick={() => setCreateOpen(true)}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+          Tạo đơn sản xuất
+        </button>
         <button className="sx-theme-toggle" title="Chuyển giao diện sáng/tối" onClick={toggleTheme}>
           {theme === 'dark'
             ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
             : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" /></svg>}
-        </button>
-      </div>
-
-      <div className="sx-tabs-row">
-        {SX_TABS.map(t => (
-          <button key={t.key} className={`sx-tab${tab === t.key ? ' active' : ''}`} onClick={() => setTab(t.key)}>{t.label}</button>
-        ))}
-        <span style={{ flex: 1 }} />
-        <button className="sx-add-btn" onClick={() => setCreateOpen(true)}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-          Tạo đơn sản xuất
         </button>
       </div>
 
@@ -91,6 +88,7 @@ export default function SanXuat() {
         <div className={panel('khovattu')}><MaterialsTab materials={materials} onStock={setStockMode} /></div>
         <div className={panel('nhancong')}><WorkersTab /></div>
         <div className={panel('maymoc')}><EquipmentTab /></div>
+        <div className={panel('nhansu')}><DeptStaff units={['xuong']} /></div>
       </div>
 
       <CreateOrderModal open={createOpen} onClose={() => setCreateOpen(false)} onCreate={createOrder} />

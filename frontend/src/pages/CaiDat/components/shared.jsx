@@ -1,4 +1,9 @@
-import { useState } from 'react'
+import { createContext, useContext, useState } from 'react'
+
+/* Cài đặt người dùng (lưu ở localStorage "siteflow-settings") — CaiDat.jsx cấp giá trị,
+   các tab đọc/ghi qua useSettings() để không ghi đè lẫn nhau */
+export const SettingsContext = createContext({ s: {}, update: () => {} })
+export const useSettings = () => useContext(SettingsContext)
 
 /* Các style inline dùng chung — giữ nguyên dạng inline như bản HTML để
    selector của liquid-glass.css (div[style*="var(--surface)"]...) vẫn khớp */
@@ -32,6 +37,97 @@ export function RowText({ title, desc }) {
       <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>{desc}</div>
     </div>
   )
+}
+
+/* Thẻ chứa một nhóm cài đặt */
+export function Section({ title, desc, children }) {
+  return (
+    <div style={cardStyle}>
+      <h3 style={titleStyle(desc ? 4 : 14)}>{title}</h3>
+      {desc && <p style={descStyle}>{desc}</p>}
+      {children}
+    </div>
+  )
+}
+
+/* Nhãn + mô tả của một cụm lựa chọn bên trong Section */
+export function Group({ label, desc, children }) {
+  return (
+    <div className="cd-group">
+      <div className="cd-group-label">{label}</div>
+      {desc && <div className="cd-group-desc">{desc}</div>}
+      {children}
+    </div>
+  )
+}
+
+/* Ô tick gắn với khoá k của cài đặt; children = các lựa chọn con, chỉ hiện khi đang bật.
+   forced: luôn tick và khoá lại (đã được bao gồm bởi lựa chọn cha) */
+export function Check({ k, label, desc, forced, children }) {
+  const { s, update } = useSettings()
+  const checked = forced || !!s[k]
+  return (
+    <>
+      <label className={`cd-check${forced ? ' disabled' : ''}`}>
+        <input type="checkbox" checked={checked} disabled={forced} onChange={e => update({ [k]: e.target.checked })} />
+        <span>
+          {label}
+          {desc && <span className="cd-check-desc">{desc}</span>}
+        </span>
+      </label>
+      {children && checked ? <div className="cd-sub">{children}</div> : null}
+    </>
+  )
+}
+
+/* Nhóm radio xếp dọc — options: [{ value, label, desc }] */
+export function Radios({ k, options }) {
+  const { s, update } = useSettings()
+  return options.map(o => (
+    <label key={o.value} className="cd-check">
+      <input type="radio" name={`cd-${k}`} checked={s[k] === o.value} onChange={() => update({ [k]: o.value })} />
+      <span>
+        {o.label}
+        {o.desc && <span className="cd-check-desc">{o.desc}</span>}
+      </span>
+    </label>
+  ))
+}
+
+/* Thẻ chọn có hình xem trước — options: [{ value, label, preview }] */
+export function Choices({ k, options }) {
+  const { s, update } = useSettings()
+  return (
+    <div className="cd-choice-grid">
+      {options.map(o => (
+        <label key={o.value} className={`cd-choice${s[k] === o.value ? ' active' : ''}`}>
+          <div className="cd-choice-preview">{o.preview}</div>
+          <div className="cd-choice-foot">
+            <input type="radio" name={`cd-${k}`} checked={s[k] === o.value} onChange={() => update({ [k]: o.value })} />
+            {o.label}
+          </div>
+        </label>
+      ))}
+    </div>
+  )
+}
+
+/* Ô chọn thả xuống — options: [[value, label]] */
+export function Select({ k, options, hint }) {
+  const { s, update } = useSettings()
+  return (
+    <>
+      <select className="cd-select" value={s[k]} onChange={e => update({ [k]: e.target.value })}>
+        {options.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+      </select>
+      {hint && <div className="cd-group-desc" style={{ marginTop: 6 }}>{hint}</div>}
+    </>
+  )
+}
+
+/* Thanh giả lập một dòng nội dung trong hình xem trước */
+export function Bar({ w, color = 'var(--surface-alt)', h = 10, style }) {
+  return <div style={{ width: w, height: h, borderRadius: 4, background: color, flex: 'none', ...style }} />
 }
 
 /* Công tắc bật/tắt — tự giữ trạng thái (giống [data-toggle] trong HTML) hoặc điều khiển qua props */

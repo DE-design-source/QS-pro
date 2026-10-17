@@ -7,6 +7,7 @@ export const SX_TABS = [
   { key: 'khovattu', label: 'Kho vật tư' },
   { key: 'nhancong', label: 'Nhân công' },
   { key: 'maymoc', label: 'Máy móc' },
+  { key: 'nhansu', label: 'Cơ cấu phòng ban' },
 ]
 
 export const STAGES = [

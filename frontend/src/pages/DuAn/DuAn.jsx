@@ -4,17 +4,21 @@ import { useTheme } from '../../hooks/useTheme'
 import { MembersProvider } from './components/ProjectMembers'
 import ProjectListTab from './components/ProjectListTab'
 import SetupTab from './components/SetupTab'
-import TienDoTab from './components/TienDoTab'
+import GanttTab from '../QuanLyThietKe/components/GanttTab'
+import '../QuanLyThietKe/QuanLyThietKe.css'
+import * as DU_AN_DATA from '../../data/duAnData'
 import NhiemVuTab from './components/NhiemVuTab'
 import Dezbot, { loadAiPanelWidth } from './components/Dezbot'
+import DeptStaff from '../../components/hr/DeptStaff'
 
 const MAIN_TABS = [
   { key: 'list', label: 'Danh sách dự án' },
   { key: 'create', label: 'Thiết lập thi công' },
   { key: 'tiendo', label: 'Tiến độ' },
   { key: 'nhiemvu', label: 'Nhiệm vụ' },
+  { key: 'nhansu', label: 'Cơ cấu phòng ban' },
 ]
-const VALID_TABS = ['list', 'create', 'tiendo', 'nhiemvu', 'detail']
+const VALID_TABS = ['list', 'create', 'tiendo', 'nhiemvu', 'nhansu', 'detail']
 const VALID_GTABS = ['overview', 'mission', 'rewards', 'leaderboard']
 
 /* Đọc tab ban đầu từ hash (#tiendo, #detail, #nhiemvu-rewards...) giống bản HTML */
@@ -61,8 +65,11 @@ export default function DuAn() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
           </div>
           <span className="da-header-title">Quản lý dự án</span>
-          <span className="da-header-sub">Điểm khởi đầu — danh sách dự án, thiết lập thi công, tiến độ, nhiệm vụ &amp; luồng dữ liệu trong một nơi</span>
-          <span style={{ flex: 1 }} />
+          <div className="hdr-tabs" role="tablist">
+            {MAIN_TABS.map(t => (
+              <button key={t.key} className={`da-proj-tab${tab === t.key ? ' active' : ''}`} onClick={() => goToTab(t.key)}>{t.label}</button>
+            ))}
+          </div>
           <button className="da-theme-toggle" title="Chuyển giao diện sáng/tối" onClick={toggleTheme}>
             {theme === 'dark'
               ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
@@ -70,16 +77,10 @@ export default function DuAn() {
           </button>
         </div>
 
-        <div className="da-tabs-row">
-          {MAIN_TABS.map(t => (
-            <button key={t.key} className={`da-proj-tab${tab === t.key ? ' active' : ''}`} onClick={() => goToTab(t.key)}>{t.label}</button>
-          ))}
-        </div>
-
         {/* Các tab luôn được mount (ẩn bằng display) để giữ trạng thái khi chuyển tab, giống bản HTML */}
         <div className="da-content">
           <div className="da-panel" style={panelStyle('tiendo')}>
-            <TienDoTab active={tab === 'tiendo'} />
+            <div className="tk-page tk-embed"><GanttTab active={tab === 'tiendo'} data={DU_AN_DATA} /></div>
           </div>
           <div className="da-panel-scroll" style={panelStyle('list')}>
             <ProjectListTab onGoto={goToTab} />
@@ -89,6 +90,9 @@ export default function DuAn() {
           </div>
           <div className="da-panel-scroll" style={panelStyle('nhiemvu')}>
             <NhiemVuTab gtab={gtab} onGtabChange={setGtab} />
+          </div>
+          <div className="da-panel-scroll" style={panelStyle('nhansu')}>
+            <DeptStaff units={['cco']} title="Khối thi công (CCO)" />
           </div>
         </div>
 

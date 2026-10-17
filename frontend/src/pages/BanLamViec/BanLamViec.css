@@ -57,10 +57,10 @@ html[data-theme="dark"][data-accent="teal"] .blv-page{--primary:#3FC2B6; --prima
 .blv-page ::-webkit-scrollbar-thumb{background:#cbd1da; border-radius:5px;}
 
 /* ---------- Header & khung nội dung ---------- */
-.blv-header{height:64px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 28px; background:var(--surface); gap:12px;}
+.blv-header{height:64px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 var(--page-gutter); background:var(--surface); gap:12px;}
 .blv-header-icon{width:30px; height:30px; border-radius:8px; background:var(--primary-tint); color:var(--primary); display:flex; align-items:center; justify-content:center; flex:none;}
 .blv-theme-toggle{width:34px; height:34px; border-radius:9px; border:1px solid var(--border); background:var(--surface-alt); color:var(--text-muted); display:flex; align-items:center; justify-content:center; cursor:pointer;}
-.blv-body{flex:1; padding:22px 28px 0; overflow:hidden; display:flex; flex-direction:column; gap:16px; min-height:0;}
+.blv-body{flex:1; padding:var(--page-gutter) var(--page-gutter) 0; overflow:hidden; display:flex; flex-direction:column; gap:16px; min-height:0;}
 .blv-panel{display:none; flex-direction:column; gap:16px; min-height:0; flex:1; overflow-y:auto; overflow-x:hidden; padding:0 6px 28px; margin:0 -6px;}
 .blv-panel.active{display:flex;}
 .blv-page ::-webkit-scrollbar-thumb{background:var(--scroll-thumb); border:2px solid transparent; background-clip:padding-box; border-radius:10px;}

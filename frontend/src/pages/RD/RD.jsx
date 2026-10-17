@@ -3,6 +3,7 @@ import './RD.css'
 import { useTheme } from '../../hooks/useTheme'
 import { PROJECTS, STAGE_LABEL, IDEAS, IDEA_STATUS, isActiveProject, initialsOf } from '../../data/rdData'
 import Dezbot, { loadAiPanelWidth } from './components/Dezbot'
+import DeptStaff from '../../components/hr/DeptStaff'
 
 function Kpi({ label, value, valueColor, children }) {
   return (
@@ -38,6 +39,7 @@ export default function RD() {
   const [aiOpen, setAiOpen] = useState(false)
   const [aiWidth, setAiWidth] = useState(loadAiPanelWidth)
   const [aiResizing, setAiResizing] = useState(false)
+  const [pageTab, setPageTab] = useState('main') // main | nhansu
 
   const activeProjects = PROJECTS.filter(isActiveProject).length
 
@@ -51,8 +53,10 @@ export default function RD() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{BULB_PATHS}</svg>
         </div>
         <span style={{ fontSize: 14.5, fontWeight: 700 }}>R&amp;D</span>
-        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Nghiên cứu vật liệu mới, quy trình thi công &amp; sáng kiến cải tiến</span>
-        <span style={{ flex: 1 }} />
+        <div className="hdr-tabs" role="tablist">
+          <button className={`hdr-tab${pageTab === 'main' ? ' active' : ''}`} onClick={() => setPageTab('main')}>Tổng quan</button>
+          <button className={`hdr-tab${pageTab === 'nhansu' ? ' active' : ''}`} onClick={() => setPageTab('nhansu')}>Cơ cấu phòng ban</button>
+        </div>
         <button className="rd-theme-toggle" title="Chuyển giao diện sáng/tối" onClick={toggleTheme}>
           {theme === 'dark'
             ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
@@ -60,7 +64,7 @@ export default function RD() {
         </button>
       </div>
 
-      <div className="rd-scroll">
+      <div className="rd-scroll" style={pageTab === 'nhansu' ? { display: 'none' } : undefined}>
         <div className="rd-content">
           <div className="rd-kpi-grid">
             <Kpi label="Dự án R&D đang triển khai" value={activeProjects}>
@@ -132,6 +136,12 @@ export default function RD() {
           </div>
         </div>
       </div>
+
+      {pageTab === 'nhansu' && (
+        <div className="rd-scroll">
+          <DeptStaff units={['rnd']} />
+        </div>
+      )}
 
       <Dezbot
         open={aiOpen}

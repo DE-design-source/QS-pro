@@ -26,15 +26,47 @@ export const INITIAL_ORG_UNITS = [
   { key: 'it', label: 'IT', name: 'IT', type: 'dept', parent: 'coo', tone: 'muted', desc: 'Hạ tầng CNTT, phần mềm nội bộ, bảo mật' },
   { key: 'kdda', label: 'Kinh doanh dự án', name: 'Kinh doanh dự án', type: 'dept', parent: 'coo', tone: 'sales', desc: 'Đấu thầu & kinh doanh các dự án lớn (B2B)' },
   { key: 'thicong', label: 'Bộ phận thi công', name: 'Bộ phận thi công', type: 'dept', parent: 'cco', tone: 'danger', desc: 'Chỉ huy & các đội thi công tại công trường' },
+  { key: 'xuong', label: 'Xưởng sản xuất', name: 'Xưởng sản xuất (mộc)', type: 'dept', parent: 'cco', tone: 'finance', desc: 'Sản xuất đồ gỗ nội thất: đo vẽ, cắt tấm, gia công, lắp ráp, sơn hoàn thiện' },
   { key: 'haumai', label: 'Bộ phận hậu mãi', name: 'Bộ phận hậu mãi', type: 'dept', parent: 'cco', tone: 'success', desc: 'Bảo hành, bảo trì & chăm sóc sau bàn giao' },
+  /* Công ty trong tập đoàn — parent '__holding' (= HOLDING_KEY): công ty thành viên của D Holdings
+     · '__mother' (= MOTHER_KEY): công ty con trực thuộc Decox · null: độc lập, không trực thuộc tập đoàn */
+  { key: 'dzvn', label: 'Dezon.vn', name: 'Dezon.vn (TMĐT)', type: 'subsidiary', parent: '__holding', tone: 'sales', desc: 'Sàn thương mại điện tử vật liệu & nội thất' },
+  { key: 'dzvn_op', label: 'Vận hành sàn', name: 'Vận hành sàn — Dezon.vn', type: 'dept', parent: 'dzvn', tone: 'sales', desc: 'Quản lý gian hàng, đơn hàng & chăm sóc khách hàng online' },
+  { key: 'dzapp', label: 'Dezon App', name: 'Dezon App (Tech)', type: 'subsidiary', parent: '__holding', tone: 'primary', desc: 'Phát triển sản phẩm công nghệ & ứng dụng của tập đoàn' },
+  { key: 'dzag', label: 'Dezon Agency', name: 'Dezon Agency (MKT)', type: 'subsidiary', parent: '__holding', tone: 'marketing', desc: 'Dịch vụ marketing, thương hiệu & quảng cáo' },
+  { key: 'dzag_ct', label: 'Content & Ads', name: 'Content & Ads — Dezon Agency', type: 'dept', parent: 'dzag', tone: 'marketing', desc: 'Sản xuất nội dung & vận hành quảng cáo' },
+  { key: 'dxbasic', label: 'Decox Basic', name: 'Decox Basic', type: 'subsidiary', parent: '__mother', tone: 'qs', desc: 'Dòng dịch vụ xây dựng cơ bản của Decox' },
+  { key: 'icc', label: 'ICC', name: 'ICC', type: 'subsidiary', parent: null, tone: 'primary', desc: 'Công ty liên kết — không trực thuộc tập đoàn' },
 ]
 /* Trưởng đơn vị mặc định (id nhân viên) */
-export const INITIAL_UNIT_HEADS = { ceo: 1, coo: 22, cco: 2, kddd: 23, marketing: 5, rnd: 26, hcns: 4, tckt: 3, thietke: 24, muahang: 8, qs: 25, it: 17, kdda: 7, thicong: 6, haumai: 27, bod: 1, bks: 3, bcl: 1, hdqt: 1 }
-export const UNIT_TYPE_LABEL = { governance: 'Quản trị', board: 'Ban trực thuộc CEO', exec: 'Khối điều hành', dept: 'Phòng ban' }
+export const INITIAL_UNIT_HEADS = { ceo: 1, coo: 22, cco: 2, kddd: 23, marketing: 5, rnd: 26, hcns: 4, tckt: 3, thietke: 24, muahang: 8, qs: 25, it: 17, kdda: 7, thicong: 6, haumai: 27, xuong: 47, bod: 1, bks: 3, bcl: 1, hdqt: 1, dzvn: 38, dzvn_op: 39, dzapp: 41, dzag: 42, dzag_ct: 43, dxbasic: 45, icc: 46 }
+export const UNIT_TYPE_LABEL = { governance: 'Quản trị', board: 'Ban trực thuộc', exec: 'Khối điều hành', dept: 'Phòng ban', subsidiary: 'Công ty con' }
+/* Công ty (pháp nhân) chứa 1 đơn vị: công ty con gần nhất phía trên, hoặc 'root' = công ty mẹ */
+export function companyOf(units, key) {
+  for (let u = units.find(x => x.key === key), n = 0; u && n < 40; u = units.find(x => x.key === u.parent), n++) if (u.type === 'subsidiary') return u.key
+  return 'root'
+}
+/* Công ty mẹ (gốc của sơ đồ tổ chức) */
+export const PARENT_COMPANY = { name: 'Decox', fullName: 'Công ty Cổ phần Decox' }
+/* parent = MOTHER_KEY: trực thuộc trực tiếp công ty mẹ (ngang hàng HĐQT dưới nút Decox) */
+export const MOTHER_KEY = '__mother'
+/* Tập đoàn (holding) đứng trên Decox — parent = HOLDING_KEY: công ty thành viên trực thuộc tập đoàn */
+export const HOLDING = { name: 'D Holdings', fullName: 'Tập đoàn D Holdings' }
+export const HOLDING_KEY = '__holding'
+export const isHoldingCo = u => u.type === 'subsidiary' && u.parent === HOLDING_KEY
+/* Nhãn cấp trên của 1 đơn vị (kể cả công ty mẹ / độc lập) */
+export const parentLabel = (units, u) => u.parent === HOLDING_KEY ? `${HOLDING.name} (tập đoàn)` : u.parent === MOTHER_KEY ? `${PARENT_COMPANY.name} (công ty mẹ)` : u.type === 'subsidiary' && !u.parent ? 'Độc lập — không trực thuộc' : units.find(x => x.key === u.parent)?.label
+/* Công ty thành viên không liên kết với công ty mẹ: là công ty con nhưng không có cấp trên → có sơ đồ riêng */
+export const isStandaloneCo = u => u.type === 'subsidiary' && !u.parent
+/* Gốc của cây công ty mẹ: đơn vị không có cấp trên, trừ công ty thành viên độc lập */
+export const motherRoots = units => units.filter(u => !isStandaloneCo(u) && u.parent !== '__holding' && (!u.parent || !units.some(p => p.key === u.parent)))
+
+/* Cấp "khối" khi vẽ sơ đồ: khối điều hành & công ty con cùng hàng */
+export const isBlockLevel = u => u.type === 'exec' || u.type === 'subsidiary'
 
 /* Danh sách phòng ban dùng cho hồ sơ / bộ lọc (khối điều hành + phòng ban).
    Mảng được đồng bộ tại chỗ khi người dùng thiết lập lại cơ cấu (syncDepts) để mọi màn hình dùng cùng danh sách. */
-const toDepts = units => units.filter(u => u.type === 'exec' || u.type === 'dept').map(u => ({ key: u.key, name: u.name, tone: u.tone }))
+const toDepts = units => units.filter(u => u.type === 'exec' || u.type === 'dept' || u.type === 'subsidiary').map(u => ({ key: u.key, name: u.name, tone: u.tone }))
 export const DEPTS = toDepts(INITIAL_ORG_UNITS)
 export function syncDepts(units) { DEPTS.splice(0, DEPTS.length, ...toDepts(units)) }
 export const deptOf = key => DEPTS.find(d => d.key === key) || { key, name: key || '—', tone: 'muted' }
@@ -90,6 +122,23 @@ const BASE = [
   [35, 'NV035', 'Trương Hoài Nam', 'Nam', '1997-11-28', 'kdda', 'Nhân viên kinh doanh dự án', 'Nhân viên', 'active', '2024-09-09', 7, 'Văn phòng HCM', 'Xác định thời hạn', 12000000],
   [36, 'NV036', 'Đoàn Gia Bảo', 'Nam', '1999-03-15', 'it', 'Kỹ thuật viên IT', 'Nhân viên', 'active', '2025-02-10', 17, 'Văn phòng HCM', 'Xác định thời hạn', 12000000],
   [37, 'NV037', 'Quách Thu Hà', 'Nữ', '1998-07-30', 'tckt', 'Kế toán công trình', 'Chuyên viên', 'active', '2024-08-19', 19, 'Văn phòng HCM', 'Xác định thời hạn', 14000000],
+  // Các công ty khác trong D Holdings: Dezon.vn · Dezon App · Dezon Agency · Decox Basic (con của Decox) · ICC (độc lập)
+  [38, 'NV038', 'Hồ Minh Khôi', 'Nam', '1984-05-12', 'dzvn', 'Giám đốc Dezon.vn', 'Giám đốc', 'active', '2022-04-01', null, 'Văn phòng HCM', 'Không xác định thời hạn', 55000000],
+  [39, 'NV039', 'Lý Thanh Trúc', 'Nữ', '1991-10-03', 'dzvn_op', 'Trưởng nhóm vận hành sàn', 'Trưởng nhóm', 'active', '2022-06-15', 38, 'Văn phòng HCM', 'Không xác định thời hạn', 28000000],
+  [40, 'NV040', 'Nguyễn Hải Yến', 'Nữ', '1998-01-22', 'dzvn_op', 'Chuyên viên chăm sóc khách hàng online', 'Nhân viên', 'active', '2024-03-04', 39, 'Văn phòng HCM', 'Xác định thời hạn', 14000000],
+  [41, 'NV041', 'Đặng Văn Lực', 'Nam', '1986-08-08', 'dzapp', 'Giám đốc công nghệ (CTO)', 'Giám đốc', 'active', '2022-07-01', null, 'Văn phòng HCM', 'Không xác định thời hạn', 58000000],
+  [42, 'NV042', 'Trịnh Quốc Bảo', 'Nam', '1980-12-01', 'dzag', 'Giám đốc Dezon Agency', 'Giám đốc', 'active', '2021-09-01', null, 'Văn phòng HCM', 'Không xác định thời hạn', 52000000],
+  [43, 'NV043', 'Vũ Ngọc Mai', 'Nữ', '1989-03-27', 'dzag_ct', 'Trưởng phòng Content & Ads', 'Trưởng phòng', 'active', '2021-11-15', 42, 'Văn phòng HCM', 'Không xác định thời hạn', 32000000],
+  [44, 'NV044', 'Phan Đức Huy', 'Nam', '1997-06-18', 'dzag_ct', 'Chuyên viên quảng cáo', 'Chuyên viên', 'active', '2024-01-08', 43, 'Văn phòng HCM', 'Xác định thời hạn', 15000000],
+  [45, 'NV045', 'Tôn Nữ Bích Ngân', 'Nữ', '1987-04-09', 'dxbasic', 'Giám đốc Decox Basic', 'Giám đốc', 'active', '2023-02-01', 1, 'Văn phòng HCM', 'Không xác định thời hạn', 45000000],
+  // Xưởng sản xuất — tổ thợ trùng với trang Sản xuất (Nhân công)
+  [47, 'NV047', 'Huỳnh Tấn Phát', 'Nam', '1982-02-14', 'xuong', 'Quản đốc xưởng mộc', 'Quản lý', 'active', '2021-03-01', 2, 'Kho vật tư Bình Chánh', 'Không xác định thời hạn', 24000000],
+  [48, 'NV048', 'Lê Văn Thanh', 'Nam', '1990-07-09', 'xuong', 'Thợ lắp ráp (Tổ lắp ráp)', 'Trưởng nhóm', 'active', '2022-01-10', 47, 'Kho vật tư Bình Chánh', 'Không xác định thời hạn', 13000000],
+  [49, 'NV049', 'Trần Minh Hải', 'Nam', '1993-11-21', 'xuong', 'Thợ cắt & gia công CNC', 'Trưởng nhóm', 'active', '2022-05-16', 47, 'Kho vật tư Bình Chánh', 'Không xác định thời hạn', 12500000],
+  [50, 'NV050', 'Phạm Thành Huy', 'Nam', '1995-04-02', 'xuong', 'Thợ hoàn thiện', 'Nhân viên', 'active', '2023-02-20', 48, 'Kho vật tư Bình Chánh', 'Xác định thời hạn', 10500000],
+  [51, 'NV051', 'Đỗ Quốc Bảo', 'Nam', '1994-08-30', 'xuong', 'Thợ sơn PU', 'Nhân viên', 'active', '2023-06-05', 48, 'Kho vật tư Bình Chánh', 'Xác định thời hạn', 10500000],
+  [52, 'NV052', 'Hồ Đình Phong', 'Nam', '1998-12-12', 'xuong', 'Thợ cắt & gia công', 'Nhân viên', 'probation', '2026-08-03', 49, 'Kho vật tư Bình Chánh', 'Thử việc', 9000000],
+  [46, 'NV046', 'Kiều Anh Dũng', 'Nam', '1983-09-14', 'icc', 'Giám đốc ICC', 'Giám đốc', 'active', '2022-10-03', null, 'Văn phòng Hà Nội', 'Không xác định thời hạn', 50000000],
   [21, 'NV012', 'Lê Thị Kim', 'Nữ', '1996-09-09', 'tckt', 'Kế toán thanh toán', 'Nhân viên', 'left', '2023-01-01', 19, 'Văn phòng HCM', 'Xác định thời hạn', 13000000],
 ]
 

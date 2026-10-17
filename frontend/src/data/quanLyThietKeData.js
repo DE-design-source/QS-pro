@@ -388,29 +388,75 @@ export function matchTopic(text) {
 
 /* ---------- Chi tiết mua hàng (kanban) cho các công việc thuộc giai đoạn "Mua hàng & cung ứng" ---------- */
 export const PURCHASE_PHASE_ID = 'p6'
+/* Quy trình mua hàng mặc định — mỗi bước có phòng ban & người phụ trách (nhận thông báo khi đơn chuyển tới) */
 export const PO_STAGES = [
-  { key: 'request', label: 'Đề xuất', color: 'var(--notstarted)' },
-  { key: 'ordered', label: 'Đã đặt hàng', color: 'var(--accent)' },
-  { key: 'shipping', label: 'Đang giao', color: 'var(--progress)' },
-  { key: 'received', label: 'Đã nhận', color: 'var(--done)' },
+  { key: 'request', label: 'Gửi yêu cầu mua hàng', color: 'var(--notstarted)', dept: 'Ban chỉ huy công trường', owner: 'Nguyễn Đức Anh' },
+  { key: 'purchasing', label: 'Mua hàng', color: 'var(--accent)', dept: 'Phòng Mua hàng', owner: 'Cao Nhật Tân' },
+  { key: 'approval', label: 'Quản lý duyệt', color: 'var(--progress)', dept: 'Ban giám đốc', owner: 'Lâm Thanh Tùng' },
+  { key: 'accounting', label: 'Kế toán', color: '#8b6fd6', dept: 'Kế toán', owner: 'Phan Bảo Ngọc' },
+  { key: 'received', label: 'Nhận hàng', color: '#2a9bb0', received: true, dept: 'Kho công trường', owner: 'Hà Văn Kiên' },
+  { key: 'complete', label: 'Đủ hồ sơ', color: 'var(--done)', received: true, dept: 'Phòng Mua hàng', owner: 'Lý Thu Trang' },
+  { key: 'cancelled', label: 'Hủy', color: 'var(--overdue)', closed: true, dept: '', owner: '' },
+]
+
+/* Phòng ban & nhân sự có thể được giao phụ trách đơn mua hàng */
+export const PO_DEPTS = ['Phòng Mua hàng', 'Ban chỉ huy công trường', 'Ban giám đốc', 'Kế toán', 'QS', 'Kho công trường']
+export const PO_PEOPLE = [
+  { name: 'Cao Nhật Tân', role: 'Trưởng phòng mua hàng', dept: 'Phòng Mua hàng' },
+  { name: 'Lý Thu Trang', role: 'Chuyên viên mua hàng', dept: 'Phòng Mua hàng' },
+  { name: 'Nguyễn Đức Anh', role: 'Chỉ huy trưởng', dept: 'Ban chỉ huy công trường' },
+  { name: 'Trần Anh', role: 'PM công trường', dept: 'Ban chỉ huy công trường' },
+  { name: 'Lâm Thanh Tùng', role: 'Giám đốc vận hành (COO)', dept: 'Ban giám đốc' },
+  { name: 'Phan Bảo Ngọc', role: 'Kế toán trưởng', dept: 'Kế toán' },
+  { name: 'Quách Thu Hà', role: 'Kế toán công trình', dept: 'Kế toán' },
+  { name: 'Lưu Minh Trí', role: 'Trưởng phòng QS', dept: 'QS' },
+  { name: 'Hà Văn Kiên', role: 'Thủ kho công trường', dept: 'Kho công trường' },
+]
+
+/* Mẫu khởi tạo quy trình mua hàng — key trùng với bước cũ thì đơn giữ nguyên vị trí */
+const step = (key, label, color, dept, owner, extra = {}) => ({ key, label, color, dept, owner, ...extra })
+export const PO_FLOW_TEMPLATES = [
+  { key: 'standard', label: 'Tiêu chuẩn', desc: '7 bước: yêu cầu → mua → duyệt → kế toán → nhận hàng → hồ sơ', stages: PO_STAGES },
+  { key: 'quick', label: 'Mua nhanh', desc: 'Đơn nhỏ (≤ 20 triệu): bỏ bước duyệt & kế toán', stages: [
+    step('request', 'Gửi yêu cầu', 'var(--notstarted)', 'Ban chỉ huy công trường', 'Nguyễn Đức Anh'),
+    step('purchasing', 'Mua hàng', 'var(--accent)', 'Phòng Mua hàng', 'Lý Thu Trang'),
+    step('received', 'Nhận hàng', '#2a9bb0', 'Kho công trường', 'Hà Văn Kiên', { received: true }),
+    step('complete', 'Đủ hồ sơ', 'var(--done)', 'Phòng Mua hàng', 'Lý Thu Trang', { received: true }),
+    step('cancelled', 'Hủy', 'var(--overdue)', '', '', { closed: true }),
+  ] },
+  { key: 'tender', label: 'Có báo giá / đấu thầu', desc: 'Đơn lớn: lấy báo giá, so sánh, ký hợp đồng trước khi mua', stages: [
+    step('request', 'Gửi yêu cầu', 'var(--notstarted)', 'Ban chỉ huy công trường', 'Nguyễn Đức Anh'),
+    step('quote', 'Lấy báo giá NCC', 'var(--accent)', 'Phòng Mua hàng', 'Lý Thu Trang'),
+    step('compare', 'So sánh & đề xuất', '#d9822b', 'QS', 'Lưu Minh Trí'),
+    step('approval', 'Quản lý duyệt', 'var(--progress)', 'Ban giám đốc', 'Lâm Thanh Tùng'),
+    step('contract', 'Ký hợp đồng', '#c2185b', 'Phòng Mua hàng', 'Cao Nhật Tân'),
+    step('accounting', 'Kế toán tạm ứng', '#8b6fd6', 'Kế toán', 'Phan Bảo Ngọc'),
+    step('received', 'Nhận hàng', '#2a9bb0', 'Kho công trường', 'Hà Văn Kiên', { received: true }),
+    step('complete', 'Đủ hồ sơ', 'var(--done)', 'Phòng Mua hàng', 'Lý Thu Trang', { received: true }),
+    step('cancelled', 'Hủy', 'var(--overdue)', '', '', { closed: true }),
+  ] },
+  { key: 'blank', label: 'Trống', desc: 'Tự xây dựng từng bước', stages: [
+    step('s1', 'Bước 1', 'var(--notstarted)', '', ''),
+    step('done', 'Hoàn tất', 'var(--done)', '', '', { received: true }),
+  ] },
 ]
 
 export const INITIAL_PURCHASE_ITEMS = {
   pu1: [
-    { id: 'pu1-1', code: 'PO-0811', item: 'Thép CB300 Φ16–Φ25', supplier: 'Thép Hòa Phát', qty: '42 tấn', value: 756, due: '2026-08-30', owner: 'Lý Thu Trang', stage: 'received' },
-    { id: 'pu1-2', code: 'PO-0812', item: 'Xi măng PCB40', supplier: 'Xi măng Hà Tiên', qty: '1.200 bao', value: 108, due: '2026-09-02', owner: 'Lý Thu Trang', stage: 'received' },
+    { id: 'pu1-1', code: 'PO-0811', item: 'Thép CB300 Φ16–Φ25', supplier: 'Thép Hòa Phát', qty: '42 tấn', value: 756, due: '2026-08-30', owner: 'Lý Thu Trang', stage: 'complete' },
+    { id: 'pu1-2', code: 'PO-0812', item: 'Xi măng PCB40', supplier: 'Xi măng Hà Tiên', qty: '1.200 bao', value: 108, due: '2026-09-02', owner: 'Lý Thu Trang', stage: 'complete' },
     { id: 'pu1-3', code: 'PO-0813', item: 'Thép buộc 1mm', supplier: 'Thép Hòa Phát', qty: '600 kg', value: 14, due: '2026-09-04', owner: 'Lý Thu Trang', stage: 'received' },
   ],
   pu2: [
-    { id: 'pu2-1', code: 'PO-0901', item: 'Bê tông thương phẩm M300', supplier: 'Bê tông Việt Đức', qty: '320 m³', value: 448, due: '2026-09-06', owner: 'Lý Thu Trang', stage: 'received' },
-    { id: 'pu2-2', code: 'PO-0902', item: 'Cát vàng & đá 1x2', supplier: 'VLXD Phú Mỹ', qty: '180 m³', value: 62, due: '2026-09-08', owner: 'Lý Thu Trang', stage: 'received' },
-    { id: 'pu2-3', code: 'PO-0903', item: 'Ván khuôn phủ phim', supplier: 'Gỗ An Cường', qty: '450 tấm', value: 135, due: '2026-09-09', owner: 'Lý Thu Trang', stage: 'received' },
+    { id: 'pu2-1', code: 'PO-0901', item: 'Bê tông thương phẩm M300', supplier: 'Bê tông Việt Đức', qty: '320 m³', value: 448, due: '2026-09-06', owner: 'Lý Thu Trang', stage: 'complete' },
+    { id: 'pu2-2', code: 'PO-0902', item: 'Cát vàng & đá 1x2', supplier: 'VLXD Phú Mỹ', qty: '180 m³', value: 62, due: '2026-09-08', owner: 'Lý Thu Trang', stage: 'complete' },
+    { id: 'pu2-3', code: 'PO-0903', item: 'Ván khuôn phủ phim', supplier: 'Gỗ An Cường', qty: '450 tấm', value: 135, due: '2026-09-09', owner: 'Lý Thu Trang', stage: 'complete' },
   ],
   pu3: [
-    { id: 'pu3-1', code: 'PO-0951', item: 'Thép CB400 Φ28–Φ32 (cột)', supplier: 'Thép Hòa Phát', qty: '58 tấn', value: 1102, due: '2026-09-30', owner: 'Cao Nhật Tân', stage: 'received' },
-    { id: 'pu3-2', code: 'PO-0952', item: 'Thép sàn CB300 Φ10–Φ14', supplier: 'Thép Pomina', qty: '36 tấn', value: 612, due: '2026-10-03', owner: 'Cao Nhật Tân', stage: 'shipping' },
-    { id: 'pu3-3', code: 'PO-0953', item: 'Coupler nối thép Φ32', supplier: 'Dextra VN', qty: '2.400 bộ', value: 96, due: '2026-10-05', owner: 'Lý Thu Trang', stage: 'ordered' },
-    { id: 'pu3-4', code: 'PO-0954', item: 'Thép hình I300 (dầm chuyển)', supplier: 'Thép Pomina', qty: '12 tấn', value: 240, due: '2026-10-08', owner: 'Cao Nhật Tân', stage: 'ordered' },
+    { id: 'pu3-1', code: 'PO-0951', item: 'Thép CB400 Φ28–Φ32 (cột)', supplier: 'Thép Hòa Phát', qty: '58 tấn', value: 1102, due: '2026-09-30', owner: 'Cao Nhật Tân', stage: 'complete' },
+    { id: 'pu3-2', code: 'PO-0952', item: 'Thép sàn CB300 Φ10–Φ14', supplier: 'Thép Pomina', qty: '36 tấn', value: 612, due: '2026-10-03', owner: 'Cao Nhật Tân', stage: 'accounting' },
+    { id: 'pu3-3', code: 'PO-0953', item: 'Coupler nối thép Φ32', supplier: 'Dextra VN', qty: '2.400 bộ', value: 96, due: '2026-10-05', owner: 'Lý Thu Trang', stage: 'approval' },
+    { id: 'pu3-4', code: 'PO-0954', item: 'Thép hình I300 (dầm chuyển)', supplier: 'Thép Pomina', qty: '12 tấn', value: 240, due: '2026-10-08', owner: 'Cao Nhật Tân', stage: 'purchasing' },
     { id: 'pu3-5', code: 'PR-0955', item: 'Thép dự phòng tầng 6–10', supplier: 'Chưa chọn NCC', qty: '20 tấn', value: 360, due: '2026-10-08', owner: 'Cao Nhật Tân', stage: 'request' },
   ],
   pu4: [

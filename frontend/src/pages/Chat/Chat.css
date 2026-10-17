@@ -294,3 +294,91 @@ html[data-theme="dark"] .ch-conv-tabs button{color:var(--text-muted);}
 html[data-theme="dark"] .ch-req-wrap.t-dam-phan{--req-accent:#A58BEA;}
 html[data-theme="dark"] .ch-req-wrap.t-bao-gia-thi-cong{--req-accent:#E08AB4;}
 html[data-theme="dark"] .ch-req-wrap.t-thi-cong{--req-accent:#E8935A;}
+
+/* ---------- Rail chuyển Tin nhắn / Danh bạ ---------- */
+.ch-main{flex:1; display:flex; min-width:0; min-height:0;}
+.ch-main > .ch-chat-shell{flex:1;}
+.ch-rail{width:68px; flex:none; display:flex; flex-direction:column; align-items:center; gap:4px; padding:12px 0; background:var(--surface); border-right:1px solid var(--border);}
+.ch-rail button{width:56px; display:flex; flex-direction:column; align-items:center; gap:3px; padding:8px 0; border:none; border-radius:10px; background:none; color:var(--text-muted); font-size:10.5px; font-weight:600; cursor:pointer;}
+.ch-rail button:hover{background:var(--surface-alt); color:var(--text);}
+.ch-rail button.active{background:var(--primary-tint); color:var(--primary);}
+
+/* ---------- Danh bạ (kiểu Lark) ---------- */
+.ch-ct{flex:1; display:flex; min-width:0; min-height:0; background:var(--surface);}
+.ch-ct-nav{width:300px; flex:none; display:flex; flex-direction:column; gap:2px; padding:18px 12px; background:var(--bg); border-right:1px solid var(--border); overflow-y:auto;}
+.ch-ct-nav h2{font-size:20px; font-weight:700; padding:0 8px 8px;}
+.ch-ct-org, .ch-ct-item, .ch-ct-subitem{display:flex; align-items:center; gap:12px; width:100%; border:none; background:none; color:var(--text); font-family:inherit; font-size:14px; text-align:left; cursor:pointer; border-radius:9px;}
+.ch-ct-org{padding:9px 8px; font-weight:600; margin-bottom:4px;}
+.ch-ct-orgav{width:30px; height:30px; border-radius:50%; background:#3B82F6; color:#fff; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; flex:none;}
+.ch-ct-item{padding:11px 10px;}
+.ch-ct-ico{display:flex; flex:none;}
+.ch-ct-label{flex:1;}
+.ch-ct-org:hover, .ch-ct-item:hover, .ch-ct-subitem:hover{background:var(--surface-alt);}
+.ch-ct-org.active, .ch-ct-item.active, .ch-ct-subitem.active{background:var(--primary-tint); color:var(--primary);}
+.ch-ct-badge{min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:var(--danger); color:#fff; font-size:10.5px; font-weight:700; display:inline-flex; align-items:center; justify-content:center;}
+.ch-ct-sub{display:flex; flex-direction:column; gap:1px; margin:0 0 4px;}
+.ch-ct-subitem{padding:7px 10px 7px 30px; font-size:13.5px;}
+.ch-ct-elbow{width:9px; height:9px; border-left:1.5px solid var(--text-faint); border-bottom:1.5px solid var(--text-faint); margin-top:-6px; flex:none;}
+.ch-ct-panel{flex:1; min-width:0; display:flex; flex-direction:column;}
+.ch-ct-head{flex:none; display:flex; align-items:center; gap:10px; height:64px; padding:0 22px; border-bottom:1px solid var(--border);}
+.ch-ct-head h3{font-size:16px; font-weight:600;}
+.ch-ct-grow{flex:1;}
+.ch-ct-back{display:flex; border:none; background:none; color:var(--text-muted); cursor:pointer; padding:4px; border-radius:6px; transform:rotate(180deg);}
+.ch-ct-back:hover{background:var(--surface-alt);}
+.ch-ct-btn{display:inline-flex; align-items:center; gap:6px; height:36px; padding:0 14px; border-radius:8px; border:1px solid var(--primary); background:var(--surface); color:var(--primary); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; white-space:nowrap;}
+.ch-ct-btn:hover{background:var(--primary-tint);}
+.ch-ct-btn.solid{background:var(--primary); color:#fff;}
+.ch-ct-btn.solid:hover{filter:brightness(1.07);}
+.ch-ct-btn.ghost{border-color:var(--border); color:var(--text);}
+.ch-ct-btn:disabled{opacity:.5; cursor:default;}
+.ch-ct-list{flex:1; overflow-y:auto; padding:8px 12px 24px;}
+.ch-ct-row{display:flex; align-items:center; gap:14px; padding:12px 12px; border-radius:10px; cursor:pointer;}
+.ch-ct-row:hover{background:var(--surface-alt);}
+.ch-ct-av{border-radius:50%; color:#fff; font-weight:700; display:inline-flex; align-items:center; justify-content:center; flex:none;}
+.ch-ct-av.sq{width:40px; height:40px; border-radius:10px;}
+.ch-ct-main{flex:1; min-width:0; display:flex; flex-direction:column; gap:1px;}
+.ch-ct-main b{font-size:15px; font-weight:500;}
+.ch-ct-main span{font-size:12.5px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.ch-ct-actions{display:flex; align-items:center; gap:6px; opacity:0; transition:opacity .15s ease;}
+.ch-ct-row:hover .ch-ct-actions, .ch-ct-actions.show, .ch-ct-actions:focus-within{opacity:1;}
+.ch-ct-star{width:30px; height:30px; border:none; border-radius:8px; background:none; color:var(--text-faint); display:flex; align-items:center; justify-content:center; cursor:pointer;}
+.ch-ct-star:hover{background:var(--surface); color:#E08A1E;}
+.ch-ct-star.on{color:#E08A1E;}
+.ch-ct-row:has(.ch-ct-star.on) .ch-ct-actions{opacity:1;}
+.ch-ct-msg{display:inline-flex; align-items:center; gap:5px; height:30px; padding:0 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer;}
+.ch-ct-msg:hover{border-color:var(--primary); color:var(--primary);}
+.ch-ct-me{font-size:11.5px; color:var(--text-faint);}
+.ch-ct-status{font-size:13px; color:var(--text-faint); text-align:center; max-width:90px; line-height:1.3; flex:none;}
+.ch-ct-status.ok{color:var(--success); font-weight:600;}
+.ch-ct-chev{color:var(--text-faint); display:flex;}
+.ch-ct-empty{padding:40px 20px; text-align:center; color:var(--text-muted); font-size:13px;}
+.ch-ct-cardwrap{display:flex; flex-direction:column; align-items:center; padding:30px 16px;}
+.ch-ct-card{width:360px; max-width:100%; display:flex; flex-direction:column; gap:10px; padding:22px; border-radius:16px; border:1px solid var(--border); background:linear-gradient(160deg, var(--primary-tint), var(--surface) 60%); box-shadow:0 10px 30px rgba(20,25,35,.08);}
+.ch-ct-card-top{display:flex; align-items:center; gap:14px; margin-bottom:6px;}
+.ch-ct-card-top > div{display:flex; flex-direction:column;}
+.ch-ct-card-top b{font-size:18px;}
+.ch-ct-card-top span{font-size:12.5px; color:var(--text-muted);}
+.ch-ct-card-line{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text);}
+.ch-ct-card-line svg{color:var(--text-muted);}
+.ch-ct-qr{align-self:center; display:grid; grid-template-columns:repeat(9, 12px); gap:2px; padding:10px; margin:6px 0; background:#fff; border-radius:8px;}
+.ch-ct-qr i{width:12px; height:12px; border-radius:2px; background:#fff;}
+.ch-ct-qr i.on{background:#161A22;}
+.ch-ct-card .ch-ct-btn{justify-content:center;}
+.ch-ct-hint{font-size:12px; color:var(--text-muted); margin-top:12px;}
+.ch-ct-modal{position:fixed; inset:0; z-index:120; background:rgba(15,18,25,.45); display:flex; align-items:center; justify-content:center; padding:16px;}
+.ch-ct-modal-box{width:440px; max-width:100%; display:flex; flex-direction:column; gap:10px; padding:20px 22px; border-radius:16px; background:var(--surface); box-shadow:0 30px 80px rgba(0,0,0,.35);}
+.ch-ct-modal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;}
+.ch-ct-modal-head h3{font-size:16px; font-weight:700;}
+.ch-ct-x{border:none; background:none; color:var(--text-muted); cursor:pointer; display:flex; padding:4px;}
+.ch-ct-field{display:flex; flex-direction:column; gap:5px;}
+.ch-ct-field span{font-size:12px; font-weight:600; color:var(--text-muted);}
+.ch-ct-field input{height:38px; padding:0 12px; border-radius:9px; border:1px solid var(--border); background:var(--surface-alt); color:var(--text); font-size:13px; font-family:inherit;}
+.ch-ct-field input:focus{outline:none; border-color:var(--primary); background:var(--surface);}
+.ch-ct-modal-foot{display:flex; justify-content:flex-end; gap:8px; margin-top:6px;}
+@media (max-width:900px){ .ch-ct-nav{width:230px;} .ch-rail{width:56px;} .ch-rail span{display:none;} }
+
+/* Danh bạ: nút quay lại tin nhắn (thay cho thanh rail đã bỏ) */
+.ch-ct-title{display:flex; align-items:center; gap:4px; padding:0 0 8px;}
+.ch-ct-title h2{padding:0 8px 0 4px;}
+.ch-ct-tomsg{display:grid; place-items:center; width:32px; height:32px; border:none; border-radius:9px; background:none; color:var(--text-muted); cursor:pointer;}
+.ch-ct-tomsg:hover{background:var(--surface-alt); color:var(--text);}

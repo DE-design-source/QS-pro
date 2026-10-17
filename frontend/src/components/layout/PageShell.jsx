@@ -4,7 +4,8 @@ export default function PageShell({ title, subtitle, icon, topbarChildren, child
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <Topbar title={title} subtitle={subtitle} icon={icon}>{topbarChildren}</Topbar>
-      <div style={{ flex: 1, overflow: 'auto' }}>
+      {/* Lề nội dung dùng chung --page-gutter như các trang khác */}
+      <div style={{ flex: 1, overflow: 'auto', padding: 'var(--page-gutter)', boxSizing: 'border-box' }}>
         {children}
       </div>
     </div>

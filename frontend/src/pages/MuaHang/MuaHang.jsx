@@ -4,6 +4,7 @@ import './MuaHang.css'
 import { useTheme } from '../../hooks/useTheme'
 import { PURCHASE_ORDERS, PO_STATUS, PO_FILTERS, KPIS } from '../../data/muaHangData'
 import Dezbot, { loadAiPanelWidth } from './components/Dezbot'
+import DeptStaff from '../../components/hr/DeptStaff'
 
 export default function MuaHang() {
   const { theme, toggleTheme } = useTheme()
@@ -11,6 +12,7 @@ export default function MuaHang() {
   const [aiOpen, setAiOpen] = useState(false)
   const [aiWidth, setAiWidth] = useState(loadAiPanelWidth)
   const [aiResizing, setAiResizing] = useState(false)
+  const [pageTab, setPageTab] = useState('main') // main | nhansu
 
   return (
     <div
@@ -22,8 +24,10 @@ export default function MuaHang() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
         </div>
         <span style={{ fontSize: 14.5, fontWeight: 700 }}>Mua hàng</span>
-        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Đơn mua hàng vật tư — đồng bộ từ bóc tách QS</span>
-        <span style={{ flex: 1 }} />
+        <div className="hdr-tabs" role="tablist">
+          <button className={`hdr-tab${pageTab === 'main' ? ' active' : ''}`} onClick={() => setPageTab('main')}>Tổng quan</button>
+          <button className={`hdr-tab${pageTab === 'nhansu' ? ' active' : ''}`} onClick={() => setPageTab('nhansu')}>Cơ cấu phòng ban</button>
+        </div>
         <Link to="/qs" className="mh-qs-link">Xem bóc tách tại QS ›</Link>
         <button className="mh-theme-toggle" title="Chuyển giao diện sáng/tối" onClick={toggleTheme}>
           {theme === 'dark'
@@ -32,7 +36,7 @@ export default function MuaHang() {
         </button>
       </div>
 
-      <div className="mh-scroll">
+      <div className="mh-scroll" style={pageTab === 'nhansu' ? { display: 'none' } : undefined}>
         <div className="mh-kpi-grid">
           {KPIS.map(k => (
             <div key={k.label} className="mh-card mh-kpi">
@@ -90,6 +94,12 @@ export default function MuaHang() {
           </div>
         </div>
       </div>
+
+      {pageTab === 'nhansu' && (
+        <div className="mh-scroll">
+          <DeptStaff units={['muahang']} />
+        </div>
+      )}
 
       <Dezbot
         open={aiOpen}

@@ -7,6 +7,7 @@ export const QS_TABS = [
   { key: 'quote', label: 'Xuất báo giá', icon: 'fileText' },
   { key: 'po', label: 'Mua hàng', icon: 'cart' },
   { key: 'projects', label: 'Dự án', icon: 'scan' },
+  { key: 'nhansu', label: 'Cơ cấu phòng ban', icon: 'users' },
 ]
 
 /* status: doing | draft | done */
@@ -60,25 +61,6 @@ export const ROOM_BREAKDOWN = [
     { name: 'Đèn thả bàn ăn Pendant', brand: 'MPE', qty: '2', price: '1.250.000', amount: '2.500.000' },
     { name: 'Đèn âm trần Downlight 9W', brand: 'Rạng Đông', qty: '6', price: '145.000', amount: '870.000' },
   ] },
-]
-
-/* ---------- Danh sách sản phẩm ---------- */
-export const PRODUCTS = [
-  { name: 'Đèn âm trần Downlight 9W', brand: 'Rạng Đông', cat: 'Đèn âm trần', power: '9W', cct: '4000K', angle: '90°', price: '145.000 đ' },
-  { name: 'Đèn LED âm trần Spotlight 12W', brand: 'Philips', cat: 'Đèn spotlight', power: '12W', cct: '3000K', angle: '36°', price: '320.000 đ' },
-  { name: 'Đèn thả bàn ăn Pendant', brand: 'MPE', cat: 'Đèn trang trí', power: '40W', cct: '3000K', angle: '120°', price: '1.250.000 đ' },
-  { name: 'Đèn ốp trần nổi tròn 24W', brand: 'Điện Quang', cat: 'Đèn ốp trần', power: '24W', cct: '4000K', angle: '180°', price: '285.000 đ' },
-  { name: 'Đèn hắt tủ LED thanh (m)', brand: 'Rạng Đông', cat: 'Đèn hắt', power: '5W/m', cct: '3000K', angle: '120°', price: '95.000 đ' },
-  { name: 'Đèn cầu thang âm tường', brand: 'MPE', cat: 'Đèn âm tường', power: '3W', cct: '3000K', angle: '60°', price: '165.000 đ' },
-  { name: 'Đèn chùm phòng khách', brand: 'Hồng Phúc', cat: 'Đèn chùm', power: '60W', cct: '3000K', angle: '360°', price: '4.800.000 đ' },
-  { name: 'Đèn gương nhà tắm LED', brand: 'Rạng Đông', cat: 'Đèn gương', power: '15W', cct: '6500K', angle: '100°', price: '220.000 đ' },
-]
-export const PRODUCT_CATEGORIES = ['Đèn âm trần', 'Đèn spotlight', 'Đèn trang trí', 'Đèn ốp trần', 'Đèn hắt', 'Đèn âm tường', 'Đèn chùm', 'Đèn gương']
-export const PRODUCT_BRANDS = ['Rạng Đông', 'Philips', 'MPE', 'Điện Quang', 'Hồng Phúc']
-export const STATIC_FILTERS = [
-  { title: 'Công suất', options: ['<10W', '10–20W', '20–40W', '>40W'] },
-  { title: 'Nhiệt độ màu', options: ['3000K', '4000K', '6500K'] },
-  { title: 'Góc chiếu sáng', options: ['<60°', '60–120°', '>120°'] },
 ]
 
 const QS_COLORS = ['#6D4FC2', '#2F5DA8', '#0E8A82', '#B7791F', '#C0392B', '#1E8E5A']

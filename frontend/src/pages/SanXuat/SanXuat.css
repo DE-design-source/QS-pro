@@ -57,13 +57,13 @@ html[data-theme="dark"][data-accent="teal"] .sx-page{--primary:#3FC2B6; --primar
 .sx-page ::-webkit-scrollbar-thumb{background:#cbd1da; border-radius:5px;}
 
 /* ---------- Header + thanh tab ---------- */
-.sx-header{height:64px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 28px; background:var(--surface); gap:12px;}
+.sx-header{height:64px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 var(--page-gutter); background:var(--surface); gap:12px;}
 .sx-header-icon{width:30px; height:30px; border-radius:8px; background:var(--wood-tint); color:var(--wood); display:flex; align-items:center; justify-content:center; flex:none;}
 .sx-theme-toggle{width:34px; height:34px; border-radius:9px; border:1px solid var(--border); background:var(--surface-alt); color:var(--text-muted); display:flex; align-items:center; justify-content:center; cursor:pointer;}
-.sx-tabs-row{height:52px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 28px; background:var(--surface); gap:4px;}
+.sx-tabs-row{height:52px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 var(--page-gutter); background:var(--surface); gap:4px;}
 .sx-tab{border:none; cursor:pointer; padding:7px 14px; border-radius:8px; background:none; color:var(--text-muted); font-size:13px; font-weight:600;}
 .sx-tab.active{background:var(--wood-tint); color:var(--wood);}
-.sx-scroll{flex:1; padding:22px 28px; overflow-y:auto; overflow-x:hidden;}
+.sx-scroll{flex:1; padding:var(--page-gutter); overflow-y:auto; overflow-x:hidden;}
 .sx-panel{display:none; flex-direction:column; gap:16px;}
 .sx-panel.active{display:flex;}
 

@@ -389,3 +389,24 @@ html[data-wallpaper]:not([data-wallpaper="none"]) :is(.app-sidebar, .sidebar-fly
 /* Kính sáng ở chế độ sáng, kính tối ở chế độ tối; chữ đậm hơn một bậc vì nền sidebar lúc này có màu */
 html[data-theme="light"][data-wallpaper]:not([data-wallpaper="none"]){ --sb-wall: rgba(255,255,255,.66); --sb-wall-border: rgba(255,255,255,.6); --sb-text: #2F3644; --sb-muted: #4B5563; }
 html[data-theme="dark"][data-wallpaper]:not([data-wallpaper="none"]){ --sb-wall: rgba(14,17,28,.56); --sb-wall-border: rgba(255,255,255,.14); --sb-text: #DDE2EE; --sb-muted: #A9B1C4; }
+
+/* 6) Hộp thoại / danh sách nổi đặt tên riêng (không theo mẫu *-modal, *-popover…): nền kính đậm + làm mờ để chữ không lẫn với nội dung phía sau */
+html:is([data-ui-theme="glass"], [data-ui-theme="super-glass"]) body :is(.it-ct, .it-ct-pick-list, .tk-pf, .tk-pb-bell, .tk-sa-list, .tk-pb-detail, .cc-add-menu, .kd-hscroll){
+  background: var(--glass-surface-strong, var(--sg-surface-strong, var(--surface))) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(160%); backdrop-filter: blur(30px) saturate(160%);
+}
+html:is([data-ui-theme="glass"], [data-ui-theme="super-glass"]) body :is(.it-ct-overlay, .tk-pf-overlay){
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+
+/* 7) Khung Dezbot (*-ai-panel) là cột riêng bên phải: nền đặc + đường chia rõ để không trông như đè lên nội dung trang */
+html:is([data-ui-theme="glass"], [data-ui-theme="super-glass"]) body [class*="-ai-panel"]{
+  background: var(--glass-surface-strong, var(--sg-surface-strong, rgba(28,32,44,.92))) !important;
+  -webkit-backdrop-filter: blur(36px) saturate(150%); backdrop-filter: blur(36px) saturate(150%);
+}
+html[data-theme="dark"]:is([data-ui-theme="glass"], [data-ui-theme="super-glass"]) body [class*="-ai-panel"]{ background: rgba(20,23,32,.94) !important; }
+html[data-theme="light"]:is([data-ui-theme="glass"], [data-ui-theme="super-glass"]) body [class*="-ai-panel"]{ background: rgba(255,255,255,.94) !important; }
+body [class*="-ai-panel"][class*="open"], body [class*="-ai-panel"].open{
+  border-left: 1px solid color-mix(in srgb, var(--text-muted, #8a8f98) 35%, transparent) !important;
+  box-shadow: -18px 0 44px rgba(0,0,0,.28) !important;
+}

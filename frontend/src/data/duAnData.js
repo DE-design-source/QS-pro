@@ -385,3 +385,6 @@ export function matchTopic(text) {
   if (has('quy trình')) return 'quytrinh'
   return 'default'
 }
+
+/* Mua hàng & cung ứng — dùng chung quy trình & đơn mua hàng với Quản lý thiết kế (bảng kanban mua hàng ở tab Tiến độ) */
+export { PURCHASE_PHASE_ID, INITIAL_PURCHASE_ITEMS, PO_STAGES } from './quanLyThietKeData'

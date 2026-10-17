@@ -104,6 +104,7 @@ export const MAIN_TABS = [
   { id: 'catalog', label: 'Danh mục' },
   { id: 'quote', label: 'Báo giá' },
   { id: 'tasks', label: 'Nhiệm vụ' },
+  { id: 'staff', label: 'Cơ cấu phòng ban' },
 ]
 
 /* ---------- Mẫu báo giá ---------- */

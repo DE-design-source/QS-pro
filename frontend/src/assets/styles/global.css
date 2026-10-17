@@ -191,6 +191,9 @@ a:hover { color: #1F4585; }
 ::-webkit-scrollbar-thumb { background: transparent; border-radius: 10px; transition: background 0.2s ease; }
 *:hover::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); }
 
+/* Lề trái/phải của nội dung mỗi trang (tiêu đề, hàng tab, vùng cuộn). Đổi một chỗ là mọi trang đổi theo. */
+html { --page-gutter: 10px; }
+
 /* ===== App Shell ===== */
 .app-shell {
   width: 100%;
@@ -217,6 +220,9 @@ html[data-theme="light"] {
 /* Đường kẻ ngăn sidebar với nội dung (vẽ bằng bóng trong để không hiện khi sidebar thu về 0px) */
 .app-sidebar { transition: width 0.18s ease, background 0.15s ease, color 0.15s ease; box-shadow: inset -1px 0 0 var(--sb-border); }
 html[data-sidebar-pos="right"] .app-sidebar { box-shadow: inset 1px 0 0 var(--sb-border); }
+/* Menu của sidebar vẫn cuộn được khi màn hình thấp hoặc chữ to, nhưng không hiện thanh cuộn (thanh cuộn chiếm mất một dải bên phải menu) */
+:is(.app-sidebar, .sidebar-menu) nav { scrollbar-width: none; }
+:is(.app-sidebar, .sidebar-menu) nav::-webkit-scrollbar { display: none; }
 .app-sidebar a { position: relative; }
 .app-sidebar.collapsed { width: 76px !important; }
 .app-sidebar.collapsed .brand { flex-direction: column !important; gap: 8px !important; }
@@ -344,3 +350,19 @@ html[data-sidebar-pos="right"] .sidebar-flyout-clone {
 }
 .ai-msg.user { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
 .ai-msg.bot  { align-self: flex-start; background: var(--surface-alt); color: var(--text); border-bottom-left-radius: 4px; }
+
+/* Tab nằm chung hàng với tiêu đề trang (kiểu trang QS): tiêu đề | các tab … | nút thao tác */
+.hdr-tabs{flex:1; min-width:0; display:flex; align-items:center; gap:4px; margin-left:8px; padding-left:16px; border-left:1px solid var(--border); overflow-x:auto; scrollbar-width:none;}
+.hdr-tabs::-webkit-scrollbar{display:none;}
+.hdr-tabs.plain{overflow:visible;}
+.hdr-tabs > *{flex:none;}
+.hdr-tabs.plain > .mk-tab-list{flex:1 1 auto;}
+.hdr-tab{border:none; cursor:pointer; white-space:nowrap; padding:7px 14px; border-radius:8px; background:none; color:var(--text-muted); font:inherit; font-size:13px;}
+.hdr-tab:hover{color:var(--text);}
+.hdr-tab.active{background:var(--primary-tint); color:var(--primary); font-weight:600;}
+
+/* Hàng tab trên header tự thu gọn khi thiếu chỗ (gắn lớp bằng hooks/useHeaderTabsFit) */
+.hdr-tabs.fit-1, .hdr-tabs.fit-2{margin-left:4px; padding-left:10px; gap:2px;}
+.hdr-tabs.fit-1 > :is(button, div, a){padding-left:9px !important; padding-right:9px !important;}
+.hdr-tabs.fit-2 > :is(button, div, a){padding-left:7px !important; padding-right:7px !important; font-size:12px !important;}
+.hdr-tabs.overflow{-webkit-mask-image:linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image:linear-gradient(90deg, #000 calc(100% - 28px), transparent);}

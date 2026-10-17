@@ -158,7 +158,7 @@ export default function Lich() {
       style={{ '--ai-panel-width': `${aiWidth}px` }}
     >
       {/* HEADER */}
-      <div style={{ height: 64, flex: 'none', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', padding: '0 28px', boxSizing: 'border-box', background: 'var(--surface)', gap: 12 }}>
+      <div style={{ height: 64, flex: 'none', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', padding: '0 var(--page-gutter)', boxSizing: 'border-box', background: 'var(--surface)', gap: 12 }}>
         <div style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--primary-tint)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
         </div>
@@ -173,7 +173,7 @@ export default function Lich() {
         </button>
       </div>
 
-      <div style={{ flex: 1, padding: '18px 28px 22px', boxSizing: 'border-box', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 14, minHeight: 0 }}>
+      <div style={{ flex: 1, padding: 'var(--page-gutter) var(--page-gutter) 22px', boxSizing: 'border-box', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 14, minHeight: 0 }}>
 
         {/* Banner xung đột đồng bộ (demo) */}
         <div className={`lc-sync-conflict-banner${bannerShown ? ' show' : ''}`}>

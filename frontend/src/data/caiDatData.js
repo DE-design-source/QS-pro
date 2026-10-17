@@ -64,6 +64,59 @@ export const NOTIFY_CHANNELS = [
   { title: 'Bản tin tổng hợp email hàng tuần', desc: 'Gửi mỗi thứ Hai lúc 8:00', on: false },
 ]
 
+/* ---------- Cài đặt người dùng (Chung, Quyền riêng tư, Hiệu suất, Thông báo, Phím tắt, Lịch, Nhiệm vụ) ----------
+   Giá trị mặc định của localStorage "siteflow-settings" */
+export const SETTINGS_DEFAULTS = {
+  /* Chung */
+  msgAlign: 'both', language: 'vi', time24h: true, tzMode: 'device', tzCustom: 'Asia/Ho_Chi_Minh',
+  /* Quyền riêng tư */
+  findByEmail: true, findByPhone: false, notifyPhoneView: true,
+  addByCard: true, addByQr: true,
+  addFromChat: true, addFromEvent: true, addFromWiki: true, addFromProject: true,
+  dmFrom: 'contacts', tzDisplay: 'show', blocklist: [],
+  /* Hiệu suất */
+  chatStart: 'left-off', autoNextChat: true,
+  smartFix: true, smartFixMsg: true, smartFixWiki: true,
+  wikiTerms: true, wikiTermsMsg: true, wikiTermsWiki: true,
+  openLinks: 'new-tab', status: 'working', statusSyncCalendar: true,
+  /* Thông báo */
+  notifyMsg: true, notifyAll: true, notifyBuzz: true, notifyMention: true, notifyMentionAll: true, notifyDirect: true, notifyStarred: true,
+  notifyMuted: false, notifyCollapsed: false, notifyDnd: true,
+  notifySound: true, notifyBanner: true, bannerDetail: 'show', mutedBadge: 'gray', mutedNav: 'show',
+  /* Phím tắt */
+  sendKey: 'enter',
+  /* Lịch */
+  eventAlert: '5', allDayAlert: 'day-8', eventDuration: '30', eventColor: 'modern', weekStart: 'mon',
+  weekNumbers: false, workHours: false, workStart: '08:00', workEnd: '17:30',
+  dimPast: true, showDeclined: true, muteDeclined: true, notifyDecline: false, upcomingInFeed: true,
+  tzExtra: 'none', lunar: true,
+  /* Nhiệm vụ */
+  taskDaily: true, taskWeekly: true, taskBadge: true, taskBadgeMode: 'overdue', taskAlert: 'due-9',
+}
+
+export const TIME_ZONES = [
+  ['Asia/Ho_Chi_Minh', '(GMT+07:00) Hồ Chí Minh, Hà Nội, Bangkok'],
+  ['Asia/Singapore', '(GMT+08:00) Singapore, Kuala Lumpur'],
+  ['Asia/Tokyo', '(GMT+09:00) Tokyo, Seoul'],
+  ['Australia/Sydney', '(GMT+10:00) Sydney'],
+  ['Europe/London', '(GMT+00:00) London'],
+  ['Europe/Paris', '(GMT+01:00) Paris, Berlin'],
+  ['America/New_York', '(GMT-05:00) New York'],
+  ['America/Los_Angeles', '(GMT-08:00) Los Angeles'],
+]
+
+export const SHORTCUTS = [
+  { label: 'Tìm kiếm nhanh', keys: ['Ctrl', 'K'] },
+  { label: 'Mở Dezbot', keys: ['Ctrl', 'J'] },
+  { label: 'Thu gọn / mở rộng sidebar', keys: ['Ctrl', 'B'] },
+  { label: 'Tạo nhiệm vụ mới', keys: ['Ctrl', 'Shift', 'T'] },
+  { label: 'Tạo sự kiện lịch', keys: ['Ctrl', 'Shift', 'E'] },
+  { label: 'Chuyển giao diện sáng / tối', keys: ['Ctrl', 'Shift', 'L'] },
+  { label: 'Sang cuộc trò chuyện kế tiếp', keys: ['Alt', '↓'] },
+  { label: 'Về cuộc trò chuyện trước', keys: ['Alt', '↑'] },
+  { label: 'Đánh dấu chat là "Xong"', keys: ['Ctrl', 'D'] },
+]
+
 /* ---------- Workspace ---------- */
 export const WORKSPACE_MEMBERS = [
   { name: 'Trần Anh', role: 'Quản lý dự án', perm: 'Quản trị', admin: true },

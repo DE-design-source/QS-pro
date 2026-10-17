@@ -1,8 +1,20 @@
 import { useState } from 'react'
 import './IT.css'
 import { useTheme } from '../../hooks/useTheme'
-import { TICKETS, PRIO_LABEL, PRIO_COLOR, TICKET_STATUS, ASSETS, ASSET_STATUS, isOpenTicket } from '../../data/itData'
+import { TICKETS, ASSETS, ASSET_STATUS, isOpenTicket, TICKET_GROUPS, PRIO_LABEL, PRIO_COLOR, TICKET_CATEGORIES, IT_STAGES, IT_FLOW_TEMPLATES, categoryOf, buildTicketTasks, statusFromTasks } from '../../data/itData'
+import { INITIAL_HR_EMPLOYEES, deptOf } from '../../data/hrData'
+import FlowBoard from '../../components/kanban/FlowBoard'
+
+/* Nhân sự & phòng ban cho bảng quy trình (lấy từ HR) */
+const BOARD_PEOPLE = INITIAL_HR_EMPLOYEES.filter(e => e.status !== 'left').map(e => ({ name: e.name, role: e.position, dept: deptOf(e.dept).name }))
+const BOARD_DEPTS = [...new Set(BOARD_PEOPLE.map(p => p.dept))]
+const GROUP = Object.fromEntries(TICKET_GROUPS.map(([k, l, c]) => [k, { label: l, color: c }]))
+const CATEGORY = Object.fromEntries(TICKET_CATEGORIES)
 import Dezbot, { loadAiPanelWidth } from './components/Dezbot'
+import DeptStaff from '../../components/hr/DeptStaff'
+import TicketList from './components/TicketList'
+import ReleaseNotes from './components/ReleaseNotes'
+import CreateTicketModal from './components/CreateTicketModal'
 
 function StatusBadge({ status }) {
   const [label, color, bg] = status
@@ -45,8 +57,40 @@ export default function IT() {
   const [aiOpen, setAiOpen] = useState(false)
   const [aiWidth, setAiWidth] = useState(loadAiPanelWidth)
   const [aiResizing, setAiResizing] = useState(false)
+  const [pageTab, setPageTab] = useState('main') // main | nhansu
+  const [tickets, setTickets] = useState(TICKETS)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [toast, setToast] = useState(null)
+  const [newId, setNewId] = useState(null)
+  const [boardId, setBoardId] = useState(null) // yêu cầu đang mở dạng kanban
+  const [tasksBy, setTasksBy] = useState({}) // id yêu cầu → công việc trên bảng
+  const [stagesBy, setStagesBy] = useState({}) // id yêu cầu → quy trình đã chỉnh
+  const boardTicket = tickets.find(t => t.id === boardId)
+  const executorsOf = t => t.roles?.find(r => /thực thi/i.test(r.label))?.people || []
+  const tasksOf = t => tasksBy[t.id] || buildTicketTasks(t, executorsOf(t))
+  const stagesOf = t => stagesBy[t.id] || IT_STAGES
+  // Công việc thay đổi → cập nhật trạng thái yêu cầu theo bảng
+  function changeTasks(fn) {
+    const t = boardTicket
+    const next = fn(tasksOf(t))
+    setTasksBy(m => ({ ...m, [t.id]: next }))
+    const status = statusFromTasks(next, stagesOf(t), t.status)
+    if (status !== t.status) setTickets(prev => prev.map(x => (x.id === t.id ? { ...x, status } : x)))
+  }
 
-  const openTickets = TICKETS.filter(isOpenTicket).length
+  function createTicket(data) {
+    const id = Math.max(...tickets.map(t => t.id)) + 1
+    const today = new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    setTickets(prev => [{ id, status: 'moi', date: today, assignee: data.roles.find(r => /thực thi/i.test(r.label))?.people[0] || '', ...data }, ...prev])
+    setCreateOpen(false)
+    setPageTab('main')
+    setNewId(id)
+    const notified = [...new Set(data.roles.flatMap(r => r.people))]
+    setToast(`Đã tạo yêu cầu #${id}${notified.length ? ` · đã gửi thông báo tới ${notified.join(', ')}` : ''}`)
+    setTimeout(() => setToast(null), 3500)
+  }
+
+  const openTickets = tickets.filter(isOpenTicket).length
 
   return (
     <div
@@ -58,8 +102,14 @@ export default function IT() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>
         </div>
         <span style={{ fontSize: 14.5, fontWeight: 700 }}>IT</span>
-        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Quản lý hạ tầng CNTT, thiết bị &amp; yêu cầu hỗ trợ</span>
-        <span style={{ flex: 1 }} />
+        <div className="hdr-tabs" role="tablist">
+          <button className={`hdr-tab${pageTab === 'main' ? ' active' : ''}`} onClick={() => { setPageTab('main'); setBoardId(null) }}>Tổng quan</button>
+          <button className={`hdr-tab${pageTab === 'nhansu' ? ' active' : ''}`} onClick={() => { setPageTab('nhansu'); setBoardId(null) }}>Cơ cấu phòng ban</button>
+        </div>
+        <button className="it-create-btn" onClick={() => setCreateOpen(true)}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+          Tạo yêu cầu
+        </button>
         <button className="it-theme-toggle" title="Chuyển giao diện sáng/tối" onClick={toggleTheme}>
           {theme === 'dark'
             ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
@@ -67,7 +117,7 @@ export default function IT() {
         </button>
       </div>
 
-      <div className="it-scroll">
+      <div className="it-scroll" style={pageTab === 'nhansu' || boardTicket ? { display: 'none' } : undefined}>
         <div className="it-content">
           <div className="it-kpi-grid">
             <Kpi label="Ticket đang mở" value={openTickets}>
@@ -84,22 +134,8 @@ export default function IT() {
             </Kpi>
           </div>
 
-          <Section
-            title="Yêu cầu hỗ trợ"
-            meta={`${TICKETS.length} yêu cầu gần đây`}
-            headers={['Người yêu cầu', 'Vấn đề', 'Mức độ ưu tiên', 'Trạng thái', 'Ngày tạo']}
-            icon={<svg {...iconProps}><path d="M2 9a3 3 0 0 1 0 6v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3a3 3 0 0 1 0-6V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z" /></svg>}
-          >
-            {TICKETS.map(t => (
-              <tr key={t.requester + t.date}>
-                <td style={{ fontWeight: 700 }}>{t.requester}</td>
-                <td>{t.issue}</td>
-                <td><span className="it-prio-dot" style={{ background: PRIO_COLOR[t.priority] }} />{PRIO_LABEL[t.priority]}</td>
-                <td><StatusBadge status={TICKET_STATUS[t.status]} /></td>
-                <td className="mono">{t.date}</td>
-              </tr>
-            ))}
-          </Section>
+          <TicketList tickets={tickets} highlightId={newId} onOpen={t => setBoardId(t.id)} />
+          <ReleaseNotes />
 
           <Section
             title="Thiết bị & tài sản CNTT"
@@ -118,6 +154,51 @@ export default function IT() {
           </Section>
         </div>
       </div>
+
+      {pageTab === 'nhansu' && (
+        <div className="it-scroll">
+          <DeptStaff units={['it']} />
+        </div>
+      )}
+
+      {boardTicket && (
+        <FlowBoard
+          open
+          variant="page"
+          backLabel="Danh sách yêu cầu"
+          onClose={() => setBoardId(null)}
+          accent="var(--it)"
+          kicker={`Yêu cầu hỗ trợ #${boardTicket.id}`}
+          title={boardTicket.issue}
+          itemNoun="công việc"
+          codePrefix={`#${boardTicket.id}`}
+          codeSep="."
+          stages={stagesOf(boardTicket)}
+          onStagesChange={s => setStagesBy(m => ({ ...m, [boardTicket.id]: s }))}
+          templates={IT_FLOW_TEMPLATES}
+          people={BOARD_PEOPLE}
+          depts={BOARD_DEPTS}
+          items={tasksOf(boardTicket)}
+          onItemsChange={changeTasks}
+          meta={[
+            { label: 'Trạng thái', value: <><i className="it-meta-dot" style={{ background: GROUP[boardTicket.status]?.color }} />{GROUP[boardTicket.status]?.label}</> },
+            { label: 'Người yêu cầu', value: boardTicket.requester },
+            { label: 'Mức độ', value: <><i className="it-meta-dot" style={{ background: PRIO_COLOR[boardTicket.priority] }} />{PRIO_LABEL[boardTicket.priority]}</> },
+            { label: 'Hạng mục', value: CATEGORY[categoryOf(boardTicket)] },
+            { label: 'Ngày tạo', value: boardTicket.date },
+            ...(boardTicket.deadline ? [{ label: 'Deadline dự kiến', value: boardTicket.deadline }] : []),
+            ...(boardTicket.roles?.length ? boardTicket.roles.map(r => ({ label: r.label, value: r.people.join(', ') })) : [{ label: 'Phụ trách', value: boardTicket.assignee || '—' }]),
+          ]}
+          info={(boardTicket.desc || boardTicket.images?.length) ? (
+            <>
+              {boardTicket.desc && <p className="it-board-desc">{boardTicket.desc}</p>}
+              {boardTicket.images?.length > 0 && <div className="it-tl-imgs">{boardTicket.images.map(im => <a key={im.url} href={im.url} target="_blank" rel="noreferrer"><img src={im.url} alt={im.name} /></a>)}</div>}
+            </>
+          ) : null}
+        />
+      )}
+      <CreateTicketModal open={createOpen} onClose={() => setCreateOpen(false)} onCreate={createTicket} />
+      {toast && <div className="it-toast">{toast}</div>}
 
       <Dezbot
         open={aiOpen}

@@ -1,7 +1,9 @@
 import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
+import useHeaderTabsFit from '../../hooks/useHeaderTabsFit'
 
 export default function AppShell() {
+  useHeaderTabsFit()
   return (
     <div className="app-shell">
       <Sidebar />

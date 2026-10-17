@@ -1,11 +1,8 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import {
-  TODAY, INITIAL_PHASES, INITIAL_COMMENTS, ME_NAME, CASHFLOW_DATA, PROJECT_SHORTLIST,
-  RANGE_START, RANGE_END, TOTAL_DAYS, STATUS_LABEL,
-  parseD, dayDiff, fmt, fmtFull, toISO, statusOf, fmtTyQ, avatarColor, initials,
-  PURCHASE_PHASE_ID, INITIAL_PURCHASE_ITEMS,
-} from '../../../data/quanLyThietKeData'
+/* Dữ liệu mặc định của Quản lý thiết kế; trang khác (Quản lý dự án) truyền bộ dữ liệu riêng qua prop `data` */
+import * as QLTK_DATA from '../../../data/quanLyThietKeData'
 import TaskDrawer from './TaskDrawer'
+import GanttItemModal from './GanttItemModal'
 import PurchaseBoard from './PurchaseBoard'
 
 const STATS_EXPANDED_H = 200
@@ -29,7 +26,7 @@ function loadTasklistWidth() {
 }
 
 /* Đường kẻ tuần + nền cuối tuần — dựng một lần cho mỗi mức zoom, dùng lại cho mọi hàng */
-function GridLines({ dayW }) {
+function GridLines({ dayW, TOTAL_DAYS, RANGE_START }) {
   const lines = []
   for (let d = 0; d <= TOTAL_DAYS; d++) {
     const date = new Date(RANGE_START); date.setDate(date.getDate() + d)
@@ -72,8 +69,15 @@ function PhaseMemberPopover({ phase, onAdd, onRemove, onClose }) {
   )
 }
 
-export default function GanttTab({ active }) {
+export default function GanttTab({ active, data = QLTK_DATA }) {
+  const {
+    TODAY, INITIAL_PHASES, INITIAL_COMMENTS, ME_NAME, CASHFLOW_DATA, PROJECT_SHORTLIST,
+    RANGE_START, RANGE_END, TOTAL_DAYS, STATUS_LABEL,
+    parseD, dayDiff, fmt, fmtFull, toISO, statusOf, fmtTyQ, avatarColor, initials,
+    PURCHASE_PHASE_ID = null, INITIAL_PURCHASE_ITEMS = {},
+  } = data
   const [phases, setPhases] = useState(INITIAL_PHASES)
+  const [itemModal, setItemModal] = useState(null) // { kind: 'task'|'phase', mode: 'create'|'edit', phaseId?, task?, phase? }
   const [comments, setComments] = useState(INITIAL_COMMENTS)
   const [dayW, setDayW] = useState(16)
   const [phaseFilter, setPhaseFilter] = useState('all')
@@ -146,11 +150,11 @@ export default function GanttTab({ active }) {
     return phases
       .filter(p => phaseFilter === 'all' || p.id === phaseFilter)
       .map(p => ({ ...p, tasks: p.tasks.filter(t => !q || t.name.toLowerCase().includes(q) || (t.assignee || '').toLowerCase().includes(q)) }))
-      .filter(p => p.tasks.length > 0)
+      .filter(p => !q || p.tasks.length > 0) // đề mục trống vẫn hiện (để thêm công việc), chỉ ẩn khi đang tìm kiếm
   }, [phases, phaseFilter, searchTerm])
 
-  const rowCount = visiblePhases.reduce((n, p) => n + 1 + (collapsed.has(p.id) ? 0 : p.tasks.length), 0)
-  const gridLines = useMemo(() => <GridLines dayW={dayW} />, [dayW])
+  const rowCount = visiblePhases.reduce((n, p) => n + 1 + (collapsed.has(p.id) ? 0 : p.tasks.length + 1), 0) + 1
+  const gridLines = useMemo(() => <GridLines dayW={dayW} TOTAL_DAYS={TOTAL_DAYS} RANGE_START={RANGE_START} />, [dayW])
 
   const drawerTask = drawer.taskId ? phases.flatMap(p => p.tasks).find(t => t.id === drawer.taskId) : null
   const boardTask = board.taskId ? phases.flatMap(p => p.tasks).find(t => t.id === board.taskId) : null
@@ -163,6 +167,52 @@ export default function GanttTab({ active }) {
   function updateTask(taskId, patch) {
     setPhases(prev => prev.map(p => ({ ...p, tasks: p.tasks.map(t => t.id === taskId ? { ...t, ...patch } : t) })))
   }
+  /* ---------- Tạo / sửa / xoá đề mục & công việc ---------- */
+  const knownAssignees = useMemo(() => [...new Set(phases.flatMap(p => [...p.tasks.map(t => t.assignee), ...(p.members || []).map(m => m.name)]).filter(Boolean))], [phases])
+  const openNewTask = phaseId => setItemModal({ kind: 'task', mode: 'create', phaseId })
+  const openEditTask = (phaseId, task) => setItemModal({ kind: 'task', mode: 'edit', phaseId, task })
+  function saveTask(data) {
+    const { phaseId, ...fields } = data
+    const editing = itemModal?.mode === 'edit'
+    const id = editing ? itemModal.task.id : 't' + Date.now().toString(36)
+    const task = { ...(editing ? itemModal.task : {}), ...fields, id, critical: !fields.milestone && !!fields.critical }
+    setPhases(prev => prev.map(p => {
+      const without = p.tasks.filter(t => t.id !== id)
+      if (p.id !== phaseId) return without.length === p.tasks.length ? p : { ...p, tasks: without }
+      const idx = p.tasks.findIndex(t => t.id === id)
+      if (idx >= 0) return { ...p, tasks: p.tasks.map(t => (t.id === id ? task : t)) }
+      return { ...p, tasks: [...without, task] }
+    }))
+    setCollapsed(c => { const n = new Set(c); n.delete(phaseId); return n })
+    setItemModal(null)
+  }
+  function deleteTask(id) {
+    if (!window.confirm('Xoá công việc này khỏi tiến độ?')) return
+    setPhases(prev => prev.map(p => ({ ...p, tasks: p.tasks.filter(t => t.id !== id) })))
+    setItemModal(null)
+  }
+  function savePhase(name) {
+    if (itemModal?.mode === 'edit') setPhases(prev => prev.map(p => (p.id === itemModal.phase.id ? { ...p, name } : p)))
+    else setPhases(prev => [...prev, { id: 'p' + Date.now().toString(36), name, members: [], tasks: [] }])
+    setItemModal(null)
+  }
+  function deletePhase(id) {
+    const ph = phases.find(p => p.id === id)
+    if (!window.confirm(`Xoá đề mục "${ph?.name}"${ph?.tasks.length ? ` cùng ${ph.tasks.length} công việc` : ''}?`)) return
+    setPhases(prev => prev.filter(p => p.id !== id))
+    if (phaseFilter === id) setPhaseFilter('all')
+    setItemModal(null)
+  }
+  function applyTemplate(v) {
+    if (v === 'blank') {
+      if (phases.length && !window.confirm('Bắt đầu từ trống sẽ xoá toàn bộ đề mục & công việc hiện tại. Tiếp tục?')) return
+      setPhases([]); setPhaseFilter('all')
+    } else if (v === 'sample') {
+      if (!window.confirm('Dùng lại tiến độ mẫu (chung cư) — thay toàn bộ đề mục hiện tại?')) return
+      setPhases(INITIAL_PHASES); setPhaseFilter('all')
+    }
+  }
+
   function updatePhaseMembers(phaseId, fn) {
     setPhases(prev => prev.map(p => p.id === phaseId ? { ...p, members: fn(p.members || []) } : p))
   }
@@ -481,6 +531,12 @@ export default function GanttTab({ active }) {
           {[...phases].reverse().map(p => (
             <button key={p.id} className={`tk-chip${phaseFilter === p.id ? ' active' : ''}`} onClick={() => setPhaseFilter(p.id)}>{p.name}</button>
           ))}
+          <button className="tk-chip tk-chip-add" onClick={() => setItemModal({ kind: 'phase', mode: 'create' })}>+ Thêm đề mục</button>
+          <select className="tk-tpl-select" value="" onChange={e => applyTemplate(e.target.value)} title="Khởi tạo tiến độ">
+            <option value="">Khởi tạo…</option>
+            <option value="blank">Bắt đầu từ trống (tự tạo đề mục)</option>
+            <option value="sample">Dùng tiến độ mẫu (chung cư)</option>
+          </select>
           <span className="tk-spacer" />
           <div className="tk-legend">
             <div className="tk-li"><span className="tk-sw" style={{ background: 'var(--done)' }} />Hoàn thành</div>
@@ -528,6 +584,11 @@ export default function GanttTab({ active }) {
                     <button className="tk-add-member-btn" title="Thêm nhân sự" onClick={e => { e.stopPropagation(); setOpenPhasePop(id => id === phase.id ? null : phase.id) }}>
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 5v14M5 12h14" /></svg>
                     </button>
+                    <span className="tk-phase-actions" onClick={e => e.stopPropagation()}>
+                      <button title="Thêm công việc vào đề mục" onClick={() => openNewTask(phase.id)}>+</button>
+                      <button title="Đổi tên đề mục" onClick={() => setItemModal({ kind: 'phase', mode: 'edit', phase })}>✎</button>
+                      <button className="del" title="Xoá đề mục" onClick={() => deletePhase(phase.id)}>×</button>
+                    </span>
                     <span className="tk-phase-meta">{doneCount}/{phase.tasks.length}</span>
                     {openPhasePop === phase.id && (
                       <PhaseMemberPopover
@@ -554,10 +615,11 @@ export default function GanttTab({ active }) {
                           {t.critical && <span className="tk-crit-dot" title="Đường găng" />}
                           {nameIcon}{t.name}
                           {comments[t.id]?.length > 0 && <span className="tk-comment-flag-inline" title="Có bình luận"><CommentFlagIcon /></span>}
+                          <button className="tk-task-edit" title="Sửa công việc" onClick={e => { e.stopPropagation(); openEditTask(phase.id, t) }}>✎</button>
                         </div>
                         <div className="tk-t-dates mono">{dateCell}</div>
                         <div className="tk-t-assignee">
-                          {t.assignee && <><span className="tk-avatar-mini" style={{ background: avatarColor(t.assignee) }}>{initials(t.assignee)}</span>{t.assignee}</>}
+                          {t.assignee && <><span className="tk-avatar-mini" style={{ background: avatarColor(t.assignee) }}>{initials(t.assignee)}</span><span className="tk-t-assignee-name" title={[...(t.owners || [t.assignee]), ...(t.depts || [])].join(', ')}>{t.assignee}</span>{(t.owners?.length || 0) > 1 && <span className="tk-more-owners">+{t.owners.length - 1}</span>}</>}
                         </div>
                         <div className="tk-t-status">
                           {isFin
@@ -567,9 +629,17 @@ export default function GanttTab({ active }) {
                       </div>
                     )
                   })}
+                  {!isCollapsed && (
+                    <div className="tk-row-task tk-row-add" onClick={() => openNewTask(phase.id)}>
+                      <div className="tk-t-name">+ Thêm công việc</div>
+                    </div>
+                  )}
                 </Fragment>
               )
             })}
+            <div className="tk-row-phase tk-row-add-phase" onClick={() => setItemModal({ kind: 'phase', mode: 'create' })}>
+              + Thêm đề mục{phases.length === 0 ? ' — chưa có đề mục nào, bấm để tạo đề mục đầu tiên' : ''}
+            </div>
           </div>
           <div
             className={`tk-tasklist-resize${tasklistDragging ? ' dragging' : ''}`}
@@ -599,13 +669,26 @@ export default function GanttTab({ active }) {
                       {renderTimelineItem(t, statusOf(t), t.id === selectedTaskId)}
                     </div>
                   ))}
+                  {!collapsed.has(phase.id) && <div className="tk-tl-row-task tk-tl-row-add">{gridLines}</div>}
                 </Fragment>
               ))}
+              <div className="tk-tl-row-phase">{gridLines}</div>
               <div className="tk-today-line" style={{ left: xFor(TODAY), height: rowCount * 38 }} />
             </div>
           </div>
         </div>
       </div>
+
+      <GanttItemModal
+        state={itemModal}
+        phases={phases}
+        assignees={knownAssignees}
+        onClose={() => setItemModal(null)}
+        onSaveTask={saveTask}
+        onDeleteTask={deleteTask}
+        onSavePhase={savePhase}
+        onDeletePhase={deletePhase}
+      />
 
       <TaskDrawer
         task={drawerTask}
@@ -621,6 +704,7 @@ export default function GanttTab({ active }) {
         open={board.open}
         onClose={closeBoard}
         onMove={movePurchaseItem}
+        onUpdateItems={(taskId, fn) => setPurchaseItems(prev => ({ ...prev, [taskId]: fn(prev[taskId] || []) }))}
       />
     </>
   )

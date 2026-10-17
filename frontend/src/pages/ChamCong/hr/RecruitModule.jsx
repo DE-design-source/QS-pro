@@ -4,6 +4,7 @@ import { DEPTS, deptOf, fmtDate, HR_TODAY, daysBetween, WORK_SITES } from '../..
 import { STAGES, SOURCES, REVIEW_CRITERIA, JD_LEVELS } from '../../../data/hrData2'
 import { Pill, Seg, Modal, Field, Empty } from './shared'
 import { useAccess, NoAccess } from './access'
+import OnboardPage from './OnboardPage'
 
 const JOB_STATUS = { open: { label: 'Đang tuyển', tone: 'success' }, paused: { label: 'Tạm dừng', tone: 'finance' }, closed: { label: 'Đã đóng', tone: 'muted' } }
 const initials = n => n.split(' ').slice(-2).map(w => w[0]).join('').toUpperCase()
@@ -38,7 +39,7 @@ function Stars({ value, onChange }) {
 }
 
 /* Phân hệ "Tuyển dụng & Onboarding" */
-export default function RecruitModule({ recruit, setRecruit, onHire, toast }) {
+export default function RecruitModule({ recruit, setRecruit, onHire, toast, nextEmpCode, defaultManagerOf, employees = [], onOpenEmployee }) {
   const { can, user, role, log } = useAccess()
   const [tab, setTab] = useState('pipeline')
   const [jobFilter, setJobFilter] = useState('all')
@@ -49,6 +50,7 @@ export default function RecruitModule({ recruit, setRecruit, onHire, toast }) {
   const [over, setOver] = useState(null)
   const [review, setReview] = useState(null)
   const [ivForm, setIvForm] = useState(null)
+  const [onboard, setOnboard] = useState(null) // bước Nhận việc: { candId, code, dept, position, level, joinDate, managerId, site }
   const [jdQ, setJdQ] = useState('')
   const [jdDept, setJdDept] = useState('all')
   const [openJd, setOpenJd] = useState(null)
@@ -71,6 +73,8 @@ export default function RecruitModule({ recruit, setRecruit, onHire, toast }) {
     const c = candOf(id)
     if (!c || c.stage === stage) return
     if (!can('recruit', 'edit')) { toast('Bạn không có quyền chuyển trạng thái ứng viên', 'danger'); return }
+    if (c.empCode) { toast(`${c.name} đã nhận việc (hồ sơ ${c.empCode}) — không thể chuyển lại`, 'danger'); return }
+    if (stage === 'hired') { startOnboard(c); return }
     set({ candidates: candidates.map(x => (x.id === id ? { ...x, stage } : x)) })
     log('recruit', 'edit', `Ứng viên ${c.name} → ${STAGES.find(s => s.key === stage).label}`)
   }
@@ -133,16 +137,29 @@ export default function RecruitModule({ recruit, setRecruit, onHire, toast }) {
     toast(`Đã đặt lịch & gửi thư mời phỏng vấn tới ${c.email}`)
     setIvForm(null)
   }
-  function hire(c) {
-    if (!confirm(`Tạo hồ sơ nhân viên mới (thử việc) cho ${c.name}?`)) return
-    const job = jobOf(c.jobId)
-    set({ candidates: candidates.map(x => (x.id === c.id ? { ...x, stage: 'hired', hiredAt: HR_TODAY } : x)) })
+  function startOnboard(c) {
+    const job = jobOf(c.jobId) || {}
+    const level = JD_LEVELS.includes(job.level) ? job.level : 'Nhân viên'
+    setOnboard({ candId: c.id, code: nextEmpCode ? nextEmpCode() : '', dept: job.dept || DEPTS[0]?.key, position: job.title || '', level: level === 'Thực tập' ? 'Nhân viên' : level, joinDate: '2026-10-01', managerId: defaultManagerOf?.(job.dept)?.id || '', site: job.site || WORK_SITES[0] })
+  }
+  const hire = c => startOnboard(c)
+  function confirmOnboard(data) {
+    const c = candOf(onboard.candId)
+    if (!c) return
+    const o = { ...onboard, ...data }
+    const res = onHire(c, jobOf(c.jobId) || { title: o.position, dept: o.dept, salary: '12', site: o.site }, o)
+    set({ candidates: candidates.map(x => (x.id === c.id ? { ...x, stage: 'hired', hiredAt: HR_TODAY, empCode: res?.code || o.code, empId: res?.id, empDept: o.dept } : x)) })
+    setOnboard(null)
     setOpenCand(null)
-    onHire(c, job)
   }
 
   const opened = openCand != null && candOf(openCand)
   const upcoming = [...interviews].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)).filter(v => jobIds.has(candOf(v.candidateId)?.jobId))
+
+  if (onboard && candOf(onboard.candId)) {
+    const c = candOf(onboard.candId)
+    return <OnboardPage candidate={c} job={jobOf(c.jobId)} initial={onboard} employees={employees} defaultManagerOf={defaultManagerOf} onCancel={() => setOnboard(null)} onConfirm={confirmOnboard} />
+  }
 
   return (
     <div className="cc-stack">
@@ -150,7 +167,7 @@ export default function RecruitModule({ recruit, setRecruit, onHire, toast }) {
         <div className="cc-card cc-kpi2 cc-tone-primary"><span className="cc-ico"><Icon name="briefcase" size={15} /></span><div><span>Vị trí đang tuyển</span><b>{myJobs.filter(j => j.status === 'open').reduce((s, j) => s + j.qty, 0)}</b><em>{myJobs.filter(j => j.status === 'open').length} tin đang mở</em></div></div>
         <div className="cc-card cc-kpi2 cc-tone-attendance"><span className="cc-ico"><Icon name="users" size={15} /></span><div><span>Ứng viên trong pipeline</span><b>{cands.filter(c => !['hired', 'rejected'].includes(c.stage)).length}</b><em>{cands.filter(c => c.stage === 'applied').length} hồ sơ mới chưa xử lý</em></div></div>
         <div className="cc-card cc-kpi2 cc-tone-finance"><span className="cc-ico"><Icon name="calendar" size={15} /></span><div><span>Phỏng vấn sắp tới</span><b>{upcoming.filter(v => v.date >= HR_TODAY).length}</b><em>trong 7 ngày tới</em></div></div>
-        <div className="cc-card cc-kpi2 cc-tone-success"><span className="cc-ico"><Icon name="userPlus" size={15} /></span><div><span>Trúng tuyển</span><b>{cands.filter(c => c.stage === 'hired').length}</b><em>{cands.filter(c => c.stage === 'offer').length} đang chờ phản hồi offer</em></div></div>
+        <div className="cc-card cc-kpi2 cc-tone-success"><span className="cc-ico"><Icon name="userPlus" size={15} /></span><div><span>Nhận việc</span><b>{cands.filter(c => c.stage === 'hired').length}</b><em>{cands.filter(c => c.stage === 'offer').length} đang chờ phản hồi offer</em></div></div>
       </div>
 
       <div className="cc-toolbar" style={{ marginBottom: 0 }}>
@@ -190,6 +207,7 @@ export default function RecruitModule({ recruit, setRecruit, onHire, toast }) {
                         onDragStart={() => setDragId(c.id)} onDragEnd={() => { setDragId(null); setOver(null) }} onClick={() => setOpenCand(c.id)}>
                         <div className="cc-kcard-top"><span className="cc-av" style={{ width: 28, height: 28, fontSize: 10, background: 'var(--c)' }}>{initials(c.name)}</span><b>{c.name}</b></div>
                         <span className="cc-sub">{jobOf(c.jobId)?.title}</span>
+                        {c.empCode && <span className="cc-kcard-emp"><Icon name="checkCircle" size={11} />{c.empCode} · {deptOf(c.empDept || jobOf(c.jobId)?.dept).name}</span>}
                         <div className="cc-kcard-foot">
                           <span className="cc-chip-sm">{c.source}</span>
                           {score != null && <span className="cc-chip-sm star">★ {score.toFixed(1)}</span>}
@@ -327,7 +345,8 @@ export default function RecruitModule({ recruit, setRecruit, onHire, toast }) {
           <span className="cc-grow" />
           {can('recruit', 'edit') && <button className="cc-btn ghost" onClick={() => setIvForm({ candidateId: opened.id, date: '2026-09-28', time: '09:00', round: 'Vòng ' + (opened.reviews.length + 1), interviewer: user.name, mode: 'Trực tiếp', place: 'Phòng họp 1 — VP HCM' })}><Icon name="calendar" size={14} />Đặt lịch PV</button>}
           {can('recruit', 'edit') && <button className="cc-btn ghost" onClick={() => setReview({ candId: opened.id, round: 'Vòng ' + (opened.reviews.length + 1), scores: Object.fromEntries(REVIEW_CRITERIA.map(c => [c.key, 3])), note: '' })}><Icon name="award" size={14} />Đánh giá</button>}
-          {opened.stage === 'offer' && can('recruit', 'approve') && <button className="cc-btn" onClick={() => hire(opened)}><Icon name="userPlus" size={14} />Trúng tuyển → tạo hồ sơ NV</button>}
+          {opened.stage === 'offer' && can('recruit', 'approve') && <button className="cc-btn" onClick={() => hire(opened)}><Icon name="userPlus" size={14} />Nhận việc → tạo hồ sơ NV</button>}
+          {opened.empId && onOpenEmployee && <button className="cc-btn ghost" onClick={() => onOpenEmployee(opened.empId)}><Icon name="users" size={14} />Mở hồ sơ {opened.empCode}</button>}
         </>}>
         {opened && <div className="cc-grid2">
           <div>

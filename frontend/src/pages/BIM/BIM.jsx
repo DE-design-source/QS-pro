@@ -7,6 +7,7 @@ import UnlinkedView from './components/UnlinkedView'
 import ProjectListView from './components/ProjectListView'
 import LinkedView from './components/LinkedView'
 import Dezbot, { loadAiPanelWidth } from './components/Dezbot'
+import DeptStaff from '../../components/hr/DeptStaff'
 
 const DEFAULT_SUBTITLE = 'Không gian dữ liệu BIM liên kết SketchUp'
 
@@ -36,6 +37,7 @@ export default function BIM() {
   const [aiOpen, setAiOpen] = useState(false)
   const [aiWidth, setAiWidth] = useState(loadAiPanelWidth)
   const [aiResizing, setAiResizing] = useState(false)
+  const [pageTab, setPageTab] = useState('main') // main | nhansu
 
   const project = projects.find(p => p.code === projectCode) || null
   const subtitle = view === 'linked' && project ? `${project.name} · ${DEFAULT_SUBTITLE}` : DEFAULT_SUBTITLE
@@ -99,8 +101,10 @@ export default function BIM() {
       <div className="bim-header">
         <div className="bim-header-icon"><Icon name="cube" size={16} /></div>
         <span style={{ fontSize: 14.5, fontWeight: 700 }}>BIM</span>
-        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{subtitle}</span>
-        <span style={{ flex: 1 }} />
+        <div className="hdr-tabs" role="tablist">
+          <button className={`hdr-tab${pageTab === 'main' ? ' active' : ''}`} onClick={() => setPageTab('main')}>Tổng quan</button>
+          <button className={`hdr-tab${pageTab === 'nhansu' ? ' active' : ''}`} onClick={() => setPageTab('nhansu')}>Cơ cấu phòng ban</button>
+        </div>
         <button className="bim-theme-toggle" title="Chuyển giao diện sáng/tối" onClick={toggleTheme}>
           {theme === 'dark'
             ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
@@ -109,7 +113,7 @@ export default function BIM() {
       </div>
 
       {/* Cả 3 màn hình luôn được mount (ẩn bằng display) để giữ dữ liệu đã thao tác, giống bản HTML */}
-      <div className="bim-scroll">
+      <div className="bim-scroll" style={pageTab === 'nhansu' ? { display: 'none' } : undefined}>
         <UnlinkedView visible={view === 'unlinked'} onLinked={showList} />
         <ProjectListView visible={view === 'list'} projects={projects} onOpen={openProject} onUnlink={unlink} onAddFileLink={addFileLink} />
         <LinkedView
@@ -124,6 +128,12 @@ export default function BIM() {
           onAssignMaterials={assignMaterials}
         />
       </div>
+
+      {pageTab === 'nhansu' && (
+        <div className="bim-scroll">
+          <DeptStaff units={['thietke']} note="Mô hình BIM do phòng Thiết kế thực hiện — nhân sự lấy theo phòng Thiết kế trong HR" />
+        </div>
+      )}
 
       <Dezbot
         open={aiOpen}

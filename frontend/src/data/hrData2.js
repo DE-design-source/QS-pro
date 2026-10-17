@@ -87,7 +87,7 @@ export const STAGES = [
   { key: 'screening', label: 'Sàng lọc CV', tone: 'primary' },
   { key: 'interview', label: 'Phỏng vấn', tone: 'finance' },
   { key: 'offer', label: 'Đề nghị (Offer)', tone: 'qs' },
-  { key: 'hired', label: 'Trúng tuyển', tone: 'success' },
+  { key: 'hired', label: 'Nhận việc', tone: 'success' },
   { key: 'rejected', label: 'Loại', tone: 'danger' },
 ]
 export const SOURCES = ['LinkedIn', 'TopCV', 'VietnamWorks', 'Giới thiệu nội bộ', 'Website công ty', 'Facebook']
@@ -229,4 +229,29 @@ export const INITIAL_ENROLL = {
   6: { 4: 100, 1: 100, 2: 100, 6: 60 }, 7: { 4: 100, 1: 100, 5: 100, 6: 20 }, 8: { 4: 100, 1: 100 }, 9: { 4: 100, 1: 100, 2: 80 }, 10: { 4: 100, 1: 40 },
   11: { 4: 100, 1: 100, 3: 30 }, 12: { 4: 100, 1: 100 }, 13: { 4: 100, 1: 100, 3: 15 }, 14: { 4: 100, 1: 100 }, 15: { 4: 50 }, 16: { 4: 100, 1: 100, 5: 100 },
   17: { 4: 100, 1: 100, 3: 55 }, 18: { 4: 100, 1: 80 }, 19: { 4: 100, 1: 100 }, 20: { 4: 100, 1: 100 },
+}
+
+/* ======================= ĐỊNH PHÍ THEO PHÒNG BAN =======================
+   fund: quỹ lương kế hoạch / tháng (gồm lương, phụ cấp, BH công ty đóng) · items: định phí khác cố định hằng tháng */
+const M = 1000000
+export const INITIAL_FIXED_COSTS = {
+  hdqt: { fund: 20 * M, items: [{ name: 'Thù lao thành viên HĐQT độc lập', amount: 20 * M }] },
+  ceo: { fund: 75 * M, items: [{ name: 'Xe công vụ & tài xế', amount: 15 * M }] },
+  bod: { fund: 15 * M, items: [{ name: 'Chi phí họp điều hành định kỳ', amount: 3 * M }] },
+  bks: { fund: 25 * M, items: [{ name: 'Thù lao kiểm soát viên độc lập', amount: 10 * M }] },
+  bcl: { fund: 25 * M, items: [{ name: 'Tư vấn chiến lược (phân bổ)', amount: 12 * M }] },
+  coo: { fund: 65 * M, items: [] },
+  cco: { fund: 70 * M, items: [] },
+  kddd: { fund: 55 * M, items: [{ name: 'Thuê showroom nhà mẫu', amount: 20 * M }] },
+  marketing: { fund: 90 * M, items: [{ name: 'Quảng cáo cố định (SEO, fanpage)', amount: 30 * M }, { name: 'Công cụ thiết kế & quản lý mạng xã hội', amount: 5 * M }] },
+  rnd: { fund: 30 * M, items: [{ name: 'Phòng thí nghiệm vật liệu', amount: 12 * M }] },
+  hcns: { fund: 95 * M, items: [{ name: 'Thuê văn phòng HCM (phân bổ)', amount: 60 * M }, { name: 'Phần mềm HR & chấm công', amount: 4 * M }] },
+  tckt: { fund: 95 * M, items: [{ name: 'Phần mềm kế toán', amount: 3 * M }, { name: 'Kiểm toán báo cáo tài chính (phân bổ)', amount: 10 * M }] },
+  thietke: { fund: 110 * M, items: [{ name: 'Bản quyền Autodesk (Revit, AutoCAD)', amount: 18 * M }, { name: 'Khấu hao máy trạm', amount: 6 * M }] },
+  muahang: { fund: 60 * M, items: [{ name: 'Thuê kho Bình Chánh', amount: 35 * M }] },
+  qs: { fund: 60 * M, items: [{ name: 'Phần mềm dự toán', amount: 4 * M }] },
+  it: { fund: 45 * M, items: [{ name: 'Hosting, SaaS & tên miền', amount: 15 * M }, { name: 'Bảo trì hạ tầng mạng', amount: 8 * M }] },
+  kdda: { fund: 75 * M, items: [{ name: 'Hồ sơ năng lực & dự thầu', amount: 8 * M }] },
+  thicong: { fund: 200 * M, items: [{ name: 'Thuê lán trại công trường', amount: 25 * M }, { name: 'Khấu hao máy thi công', amount: 40 * M }, { name: 'Bảo hiểm công trình', amount: 12 * M }] },
+  haumai: { fund: 40 * M, items: [{ name: 'Kho vật tư bảo hành', amount: 6 * M }] },
 }

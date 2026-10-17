@@ -5,6 +5,7 @@ import { FIN_CATEGORIES, FIN_PROJECTS, FIN_RANGES } from '../../data/taiChinhDat
 import DuAnPanel from './components/DuAnPanel'
 import { HanhChinhPanel, NhanSuPanel, KinhDoanhPanel, MarketingPanel } from './components/CategoryPanels'
 import Dezbot, { loadAiPanelWidth } from './components/Dezbot'
+import DeptStaff from '../../components/hr/DeptStaff'
 
 export default function TaiChinh() {
   const { theme, toggleTheme } = useTheme()
@@ -19,6 +20,7 @@ export default function TaiChinh() {
   const [aiOpen, setAiOpen] = useState(false)
   const [aiWidth, setAiWidth] = useState(loadAiPanelWidth)
   const [aiResizing, setAiResizing] = useState(false)
+  const [pageTab, setPageTab] = useState('main') // main | nhansu
 
   const show = key => ({ display: category === key ? 'flex' : 'none' })
 
@@ -28,12 +30,17 @@ export default function TaiChinh() {
       style={{ '--ai-panel-width': `${aiWidth}px` }}
     >
       <div className="tc-header">
-        <span className="tc-crumb">Chung cư Riverside</span>
-        <span className="tc-crumb">/</span>
-        <span className="tc-crumb">Giai đoạn 2</span>
-        <span className="tc-crumb">/</span>
-        <span className="tc-crumb-current">Tài chính</span>
-        <span style={{ flex: 1 }} />
+        <div className="tc-header-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" /></svg>
+        </div>
+        <span className="tc-header-title">Tài chính</span>
+        <div className="hdr-tabs" role="tablist">
+          {FIN_CATEGORIES.map(c => (
+            <div key={c.key} className={`tc-cat${pageTab === 'main' && category === c.key ? ' active' : ''}`} onClick={() => { setCategory(c.key); setPageTab('main') }}>{c.label}</div>
+          ))}
+          {/* Nhân sự phòng Tài chính - Kế toán (từ HR) — khác danh mục chi phí "Nhân sự" bên cạnh */}
+          <div className={`tc-cat${pageTab === 'nhansu' ? ' active' : ''}`} onClick={() => setPageTab('nhansu')} title="Cơ cấu & nhân sự phòng Tài chính - Kế toán (từ HR)">Cơ cấu phòng ban</div>
+        </div>
         <button className="tc-theme-toggle" title="Chuyển giao diện sáng/tối" onClick={toggleTheme}>
           {theme === 'dark'
             ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
@@ -41,13 +48,8 @@ export default function TaiChinh() {
         </button>
       </div>
 
-      <div className="tc-cat-row">
-        {FIN_CATEGORIES.map(c => (
-          <div key={c.key} className={`tc-cat${category === c.key ? ' active' : ''}`} onClick={() => setCategory(c.key)}>{c.label}</div>
-        ))}
-      </div>
 
-      <div className="tc-scroll">
+      <div className="tc-scroll" style={pageTab === 'nhansu' ? { display: 'none' } : undefined}>
         <div className="tc-filter-bar">
           <div className="tc-filter-group">
             <span className="tc-filter-label">Dự án:</span>
@@ -85,6 +87,12 @@ export default function TaiChinh() {
           </div>
         </div>
       </div>
+
+      {pageTab === 'nhansu' && (
+        <div className="tc-scroll">
+          <DeptStaff units={['tckt']} />
+        </div>
+      )}
 
       <Dezbot
         open={aiOpen}

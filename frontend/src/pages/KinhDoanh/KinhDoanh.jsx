@@ -12,10 +12,11 @@ import PipelineTab from './components/PipelineTab'
 import SubBoard from './components/SubBoard'
 import TasksTab from './components/TasksTab'
 import LeadModal from './components/LeadModal'
-import LeadDetailModal from './components/LeadDetailModal'
+import CustomerPage, { seedInteractions } from './components/CustomerPage'
 import HandoffModal from './components/HandoffModal'
 import TaskModal from './components/TaskModal'
 import Dezbot, { loadAiPanelWidth } from './components/Dezbot'
+import DeptStaff from '../../components/hr/DeptStaff'
 
 const hintStyle = { fontSize: 11.5, color: 'var(--text-muted)' }
 
@@ -32,6 +33,7 @@ export default function KinhDoanh() {
   /* ---------- Modal ---------- */
   const [leadModal, setLeadModal] = useState({ open: false, id: null, seq: 0 })
   const [detail, setDetail] = useState({ open: false, id: null })
+  const [interactions, setInteractions] = useState({}) // id khách hàng → lịch sử chăm sóc (mặc định sinh từ giai đoạn)
   const [handoff, setHandoff] = useState({ open: false, leadId: null, stageKey: null, seq: 0 })
   const [taskModal, setTaskModal] = useState({ open: false, seq: 0 })
 
@@ -169,13 +171,16 @@ export default function KinhDoanh() {
       style={{ '--ai-panel-width': `${aiWidth}px` }}
     >
       {/* ---------- Header ---------- */}
-      <div style={{ height: 64, flex: 'none', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', padding: '0 28px', boxSizing: 'border-box', background: 'var(--surface)', gap: 12 }}>
+      <div style={{ height: 64, flex: 'none', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', padding: '0 var(--page-gutter)', boxSizing: 'border-box', background: 'var(--surface)', gap: 12 }}>
         <div style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--sales-tint)', color: 'var(--sales)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" /></svg>
         </div>
         <span style={{ fontSize: 14.5, fontWeight: 700 }}>Kinh doanh</span>
-        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Pipeline khách hàng — chốt hợp đồng sẽ tự tạo hồ sơ tại tab Dự án</span>
-        <span style={{ flex: 1 }} />
+        <div className="hdr-tabs" role="tablist">
+          {SALES_TABS.map(([key, label]) => (
+            <button key={key} className={`kd-sales-tab${tab === key && !detail.open ? ' active' : ''}`} onClick={() => { setTab(key); setDetail(d => ({ ...d, open: false })) }}>{label}</button>
+          ))}
+        </div>
         <button onClick={() => openLeadModal(null)} style={{ display: 'flex', alignItems: 'center', gap: 6, border: 'none', cursor: 'pointer', background: 'var(--sales)', color: '#fff', padding: '8px 14px', borderRadius: 9, fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit' }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
           Thêm khách hàng tiềm năng
@@ -187,15 +192,20 @@ export default function KinhDoanh() {
         </button>
       </div>
 
-      {/* ---------- Thanh tab ---------- */}
-      <div style={{ height: 52, flex: 'none', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', padding: '0 28px', boxSizing: 'border-box', background: 'var(--surface)', gap: 4 }}>
-        {SALES_TABS.map(([key, label]) => (
-          <button key={key} className={`kd-sales-tab${tab === key ? ' active' : ''}`} onClick={() => setTab(key)}>{label}</button>
-        ))}
-      </div>
-
       {/* Các tab luôn được mount (ẩn bằng display) để giữ trạng thái đang chọn, giống bản HTML */}
-      <div ref={scrollRef} style={{ flex: 1, padding: '22px 28px', boxSizing: 'border-box', overflowY: 'auto', overflowX: 'hidden' }}>
+      <div ref={scrollRef} style={{ flex: 1, padding: 'var(--page-gutter)', boxSizing: 'border-box', overflowY: 'auto', overflowX: 'hidden' }}>
+        {detail.open && detailLead && (
+          <CustomerPage
+            lead={detailLead}
+            me={KD_CURRENT_USER?.name || KD_CURRENT_USER || 'Trần Anh'}
+            interactions={interactions[detailLead.id] || seedInteractions(detailLead)}
+            onAddInteraction={x => setInteractions(m => ({ ...m, [detailLead.id]: [x, ...(m[detailLead.id] || seedInteractions(detailLead))].sort((a, b) => b.date.localeCompare(a.date)) }))}
+            onBack={() => setDetail(d => ({ ...d, open: false }))}
+            onEdit={() => openLeadModal(detailLead.id)}
+            onMove={moveLead}
+          />
+        )}
+        <div style={detail.open && detailLead ? { display: 'none' } : { display: 'contents' }}>
 
         {/* ================= TAB: TỔNG QUAN ================= */}
         <div style={panel('overview', 16)}>
@@ -228,15 +238,16 @@ export default function KinhDoanh() {
         <div style={panel('tasks', 16)}>
           <TasksTab steps={steps} onCheckSubtask={checkSubtask} wallet={wallet} onRedeem={redeem} onOpenCreateTask={() => setTaskModal(m => ({ open: true, seq: m.seq + 1 }))} />
         </div>
+
+        {/* ================= TAB: NHÂN SỰ (từ HR) ================= */}
+        <div style={panel('nhansu', 16)}>
+          <DeptStaff units={['kddd', 'kdda']} title="Kinh doanh" />
+        </div>
+        </div>
       </div>
 
       {/* ---------- Modal (render bên trong .kd-page để dùng chung biến màu) ---------- */}
       <LeadModal key={`lead-${leadModal.seq}`} open={leadModal.open} lead={editingLead} onClose={closeLeadModal} onSave={saveLead} />
-      <LeadDetailModal
-        open={detail.open} lead={detailLead}
-        onClose={() => setDetail(d => ({ ...d, open: false }))}
-        onEdit={() => { const id = detail.id; setDetail(d => ({ ...d, open: false })); openLeadModal(id) }}
-      />
       <HandoffModal key={`handoff-${handoff.seq}`} open={handoff.open} lead={handoffLead} stageKey={handoff.stageKey} onClose={closeHandoff} onSend={sendHandoff} onSelf={selfQuote} />
       <TaskModal key={`task-${taskModal.seq}`} open={taskModal.open} steps={steps} onClose={() => setTaskModal(m => ({ ...m, open: false }))} onSubmit={createTask} />
 

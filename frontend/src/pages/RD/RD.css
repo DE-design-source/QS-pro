@@ -53,10 +53,10 @@ html[data-theme="dark"][data-accent="teal"] .rd-page{--primary:#3FC2B6; --primar
 .rd-page ::-webkit-scrollbar-thumb{background:#cbd1da; border-radius:5px;}
 
 /* ---------- Header ---------- */
-.rd-header{height:64px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 28px; background:var(--surface); gap:12px;}
+.rd-header{height:64px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 var(--page-gutter); background:var(--surface); gap:12px;}
 .rd-header-icon{width:30px; height:30px; border-radius:8px; background:var(--rd-tint); color:var(--rd); display:flex; align-items:center; justify-content:center; flex:none;}
 .rd-theme-toggle{width:34px; height:34px; border-radius:9px; border:1px solid var(--border); background:var(--surface-alt); color:var(--text-muted); display:flex; align-items:center; justify-content:center; cursor:pointer;}
-.rd-scroll{flex:1; padding:22px 28px; overflow-y:auto; overflow-x:hidden;}
+.rd-scroll{flex:1; padding:var(--page-gutter); overflow-y:auto; overflow-x:hidden;}
 .rd-content{display:flex; flex-direction:column; gap:18px;}
 .rd-kpi-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:16px;}
 

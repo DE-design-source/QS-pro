@@ -4,6 +4,7 @@ import { MONTHS, monthlySummary, deptOf } from '../../../data/hrData'
 import { PAYROLL_STATUS } from '../../../data/hrData2'
 import { Avatar, Pill, Seg, Modal, Field, Empty, downloadCsv } from './shared'
 import { useAccess, NoAccess } from './access'
+import FixedCostTab from './FixedCostTab'
 
 const vnd = v => Math.round(v).toLocaleString('vi-VN')
 const pct = v => (v * 100).toLocaleString('vi-VN', { maximumFractionDigits: 2 }) + '%'
@@ -21,7 +22,25 @@ export function progressiveTax(income, brackets) {
 }
 
 /* Tính lương 1 nhân viên trong tháng theo cấu hình */
-export function calcPay(emp, att, adj = [], cfg) {
+/* Mỗi vị trí trong phân bổ 1 màu riêng: giữ màu đơn vị nếu chưa trùng, trùng thì lấy màu kế tiếp chưa dùng */
+const ALLOC_TONES = ['primary', 'attendance', 'finance', 'marketing', 'success', 'sales', 'qs', 'danger', 'muted']
+export function distinctTones(parts) {
+  const used = new Set()
+  return parts.map(p => {
+    const tone = !used.has(p.tone) ? p.tone : ALLOC_TONES.find(t => !used.has(t)) || p.tone
+    used.add(tone)
+    return tone === p.tone ? p : { ...p, tone }
+  })
+}
+
+/* Tỉ trọng phân bổ chi phí lương: phòng ban chính + các ban kiêm nhiệm */
+export function allocationOf(emp, conc = []) {
+  const used = conc.reduce((s, c) => s + c.pct, 0)
+  const home = deptOf(emp.dept)
+  return distinctTones([{ key: emp.dept, label: home.name, short: home.name, tone: home.tone, pct: 100 - used }, ...conc.map(c => ({ key: c.unit.key, label: c.unit.name, short: c.unit.label, tone: c.unit.tone, pct: c.pct, title: c.title, allowance: Number(c.allowance) || 0 }))])
+}
+
+export function calcPay(emp, att, adj = [], cfg, conc = []) {
   const base = Number(emp.salary) || 0
   const ratio = att.std ? att.total / att.std : 0
   const basePay = base * ratio
@@ -33,17 +52,69 @@ export function calcPay(emp, att, adj = [], cfg) {
   const penalty = adj.filter(a => a.kind === 'penalty').reduce((s, a) => s + a.amount, 0)
   const sales = adj.filter(a => a.kind === 'sales').reduce((s, a) => s + a.amount, 0)
   const commission = sales * cfg.commissionRate
-  const gross = basePay + lunch + phone + site + otPay + bonus + commission - penalty
+  const concAllowance = conc.reduce((s, c) => s + (Number(c.allowance) || 0), 0)
+  const gross = basePay + lunch + phone + site + otPay + bonus + commission + concAllowance - penalty
   const insured = !!emp.insurance?.since
   const insBase = insured ? Math.min(Number(emp.insurance.base) || base, cfg.insCap) : 0
   const ins = { bhxh: insBase * cfg.emp.bhxh, bhyt: insBase * cfg.emp.bhyt, bhtn: insBase * cfg.emp.bhtn }
   const empIns = ins.bhxh + ins.bhyt + ins.bhtn
-  const comIns = insBase * (cfg.com.bhxh + cfg.com.bhyt + cfg.com.bhtn)
+  const comBreak = { bhxh: insBase * cfg.com.bhxh, bhyt: insBase * cfg.com.bhyt, bhtn: insBase * cfg.com.bhtn }
+  const comIns = comBreak.bhxh + comBreak.bhyt + comBreak.bhtn
   const deduction = cfg.personalDeduction + (emp.tax?.dependents || 0) * cfg.dependentDeduction
   const taxable = Math.max(0, gross - Math.min(lunch, 730000) - empIns - deduction)
   const pit = progressiveTax(taxable, cfg.brackets)
   const net = gross - empIns - pit
-  return { base, ratio, basePay, lunch, phone, site, otPay, bonus, penalty, sales, commission, gross, insBase, ins, empIns, comIns, deduction, taxable, pit, net, cost: gross + comIns }
+  const cost = gross + comIns
+  const alloc = allocationOf(emp, conc).map(a => ({ ...a, amount: cost * a.pct / 100 }))
+  return { comBreak, alloc, concAllowance, base, ratio, basePay, lunch, phone, site, otPay, bonus, penalty, sales, commission, gross, insBase, ins, empIns, comIns, deduction, taxable, pit, net, cost }
+}
+
+/* Bảng phân bổ chi tiết: mọi khoản trong bảng lương (thu nhập, BH NLĐ, BH công ty, thuế...) chia theo tỉ trọng kiêm nhiệm.
+   Cột 100% là tổng giá trị của khoản đó; các cột đơn vị = 100% × tỉ lệ của đơn vị. */
+export function AllocationMatrix({ p, title = 'Phân bổ chi tiết theo khoản lương', sub }) {
+  const v = n => Math.round(n).toLocaleString('vi-VN')
+  const groups = [
+    { label: 'Thu nhập', rows: [
+      ['Lương theo công', p.basePay], ['Phụ cấp (ăn trưa, điện thoại, công trường)', p.lunch + p.phone + p.site],
+      ['Phụ cấp kiêm nhiệm', p.concAllowance], ['Làm thêm giờ (OT)', p.otPay], ['Thưởng / hoa hồng / phạt', p.bonus + p.commission - p.penalty],
+      ['Tổng thu nhập (Gross)', p.gross, 'sum'],
+    ] },
+    { label: 'Người lao động đóng / khấu trừ', rows: [
+      ['BHXH NLĐ (8%)', p.ins.bhxh], ['BHYT NLĐ (1,5%)', p.ins.bhyt], ['BHTN NLĐ (1%)', p.ins.bhtn], ['Thuế TNCN', p.pit],
+      ['Thực nhận', p.net, 'sum'],
+    ] },
+    { label: 'Công ty đóng', rows: [
+      ['BHXH công ty (17,5%)', p.comBreak.bhxh], ['BHYT công ty (3%)', p.comBreak.bhyt], ['BHTN công ty (1%)', p.comBreak.bhtn],
+      ['Tổng chi phí công ty (Gross + BH công ty)', p.cost, 'total'],
+    ] },
+  ]
+  return (
+    <div className="cc-matrix-wrap">
+      <div className="cc-row-between" style={{ marginBottom: 8 }}>
+        <div><b className="cc-matrix-title">{title}</b>{sub && <div className="cc-sub">{sub}</div>}</div>
+        <div className="cc-matrix-total"><span>100% =</span><b className="mono">{v(p.cost)} đ</b></div>
+      </div>
+      <div className="cc-table-wrap">
+        <table className="cc-table2 compact cc-alloc-matrix">
+          <thead><tr>
+            <th>Khoản</th><th className="r">Tổng · 100%</th>
+            {p.alloc.map(a => <th key={a.key} className="r"><span className="cc-alloc-name"><i className={`cc-dot cc-tone-${a.tone}`} />{a.short}</span><em>{a.pct}%</em></th>)}
+          </tr></thead>
+          <tbody>
+            {groups.map(g => [
+              <tr key={g.label} className="grp"><td colSpan={2 + p.alloc.length}>{g.label}</td></tr>,
+              ...g.rows.filter(([, val, kind]) => kind || Math.round(val) !== 0).map(([label, val, kind]) => (
+                <tr key={g.label + label} className={kind || ''}>
+                  <td>{label}</td><td className="r mono">{v(val)}</td>
+                  {p.alloc.map(a => <td key={a.key} className="r mono">{v(val * a.pct / 100)}</td>)}
+                </tr>
+              )),
+            ])}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
 }
 
 /* Phiếu lương (dùng chung cho modal & màn hình của nhân viên) */
@@ -64,6 +135,7 @@ function Payslip({ emp, att, p, monthLabel, adj }) {
           {p.site > 0 && <Line k="Phụ cấp công trường" v={p.site} />}
           {p.otPay > 0 && <Line k={`Làm thêm giờ (${att.ot} giờ)`} v={p.otPay} />}
           {p.commission > 0 && <Line k={`Hoa hồng (doanh số ${vnd(p.sales)})`} v={p.commission} />}
+          {p.alloc.filter(a => a.allowance).map(a => <Line key={a.key} k={`Phụ cấp kiêm nhiệm — ${a.short} (${a.title})`} v={a.allowance} />)}
           {adj.filter(a => a.kind === 'bonus').map((a, i) => <Line key={i} k={`Thưởng: ${a.label}`} v={a.amount} />)}
           {adj.filter(a => a.kind === 'penalty').map((a, i) => <Line key={i} k={`Phạt: ${a.label}`} v={a.amount} neg />)}
           <Line k="Tổng thu nhập (Gross)" v={p.gross} strong />
@@ -78,6 +150,7 @@ function Payslip({ emp, att, p, monthLabel, adj }) {
           <div className="cc-ps-note">Giảm trừ gia cảnh: {vnd(p.deduction)} đ ({emp.tax?.dependents || 0} người phụ thuộc)<br />Công ty đóng BH: {vnd(p.comIns)} đ (không trừ vào lương)</div>
         </div>
       </div>
+      {p.alloc.length > 1 && <AllocationMatrix p={p} title="Phân bổ theo đơn vị (kiêm nhiệm)" sub={`Mọi khoản trong phiếu lương được chia theo tỉ trọng: ${p.alloc.map(a => `${a.short} ${a.pct}%`).join(' · ')}`} />}
     </div>
   )
 }
@@ -85,11 +158,12 @@ function Payslip({ emp, att, p, monthLabel, adj }) {
 const TABS = [
   { value: 'run', label: 'Bảng lương', icon: 'table' },
   { value: 'ins', label: 'Bảo hiểm & thuế', icon: 'shield' },
+  { value: 'fixed', label: 'Định phí theo phòng ban', icon: 'building' },
   { value: 'config', label: 'Cấu hình công thức', icon: 'layers' },
 ]
 
 /* Phân hệ "Lương & bảo hiểm" */
-export default function PayrollModule({ employees, payroll, setPayroll, toast, maskDefault }) {
+export default function PayrollModule({ employees, units = [], concurrentOf = () => [], payroll, setPayroll, toast, maskDefault }) {
   const { can, user, role, log } = useAccess()
   const [tab, setTab] = useState('run')
   const [month, setMonth] = useState(MONTHS[0].key)
@@ -105,8 +179,8 @@ export default function PayrollModule({ employees, payroll, setPayroll, toast, m
 
   const rows = useMemo(() => monthlySummary(employees, month).map(att => {
     const adj = adjustments[month]?.[att.emp.id] || []
-    return { emp: att.emp, att, adj, p: calcPay(att.emp, att, adj, cfg) }
-  }), [employees, month, adjustments, cfg])
+    return { emp: att.emp, att, adj, p: calcPay(att.emp, att, adj, cfg, concurrentOf(att.emp.id)) }
+  }), [employees, month, adjustments, cfg, concurrentOf])
 
   if (!can('payroll', 'view')) return <NoAccess />
 
@@ -154,8 +228,8 @@ export default function PayrollModule({ employees, payroll, setPayroll, toast, m
   }
   function exportCsv() {
     downloadCsv(`bang-luong-${month}.csv`, [
-      ['Mã NV', 'Họ tên', 'Lương cơ bản', 'Công', 'Lương theo công', 'Phụ cấp', 'OT', 'Thưởng', 'Hoa hồng', 'Phạt', 'Gross', 'BHXH', 'BHYT', 'BHTN', 'Thuế TNCN', 'Thực nhận', 'Công ty đóng BH'],
-      ...rows.map(({ emp, att, p }) => [emp.code, emp.name, p.base, att.total, Math.round(p.basePay), p.lunch + p.phone + p.site, Math.round(p.otPay), p.bonus, Math.round(p.commission), p.penalty, Math.round(p.gross), Math.round(p.ins.bhxh), Math.round(p.ins.bhyt), Math.round(p.ins.bhtn), Math.round(p.pit), Math.round(p.net), Math.round(p.comIns)]),
+      ['Mã NV', 'Họ tên', 'Lương cơ bản', 'Công', 'Lương theo công', 'Phụ cấp', 'Phụ cấp kiêm nhiệm', 'OT', 'Thưởng', 'Hoa hồng', 'Phạt', 'Gross', 'BHXH', 'BHYT', 'BHTN', 'Thuế TNCN', 'Thực nhận', 'Công ty đóng BH', 'Tỉ trọng phân bổ'],
+      ...rows.map(({ emp, att, p }) => [emp.code, emp.name, p.base, att.total, Math.round(p.basePay), p.lunch + p.phone + p.site, p.concAllowance, Math.round(p.otPay), p.bonus, Math.round(p.commission), p.penalty, Math.round(p.gross), Math.round(p.ins.bhxh), Math.round(p.ins.bhyt), Math.round(p.ins.bhtn), Math.round(p.pit), Math.round(p.net), Math.round(p.comIns), p.alloc.map(a => `${a.short} ${a.pct}%`).join('; ')]),
     ])
     log('payroll', 'export', `Bảng lương ${monthLabel} (CSV)`)
   }
@@ -217,7 +291,7 @@ export default function PayrollModule({ employees, payroll, setPayroll, toast, m
           {shown.length === 0 ? <Empty text="Không có dữ liệu" /> : (
             <div className="cc-table-wrap">
               <table className="cc-table2 hover cc-pay">
-                <thead><tr><th>Nhân viên</th><th className="r">Lương CB</th><th className="r">Công</th><th className="r">Phụ cấp</th><th className="r">OT</th><th className="r">Thưởng / HH / phạt</th><th className="r">Gross</th><th className="r">BH NLĐ</th><th className="r">Thuế TNCN</th><th className="r strong">Thực nhận</th><th /></tr></thead>
+                <thead><tr><th>Nhân viên</th><th className="r">Lương CB</th><th className="r">Công</th><th className="r">Phụ cấp</th><th className="r">OT</th><th className="r">Thưởng / HH / phạt</th><th className="r">Gross</th><th className="r">BH NLĐ</th><th className="r">Thuế TNCN</th><th className="r strong">Thực nhận</th><th>Tỉ trọng phân bổ</th><th /></tr></thead>
                 <tbody>
                   {shown.map(({ emp, att, p }) => {
                     const extra = p.bonus + p.commission - p.penalty
@@ -233,6 +307,12 @@ export default function PayrollModule({ employees, payroll, setPayroll, toast, m
                         <td className="r mono">{p.empIns ? money(p.empIns) : '·'}</td>
                         <td className="r mono">{p.pit ? money(p.pit) : '·'}</td>
                         <td className="r mono strong">{money(p.net)}</td>
+                        <td>
+                          <div className="cc-alloc-cell" title={p.alloc.map(a => `${a.label}: ${a.pct}%`).join('\n')}>
+                            <div className="cc-alloc-bar small">{p.alloc.filter(a => a.pct > 0).map(a => <span key={a.key} className={`cc-tone-${a.tone}`} style={{ flex: a.pct }} />)}</div>
+                            <span>{p.alloc.length > 1 ? p.alloc.map(a => `${a.short} ${a.pct}%`).join(' · ') : '100% ' + p.alloc[0].short}</span>
+                          </div>
+                        </td>
                         <td className="r" onClick={e => e.stopPropagation()}>
                           {run.sent.includes(emp.id) ? <span className="cc-gps ok"><Icon name="mail" size={12} />Đã gửi</span>
                             : editable && <button className="cc-link-btn" onClick={() => setAdjFor(emp)}>± Điều chỉnh</button>}
@@ -241,12 +321,47 @@ export default function PayrollModule({ employees, payroll, setPayroll, toast, m
                     )
                   })}
                 </tbody>
-                <tfoot><tr><td>Tổng ({rows.length})</td><td colSpan={5} /><td className="r mono">{money(sum('gross'))}</td><td className="r mono">{money(sum('empIns'))}</td><td className="r mono">{money(sum('pit'))}</td><td className="r mono strong">{money(sum('net'))}</td><td /></tr></tfoot>
+                <tfoot><tr><td>Tổng ({rows.length})</td><td colSpan={5} /><td className="r mono">{money(sum('gross'))}</td><td className="r mono">{money(sum('empIns'))}</td><td className="r mono">{money(sum('pit'))}</td><td className="r mono strong">{money(sum('net'))}</td><td /><td /></tr></tfoot>
               </table>
             </div>
           )}
         </div>
       </>}
+
+      {tab === 'run' && (() => {
+        const byUnit = {}
+        rows.forEach(({ p }) => p.alloc.forEach(a => {
+          const u = byUnit[a.key] || (byUnit[a.key] = { ...a, amount: 0, people: 0, fte: 0 })
+          u.amount += a.amount; u.people += 1; u.fte += a.pct / 100
+        }))
+        const list = Object.values(byUnit).sort((a, b) => b.amount - a.amount)
+        const totalCost = list.reduce((s, u) => s + u.amount, 0)
+        return (
+          <div className="cc-card cc-pad">
+            <div className="cc-toolbar"><div><h3 className="cc-h3" style={{ margin: 0 }}>Chi phí lương theo đơn vị (đã phân bổ kiêm nhiệm)</h3><span className="cc-sub">Chi phí = Gross + BH công ty đóng, chia theo tỉ trọng công việc của từng nhân sự</span></div></div>
+            <div className="cc-table-wrap">
+              <table className="cc-table2 compact">
+                <thead><tr><th>Đơn vị</th><th className="r">Nhân sự tham gia</th><th className="r">Quy đổi toàn thời gian</th><th className="r">Chi phí phân bổ</th><th>Tỉ trọng</th></tr></thead>
+                <tbody>{list.map(u => (
+                  <tr key={u.key}>
+                    <td><span className="cc-alloc-name"><i className={`cc-dot cc-tone-${u.tone}`} />{u.label}</span></td>
+                    <td className="r mono">{u.people}</td><td className="r mono">{u.fte.toFixed(2).replace('.', ',')}</td>
+                    <td className="r mono">{money(u.amount)}</td>
+                    <td><div className="cc-leave-cell"><div className="cc-bar"><span style={{ width: (totalCost ? u.amount / totalCost * 100 : 0) + '%', background: 'var(--c)' }} className={`cc-tone-${u.tone}`} /></div><b className="mono">{totalCost ? (u.amount / totalCost * 100).toFixed(1).replace('.', ',') : 0}%</b></div></td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          </div>
+        )
+      })()}
+
+      {tab === 'fixed' && (
+        <FixedCostTab
+          rows={rows} units={units} fixed={payroll.fixed || {}} editable={can('payroll', 'edit')} money={money} monthLabel={monthLabel} log={log} employees={employees} cfg={cfg} adjustments={adjustments} runs={runs} concurrentOf={concurrentOf} month={month}
+          setFixed={(key, val) => setPayroll(p => ({ ...p, fixed: { ...(p.fixed || {}), [key]: val } }))}
+        />
+      )}
 
       {tab === 'ins' && (
         <div className="cc-card cc-pad">

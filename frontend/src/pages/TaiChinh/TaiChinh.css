@@ -50,16 +50,16 @@ html[data-theme="dark"][data-accent="teal"] .tc-page{--primary:#3FC2B6; --primar
 .tc-page .mono{font-family:ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;}
 
 /* ---------- Header + thanh danh mục ---------- */
-.tc-header{height:64px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 28px; background:var(--surface); gap:6px;}
+.tc-header{height:64px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 var(--page-gutter); background:var(--surface); gap:6px;}
 .tc-crumb{color:var(--text-muted); font-size:13px;}
 .tc-crumb-current{font-size:13px; font-weight:600;}
 .tc-theme-toggle{width:34px; height:34px; border-radius:9px; border:1px solid var(--border); background:var(--surface-alt); color:var(--text-muted); display:flex; align-items:center; justify-content:center; cursor:pointer;}
 
-.tc-cat-row{height:52px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 28px; background:var(--surface); gap:4px;}
+.tc-cat-row{height:52px; flex:none; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 var(--page-gutter); background:var(--surface); gap:4px;}
 .tc-cat{padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; color:var(--text-muted); cursor:pointer;}
 .tc-cat.active{color:var(--finance); background:var(--finance-tint);}
 
-.tc-scroll{flex:1; padding:22px 28px; overflow-y:auto; overflow-x:hidden;}
+.tc-scroll{flex:1; padding:var(--page-gutter); overflow-y:auto; overflow-x:hidden;}
 
 /* ---------- Thanh lọc ---------- */
 .tc-filter-bar{display:flex; align-items:center; gap:14px; margin-bottom:16px; flex-wrap:wrap;}
@@ -153,3 +153,7 @@ html[data-theme="dark"][data-accent="teal"] .tc-page{--primary:#3FC2B6; --primar
 .tc-ai-input-row{display:flex; align-items:center; gap:8px; margin-top:6px;}
 .tc-ai-tool-btn{width:26px; height:26px; border-radius:50%; border:1px solid var(--border); background:var(--surface); color:var(--text-muted); display:flex; align-items:center; justify-content:center; flex:none;}
 .tc-ai-send{margin-left:auto; background:#12161F; color:#fff; border:none; padding:8px 18px; border-radius:16px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit;}
+
+/* Biểu tượng + tiêu đề trang giống các trang phòng ban khác */
+.tc-header-icon{width:30px; height:30px; border-radius:8px; background:var(--finance-tint); color:var(--finance); display:flex; align-items:center; justify-content:center; flex:none; margin-right:6px;}
+.tc-header-title{font-size:14.5px; font-weight:700; white-space:nowrap;}

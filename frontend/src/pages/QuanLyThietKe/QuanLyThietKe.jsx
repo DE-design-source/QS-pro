@@ -5,6 +5,7 @@ import { MembersProvider } from './components/ProjectMembers'
 import ProjectListTab from './components/ProjectListTab'
 import SetupTab from './components/SetupTab'
 import GanttTab from './components/GanttTab'
+import NhanSuTab from './components/NhanSuTab'
 import TaskGameTab from './components/TaskGameTab'
 import Dezbot, { loadAiPanelWidth } from './components/Dezbot'
 
@@ -13,8 +14,9 @@ const MAIN_TABS = [
   { key: 'create', label: 'Thiết lập thiết kế' },
   { key: 'tiendo', label: 'Tiến độ' },
   { key: 'nhiemvu', label: 'Nhiệm vụ' },
+  { key: 'nhansu', label: 'Cơ cấu phòng ban' },
 ]
-const VALID_TABS = ['list', 'create', 'tiendo', 'nhiemvu', 'detail']
+const VALID_TABS = ['list', 'create', 'tiendo', 'nhiemvu', 'nhansu', 'detail']
 const VALID_GTABS = ['overview', 'mission', 'rewards', 'leaderboard']
 
 /* Đọc tab ban đầu từ hash (#tiendo, #detail, #nhiemvu-rewards...) giống bản HTML */
@@ -61,19 +63,16 @@ export default function QuanLyThietKe() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
           </div>
           <span className="tk-header-title">Quản lý thiết kế</span>
-          <span className="tk-header-sub">Điểm khởi đầu — danh sách dự án, thiết lập thiết kế, tiến độ, nhiệm vụ &amp; luồng dữ liệu trong một nơi</span>
-          <span style={{ flex: 1 }} />
+          <div className="hdr-tabs" role="tablist">
+            {MAIN_TABS.map(t => (
+              <button key={t.key} className={`tk-proj-tab${tab === t.key ? ' active' : ''}`} onClick={() => goToTab(t.key)}>{t.label}</button>
+            ))}
+          </div>
           <button className="tk-theme-toggle" title="Chuyển giao diện sáng/tối" onClick={toggleTheme}>
             {theme === 'dark'
               ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
               : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" /></svg>}
           </button>
-        </div>
-
-        <div className="tk-tabs-row">
-          {MAIN_TABS.map(t => (
-            <button key={t.key} className={`tk-proj-tab${tab === t.key ? ' active' : ''}`} onClick={() => goToTab(t.key)}>{t.label}</button>
-          ))}
         </div>
 
         {/* Các tab luôn được mount (ẩn bằng display) để giữ trạng thái khi chuyển tab, giống bản HTML */}
@@ -89,6 +88,9 @@ export default function QuanLyThietKe() {
           </div>
           <div className="tk-panel-scroll" style={panelStyle('nhiemvu')}>
             <TaskGameTab gtab={gtab} onGtabChange={setGtab} />
+          </div>
+          <div className="tk-panel-scroll" style={panelStyle('nhansu')}>
+            <NhanSuTab />
           </div>
         </div>
 

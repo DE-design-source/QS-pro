@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useThemeContext, FONT_SCALE_MIN, FONT_SCALE_MAX } from '../../../context/ThemeContext'
 import { ACCENTS, EXTRA_ACCENTS, FONTS, FONT_SIZES, GLASS_LEVELS, WALLPAPERS } from '../../../data/caiDatData'
-import { FONT_CATALOG, findFont } from '../../../data/fontCatalog'
+import { FONT_CATALOG, findFont, isFontAvailable } from '../../../data/fontCatalog'
 import FontPicker from './FontPicker'
 import { cardStyle, titleStyle, descStyle, RowText, ToggleSwitch } from './shared'
 
@@ -91,7 +91,12 @@ export default function AppearanceTab() {
   const currentUi = uiTheme || 'default'
   const isGlass = currentUi !== 'default'
   const pickedFont = findFont(fontFamily)
-  const currentFont = { label: pickedFont ? pickedFont.name : 'Montserrat', preview: fontFamily || "'Montserrat', sans-serif" }
+  /* Font đã lưu nhưng không còn trong danh mục (vd. Georgia trước đây) thì lấy tên đầu tiên trong giá trị */
+  const currentFont = {
+    label: pickedFont ? pickedFont.name : (fontFamily ? fontFamily.split(',')[0].replace(/['"]/g, '').trim() : 'Montserrat'),
+    preview: fontFamily || "'Montserrat', sans-serif",
+    missing: !!pickedFont && !isFontAvailable(pickedFont),
+  }
   const fontPins = customize.fontPins || []
   const fontRecent = customize.fontRecent || []
   const wallpaper = customize.wallpaper || 'none'
@@ -255,6 +260,11 @@ export default function AppearanceTab() {
           <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Xem thử — {currentFont.label}</div>
           <div style={{ fontSize: 15, fontWeight: 700 }}>Công trình Riverside — Giai đoạn 2</div>
           <div style={{ fontSize: 13 }}>Tổng giá trị hợp đồng 1.250.000.000 đ · tiến độ 62% · hạn bàn giao 09/11/2026</div>
+          {currentFont.missing ? (
+            <div style={{ fontSize: 11.5, color: 'var(--finance)', marginTop: 6 }}>
+              Máy hoặc trình duyệt này chưa có {currentFont.label} (có sẵn trên {pickedFont.src}) nên đang hiển thị bằng font thay thế. Trên máy có sẵn font này, SiteFlow sẽ hiện đúng.
+            </div>
+          ) : null}
         </div>
         <div className="cd-settings-row" style={{ marginTop: 6, paddingBottom: 0 }}>
           <RowText title="Số liệu dùng font đơn cách" desc="Tắt: số tiền, mã, ngày dùng chung font của app. Bật: dùng font kiểu máy đánh chữ như trước đây" />

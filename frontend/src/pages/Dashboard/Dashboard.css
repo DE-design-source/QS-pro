@@ -57,13 +57,13 @@ html[data-theme="dark"][data-accent="teal"] .db-page{--primary:#3FC2B6; --primar
 .db-page *:hover::-webkit-scrollbar-thumb{background:var(--scrollbar-thumb);}
 
 /* ---------- Topbar ---------- */
-.db-topbar{height:72px; flex:none; box-sizing:border-box; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 28px; background:var(--surface);}
+.db-topbar{height:56px; flex:none; box-sizing:border-box; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 var(--page-gutter); background:var(--surface);}
 .db-search{display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:9px; background:var(--surface-alt); width:220px;}
 .db-theme-toggle{width:34px; height:34px; border-radius:9px; border:1px solid var(--border); background:var(--surface-alt); color:var(--text-muted); display:flex; align-items:center; justify-content:center; cursor:pointer;}
 .db-me{width:34px; height:34px; border-radius:50%; background:var(--primary-tint); color:var(--primary); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12.5px;}
 
 /* ---------- Nội dung ---------- */
-.db-content{flex:1; overflow:hidden; box-sizing:border-box; padding:26px 28px; display:flex; gap:20px; align-items:stretch; min-height:0;}
+.db-content{flex:1; overflow:hidden; box-sizing:border-box; padding:var(--page-gutter); display:flex; gap:20px; align-items:stretch; min-height:0;}
 .db-feed-col{flex:1; min-width:0; overflow-y:auto; display:flex; flex-direction:column; gap:14px; padding-bottom:20px;}
 .db-view{flex-direction:column; gap:14px;}
 .db-section-head{display:flex; align-items:center; gap:12px;}

@@ -97,3 +97,32 @@ export function downloadCsv(filename, rows) {
   a.href = url; a.download = filename; a.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
+
+/* Thẻ loại chức danh: main = chức danh chính thức (phòng ban chính) · conc = chức danh kiêm nhiệm */
+export function RoleTag({ kind }) {
+  return <span className={`cc-role-tag ${kind}`}>{kind === 'main' ? 'Chính thức' : 'Kiêm nhiệm'}</span>
+}
+
+/* Toàn bộ chức danh của 1 nhân sự: chức danh chính + các chức danh kiêm nhiệm.
+   concurrent: [{ unit, title, pct }] · compact: 1 dòng thẻ gọn (dùng trong bảng / thẻ) */
+export function RoleList({ emp, concurrent = [], compact, deptName }) {
+  if (compact) {
+    return (
+      <span className="cc-roles compact">
+        <RoleTag kind="main" />
+        {concurrent.map(c => (
+          <span key={c.unit.key} className="cc-role-chip" title={`Kiêm nhiệm: ${c.title} · ${c.unit.name} · ${c.pct}%`}><RoleTag kind="conc" />{c.unit.label} {c.pct}%</span>
+        ))}
+      </span>
+    )
+  }
+  const used = concurrent.reduce((s, c) => s + c.pct, 0)
+  return (
+    <div className="cc-roles">
+      <div className="cc-role-line"><RoleTag kind="main" /><b>{emp.position}</b><span>{deptName}{concurrent.length ? ` · ${100 - used}%` : ''}</span></div>
+      {concurrent.map(c => (
+        <div key={c.unit.key} className="cc-role-line"><RoleTag kind="conc" /><b>{c.title}</b><span>{c.unit.name} · {c.pct}%</span></div>
+      ))}
+    </div>
+  )
+}
