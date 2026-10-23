@@ -124,5 +124,11 @@ fs.readdirSync(path.join(__dirname, '..', 'public')).filter(f => f.endsWith('.js
   assert.strictEqual(q1.where.join(' AND '), '("ma_sp"::text = $1) AND (("mau_sac" IS NULL OR ("mau_sac"::text = $2))) AND "id"::text IN ($3,$4)');
   assert.deepStrictEqual(q1.P, ["A'; drop table x;--", '', '1', '2']); assert.strictEqual(q1.limit, 5);
   assert.throws(function () { pgq('users?select=id;drop'); }); assert.throws(function () { pgq('users?x=foo.1'); });
+  // công tắc - ổ cắm: hạng mục ghi chung -> vẫn là ngành ct, hạng mục con đoán theo tên
+  const CTS = require('../public/ct-spec.js');
+  assert.ok(CTS.laChung('Công tắc - ổ cắm') && !CTS.laChung('Công tắc cơ') && !CTS.laChung('Phụ kiện đèn'));
+  assert.strictEqual(CTS.doanHM('Công tắc - ổ cắm', 'Bộ công tắc chìa khóa thẻ 16A'), 'Công tắc thẻ từ / chìa khoá phòng');
+  assert.strictEqual(CTS.doanHM('Công tắc - ổ cắm', 'Bộ công tắc đôi 1 chiều 16AX'), 'Công tắc cơ');
+  assert.strictEqual(require('../server/store_supa').nganhCua_('', 'Công tắc - ổ cắm'), 'ct');
   console.log('test-core: tất cả đạt');
 })().catch(e => { console.error(e); process.exit(1); });

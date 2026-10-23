@@ -163,6 +163,29 @@
     for (var i = 0; i < HANG_MUC.length; i++) if (bo_dau(HANG_MUC[i]) === k) return HANG_MUC[i];
     return '';
   }
+  // Hạng mục ghi CHUNG ("Công tắc - ổ cắm", "Ổ cắm", "Công tắc"…) chứ không phải 1 trong 14 hạng mục con -> vẫn là ngành ct
+  function laChung(v) { var k = bo_dau(v); return !!k && !chuanHM(v) && /(cong tac|o cam|dimmer)/.test(k) && !/den|phu kien/.test(k); }
+  // Đoán hạng mục con theo TÊN SP khi hạng mục chỉ ghi chung (thứ tự quy tắc: cụ thể trước, chung sau)
+  var DOAN = [
+    [/the tu|chia khoa|khoa the|the phong|ngat dien bang the/, 'Công tắc thẻ từ / chìa khoá phòng'],
+    [/dimmer|chiet ap|dieu toc|dieu chinh do sang/, 'Dimmer / điều tốc quạt'],
+    [/cam bien|hong ngoai|radar|chuyen dong/, 'Công tắc cảm biến'],
+    [/chuong|nut nhan|khong lam phien|don phong/, 'Nút nhấn / chuông'],
+    [/am san|am ban/, 'Ổ cắm âm sàn / âm bàn'],
+    [/o cam.*(thong minh|wifi|zigbee|smart)|(thong minh|wifi|zigbee|smart).*o cam/, 'Ổ cắm thông minh'],
+    [/thong minh|wifi|zigbee|smart/, 'Công tắc thông minh'],
+    [/cam ung|touch/, 'Công tắc cảm ứng'],
+    [/o cam.*(usb|sac)|(usb|sac).*o cam|\busb\b/, 'Ổ cắm sạc USB'],
+    [/o cam.*(tv|lan|mang|dien thoai|tel|hdmi|rj45|tin hieu|data)|o (tv|mang|dien thoai|hdmi|data)/, 'Ổ cắm tín hiệu (TV / LAN / Tel / HDMI)'],
+    [/o cam/, 'Ổ cắm điện'],
+    [/cong tac/, 'Công tắc cơ']
+  ];
+  function doanHM(hm, ten) {
+    var c = chuanHM(hm); if (c) return c;
+    var t = bo_dau(ten);
+    for (var i = 0; i < DOAN.length; i++) if (DOAN[i][0].test(t)) return DOAN[i][1];
+    return /o cam/.test(bo_dau(hm)) && !/cong tac/.test(bo_dau(hm)) ? 'Ổ cắm khác' : 'Công tắc khác';
+  }
   function hmOf(v) { return HM[chuanHM(v)] || null; }
   var ALL = Object.keys(METRIC);
   function labelsOf(v) { var h = hmOf(v); return h ? h.chinh.concat(h.tk) : ALL.slice(); }
@@ -189,7 +212,7 @@
 
   var api = { METRIC: METRIC, HM: HM, HANG_MUC: HANG_MUC, ALL: ALL, CHUNG: CHUNG, OPT: OPT,
     gom: gom, CHINH_ALL: CHINH_ALL, TK_ALL: TK_ALL,
-    chuanHM: chuanHM, hmOf: hmOf, labelsOf: labelsOf, optsOf: optsOf, isReq: isReq, dong: dong,
+    chuanHM: chuanHM, laChung: laChung, doanHM: doanHM, hmOf: hmOf, labelsOf: labelsOf, optsOf: optsOf, isReq: isReq, dong: dong,
     MUC: 'Công tắc - ổ cắm',                      // tên đề mục 3.2.6.2 trên cây
     VD: '[VÍ DỤ]' };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

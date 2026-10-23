@@ -144,7 +144,7 @@ function nganhCuaSP_(p){
   if(!p) return 'den';
   var n=String(p.nganh||'').trim(); if(coSpec_(n)) return n;
   if(!n && SON_SPEC.chuanHM(p.hangMuc)) return 'son';
-  if(!n && CT_SPEC.chuanHM(p.hangMuc)) return 'ct';
+  if(!n && (CT_SPEC.chuanHM(p.hangMuc)||CT_SPEC.laChung(p.hangMuc))) return 'ct';
   return VS_SPEC.nganhOf(p.nganh,p.hangMuc)==='vs'?'vs':'den';
 }
 function groupsCuaSP_(p){ var ng=nganhCuaSP_(p); return ng==='son'?DB_GROUPS_SON:(ng==='ct'?DB_GROUPS_CT:(ng==='vs'?DB_GROUPS_VS:DB_GROUPS)); }

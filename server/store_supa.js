@@ -15,7 +15,7 @@ function nganhCua_(nganh, hangMuc) {
   const n = String(nganh == null ? '' : nganh).trim();
   if (n) return n;
   if (SON.chuanHM(hangMuc)) return 'son';
-  if (CT.chuanHM(hangMuc)) return 'ct';
+  if (CT.chuanHM(hangMuc) || CT.laChung(hangMuc)) return 'ct';
   return VS.chuanHM(hangMuc) ? 'vs' : 'den';
 }
 function specNganh_(ng) { return ng === 'vs' ? VS : (ng === 'son' ? SON : (ng === 'ct' ? CT : null)); }
@@ -518,6 +518,7 @@ async function saveDbProduct(actor, data, opts) {
     row[col] = v;
   });
   if (!row.nganh) { const ng0 = nganhCua_('', row.hang_muc); if (ng0 !== 'den') row.nganh = ng0; }
+  if (row.nganh === 'ct' && row.hang_muc) row.hang_muc = CT.doanHM(row.hang_muc, ten);   // "Công tắc - ổ cắm" -> hạng mục con theo tên
   const ma = s(data['MÃ SẢN PHẨM']).trim();
   // Khoá trùng = MÃ SP + các trục BIẾN THỂ (nhiệt độ màu / công suất / góc chiếu).
   // Nhờ vậy cùng mã nhưng khác nhiệt độ màu sẽ là 2 SẢN PHẨM RIÊNG (biến thể), không ghi đè nhau.
@@ -1063,7 +1064,7 @@ async function importCommit(actor, products) {
       // Đóng dấu ngành (-> SP về đúng đề mục), chuẩn hoá tên hạng mục và CHỈ giữ thông số
       // thuộc hạng mục đó — cột của hạng mục khác trong file bị bỏ qua.
       data['NGÀNH HÀNG'] = ngRow;
-      const hm = SPEC.chuanHM(data['HẠNG MỤC']);
+      const hm = SPEC.doanHM ? SPEC.doanHM(data['HẠNG MỤC'], data['TÊN SẢN PHẨM']) : SPEC.chuanHM(data['HẠNG MỤC']);
       if (!hm) { errors.push({ i: i, ten: s(data['TÊN SẢN PHẨM']), error: 'Hạng mục "' + s(data['HẠNG MỤC']) + '" không thuộc danh sách: ' + SPEC.HANG_MUC.join(', ') }); continue; }
       data['HẠNG MỤC'] = hm;
       const cho = SPEC.CHUNG.concat(SPEC.labelsOf(hm));     // chỉ giữ trường chung + thông số của đúng hạng mục
@@ -1080,6 +1081,20 @@ async function importCommit(actor, products) {
   const out = { inserted: inserted, updated: updated };
   if (errors.length) out.errors = errors;
   return out;
+}
+
+// Sửa 1 lần lúc khởi động (chạy lại vô hại): SP công tắc - ổ cắm nhập với hạng mục ghi CHUNG ("Công tắc - ổ cắm")
+// trước đây bị xếp vào ngành đèn -> đóng dấu ngành 'ct' + chuyển hạng mục về đúng hạng mục con (đoán theo tên SP).
+async function suaNganhCT_() {
+  const ds = await supa.select('db_san_pham', { select: 'id,ten_sp,hang_muc,nganh', filter: 'or=(nganh.is.null,nganh.eq.,nganh.eq.den)', limit: 50000, noScope: true });
+  let sua = 0;
+  for (const r of ds) {
+    if (!CT.laChung(r.hang_muc) && !CT.chuanHM(r.hang_muc)) continue;
+    await supa.update('db_san_pham', supa.eq('id', r.id), { nganh: 'ct', hang_muc: CT.doanHM(r.hang_muc, r.ten_sp) }, { noScope: true });
+    sua++;
+  }
+  if (sua) _cacheClear_();
+  return sua;
 }
 
 /*** ===== DỮ LIỆU RỜI CỦA DỰ ÁN (du_an_data) =====
@@ -1502,7 +1517,7 @@ module.exports = {
   DB_LABEL2COL,
   getCover, saveCover, buildCoverFromTemplate, getCoverOrInit, getQuote, importParse, importCommit,
   savePurchaseOrder, getPurchaseOrders, getProjData, setProjData,
-  nganhCua_, MUC_NGANH,
+  nganhCua_, MUC_NGANH, suaNganhCT_,
   saveDeXuat, getDeXuatList, dxHead_, dxItem_,
   ctGetHistory
 };

@@ -831,4 +831,7 @@ app.get('/healthz', function (req, res) { res.json({ ok: true }); });
 
 app.listen(config.port, function () {
   console.log('QS Pro chạy tại http://localhost:' + config.port);
+  // chỉ chạy trên Render (máy local nối thẳng CSDL thật -> không tự ghi)
+  if (process.env.RENDER) store.suaNganhCT_().then(function (k) { if (k) console.log('[công tắc - ổ cắm] đã chuyển ' + k + ' SP về đúng ngành / hạng mục'); })
+    .catch(function (e) { console.error('[công tắc - ổ cắm] lỗi chuyển ngành:', e && e.message); });
 });
