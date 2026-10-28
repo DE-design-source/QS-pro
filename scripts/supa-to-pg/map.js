@@ -38,8 +38,21 @@ if (CT_SQL_ORDER.length !== CT_NEW.length || CT_COLS.some(function (c) { return 
 AUTO.product_switch_socket_specs = { from: 'db_san_pham', cols: { product_id: 'id' } };
 CT_NEW.forEach(function (c, i) { AUTO.product_switch_socket_specs.cols[c] = CT_SQL_ORDER[i]; });
 
-const SPEC = { product_lighting_specs: 1, product_paint_specs: 1, product_sanitary_specs: 1, product_switch_socket_specs: 1 };
-const THU_TU = ['companies', 'users', 'products', 'product_lighting_specs', 'product_paint_specs', 'product_sanitary_specs', 'product_switch_socket_specs',
+// Điện lạnh (public/dl-spec.js) — bảng thông số product_hvac_specs (db/pg/dien_lanh.sql), cột cũ = cột DB trong dl-spec.js.
+// Ngành mới sau khi chuyển khỏi Supabase nên bản chụp không có cột này: compat.js tự nối thêm vào view db_san_pham.
+const DL_COLS = { unit_type: 'loai_may', cooling_capacity_kw: 'cs_lanh_kw', capacity_hp: 'cs_hp', capacity_btu: 'cs_btu', operation_mode: 'che_do_van_hanh',
+  compressor_type: 'may_nen', refrigerant: 'moi_chat_lanh', power_supply: 'dien_nguon_dl', origin_country: 'xuat_xu',
+  power_input_kw: 'cs_dien_kw', energy_efficiency: 'hieu_suat_nl', energy_label: 'nhan_nang_luong', airflow_m3h: 'luu_luong_gio',
+  indoor_noise_db: 'do_on_dan_lanh', outdoor_noise_db: 'do_on_dan_nong', cooling_area: 'pham_vi_lam_lanh', air_filtration: 'loc_khi', control_type: 'dk_dieu_hoa',
+  liquid_pipe: 'ong_long', gas_pipe: 'ong_hoi', max_pipe_length_m: 'ong_dai_max', max_height_diff_m: 'chenh_cao_max', drain_pipe: 'ong_thoat_nuoc',
+  power_cable: 'day_nguon', control_cable: 'day_dieu_khien', panel_model: 'mat_na', max_indoor_units: 'so_dan_lanh_max', refrigerant_charge: 'gas_nap',
+  indoor_unit_dimensions: 'kt_dan_lanh', indoor_unit_weight_kg: 'kl_dan_lanh', outdoor_unit_dimensions: 'kt_dan_nong', outdoor_unit_weight_kg: 'kl_dan_nong',
+  panel_cutout_size: 'kt_mat_na', installation_location: 'vi_tri_lap_dat', outdoor_bracket: 'gia_do_dan_nong', min_clearance: 'kc_lap_min',
+  installation_note: 'gc_lap_dat', material_spec: 'quy_cach_vt' };
+AUTO.product_hvac_specs = { from: 'db_san_pham', cols: Object.assign({ product_id: 'id' }, DL_COLS) };
+
+const SPEC = { product_lighting_specs: 1, product_paint_specs: 1, product_sanitary_specs: 1, product_switch_socket_specs: 1, product_hvac_specs: 1 };
+const THU_TU = ['companies', 'users', 'products', 'product_lighting_specs', 'product_paint_specs', 'product_sanitary_specs', 'product_switch_socket_specs', 'product_hvac_specs',
   'product_combos', 'favorite_products', 'product_histories', 'audit_logs', 'notifications', 'delete_requests', 'projects', 'project_data_entries',
   'quotation_lines', 'cost_estimate_lines', 'purchase_orders', 'purchase_order_items', 'purchase_proposals', 'work_items', 'work_item_histories'];
 
@@ -50,4 +63,4 @@ function colsOf(t) {
   Object.keys(cols).forEach(function (k) { if (cols[k] == null) delete cols[k]; });
   return cols;
 }
-module.exports = { AUTO: AUTO, SUA: SUA, SPEC: SPEC, THU_TU: THU_TU, colsOf: colsOf };
+module.exports = { AUTO: AUTO, SUA: SUA, SPEC: SPEC, THU_TU: THU_TU, colsOf: colsOf, DL_COLS: DL_COLS };

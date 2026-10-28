@@ -133,21 +133,50 @@ var DB_GROUPS_CT=[
     ['HƯỚNG DẪN CÀI ĐẶT','Hướng dẫn lắp đặt','doc',0],['FILE BẢN VẼ','File bản vẽ','doc',0] ]},
 ];
 var DB_FLAT_CT=[]; DB_GROUPS_CT.forEach(function(gr){ gr.f.forEach(function(f){ DB_FLAT_CT.push(f); }); });
+/* ═══ ĐIỆN LẠNH (đề mục 3.2.7) — thông số khai báo DUY NHẤT ở public/dl-spec.js (DL_SPEC) ═══
+   Điều hoà: 4 khối (Thông tin chính · Hiệu suất · Kết nối · Lắp đặt); vật tư / phụ kiện / thông gió: Quy cách · Xuất xứ.     */
+function dlField_(lb){ var m=DL_SPEC.METRIC[lb]; return [lb, m[1], m[2], 0, [], m[3]||'', 'vs']; }
+function dlKhoi_(k){ var out=[]; DL_SPEC.HANG_MUC.forEach(function(h){ DL_SPEC.HM[h].nhom[k].forEach(function(lb){ if(out.indexOf(lb)<0) out.push(lb); }); }); return out; }
+var DB_GROUPS_DL=[
+  {g:'Thông tin cơ bản', f:[
+    ['THƯƠNG HIỆU','Thương hiệu','text',1],['NHÀ CUNG CẤP','Nhà cung cấp','text',1],
+    ['HẠNG MỤC','Hạng mục','hm',1,DL_SPEC.HANG_MUC],
+    ['DÒNG SẢN PHẨM','Dòng sản phẩm','text',1,null,'VD: Máy lạnh treo tường · Dàn nóng Multi · Ống đồng dẫn gas'],
+    ['NHÓM SẢN PHẨM','Nhóm sản phẩm (series)','text',0,null,'Tên series của NCC — để trống = lấy theo Dòng sản phẩm'],
+    ['TÊN SẢN PHẨM','Tên sản phẩm','text',1],['MÃ SẢN PHẨM','Mã sản phẩm','text',1,null,'Mỗi model 1 mã'] ]},
+  {g:'Thông tin giá bán', note:'Giá đại lý tự tính = Giá bán lẻ × (1 − %Chiết khấu).', f:[
+    ['GIÁ BÁN LẺ','Giá bán lẻ','num',1],['CHIẾT KHẤU ĐẠI LÝ (%)','%Chiết khấu','num',1],['GIÁ ĐẠI LÝ','Giá đại lý','calc',0] ]}
+].concat(DL_SPEC.KHOI.map(function(k,i){ var t=k[1].split('|');
+  return {g:t[0]+' ('+t[1]+')', vs:1, note:i===0?'Thông số theo hạng mục đã chọn — lên cột "Thông tin chính" của bảng bóc tách. Vật tư / phụ kiện chỉ có Quy cách · Xuất xứ.':undefined, f:dlKhoi_(k[0]).map(dlField_)}; })
+).concat([
+  {g:'Tính năng', note:'Mỗi dòng một tính năng — hiện ở phần Thông tin sản phẩm (mở rộng).', f:[
+    ['TÍNH NĂNG','Tính năng','area',0,null,'• Inverter tiết kiệm điện\n• Lọc bụi mịn PM2.5'] ]},
+  {g:'Thương mại', f:[
+    ['BẢO HÀNH (năm)','Bảo hành (năm)','num',0],
+    ['ĐƠN VỊ TÍNH','Đơn vị tính','sel',1,['Bộ','Cái','m','Lô','Gói']],
+    ['TRẠNG THÁI','Trạng thái','sel',0,['Đang kinh doanh','Ngưng kinh doanh','Đặt hàng']],
+    ['GHI CHÚ','Ghi chú','area',0] ]},
+  {g:'Tài liệu', note:'Tải file lên (PDF, ảnh, ZIP…) hoặc dán link — hiện thành nút mở trong Thông tin sản phẩm.', f:[
+    ['LINK DATASHEET','Tài liệu kỹ thuật / Catalogue','doc',0],['THÔNG SỐ KỸ THUẬT','Thông số kỹ thuật','doc',0],
+    ['HƯỚNG DẪN CÀI ĐẶT','Hướng dẫn lắp đặt','doc',0],['FILE BẢN VẼ','File bản vẽ','doc',0] ]}
+]);
+var DB_FLAT_DL=[]; DB_GROUPS_DL.forEach(function(gr){ gr.f.forEach(function(f){ DB_FLAT_DL.push(f); }); });
 /* Ngành có BỘ THÔNG SỐ THEO HẠNG MỤC (khác đèn): vệ sinh · sơn nước · công tắc - ổ cắm */
-function coSpec_(n){ return n==='vs'||n==='son'||n==='ct'; }
+function coSpec_(n){ return n==='vs'||n==='son'||n==='ct'||n==='dl'; }
 /* Ngành hàng đang chọn ở trang Nhập dữ liệu -> bộ trường / bộ nhóm tương ứng */
-function impGroups_(){ var l=impLoai_(); return l==='son'?DB_GROUPS_SON:(l==='ct'?DB_GROUPS_CT:(l==='vs'?DB_GROUPS_VS:DB_GROUPS)); }
-function impFlat_(){ var l=impLoai_(); return l==='son'?DB_FLAT_SON:(l==='ct'?DB_FLAT_CT:(l==='vs'?DB_FLAT_VS:DB_FLAT)); }
+function impGroups_(){ var l=impLoai_(); return l==='son'?DB_GROUPS_SON:(l==='ct'?DB_GROUPS_CT:(l==='dl'?DB_GROUPS_DL:(l==='vs'?DB_GROUPS_VS:DB_GROUPS))); }
+function impFlat_(){ var l=impLoai_(); return l==='son'?DB_FLAT_SON:(l==='ct'?DB_FLAT_CT:(l==='dl'?DB_FLAT_DL:(l==='vs'?DB_FLAT_VS:DB_FLAT))); }
 /* Bộ thông số theo ngành — mọi chỗ cần "hạng mục nào có thông số gì" đều đi qua đây */
-function specNganh_(ng){ return ng==='son'?SON_SPEC:(ng==='ct'?CT_SPEC:VS_SPEC); }
+function specNganh_(ng){ return ng==='son'?SON_SPEC:(ng==='ct'?CT_SPEC:(ng==='dl'?DL_SPEC:VS_SPEC)); }
 function nganhCuaSP_(p){
   if(!p) return 'den';
   var n=String(p.nganh||'').trim(); if(coSpec_(n)) return n;
   if(!n && SON_SPEC.chuanHM(p.hangMuc)) return 'son';
   if(!n && (CT_SPEC.chuanHM(p.hangMuc)||CT_SPEC.laChung(p.hangMuc))) return 'ct';
+  if(!n && (DL_SPEC.chuanHM(p.hangMuc)||DL_SPEC.laChung(p.hangMuc))) return 'dl';
   return VS_SPEC.nganhOf(p.nganh,p.hangMuc)==='vs'?'vs':'den';
 }
-function groupsCuaSP_(p){ var ng=nganhCuaSP_(p); return ng==='son'?DB_GROUPS_SON:(ng==='ct'?DB_GROUPS_CT:(ng==='vs'?DB_GROUPS_VS:DB_GROUPS)); }
+function groupsCuaSP_(p){ var ng=nganhCuaSP_(p); return ng==='son'?DB_GROUPS_SON:(ng==='ct'?DB_GROUPS_CT:(ng==='dl'?DB_GROUPS_DL:(ng==='vs'?DB_GROUPS_VS:DB_GROUPS))); }
 function dbInput(f){
   var i=impFlat_().indexOf(f), lark=f[0], label=f[1], type=f[2], req=f[3], opts=f[4]||[];
   var ph=f[5]||label;                       // gợi ý nhập riêng (nếu có)
@@ -261,7 +290,7 @@ async function docPick_(btn){
 function vsApplyHM_(box, hmRaw, hienHetKhiTrong, ng){
   if(!box) return;
   // Hạng mục quyết định luôn bộ thông số: tên thuộc sơn nước -> SON_SPEC, còn lại -> VS_SPEC
-  var VS_SPEC=SON_SPEC.chuanHM(hmRaw) ? SON_SPEC : (CT_SPEC.chuanHM(hmRaw) ? CT_SPEC : specNganh_(ng||impLoai_()));
+  var VS_SPEC=SON_SPEC.chuanHM(hmRaw) ? SON_SPEC : (CT_SPEC.chuanHM(hmRaw) ? CT_SPEC : (DL_SPEC.chuanHM(hmRaw) ? DL_SPEC : specNganh_(ng||impLoai_())));
   var hm=VS_SPEC.chuanHM(hmRaw), cho=hm?VS_SPEC.labelsOf(hm):(hienHetKhiTrong?VS_SPEC.ALL:[]);
   box.querySelectorAll('[data-vs]').forEach(function(w){
     var lb=w.getAttribute('data-vs'), on=cho.indexOf(lb)>=0;
@@ -721,7 +750,7 @@ function impLoai_(){ return S._impLoai||'sp'; }
 function impSetLoai(v){ S._impLoai=v; renderImport(); }
 // Chọn hạng mục để nhập — gộp thẳng vào ô "Ngành hàng" (trước đây là 1 hàng tab riêng)
 var IMP_LOAI=[['sp','Thiết bị đèn · sản phẩm'],['vs','Thiết bị vệ sinh · sản phẩm'],
-  ['son','Sơn nước · sản phẩm'],['ct','Công tắc - ổ cắm · sản phẩm'],['pt','Xây dựng · công tác phần thô']];
+  ['son','Sơn nước · sản phẩm'],['ct','Công tắc - ổ cắm · sản phẩm'],['dl','Điện lạnh · sản phẩm'],['pt','Xây dựng · công tác phần thô']];
 /* Ô chọn NGÀNH HÀNG ở trang Nhập dữ liệu — dựng đúng dáng ô chọn hạng mục
    (nhãn + ô viền tròn kèm số đếm) để cả web chỉ còn một kiểu ô chọn. */
 function impNganhDem_(v){
@@ -827,7 +856,7 @@ function renderImport(){
     +dbCard_('Nhập biến thể (tuỳ chọn)','sliders','Nhập nhiều giá trị cách nhau bằng dấu phẩy — hệ thống tạo 1 sản phẩm cho MỖI tổ hợp (cùng mã SP, khác thông số).',
       '<div class="dbgrid">'
       // Ba trục dưới chỉ có nghĩa với ĐÈN — ngành vệ sinh chỉ tách biến thể theo MÀU
-      +((impLoai_()==='ct') ? ''
+      +((impLoai_()==='ct'||impLoai_()==='dl') ? ''
         :(impLoai_()==='son')
         ?'<div class="field"><label>Quy cách (dung tích)</label><input id="varSize" placeholder="VD: 1L, 5L, 18L" oninput="varPreview_()"></div>'
         :(impLoai_()==='vs')
@@ -852,6 +881,8 @@ function renderImport(){
       '<div class="imp-file-row" id="impFileRow">'
       +((impLoai_()==='vs')
         ?'<a class="btn ghost sm" href="/mau-nhap-thiet-bi-ve-sinh.xlsx" download="Mau-nhap-thiet-bi-ve-sinh-DezonQS.xlsx">'+icon('download',14)+' Tải file mẫu thiết bị vệ sinh</a>'
+        :(impLoai_()==='dl')
+        ?'<a class="btn ghost sm" href="/mau-nhap-dien-lanh.xlsx" download="Mau-nhap-dien-lanh-DezonQS.xlsx" title="1 file cho điều hoà, vật tư lắp đặt và thông gió — cột HẠNG MỤC quyết định bộ thông số">'+icon('download',14)+' Tải file mẫu điện lạnh</a>'
         :(impLoai_()==='ct')
         ?'<a class="btn ghost sm" href="/mau-nhap-cong-tac-o-cam.xlsx" download="Mau-nhap-cong-tac-o-cam-DezonQS.xlsx" title="1 file cho cả ổ cắm và công tắc — cột HẠNG MỤC quyết định bộ thông số">'+icon('download',14)+' Tải file mẫu công tắc - ổ cắm</a>'
         :(impLoai_()==='son'
@@ -1156,8 +1187,8 @@ async function impPick(input){
       // File vệ sinh / sơn nước mà ô Ngành hàng đang để Thiết bị đèn -> tự nhận theo cột HẠNG MỤC
       if(!S._impNganh){
         var ps=res.products||[], hmRaw=function(p){ return (p._raw||{})['HẠNG MỤC']||p.hangMuc; };
-        var doan=[['vs',VS_SPEC,'THIẾT BỊ VỆ SINH','Thiết bị vệ sinh'],['son',SON_SPEC,'SƠN NƯỚC','Sơn nước'],['ct',CT_SPEC,'CÔNG TẮC - Ổ CẮM','Công tắc - ổ cắm']].filter(function(x){
-          return ps.length && ps.filter(function(p){ return x[1].chuanHM(hmRaw(p)); }).length*2>=ps.length; })[0];
+        var doan=[['vs',VS_SPEC,'THIẾT BỊ VỆ SINH','Thiết bị vệ sinh'],['son',SON_SPEC,'SƠN NƯỚC','Sơn nước'],['ct',CT_SPEC,'CÔNG TẮC - Ổ CẮM','Công tắc - ổ cắm'],['dl',DL_SPEC,'ĐIỆN LẠNH','Điện lạnh']].filter(function(x){
+          return ps.length && ps.filter(function(p){ return x[1].chuanHM(hmRaw(p))||(x[1].laChung&&x[1].laChung(hmRaw(p))); }).length*2>=ps.length; })[0];
         if(doan){ S._impNganh=doan[0]; ps.forEach(function(p){ p._nganh=doan[0]; });
           S._impLoai=doan[0]; renderImport(); pv=document.getElementById('impPreview');
           toast('File là '+doan[2]+' (theo cột Hạng mục) — đã tự chuyển ngành hàng sang '+doan[3]); } }
@@ -1340,7 +1371,7 @@ async function tdSave(btn){
   data['NGÀNH HÀNG']=laVS?ngIn:'den';        // đóng dấu ngành -> SP về đúng đề mục trên cây
   var ten=String(data['TÊN SẢN PHẨM']||'').trim(); if(!ten){ toast('Nhập Tên sản phẩm'); return; }
   if(laVS){
-    if(!hmVS){ toast('Chọn Hạng mục '+(ngIn==='son'?'sơn nước':(ngIn==='ct'?'công tắc - ổ cắm':'thiết bị vệ sinh'))); return; }
+    if(!hmVS){ toast('Chọn Hạng mục '+(ngIn==='son'?'sơn nước':(ngIn==='ct'?'công tắc - ổ cắm':(ngIn==='dl'?'điện lạnh':'thiết bị vệ sinh')))); return; }
     var thieu=SPEC.HM[hmVS].req.filter(function(lb){ return !data[lb]; });
     // biến thể theo màu / kích thước điền ở khối Biến thể thì không tính là thiếu
     if(varList_('varColor').length) thieu=thieu.filter(function(lb){ return lb!=='MÀU SẮC'; });
@@ -1381,7 +1412,7 @@ async function tdSave(btn){
     var gia=Number(data['GIÁ BÁN LẺ'])||0, qty=Math.max(1,Number(sl&&sl.value)||1);
     // Đề mục theo NGÀNH đang nhập: vệ sinh -> 3.2.5, đèn -> 3.2.6.1 (trước đây luôn ghi vào
     // 3.2.6.1 nên SP vệ sinh ghi danh xong vào tab Dự án lọc 3.2.5 lại không thấy).
-    var ndGhi=(impLoai_()==='son')?'3.2.2':((impLoai_()==='ct')?'3.2.6.2':((impLoai_()==='vs')?'3.2.5':'3.2.6.1'));
+    var ndGhi=(impLoai_()==='son')?'3.2.2':((impLoai_()==='ct')?'3.2.6.2':((impLoai_()==='dl')?'3.2.7':((impLoai_()==='vs')?'3.2.5':'3.2.6.1')));
     items[0].ghi={ maDA:ps.value, qty:qty, prod:{ ten:ten, ma:data['MÃ SẢN PHẨM']||'', thuongHieu:data['THƯƠNG HIỆU']||'', ncc:data['NHÀ CUNG CẤP']||'',
       moTa:data['MÔ TẢ']||'', kichThuoc:data['KÍCH THƯỚC']||'', dvt:data['ĐƠN VỊ TÍNH']||'Cái', hinhAnh:data['ẢNH SẢN PHẨM']||'',
       donGiaVon:gia, donGiaBan:gia, nhom:ndGhi, hangMuc:nodeName(ndGhi), loai:nodeName(ndGhi), tang:'', extra:{nganh:data['DÒNG SẢN PHẨM']||''} } };

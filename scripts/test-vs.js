@@ -130,6 +130,33 @@ const VS=require(R('public/vs-spec.js')), st=require(R('server/store_supa')), st
     ok(pC.moTa==='Loại cấu kiện: Hạt / nhân thiết bị\nSố nút: 2\nMàu sắc: Trắng\nBảo hành: 2 năm','ct: thông tin chính '+JSON.stringify(pC.moTa));
     ok(pC.kichThuoc==='Dòng điện định mức (A): 16\nKích thước mặt (R x C x D): 86 x 86 x — mm','ct: thông số thiết kế '+JSON.stringify(pC.kichThuoc)); }
 
+  console.log('10. Điện lạnh (public/dl-spec.js)');
+  { const DL=require(R('public/dl-spec.js')), tplD=require(R('server/ct-template')), MAP=require(R('scripts/supa-to-pg/map.js'));
+    const colsD=Object.values(DL.METRIC).map(m=>m[0]); ok(new Set(colsD).size===colsD.length,'dl: trùng cột DB');
+    const khac=[VS,require(R('public/son-spec.js')),require(R('public/ct-spec.js'))];
+    Object.keys(DL.METRIC).forEach(lb=>ok(!khac.some(S=>S.METRIC[lb]),'dl: nhãn trùng ngành khác '+lb));
+    for(const hm of DL.HANG_MUC){ const h=DL.HM[hm];
+      [...h.chinh,...h.tk,...h.req].forEach(lb=>ok(DL.METRIC[lb],hm+': nhãn lạ '+lb));
+      [...h.nhom.ttc,...h.nhom.tsk].forEach(lb=>ok(lb[0]==='@'||DL.METRIC[lb],hm+': nhãn bảng lạ '+lb));
+      ok(h.req.every(lb=>h.mau[lb]), hm+': dòng mẫu thiếu bắt buộc');
+      ok(!khac.some(S=>S.chuanHM(hm)), hm+': trùng tên hạng mục ngành khác'); }
+    // cột DB của spec phải có bảng Postgres (map.js DL_COLS -> db/pg/dien_lanh.sql)
+    const viet=Object.values(MAP.DL_COLS), sqlD=require('fs').readFileSync(R('db/pg/dien_lanh.sql'),'utf8');
+    colsD.forEach(c=>ok(viet.includes(c),'dl: cột '+c+' chưa có trong map.js DL_COLS'));
+    Object.keys(MAP.DL_COLS).forEach(c=>ok(new RegExp('\\b'+c+'\\b').test(sqlD),'dl: cột '+c+' chưa có trong dien_lanh.sql'));
+    ok(DL.doanHM('Điện lạnh','Cách nhiệt ống gas Ø6.4')==='Cách nhiệt ống đồng' && DL.doanHM('Điện lạnh','Dàn lạnh âm trần Cassette Multi 1.0HP')==='Điều hoà không khí'
+      && DL.doanHM('Điện lạnh','Quạt hút WC')==='Quạt hút / thông gió','dl: đoán hạng mục theo tên');
+    const bufD=Buffer.from(await tplD.buildDlTemplate());
+    const rD=await store.importParse(bufD.toString('base64'),'xlsx','dl'); ok(rD.count===0,'dl: dòng ví dụ phải tự bỏ qua, thực tế '+rD.count);
+    db=[]; const cD=await st.importCommit(null,[
+      {ten:'ML',_raw:{'TÊN SẢN PHẨM':'Máy lạnh treo tường','MÃ SẢN PHẨM':'ML1','HẠNG MỤC':'Điều hòa không khí','LOẠI MÁY':'Treo tường','CÔNG SUẤT (HP)':'2','XUẤT XỨ':'Malaysia','QUY CÁCH':'x','BẢO HÀNH (năm)':'2'}},
+      {ten:'Thiếu',_nganh:'dl',_raw:{'TÊN SẢN PHẨM':'Thiếu','MÃ SẢN PHẨM':'ML2','HẠNG MỤC':'Điều hoà không khí'}}]);
+    ok(cD.inserted===1 && cD.errors && cD.errors.length===1,'dl: commit '+JSON.stringify(cD));
+    ok(db[0].nganh==='dl' && db[0].hang_muc==='Điều hoà không khí' && db[0].cs_hp==='2' && !db[0].quy_cach_vt,'dl: đóng dấu ngành + bỏ cột module khác '+JSON.stringify(db[0]));
+    const pD=(await st.getProducts())[0];
+    ok(pD.nganh==='dl' && pD.muc==='Điện lạnh','dl: prodToObj '+pD.nganh+'/'+pD.muc);
+    ok(pD.moTa==='Loại máy: Treo tường\nCông suất (HP): 2\nXuất xứ: Malaysia\nBảo hành: 2 năm','dl: thông tin chính '+JSON.stringify(pD.moTa)); }
+
   console.log('8. Combo 2 chiều: số lượng đặt ở phía nào hiện đúng ở phía đó');
   { let cb=[], cid=0; const sp=[{id:1,ma_sp:'A',ten_sp:'A'},{id:2,ma_sp:'B',ten_sp:'B'}];
     const idOf=(f,c)=>{ const m=new RegExp('(?:^|&)'+c+'=eq\\.(\\d+)').exec(f||''); return m?+m[1]:null; };

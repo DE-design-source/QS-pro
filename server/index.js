@@ -814,6 +814,16 @@ app.get('/mau-nhap-cong-tac-o-cam.xlsx', async function (req, res) {
     res.send(Buffer.from(buf));
   } catch (e) { res.status(500).send('Lỗi tạo file mẫu: ' + (e && e.message)); }
 });
+// File mẫu nhập hàng loạt ĐIỆN LẠNH — tạo động từ public/dl-spec.js (?hm=<hạng mục> -> chỉ cột của hạng mục đó)
+app.get('/mau-nhap-dien-lanh.xlsx', async function (req, res) {
+  try {
+    const buf = await require('./ct-template').buildDlTemplate(String((req.query && req.query.hm) || '').trim());
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="Mau-nhap-dien-lanh-DezonQS.xlsx"');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.send(Buffer.from(buf));
+  } catch (e) { res.status(500).send('Lỗi tạo file mẫu: ' + (e && e.message)); }
+});
 // File mẫu nhập hàng loạt SƠN NƯỚC — tạo động từ public/son-spec.js (1 sheet "San pham" như mẫu đèn)
 app.get('/mau-nhap-son-nuoc.xlsx', async function (req, res) {
   try {

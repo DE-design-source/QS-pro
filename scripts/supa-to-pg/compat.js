@@ -48,8 +48,8 @@ Object.keys(AUTO).forEach(function (moi) {
 L.push('');
 
 // ---- 2. db_san_pham = products + 4 bảng thông số ----
-const SP = ['products', 'product_lighting_specs', 'product_paint_specs', 'product_sanitary_specs', 'product_switch_socket_specs'];
-const BI = { products: 'p', product_lighting_specs: 'l', product_paint_specs: 'n', product_sanitary_specs: 'v', product_switch_socket_specs: 'c' };
+const SP = ['products', 'product_lighting_specs', 'product_paint_specs', 'product_sanitary_specs', 'product_switch_socket_specs', 'product_hvac_specs'];
+const BI = { products: 'p', product_lighting_specs: 'l', product_paint_specs: 'n', product_sanitary_specs: 'v', product_switch_socket_specs: 'c', product_hvac_specs: 'h' };
 const spNguoc = {}, spGhi = {};   // cột cũ -> [bảng, cột mới]; bảng -> [[mới, cũ]] ghi được
 const colsSP = Object.assign({}, colsOf('products'), { dealer_price: 'gia_dai_ly' });     // dealer_price tự tính: chỉ đọc
 SP.forEach(function (t) {
@@ -61,7 +61,8 @@ SP.forEach(function (t) {
     if (!COL[t][k].gen && !(t === 'products' && k === 'id')) spGhi[t].push([k, m[k]]);
   });
 });
-const spCu = cotCu('db_san_pham');
+// cột cũ = cột của bản chụp Supabase + cột của ngành thêm SAU khi chuyển (điện lạnh — không có trong bản chụp)
+const spCu = cotCu('db_san_pham'); Object.keys(spNguoc).forEach(function (c) { if (spCu.indexOf(c) < 0) spCu.push(c); });
 spCu.forEach(function (c) { if (!spNguoc[c]) throw new Error('db_san_pham.' + c + ' không có chỗ'); });
 L.push('create view qs.db_san_pham as select ' + spCu.map(function (c) { const x = spNguoc[c]; return BI[x[0]] + '.' + q(x[1]) + (x[1] === c ? '' : ' as ' + q(c)); }).join(', ') +
   ' from public.products p' + SP.slice(1).map(function (t) { return ' left join public.' + t + ' ' + BI[t] + ' on ' + BI[t] + '.product_id = p.id'; }).join('') + ';');

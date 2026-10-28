@@ -142,7 +142,7 @@ async function importParse(base64, ext, nganh) {
      vẫn nhận file kiểu cũ 1 sheet / hạng mục (ô HẠNG MỤC trống thì lấy theo tên sheet). */
   // Ngành có bộ thông số theo hạng mục: 'vs' (thiết bị vệ sinh) · 'son' (sơn nước)
   const VS = nganh === 'vs' ? require('../public/vs-spec.js')
-    : (nganh === 'son' ? require('../public/son-spec.js') : (nganh === 'ct' ? require('../public/ct-spec.js') : null));
+    : (nganh === 'son' ? require('../public/son-spec.js') : (nganh === 'ct' ? require('../public/ct-spec.js') : (nganh === 'dl' ? require('../public/dl-spec.js') : null)));
   const vs = !!VS;
   const sheets = vs ? wb.worksheets.filter(function (w) { return normalize_(w.name) !== 'HUONG DAN'; }) : [wb.worksheets[0]];
   const products = [], headerList = [], seenH = {}, mapped = {};

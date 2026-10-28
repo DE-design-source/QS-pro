@@ -204,6 +204,7 @@ function spNganhCur_(){
   if(nd==='3.2.5') return 'vs';
   if(nd==='3.2.2') return 'son';
   if(nd==='3.2.6.2') return 'ct';
+  if(nd==='3.2.7') return 'dl';
   if(nd==='3.2.6'||nd==='3.2.6.1') return 'den';
   return '';
 }
@@ -212,8 +213,9 @@ function spColFlat_(){
   if(ng==='vs') return DB_FLAT_VS;
   if(ng==='son') return DB_FLAT_SON;
   if(ng==='ct') return DB_FLAT_CT;
+  if(ng==='dl') return DB_FLAT_DL;
   if(ng==='den') return DB_FLAT;
-  return DB_FLAT.concat(DB_FLAT_VS).concat(DB_FLAT_SON).concat(DB_FLAT_CT);
+  return DB_FLAT.concat(DB_FLAT_VS).concat(DB_FLAT_SON).concat(DB_FLAT_CT).concat(DB_FLAT_DL);
 }
 function spAllCols_(){
   if(spPTMode_()) return spPTCols_();
@@ -725,6 +727,7 @@ function spColsDefault_(ng){
   var b={thumb:1,ten:1,duyet:1,sku:1,thuong_hieu:1,hang_muc:1,giaDaiLy:1};
   if(ng==='vs'){ b.kich_thuoc=1; b.mau_sac=1; b.kieu_lap_dat=1; b.he_thong_xa=1; return b; }
   if(ng==='ct'){ b.thanh_phan=1; b.mau_sac=1; b.dong_dm_a=1; b.kieu_lap_dat=1; return b; }      // công tắc - ổ cắm
+  if(ng==='dl'){ b.loai_may=1; b.cs_hp=1; b.cs_lanh_kw=1; b.quy_cach_vt=1; return b; }             // điện lạnh
   if(ng==='son'){ b.mau_sac=1; b.be_mat=1; b.do_phu=1; b.kich_thuoc=1; return b; }      // sơn nước: không có công suất / K / CRI
   b.cong_suat_w=1; b.nhiet_do_mau_k=1; b.cri=1; b.goc_chieu_deg=1; return b;
 }
@@ -734,7 +737,7 @@ function spColsSync_(){
   if(S._spColsNganh===ng && S._spCols) return;
   S._spColsNganh=ng;
   var luu=null;
-  try{ var j=JSON.parse(localStorage.getItem('qs_spcolcfg')||'{}'); luu=(ng==='vs')?j.onVs:(ng==='son'?j.onSon:(ng==='ct'?j.onCt:j.on)); }catch(e){}
+  try{ var j=JSON.parse(localStorage.getItem('qs_spcolcfg')||'{}'); luu=(ng==='vs')?j.onVs:(ng==='son'?j.onSon:(ng==='ct'?j.onCt:(ng==='dl'?j.onDl:j.on))); }catch(e){}
   S._spCols=(luu&&Object.keys(luu).length)?luu:spColsDefault_(ng);
 }
 function spOrder_(){
@@ -760,7 +763,7 @@ function spSaveCols_(){
       var j={}; try{ j=JSON.parse(localStorage.getItem('qs_spcolcfg')||'{}')||{}; }catch(e2){}
       j.order=S._spOrder; j.w=S._spW||{};
       var on=(S._spEdit&&S._spColsBak)||S._spCols||{};   // đang Edit (bật hết cột) -> lưu bộ cột thật của người dùng
-      if(S._spColsNganh==='vs') j.onVs=on; else if(S._spColsNganh==='son') j.onSon=on; else if(S._spColsNganh==='ct') j.onCt=on; else j.on=on;
+      if(S._spColsNganh==='vs') j.onVs=on; else if(S._spColsNganh==='son') j.onSon=on; else if(S._spColsNganh==='ct') j.onCt=on; else if(S._spColsNganh==='dl') j.onDl=on; else j.on=on;
       localStorage.setItem('qs_spcolcfg',JSON.stringify(j));
     }
   }catch(e){}
@@ -1958,6 +1961,7 @@ var DB_LABEL2COL_={
 Object.keys(VS_SPEC.METRIC).forEach(function(lb){ if(!DB_LABEL2COL_[lb]) DB_LABEL2COL_[lb]=VS_SPEC.METRIC[lb][0]; });
 Object.keys(SON_SPEC.METRIC).forEach(function(lb){ if(!DB_LABEL2COL_[lb]) DB_LABEL2COL_[lb]=SON_SPEC.METRIC[lb][0]; });
 Object.keys(CT_SPEC.METRIC).forEach(function(lb){ if(!DB_LABEL2COL_[lb]) DB_LABEL2COL_[lb]=CT_SPEC.METRIC[lb][0]; });
+Object.keys(DL_SPEC.METRIC).forEach(function(lb){ if(!DB_LABEL2COL_[lb]) DB_LABEL2COL_[lb]=DL_SPEC.METRIC[lb][0]; });
 Object.assign(DB_LABEL2COL_,{'THÔNG SỐ KỸ THUẬT':'thong_so_file','HƯỚNG DẪN CÀI ĐẶT':'huong_dan_lap_dat','FILE BẢN VẼ':'file_ban_ve'});   // db/tai_lieu_sp.sql
 var SP_COL2LABEL_={}; Object.keys(DB_LABEL2COL_).forEach(function(k){ SP_COL2LABEL_[DB_LABEL2COL_[k]]=k; });
 // Dựng 1 ô nhập trong modal Sửa theo ĐÚNG định nghĩa của form Nhập (nhãn, kiểu, gợi ý, danh sách chọn)
@@ -2203,6 +2207,7 @@ function spMauDots_(mau){
      sơn nước : Mã · Màu · Bề mặt · Dung tích · Giá · Chiết khấu   (bề mặt khác nhau thường có MÃ riêng: Mờ GJ8 · Bóng GJ8B)
      vệ sinh  : Mã · Màu · Kích thước · Giá · Chiết khấu
      công tắc - ổ cắm : Mã · Màu · Giá · Chiết khấu
+     điện lạnh : Mã · Giá · Chiết khấu
    Máy chủ chặn trùng theo MÃ + nhiệt độ màu + công suất + góc chiếu + màu + kích thước -> trùng thì báo lại, không ghi đè. */
 var NBT_BM=['Bề mặt bóng','Bóng mờ','Mờ','Siêu mờ','Siêu bóng','Bán bóng'];
 function nbtCot_(p){
@@ -2215,6 +2220,7 @@ function nbtCot_(p){
     {k:'kt',lb:'Dung tích',db:'KÍCH THƯỚC',raw:'kich_thuoc',ph:'VD: 5L',w:'.8fr'},gia,ck];
   if(ng==='vs') return [ma,mau,{k:'kt',lb:'Kích thước',db:'KÍCH THƯỚC',raw:'kich_thuoc',ph:'VD: L580 x W380',w:'1.1fr'},gia,ck];
   if(ng==='ct') return [ma,mau,gia,ck];
+  if(ng==='dl') return [ma,gia,ck];             // điện lạnh: mỗi model 1 mã riêng
   // đèn: màu lấy theo SP gốc (thường cùng màu vỏ), khác màu thì sửa
   return [ma,{k:'cs',lb:'Công suất',db:'CÔNG SUẤT (W)',raw:'cong_suat_w',ph:'VD: 7W',w:'.8fr'},
     {k:'nd',lb:'Nhiệt độ màu',db:'NHIỆT ĐỘ MÀU (K)',raw:'nhiet_do_mau_k',ph:'VD: 3000K',w:'.9fr'},
